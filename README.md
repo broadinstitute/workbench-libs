@@ -1,2 +1,2 @@
-# workbench-utils
+# workbench-libs
 Workbench utility libraries
