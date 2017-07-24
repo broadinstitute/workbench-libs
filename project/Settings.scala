@@ -31,6 +31,10 @@ object Settings {
     "-language:postfixOps"
   )
 
+  val commonCrossCompileSettings = Seq(
+    crossScalaVersions := List("2.11.8", "2.12.2")
+  )
+
   //sbt assembly settings
   val commonAssemblySettings = Seq(
     assemblyMergeStrategy in assembly := customMergeStrategy((assemblyMergeStrategy in assembly).value),
@@ -39,7 +43,7 @@ object Settings {
 
   //common settings for all sbt subprojects
   val commonSettings =
-    commonBuildSettings ++ commonAssemblySettings ++ commonTestSettings ++ List(
+    commonBuildSettings ++ commonAssemblySettings ++ commonTestSettings ++ commonCrossCompileSettings ++ List(
     organization  := "org.broadinstitute.dsde.workbench",
     scalaVersion  := "2.12.2",
     resolvers ++= commonResolvers,
