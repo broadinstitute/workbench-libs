@@ -12,4 +12,4 @@ script:
 - SBT_OPTS=-Xmx3g sbt clean coverage test coverageReport -Denv.type=test && SBT_OPTS=-Xmx3g sbt coverageAggregate
 after_success:
 - SBT_OPTS=-Xmx3g sbt coveralls
-- sbt +publish
+- bash scripts/publish.sh
