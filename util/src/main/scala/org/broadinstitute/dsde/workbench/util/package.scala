@@ -1,4 +1,4 @@
-package org.broadinstitute.dsde.rawls
+package org.broadinstitute.dsde.workbench
 
 import scala.concurrent.duration._
 
