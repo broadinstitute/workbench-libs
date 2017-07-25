@@ -1,4 +1,4 @@
-package org.broadinstitute.dsde.rawls.util
+package org.broadinstitute.dsde.workbench.util
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success, Try}

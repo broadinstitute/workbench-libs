@@ -5,7 +5,7 @@ lazy val workbenchUtil = project.in(file("util"))
   .settings(utilSettings:_*)
   .withTestSettings
 
-lazy val root = project.in(file("."))
+lazy val workbenchLibs = project.in(file("."))
   .settings(rootSettings:_*)
   .aggregate(workbenchUtil)
 

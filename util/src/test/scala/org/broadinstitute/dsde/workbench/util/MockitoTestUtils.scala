@@ -1,4 +1,4 @@
-package org.broadinstitute.dsde.rawls.util
+package org.broadinstitute.dsde.workbench.util
 
 import org.mockito.ArgumentCaptor
 import org.scalatest.mockito.MockitoSugar

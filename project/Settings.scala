@@ -59,6 +59,6 @@ object Settings {
     version := createVersion("0.1")
   ) ++ publishSettings
 
-  val rootSettings = commonSettings ++ noPublishSettings
+  val rootSettings = commonSettings ++ noPublishSettings ++ noTestSettings
 
 }
