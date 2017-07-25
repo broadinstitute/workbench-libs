@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/broadinstitute/workbench-libs.svg?branch=develop)](https://travis-ci.org/broadinstitute/workbench-libs) [![Coverage Status](https://coveralls.io/repos/github/broadinstitute/workbench-libs/badge.svg?branch=develop)](https://coveralls.io/github/broadinstitute/workbench-libs?branch=develop)
+
 # workbench-libs
 Workbench utility libraries. In this repo:
 
