@@ -1,16 +1,15 @@
 jdk:
-  - oraclejdk8
-
+- oraclejdk8
 language: scala
-
 scala:
-  - 2.12.2
-
+- 2.12.2
 sudo: required
-
+env:
+  global:
+  - secure: ENCAvNTIVtMKDyg3Y266t+Wjc9aqoOUzceVa6ve66uQZ64sIY0Fm5iAiT549RBf/zICb4YF8RQBBEo3X6Wht3bEWi3ZrcmBdUJIUfGQWwunXME3oNy9J/K6rW2CictlJER+l7MXkV4ky+Hqt0seBfrY8/c7XOjdE7WPeecSkQdQw56OfTB5SDbLUBdWdtTXMDCrOzXKFwRD+mpa0AEfI9GFRTkPsVqgd4bbVxuoo41UuH6kOnLCCGfkJcqG0dT66SueOPnCHFrhaIUx+8i6Ue6G1EyXJMMh6JPmpr5erbWITV3arLLonav5cluKU9Nv+I9ENRPdV1nruRITrQwkuuqKm5gVU97x7dteTvNGhzLpekFzBenMEeZ6tSoqIPNEzJI+F71f2sivFn0HKsKFnvy8due+b7K8Fo8kyaU6OxKcHapiC91It1+VUTUMsIoNXXNYy5vr3f4zXgxQOzvGz6VxvEEzU0N2YceF3DhvzOWsG/hbSGG32jyx7IK7AjCB+o1g1wdWCx5s0XJL4LBHsiEe5nJ6b6NUWGKxcevzh+Yf78VFVBwqC0y57BFAuhgBNSE+oyEwLLNwfWyG1Ln8gqiXeAnvc0dJybDcDkDrMAaPL/guqVXiTg4bfOZuLCOls7MJm+kGyMhr5oYh0bnqCqkEBHodkmmwv21L2X9v5wHE=
+  - secure: QE0r1suc66GyyUfNGDqyVgz+lON9GVXU4SSNC3M8uUerAiTNsiAuBUrpG17jQKvFkpcAhuv5kRuOgVnVg497Os+SbZGgkxI2KVvitJNEhA/+OZLf5PyggrM5w3NNYoP2ZI9yRExnr8oPIaDygGchKoDY/jYTwtVWr4nMgonazwezMdS4A0MyHxTI3y3zsbQJzAbkZ++ftBzML/Rhf1M/Sm5HSDpchexXIIyfq27pOfAwCWJ0kFuFYDtPgu71Jke3kM/OelSbLQzkatxdQezRHP5WG4VR2oVcexmxPP4AXRlNocD/Jvu1LYCxfUpMbfSPO5GYTEuhd84QpaGvM1Trv6+LIQYu+CsEv3Py+b+Qnf019P5Yx6M6msnqWmZyLzjFWdvLwcyjkO2YBji++SblNJ+QGoEMGW3FxfxhoXlPdogCDkJkbzouhaMSdgFTvJYHTdBwPNDTzzbl9HoNLIyemg1PJVnOieqzy2vLAsUpo89BapSo2hE3j4sNyPJfea+ljx/yQXbKnNn4TezUyOBrsWGB+rUrr1NOswWcUr01tv3I82+XajOCup24qH1F8ntt80bGa62fORpEK0o4ZtCWGhfY35dn80VSot2xh29CKnQl+kzUwbl7wva/3gveXEQNu52ScZSlZCklQuYFOrDYTVgwL4WbHbRxXMSlxtSt1ME=
 script:
-  - SBT_OPTS=-Xmx3g sbt clean coverage test coverageReport -Denv.type=test && SBT_OPTS=-Xmx3g sbt coverageAggregate
-
+- SBT_OPTS=-Xmx3g sbt clean coverage test coverageReport -Denv.type=test && SBT_OPTS=-Xmx3g sbt coverageAggregate
 after_success:
-  - SBT_OPTS=-Xmx3g sbt coveralls
-  #todo: artifactory push
+- SBT_OPTS=-Xmx3g sbt coveralls
+- sbt +publish

@@ -5,6 +5,10 @@ lazy val workbenchUtil = project.in(file("util"))
   .settings(utilSettings:_*)
   .withTestSettings
 
+lazy val root = project.in(file("."))
+  .settings(rootSettings:_*)
+  .aggregate(workbenchUtil)
+
 Revolver.settings
 
 Revolver.enableDebugging(port = 5051, suspend = false)
