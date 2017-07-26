@@ -13,15 +13,18 @@ object Dependencies {
 
   val akkaHttpSprayJson: ModuleID = "com.typesafe.akka"   %%  "akka-http-spray-json" % akkaHttpV
 
-  val utilDependencies = Seq(
-    scalaLogging,
+  val commonDependencies = Seq(
+    scalaLogging
+  )
+
+  val utilDependencies = commonDependencies ++ Seq(
     akkaActor,
     akkaTestkit,
     scalatest,
     mockito
   )
 
-  val modelDependencies = Seq(
+  val modelDependencies = commonDependencies ++ Seq(
     akkaHttpSprayJson
   )
 }
