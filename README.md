@@ -7,6 +7,8 @@ In this repo:
 
 ## workbench-utils
 
+Contains utility functions and classes.
+
 Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util" % "0.1-e8bdfd0"`
 
 [Changelog](util/CHANGELOG.md)
@@ -20,7 +22,9 @@ Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util" 
 
 ## workbench-model
 
-Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-model" % "0.1-xxxx"`
+Contains generic, externally-facing model classes used across Workbench.
+
+Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-model" % "0.1-xxxxxxx"`
 
 [Changelog](model/CHANGELOG.md)
 
@@ -28,7 +32,7 @@ NOTE: This library uses akka-http's implementation of spray-json and is therefor
 
 #### Contents
 
-- ErrorReport
+- `ErrorReport`
 
 ## workbench-google
 
