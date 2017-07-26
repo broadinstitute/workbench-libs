@@ -1,7 +1,13 @@
 package org.broadinstitute.dsde.workbench.util
 
+import java.util.concurrent.TimeoutException
+
+import akka.actor.ActorContext
+
+import scala.concurrent.duration.FiniteDuration
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success, Try}
+import akka.pattern.after
 
 /**
  * Created by dvoet on 10/5/15.
@@ -25,5 +31,18 @@ trait FutureSupport {
     if (failures.isEmpty) Future.successful(tries.map { case (k, v) => k -> v.get}) else Future.failed(failures.head)
   }
 
+  /**
+    * Adds non-blocking timeout support to futures.
+    * Example usage:
+    * {{{
+    *   val future = Future(Thread.sleep(1000*60*60*24*365)) // 1 year
+    *   Await.result(future.withTimeout(5 seconds, "Timed out"), 365 days)
+    *   // returns in 5 seconds
+    * }}}
+    */
+  implicit class FutureWithTimeout[A](f: Future[A]) {
+    def withTimeout(duration: FiniteDuration, errMsg: String)(implicit context: ActorContext): Future[A] =
+      Future.firstCompletedOf(Seq(f, after(duration, context.system.scheduler)(Future.failed(new TimeoutException(errMsg)))))
+  }
 
 }
