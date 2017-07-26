@@ -3,11 +3,11 @@ package org.broadinstitute.dsde.workbench.util
 import java.util.concurrent.TimeoutException
 
 import akka.actor.ActorContext
+import akka.pattern.after
 
 import scala.concurrent.duration.FiniteDuration
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success, Try}
-import akka.pattern.after
 
 /**
  * Created by dvoet on 10/5/15.
