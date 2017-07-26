@@ -7,9 +7,9 @@ In this repo:
 
 ## workbench-utils
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util" % "0.1-githash"`
+Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util" % "0.1-e8bdfd0"`
 
-Latest version: 0.1. [Changelog](util/CHANGELOG.md)
+[Changelog](util/CHANGELOG.md)
 
 Contains:
 
