@@ -7,6 +7,18 @@ case class ErrorReport(source: String, message: String, statusCode: Option[Statu
 
 case class ErrorReportSource(source: String)
 
+/*
+ * Hello. Are you clicking around frustratedly, wondering why you're getting bizarre compile errors, like this?
+ *    too many arguments (2) for method complete: (m: => akka.http.scaladsl.marshalling.ToResponseMarshallable)akka.http.scaladsl.server.StandardRoute
+ *
+ * Maybe you suspect you're missing an implicit somewhere. It's always implicits. If so, read on.
+ *
+ * You need three magic incantations:
+ * 1. You need to import org.broadinstitute.dsde.workbench.model.ErrorReportJsonSupport._
+ * 2. You need to import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
+ * 3. ErrorReport requires an implicit ErrorReportSource. You should have one of these defined in your project
+ *    somewhere, but perhaps it's not in scope.
+ */
 object ErrorReport {
   def apply(message: String)(implicit source: ErrorReportSource): ErrorReport =
     ErrorReport(source.source,message,None,Seq.empty,Seq.empty, None)
