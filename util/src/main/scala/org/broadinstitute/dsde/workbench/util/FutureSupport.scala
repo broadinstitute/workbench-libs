@@ -41,7 +41,7 @@ trait FutureSupport {
     * }}}
     */
   implicit class FutureWithTimeout[A](f: Future[A]) {
-    def withTimeout(duration: FiniteDuration, errMsg: String)(implicit context: ActorContext): Future[A] =
+    def withTimeout(duration: FiniteDuration, errMsg: String)(implicit context: ActorContext, ec: ExecutionContext): Future[A] =
       Future.firstCompletedOf(Seq(f, after(duration, context.system.scheduler)(Future.failed(new TimeoutException(errMsg)))))
   }
 
