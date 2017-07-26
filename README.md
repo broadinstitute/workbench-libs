@@ -11,12 +11,24 @@ Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util" 
 
 [Changelog](util/CHANGELOG.md)
 
-Contains:
+#### Contents
 
 - Exponential backoff retries
 - `FutureSupport.toFutureTry`, a function which turns `Future[T]` into a `Future.successful()` with the `Try` containing the status of the `Future`. 
 - `MockitoTestUtils.captor`, some Scala sugar for Mockito's `ArgumentCaptor`
     - To use this, additionally depend on `("org.broadinstitute.dsde.workbench" %% "workbench-util" % "0.x-githash" % Test).classifier("tests")`
+
+## workbench-model
+
+Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-model" % "0.1-xxxx"`
+
+[Changelog](model/CHANGELOG.md)
+
+NOTE: This library uses akka-http's implementation of spray-json and is therefore not compatible with spray, which you shouldn't be using anyway because it is no longer being maintained.
+
+#### Contents
+
+- ErrorReport
 
 ## workbench-google
 

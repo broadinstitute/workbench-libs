@@ -50,12 +50,15 @@ object Settings {
     scalacOptions ++= commonCompilerSettings
   )
 
-  //the full list of settings for the workbenchUtil project (see build.sbt)
-  //coreDefaultSettings (inside commonSettings) sets the project name, which we want to override, so ordering is important.
-  //thus commonSettings needs to be added first.
   val utilSettings = commonSettings ++ List(
     name := "workbench-util",
     libraryDependencies ++= utilDependencies,
+    version := createVersion("0.1")
+  ) ++ publishSettings
+
+  val modelSettings = commonSettings ++ List(
+    name := "workbench-model",
+    libraryDependencies ++= modelDependencies,
     version := createVersion("0.1")
   ) ++ publishSettings
 
