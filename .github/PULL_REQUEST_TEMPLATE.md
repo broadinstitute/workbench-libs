@@ -13,4 +13,4 @@ In all cases:
 - [ ] Delete branch after merge
 
 After merging, _even if you haven't bumped the version_: 
-- [ ] Update `README.md` and the `CHANGELOG.md` for any libs you changed with the new dependency string. (You can commit these changes straight to develop.)
+- [ ] Update `README.md` and the `CHANGELOG.md` for any libs you changed with the new dependency string. The git hash is the same short version you see in GitHub (i.e. seven characters). You can commit these changes straight to develop.
