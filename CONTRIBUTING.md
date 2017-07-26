@@ -7,7 +7,7 @@ If you are making breaking API changes, do the first one of these that you can:
 1. Don't make breaking API changes.
 2. Mark functionality as `@deprecated` but don't change it. Explain how to upgrade in the deprecation message.
 3. Mark functionality as `@deprecated` and change its behavior as little as possible (i.e. provide a similar (or sensible-default) implementation). Explain both the difference in behavior _and_ how to upgrade in the deprecation message.
-4. Only if a similar or sensible-default implementation using the same API impossible: remove the functionality entirely to cause an error in downstream code. This should be rare (and requires a major version bump).
+4. Only if a similar or sensible-default implementation using the same API is impossible: remove the functionality entirely to cause an error in downstream code. This should be rare (and requires a major version bump).
 
 ## Versioning
 
@@ -21,6 +21,8 @@ Major and minor version increments also require a **GitHub release**. To do this
 
 Users can drop-in replace the updated version of this library without making any code changes. Their code will continue to work as before.
 
+Examples where no version bump is necessary include:
+
 - Obvious bugfixes
 - Addition of optional parameters to existing, publicly accessible classes or functions that only modify behavior when specified
 - Addition of new public functions on classes
@@ -30,11 +32,15 @@ Users can drop-in replace the updated version of this library without making any
 
 Users can drop-in replace the updated version of this library without making any code changes. However, they may encounter deprecation warnings or minor changes to behavior. They may also have to update their imports.
 
+Examples where a minor version bump is necessary include:
+
 - Changes to the public API of any function or class
 - Moving classes between packages
 - Behavioral changes
 
 ### Major version bump
+
+Examples where a major version bump is necessary include:
 
 - Deletion of anything in the public API (functions, classes, etc)
 - Movement of classes between libraries
