@@ -15,11 +15,13 @@ Developers should take care to increment library versions when the library chang
 
 To do this, find the `val xxxSettings =` block in `project/Settings.scala` for the library you are incrementing, and change the string inside the call to `createVersion()` using the scheme outlined below.
 
-You should also update the "latest release" section of `README.md` and document your changes and upgrade path `<yourlib>/CHANGELOG.md`. See [keepachangelog.com](http://keepachangelog.com/) for some guidance.
+You should also update `README.md` and document your changes and upgrade path at `<yourlib>/CHANGELOG.md`. See [keepachangelog.com](http://keepachangelog.com/) for some guidance on the latter.
 
 ### No version bump necessary
 
 Users can drop-in replace the updated version of this library without making any code changes. Their code will continue to work as before.
+
+You will still need to update `README.md` with the latest hash after you merge to develop.
 
 Examples where no version bump is necessary include:
 

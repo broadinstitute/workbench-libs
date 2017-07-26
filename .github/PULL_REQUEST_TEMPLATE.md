@@ -1,0 +1,16 @@
+Before you start:
+- [ ] For each library you've modified here, decide whether it requires a major, minor, or no version bump. (Click [here](/CONTRIBUTING.md) for guidance)
+
+If you're doing a **major** or **minor** version bump to any libraries:
+- [ ] Bump the version in `project/Settings.scala` `createVersion()`
+- [ ] Update `CHANGELOG.md` for those libraries
+- [ ] I promise I used `@deprecated` instead of deleting code where possible
+
+In all cases:
+- [ ] Get two thumbsworth of PR review
+- [ ] Verify all tests go green, including CI tests
+- [ ] Squash commits and **merge to develop**
+- [ ] Delete branch after merge
+
+After merging, _even if you haven't bumped the version_: 
+- [ ] Update `README.md` and the `CHANGELOG.md` for any libs you changed with the new dependency string. (You can commit these changes straight to develop.)

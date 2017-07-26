@@ -4,6 +4,8 @@ This file documents changes to the `workbench-util` library, including notes on 
 
 ## 0.1
 
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util" % "0.1-githash"`
+
 ### Added
 
 - This project
