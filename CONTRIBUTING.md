@@ -15,7 +15,7 @@ Developers should take care to increment library versions when the library chang
 
 To do this, find the `val xxxSettings =` block in `project/Settings.scala` for the library you are incrementing, and change the string inside the call to `createVersion()` using the scheme outlined below.
 
-Major and minor version increments also require a **GitHub release**. To do this, go [here](https://github.com/broadinstitute/workbench-libs/releases/new), and create a new tag `vX.Y` pointing at the relevant commit on develop. Write release notes explaining the changes and how to upgrade.
+You should also update the "latest release" section of `README.md` and document your changes and upgrade path `<yourlib>/CHANGELOG.md`. See [keepachangelog.com](http://keepachangelog.com/) for some guidance.
 
 ### No version bump necessary
 
