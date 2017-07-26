@@ -17,3 +17,11 @@ Contains:
 - `FutureSupport.toFutureTry`, a function which turns `Future[T]` into a `Future.successful()` with the `Try` containing the status of the `Future`. 
 - `MockitoTestUtils.captor`, some Scala sugar for Mockito's `ArgumentCaptor`
     - To use this, additionally depend on `("org.broadinstitute.dsde.workbench" %% "workbench-util" % "0.x-githash" % Test).classifier("tests")`
+
+## workbench-google
+
+Coming soon!
+
+## workbench-metrics
+
+Coming soon!
