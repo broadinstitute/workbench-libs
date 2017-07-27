@@ -22,12 +22,12 @@ class FutureSupportSpec extends FlatSpecLike with BeforeAndAfterAll with Matcher
     val failFuture = Future.failed(new RuntimeException)
     
     whenReady( toFutureTry(failFuture) ) { t =>
-      t shouldBe a 'failure
+      t shouldBe a [Failure[_]]
     }
   }
   
   "assertSuccessfulTries" should "return a successful Future when given an empty map" in {
-    whenReady( assertSuccessfulTries(Map()) ) { m =>
+    whenReady( assertSuccessfulTries(Map.empty[Int, Try[Int]]) ) { m =>
       m shouldBe empty
     }
   }
