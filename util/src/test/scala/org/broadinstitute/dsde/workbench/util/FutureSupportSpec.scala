@@ -22,27 +22,27 @@ class FutureSupportSpec extends FlatSpecLike with BeforeAndAfterAll with Matcher
     val failFuture = Future.failed(new RuntimeException)
     
     whenReady( toFutureTry(failFuture) ) { t =>
-      t should be a 'failure
+      t shouldBe a 'failure
     }
   }
   
   "assertSuccessfulTries" should "return a successful Future when given an empty map" in {
     whenReady( assertSuccessfulTries(Map()) ) { m =>
-      m should be empty
+      m shouldBe empty
     }
   }
   
   "assertSuccessfulTries" should "return a successful Future when all contained tries are successful" in {
     val tries = Map( 1 -> Success(2), 2 -> Success(3) )
     whenReady( assertSuccessfulTries(tries) ) { m =>
-      m should be Map( 1 -> 2, 2 -> 3 )
+      m shouldBe Map( 1 -> 2, 2 -> 3 )
     }
   }
   
   "assertSuccessfulTries" should "return a failed Future when any contained Try is a failure" in {
     val tries = Map( 1 -> Success(2), 2 -> Failure(new RuntimeException) )
     whenReady( assertSuccessfulTries(tries).failed ) { f =>
-      f should be a [RuntimeException]
+      f shouldBe a [RuntimeException]
     }
   }
 }
