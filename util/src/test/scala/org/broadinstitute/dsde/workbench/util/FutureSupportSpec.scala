@@ -3,13 +3,19 @@ package org.broadinstitute.dsde.workbench.util
 import org.scalatest.{BeforeAndAfterAll, FlatSpecLike, Matchers}
 import org.scalatest.TryValues._
 import org.scalatest.concurrent.ScalaFutures
-import scala.concurrent.{ExecutionContext, Future}
+
+import scala.concurrent.{Future, TimeoutException}
+import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.util.{Failure, Success, Try}
-
 import FutureSupport._
+import akka.actor.{ActorSystem, Scheduler}
+import akka.testkit.{TestActor, TestActorRef, TestKit}
 
-class FutureSupportSpec extends FlatSpecLike with BeforeAndAfterAll with Matchers with ScalaFutures {
+class FutureSupportSpec extends TestKit(ActorSystem("FutureSupportSpec")) with FlatSpecLike with BeforeAndAfterAll with Matchers with ScalaFutures {
+  import system.dispatcher
+  implicit val scheduler: Scheduler = system.scheduler
+
   "toFutureTry" should "turn a successful Future into a successful Future(Success)" in {
     val successFuture = Future.successful(2)
     
@@ -43,6 +49,21 @@ class FutureSupportSpec extends FlatSpecLike with BeforeAndAfterAll with Matcher
     val tries = Map( 1 -> Success(2), 2 -> Failure(new RuntimeException) )
     whenReady( assertSuccessfulTries(tries).failed ) { f =>
       f shouldBe a [RuntimeException]
+    }
+  }
+
+  "withTimeout" should "return the future if it completes quickly enough" in {
+    val theFuture = Future{ Thread.sleep(100); 42 }
+    whenReady( theFuture.withTimeout(200 milliseconds, "timeout") ) { f =>
+      f shouldBe 42
+    }
+  }
+
+  "withTimeout" should "timeout if the future takes too long" in {
+    val theFuture = Future{ Thread.sleep(200); 42 }
+    whenReady( theFuture.withTimeout(100 milliseconds, "timeout").failed ) { f =>
+      f shouldBe a [TimeoutException]
+      f.getMessage shouldBe "timeout"
     }
   }
 }

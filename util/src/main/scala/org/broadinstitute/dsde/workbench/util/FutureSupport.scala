@@ -2,7 +2,7 @@ package org.broadinstitute.dsde.workbench.util
 
 import java.util.concurrent.TimeoutException
 
-import akka.actor.ActorContext
+import akka.actor.{ActorContext, Scheduler}
 import akka.pattern.after
 
 import scala.concurrent.duration.FiniteDuration
@@ -45,8 +45,8 @@ trait FutureSupport {
     * }}}
     */
   implicit class FutureWithTimeout[A](f: Future[A]) {
-    def withTimeout(duration: FiniteDuration, errMsg: String)(implicit context: ActorContext, ec: ExecutionContext): Future[A] =
-      Future.firstCompletedOf(Seq(f, after(duration, context.system.scheduler)(Future.failed(new TimeoutException(errMsg)))))
+    def withTimeout(duration: FiniteDuration, errMsg: String)(implicit scheduler: Scheduler, ec: ExecutionContext): Future[A] =
+      Future.firstCompletedOf(Seq(f, after(duration, scheduler)(Future.failed(new TimeoutException(errMsg)))))
   }
 }
 

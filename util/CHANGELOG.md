@@ -2,6 +2,18 @@
 
 This file documents changes to the `workbench-util` library, including notes on how to upgrade to new versions.
 
+## 0.2
+
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util" % "0.2-xxxxxxx"`
+
+### Changed
+
+- FutureSupport's `withTimeout` function now takes an implicit `akka.actor.Scheduler` instead of an `akka.actor.ActorContext`. The latter is hard to find and schedulers are everywhere.
+
+### Upgrade notes
+
+- Calls to `withTimeout` may fail with a compiler error complaining that it needs an implicit `Scheduler` when you've provided an `ActorContext`. If you have an `ActorContext`, you're likely inside an Actor, so you can provide `system.scheduler` instead.
+
 ## 0.1
 
 SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util" % "0.1-e8bdfd0"`
