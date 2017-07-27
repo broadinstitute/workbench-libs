@@ -8,7 +8,7 @@ import scala.util.{Failure, Success, Try}
 
 import FutureSupport._
 
-class FutureSupportSpec extends FlatSpecLike with BeforeAndAfterAll with Matchers {
+class FutureSupportSpec extends FlatSpecLike with BeforeAndAfterAll with Matchers with ScalaFutures {
   "toFutureTry" should "turn a successful Future into a successful Future(Success)" in {
     val successFuture = Future.successful(2)
 	
