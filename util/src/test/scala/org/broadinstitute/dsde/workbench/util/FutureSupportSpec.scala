@@ -6,6 +6,8 @@ import org.scalatest.concurrent.ScalaFutures
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success, Try}
 
+import FutureSupport._
+
 class FutureSupportSpec extends FlatSpecLike with BeforeAndAfterAll with Matchers {
   "toFutureTry" should "turn a successful Future into a successful Future(Success)" in {
     val successFuture = Future.successful(2)
