@@ -4,6 +4,7 @@ import org.scalatest.{BeforeAndAfterAll, FlatSpecLike, Matchers}
 import org.scalatest.TryValues._
 import org.scalatest.concurrent.ScalaFutures
 import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.util.{Failure, Success, Try}
 
 import FutureSupport._

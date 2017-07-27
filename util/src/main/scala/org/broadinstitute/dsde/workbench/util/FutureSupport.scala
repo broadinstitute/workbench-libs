@@ -28,7 +28,11 @@ trait FutureSupport {
    */
   def assertSuccessfulTries[K, T](tries: Map[K, Try[T]])(implicit executionContext: ExecutionContext): Future[Map[K, T]] = {
     val failures = tries.values.collect{ case Failure(t) => t }
-    if (failures.isEmpty) Future.successful(tries.map { case (k, v) => k -> v.get}) else Future.failed(failures.head)
+    if (failures.isEmpty) {
+      Future.successful(tries.map { case (k, v) => k -> v.get})
+    } else { 
+      Future.failed(failures.head)
+    }
   }
 
   /**
