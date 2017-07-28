@@ -6,11 +6,10 @@ import org.scalatest.concurrent.ScalaFutures
 
 import scala.concurrent.{Future, TimeoutException}
 import scala.concurrent.duration._
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.util.{Failure, Success, Try}
 import FutureSupport._
 import akka.actor.{ActorSystem, Scheduler}
-import akka.testkit.{TestActor, TestActorRef, TestKit}
+import akka.testkit.TestKit
 
 class FutureSupportSpec extends TestKit(ActorSystem("FutureSupportSpec")) with FlatSpecLike with BeforeAndAfterAll with Matchers with ScalaFutures {
   import system.dispatcher

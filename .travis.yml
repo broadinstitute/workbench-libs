@@ -2,6 +2,7 @@ jdk:
 - oraclejdk8
 language: scala
 scala:
+- 2.11.8
 - 2.12.2
 sudo: required
 env:
