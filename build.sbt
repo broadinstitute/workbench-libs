@@ -1,6 +1,8 @@
 import Settings._
 import Testing._
 
+val testAndCompile = "test->test;compile->compile"
+
 lazy val workbenchUtil = project.in(file("util"))
   .settings(utilSettings:_*)
   .withTestSettings
@@ -9,10 +11,16 @@ lazy val workbenchModel = project.in(file("model"))
   .settings(modelSettings:_*)
   .withTestSettings
 
+lazy val workbenchMetrics = project.in(file("metrics"))
+  .settings(metricsSettings:_*)
+  .dependsOn(workbenchUtil % testAndCompile)
+  .withTestSettings
+
 lazy val workbenchLibs = project.in(file("."))
   .settings(rootSettings:_*)
   .aggregate(workbenchUtil)
   .aggregate(workbenchModel)
+  .aggregate(workbenchMetrics)
 
 Revolver.settings
 
