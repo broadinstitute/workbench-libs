@@ -13,13 +13,6 @@ Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util" 
 
 [Changelog](util/CHANGELOG.md)
 
-#### Contents
-
-- `Retry`, containing logic to deal with retrying `Future`s, including exponential backoff behavior
-- `FutureSupport`, containing some useful utilities for working with `Future`s
-- `MockitoTestUtils.captor`, some Scala sugar for Mockito's `ArgumentCaptor`
-    - To use this, additionally depend on `("org.broadinstitute.dsde.workbench" %% "workbench-util" % "0.x-githash" % Test).classifier("tests")`
-
 ## workbench-model
 
 Contains generic, externally-facing model classes used across Workbench.
@@ -29,10 +22,6 @@ Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-model"
 [Changelog](model/CHANGELOG.md)
 
 NOTE: This library uses akka-http's implementation of spray-json and is therefore not compatible with spray, which you shouldn't be using anyway because it is no longer being maintained.
-
-#### Contents
-
-- `ErrorReport`
 
 ## workbench-metrics
 
@@ -44,4 +33,8 @@ Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-metric
 
 ## workbench-google
 
-Coming soon!
+Contains utility functions for talking to Google APIs and a DAO for Google PubSub. 
+
+Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.1-xxxxxxx"`
+
+[Changelog](google/CHANGELOG.md)

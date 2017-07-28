@@ -68,6 +68,12 @@ object Settings {
     version := createVersion("0.1")
   ) ++ publishSettings
 
+  val googleSettings = commonSettings ++ List(
+    name := "workbench-google",
+    libraryDependencies ++= googleDependencies,
+    version := createVersion("0.1")
+  ) ++ publishSettings
+
   val rootSettings = commonSettings ++ noPublishSettings ++ noTestSettings
 
 }
