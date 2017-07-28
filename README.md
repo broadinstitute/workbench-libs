@@ -8,7 +8,7 @@ In this repo:
 ## workbench-utils
 
 Contains utility functions and classes.
-Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util" % "0.2-xxxxxxx"`
+Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util" % "0.2-f87e766"`
 
 [Changelog](util/CHANGELOG.md)
 
@@ -23,7 +23,7 @@ Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util" 
 
 Contains generic, externally-facing model classes used across Workbench.
 
-Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-model" % "0.1-xxxxxxx"`
+Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-model" % "0.1-f87e766"`
 
 [Changelog](model/CHANGELOG.md)
 
