@@ -9,6 +9,7 @@ SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util" % "0.2-
 ### Changed
 
 - FutureSupport's `withTimeout` function now takes an implicit `akka.actor.Scheduler` instead of an `akka.actor.ActorContext`. The latter is hard to find and schedulers are everywhere.
+- `addJitter` now applies a max jitter of 10% for durations <= 10s, and a max jitter of 1s otherwise
 
 ### Upgrade notes
 
