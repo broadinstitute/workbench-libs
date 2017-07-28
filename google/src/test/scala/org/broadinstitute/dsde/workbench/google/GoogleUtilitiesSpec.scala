@@ -87,7 +87,7 @@ class GoogleUtilitiesSpec extends TestKit(ActorSystem("MySpec")) with GoogleUtil
 
   "retryWhen500orGoogleError" should "retry once per backoff interval and then fail" in {
     val counter = new Counter()
-    whenReady( retryWhen500orGoogleError(counter.alwaysBoom.failed ) { f =>
+    whenReady( retryWhen500orGoogleError(counter.alwaysBoom).failed ) { f =>
       f shouldBe a [IOException]
       counter.counter shouldBe 4 //extra one for the first attempt
     }
