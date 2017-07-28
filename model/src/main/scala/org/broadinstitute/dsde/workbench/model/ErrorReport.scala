@@ -20,6 +20,7 @@ case class ErrorReportSource(source: String)
  *    somewhere, but perhaps it's not in scope.
  */
 object ErrorReport {
+  // $COVERAGE-OFF$Pointless testing this. -hussein
   def apply(message: String)(implicit source: ErrorReportSource): ErrorReport =
     ErrorReport(source.source,message,None,Seq.empty,Seq.empty, None)
 
@@ -49,6 +50,7 @@ object ErrorReport {
 
   def apply(message: String, statusCode: Option[StatusCode], causes: Seq[ErrorReport], stackTrace: Seq[StackTraceElement], exceptionClass: Option[Class[_]])(implicit source: ErrorReportSource): ErrorReport =
     ErrorReport(source.source, message, statusCode, causes, stackTrace, exceptionClass)
+  // $COVERAGE-ON$
 
   def message(throwable: Throwable): String = Option(throwable.getMessage).getOrElse(throwable.getClass.getSimpleName)
 
