@@ -1,4 +1,4 @@
-Before you start:
+**PR checklist**
 - [ ] For each library you've modified here, decide whether it requires a major, minor, or no version bump. (Click [here](/CONTRIBUTING.md) for guidance)
 
 If you're doing a **major** or **minor** version bump to any libraries:
@@ -8,7 +8,7 @@ If you're doing a **major** or **minor** version bump to any libraries:
 
 In all cases:
 - [ ] Get two thumbsworth of PR review
-- [ ] Verify all tests go green, including CI tests
+- [ ] Verify all tests go green (CI _and_ coverage tests)
 - [ ] Squash commits and **merge to develop**
 - [ ] Delete branch after merge
 
