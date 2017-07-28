@@ -43,6 +43,7 @@ trait GoogleUtilities extends LazyLogging with Retry {
     retryExponentially(when500orGoogleError)(() => Future(blocking(op())).recover(recover))
   }
 
+  // $COVERAGE-OFF$Can't test Google request code. -hussein
   protected def executeGoogleRequest[T](request: AbstractGoogleClientRequest[T]): T = {
     executeGoogleCall(request) { response =>
       response.parseAs(request.getResponseClass)
@@ -113,6 +114,7 @@ trait GoogleUtilities extends LazyLogging with Retry {
 
     logger.debug(GoogleRequest(request.getRequestMethod, request.buildHttpRequestUrl().toString, payload, System.currentTimeMillis() - startTime, statusCode, errorReport).toJson(GoogleRequestFormat).compactPrint)
   }
+  // $COVERAGE-ON$
 
   protected case class GoogleRequest(method: String, url: String, payload: Option[JsValue], time_ms: Long, statusCode: Option[Int], errorReport: Option[ErrorReport])
   protected object GoogleRequestJsonSupport {
@@ -123,6 +125,7 @@ trait GoogleUtilities extends LazyLogging with Retry {
   }
 }
 
+// $COVERAGE-OFF$Not testable. -hussein
 /**
  * from https://github.com/googleapis/googleapis/blob/master/google/rpc/code.proto
  * I could not find a java client class that had these
@@ -275,3 +278,4 @@ object GoogleRpcErrorCodes {
   // HTTP Mapping: 500 Internal Server Error
   val DATA_LOSS = 15;
 }
+// $COVERAGE-ON$
