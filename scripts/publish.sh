@@ -2,8 +2,10 @@
 
 set -e
 
+# Note we only do sbt publish here instead of sbt +publish.
+# This is because Travis runs against 2.11 and 2.12 in separate jobs, so each one publishes its version to Artifactory.
 if [[ "$TRAVIS_PULL_REQUEST" == "false" && "$TRAVIS_BRANCH" == "develop" ]]; then
-	sbt +publish -Dproject.isSnapshot=false
+	sbt publish -Dproject.isSnapshot=false
 else
-	sbt +publish -Dproject.isSnapshot=true
+	sbt publish -Dproject.isSnapshot=true
 fi
