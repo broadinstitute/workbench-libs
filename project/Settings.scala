@@ -53,7 +53,7 @@ object Settings {
   val utilSettings = commonSettings ++ List(
     name := "workbench-util",
     libraryDependencies ++= utilDependencies,
-    version := createVersion("0.1")
+    version := createVersion("0.2")
   ) ++ publishSettings
 
   val modelSettings = commonSettings ++ List(

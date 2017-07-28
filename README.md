@@ -8,15 +8,14 @@ In this repo:
 ## workbench-utils
 
 Contains utility functions and classes.
-
-Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util" % "0.1-e8bdfd0"`
+Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util" % "0.2-xxxxxxx"`
 
 [Changelog](util/CHANGELOG.md)
 
 #### Contents
 
-- Exponential backoff retries
-- `FutureSupport.toFutureTry`, a function which turns `Future[T]` into a `Future.successful()` with the `Try` containing the status of the `Future`. 
+- `Retry`, containing logic to deal with retrying `Future`s, including exponential backoff behavior
+- `FutureSupport`, containing some useful utilities for working with `Future`s
 - `MockitoTestUtils.captor`, some Scala sugar for Mockito's `ArgumentCaptor`
     - To use this, additionally depend on `("org.broadinstitute.dsde.workbench" %% "workbench-util" % "0.x-githash" % Test).classifier("tests")`
 
