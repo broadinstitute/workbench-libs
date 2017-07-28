@@ -25,7 +25,7 @@ class ErrorReportSpec extends FlatSpecLike with BeforeAndAfterAll with Matchers 
     ErrorReport.message(msgExc) shouldBe "boom"
   }
 
-  "message function" should "return exception class if no message exists" in {
+  it should "return exception class if no message exists" in {
     val noMsgExc = new RuntimeException()
     ErrorReport.message(noMsgExc) shouldBe "RuntimeException"
   }
@@ -35,7 +35,7 @@ class ErrorReportSpec extends FlatSpecLike with BeforeAndAfterAll with Matchers 
     ErrorReport.causes(exc) shouldBe empty
   }
 
-  "causes function" should "return an ErrorReport with suppressed exceptions if there are any" in {
+  it should "return an ErrorReport with suppressed exceptions if there are any" in {
     val excSuppressed = new RuntimeException("suppressed")
     val exc = new RuntimeException("boom")
     exc.addSuppressed(excSuppressed)
@@ -43,7 +43,7 @@ class ErrorReportSpec extends FlatSpecLike with BeforeAndAfterAll with Matchers 
     ErrorReport.causes(exc) shouldBe Seq(ErrorReport(excSuppressed))
   }
 
-  "causes function" should "return an ErrorReport with suppressed exceptions even if there are other causes" in {
+  it should "return an ErrorReport with suppressed exceptions even if there are other causes" in {
     val excSuppressed = new RuntimeException("suppressed")
     val excCause = new RuntimeException("cause")
     val exc = new RuntimeException("boom", excCause)
@@ -52,7 +52,7 @@ class ErrorReportSpec extends FlatSpecLike with BeforeAndAfterAll with Matchers 
     ErrorReport.causes(exc) shouldBe Seq(ErrorReport(excSuppressed))
   }
 
-  "causes function" should "return an ErrorReport with causes if there are no suppressed exceptions" in {
+  it should "return an ErrorReport with causes if there are no suppressed exceptions" in {
     val excCause = new RuntimeException("cause")
     val exc = new RuntimeException("boom", excCause)
 

@@ -23,7 +23,7 @@ class FutureSupportSpec extends TestKit(ActorSystem("FutureSupportSpec")) with F
     }
   }
   
-  "toFutureTry" should "turn a failed Future into a successful Future(Failure)" in {
+  it should "turn a failed Future into a successful Future(Failure)" in {
     val failFuture = Future.failed(new RuntimeException)
     
     whenReady( toFutureTry(failFuture) ) { t =>
@@ -37,14 +37,14 @@ class FutureSupportSpec extends TestKit(ActorSystem("FutureSupportSpec")) with F
     }
   }
   
-  "assertSuccessfulTries" should "return a successful Future when all contained tries are successful" in {
+  it should "return a successful Future when all contained tries are successful" in {
     val tries = Map( 1 -> Success(2), 2 -> Success(3) )
     whenReady( assertSuccessfulTries(tries) ) { m =>
       m shouldBe Map( 1 -> 2, 2 -> 3 )
     }
   }
   
-  "assertSuccessfulTries" should "return a failed Future when any contained Try is a failure" in {
+  it should "return a failed Future when any contained Try is a failure" in {
     val tries = Map( 1 -> Success(2), 2 -> Failure(new RuntimeException) )
     whenReady( assertSuccessfulTries(tries).failed ) { f =>
       f shouldBe a [RuntimeException]
@@ -58,7 +58,7 @@ class FutureSupportSpec extends TestKit(ActorSystem("FutureSupportSpec")) with F
     }
   }
 
-  "withTimeout" should "timeout if the future takes too long" in {
+  it should "timeout if the future takes too long" in {
     val theFuture = Future{ Thread.sleep(200); 42 }
     whenReady( theFuture.withTimeout(100 milliseconds, "timeout").failed ) { f =>
       f shouldBe a [TimeoutException]
