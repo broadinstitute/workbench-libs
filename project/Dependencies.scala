@@ -25,6 +25,7 @@ object Dependencies {
   )
 
   val modelDependencies = commonDependencies ++ Seq(
-    akkaHttpSprayJson
+    akkaHttpSprayJson,
+    scalatest
   )
 }
