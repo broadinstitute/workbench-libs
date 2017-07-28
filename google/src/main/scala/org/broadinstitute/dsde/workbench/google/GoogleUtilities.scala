@@ -115,14 +115,14 @@ trait GoogleUtilities extends LazyLogging with Retry {
     logger.debug(GoogleRequest(request.getRequestMethod, request.buildHttpRequestUrl().toString, payload, System.currentTimeMillis() - startTime, statusCode, errorReport).toJson(GoogleRequestFormat).compactPrint)
   }
   // $COVERAGE-ON$
+}
 
-  protected case class GoogleRequest(method: String, url: String, payload: Option[JsValue], time_ms: Long, statusCode: Option[Int], errorReport: Option[ErrorReport])
-  protected object GoogleRequestJsonSupport {
-    import spray.json.DefaultJsonProtocol._
-    import org.broadinstitute.dsde.workbench.model.ErrorReportJsonSupport._
+protected[google] case class GoogleRequest(method: String, url: String, payload: Option[JsValue], time_ms: Long, statusCode: Option[Int], errorReport: Option[ErrorReport])
+protected[google] object GoogleRequestJsonSupport {
+  import spray.json.DefaultJsonProtocol._
+  import org.broadinstitute.dsde.workbench.model.ErrorReportJsonSupport._
 
-    val GoogleRequestFormat = jsonFormat6(GoogleRequest)
-  }
+  implicit val GoogleRequestFormat = jsonFormat6(GoogleRequest)
 }
 
 // $COVERAGE-OFF$Not testable. -hussein

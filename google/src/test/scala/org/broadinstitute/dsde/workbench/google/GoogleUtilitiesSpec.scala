@@ -8,13 +8,12 @@ import com.google.api.client.googleapis.json.GoogleJsonError.ErrorInfo
 import com.google.api.client.googleapis.json.{GoogleJsonError, GoogleJsonResponseException}
 import com.google.api.client.http._
 import org.scalatest.{BeforeAndAfterAll, FlatSpecLike, Matchers}
-import org.scalatest.TryValues._
 import org.scalatest.concurrent.ScalaFutures
+import spray.json._
 
 import scala.collection.JavaConverters._
-import scala.concurrent.{ExecutionContext, Future, TimeoutException}
+import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
-import scala.util.{Failure, Success, Try}
 
 class GoogleUtilitiesSpec extends TestKit(ActorSystem("MySpec")) with GoogleUtilities with FlatSpecLike with BeforeAndAfterAll with Matchers with ScalaFutures {
   implicit val executionContext = ExecutionContext.global
@@ -43,18 +42,21 @@ class GoogleUtilitiesSpec extends TestKit(ActorSystem("MySpec")) with GoogleUtil
 
   class Counter() {
     var counter = 0
+
     def alwaysBoom(): Int = {
       counter += 1
       throw new IOException("alwaysBoom")
     }
+
     def boomOnce(): Int = {
       counter += 1
-      if(counter > 1) {
+      if (counter > 1) {
         42
       } else {
         throw new IOException("boomOnce")
       }
     }
+
     def httpBoom(): Int = {
       counter += 1
       throw buildHttpResponseException(503)
@@ -62,40 +64,40 @@ class GoogleUtilitiesSpec extends TestKit(ActorSystem("MySpec")) with GoogleUtil
   }
 
   "when500orGoogleError" should "return true for 500 or Google errors" in {
-    when500orGoogleError( buildGoogleJsonResponseException(403, None, None, Some("usageLimits")) ) shouldBe true
-    when500orGoogleError( buildGoogleJsonResponseException(429, None, None, Some("usageLimits")) ) shouldBe true
-    when500orGoogleError( buildGoogleJsonResponseException(400, None, Some("invalid"), None) ) shouldBe true
-    when500orGoogleError( buildGoogleJsonResponseException(404) ) shouldBe true
+    when500orGoogleError(buildGoogleJsonResponseException(403, None, None, Some("usageLimits"))) shouldBe true
+    when500orGoogleError(buildGoogleJsonResponseException(429, None, None, Some("usageLimits"))) shouldBe true
+    when500orGoogleError(buildGoogleJsonResponseException(400, None, Some("invalid"), None)) shouldBe true
+    when500orGoogleError(buildGoogleJsonResponseException(404)) shouldBe true
 
-    when500orGoogleError( buildGoogleJsonResponseException(500) ) shouldBe true
-    when500orGoogleError( buildGoogleJsonResponseException(502) ) shouldBe true
-    when500orGoogleError( buildGoogleJsonResponseException(503) ) shouldBe true
+    when500orGoogleError(buildGoogleJsonResponseException(500)) shouldBe true
+    when500orGoogleError(buildGoogleJsonResponseException(502)) shouldBe true
+    when500orGoogleError(buildGoogleJsonResponseException(503)) shouldBe true
 
-    when500orGoogleError( buildHttpResponseException(500) ) shouldBe true
-    when500orGoogleError( buildHttpResponseException(502) ) shouldBe true
-    when500orGoogleError( buildHttpResponseException(503) ) shouldBe true
+    when500orGoogleError(buildHttpResponseException(500)) shouldBe true
+    when500orGoogleError(buildHttpResponseException(502)) shouldBe true
+    when500orGoogleError(buildHttpResponseException(503)) shouldBe true
 
-    when500orGoogleError( new IOException("boom") ) shouldBe true
+    when500orGoogleError(new IOException("boom")) shouldBe true
   }
 
   it should "return false otherwise" in {
-    when500orGoogleError( buildGoogleJsonResponseException(400, None, Some("boom"), None) ) shouldBe false
-    when500orGoogleError( buildGoogleJsonResponseException(401) ) shouldBe false
-    when500orGoogleError( buildGoogleJsonResponseException(403, None, None, Some("boom")) ) shouldBe false
-    when500orGoogleError( buildGoogleJsonResponseException(429, None, None, Some("boom")) ) shouldBe false
+    when500orGoogleError(buildGoogleJsonResponseException(400, None, Some("boom"), None)) shouldBe false
+    when500orGoogleError(buildGoogleJsonResponseException(401)) shouldBe false
+    when500orGoogleError(buildGoogleJsonResponseException(403, None, None, Some("boom"))) shouldBe false
+    when500orGoogleError(buildGoogleJsonResponseException(429, None, None, Some("boom"))) shouldBe false
   }
 
   "retryWhen500orGoogleError" should "retry once per backoff interval and then fail" in {
     val counter = new Counter()
-    whenReady( retryWhen500orGoogleError(counter.alwaysBoom).failed ) { f =>
-      f shouldBe a [IOException]
+    whenReady(retryWhen500orGoogleError(counter.alwaysBoom).failed) { f =>
+      f shouldBe a[IOException]
       counter.counter shouldBe 4 //extra one for the first attempt
     }
   }
 
   it should "not retry after a success" in {
     val counter = new Counter()
-    whenReady( retryWhen500orGoogleError(counter.boomOnce) ) { s =>
+    whenReady(retryWhen500orGoogleError(counter.boomOnce)) { s =>
       s shouldBe 42
       counter.counter shouldBe 2
     }
@@ -118,12 +120,24 @@ class GoogleUtilitiesSpec extends TestKit(ActorSystem("MySpec")) with GoogleUtil
     val counter = new Counter()
 
     def recoverHttp: PartialFunction[Throwable, Int] = {
-      case h : HttpResponseException if h.getStatusCode == 404 => 42
+      case h: HttpResponseException if h.getStatusCode == 404 => 42
     }
 
-    whenReady( retryWithRecoverWhen500orGoogleError(counter.httpBoom)(recoverHttp).failed ) { f =>
-      f shouldBe a [HttpResponseException]
+    whenReady(retryWithRecoverWhen500orGoogleError(counter.httpBoom)(recoverHttp).failed) { f =>
+      f shouldBe a[HttpResponseException]
       counter.counter shouldBe 4 //extra one for the first attempt
     }
+  }
+}
+
+class GoogleJsonSpec extends FlatSpecLike with Matchers {
+  "GoogleRequest" should "roundtrip json" in {
+    import GoogleRequestJsonSupport._
+    val gooRq = GoogleRequest("GET", "www.thegoogle.hooray", Some(JsString("you did a search")), 400, Some(200), None)
+
+    val rqJson = gooRq.toJson
+    val rqRead = rqJson.convertTo[GoogleRequest]
+
+    rqRead shouldBe gooRq
   }
 }
