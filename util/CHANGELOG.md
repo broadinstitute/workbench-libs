@@ -8,13 +8,15 @@ SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util" % "0.1-
 
 ### Added
 
-- This project
+- This library
 - `FutureSupport` contains functions for working with `Future`s
 - `Retry` contains functions for retrying `Future`s, including with exponential backoff
 - `MockitoTestUtils` contains Scala sugar for Mockito's `ArgumentCaptor`
 - some handy time-conversion functions in the `util` package
 
 ### Upgrade notes
+
+#### Moving from Rawls' `workbench-util`
 
 If you're moving from the `workbench-util` published by Rawls, you'll have to do the following things:
 

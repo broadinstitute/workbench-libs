@@ -11,11 +11,21 @@ object Dependencies {
   val scalatest: ModuleID =       "org.scalatest"                 %% "scalatest"            % "3.0.1" % "test"
   val mockito: ModuleID =         "org.mockito"                   % "mockito-core"          % "2.8.47" % "test"
 
-  val utilDependencies = Seq(
-    scalaLogging,
+  val akkaHttpSprayJson: ModuleID = "com.typesafe.akka"   %%  "akka-http-spray-json" % akkaHttpV
+
+  val commonDependencies = Seq(
+    scalaLogging
+  )
+
+  val utilDependencies = commonDependencies ++ Seq(
     akkaActor,
     akkaTestkit,
     scalatest,
     mockito
+  )
+
+  val modelDependencies = commonDependencies ++ Seq(
+    akkaHttpSprayJson,
+    scalatest
   )
 }
