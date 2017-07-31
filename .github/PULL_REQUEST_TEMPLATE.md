@@ -1,5 +1,5 @@
 **PR checklist**
-- [ ] For each library you've modified here, decide whether it requires a major, minor, or no version bump. (Click [here](/CONTRIBUTING.md) for guidance)
+- [ ] For each library you've modified here, decide whether it requires a major, minor, or no version bump. (Click [here](/broadinstitute/workbench-libs/blob/develop/CONTRIBUTING.md) for guidance)
 
 If you're doing a **major** or **minor** version bump to any libraries:
 - [ ] Bump the version in `project/Settings.scala` `createVersion()`
