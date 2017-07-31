@@ -4,7 +4,7 @@ This file documents changes to the `workbench-metrics` library, including notes 
 
 ## 0.2
 
-### Added
+### Changed 
 
 - Updated method signature of `org.broadinstitute.dsde.workbench.metrics.startStatsDReporter` to take an API key
 
