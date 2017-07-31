@@ -85,6 +85,10 @@ class GoogleUtilitiesSpec extends TestKit(ActorSystem("MySpec")) with GoogleUtil
     when500orGoogleError(buildGoogleJsonResponseException(401)) shouldBe false
     when500orGoogleError(buildGoogleJsonResponseException(403, None, None, Some("boom"))) shouldBe false
     when500orGoogleError(buildGoogleJsonResponseException(429, None, None, Some("boom"))) shouldBe false
+
+    when500orGoogleError(buildHttpResponseException(400)) shouldBe false
+    when500orGoogleError(buildHttpResponseException(401)) shouldBe false
+    when500orGoogleError(buildHttpResponseException(403)) shouldBe false
   }
 
   "retryWhen500orGoogleError" should "retry once per backoff interval and then fail" in {
