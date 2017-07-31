@@ -11,21 +11,35 @@ object Dependencies {
   val scalatest: ModuleID =       "org.scalatest"                 %% "scalatest"            % "3.0.1" % "test"
   val mockito: ModuleID =         "org.mockito"                   % "mockito-core"          % "2.8.47" % "test"
 
+  val akkaHttp: ModuleID = "com.typesafe.akka"   %%  "akka-http" % akkaHttpV
   val akkaHttpSprayJson: ModuleID = "com.typesafe.akka"   %%  "akka-http-spray-json" % akkaHttpV
+  val akkaHttpTestkit: ModuleID = "com.typesafe.akka" %% "akka-http-testkit" % akkaHttpV
+
+  // metrics-scala transitively pulls in io.dropwizard.metrics:metrics-core
+  val metricsScala: ModuleID =       "nl.grons"              %% "metrics-scala"    % "3.5.6"
+  val metricsStatsd: ModuleID =      "com.readytalk"         %  "metrics3-statsd"  % "4.2.0"
 
   val commonDependencies = Seq(
-    scalaLogging
+    scalaLogging,
+    scalatest
   )
 
   val utilDependencies = commonDependencies ++ Seq(
     akkaActor,
     akkaTestkit,
-    scalatest,
     mockito
   )
 
   val modelDependencies = commonDependencies ++ Seq(
-    akkaHttpSprayJson,
-    scalatest
+    akkaHttpSprayJson
+  )
+
+  val metricsDependencies = commonDependencies ++ Seq(
+    metricsScala,
+    metricsStatsd,
+    akkaHttp,
+    akkaTestkit,
+    akkaHttpTestkit,
+    mockito
   )
 }

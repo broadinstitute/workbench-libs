@@ -62,6 +62,12 @@ object Settings {
     version := createVersion("0.1")
   ) ++ publishSettings
 
+  val metricsSettings = commonSettings ++ List(
+    name := "workbench-metrics",
+    libraryDependencies ++= metricsDependencies,
+    version := createVersion("0.1")
+  ) ++ publishSettings
+
   val rootSettings = commonSettings ++ noPublishSettings ++ noTestSettings
 
 }
