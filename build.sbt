@@ -16,11 +16,19 @@ lazy val workbenchMetrics = project.in(file("metrics"))
   .dependsOn(workbenchUtil % testAndCompile)
   .withTestSettings
 
+lazy val workbenchGoogle = project.in(file("google"))
+  .settings(googleSettings:_*)
+  .dependsOn(workbenchUtil)
+  .dependsOn(workbenchModel)
+  .dependsOn(workbenchMetrics)
+  .withTestSettings
+
 lazy val workbenchLibs = project.in(file("."))
   .settings(rootSettings:_*)
   .aggregate(workbenchUtil)
   .aggregate(workbenchModel)
   .aggregate(workbenchMetrics)
+  .aggregate(workbenchGoogle)
 
 Revolver.settings
 

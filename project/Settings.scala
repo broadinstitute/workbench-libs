@@ -6,6 +6,7 @@ import Publishing._
 import sbt.Keys._
 import sbt._
 import sbtassembly.AssemblyPlugin.autoImport._
+import scoverage.ScoverageKeys.coverageExcludedPackages
 
 object Settings {
 
@@ -66,6 +67,13 @@ object Settings {
     name := "workbench-metrics",
     libraryDependencies ++= metricsDependencies,
     version := createVersion("0.1")
+  ) ++ publishSettings
+
+  val googleSettings = commonSettings ++ List(
+    name := "workbench-google",
+    libraryDependencies ++= googleDependencies,
+    version := createVersion("0.1"),
+    coverageExcludedPackages := ".*HttpGoogle.*DAO.*"
   ) ++ publishSettings
 
   val rootSettings = commonSettings ++ noPublishSettings ++ noTestSettings
