@@ -2,13 +2,13 @@
 
 This file documents changes to the `workbench-metrics` library, including notes on how to upgrade to new versions.
 
-## 0.1
+## 0.2
 
-<<<<<<< 8c1da70ee3034eeb6fce9c671b889ae8d2e6ad4d
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-metrics" % "0.1-715fd75"`
-=======
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-metrics" % "0.1-xxxxxxx"`
->>>>>>> moved metrics
+### Changed 
+
+- Updated method signature of `org.broadinstitute.dsde.workbench.metrics.startStatsDReporter` to take an API key
+
+## 0.1
 
 ### Added
 

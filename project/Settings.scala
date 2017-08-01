@@ -66,7 +66,7 @@ object Settings {
   val metricsSettings = commonSettings ++ List(
     name := "workbench-metrics",
     libraryDependencies ++= metricsDependencies,
-    version := createVersion("0.1")
+    version := createVersion("0.2")
   ) ++ publishSettings
 
   val googleSettings = commonSettings ++ List(
