@@ -64,6 +64,9 @@ trait WorkbenchInstrumented extends DefaultInstrumented {
     def asTimer(name: String): Timer =
       metrics.timer(makeName(name))
 
+    def asHistogram(name: String): Histogram =
+      metrics.histogram(makeName(name))
+
     private def makeName(name: String): String = s"$m.$name"
 
     override def toString: String = m
@@ -98,4 +101,7 @@ trait WorkbenchInstrumented extends DefaultInstrumented {
 
   protected implicit def httpRequestTimer(implicit builder: ExpandedMetricBuilder): (HttpRequest, HttpResponse) => Timer =
     httpRequestMetricBuilder(builder)(_, _).asTimer("latency")
+
+  protected implicit def httpRetryHistogram(implicit builder: ExpandedMetricBuilder): Histogram =
+    builder.asHistogram("retry")
 }

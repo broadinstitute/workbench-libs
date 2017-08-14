@@ -17,6 +17,8 @@ import scala.concurrent.duration._
 
 class GoogleUtilitiesSpec extends TestKit(ActorSystem("MySpec")) with GoogleUtilities with FlatSpecLike with BeforeAndAfterAll with Matchers with ScalaFutures {
   implicit val executionContext = ExecutionContext.global
+  override val workbenchMetricBaseName = "test"
+  implicit val histo = ExpandedMetricBuilder.empty.asHistogram("test")
 
   override def afterAll {
     TestKit.shutdownActorSystem(system)

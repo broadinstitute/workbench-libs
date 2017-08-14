@@ -20,7 +20,7 @@ import scala.reflect._
 /**
   * Created by rtitle on 5/16/17.
   */
-class RetrySpec extends TestKit(ActorSystem("MySpec")) with FlatSpecLike with BeforeAndAfterAll with Matchers with MockitoSugar with ScalaFutures {
+class RetrySpec extends TestKit(ActorSystem("MySpec")) with FlatSpecLike with BeforeAndAfterAll with Matchers with MockitoTestUtils with ScalaFutures {
   import system.dispatcher
 
   // This configures how long the calls to `whenReady(Future)` will wait for the Future
@@ -167,10 +167,6 @@ class RetrySpec extends TestKit(ActorSystem("MySpec")) with FlatSpecLike with Be
     when(mockLogger.isInfoEnabled).thenReturn(true)
     mockLogger
   }
-
-  private def captor[T: ClassTag]: ArgumentCaptor[T] =
-    ArgumentCaptor.forClass(classTag[T].runtimeClass).asInstanceOf[ArgumentCaptor[T]]
-
 }
 
 class TestRetry(val system: ActorSystem, val slf4jLogger: SLF4JLogger) extends Retry with LazyLogging {
