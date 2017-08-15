@@ -4,7 +4,7 @@ This file documents changes to the `workbench-util` library, including notes on 
 
 ## 0.2
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util" % "0.2-f87e766"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util" % "0.2-17b01fe"`
 
 ### Changed
 

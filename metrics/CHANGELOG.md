@@ -4,6 +4,8 @@ This file documents changes to the `workbench-metrics` library, including notes 
 
 ## 0.2
 
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-metrics" % "0.2-17b01fe"`
+
 ### Added
 
 - Added `ExpandedMetricBuilder.asGaugeIfAbsent` method to handle gauge name conflicts.
