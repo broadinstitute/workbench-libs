@@ -4,6 +4,10 @@ This file documents changes to the `workbench-metrics` library, including notes 
 
 ## 0.2
 
+### Added
+
+- Added `ExpandedMetricBuilder.asGaugeIfAbsent` method to handle gauge name conflicts.
+
 ### Changed 
 
 - Updated method signature of `org.broadinstitute.dsde.workbench.metrics.startStatsDReporter` to take an API key
