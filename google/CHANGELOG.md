@@ -8,7 +8,7 @@ SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.
 
 ### Added
 
-Instrumentation of Google Cloud HTTP requests.
+- Instrumentation of Google Cloud HTTP requests, including metrics for retries.
 
 ## 0.1
 

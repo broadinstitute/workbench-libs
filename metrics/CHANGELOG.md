@@ -7,6 +7,7 @@ This file documents changes to the `workbench-metrics` library, including notes 
 ### Added
 
 - Added `ExpandedMetricBuilder.asGaugeIfAbsent` method to handle gauge name conflicts.
+- Added InstrumentedRetry trait which updates a histogram with the number of errors in a `RetryableFuture`.
 
 ### Changed 
 
