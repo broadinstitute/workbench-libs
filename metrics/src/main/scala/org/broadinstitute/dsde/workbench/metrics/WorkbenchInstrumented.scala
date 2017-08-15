@@ -1,8 +1,10 @@
 package org.broadinstitute.dsde.workbench.metrics
 
 import akka.http.scaladsl.model.{HttpRequest, HttpResponse}
+import com.codahale.metrics.{Gauge => DropwizardGauge}
 import nl.grons.metrics.scala._
 import org.broadinstitute.dsde.workbench.metrics.Expansion._
+import scala.collection.JavaConverters._
 
 /**
   * Mixin trait for instrumentation.
@@ -44,6 +46,20 @@ trait WorkbenchInstrumented extends DefaultInstrumented {
 
     def asGauge[T](name: String)(fn: => T): Gauge[T] =
       metrics.gauge(makeName(name))(fn)
+
+    def asGaugeIfAbsent[T](name: String)(fn: => T): Gauge[T] = {
+      // Get the fully qualified metric name for inspecting the registry.
+      val gaugeName = metricBaseName.append(makeName(name)).name
+      metricRegistry.getGauges().asScala.get(gaugeName) match {
+        case None =>
+          // If the gauge does not exist in the registry, create it
+          asGauge[T](name)(fn)
+        case Some(gauge) =>
+          // If the gauge exists in the registry, return it.
+          // Need to wrap the returned Java DropwizardGauge in a Scala Gauge.
+          new Gauge[T](gauge.asInstanceOf[DropwizardGauge[T]])
+      }
+    }
 
     def asTimer(name: String): Timer =
       metrics.timer(makeName(name))
