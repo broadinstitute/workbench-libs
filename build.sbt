@@ -20,7 +20,7 @@ lazy val workbenchGoogle = project.in(file("google"))
   .settings(googleSettings:_*)
   .dependsOn(workbenchUtil)
   .dependsOn(workbenchModel)
-  .dependsOn(workbenchMetrics)
+  .dependsOn(workbenchMetrics % testAndCompile)
   .withTestSettings
 
 lazy val workbenchLibs = project.in(file("."))

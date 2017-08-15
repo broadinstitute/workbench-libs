@@ -7,16 +7,19 @@ import akka.testkit.TestKit
 import com.google.api.client.googleapis.json.GoogleJsonError.ErrorInfo
 import com.google.api.client.googleapis.json.{GoogleJsonError, GoogleJsonResponseException}
 import com.google.api.client.http._
+import org.broadinstitute.dsde.workbench.metrics.{StatsDTestUtils, WorkbenchInstrumented}
+import org.broadinstitute.dsde.workbench.util.MockitoTestUtils
 import org.scalatest.{BeforeAndAfterAll, FlatSpecLike, Matchers}
-import org.scalatest.concurrent.ScalaFutures
+import org.scalatest.concurrent.{Eventually, ScalaFutures}
 import spray.json._
 
 import scala.collection.JavaConverters._
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 
-class GoogleUtilitiesSpec extends TestKit(ActorSystem("MySpec")) with GoogleUtilities with FlatSpecLike with BeforeAndAfterAll with Matchers with ScalaFutures {
+class GoogleUtilitiesSpec extends TestKit(ActorSystem("MySpec")) with GoogleUtilities with FlatSpecLike with BeforeAndAfterAll with Matchers with ScalaFutures with Eventually with MockitoTestUtils with StatsDTestUtils {
   implicit val executionContext = ExecutionContext.global
+  implicit def histo = ExpandedMetricBuilder.empty.asHistogram("histo")
 
   override def afterAll {
     TestKit.shutdownActorSystem(system)
@@ -92,44 +95,64 @@ class GoogleUtilitiesSpec extends TestKit(ActorSystem("MySpec")) with GoogleUtil
   }
 
   "retryWhen500orGoogleError" should "retry once per backoff interval and then fail" in {
-    val counter = new Counter()
-    whenReady(retryWhen500orGoogleError(counter.alwaysBoom).failed) { f =>
-      f shouldBe a[IOException]
-      counter.counter shouldBe 4 //extra one for the first attempt
+    withStatsD {
+      val counter = new Counter()
+      whenReady(retryWhen500orGoogleError(counter.alwaysBoom).failed) { f =>
+        f shouldBe a[IOException]
+        counter.counter shouldBe 4 //extra one for the first attempt
+      }
+    } { capturedMetrics =>
+      capturedMetrics should contain ("test.histo.samples", "1")
+      capturedMetrics should contain ("test.histo.max", "4")  // 4 exceptions
     }
   }
 
   it should "not retry after a success" in {
-    val counter = new Counter()
-    whenReady(retryWhen500orGoogleError(counter.boomOnce)) { s =>
-      s shouldBe 42
-      counter.counter shouldBe 2
+    withStatsD {
+      val counter = new Counter()
+      whenReady(retryWhen500orGoogleError(counter.boomOnce)) { s =>
+        s shouldBe 42
+        counter.counter shouldBe 2
+      }
+    } { capturedMetrics =>
+      capturedMetrics should contain ("test.histo.samples", "1")
+      capturedMetrics should contain ("test.histo.max", "1")  // 1 exception
     }
   }
 
   "retryWithRecoverWhen500orGoogleError" should "stop retrying if it recovers" in {
-    val counter = new Counter()
+    withStatsD {
+      val counter = new Counter()
 
-    def recoverIO: PartialFunction[Throwable, Int] = {
-      case _: IOException => 42
-    }
+      def recoverIO: PartialFunction[Throwable, Int] = {
+        case _: IOException => 42
+      }
 
-    whenReady(retryWithRecoverWhen500orGoogleError(counter.alwaysBoom)(recoverIO)) { s =>
-      s shouldBe 42
-      counter.counter shouldBe 1
+      whenReady(retryWithRecoverWhen500orGoogleError(counter.alwaysBoom)(recoverIO)) { s =>
+        s shouldBe 42
+        counter.counter shouldBe 1
+      }
+    } { capturedMetrics =>
+      capturedMetrics should contain ("test.histo.samples", "1")
+      capturedMetrics should contain ("test.histo.max", "0")  // 0 exceptions
     }
   }
 
   it should "keep retrying and fail if it doesn't recover" in {
-    val counter = new Counter()
+    withStatsD {
+      val counter = new Counter()
 
-    def recoverHttp: PartialFunction[Throwable, Int] = {
-      case h: HttpResponseException if h.getStatusCode == 404 => 42
-    }
+      def recoverHttp: PartialFunction[Throwable, Int] = {
+        case h: HttpResponseException if h.getStatusCode == 404 => 42
+      }
 
-    whenReady(retryWithRecoverWhen500orGoogleError(counter.httpBoom)(recoverHttp).failed) { f =>
-      f shouldBe a[HttpResponseException]
-      counter.counter shouldBe 4 //extra one for the first attempt
+      whenReady(retryWithRecoverWhen500orGoogleError(counter.httpBoom)(recoverHttp).failed) { f =>
+        f shouldBe a[HttpResponseException]
+        counter.counter shouldBe 4 //extra one for the first attempt
+      }
+    } { capturedMetrics =>
+      capturedMetrics should contain ("test.histo.samples", "1")
+      capturedMetrics should contain ("test.histo.max", "4")  // 4 exceptions
     }
   }
 }

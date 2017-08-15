@@ -2,6 +2,14 @@
 
 This file documents changes to the `workbench-google` library, including notes on how to upgrade to new versions.
 
+## 0.2
+
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.2-xxxxxxx"`
+
+### Added
+
+- Instrumentation of Google Cloud HTTP requests, including metrics for retries.
+
 ## 0.1
 
 SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.1-6924e2f"`

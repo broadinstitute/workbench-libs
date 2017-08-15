@@ -11,6 +11,7 @@ import com.google.api.services.pubsub.{Pubsub, PubsubScopes}
 import org.broadinstitute.dsde.workbench.google.GooglePubSubDAO._
 import org.broadinstitute.dsde.workbench.util.FutureSupport
 import akka.http.scaladsl.model.StatusCodes
+import org.broadinstitute.dsde.workbench.metrics.GoogleInstrumentedService
 
 import scala.collection.JavaConverters._
 import scala.concurrent._
@@ -22,7 +23,8 @@ import scala.concurrent._
 class HttpGooglePubSubDAO(clientEmail: String,
                           pemFile: String,
                           appName: String,
-                          serviceProject: String)( implicit val system: ActorSystem, implicit val executionContext: ExecutionContext ) extends FutureSupport with GoogleUtilities with GooglePubSubDAO {
+                          serviceProject: String,
+                          override val workbenchMetricBaseName: String)( implicit val system: ActorSystem, implicit val executionContext: ExecutionContext ) extends FutureSupport with GoogleUtilities with GooglePubSubDAO {
 
   val pubSubScopes = Seq(PubsubScopes.PUBSUB)
 
@@ -30,6 +32,7 @@ class HttpGooglePubSubDAO(clientEmail: String,
   val jsonFactory = JacksonFactory.getDefaultInstance
 
   private val characterEncoding = "UTF-8"
+  implicit val service = GoogleInstrumentedService.PubSub
 
   override def createTopic(topicName: String) = {
     retryWithRecoverWhen500orGoogleError(() => {

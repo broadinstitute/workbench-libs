@@ -1,6 +1,7 @@
 package org.broadinstitute.dsde.workbench.google
 
 import java.io.{ByteArrayOutputStream, IOException, InputStream}
+import java.util.concurrent.TimeUnit
 
 import com.google.api.client.googleapis.json.GoogleJsonResponseException
 import com.google.api.client.googleapis.services.AbstractGoogleClientRequest
@@ -8,6 +9,9 @@ import com.google.api.client.http.{HttpResponseException => GoogleHttpResponseEx
 import com.google.api.client.http.{HttpResponse => GoogleHttpResponse}
 import com.google.api.client.http.json.JsonHttpContent
 import com.typesafe.scalalogging.LazyLogging
+import nl.grons.metrics.scala.Histogram
+import org.broadinstitute.dsde.workbench.metrics.GoogleInstrumented.GoogleCounters
+import org.broadinstitute.dsde.workbench.metrics.{GoogleInstrumented, InstrumentedRetry}
 import org.broadinstitute.dsde.workbench.model.ErrorReport
 import org.broadinstitute.dsde.workbench.util.Retry
 import spray.json.JsValue
@@ -19,7 +23,7 @@ import scala.util.{Failure, Success, Try}
 /**
  * Created by mbemis on 5/10/16.
  */
-trait GoogleUtilities extends LazyLogging with Retry {
+trait GoogleUtilities extends LazyLogging with InstrumentedRetry with GoogleInstrumented {
   implicit val executionContext: ExecutionContext
 
   protected def when500orGoogleError(throwable: Throwable): Boolean = {
@@ -36,22 +40,22 @@ trait GoogleUtilities extends LazyLogging with Retry {
     }
   }
 
-  protected def retryWhen500orGoogleError[T](op: () => T): Future[T] = {
+  protected def retryWhen500orGoogleError[T](op: () => T)(implicit histo: Histogram): Future[T] = {
     retryExponentially(when500orGoogleError)(() => Future(blocking(op())))
   }
 
-  protected def retryWithRecoverWhen500orGoogleError[T](op: () => T)(recover: PartialFunction[Throwable, T]): Future[T] = {
+  protected def retryWithRecoverWhen500orGoogleError[T](op: () => T)(recover: PartialFunction[Throwable, T])(implicit histo: Histogram): Future[T] = {
     retryExponentially(when500orGoogleError)(() => Future(blocking(op())).recover(recover))
   }
 
   // $COVERAGE-OFF$Can't test Google request code. -hussein
-  protected def executeGoogleRequest[T](request: AbstractGoogleClientRequest[T]): T = {
+  protected def executeGoogleRequest[T](request: AbstractGoogleClientRequest[T])(implicit counters: GoogleCounters): T = {
     executeGoogleCall(request) { response =>
       response.parseAs(request.getResponseClass)
     }
   }
 
-  protected def executeGoogleFetch[A,B](request: AbstractGoogleClientRequest[A])(f: (InputStream) => B): B = {
+  protected def executeGoogleFetch[A,B](request: AbstractGoogleClientRequest[A])(f: (InputStream) => B)(implicit counters: GoogleCounters): B = {
     executeGoogleCall(request) { response =>
       val stream = response.getContent
       try {
@@ -62,13 +66,14 @@ trait GoogleUtilities extends LazyLogging with Retry {
     }
   }
 
-  protected def executeGoogleCall[A,B](request: AbstractGoogleClientRequest[A])(processResponse: (GoogleHttpResponse) => B): B = {
+  protected def executeGoogleCall[A,B](request: AbstractGoogleClientRequest[A])(processResponse: (GoogleHttpResponse) => B)(implicit counters: GoogleCounters): B = {
     val start = System.currentTimeMillis()
     Try {
       request.executeUnparsed()
     } match {
       case Success(response) =>
         logGoogleRequest(request, start, response)
+        instrumentGoogleRequest(request, start, Right(response))
         try {
           processResponse(response)
         } finally {
@@ -76,9 +81,11 @@ trait GoogleUtilities extends LazyLogging with Retry {
         }
       case Failure(httpRegrets: GoogleHttpResponseException) =>
         logGoogleRequest(request, start, httpRegrets)
+        instrumentGoogleRequest(request, start, Left(httpRegrets))
         throw httpRegrets
       case Failure(regrets) =>
         logGoogleRequest(request, start, regrets)
+        instrumentGoogleRequest(request, start, Left(regrets))
         throw regrets
     }
   }
@@ -115,6 +122,13 @@ trait GoogleUtilities extends LazyLogging with Retry {
 
     logger.debug(GoogleRequest(request.getRequestMethod, request.buildHttpRequestUrl().toString, payload, System.currentTimeMillis() - startTime, statusCode, errorReport).toJson(GoogleRequestFormat).compactPrint)
   }
+
+  private def instrumentGoogleRequest[A](request: AbstractGoogleClientRequest[A], startTime: Long, responseOrException: Either[Throwable, com.google.api.client.http.HttpResponse])(implicit counters: GoogleCounters): Unit = {
+    val (counter, timer) = counters(request, responseOrException)
+    counter += 1
+    timer.update(System.currentTimeMillis() - startTime, TimeUnit.MILLISECONDS)
+  }
+
   // $COVERAGE-ON$
 }
 

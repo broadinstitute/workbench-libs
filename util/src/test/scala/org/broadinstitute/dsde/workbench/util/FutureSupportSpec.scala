@@ -15,6 +15,10 @@ class FutureSupportSpec extends TestKit(ActorSystem("FutureSupportSpec")) with F
   import system.dispatcher
   implicit val scheduler: Scheduler = system.scheduler
 
+  override def afterAll {
+    TestKit.shutdownActorSystem(system)
+  }
+
   "toFutureTry" should "turn a successful Future into a successful Future(Success)" in {
     val successFuture = Future.successful(2)
     
