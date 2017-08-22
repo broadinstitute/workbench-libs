@@ -35,4 +35,4 @@ This project contains tools for instrumenting Workbench code using StatsD. For a
    ```
    - [Rawls example](https://github.com/broadinstitute/firecloud-develop/blob/dev/configs/rawls/rawls.conf.ctmpl#L135-L147)
 4. For the classes you want to instrument, mix in the [WorkbenchInstrumented](https://github.com/broadinstitute/workbench-libs/blob/develop/metrics/src/main/scala/org/broadinstitute/dsde/workbench/metrics/WorkbenchInstrumented.scala) trait and start defining metrics!
-   - See the above wiki page and the WorkbenchInstrumented scaladoc for usage details and examples.
+   - See the above wiki page and the `WorkbenchInstrumented` scaladoc for usage details and examples.
