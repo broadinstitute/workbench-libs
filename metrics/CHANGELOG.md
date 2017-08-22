@@ -4,10 +4,11 @@ This file documents changes to the `workbench-metrics` library, including notes 
 
 ## 0.2
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-metrics" % "0.2-17b01fe"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-metrics" % "0.2-xxxxxxx"`
 
 ### Added
 
+- Added WorkbenchStatsD which filters out detailed Timer metrics from being sent to StatsD.
 - Added `ExpandedMetricBuilder.asGaugeIfAbsent` method to handle gauge name conflicts.
 - Added InstrumentedRetry trait which updates a histogram with the number of errors in a `RetryableFuture`.
 
