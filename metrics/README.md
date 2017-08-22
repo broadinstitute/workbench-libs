@@ -7,6 +7,8 @@ This project contains tools for instrumenting Workbench code using StatsD. For a
 1. Add this project as a SBT dependency using the Git hash listed in the [README](https://github.com/broadinstitute/workbench-libs/blob/develop/README.md) of this project.
 2. Start up a StatsD reporter on application startup, e.g. in your `Boot` or `Main` class:
    ```
+   import com.codahale.metrics.SharedMetricRegistries
+   import com.readytalk.metrics.StatsDReporter
    val reporter = StatsDReporter.forRegistry(SharedMetricRegistries.getOrCreate("default"))
      .prefixedWith(apiKey.orNull)
      .convertRatesTo(TimeUnit.SECONDS)
