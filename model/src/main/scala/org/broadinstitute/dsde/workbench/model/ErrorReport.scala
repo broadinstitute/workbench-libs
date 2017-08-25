@@ -37,7 +37,7 @@ object ErrorReport {
     ErrorReport(source.source,message,Option(statusCode),Seq.empty,Seq.empty, None)
 
   def apply(statusCode: StatusCode, message: String, throwable: Throwable)(implicit source: ErrorReportSource): ErrorReport =
-    ErrorReport(source.source, message, Option(statusCode), causes(throwable), throwable.getStackTrace, None)
+    ErrorReport(source.source, message, Option(statusCode), causes(throwable), throwable.getStackTrace, Option(throwable.getClass))
 
   def apply(statusCode: StatusCode, message: String, cause: ErrorReport)(implicit source: ErrorReportSource): ErrorReport =
     ErrorReport(source.source,message,Option(statusCode),Seq(cause),Seq.empty, None)
