@@ -5,15 +5,15 @@
 ![Data Flow](images/data_flow.png)
 
 1. Application writes to Metric Registry
-   - The Metric Registry is an in-memory registry for metric key/values provided by DropWizard Metrics. 
+   - The Metric Registry is an in-memory registry for metric key/values provided by [DropWizard Metrics](http://metrics.dropwizard.io/3.1.0/getting-started/#the-registry). 
    - See Integrating for information on how to integrate this into Workbench code.
-   - We use metrics-scala which is a Scala wrapper for DropWizard Metrics.
+   - We use [metrics-scala](https://github.com/erikvanoosten/metrics-scala) which is a Scala wrapper for DropWizard Metrics.
 2. Metric Registry writes to StatsD
    - Note StatsD is hosted for us in Hosted Graphite as an add-on. 
-   - We use metrics-statsd which pulls metrics off the registry and writes to StatsD using the standard UDP statsd protocol.
+   - We use [metrics-statsd](https://github.com/ReadyTalk/metrics-statsd) which pulls metrics off the registry and writes to StatsD using the standard [UDP statsd protocol](https://github.com/b/statsd_spec).
 3. StatsD writes to Graphite
    - This is done within Hosted Graphite.
-   - See this blog post for details about how the metrics are processed & stored within Hosted Graphite.
+   - See [this blog post](https://blog.hostedgraphite.com/2017/08/02/advanced-data-views-better-observability-more-control/) for details about how the metrics are processed & stored within Hosted Graphite.
    
 ## Integrating
 
@@ -36,7 +36,7 @@ The code lives in workbench-utils here: https://github.com/broadinstitute/workbe
 ## Naming
 
 Care must be given to metric naming so they are easily discoverable when creating Graphite dashboards. We have created some utility classes for generating metric names in a standardized, type-safe way. Basically you mix in this trait:
-- WorkbenchInstrumented
+- [WorkbenchInstrumented](https://github.com/broadinstitute/workbench-libs/blob/develop/metrics/src/main/scala/org/broadinstitute/dsde/workbench/metrics/WorkbenchInstrumented.scala)
 and use ExpandedMetricBuilder to build counters, gauges, histograms, meters, or timers. For example:
 ```
 val counter: Counter =
@@ -50,7 +50,7 @@ val counter: Counter =
 // increments the counter:
 counter += 1
 ```
-This works because of the Expansion typeclass: for any type you pass into `ExpandedMetricBuilder`, it looks up an implicit `Expansion` instance which specifies how to generate a metric name fragment for that type. We currently have the following typeclass instances (feel free to add more if something is missing):
+This works because of the [Expansion](https://github.com/broadinstitute/workbench-libs/blob/develop/metrics/src/main/scala/org/broadinstitute/dsde/workbench/metrics/Expansion.scala) typeclass: for any type you pass into `ExpandedMetricBuilder`, it looks up an implicit `Expansion` instance which specifies how to generate a metric name fragment for that type. We currently have the following typeclass instances (feel free to add more if something is missing):
 - `UUID` – simply calls `UUID#toString`
 - `HttpMethod` – lower-case method name (e.g. get, post, put)
 - `Uri` – dot-separated URI path (statsd doesn't allow slashes in metric names)
@@ -62,7 +62,7 @@ This works because of the Expansion typeclass: for any type you pass into `Expan
 ## Testing
 
 ### Unit Testing with ScalaTest
-- Mix `StatsDTestUtil`s into your test class. Then you can verify the metric names & values being sent by the registry to StatsD like so:
+- Mix [StatsDTestUtil](https://github.com/broadinstitute/workbench-libs/blob/develop/metrics/src/test/scala/org/broadinstitute/dsde/workbench/metrics/StatsDTestUtils.scala) into your test class. Then you can verify the metric names & values being sent by the registry to StatsD like so:
 ```
 it should "send metrics" in {
   withStatsD {
