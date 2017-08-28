@@ -1,6 +1,6 @@
 # Metrics
 
-This project contains tools for instrumenting Workbench code using StatsD. For a high level overview, please read this wiki page: https://broadinstitute.atlassian.net/wiki/spaces/GAWB/pages/118259719/Workbench+Metrics
+This project contains tools for instrumenting Workbench code using StatsD. For a high level overview, please read this page: [Metrics Overview](docs/metrics_overview.md).
 
 ## Getting Started
 
