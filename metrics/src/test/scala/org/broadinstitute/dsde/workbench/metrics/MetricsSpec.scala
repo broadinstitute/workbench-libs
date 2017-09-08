@@ -5,7 +5,6 @@ import java.util.concurrent.TimeUnit
 import com.codahale.metrics._
 import com.codahale.metrics.health.SharedHealthCheckRegistries
 import com.readytalk.metrics.{StatsD, StatsDReporter}
-
 import org.broadinstitute.dsde.workbench.metrics.MetricsSpec.TestInstrumented
 import org.mockito.ArgumentMatchers.{eq => argEq, _}
 import org.mockito.Mockito.{inOrder => mockitoInOrder, _}
@@ -19,6 +18,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.concurrent.duration._
 import scala.util.Try
+import nl.grons.metrics.scala
 
 /**
   * Created by rtitle on 5/31/17.
@@ -154,6 +154,20 @@ class MetricsSpec extends FlatSpec with Matchers with BeforeAndAfter with Eventu
     verifyStatsD { order =>
       verifyMeter(order, "test.meter", 100)
     }
+  }
+
+  it should "remove metrics from the registry" in {
+    class RemovedInstrumented extends WorkbenchInstrumented {
+      override val workbenchMetricBaseName = "removeme"
+    }
+    val ri = new RemovedInstrumented
+
+    val ctrBuilder = ri.ExpandedMetricBuilder.expand("a", "counter")
+    val counter = ctrBuilder.asCounter("count")
+
+    ri.metricRegistry.getNames should contain(ctrBuilder.getFullName("count"))
+    ctrBuilder.unregisterMetric("count")
+    ri.metricRegistry.getNames should not contain(ctrBuilder.getFullName("count"))
   }
 
   "DropWizard health checks" should "reflect current health" in {
