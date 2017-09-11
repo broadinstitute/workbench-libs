@@ -9,9 +9,8 @@ import com.google.api.client.http.{HttpResponseException => GoogleHttpResponseEx
 import com.google.api.client.http.{HttpResponse => GoogleHttpResponse}
 import com.google.api.client.http.json.JsonHttpContent
 import com.typesafe.scalalogging.LazyLogging
-import nl.grons.metrics.scala.Histogram
 import org.broadinstitute.dsde.workbench.metrics.GoogleInstrumented.GoogleCounters
-import org.broadinstitute.dsde.workbench.metrics.{GoogleInstrumented, InstrumentedRetry}
+import org.broadinstitute.dsde.workbench.metrics.{GoogleInstrumented, Histogram, InstrumentedRetry}
 import org.broadinstitute.dsde.workbench.model.ErrorReport
 import org.broadinstitute.dsde.workbench.util.Retry
 import spray.json.JsValue

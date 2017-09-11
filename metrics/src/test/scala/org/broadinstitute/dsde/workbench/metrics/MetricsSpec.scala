@@ -165,9 +165,9 @@ class MetricsSpec extends FlatSpec with Matchers with BeforeAndAfter with Eventu
     val ctrBuilder = ri.ExpandedMetricBuilder.expand("a", "counter")
     val counter = ctrBuilder.asCounter("count")
 
-    ri.metricRegistry.getNames should contain(ctrBuilder.getFullName("count"))
-    ctrBuilder.unregisterMetric("count")
-    ri.metricRegistry.getNames should not contain(ctrBuilder.getFullName("count"))
+    ri.metricRegistry.getNames should contain(counter.name)
+    ctrBuilder.unregisterMetric(counter)
+    ri.metricRegistry.getNames should not contain(counter.name)
   }
 
   "DropWizard health checks" should "reflect current health" in {

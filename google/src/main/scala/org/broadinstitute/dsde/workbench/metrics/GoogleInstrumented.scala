@@ -2,7 +2,6 @@ package org.broadinstitute.dsde.workbench.metrics
 
 import com.google.api.client.googleapis.services.AbstractGoogleClientRequest
 import com.google.api.client.http.{HttpResponse, HttpResponseException}
-import nl.grons.metrics.scala.{Counter, Histogram, Timer}
 import org.broadinstitute.dsde.workbench.metrics.GoogleInstrumented._
 import org.broadinstitute.dsde.workbench.metrics.GoogleInstrumentedService._
 

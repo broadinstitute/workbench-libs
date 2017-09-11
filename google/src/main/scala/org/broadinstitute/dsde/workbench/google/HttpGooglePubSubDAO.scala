@@ -12,6 +12,7 @@ import org.broadinstitute.dsde.workbench.google.GooglePubSubDAO._
 import org.broadinstitute.dsde.workbench.util.FutureSupport
 import akka.http.scaladsl.model.StatusCodes
 import org.broadinstitute.dsde.workbench.metrics.GoogleInstrumentedService
+import org.broadinstitute.dsde.workbench.metrics.metricUnwrapper
 
 import scala.collection.JavaConverters._
 import scala.concurrent._

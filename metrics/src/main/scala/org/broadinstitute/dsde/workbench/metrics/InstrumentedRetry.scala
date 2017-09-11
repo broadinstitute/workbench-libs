@@ -1,7 +1,6 @@
 package org.broadinstitute.dsde.workbench.metrics
 
 import com.typesafe.scalalogging.LazyLogging
-import nl.grons.metrics.scala.Histogram
 import org.broadinstitute.dsde.workbench.util.Retry
 
 import scala.concurrent.{ExecutionContext, Future}

@@ -2,7 +2,8 @@ package org.broadinstitute.dsde.workbench.metrics
 
 import akka.http.scaladsl.model.{HttpRequest, HttpResponse}
 import com.codahale.metrics.{Gauge => DropwizardGauge}
-import nl.grons.metrics.scala._
+import nl.grons.metrics.scala.{DefaultInstrumented, MetricName}
+import nl.grons.metrics.scala.{Gauge => GronsGauge}
 import org.broadinstitute.dsde.workbench.metrics.Expansion._
 import scala.collection.JavaConverters._
 
@@ -44,11 +45,15 @@ trait WorkbenchInstrumented extends DefaultInstrumented {
     def getFullName(name: String): String =
       metricBaseName.append(makeName(name)).name
 
-    def asCounter(name: String): Counter =
-      metrics.counter(makeName(name))
+    def asCounter(name: String): Counter = {
+      val cnt = metrics.counter(makeName(name))
+      new Counter(getFullName(name), cnt)
+    }
 
-    def asGauge[T](name: String)(fn: => T): Gauge[T] =
-      metrics.gauge(makeName(name))(fn)
+    def asGauge[T](name: String)(fn: => T): Gauge[T] = {
+      val gauge = metrics.gauge(makeName(name))(fn)
+      new Gauge[T](getFullName(name), gauge)
+    }
 
     def asGaugeIfAbsent[T](name: String)(fn: => T): Gauge[T] = {
       // Get the fully qualified metric name for inspecting the registry.
@@ -60,19 +65,22 @@ trait WorkbenchInstrumented extends DefaultInstrumented {
         case Some(gauge) =>
           // If the gauge exists in the registry, return it.
           // Need to wrap the returned Java DropwizardGauge in a Scala Gauge.
-          new Gauge[T](gauge.asInstanceOf[DropwizardGauge[T]])
+          new Gauge[T](gaugeName, new GronsGauge[T](gauge.asInstanceOf[DropwizardGauge[T]]))
       }
     }
 
-    def asTimer(name: String): Timer =
-      metrics.timer(makeName(name))
+    def asTimer(name: String): Timer = {
+      val tim = metrics.timer(makeName(name))
+      new Timer(getFullName(name), tim)
+    }
 
-    def asHistogram(name: String): Histogram =
-      metrics.histogram(makeName(name))
+    def asHistogram(name: String): Histogram = {
+      val histo = metrics.histogram(makeName(name))
+      new Histogram(getFullName(name), histo)
+    }
 
-    def unregisterMetric(name: String): Boolean = {
-      val metricName = getFullName(name)
-      metricRegistry.remove(metricName)
+    def unregisterMetric[T](metric: Metric[T]): Boolean = {
+      metricRegistry.remove(metric.name)
     }
 
     private def makeName(name: String): String =

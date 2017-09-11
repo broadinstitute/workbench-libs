@@ -2,9 +2,17 @@
 
 This file documents changes to the `workbench-metrics` library, including notes on how to upgrade to new versions.
 
-## 0.2
+## 0.3
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-metrics" % "0.2-xxxxxxx"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-metrics" % "0.3-xxxxxxx"`
+
+### Changed
+
+- The `WorkbenchInstrumented.asXXX` functions now return our own metric types so they don't immediately forget their own names.
+  - You may need to switch some imports from `nl.grons.metrics.scala` to `org.broadinstitute.dsde.workbench.metrics`.
+  - In rare instances you may need to import the implicit `org.broadinstitute.dsde.workbench.metrics.metricUnwrapper` when working with metrics.
+
+## 0.2
 
 ### Added
 
