@@ -5,7 +5,6 @@ import java.util.concurrent.TimeUnit
 import com.codahale.metrics._
 import com.codahale.metrics.health.SharedHealthCheckRegistries
 import com.readytalk.metrics.{StatsD, StatsDReporter}
-
 import org.broadinstitute.dsde.workbench.metrics.MetricsSpec.TestInstrumented
 import org.mockito.ArgumentMatchers.{eq => argEq, _}
 import org.mockito.Mockito.{inOrder => mockitoInOrder, _}
@@ -154,6 +153,20 @@ class MetricsSpec extends FlatSpec with Matchers with BeforeAndAfter with Eventu
     verifyStatsD { order =>
       verifyMeter(order, "test.meter", 100)
     }
+  }
+
+  it should "remove metrics from the registry" in {
+    class RemovedInstrumented extends WorkbenchInstrumented {
+      override val workbenchMetricBaseName = "removeme"
+    }
+    val ri = new RemovedInstrumented
+
+    val ctrBuilder = ri.ExpandedMetricBuilder.expand("a", "counter")
+    val counter = ctrBuilder.asCounter("count")
+
+    ri.metricRegistry.getNames should contain(counter.name)
+    ctrBuilder.unregisterMetric(counter)
+    ri.metricRegistry.getNames should not contain(counter.name)
   }
 
   "DropWizard health checks" should "reflect current health" in {
