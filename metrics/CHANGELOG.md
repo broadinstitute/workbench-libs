@@ -4,7 +4,7 @@ This file documents changes to the `workbench-metrics` library, including notes 
 
 ## 0.3
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-metrics" % "0.3-xxxxxxx"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-metrics" % "0.3-324fef3"`
 
 ### Changed
 
