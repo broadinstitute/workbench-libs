@@ -66,13 +66,13 @@ object Settings {
   val metricsSettings = commonSettings ++ List(
     name := "workbench-metrics",
     libraryDependencies ++= metricsDependencies,
-    version := createVersion("0.2")
+    version := createVersion("0.3")
   ) ++ publishSettings
 
   val googleSettings = commonSettings ++ List(
     name := "workbench-google",
     libraryDependencies ++= googleDependencies,
-    version := createVersion("0.2"),
+    version := createVersion("0.3"),
     coverageExcludedPackages := ".*HttpGoogle.*DAO.*"
   ) ++ publishSettings
 
