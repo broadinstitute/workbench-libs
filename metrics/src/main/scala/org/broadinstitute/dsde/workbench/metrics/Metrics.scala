@@ -10,6 +10,7 @@ import nl.grons.metrics.scala.{Histogram => GronsHisto}
 sealed trait Metric[M] {
   val name: String
   val metric: M
+  override def toString: String = name
 }
 
 class Gauge[T](val name: String, val metric: GronsGauge[T]) extends Metric[GronsGauge[T]]

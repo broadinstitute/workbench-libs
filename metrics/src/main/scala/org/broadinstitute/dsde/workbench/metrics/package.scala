@@ -18,6 +18,4 @@ package object metrics extends LazyLogging {
       .build(host, port)
     reporter.start(period.toMillis, period.toMillis, TimeUnit.MILLISECONDS)
   }
-
-  implicit def metricUnwrapper[M](metric: Metric[M]): M = metric.metric
 }

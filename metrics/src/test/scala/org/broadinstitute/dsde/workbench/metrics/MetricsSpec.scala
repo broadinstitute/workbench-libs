@@ -18,7 +18,6 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.concurrent.duration._
 import scala.util.Try
-import nl.grons.metrics.scala
 
 /**
   * Created by rtitle on 5/31/17.

@@ -20,6 +20,8 @@ trait WorkbenchInstrumented extends DefaultInstrumented {
   protected val workbenchMetricBaseName: String
   override lazy val metricBaseName = MetricName(workbenchMetricBaseName)
 
+  implicit def metricUnwrapper[M](metric: Metric[M]): M = metric.metric
+
   /**
     * Utility for building expanded metric names in a typesafe way. Example usage:
     * {{{
