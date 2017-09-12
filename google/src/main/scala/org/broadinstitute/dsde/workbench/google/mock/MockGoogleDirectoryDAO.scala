@@ -32,13 +32,9 @@ class MockGoogleDirectoryDAO( implicit val executionContext: ExecutionContext ) 
   }
 
   override def removeMemberFromGroup(groupEmail: WorkbenchGroupEmail, memberEmail: WorkbenchEmail): Future[Unit] = {
-    println(s"removing $memberEmail from $groupEmail")
     Future {
       val currentMembers = groups.getOrElse(groupEmail, throw new NoSuchElementException(s"group ${groupEmail.value} not found"))
       val newMembersList = currentMembers - memberEmail
-
-      println(s"original members: $currentMembers")
-      println(s"new members: $newMembersList")
 
       groups.put(groupEmail, newMembersList)
     }
