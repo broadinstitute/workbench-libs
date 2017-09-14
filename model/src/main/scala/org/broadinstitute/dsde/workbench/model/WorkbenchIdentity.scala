@@ -29,10 +29,8 @@ object WorkbenchIdentityJsonSupport {
 
 }
 
-sealed trait WorkbenchSubject
-sealed trait WorkbenchEmail {
-  def value: String
-}
+sealed trait WorkbenchSubject extends ValueObject
+sealed trait WorkbenchEmail extends ValueObject
 
 case class WorkbenchUser(id: WorkbenchUserId, email: WorkbenchUserEmail)
 case class WorkbenchUserId(value: String) extends WorkbenchSubject
