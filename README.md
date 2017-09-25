@@ -33,8 +33,8 @@ Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-metric
 
 ## workbench-google
 
-Contains utility functions for talking to Google APIs and a DAO for Google PubSub. 
+Contains utility functions for talking to Google APIs and a DAO for Google PubSub as well as Google Directory. 
 
-Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.3-324fef3"`
+Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.3-17ecff8"`
 
 [Changelog](google/CHANGELOG.md)
