@@ -15,7 +15,7 @@ Developers should take care to increment library versions when the library chang
 
 To do this, find the `val xxxSettings =` block in `project/Settings.scala` for the library you are incrementing, and change the string inside the call to `createVersion()` using the scheme outlined below.
 
-You should also update `README.md` and document your changes and upgrade path at `<yourlib>/CHANGELOG.md`. See [keepachangelog.com](http://keepachangelog.com/) for some guidance on the latter.
+You should also update `README.md` (in a separate commit after your PR) and document your changes and upgrade path at `<yourlib>/CHANGELOG.md`. See [keepachangelog.com](http://keepachangelog.com/) for some guidance on the latter.
 
 ### No version bump necessary
 
