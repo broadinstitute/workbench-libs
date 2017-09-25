@@ -5,11 +5,11 @@ Workbench utility libraries, built for Scala 2.11 and 2.12. You can find the ful
 
 In this repo:
 
-## workbench-utils
+## workbench-util
 
 Contains utility functions and classes.
 
-Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util" % "0.2-61b7be2"`
+Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util" % "0.2-TBD"`
 
 [Changelog](util/CHANGELOG.md)
 
