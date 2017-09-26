@@ -25,7 +25,7 @@ object WorkbenchIdentityJsonSupport {
 
   implicit val WorkbenchGroupNameFormat = jsonFormat1(WorkbenchGroupName)
   implicit val WorkbenchGroupEmailFormat = jsonFormat1(WorkbenchGroupEmail)
-  implicit val WorkbenchGroupFormat = jsonFormat3(WorkbenchGroup)
+//  implicit val WorkbenchGroupFormat = jsonFormat3(WorkbenchGroup)
 
 }
 
@@ -36,6 +36,6 @@ case class WorkbenchUser(id: WorkbenchUserId, email: WorkbenchUserEmail)
 case class WorkbenchUserId(value: String) extends WorkbenchSubject
 case class WorkbenchUserEmail(value: String) extends WorkbenchEmail
 
-case class WorkbenchGroup(id: WorkbenchGroupName, members: Set[WorkbenchEmail], email: WorkbenchGroupEmail)
+case class WorkbenchGroup(name: WorkbenchGroupName, members: Set[WorkbenchSubject], email: WorkbenchGroupEmail)
 case class WorkbenchGroupName(value: String) extends WorkbenchSubject
 case class WorkbenchGroupEmail(value: String) extends WorkbenchEmail
