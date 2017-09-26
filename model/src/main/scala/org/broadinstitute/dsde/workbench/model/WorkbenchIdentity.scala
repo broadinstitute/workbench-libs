@@ -25,7 +25,6 @@ object WorkbenchIdentityJsonSupport {
 
   implicit val WorkbenchGroupNameFormat = jsonFormat1(WorkbenchGroupName)
   implicit val WorkbenchGroupEmailFormat = jsonFormat1(WorkbenchGroupEmail)
-//  implicit val WorkbenchGroupFormat = jsonFormat3(WorkbenchGroup)
 
 }
 
