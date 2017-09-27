@@ -4,11 +4,15 @@ This file documents changes to the `workbench-google` library, including notes o
 
 ## 0.3
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.3-324fef3"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.3-xxxxxxx"`
 
 ### Changed
 
 - Inherited changes from workbench-metrics.
+
+### Added
+
+- GoogleUtilities.generateBucketName(prefix) method
 
 ## 0.2
 
