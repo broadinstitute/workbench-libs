@@ -23,3 +23,11 @@ If you're moving from the `workbench-util` published by Rawls, you'll have to do
 
 - Move imports from `org.broadinstitute.dsde.rawls.model` to `org.broadinstitute.dsde.workbench.model`
 - Upgrade from spray to akka-http
+
+## 0.2
+
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-model" % "0.2-c7726ac"`
+
+### Changed
+
+- org.broadinstitute.dsde.workbench.model.WorkbenchGroup: id changed to name, members changed to Set[WorkbenchSubject]
