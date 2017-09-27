@@ -11,8 +11,8 @@ object WorkbenchIdentityJsonSupport {
 
   implicit object WorkbenchEmailFormat extends RootJsonFormat[WorkbenchEmail] {
     def write(e: WorkbenchEmail): JsString = e match {
-      case userEmail: WorkbenchUserEmail => JsString(userEmail.value)
-      case groupEmail: WorkbenchGroupEmail => JsString(groupEmail.value)
+      case WorkbenchUserEmail(email) => JsString(email)
+      case WorkbenchGroupEmail(email) => JsString(email)
       case _ => throw new WorkbenchException("unable to marshal WorkbenchEmail")
     }
 
