@@ -4,12 +4,16 @@ This file documents changes to the `workbench-metrics` library, including notes 
 
 ## 0.3
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-metrics" % "0.3-324fef3"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-metrics" % "0.3-xxxxxxx"`
 
 ### Changed
 
 - The `WorkbenchInstrumented.asXXX` functions now return our own metric types so they don't immediately forget their own names.
   - You may need to switch some imports from `nl.grons.metrics.scala` to `org.broadinstitute.dsde.workbench.metrics`.
+
+### Added
+
+- Support for transient metrics (e.g. metrics that get automagically deleted in Hosted Graphite).
 
 ## 0.2
 
