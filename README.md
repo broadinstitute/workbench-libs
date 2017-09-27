@@ -27,7 +27,7 @@ NOTE: This library uses akka-http's implementation of spray-json and is therefor
 
 Contains utilities for instrumenting Scala code and reporting to StatsD using [metrics-scala](https://github.com/erikvanoosten/metrics-scala) and [metrics-statsd](https://github.com/ReadyTalk/metrics-statsd).
 
-Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-metrics" % "0.3-c7726ac"`
+Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-metrics" % "0.3-xxxxxxx"`
 
 [Changelog](metrics/CHANGELOG.md)
 

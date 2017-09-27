@@ -22,6 +22,8 @@ trait WorkbenchInstrumented extends DefaultInstrumented {
 
   implicit def metricUnwrapper[M](metric: Metric[M]): M = metric.metric
 
+  final val transientPrefix = "transient"
+
   /**
     * Utility for building expanded metric names in a typesafe way. Example usage:
     * {{{
@@ -38,10 +40,19 @@ trait WorkbenchInstrumented extends DefaultInstrumented {
     *
     * Note the above will only compile if there are [[Expansion]] instances for the types passed to the expand method.
     */
-  protected class ExpandedMetricBuilder private (m: String = "") {
+  protected class ExpandedMetricBuilder private (m: String = "", _transient: Boolean = false) {
     def expand[A: Expansion](key: String, a: A): ExpandedMetricBuilder = {
       new ExpandedMetricBuilder(
-        (if (m == "") m else m + ".") + implicitly[Expansion[A]].makeNameWithKey(key, a))
+        (if (m == "") m else m + ".") + implicitly[Expansion[A]].makeNameWithKey(key, a), _transient)
+    }
+
+    /**
+      * Marks a metric as "transient". Transient metrics will automatically be deleted in Hosted
+      * Graphite if they haven't received an update in X amount of time. It's usually good to set
+      * metrics with high granularity (e.g. workspace or submission-level) as transient.
+      */
+    def transient(): ExpandedMetricBuilder = {
+      new ExpandedMetricBuilder(m, true)
     }
 
     def getFullName(name: String): String =
@@ -85,8 +96,10 @@ trait WorkbenchInstrumented extends DefaultInstrumented {
       metricRegistry.remove(metric.name)
     }
 
-    private def makeName(name: String): String =
-      if (m.nonEmpty) s"$m.$name" else name
+    private def makeName(name: String): String = {
+      val expandedName = if (m.nonEmpty) s"$m.$name" else name
+      if (_transient) s"$transientPrefix.$expandedName" else expandedName
+    }
 
     override def toString: String = m
   }
