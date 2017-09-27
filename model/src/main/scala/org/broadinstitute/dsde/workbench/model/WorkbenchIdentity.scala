@@ -11,20 +11,20 @@ object WorkbenchIdentityJsonSupport {
 
   implicit object WorkbenchEmailFormat extends RootJsonFormat[WorkbenchEmail] {
     def write(e: WorkbenchEmail): JsString = e match {
-      case userEmail: WorkbenchUserEmail => JsString(userEmail.value)
-      case groupEmail: WorkbenchGroupEmail => JsString(groupEmail.value)
+      case WorkbenchUserEmail(email) => JsString(email)
+      case WorkbenchGroupEmail(email) => JsString(email)
       case _ => throw new WorkbenchException("unable to marshal WorkbenchEmail")
     }
 
     def read(value: JsValue) = ???
   }
 
-  implicit val WorkbenchUserIdFormat = jsonFormat1(WorkbenchUserId)
-  implicit val WorkbenchUserEmailFormat = jsonFormat1(WorkbenchUserEmail)
+  implicit val WorkbenchUserIdFormat = ValueObjectFormat(WorkbenchUserId)
+  implicit val WorkbenchUserEmailFormat = ValueObjectFormat(WorkbenchUserEmail)
   implicit val WorkbenchUserFormat = jsonFormat2(WorkbenchUser)
 
-  implicit val WorkbenchGroupNameFormat = jsonFormat1(WorkbenchGroupName)
-  implicit val WorkbenchGroupEmailFormat = jsonFormat1(WorkbenchGroupEmail)
+  implicit val WorkbenchGroupNameFormat = ValueObjectFormat(WorkbenchGroupName)
+  implicit val WorkbenchGroupEmailFormat = ValueObjectFormat(WorkbenchGroupEmail)
 
 }
 
