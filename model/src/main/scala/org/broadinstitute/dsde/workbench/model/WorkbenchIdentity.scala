@@ -19,12 +19,12 @@ object WorkbenchIdentityJsonSupport {
     def read(value: JsValue) = ???
   }
 
-  implicit val WorkbenchUserIdFormat = jsonFormat1(WorkbenchUserId)
-  implicit val WorkbenchUserEmailFormat = jsonFormat1(WorkbenchUserEmail)
+  implicit val WorkbenchUserIdFormat = ValueObjectFormat(WorkbenchUserId)
+  implicit val WorkbenchUserEmailFormat = ValueObjectFormat(WorkbenchUserEmail)
   implicit val WorkbenchUserFormat = jsonFormat2(WorkbenchUser)
 
-  implicit val WorkbenchGroupNameFormat = jsonFormat1(WorkbenchGroupName)
-  implicit val WorkbenchGroupEmailFormat = jsonFormat1(WorkbenchGroupEmail)
+  implicit val WorkbenchGroupNameFormat = ValueObjectFormat(WorkbenchGroupName)
+  implicit val WorkbenchGroupEmailFormat = ValueObjectFormat(WorkbenchGroupEmail)
 
 }
 
