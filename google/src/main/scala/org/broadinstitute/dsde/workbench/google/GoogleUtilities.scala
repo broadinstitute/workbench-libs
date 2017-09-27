@@ -135,9 +135,13 @@ trait GoogleUtilities extends LazyLogging with InstrumentedRetry with GoogleInst
 object GoogleUtilities {
 
   /**
-    * Generates a unique bucket name with the given prefix.
-    * The resulting name adheres to bucket naming rules specified here:
-    * https://cloud.google.com/storage/docs/naming
+    * Generates a unique bucket name with the given prefix. The prefix may be
+    * modified so that it adheres to bucket naming rules specified here:
+    *
+    * https://cloud.google.com/storage/docs/naming.
+    *
+    * The resulting bucket name is guaranteed to be a valid bucket name.
+    *
     * @param prefix bucket name prefix
     * @return generated bucket name
     */
