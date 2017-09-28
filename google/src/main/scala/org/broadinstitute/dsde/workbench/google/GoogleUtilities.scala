@@ -1,7 +1,6 @@
 package org.broadinstitute.dsde.workbench.google
 
 import java.io.{ByteArrayOutputStream, IOException, InputStream}
-import java.util.UUID
 import java.util.concurrent.TimeUnit
 
 import com.google.api.client.googleapis.json.GoogleJsonResponseException
@@ -13,7 +12,6 @@ import com.typesafe.scalalogging.LazyLogging
 import org.broadinstitute.dsde.workbench.metrics.GoogleInstrumented.GoogleCounters
 import org.broadinstitute.dsde.workbench.metrics.{GoogleInstrumented, Histogram, InstrumentedRetry}
 import org.broadinstitute.dsde.workbench.model.ErrorReport
-import org.broadinstitute.dsde.workbench.util.Retry
 import spray.json.JsValue
 
 import scala.collection.JavaConverters._
@@ -130,41 +128,6 @@ trait GoogleUtilities extends LazyLogging with InstrumentedRetry with GoogleInst
   }
 
   // $COVERAGE-ON$
-}
-
-object GoogleUtilities {
-
-  /**
-    * Generates a unique bucket name with the given prefix. The prefix may be
-    * modified so that it adheres to bucket naming rules specified here:
-    *
-    * https://cloud.google.com/storage/docs/naming.
-    *
-    * The resulting bucket name is guaranteed to be a valid bucket name.
-    *
-    * @param prefix bucket name prefix
-    * @return generated bucket name
-    */
-  def generateBucketName(prefix: String): String = {
-    // may only contain lowercase letters, numbers, underscores, dashes, or dots
-    val lowerCaseName = prefix.toLowerCase.filter { c =>
-      Character.isLetterOrDigit(c) || c == '_' || c == '-' || c == '.'
-    }
-
-    // must start with a letter or number
-    val sb = new StringBuilder(lowerCaseName)
-    if (!Character.isLetterOrDigit(sb.head)) sb.setCharAt(0, '0')
-
-    // max length of 63 chars, including the uuid
-    val uuid = UUID.randomUUID.toString
-    val maxNameLength = 63 - uuid.length - 1
-    if (sb.length > maxNameLength) sb.setLength(maxNameLength)
-
-    // must not start with "goog" or contain the string "google"
-    val processedName = sb.replaceAllLiterally("goog", "g00g")
-
-    s"$processedName-$uuid"
-  }
 }
 
 protected[google] case class GoogleRequest(method: String, url: String, payload: Option[JsValue], time_ms: Long, statusCode: Option[Int], errorReport: Option[ErrorReport])
