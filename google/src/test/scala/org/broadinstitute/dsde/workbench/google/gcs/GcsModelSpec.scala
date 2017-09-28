@@ -53,4 +53,12 @@ class GcsModelSpec extends FlatSpecLike with Matchers with EitherValues {
     GcsPath.parse("gs://a-bucket-which-has-a-very-long-name-because-i-am-extremely-verbose-in-my-descriptions-but-is-otherwise-valid/foo").left.value shouldBe a [GcsParseError]
   }
 
+  it should "return valid URIs" in {
+    GcsPath(GcsBucketName("a-bucket"), GcsRelativePath("a/relative/path")).toUri shouldBe "gs://a-bucket/a/relative/path"
+    GcsPath(GcsBucketName("b-bucket"), GcsRelativePath("foo")).toUri shouldBe "gs://b-bucket/foo"
+    GcsPath(GcsBucketName("c-bucket"), GcsRelativePath("")).toUri shouldBe "gs://c-bucket/"
+    // No validation happens here
+    GcsPath(GcsBucketName("aCamelCaseBucket"), GcsRelativePath("foo/bar")).toUri shouldBe "gs://aCamelCaseBucket/foo/bar"
+  }
+
 }
