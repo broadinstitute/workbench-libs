@@ -7,20 +7,20 @@ import org.scalatest.{EitherValues, FlatSpecLike, Matchers}
   */
 class GcsModelSpec extends FlatSpecLike with Matchers with EitherValues {
 
-  "GcsBucketName" should "generate valid names" in {
-    GcsBucketName.generateUniqueBucketName("myCluster").name should startWith ("mycluster-")
-    GcsBucketName.generateUniqueBucketName("MyCluster").name should startWith ("mycluster-")
-    GcsBucketName.generateUniqueBucketName("My_Cluster").name should startWith ("my_cluster-")
-    GcsBucketName.generateUniqueBucketName("MY_CLUSTER").name should startWith ("my_cluster-")
-    GcsBucketName.generateUniqueBucketName("MYCLUSTER").name should startWith ("mycluster-")
-    GcsBucketName.generateUniqueBucketName("_myCluster_").name should startWith ("0mycluster_-")
-    GcsBucketName.generateUniqueBucketName("my.cluster").name should startWith ("my.cluster-")
-    GcsBucketName.generateUniqueBucketName("my+cluster").name should startWith ("mycluster-")
-    GcsBucketName.generateUniqueBucketName("mY-?^&@%#@&^#cLuStEr.foo_bar").name should startWith ("my-cluster.foo_bar-")
-    GcsBucketName.generateUniqueBucketName("googMyCluster").name should startWith ("g00gmycluster-")
-    GcsBucketName.generateUniqueBucketName("my_Google_clUsTer").name should startWith("my_g00gle_cluster-")
-    GcsBucketName.generateUniqueBucketName("myClusterWhichHasAVeryLongNameBecauseIAmExtremelyVerboseInMyDescriptions").name should startWith ("myclusterwhichhasaverylong-")
-    GcsBucketName.generateUniqueBucketName("myClusterWhichHasAVeryLongNameBecauseIAmExtremelyVerboseInMyDescriptions").name.length shouldBe 63
+  "gcs" should "generate valid bucket names" in {
+    generateUniqueBucketName("myCluster").name should startWith ("mycluster-")
+    generateUniqueBucketName("MyCluster").name should startWith ("mycluster-")
+    generateUniqueBucketName("My_Cluster").name should startWith ("my_cluster-")
+    generateUniqueBucketName("MY_CLUSTER").name should startWith ("my_cluster-")
+    generateUniqueBucketName("MYCLUSTER").name should startWith ("mycluster-")
+    generateUniqueBucketName("_myCluster_").name should startWith ("0mycluster_-")
+    generateUniqueBucketName("my.cluster").name should startWith ("my.cluster-")
+    generateUniqueBucketName("my+cluster").name should startWith ("mycluster-")
+    generateUniqueBucketName("mY-?^&@%#@&^#cLuStEr.foo_bar").name should startWith ("my-cluster.foo_bar-")
+    generateUniqueBucketName("googMyCluster").name should startWith ("g00gmycluster-")
+    generateUniqueBucketName("my_Google_clUsTer").name should startWith("my_g00gle_cluster-")
+    generateUniqueBucketName("myClusterWhichHasAVeryLongNameBecauseIAmExtremelyVerboseInMyDescriptions").name should startWith ("myclusterwhichhasaverylong-")
+    generateUniqueBucketName("myClusterWhichHasAVeryLongNameBecauseIAmExtremelyVerboseInMyDescriptions").name.length shouldBe 63
   }
 
   "GcsPath" should "parse valid paths" in {
