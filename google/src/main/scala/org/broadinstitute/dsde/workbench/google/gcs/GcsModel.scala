@@ -6,6 +6,18 @@ import java.util.UUID
 import org.broadinstitute.dsde.workbench.google.gcs.GcsPathParser._
 import scala.util.Try
 
+/** A GCS path including bucket name and path */
+case class GcsPath(bucket: GcsBucketName, path: GcsRelativePath) {
+  def toUri: String = s"$GCS_SCHEME://${bucket.name}/${path.name}"
+}
+object GcsPath {
+  def parse(str: String): Either[GcsParseError, GcsPath] =
+    GcsPathParser.parseGcsPathFromString(str)
+}
+
+/** A GCS relative path */
+case class GcsRelativePath(name: String) extends AnyVal
+
 /** A valid GCS bucket name */
 case class GcsBucketName(name: String) extends AnyVal
 object GcsBucketName {
@@ -42,18 +54,6 @@ object GcsBucketName {
   }
 }
 
-/** A GCS relative path */
-case class GcsRelativePath(name: String) extends AnyVal
-
-/** A GCS path including bucket name and path */
-case class GcsPath(bucket: GcsBucketName, path: GcsRelativePath) {
-  def toUri: String = s"$GCS_SCHEME://${bucket.name}/${path.name}"
-}
-object GcsPath {
-  def parse(str: String): Either[GcsParseError, GcsPath] =
-    GcsPathParser.parseGcsPathFromString(str)
-}
-
 case class GcsParseError(message: String) extends AnyVal
 
 private object GcsPathParser {
@@ -63,8 +63,8 @@ private object GcsPathParser {
    * Provides some level of validation of GCS bucket names.
    * See https://cloud.google.com/storage/docs/naming for full spec
    */
-  final val GCS_BUCKET_NAME_PATTERN =
-    """^[a-z0-9][a-z0-9-_\\.]{1,61}[a-z0-9]$""".r
+  final val GCS_BUCKET_NAME_PATTERN_BASE = """[a-z0-9][a-z0-9-_\\.]{1,61}[a-z0-9]"""
+  final val GCS_BUCKET_NAME_PATTERN = s"""^$GCS_BUCKET_NAME_PATTERN_BASE$$""".r
 
   /*
    * Regex for a full GCS path which captures the bucket name.
@@ -74,7 +74,7 @@ private object GcsPathParser {
       (?x)                                      # Turn on comments and whitespace insensitivity
       ^${GCS_SCHEME}://
       (                                         # Begin capturing group for gcs bucket name
-        [a-z0-9][a-z0-9-_\\.]{1,61}[a-z0-9]     # Regex for bucket name - soft validation, see comment above
+        $GCS_BUCKET_NAME_PATTERN_BASE           # Regex for bucket name - soft validation, see comment above
       )                                         # End capturing group for gcs bucket name
       /
       (?:
