@@ -7,8 +7,8 @@ import org.broadinstitute.dsde.workbench.google.gcs.GcsPathParser._
 import scala.util.Try
 
 /** A GCS path including bucket name and path */
-case class GcsPath(bucket: GcsBucketName, path: GcsRelativePath) {
-  def toUri: String = s"$GCS_SCHEME://${bucket.name}/${path.name}"
+case class GcsPath(bucketName: GcsBucketName, relativePath: GcsRelativePath) {
+  def toUri: String = s"$GCS_SCHEME://${bucketName.name}/${relativePath.name}"
 }
 object GcsPath {
   def parse(str: String): Either[GcsParseError, GcsPath] =
