@@ -97,7 +97,7 @@ private object GcsPathParser {
   }
 
   def getAndValidateRelativePath(uri: URI): Either[GcsParseError, GcsRelativePath] = {
-    Option(uri.getPath).map(GcsRelativePath.apply)
+    Option(uri.getPath).map(_.stripPrefix("/")).map(GcsRelativePath.apply)
       .toRight(GcsParseError(s"Could not parse bucket relative path from path: ${uri.toString}"))
   }
 }

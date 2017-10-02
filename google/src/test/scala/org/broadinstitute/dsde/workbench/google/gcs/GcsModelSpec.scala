@@ -24,15 +24,15 @@ class GcsModelSpec extends FlatSpecLike with Matchers with EitherValues {
   }
 
   "GcsPath" should "parse valid paths" in {
-    GcsPath.parse("gs://a-bucket/a/relative/path").right.value shouldBe GcsPath(GcsBucketName("a-bucket"), GcsRelativePath("/a/relative/path"))
-    GcsPath.parse("gs://a-123-bucket/foo/").right.value shouldBe GcsPath(GcsBucketName("a-123-bucket"), GcsRelativePath("/foo/"))
-    GcsPath.parse("gs://a-bucket-123/").right.value shouldBe GcsPath(GcsBucketName("a-bucket-123"), GcsRelativePath("/"))
+    GcsPath.parse("gs://a-bucket/a/relative/path").right.value shouldBe GcsPath(GcsBucketName("a-bucket"), GcsRelativePath("a/relative/path"))
+    GcsPath.parse("gs://a-123-bucket/foo/").right.value shouldBe GcsPath(GcsBucketName("a-123-bucket"), GcsRelativePath("foo/"))
+    GcsPath.parse("gs://a-bucket-123/").right.value shouldBe GcsPath(GcsBucketName("a-bucket-123"), GcsRelativePath(""))
     GcsPath.parse("gs://a-bucket-123").right.value shouldBe GcsPath(GcsBucketName("a-bucket-123"), GcsRelativePath(""))
-    GcsPath.parse("//a-bucket-123/a/relative/path").right.value shouldBe GcsPath(GcsBucketName("a-bucket-123"), GcsRelativePath("/a/relative/path"))
-    GcsPath.parse("gs://a_123_bucket/a/relative/path").right.value shouldBe GcsPath(GcsBucketName("a_123_bucket"), GcsRelativePath("/a/relative/path"))
-    GcsPath.parse("gs://a.123.bucket.123/a/relative/path").right.value shouldBe GcsPath(GcsBucketName("a.123.bucket.123"), GcsRelativePath("/a/relative/path"))
-    GcsPath.parse("gs://a-bucket_123.456/a/relative/path").right.value shouldBe GcsPath(GcsBucketName("a-bucket_123.456"), GcsRelativePath("/a/relative/path"))
-    GcsPath.parse("gs://a-bucket-with-a-slightly-longer-name-42/a/relative/path").right.value shouldBe GcsPath(GcsBucketName("a-bucket-with-a-slightly-longer-name-42"), GcsRelativePath("/a/relative/path"))
+    GcsPath.parse("//a-bucket-123/a/relative/path").right.value shouldBe GcsPath(GcsBucketName("a-bucket-123"), GcsRelativePath("a/relative/path"))
+    GcsPath.parse("gs://a_123_bucket/a/relative/path").right.value shouldBe GcsPath(GcsBucketName("a_123_bucket"), GcsRelativePath("a/relative/path"))
+    GcsPath.parse("gs://a.123.bucket.123/a/relative/path").right.value shouldBe GcsPath(GcsBucketName("a.123.bucket.123"), GcsRelativePath("a/relative/path"))
+    GcsPath.parse("gs://a-bucket_123.456/a/relative/path").right.value shouldBe GcsPath(GcsBucketName("a-bucket_123.456"), GcsRelativePath("a/relative/path"))
+    GcsPath.parse("gs://a-bucket-with-a-slightly-longer-name-42/a/relative/path").right.value shouldBe GcsPath(GcsBucketName("a-bucket-with-a-slightly-longer-name-42"), GcsRelativePath("a/relative/path"))
   }
 
   it should "fail to parse invalid paths" in {
@@ -59,6 +59,13 @@ class GcsModelSpec extends FlatSpecLike with Matchers with EitherValues {
     GcsPath(GcsBucketName("c-bucket"), GcsRelativePath("")).toUri shouldBe "gs://c-bucket/"
     // No validation happens here
     GcsPath(GcsBucketName("aCamelCaseBucket"), GcsRelativePath("foo/bar")).toUri shouldBe "gs://aCamelCaseBucket/foo/bar"
+  }
+
+  it should "roundtrip correctly" in {
+    val testStr = "gs://a-bucket/a/relative/path"
+    val expectedGcsPath = GcsPath(GcsBucketName("a-bucket"), GcsRelativePath("a/relative/path"))
+    GcsPath.parse(testStr).right.value shouldBe expectedGcsPath
+    expectedGcsPath.toUri shouldBe testStr
   }
 
 }
