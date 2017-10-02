@@ -12,7 +12,11 @@ SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.
 
 ### Added
 
-- GoogleUtilities.generateBucketName(prefix) method
+- `gcs` package containing:
+   - rich model types for GCS full path, bucket, relative path 
+   - ability to parse and validate a GCS path from a string
+   - ability to generate a unique valid bucket name given a prefix
+- `Dataproc` instrumented service 
 
 ## 0.2
 

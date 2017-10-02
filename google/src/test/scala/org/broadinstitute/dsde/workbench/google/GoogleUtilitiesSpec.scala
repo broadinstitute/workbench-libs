@@ -155,22 +155,6 @@ class GoogleUtilitiesSpec extends TestKit(ActorSystem("MySpec")) with GoogleUtil
       capturedMetrics should contain ("test.histo.max", "4")  // 4 exceptions
     }
   }
-
-  "generateBucketName" should "generate valid bucket names" in {
-    GoogleUtilities.generateBucketName("myCluster") should startWith ("mycluster-")
-    GoogleUtilities.generateBucketName("MyCluster") should startWith ("mycluster-")
-    GoogleUtilities.generateBucketName("My_Cluster") should startWith ("my_cluster-")
-    GoogleUtilities.generateBucketName("MY_CLUSTER") should startWith ("my_cluster-")
-    GoogleUtilities.generateBucketName("MYCLUSTER") should startWith ("mycluster-")
-    GoogleUtilities.generateBucketName("_myCluster_") should startWith ("0mycluster_-")
-    GoogleUtilities.generateBucketName("my.cluster") should startWith ("my.cluster-")
-    GoogleUtilities.generateBucketName("my+cluster") should startWith ("mycluster-")
-    GoogleUtilities.generateBucketName("mY-?^&@%#@&^#cLuStEr.foo_bar") should startWith ("my-cluster.foo_bar-")
-    GoogleUtilities.generateBucketName("googMyCluster") should startWith ("g00gmycluster-")
-    GoogleUtilities.generateBucketName("my_Google_clUsTer") should startWith("my_g00gle_cluster-")
-    GoogleUtilities.generateBucketName("myClusterWhichHasAVeryLongNameBecauseIAmExtremelyVerboseInMyDescriptions") should startWith ("myclusterwhichhasaverylong-")
-    GoogleUtilities.generateBucketName("myClusterWhichHasAVeryLongNameBecauseIAmExtremelyVerboseInMyDescriptions").length shouldBe 63
-  }
 }
 
 class GoogleJsonSpec extends FlatSpecLike with Matchers {
