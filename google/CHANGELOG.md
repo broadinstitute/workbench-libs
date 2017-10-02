@@ -2,6 +2,14 @@
 
 This file documents changes to the `workbench-google` library, including notes on how to upgrade to new versions.
 
+## 0.4
+
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.3-???????"`
+
+### Added
+
+- GoogleIamDAO for creating service accounts and modifying IAM roles
+
 ## 0.3
 
 SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.3-0085f3f"`

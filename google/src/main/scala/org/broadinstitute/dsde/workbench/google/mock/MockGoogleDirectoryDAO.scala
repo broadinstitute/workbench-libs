@@ -12,7 +12,7 @@ import scala.concurrent.{ExecutionContext, Future}
   */
 class MockGoogleDirectoryDAO( implicit val executionContext: ExecutionContext ) extends GoogleDirectoryDAO {
 
-  private val groups: TrieMap[WorkbenchGroupEmail, Set[WorkbenchEmail]] = TrieMap()
+  val groups: TrieMap[WorkbenchGroupEmail, Set[WorkbenchEmail]] = TrieMap()
 
   override def createGroup(groupName: WorkbenchGroupName, groupEmail: WorkbenchGroupEmail): Future[Unit] = {
     Future.successful(groups.putIfAbsent(groupEmail, Set.empty))
