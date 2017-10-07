@@ -48,6 +48,12 @@ Examples where a major version bump is necessary include:
 - Movement of classes between libraries
 - Breaking API changes that will require significant rewriting on the part of clients, including deletion of any functionality
 
+## Testing
+
+We run coverage tests on this repo. Please try to avoid merging PRs that fail coverage requirements.
+
+Defining your mocks in `src/test` rather than `src/main` will help greatly.
+
 ## Publishing
 
 Travis automatically builds Scala 2.11 and 2.12 versions of these libraries and publishes them to [Artifactory](https://broadinstitute.jfrog.io/broadinstitute/webapp/#/artifacts/browse/tree/General/libs-release-local/org/broadinstitute/dsde/workbench/). Commits to any other branch than develop will be labelled `<version>-<githash>-SNAP`; commits to develop will be labelled `<version>-<githash>`. You probably shouldn't be using `-SNAP` versions in downstream code.
