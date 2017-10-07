@@ -47,6 +47,7 @@ object Dependencies {
 
   val utilDependencies = commonDependencies ++ Seq(
     akkaActor,
+    akkaHttpSprayJson,
     cats,
     akkaTestkit,
     mockito
