@@ -1,6 +1,6 @@
-package org.broadinstitute.dsde.workbench.health
+package org.broadinstitute.dsde.workbench.util.health
 
-import org.broadinstitute.dsde.workbench.health.Subsystems.Subsystem
+import org.broadinstitute.dsde.workbench.util.health.Subsystems.Subsystem
 import org.broadinstitute.dsde.workbench.model.{ValueObject, ValueObjectFormat, WorkbenchException}
 
 case class SubsystemStatus(

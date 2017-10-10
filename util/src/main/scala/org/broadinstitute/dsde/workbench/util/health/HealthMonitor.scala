@@ -1,19 +1,17 @@
-package org.broadinstitute.dsde.workbench.health
+package org.broadinstitute.dsde.workbench.util.health
 
 import java.util.concurrent.TimeoutException
 
 import akka.actor.{Actor, Props}
-import akka.pattern.{after, pipe}
-import cats._
-import cats.implicits._
+import akka.pattern.pipe
 import com.typesafe.scalalogging.LazyLogging
-import org.broadinstitute.dsde.workbench.health.Subsystems.Subsystem
+import org.broadinstitute.dsde.workbench.util.health.Subsystems.Subsystem
 
 import scala.concurrent.Future
 import scala.concurrent.duration._
 import scala.util.control.NonFatal
-
 import HealthMonitor._
+import org.broadinstitute.dsde.workbench.util.FutureSupport
 
 /**
   * Created by rtitle on 5/17/17.
@@ -37,7 +35,7 @@ object HealthMonitor {
   case object GetCurrentStatus extends HealthMonitorMessage
 
   def props(subsystems: Set[Subsystem], futureTimeout: FiniteDuration = DefaultFutureTimeout, staleThreshold: FiniteDuration = DefaultStaleThreshold)
-           (checkHealth: () => Traversable[(Subsystem, Future[SubsystemStatus])]): Props =
+           (checkHealth: () => Map[Subsystem, Future[SubsystemStatus]]): Props =
     Props(new HealthMonitor(subsystems, futureTimeout, staleThreshold)(checkHealth))
 }
 
@@ -79,7 +77,7 @@ object HealthMonitor {
   *                       unexpected goes wrong. Default 15 minutes.
   */
 class HealthMonitor private (val subsystems: Set[Subsystem], val futureTimeout: FiniteDuration, val staleThreshold: FiniteDuration)
-                            (checkHealth: () => Traversable[(Subsystem, Future[SubsystemStatus])]) extends Actor with LazyLogging {
+                            (checkHealth: () => Map[Subsystem, Future[SubsystemStatus]]) extends Actor with LazyLogging with FutureSupport {
   // Use the execution context for this actor's dispatcher for all asynchronous operations.
   // We define a separate execution context (a fixed thread pool) for health checking to
   // not interfere with user facing operations.
@@ -104,19 +102,8 @@ class HealthMonitor private (val subsystems: Set[Subsystem], val futureTimeout: 
     checkHealth().foreach(processSubsystemResult)
   }
 
-  /**
-    * A monoid used for combining SubsystemStatuses.
-    * Zero is an ok status with no messages.
-    * Append uses && on the ok flag, and ++ on the messages.
-    */
-  implicit val SubsystemStatusMonoid = new Monoid[SubsystemStatus] {
-    def combine(a: SubsystemStatus, b: SubsystemStatus): SubsystemStatus = {
-      SubsystemStatus(a.ok && b.ok, a.messages |+| b.messages)
-    }
-    def empty: SubsystemStatus = OkStatus
-  }
-
   private def processSubsystemResult(subsystemAndResult: (Subsystem, Future[SubsystemStatus])): Unit = {
+    implicit val scheduler = context.system.scheduler
     val (subsystem, result) = subsystemAndResult
     result.withTimeout(futureTimeout, s"Timed out after ${futureTimeout.toString} waiting for a response from ${subsystem.toString}")
     .recover { case NonFatal(ex) =>
@@ -141,19 +128,5 @@ class HealthMonitor private (val subsystems: Set[Subsystem], val futureTimeout: 
     // overall status is ok iff all subsystems are ok
     val overall = processed.forall(_._2.ok)
     StatusCheckResponse(overall, processed)
-  }
-
-  /**
-    * Adds non-blocking timeout support to futures.
-    * Example usage:
-    * {{{
-    *   val future = Future(Thread.sleep(1000*60*60*24*365)) // 1 year
-    *   Await.result(future.withTimeout(5 seconds, "Timed out"), 365 days)
-    *   // returns in 5 seconds
-    * }}}
-    */
-  private implicit class FutureWithTimeout[A](f: Future[A]) {
-    def withTimeout(duration: FiniteDuration, errMsg: String): Future[A] =
-      Future.firstCompletedOf(Seq(f, after(duration, context.system.scheduler)(Future.failed(new TimeoutException(errMsg)))))
   }
 }

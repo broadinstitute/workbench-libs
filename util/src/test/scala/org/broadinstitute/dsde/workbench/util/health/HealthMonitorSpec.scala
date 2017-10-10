@@ -1,4 +1,4 @@
-package org.broadinstitute.dsde.workbench.health
+package org.broadinstitute.dsde.workbench.util.health
 
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -6,7 +6,7 @@ import akka.actor.ActorSystem
 import akka.pattern.ask
 import akka.testkit.TestKit
 import akka.util.Timeout
-import org.broadinstitute.dsde.workbench.health.Subsystems.Agora
+import org.broadinstitute.dsde.workbench.util.health.Subsystems.Agora
 import org.broadinstitute.dsde.workbench.model.WorkbenchException
 import org.scalatest.{BeforeAndAfterAll, FlatSpecLike, Matchers}
 
@@ -36,7 +36,7 @@ class HealthMonitorSpec extends TestKit(ActorSystem("HealthMonitorSpec")) with F
 
     // instantiate health monitor actor
     val healthMonitorRef = system.actorOf(HealthMonitor.props(Set(Agora)) { () =>
-      Seq(Agora -> testCheck())
+      Map(Agora -> testCheck())
     })
 
     assertResult(StatusCheckResponse(false, Map(Agora -> HealthMonitor.UnknownStatus))) {
@@ -69,7 +69,7 @@ class HealthMonitorSpec extends TestKit(ActorSystem("HealthMonitorSpec")) with F
     val futureTimeout = 100 milliseconds
     // instantiate health monitor actor
     val healthMonitorRef = system.actorOf(HealthMonitor.props(Set(Agora), futureTimeout) { () =>
-      Seq(Agora -> testCheck())
+      Map(Agora -> testCheck())
     })
 
     // just send 1 message - no need for scheduler in this test
@@ -88,7 +88,7 @@ class HealthMonitorSpec extends TestKit(ActorSystem("HealthMonitorSpec")) with F
 
     // instantiate health monitor actor
     val healthMonitorRef = system.actorOf(HealthMonitor.props(Set(Agora), staleThreshold = 500 milliseconds) { () =>
-      Seq(Agora -> testCheck())
+      Map(Agora -> testCheck())
     })
 
     // assert it starts in unknown state
