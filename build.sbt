@@ -5,6 +5,7 @@ val testAndCompile = "test->test;compile->compile"
 
 lazy val workbenchUtil = project.in(file("util"))
   .settings(utilSettings:_*)
+  .dependsOn(workbenchModel)
   .withTestSettings
 
 lazy val workbenchModel = project.in(file("model"))
