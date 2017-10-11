@@ -4,13 +4,14 @@ This file documents changes to the `workbench-util` library, including notes on 
 
 ## 0.2
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util" % "0.2-17b01fe"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util" % "0.2-1b977d7"`
 
 ### Changed
 
 - FutureSupport's `withTimeout` function now takes an implicit `akka.actor.Scheduler` instead of an `akka.actor.ActorContext`. The latter is hard to find and schedulers are everywhere.
 - `addJitter` now applies a max jitter of 10% for durations <= 10s, and a max jitter of 1s otherwise
 - `Retry` methods now return a `RetryableFuture[T]` which tracks intermediate errors. It comes with an implicit conversion to `Future[T]` so callers need not take action if they only care about the final result.
+- Added HealthMonitor
 
 ### Upgrade notes
 
