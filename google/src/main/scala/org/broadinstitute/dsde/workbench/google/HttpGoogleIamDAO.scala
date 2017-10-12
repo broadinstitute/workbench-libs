@@ -52,14 +52,14 @@ class HttpGoogleIamDAO(clientSecrets: GoogleClientSecrets,
 
   implicit val service = GoogleInstrumentedService.Iam
 
-  override def createServiceAccount(googleProject: String, serviceAccountId: WorkbenchUserPetServiceAccountId, displayName: WorkbenchUserPetServiceAccountDisplayName): Future[WorkbenchUserPetServiceAccount] = {
+  override def createServiceAccount(googleProject: String, serviceAccountId: WorkbenchUserServiceAccountId, displayName: WorkbenchUserServiceAccountDisplayName): Future[WorkbenchUserServiceAccount] = {
     val request = new CreateServiceAccountRequest().setAccountId(serviceAccountId.value)
       .setServiceAccount(new ServiceAccount().setDisplayName(displayName.value))
     val inserter = iam.projects().serviceAccounts().create(s"projects/$googleProject", request)
     retryWhen500orGoogleError { () =>
       executeGoogleRequest(inserter)
     } map { serviceAccount =>
-      WorkbenchUserPetServiceAccount(serviceAccountId, WorkbenchUserPetServiceAccountEmail(serviceAccount.getEmail), displayName)
+      WorkbenchUserServiceAccount(serviceAccountId, WorkbenchUserServiceAccountEmail(serviceAccount.getEmail), displayName)
     }
   }
 
@@ -74,7 +74,7 @@ class HttpGoogleIamDAO(clientSecrets: GoogleClientSecrets,
     }
   }
 
-  override def addServiceAccountActorRoleForUser(googleProject: String, serviceAccountEmail: WorkbenchUserPetServiceAccountEmail, userEmail: WorkbenchUserEmail): Future[Unit] = {
+  override def addServiceAccountActorRoleForUser(googleProject: String, serviceAccountEmail: WorkbenchUserServiceAccountEmail, userEmail: WorkbenchUserEmail): Future[Unit] = {
     getServiceAccountPolicy(googleProject, serviceAccountEmail).flatMap { policy =>
       val updatedPolicy = updatePolicy(policy, userEmail, Set("roles/iam.serviceAccountActor"))
       val policyRequest = new ServiceAccountSetIamPolicyRequest().setPolicy(updatedPolicy)
@@ -92,7 +92,7 @@ class HttpGoogleIamDAO(clientSecrets: GoogleClientSecrets,
     }
   }
 
-  private def getServiceAccountPolicy(googleProject: String, serviceAccountEmail: WorkbenchUserPetServiceAccountEmail): Future[Policy] = {
+  private def getServiceAccountPolicy(googleProject: String, serviceAccountEmail: WorkbenchUserServiceAccountEmail): Future[Policy] = {
     val request = iam.projects().serviceAccounts().getIamPolicy(s"projects/$googleProject/serviceAccounts/${serviceAccountEmail.value}")
     retryWhen500orGoogleError { () =>
       executeGoogleRequest(request)

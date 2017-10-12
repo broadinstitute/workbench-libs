@@ -26,10 +26,10 @@ object WorkbenchIdentityJsonSupport {
   implicit val WorkbenchGroupNameFormat = ValueObjectFormat(WorkbenchGroupName)
   implicit val WorkbenchGroupEmailFormat = ValueObjectFormat(WorkbenchGroupEmail)
 
-  implicit val WorkbenchUserPetServiceAccountIdFormat = ValueObjectFormat(WorkbenchUserPetServiceAccountId)
-  implicit val WorkbenchUserPetServiceAccountEmailFormat = ValueObjectFormat(WorkbenchUserPetServiceAccountEmail)
-  implicit val workbenchUserPetServiceAccountDisplayNameFormat = ValueObjectFormat(WorkbenchUserPetServiceAccountDisplayName)
-  implicit val WorkbenchUserPetServiceAccountFormat = jsonFormat3(WorkbenchUserPetServiceAccount)
+  implicit val WorkbenchUserPetServiceAccountIdFormat = ValueObjectFormat(WorkbenchUserServiceAccountId)
+  implicit val WorkbenchUserPetServiceAccountEmailFormat = ValueObjectFormat(WorkbenchUserServiceAccountEmail)
+  implicit val workbenchUserPetServiceAccountDisplayNameFormat = ValueObjectFormat(WorkbenchUserServiceAccountDisplayName)
+  implicit val WorkbenchUserPetServiceAccountFormat = jsonFormat3(WorkbenchUserServiceAccount)
 }
 
 sealed trait WorkbenchSubject extends ValueObject
@@ -38,14 +38,14 @@ sealed trait WorkbenchEmail extends ValueObject
 case class WorkbenchUser(id: WorkbenchUserId, email: WorkbenchUserEmail)
 case class WorkbenchUserId(value: String) extends WorkbenchSubject
 case class WorkbenchUserEmail(value: String) extends WorkbenchEmail {
-  def isServiceAccount: Boolean = value.endsWith("gserviceaccount.com")
+  def isServiceAccount: Boolean = value.endsWith(".gserviceaccount.com")
 }
 
 case class WorkbenchGroup(name: WorkbenchGroupName, members: Set[WorkbenchSubject], email: WorkbenchGroupEmail)
 case class WorkbenchGroupName(value: String) extends WorkbenchSubject
 case class WorkbenchGroupEmail(value: String) extends WorkbenchEmail
 
-case class WorkbenchUserPetServiceAccount(id: WorkbenchUserPetServiceAccountId, email: WorkbenchUserPetServiceAccountEmail, displayName: WorkbenchUserPetServiceAccountDisplayName)
-case class WorkbenchUserPetServiceAccountId(value: String) extends WorkbenchSubject
-case class WorkbenchUserPetServiceAccountEmail(value: String) extends WorkbenchEmail
-case class WorkbenchUserPetServiceAccountDisplayName(value: String) extends ValueObject
+case class WorkbenchUserServiceAccount(id: WorkbenchUserServiceAccountId, email: WorkbenchUserServiceAccountEmail, displayName: WorkbenchUserServiceAccountDisplayName)
+case class WorkbenchUserServiceAccountId(value: String) extends WorkbenchSubject
+case class WorkbenchUserServiceAccountEmail(value: String) extends WorkbenchEmail
+case class WorkbenchUserServiceAccountDisplayName(value: String) extends ValueObject

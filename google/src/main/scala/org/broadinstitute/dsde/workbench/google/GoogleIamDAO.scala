@@ -15,7 +15,7 @@ trait GoogleIamDAO {
     * @param displayName the service account display name
     * @return newly created service account
     */
-  def createServiceAccount(googleProject: String, serviceAccountId: WorkbenchUserPetServiceAccountId, displayName: WorkbenchUserPetServiceAccountDisplayName): Future[WorkbenchUserPetServiceAccount]
+  def createServiceAccount(googleProject: String, serviceAccountId: WorkbenchUserServiceAccountId, displayName: WorkbenchUserServiceAccountDisplayName): Future[WorkbenchUserServiceAccount]
 
   /**
     * Adds project-level IAM roles for the given user.
@@ -29,9 +29,9 @@ trait GoogleIamDAO {
     * Adds the Service Account Actor role for the given users on the given service account.
     * This allows the users to impersonate as the service account.
     * @param googleProject the project in which to add the roles
-    * @param petServiceAccountEmail the service account on which to add the Service Account Actor role
+    * @param serviceAccountEmail the service account on which to add the Service Account Actor role
     *                               (i.e. the IAM resource).
     * @param userEmail the user email address for which to add Service Account Actor
     */
-  def addServiceAccountActorRoleForUser(googleProject: String, petServiceAccountEmail: WorkbenchUserPetServiceAccountEmail, userEmail: WorkbenchUserEmail): Future[Unit]
+  def addServiceAccountActorRoleForUser(googleProject: String, serviceAccountEmail: WorkbenchUserServiceAccountEmail, userEmail: WorkbenchUserEmail): Future[Unit]
 }

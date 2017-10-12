@@ -12,11 +12,11 @@ import scala.concurrent.{ExecutionContext, Future}
   */
 class MockGoogleIamDAO(implicit executionContext: ExecutionContext) extends GoogleIamDAO {
 
-  val serviceAccounts: mutable.Map[WorkbenchEmail, WorkbenchUserPetServiceAccount] = new TrieMap()
+  val serviceAccounts: mutable.Map[WorkbenchEmail, WorkbenchUserServiceAccount] = new TrieMap()
 
-  override def createServiceAccount(googleProject: String, serviceAccountId: WorkbenchUserPetServiceAccountId, displayName: WorkbenchUserPetServiceAccountDisplayName): Future[WorkbenchUserPetServiceAccount] = {
-    val email = WorkbenchUserPetServiceAccountEmail(s"$serviceAccountId@test-project.iam.gserviceaccount.com")
-    val sa = WorkbenchUserPetServiceAccount(serviceAccountId, email, displayName)
+  override def createServiceAccount(googleProject: String, serviceAccountId: WorkbenchUserServiceAccountId, displayName: WorkbenchUserServiceAccountDisplayName): Future[WorkbenchUserServiceAccount] = {
+    val email = WorkbenchUserServiceAccountEmail(s"$serviceAccountId@test-project.iam.gserviceaccount.com")
+    val sa = WorkbenchUserServiceAccount(serviceAccountId, email, displayName)
     serviceAccounts += email -> sa
     Future.successful(sa)
   }
@@ -25,7 +25,7 @@ class MockGoogleIamDAO(implicit executionContext: ExecutionContext) extends Goog
     Future.successful(())
   }
 
-  override def addServiceAccountActorRoleForUser(googleProject: String, serviceAccountEmail: WorkbenchUserPetServiceAccountEmail, userEmail: WorkbenchUserEmail): Future[Unit] = {
+  override def addServiceAccountActorRoleForUser(googleProject: String, serviceAccountEmail: WorkbenchUserServiceAccountEmail, userEmail: WorkbenchUserEmail): Future[Unit] = {
     if (serviceAccounts.contains(serviceAccountEmail)) {
       Future.successful(())
     } else {
