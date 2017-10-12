@@ -1,6 +1,7 @@
 package org.broadinstitute.dsde.workbench.google
 
 import akka.actor.ActorSystem
+import akka.http.scaladsl.model.StatusCodes
 import cats.instances.future._
 import cats.instances.list._
 import cats.instances.map._
@@ -10,6 +11,7 @@ import cats.syntax.semigroup._
 import com.google.api.client.auth.oauth2.Credential
 import com.google.api.client.googleapis.auth.oauth2.{GoogleClientSecrets, GoogleCredential}
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport
+import com.google.api.client.http.HttpResponseException
 import com.google.api.client.json.jackson2.JacksonFactory
 import com.google.api.services.cloudresourcemanager.CloudResourceManager
 import com.google.api.services.cloudresourcemanager.model.{Binding => ProjectBinding, Policy => ProjectPolicy, SetIamPolicyRequest => ProjectSetIamPolicyRequest}
@@ -66,9 +68,13 @@ class HttpGoogleIamDAO(clientSecrets: GoogleClientSecrets,
   override def removeServiceAccount(googleProject: String, serviceAccountId: WorkbenchUserServiceAccountId): Future[Unit] = {
     val name = s"projects/$googleProject/serviceAccounts/${serviceAccountId.value}"
     val deleter = iam.projects().serviceAccounts().delete(name)
-    retryWhen500orGoogleError { () =>
+    retryWithRecoverWhen500orGoogleError { () =>
       executeGoogleRequest(deleter)
-    }.void
+      ()
+    } {
+      // if the service account is already gone, don't fail
+      case e: HttpResponseException if e.getStatusCode == StatusCodes.NotFound.intValue => ()
+    }
   }
 
   override def addIamRolesForUser(googleProject: String, userEmail: WorkbenchUserEmail, rolesToAdd: Set[String]): Future[Unit] = {
