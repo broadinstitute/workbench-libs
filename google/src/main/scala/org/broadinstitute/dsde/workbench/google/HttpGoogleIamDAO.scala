@@ -63,6 +63,14 @@ class HttpGoogleIamDAO(clientSecrets: GoogleClientSecrets,
     }
   }
 
+  override def removeServiceAccount(googleProject: String, serviceAccountId: WorkbenchUserServiceAccountId): Future[Unit] = {
+    val name = s"projects/$googleProject/serviceAccounts/${serviceAccountId.value}"
+    val deleter = iam.projects().serviceAccounts().delete(name)
+    retryWhen500orGoogleError { () =>
+      executeGoogleRequest(deleter)
+    }.void
+  }
+
   override def addIamRolesForUser(googleProject: String, userEmail: WorkbenchUserEmail, rolesToAdd: Set[String]): Future[Unit] = {
     getProjectPolicy(googleProject).flatMap { policy =>
       val updatedPolicy = updatePolicy(policy, userEmail, rolesToAdd)

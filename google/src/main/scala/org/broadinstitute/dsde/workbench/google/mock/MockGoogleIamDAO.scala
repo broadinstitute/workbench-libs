@@ -21,6 +21,11 @@ class MockGoogleIamDAO(implicit executionContext: ExecutionContext) extends Goog
     Future.successful(sa)
   }
 
+  override def removeServiceAccount(googleProject: String, serviceAccountId: WorkbenchUserServiceAccountId): Future[Unit] = {
+    serviceAccounts -= WorkbenchUserServiceAccountEmail(s"${serviceAccountId.value}@test-project.iam.gserviceaccount.com")
+    Future.successful(())
+  }
+
   override def addIamRolesForUser(googleProject: String, userEmail: WorkbenchUserEmail, rolesToAdd: Set[String]): Future[Unit] = {
     Future.successful(())
   }
@@ -32,5 +37,4 @@ class MockGoogleIamDAO(implicit executionContext: ExecutionContext) extends Goog
       Future.failed(new Exception(s"Unknown service account $userEmail"))
     }
   }
-  
 }

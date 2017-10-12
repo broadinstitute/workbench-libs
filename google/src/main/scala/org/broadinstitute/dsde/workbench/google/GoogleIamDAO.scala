@@ -18,6 +18,13 @@ trait GoogleIamDAO {
   def createServiceAccount(googleProject: String, serviceAccountId: WorkbenchUserServiceAccountId, displayName: WorkbenchUserServiceAccountDisplayName): Future[WorkbenchUserServiceAccount]
 
   /**
+    * Removes a service account in the given project.
+    * @param googleProject the project in which to remove the service account
+    * @param serviceAccountId the service account id
+    */
+  def removeServiceAccount(googleProject: String, serviceAccountId: WorkbenchUserServiceAccountId): Future[Unit]
+
+  /**
     * Adds project-level IAM roles for the given user.
     * @param googleProject the project in which to add the roles
     * @param userEmail the user email address
