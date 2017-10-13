@@ -38,6 +38,7 @@ object Dependencies {
   val googleOAuth2: ModuleID =               "com.google.apis"       % "google-api-services-oauth2"               % s"v1-rev127-$googleV"
   val googlePubSub: ModuleID =               "com.google.apis"       % "google-api-services-pubsub"               % s"v1-rev357-$googleV"
   val googleServicemanagement: ModuleID =    "com.google.apis"       % "google-api-services-servicemanagement"    % s"v1-rev359-$googleV"
+  val googleIam: ModuleID =                  "com.google.apis"       % "google-api-services-iam"                  % s"v1-rev215-$googleV"
   val googleGuava: ModuleID = "com.google.guava"  % "guava" % "22.0"
 
   val commonDependencies = Seq(
@@ -77,6 +78,7 @@ object Dependencies {
     googleOAuth2,
     googlePubSub,
     googleServicemanagement,
+    googleIam,
     googleGuava,
     akkaHttpSprayJson,
     akkaTestkit

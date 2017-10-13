@@ -31,3 +31,11 @@ SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-model" % "0.2
 ### Changed
 
 - org.broadinstitute.dsde.workbench.model.WorkbenchGroup: id changed to name, members changed to Set[WorkbenchSubject]
+
+## 0.3
+
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-model" % "0.3-???????"`
+
+### Added
+
+- Model objects for pet service accounts
