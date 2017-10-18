@@ -100,7 +100,7 @@ class HttpGoogleIamDAO(clientSecrets: GoogleClientSecrets,
   }
 
   private def getProjectPolicy(googleProject: String): Future[Policy] = {
-    val request = cloudResourceManager.projects().getIamPolicy(s"projects/$googleProject", null)
+    val request = cloudResourceManager.projects().getIamPolicy(googleProject, null)
     retryWhen500orGoogleError { () =>
       executeGoogleRequest(request)
     }
