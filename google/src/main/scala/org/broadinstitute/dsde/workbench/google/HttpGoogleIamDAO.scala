@@ -81,7 +81,7 @@ class HttpGoogleIamDAO(clientSecrets: GoogleClientSecrets,
     getProjectPolicy(googleProject).flatMap { policy =>
       val updatedPolicy = updatePolicy(policy, userEmail, rolesToAdd)
       val policyRequest = new ProjectSetIamPolicyRequest().setPolicy(updatedPolicy)
-      val request = cloudResourceManager.projects().setIamPolicy(s"projects/$googleProject", policyRequest)
+      val request = cloudResourceManager.projects().setIamPolicy(googleProject, policyRequest)
       retryWhen500orGoogleError { () =>
         executeGoogleRequest(request)
       }.void
