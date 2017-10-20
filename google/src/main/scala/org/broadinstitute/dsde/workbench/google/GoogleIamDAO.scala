@@ -30,7 +30,15 @@ trait GoogleIamDAO {
     * @param userEmail the user email address
     * @param rolesToAdd Set of roles to add (example: roles/storage.admin)
     */
-  def addIamRolesForUser(googleProject: String, userEmail: WorkbenchUserEmail, rolesToAdd: Set[String]): Future[Unit]
+  def addIamRolesForUser(googleProject: String, userEmail: WorkbenchEmail, rolesToAdd: Set[String]): Future[Unit]
+
+  /**
+    * Removes project-level IAM roles for the given user.
+    * @param googleProject the google project in which to remove the roles
+    * @param userEmail the user email address
+    * @param rolesToRemove Set of roles to remove (example: roles/dataproc.worker)
+    */
+  def removeIamRolesForUser(googleProject: String, userEmail: WorkbenchEmail, rolesToRemove: Set[String]): Future[Unit]
 
   /**
     * Adds the Service Account Actor role for the given users on the given service account.
@@ -40,5 +48,5 @@ trait GoogleIamDAO {
     *                               (i.e. the IAM resource).
     * @param userEmail the user email address for which to add Service Account Actor
     */
-  def addServiceAccountActorRoleForUser(googleProject: String, serviceAccountEmail: WorkbenchUserServiceAccountEmail, userEmail: WorkbenchUserEmail): Future[Unit]
+  def addServiceAccountActorRoleForUser(googleProject: String, serviceAccountEmail: WorkbenchUserServiceAccountEmail, userEmail: WorkbenchEmail): Future[Unit]
 }

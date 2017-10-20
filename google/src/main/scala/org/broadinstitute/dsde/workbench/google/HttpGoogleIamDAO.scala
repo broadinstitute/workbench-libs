@@ -27,17 +27,23 @@ import scala.concurrent.{ExecutionContext, Future}
 /**
   * Created by rtitle on 10/2/17.
   */
-class HttpGoogleIamDAO(clientSecrets: GoogleClientSecrets,
+class HttpGoogleIamDAO(serviceAccountClientId: String,
                        pemFile: String,
                        appName: String,
                        override val workbenchMetricBaseName: String)
                       (implicit val system: ActorSystem, val executionContext: ExecutionContext) extends GoogleIamDAO with GoogleUtilities {
 
+  def this(clientSecrets: GoogleClientSecrets,
+           pemFile: String,
+           appName: String,
+           workbenchMetricBaseName: String)
+          (implicit system: ActorSystem, executionContext: ExecutionContext) = {
+    this(clientSecrets.getDetails.get("client_email").toString, pemFile, appName, workbenchMetricBaseName)
+  }
+
   lazy val httpTransport = GoogleNetHttpTransport.newTrustedTransport
   lazy val jsonFactory = JacksonFactory.getDefaultInstance
   lazy val scopes = List(IamScopes.CLOUD_PLATFORM)
-
-  lazy val serviceAccountClientId: String = clientSecrets.getDetails.get("client_email").toString
 
   lazy val credential: Credential = {
     new GoogleCredential.Builder()
@@ -77,9 +83,9 @@ class HttpGoogleIamDAO(clientSecrets: GoogleClientSecrets,
     }
   }
 
-  override def addIamRolesForUser(googleProject: String, userEmail: WorkbenchUserEmail, rolesToAdd: Set[String]): Future[Unit] = {
+  override def addIamRolesForUser(googleProject: String, userEmail: WorkbenchEmail, rolesToAdd: Set[String]): Future[Unit] = {
     getProjectPolicy(googleProject).flatMap { policy =>
-      val updatedPolicy = updatePolicy(policy, userEmail, rolesToAdd)
+      val updatedPolicy = updatePolicy(policy, userEmail, rolesToAdd, Set.empty)
       val policyRequest = new ProjectSetIamPolicyRequest().setPolicy(updatedPolicy)
       val request = cloudResourceManager.projects().setIamPolicy(googleProject, policyRequest)
       retryWhen500orGoogleError { () =>
@@ -88,9 +94,20 @@ class HttpGoogleIamDAO(clientSecrets: GoogleClientSecrets,
     }
   }
 
-  override def addServiceAccountActorRoleForUser(googleProject: String, serviceAccountEmail: WorkbenchUserServiceAccountEmail, userEmail: WorkbenchUserEmail): Future[Unit] = {
+  override def removeIamRolesForUser(googleProject: String, userEmail: WorkbenchEmail, rolesToRemove: Set[String]): Future[Unit] = {
+    getProjectPolicy(googleProject).flatMap { policy =>
+      val updatedPolicy = updatePolicy(policy, userEmail, Set.empty, rolesToRemove)
+      val policyRequest = new ProjectSetIamPolicyRequest().setPolicy(updatedPolicy)
+      val request = cloudResourceManager.projects().setIamPolicy(googleProject, policyRequest)
+      retryWhen500orGoogleError { () =>
+        executeGoogleRequest(request)
+      }.void
+    }
+  }
+
+  override def addServiceAccountActorRoleForUser(googleProject: String, serviceAccountEmail: WorkbenchUserServiceAccountEmail, userEmail: WorkbenchEmail): Future[Unit] = {
     getServiceAccountPolicy(googleProject, serviceAccountEmail).flatMap { policy =>
-      val updatedPolicy = updatePolicy(policy, userEmail, Set("roles/iam.serviceAccountActor"))
+      val updatedPolicy = updatePolicy(policy, userEmail, Set("roles/iam.serviceAccountActor"), Set.empty)
       val policyRequest = new ServiceAccountSetIamPolicyRequest().setPolicy(updatedPolicy)
       val request = iam.projects().serviceAccounts().setIamPolicy(s"projects/$googleProject/serviceAccounts/${serviceAccountEmail.value}", policyRequest)
       retryWhen500orGoogleError { () =>
@@ -114,22 +131,42 @@ class HttpGoogleIamDAO(clientSecrets: GoogleClientSecrets,
   }
 
   /**
-    * Read-modify-write a Policy to insert new bindings for the given member and roles.
+    * Read-modify-write a Policy to insert or remove new bindings for the given member and roles.
     */
-  private def updatePolicy(policy: Policy, userEmail: WorkbenchUserEmail, rolesToAdd: Set[String]): Policy = {
-    // current bindings grouped by role
+  private def updatePolicy(policy: Policy, userEmail: WorkbenchEmail, rolesToAdd: Set[String], rolesToRemove: Set[String]): Policy = {
+    val memberType = if (userEmail.isServiceAccount) "serviceAccount" else "user"
+    val email = s"$memberType:${userEmail.value}"
+
+    // current members grouped by role
     val curMembersByRole: Map[String, List[String]] = policy.bindings.foldMap { binding =>
       Map(binding.role -> binding.members)
     }
 
-    // new bindings grouped by role
-    val memberType = if (userEmail.isServiceAccount) "serviceAccount" else "user"
-    val newMembersByRole: Map[String, List[String]] = rolesToAdd.toList.foldMap { role =>
-      Map(role -> List(s"$memberType:${userEmail.value}"))
+    // Apply additions
+    val withAdditions = if (rolesToAdd.nonEmpty) {
+      val rolesToAddMap = rolesToAdd.map { _ -> List(email) }.toMap
+      curMembersByRole |+| rolesToAddMap
+    } else {
+      curMembersByRole
     }
 
-    // current bindings merged with new bindings
-    val bindings = (curMembersByRole |+| newMembersByRole).map { case (role, members) =>
+    // Apply deletions
+    // Note that if the same role is in both rolesToAdd and rolesToRemove, the deletion takes precedence.
+    val newMembersByRole = if (rolesToRemove.nonEmpty) {
+      withAdditions.toList.foldMap { case (role, members) =>
+        if (rolesToRemove.contains(role)) {
+          val filtered = members.filterNot(_ == email)
+          if (filtered.isEmpty) Map.empty[String, List[String]]
+          else Map(role -> filtered)
+        } else {
+          Map(role -> members)
+        }
+      }
+    } else {
+      withAdditions
+    }
+
+    val bindings = newMembersByRole.map { case (role, members) =>
       Binding(role, members)
     }.toList
 

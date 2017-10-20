@@ -33,7 +33,9 @@ object WorkbenchIdentityJsonSupport {
 }
 
 sealed trait WorkbenchSubject extends ValueObject
-sealed trait WorkbenchEmail extends ValueObject
+sealed trait WorkbenchEmail extends ValueObject {
+  def isServiceAccount: Boolean = value.endsWith(".gserviceaccount.com")
+}
 sealed trait WorkbenchPerson {
   val id: WorkbenchSubject
   val email: WorkbenchEmail
@@ -41,9 +43,7 @@ sealed trait WorkbenchPerson {
 
 case class WorkbenchUser(id: WorkbenchUserId, email: WorkbenchUserEmail) extends WorkbenchPerson
 case class WorkbenchUserId(value: String) extends WorkbenchSubject
-case class WorkbenchUserEmail(value: String) extends WorkbenchEmail {
-  def isServiceAccount: Boolean = value.endsWith(".gserviceaccount.com")
-}
+case class WorkbenchUserEmail(value: String) extends WorkbenchEmail
 
 case class WorkbenchGroup(name: WorkbenchGroupName, members: Set[WorkbenchSubject], email: WorkbenchGroupEmail)
 case class WorkbenchGroupName(value: String) extends WorkbenchSubject
