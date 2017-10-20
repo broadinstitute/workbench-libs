@@ -61,6 +61,7 @@ class HttpGoogleIamDAO(clientSecrets: GoogleClientSecrets,
     retryWhen500orGoogleError { () =>
       executeGoogleRequest(inserter)
     } map { serviceAccount =>
+      logger.info("service account: " + serviceAccount.toPrettyString)
       WorkbenchUserServiceAccount(serviceAccountId, WorkbenchUserServiceAccountEmail(serviceAccount.getEmail), displayName)
     }
   }
