@@ -17,7 +17,7 @@ Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util" 
 
 Contains generic, externally-facing model classes used across Workbench.
 
-Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-model" % "0.3-b23a91c"`
+Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-model" % "0.3-???????"`
 
 [Changelog](model/CHANGELOG.md)
 
@@ -33,8 +33,8 @@ Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-metric
 
 ## workbench-google
 
-Contains utility functions for talking to Google APIs and a DAO for Google PubSub as well as Google Directory. 
+Contains utility functions for talking to Google APIs and DAOs for Google PubSub, Google Directory, and Google IAM. 
 
-Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.4-b23a91c"`
+Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.4-???????"`
 
 [Changelog](google/CHANGELOG.md)

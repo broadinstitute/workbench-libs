@@ -34,7 +34,7 @@ SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-model" % "0.2
 
 ## 0.3
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-model" % "0.3-b23a91c"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-model" % "0.3-???????"`
 
 ### Added
 
