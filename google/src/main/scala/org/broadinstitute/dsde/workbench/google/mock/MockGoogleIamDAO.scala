@@ -1,6 +1,7 @@
 package org.broadinstitute.dsde.workbench.google.mock
 
 import org.broadinstitute.dsde.workbench.google.GoogleIamDAO
+import org.broadinstitute.dsde.workbench.google.model.GoogleProject
 import org.broadinstitute.dsde.workbench.model._
 
 import scala.collection.concurrent.TrieMap
@@ -14,27 +15,27 @@ class MockGoogleIamDAO(implicit executionContext: ExecutionContext) extends Goog
 
   val serviceAccounts: mutable.Map[WorkbenchEmail, WorkbenchUserServiceAccount] = new TrieMap()
 
-  override def createServiceAccount(googleProject: String, serviceAccountId: WorkbenchUserServiceAccountId, displayName: WorkbenchUserServiceAccountDisplayName): Future[WorkbenchUserServiceAccount] = {
+  override def createServiceAccount(googleProject: GoogleProject, serviceAccountId: WorkbenchUserServiceAccountId, displayName: WorkbenchUserServiceAccountDisplayName): Future[WorkbenchUserServiceAccount] = {
     val email = WorkbenchUserServiceAccountEmail(s"$serviceAccountId@test-project.iam.gserviceaccount.com")
     val sa = WorkbenchUserServiceAccount(serviceAccountId, email, displayName)
     serviceAccounts += email -> sa
     Future.successful(sa)
   }
 
-  override def removeServiceAccount(googleProject: String, serviceAccountId: WorkbenchUserServiceAccountId): Future[Unit] = {
+  override def removeServiceAccount(googleProject: GoogleProject, serviceAccountId: WorkbenchUserServiceAccountId): Future[Unit] = {
     serviceAccounts -= WorkbenchUserServiceAccountEmail(s"${serviceAccountId.value}@test-project.iam.gserviceaccount.com")
     Future.successful(())
   }
 
-  override def addIamRolesForUser(googleProject: String, userEmail: WorkbenchEmail, rolesToAdd: Set[String]): Future[Unit] = {
+  override def addIamRolesForUser(googleProject: GoogleProject, userEmail: WorkbenchEmail, rolesToAdd: Set[String]): Future[Unit] = {
     Future.successful(())
   }
 
-  override def removeIamRolesForUser(googleProject: String, userEmail: WorkbenchEmail, rolesToRemove: Set[String]): Future[Unit] = {
+  override def removeIamRolesForUser(googleProject: GoogleProject, userEmail: WorkbenchEmail, rolesToRemove: Set[String]): Future[Unit] = {
     Future.successful(())
   }
 
-  override def addServiceAccountActorRoleForUser(googleProject: String, serviceAccountEmail: WorkbenchUserServiceAccountEmail, userEmail: WorkbenchEmail): Future[Unit] = {
+  override def addServiceAccountActorRoleForUser(googleProject: GoogleProject, serviceAccountEmail: WorkbenchUserServiceAccountEmail, userEmail: WorkbenchEmail): Future[Unit] = {
     if (serviceAccounts.contains(serviceAccountEmail)) {
       Future.successful(())
     } else {

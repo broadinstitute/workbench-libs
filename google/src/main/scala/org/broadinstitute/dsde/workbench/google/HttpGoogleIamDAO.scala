@@ -20,6 +20,7 @@ import com.google.api.services.iam.v1.{Iam, IamScopes}
 import org.broadinstitute.dsde.workbench.metrics.GoogleInstrumentedService
 import org.broadinstitute.dsde.workbench.model._
 import org.broadinstitute.dsde.workbench.google.HttpGoogleIamDAO._
+import org.broadinstitute.dsde.workbench.google.model._
 
 import scala.collection.JavaConverters._
 import scala.concurrent.{ExecutionContext, Future}
@@ -60,7 +61,7 @@ class HttpGoogleIamDAO(serviceAccountClientId: String,
 
   implicit val service = GoogleInstrumentedService.Iam
 
-  override def createServiceAccount(googleProject: String, serviceAccountId: WorkbenchUserServiceAccountId, displayName: WorkbenchUserServiceAccountDisplayName): Future[WorkbenchUserServiceAccount] = {
+  override def createServiceAccount(googleProject: GoogleProject, serviceAccountId: WorkbenchUserServiceAccountId, displayName: WorkbenchUserServiceAccountDisplayName): Future[WorkbenchUserServiceAccount] = {
     val request = new CreateServiceAccountRequest().setAccountId(serviceAccountId.value)
       .setServiceAccount(new ServiceAccount().setDisplayName(displayName.value))
     val inserter = iam.projects().serviceAccounts().create(s"projects/$googleProject", request)
@@ -71,7 +72,7 @@ class HttpGoogleIamDAO(serviceAccountClientId: String,
     }
   }
 
-  override def removeServiceAccount(googleProject: String, serviceAccountId: WorkbenchUserServiceAccountId): Future[Unit] = {
+  override def removeServiceAccount(googleProject: GoogleProject, serviceAccountId: WorkbenchUserServiceAccountId): Future[Unit] = {
     val name = s"projects/$googleProject/serviceAccounts/${serviceAccountId.value}"
     val deleter = iam.projects().serviceAccounts().delete(name)
     retryWithRecoverWhen500orGoogleError { () =>
@@ -83,29 +84,36 @@ class HttpGoogleIamDAO(serviceAccountClientId: String,
     }
   }
 
-  override def addIamRolesForUser(googleProject: String, userEmail: WorkbenchEmail, rolesToAdd: Set[String]): Future[Unit] = {
+  override def addIamRolesForUser(googleProject: GoogleProject, userEmail: WorkbenchEmail, rolesToAdd: Set[String]): Future[Unit] = {
+    // Note the project here is the one in which we're adding the IAM roles
     getProjectPolicy(googleProject).flatMap { policy =>
       val updatedPolicy = updatePolicy(policy, userEmail, rolesToAdd, Set.empty)
       val policyRequest = new ProjectSetIamPolicyRequest().setPolicy(updatedPolicy)
-      val request = cloudResourceManager.projects().setIamPolicy(googleProject, policyRequest)
+      val request = cloudResourceManager.projects().setIamPolicy(googleProject.value, policyRequest)
       retryWhen500orGoogleError { () =>
         executeGoogleRequest(request)
       }.void
     }
   }
 
-  override def removeIamRolesForUser(googleProject: String, userEmail: WorkbenchEmail, rolesToRemove: Set[String]): Future[Unit] = {
+  override def removeIamRolesForUser(googleProject: GoogleProject, userEmail: WorkbenchEmail, rolesToRemove: Set[String]): Future[Unit] = {
+    // Note the project here is the one in which we're removing the IAM roles
     getProjectPolicy(googleProject).flatMap { policy =>
       val updatedPolicy = updatePolicy(policy, userEmail, Set.empty, rolesToRemove)
       val policyRequest = new ProjectSetIamPolicyRequest().setPolicy(updatedPolicy)
-      val request = cloudResourceManager.projects().setIamPolicy(googleProject, policyRequest)
+      val request = cloudResourceManager.projects().setIamPolicy(googleProject.value, policyRequest)
       retryWhen500orGoogleError { () =>
         executeGoogleRequest(request)
       }.void
     }
   }
 
-  override def addServiceAccountActorRoleForUser(googleProject: String, serviceAccountEmail: WorkbenchUserServiceAccountEmail, userEmail: WorkbenchEmail): Future[Unit] = {
+  override def addServiceAccountActorRoleForUser(googleProject: GoogleProject, serviceAccountEmail: WorkbenchUserServiceAccountEmail, userEmail: WorkbenchEmail): Future[Unit] = {
+    // Note the project here is the one in which we're adding the IAM roles.
+    // In this case the serviceAccountEmail acts as a resource, not an identity. Therefore
+    // the serviceAccountEmail should live in the provided googleProject.
+    // For more information on service account permissions, see:
+    // https://cloud.google.com/iam/docs/service-accounts#service_account_permissions
     getServiceAccountPolicy(googleProject, serviceAccountEmail).flatMap { policy =>
       val updatedPolicy = updatePolicy(policy, userEmail, Set("roles/iam.serviceAccountActor"), Set.empty)
       val policyRequest = new ServiceAccountSetIamPolicyRequest().setPolicy(updatedPolicy)
@@ -116,14 +124,14 @@ class HttpGoogleIamDAO(serviceAccountClientId: String,
     }
   }
 
-  private def getProjectPolicy(googleProject: String): Future[Policy] = {
-    val request = cloudResourceManager.projects().getIamPolicy(googleProject, null)
+  private def getProjectPolicy(googleProject: GoogleProject): Future[Policy] = {
+    val request = cloudResourceManager.projects().getIamPolicy(googleProject.value, null)
     retryWhen500orGoogleError { () =>
       executeGoogleRequest(request)
     }
   }
 
-  private def getServiceAccountPolicy(googleProject: String, serviceAccountEmail: WorkbenchUserServiceAccountEmail): Future[Policy] = {
+  private def getServiceAccountPolicy(googleProject: GoogleProject, serviceAccountEmail: WorkbenchUserServiceAccountEmail): Future[Policy] = {
     val request = iam.projects().serviceAccounts().getIamPolicy(s"projects/$googleProject/serviceAccounts/${serviceAccountEmail.value}")
     retryWhen500orGoogleError { () =>
       executeGoogleRequest(request)
@@ -132,9 +140,10 @@ class HttpGoogleIamDAO(serviceAccountClientId: String,
 
   /**
     * Read-modify-write a Policy to insert or remove new bindings for the given member and roles.
+    * Note that if the same role is in both rolesToAdd and rolesToRemove, the deletion takes precedence.
     */
   private def updatePolicy(policy: Policy, userEmail: WorkbenchEmail, rolesToAdd: Set[String], rolesToRemove: Set[String]): Policy = {
-    val memberType = if (userEmail.isServiceAccount) "serviceAccount" else "user"
+    val memberType = if (isServiceAccount(userEmail)) "serviceAccount" else "user"
     val email = s"$memberType:${userEmail.value}"
 
     // current members grouped by role
@@ -151,7 +160,6 @@ class HttpGoogleIamDAO(serviceAccountClientId: String,
     }
 
     // Apply deletions
-    // Note that if the same role is in both rolesToAdd and rolesToRemove, the deletion takes precedence.
     val newMembersByRole = if (rolesToRemove.nonEmpty) {
       withAdditions.toList.foldMap { case (role, members) =>
         if (rolesToRemove.contains(role)) {
