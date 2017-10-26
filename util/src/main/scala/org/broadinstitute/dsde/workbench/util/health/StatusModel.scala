@@ -45,6 +45,7 @@ object Subsystems {
   case object GoogleGenomics extends Subsystem
   case object GoogleGroups extends Subsystem
   case object GooglePubSub extends Subsystem
+  case object GoogleDataproc extends Subsystem
   case object Sam extends Subsystem
   case object Thurloe extends Subsystem
   case object Mongo extends Subsystem
