@@ -34,8 +34,16 @@ SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-model" % "0.2
 
 ## 0.3
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-model" % "0.3-???????"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-model" % "0.3-b23a91c"`
 
 ### Added
 
 - Model objects for pet service accounts
+
+## 0.4
+
+SBT depdendency:  `"org.broadinstitute.dsde.workbench" %% "workbench-model" % "0.4-???????"`
+
+### Removed
+ 
+- Moved `WorkbenchUserEmail.isServiceAccount` method to the `google` module

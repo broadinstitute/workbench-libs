@@ -35,7 +35,7 @@ class MockGoogleIamDAO(implicit executionContext: ExecutionContext) extends Goog
     Future.successful(())
   }
 
-  override def addServiceAccountActorRoleForUser(googleProject: GoogleProject, serviceAccountEmail: WorkbenchUserServiceAccountEmail, userEmail: WorkbenchEmail): Future[Unit] = {
+  override def addServiceAccountUserRoleForUser(googleProject: GoogleProject, serviceAccountEmail: WorkbenchUserServiceAccountEmail, userEmail: WorkbenchEmail): Future[Unit] = {
     if (serviceAccounts.contains(serviceAccountEmail)) {
       Future.successful(())
     } else {
