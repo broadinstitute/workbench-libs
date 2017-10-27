@@ -37,9 +37,7 @@ sealed trait WorkbenchEmail extends ValueObject
 
 case class WorkbenchUser(id: WorkbenchUserId, email: WorkbenchUserEmail)
 case class WorkbenchUserId(value: String) extends WorkbenchSubject
-case class WorkbenchUserEmail(value: String) extends WorkbenchEmail {
-  def isServiceAccount: Boolean = value.endsWith(".gserviceaccount.com")
-}
+case class WorkbenchUserEmail(value: String) extends WorkbenchEmail
 
 case class WorkbenchGroup(name: WorkbenchGroupName, members: Set[WorkbenchSubject], email: WorkbenchGroupEmail)
 case class WorkbenchGroupName(value: String) extends WorkbenchSubject

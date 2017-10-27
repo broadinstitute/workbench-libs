@@ -2,6 +2,14 @@
 
 This file documents changes to the `workbench-google` library, including notes on how to upgrade to new versions.
 
+## 0.5
+
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.5-???????"`
+
+### Changed
+
+- Method signatures in `GoogleIamDAO` to take a `GoogleProject` instead of a `String`
+
 ## 0.4
 
 SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.4-b23a91c"`

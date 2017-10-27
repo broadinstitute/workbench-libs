@@ -68,6 +68,8 @@ class HttpGoogleDirectoryDAO(val clientSecrets: GoogleClientSecrets,
       ()
     }) {
       case e: HttpResponseException if e.getStatusCode == StatusCodes.Conflict.intValue => () //if the member is already there, then don't keep trying to add them
+      // Recover from http 412 errors because they can be spuriously thrown by Google, but the operation succeeds
+      case e: HttpResponseException if e.getStatusCode == StatusCodes.PreconditionFailed.intValue => ()
     }
   }
 
