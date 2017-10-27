@@ -42,7 +42,7 @@ SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-model" % "0.3
 
 ## 0.4
 
-SBT depdendency:  `"org.broadinstitute.dsde.workbench" %% "workbench-model" % "0.4-???????"`
+SBT depdendency:  `"org.broadinstitute.dsde.workbench" %% "workbench-model" % "0.4-72adc94"`
 
 ### Removed
  
