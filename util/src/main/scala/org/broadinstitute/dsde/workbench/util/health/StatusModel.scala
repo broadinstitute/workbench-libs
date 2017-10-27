@@ -29,6 +29,7 @@ object Subsystems {
       case "GoogleGenomics" => GoogleGenomics
       case "GoogleGroups" => GoogleGroups
       case "GooglePubSub" => GooglePubSub
+      case "GoogleDataproc" => GoogleDataproc
       case "Sam" => Sam
       case "Thurloe" => Thurloe
       case "Mongo" => Mongo
