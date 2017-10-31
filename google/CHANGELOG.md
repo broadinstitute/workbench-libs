@@ -2,6 +2,14 @@
 
 This file documents changes to the `workbench-google` library, including notes on how to upgrade to new versions.
 
+## 0.6
+
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.5-xxxxxxx"`
+
+### Changed
+
+- Mocks now live in the `test` package. To reference these, depend on  
+
 ## 0.5
 
 SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.5-b4c9b5c"`
