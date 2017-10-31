@@ -10,6 +10,14 @@ import scala.concurrent.Future
   */
 trait GoogleIamDAO {
   /**
+    * Looks for a service account in the given project.
+    * @param serviceAccountProject the project in which to create the service account
+    * @param serviceAccountId the service account id
+    * @return the service account, if found, or a Failure if not
+    */
+  def findServiceAccount(serviceAccountProject: GoogleProject, serviceAccountId: WorkbenchUserServiceAccountId): Future[WorkbenchUserServiceAccount]
+
+  /**
     * Creates a service account in the given project.
     * @param serviceAccountProject the project in which to create the service account
     * @param serviceAccountId the service account id
@@ -17,6 +25,15 @@ trait GoogleIamDAO {
     * @return newly created service account
     */
   def createServiceAccount(serviceAccountProject: GoogleProject, serviceAccountId: WorkbenchUserServiceAccountId, displayName: WorkbenchUserServiceAccountDisplayName): Future[WorkbenchUserServiceAccount]
+
+    /**
+      * Get or create a service account in the given project.
+      * @param serviceAccountProject the project in which to create the service account
+      * @param serviceAccountId the service account id
+      * @param displayName the service account display name
+      * @return the service account. Note that it may not have the same display name as the request you made if one already existed.
+      */
+  def getOrCreateServiceAccount(serviceAccountProject: GoogleProject, serviceAccountId: WorkbenchUserServiceAccountId, displayName: WorkbenchUserServiceAccountDisplayName): Future[WorkbenchUserServiceAccount]
 
   /**
     * Removes a service account in the given project.

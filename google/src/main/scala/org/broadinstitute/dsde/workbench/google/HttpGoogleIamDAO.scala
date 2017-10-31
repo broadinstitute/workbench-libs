@@ -11,6 +11,7 @@ import cats.syntax.semigroup._
 import com.google.api.client.auth.oauth2.Credential
 import com.google.api.client.googleapis.auth.oauth2.{GoogleClientSecrets, GoogleCredential}
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport
+import com.google.api.client.googleapis.json.GoogleJsonResponseException
 import com.google.api.client.http.HttpResponseException
 import com.google.api.client.json.jackson2.JacksonFactory
 import com.google.api.services.cloudresourcemanager.CloudResourceManager
@@ -61,6 +62,17 @@ class HttpGoogleIamDAO(serviceAccountClientId: String,
 
   implicit val service = GoogleInstrumentedService.Iam
 
+  override def findServiceAccount(serviceAccountProject: GoogleProject, serviceAccountId: WorkbenchUserServiceAccountId): Future[WorkbenchUserServiceAccount] = {
+    val name = s"projects/${serviceAccountProject.value}/serviceAccounts/${serviceAccountId.value}"
+    val getter = iam.projects().serviceAccounts().get(name)
+    retryWhen500orGoogleError { () =>
+      executeGoogleRequest(getter)
+    } map { serviceAccount =>
+      serviceAccount.getDisplayName
+      WorkbenchUserServiceAccount(WorkbenchUserServiceAccountId(serviceAccount.getUniqueId), WorkbenchUserServiceAccountEmail(serviceAccount.getEmail), WorkbenchUserServiceAccountDisplayName(serviceAccount.getDisplayName))
+    }
+  }
+
   override def createServiceAccount(serviceAccountProject: GoogleProject, serviceAccountId: WorkbenchUserServiceAccountId, displayName: WorkbenchUserServiceAccountDisplayName): Future[WorkbenchUserServiceAccount] = {
     val request = new CreateServiceAccountRequest().setAccountId(serviceAccountId.value)
       .setServiceAccount(new ServiceAccount().setDisplayName(displayName.value))
@@ -68,7 +80,14 @@ class HttpGoogleIamDAO(serviceAccountClientId: String,
     retryWhen500orGoogleError { () =>
       executeGoogleRequest(inserter)
     } map { serviceAccount =>
-      WorkbenchUserServiceAccount(WorkbenchUserServiceAccountId(serviceAccount.getUniqueId), WorkbenchUserServiceAccountEmail(serviceAccount.getEmail), displayName)
+      WorkbenchUserServiceAccount(WorkbenchUserServiceAccountId(serviceAccount.getUniqueId), WorkbenchUserServiceAccountEmail(serviceAccount.getEmail), WorkbenchUserServiceAccountDisplayName(serviceAccount.getDisplayName))
+    }
+  }
+
+  override def getOrCreateServiceAccount(serviceAccountProject: GoogleProject, serviceAccountId: WorkbenchUserServiceAccountId, displayName: WorkbenchUserServiceAccountDisplayName): Future[WorkbenchUserServiceAccount] = {
+    findServiceAccount(serviceAccountProject, serviceAccountId).recoverWith {
+      case t: GoogleJsonResponseException if t.getStatusCode == 404 =>
+        createServiceAccount(serviceAccountProject, serviceAccountId, displayName)
     }
   }
 
