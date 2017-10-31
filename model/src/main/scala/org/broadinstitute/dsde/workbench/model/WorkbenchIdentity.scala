@@ -40,7 +40,7 @@ case class WorkbenchUser(id: WorkbenchUserId, email: WorkbenchUserEmail)
 case class WorkbenchUserId(value: String) extends WorkbenchSubject with ValueObject
 case class WorkbenchUserEmail(value: String) extends WorkbenchEmail
 
-case class WorkbenchGroup(id: WorkbenchGroupIdentity, members: Set[WorkbenchSubject], email: WorkbenchGroupEmail)
+trait WorkbenchGroup { val id: WorkbenchGroupIdentity; val members: Set[WorkbenchSubject]; val email: WorkbenchGroupEmail }
 trait WorkbenchGroupIdentity extends WorkbenchSubject
 case class WorkbenchGroupName(value: String) extends WorkbenchGroupIdentity with ValueObject
 case class WorkbenchGroupEmail(value: String) extends WorkbenchEmail
