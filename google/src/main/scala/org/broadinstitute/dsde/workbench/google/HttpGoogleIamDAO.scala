@@ -1,13 +1,11 @@
 package org.broadinstitute.dsde.workbench.google
 
-import java.time.Instant
-
 import akka.actor.ActorSystem
 import akka.http.scaladsl.model.StatusCodes
+import cats.data.OptionT
 import cats.instances.future._
 import cats.instances.list._
 import cats.instances.map._
-import cats.data.OptionT
 import cats.syntax.foldable._
 import cats.syntax.functor._
 import cats.syntax.semigroup._
@@ -21,16 +19,13 @@ import com.google.api.services.cloudresourcemanager.CloudResourceManager
 import com.google.api.services.cloudresourcemanager.model.{Binding => ProjectBinding, Policy => ProjectPolicy, SetIamPolicyRequest => ProjectSetIamPolicyRequest}
 import com.google.api.services.iam.v1.model.{CreateServiceAccountKeyRequest, CreateServiceAccountRequest, ServiceAccount, Binding => ServiceAccountBinding, Policy => ServiceAccountPolicy, SetIamPolicyRequest => ServiceAccountSetIamPolicyRequest}
 import com.google.api.services.iam.v1.{Iam, IamScopes}
-import java.text.SimpleDateFormat
-
-import org.broadinstitute.dsde.workbench.metrics.GoogleInstrumentedService
-import org.broadinstitute.dsde.workbench.model._
 import org.broadinstitute.dsde.workbench.google.HttpGoogleIamDAO._
 import org.broadinstitute.dsde.workbench.google.model._
+import org.broadinstitute.dsde.workbench.metrics.GoogleInstrumentedService
+import org.broadinstitute.dsde.workbench.model._
 
 import scala.collection.JavaConverters._
 import scala.concurrent.{ExecutionContext, Future}
-import scala.util.Try
 
 /**
   * Created by rtitle on 10/2/17.
@@ -170,9 +165,12 @@ class HttpGoogleIamDAO(serviceAccountClientId: String,
 
   override def removeServiceAccountKey(serviceAccountProject: GoogleProject, serviceAccountEmail: WorkbenchUserServiceAccountEmail, keyId: WorkbenchUserServiceAccountKeyId): Future[Unit] = {
     val request = iam.projects().serviceAccounts().keys().delete(s"projects/${serviceAccountProject.value}/serviceAccounts/${serviceAccountEmail.value}/keys/${keyId.value}")
-    retryWhen500orGoogleError { () =>
+    retryWithRecoverWhen500orGoogleError{ () =>
       executeGoogleRequest(request)
-    }.void
+      ()
+    } {
+      case e: HttpResponseException if e.getStatusCode == StatusCodes.NotFound.intValue => ()
+    }
   }
 
   private def getProjectPolicy(googleProject: GoogleProject): Future[Policy] = {
@@ -231,10 +229,6 @@ class HttpGoogleIamDAO(serviceAccountClientId: String,
 
     Policy(bindings)
   }
-
-  private def timestampToInstant(googleTimestamp: String): Option[Instant] = Try {
-    new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").parse(googleTimestamp).toInstant
-  }.toOption
 }
 
 object HttpGoogleIamDAO {
