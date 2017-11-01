@@ -15,6 +15,7 @@ import scala.util.Random
 class MockGoogleIamDAO(implicit executionContext: ExecutionContext) extends GoogleIamDAO {
 
   val serviceAccounts: mutable.Map[WorkbenchEmail, WorkbenchUserServiceAccount] = new TrieMap()
+  val serviceAccountKeys: mutable.Map[WorkbenchUserServiceAccountEmail, WorkbenchUserServiceAccountKey] = new TrieMap()
 
   override def findServiceAccount(serviceAccountProject: GoogleProject, serviceAccountName: WorkbenchUserServiceAccountName): Future[Option[WorkbenchUserServiceAccount]] = {
     val email = WorkbenchUserServiceAccountEmail(s"$serviceAccountName@$serviceAccountName.iam.gserviceaccount.com")
@@ -52,5 +53,16 @@ class MockGoogleIamDAO(implicit executionContext: ExecutionContext) extends Goog
     } else {
       Future.failed(new Exception(s"Unknown service account $userEmail"))
     }
+  }
+
+  override def createServiceAccountKey(serviceAccountProject: GoogleProject, serviceAccountEmail: WorkbenchUserServiceAccountEmail): Future[WorkbenchUserServiceAccountKey] = {
+    val key = WorkbenchUserServiceAccountKey(WorkbenchUserServiceAccountKeyId("123"), WorkbenchUserServiceAccountPrivateKeyData("abcdefg"), None, None)
+    serviceAccountKeys += serviceAccountEmail -> key
+    Future.successful(key)
+  }
+
+  override def removeServiceAccountKey(serviceAccountProject: GoogleProject, serviceAccountEmail: WorkbenchUserServiceAccountEmail, keyId: WorkbenchUserServiceAccountKeyId): Future[Unit] = {
+    serviceAccounts -= serviceAccountEmail
+    Future.successful(())
   }
 }

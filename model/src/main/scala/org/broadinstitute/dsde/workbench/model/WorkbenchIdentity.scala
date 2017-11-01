@@ -52,3 +52,7 @@ case class WorkbenchUserServiceAccountEmail(value: String) extends WorkbenchEmai
   def toAccountName: WorkbenchUserServiceAccountName = WorkbenchUserServiceAccountName(value.split("@")(0))
 }
 case class WorkbenchUserServiceAccountDisplayName(value: String) extends ValueObject //A friendly name.
+
+case class WorkbenchUserServiceAccountKeyId(value: String) extends ValueObject
+case class WorkbenchUserServiceAccountPrivateKeyData(value: String) extends ValueObject with Base64Support
+case class WorkbenchUserServiceAccountKey(id: WorkbenchUserServiceAccountKeyId, privateKeyData: WorkbenchUserServiceAccountPrivateKeyData, validAfter: Option[Instant], validBefore: Option[Instant])

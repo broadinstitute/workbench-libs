@@ -1,5 +1,8 @@
 package org.broadinstitute.dsde.workbench.model
 
+import java.nio.charset.StandardCharsets
+import java.util.Base64
+
 import spray.json.{DeserializationException, JsString, JsValue, RootJsonFormat}
 
 /**
@@ -9,6 +12,21 @@ trait ValueObject {
   val value: String
 
   override def toString: String = value
+}
+
+/**
+  * A ValueObject whose value can base 64 encoded/decoded.
+  */
+trait Base64Support { self: ValueObject =>
+  val charset = StandardCharsets.UTF_8
+
+  def decode: String = {
+    new String(Base64.getDecoder.decode(self.value.getBytes(charset)), charset)
+  }
+
+  def encode: String = {
+    Base64.getEncoder.encodeToString(self.value.getBytes(charset))
+  }
 }
 
 case class ValueObjectFormat[T <: ValueObject](create: String => T) extends RootJsonFormat[T] {
