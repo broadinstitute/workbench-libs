@@ -5,6 +5,7 @@ import akka.http.scaladsl.model.StatusCodes
 import cats.instances.future._
 import cats.instances.list._
 import cats.instances.map._
+import cats.data.OptionT
 import cats.syntax.foldable._
 import cats.syntax.functor._
 import cats.syntax.semigroup._
@@ -62,15 +63,25 @@ class HttpGoogleIamDAO(serviceAccountClientId: String,
 
   implicit val service = GoogleInstrumentedService.Iam
 
-  override def findServiceAccount(serviceAccountProject: GoogleProject, serviceAccountId: WorkbenchUserServiceAccountId): Future[WorkbenchUserServiceAccount] = {
+  override def findServiceAccount(serviceAccountProject: GoogleProject, serviceAccountId: WorkbenchUserServiceAccountId): Future[Option[WorkbenchUserServiceAccount]] = {
     val name = s"projects/${serviceAccountProject.value}/serviceAccounts/${serviceAccountId.value}"
     val getter = iam.projects().serviceAccounts().get(name)
-    retryWhen500orGoogleError { () =>
-      executeGoogleRequest(getter)
-    } map { serviceAccount =>
-      serviceAccount.getDisplayName
-      WorkbenchUserServiceAccount(WorkbenchUserServiceAccountId(serviceAccount.getUniqueId), WorkbenchUserServiceAccountEmail(serviceAccount.getEmail), WorkbenchUserServiceAccountDisplayName(serviceAccount.getDisplayName))
-    }
+
+    //Return a Future[Option[ServiceAccount]]. The future fails if we get a Google error we don't understand. The Option is None if we get a 404, i.e. the SA doesn't exist.
+    val findOption = OptionT(retryWithRecoverWhen500orGoogleError { () =>
+        Option(executeGoogleRequest(getter))
+    } {
+      case t: GoogleJsonResponseException if t.getStatusCode == 404 =>
+        None
+    })
+
+    //Turn it into a Workbench SA type.
+    (findOption map { serviceAccount =>
+        WorkbenchUserServiceAccount(
+          WorkbenchUserServiceAccountId(serviceAccount.getUniqueId),
+          WorkbenchUserServiceAccountEmail(serviceAccount.getEmail),
+          WorkbenchUserServiceAccountDisplayName(serviceAccount.getDisplayName))
+    }).value
   }
 
   override def createServiceAccount(serviceAccountProject: GoogleProject, serviceAccountId: WorkbenchUserServiceAccountId, displayName: WorkbenchUserServiceAccountDisplayName): Future[WorkbenchUserServiceAccount] = {
@@ -81,13 +92,6 @@ class HttpGoogleIamDAO(serviceAccountClientId: String,
       executeGoogleRequest(inserter)
     } map { serviceAccount =>
       WorkbenchUserServiceAccount(WorkbenchUserServiceAccountId(serviceAccount.getUniqueId), WorkbenchUserServiceAccountEmail(serviceAccount.getEmail), WorkbenchUserServiceAccountDisplayName(serviceAccount.getDisplayName))
-    }
-  }
-
-  override def getOrCreateServiceAccount(serviceAccountProject: GoogleProject, serviceAccountId: WorkbenchUserServiceAccountId, displayName: WorkbenchUserServiceAccountDisplayName): Future[WorkbenchUserServiceAccount] = {
-    findServiceAccount(serviceAccountProject, serviceAccountId).recoverWith {
-      case t: GoogleJsonResponseException if t.getStatusCode == 404 =>
-        createServiceAccount(serviceAccountProject, serviceAccountId, displayName)
     }
   }
 
