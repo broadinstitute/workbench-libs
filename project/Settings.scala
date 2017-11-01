@@ -72,7 +72,7 @@ object Settings {
   val googleSettings = commonSettings ++ List(
     name := "workbench-google",
     libraryDependencies ++= googleDependencies,
-    version := createVersion("0.5"),
+    version := createVersion("0.6"),
     coverageExcludedPackages := ".*HttpGoogle.*DAO.*"
   ) ++ publishSettings
 
