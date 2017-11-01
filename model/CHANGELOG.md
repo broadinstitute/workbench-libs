@@ -2,9 +2,9 @@
 
 This file documents changes to the `workbench-model` library, including notes on how to upgrade to new versions.
 
-## 0.2
+## 0.5
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-model" % "0.2-ecc64be"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-model" % "0.5-xxxxxxx"`
 
 ### Fixed
 
@@ -20,6 +20,30 @@ SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-model" % "0.2
 The first of these is now known as `WorkbenchUserServiceAccountUniqueId` and has replaced the second in the definition of `WorkbenchUserServiceAccount`. The second gets to keep its name.
 
 Users are advised to watch for compile errors around `WorkbenchUserServiceAccount`, and do a text search for `WorkbenchUserServiceAccountId` to doublecheck you're using it correctly.
+
+## 0.4
+
+SBT depdendency:  `"org.broadinstitute.dsde.workbench" %% "workbench-model" % "0.4-72adc94"`
+
+### Removed
+ 
+- Moved `WorkbenchUserEmail.isServiceAccount` method to the `google` module
+
+## 0.3
+
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-model" % "0.3-b23a91c"`
+
+### Added
+
+- Model objects for pet service accounts
+
+## 0.2
+
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-model" % "0.2-c7726ac"`
+
+### Changed
+
+- org.broadinstitute.dsde.workbench.model.WorkbenchGroup: id changed to name, members changed to Set[WorkbenchSubject]
 
 ## 0.1
 
@@ -44,27 +68,3 @@ If you're moving from the `workbench-util` published by Rawls, you'll have to do
 
 - Move imports from `org.broadinstitute.dsde.rawls.model` to `org.broadinstitute.dsde.workbench.model`
 - Upgrade from spray to akka-http
-
-## 0.2
-
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-model" % "0.2-c7726ac"`
-
-### Changed
-
-- org.broadinstitute.dsde.workbench.model.WorkbenchGroup: id changed to name, members changed to Set[WorkbenchSubject]
-
-## 0.3
-
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-model" % "0.3-b23a91c"`
-
-### Added
-
-- Model objects for pet service accounts
-
-## 0.4
-
-SBT depdendency:  `"org.broadinstitute.dsde.workbench" %% "workbench-model" % "0.4-72adc94"`
-
-### Removed
- 
-- Moved `WorkbenchUserEmail.isServiceAccount` method to the `google` module
