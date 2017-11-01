@@ -2,6 +2,22 @@
 
 This file documents changes to the `workbench-google` library, including notes on how to upgrade to new versions.
 
+## 0.7
+
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.7-xxxxxxx"`
+
+To depend on the `MockGoogle*` classes, additionally depend on:
+
+`"org.broadinstitute.dsde.workbench" %% "workbench-google"  % "0.7-xxxxxxx" % "test" classifier "tests"`
+
+### Fixed
+
+- Fixes finding, creating, and removing service accounts per corrections in `workbench-model v0.5`. 
+
+### Upgrade notes
+
+This version depends on v0.5 of `workbench-model`.
+
 ## 0.6
 
 **This version has a serious bug around service accounts, please use 0.7 or higher**
