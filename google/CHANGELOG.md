@@ -4,11 +4,11 @@ This file documents changes to the `workbench-google` library, including notes o
 
 ## 0.6
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.6-xxxxxxx"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.6-ecc64be"`
 
 To depend on the `MockGoogle*` classes, additionally depend on:
 
-`"org.broadinstitute.dsde.workbench" %% "workbench-google"  % "0.6-xxxxxxx" % "test" classifier "tests"`
+`"org.broadinstitute.dsde.workbench" %% "workbench-google"  % "0.6-ecc64be" % "test" classifier "tests"`
 
 ### Changed
 
