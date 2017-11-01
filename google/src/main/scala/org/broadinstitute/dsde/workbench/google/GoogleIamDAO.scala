@@ -3,12 +3,20 @@ package org.broadinstitute.dsde.workbench.google
 import org.broadinstitute.dsde.workbench.google.model.GoogleProject
 import org.broadinstitute.dsde.workbench.model._
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 /**
   * Created by rtitle on 10/2/17.
   */
 trait GoogleIamDAO {
+  /**
+    * Looks for a service account in the given project.
+    * @param serviceAccountProject the project in which to create the service account
+    * @param serviceAccountId the service account id
+    * @return An option representing either finding the SA, or not, wrapped in a Future, representing any other failures.
+    */
+  def findServiceAccount(serviceAccountProject: GoogleProject, serviceAccountId: WorkbenchUserServiceAccountId): Future[Option[WorkbenchUserServiceAccount]]
+
   /**
     * Creates a service account in the given project.
     * @param serviceAccountProject the project in which to create the service account
@@ -17,6 +25,20 @@ trait GoogleIamDAO {
     * @return newly created service account
     */
   def createServiceAccount(serviceAccountProject: GoogleProject, serviceAccountId: WorkbenchUserServiceAccountId, displayName: WorkbenchUserServiceAccountDisplayName): Future[WorkbenchUserServiceAccount]
+
+    /**
+      * Get or create a service account in the given project.
+      * @param serviceAccountProject the project in which to create the service account
+      * @param serviceAccountId the service account id
+      * @param displayName the service account display name
+      * @return the service account. Note that it may not have the same display name as the request you made if one already existed.
+      */
+    def getOrCreateServiceAccount(serviceAccountProject: GoogleProject, serviceAccountId: WorkbenchUserServiceAccountId, displayName: WorkbenchUserServiceAccountDisplayName)(implicit executionContext: ExecutionContext): Future[WorkbenchUserServiceAccount] = {
+      findServiceAccount(serviceAccountProject, serviceAccountId) flatMap {
+        case None => createServiceAccount(serviceAccountProject, serviceAccountId, displayName)
+        case Some(serviceAccount) => Future.successful(serviceAccount)
+      }
+    }
 
   /**
     * Removes a service account in the given project.

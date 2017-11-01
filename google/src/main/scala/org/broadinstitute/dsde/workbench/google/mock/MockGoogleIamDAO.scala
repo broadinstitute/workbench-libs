@@ -15,6 +15,15 @@ class MockGoogleIamDAO(implicit executionContext: ExecutionContext) extends Goog
 
   val serviceAccounts: mutable.Map[WorkbenchEmail, WorkbenchUserServiceAccount] = new TrieMap()
 
+  override def findServiceAccount(serviceAccountProject: GoogleProject, serviceAccountId: WorkbenchUserServiceAccountId): Future[Option[WorkbenchUserServiceAccount]] = {
+    val email = WorkbenchUserServiceAccountEmail(s"$serviceAccountId@test-project.iam.gserviceaccount.com")
+    if( serviceAccounts.contains(email) ) {
+      Future.successful(Some(serviceAccounts(email)))
+    } else {
+      Future.successful(None)
+    }
+  }
+
   override def createServiceAccount(googleProject: GoogleProject, serviceAccountId: WorkbenchUserServiceAccountId, displayName: WorkbenchUserServiceAccountDisplayName): Future[WorkbenchUserServiceAccount] = {
     val email = WorkbenchUserServiceAccountEmail(s"$serviceAccountId@test-project.iam.gserviceaccount.com")
     val sa = WorkbenchUserServiceAccount(serviceAccountId, email, displayName)
