@@ -31,6 +31,10 @@ object WorkbenchIdentityJsonSupport {
   implicit val WorkbenchUserPetServiceAccountEmailFormat = ValueObjectFormat(WorkbenchUserServiceAccountEmail)
   implicit val workbenchUserPetServiceAccountDisplayNameFormat = ValueObjectFormat(WorkbenchUserServiceAccountDisplayName)
   implicit val WorkbenchUserPetServiceAccountFormat = jsonFormat3(WorkbenchUserServiceAccount)
+
+  implicit val WorkbenchUserServiceAccountKeyIdFormat = ValueObjectFormat(WorkbenchUserServiceAccountKeyId)
+  implicit val WorkbenchUserServiceAccountPrivateKeyDataFormat = ValueObjectFormat(WorkbenchUserServiceAccountPrivateKeyData)
+  implicit val WorkbenchUserServiceAccountKeyFormat = jsonFormat2(WorkbenchUserServiceAccountKey)
 }
 
 sealed trait WorkbenchSubject

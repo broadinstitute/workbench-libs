@@ -164,9 +164,7 @@ class HttpGoogleIamDAO(serviceAccountClientId: String,
     } map { key =>
       WorkbenchUserServiceAccountKey(
         WorkbenchUserServiceAccountKeyId(key.getName),
-        WorkbenchUserServiceAccountPrivateKeyData(key.getPrivateKeyData),
-        Option(key.getValidAfterTime).flatMap(timestampToInstant),
-        Option(key.getValidAfterTime).flatMap(timestampToInstant))
+        WorkbenchUserServiceAccountPrivateKeyData(key.getPrivateKeyData))
     }
   }
 

@@ -5,6 +5,8 @@ import java.util.Base64
 
 import spray.json.{DeserializationException, JsString, JsValue, RootJsonFormat}
 
+import scala.util.Try
+
 /**
   * Created by dvoet on 6/26/17.
   */
@@ -20,8 +22,8 @@ trait ValueObject {
 trait Base64Support { self: ValueObject =>
   val charset = StandardCharsets.UTF_8
 
-  def decode: String = {
-    new String(Base64.getDecoder.decode(self.value.getBytes(charset)), charset)
+  def decode: Option[String] = {
+    Try(new String(Base64.getDecoder.decode(self.value.getBytes(charset)), charset)).toOption
   }
 
   def encode: String = {
