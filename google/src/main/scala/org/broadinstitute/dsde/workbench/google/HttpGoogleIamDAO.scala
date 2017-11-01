@@ -5,12 +5,14 @@ import akka.http.scaladsl.model.StatusCodes
 import cats.instances.future._
 import cats.instances.list._
 import cats.instances.map._
+import cats.data.OptionT
 import cats.syntax.foldable._
 import cats.syntax.functor._
 import cats.syntax.semigroup._
 import com.google.api.client.auth.oauth2.Credential
 import com.google.api.client.googleapis.auth.oauth2.{GoogleClientSecrets, GoogleCredential}
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport
+import com.google.api.client.googleapis.json.GoogleJsonResponseException
 import com.google.api.client.http.HttpResponseException
 import com.google.api.client.json.jackson2.JacksonFactory
 import com.google.api.services.cloudresourcemanager.CloudResourceManager
@@ -61,6 +63,27 @@ class HttpGoogleIamDAO(serviceAccountClientId: String,
 
   implicit val service = GoogleInstrumentedService.Iam
 
+  override def findServiceAccount(serviceAccountProject: GoogleProject, serviceAccountId: WorkbenchUserServiceAccountId): Future[Option[WorkbenchUserServiceAccount]] = {
+    val name = s"projects/${serviceAccountProject.value}/serviceAccounts/${serviceAccountId.value}"
+    val getter = iam.projects().serviceAccounts().get(name)
+
+    //Return a Future[Option[ServiceAccount]]. The future fails if we get a Google error we don't understand. The Option is None if we get a 404, i.e. the SA doesn't exist.
+    val findOption = OptionT(retryWithRecoverWhen500orGoogleError { () =>
+        Option(executeGoogleRequest(getter))
+    } {
+      case t: GoogleJsonResponseException if t.getStatusCode == 404 =>
+        None
+    })
+
+    //Turn it into a Workbench SA type.
+    (findOption map { serviceAccount =>
+        WorkbenchUserServiceAccount(
+          WorkbenchUserServiceAccountId(serviceAccount.getUniqueId),
+          WorkbenchUserServiceAccountEmail(serviceAccount.getEmail),
+          WorkbenchUserServiceAccountDisplayName(serviceAccount.getDisplayName))
+    }).value
+  }
+
   override def createServiceAccount(serviceAccountProject: GoogleProject, serviceAccountId: WorkbenchUserServiceAccountId, displayName: WorkbenchUserServiceAccountDisplayName): Future[WorkbenchUserServiceAccount] = {
     val request = new CreateServiceAccountRequest().setAccountId(serviceAccountId.value)
       .setServiceAccount(new ServiceAccount().setDisplayName(displayName.value))
@@ -68,7 +91,7 @@ class HttpGoogleIamDAO(serviceAccountClientId: String,
     retryWhen500orGoogleError { () =>
       executeGoogleRequest(inserter)
     } map { serviceAccount =>
-      WorkbenchUserServiceAccount(WorkbenchUserServiceAccountId(serviceAccount.getUniqueId), WorkbenchUserServiceAccountEmail(serviceAccount.getEmail), displayName)
+      WorkbenchUserServiceAccount(WorkbenchUserServiceAccountId(serviceAccount.getUniqueId), WorkbenchUserServiceAccountEmail(serviceAccount.getEmail), WorkbenchUserServiceAccountDisplayName(serviceAccount.getDisplayName))
     }
   }
 
