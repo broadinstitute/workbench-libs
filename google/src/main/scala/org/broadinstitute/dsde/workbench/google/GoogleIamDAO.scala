@@ -9,6 +9,14 @@ import scala.concurrent.{ExecutionContext, Future}
   * Created by rtitle on 10/2/17.
   */
 trait GoogleIamDAO {
+  /*
+   * Constructs a service account email from a project and account id.
+   * Relies on spooky knowledge of how Google constructs SA emails, which isn't the best.
+   */
+  protected def toServiceAccountEmail(serviceAccountProject: GoogleProject, serviceAccountId: WorkbenchUserServiceAccountId): WorkbenchUserServiceAccountEmail = {
+    WorkbenchUserServiceAccountEmail(s"$serviceAccountId@$serviceAccountProject.iam.gserviceaccount.com")
+  }
+
   /**
     * Looks for a service account in the given project.
     * @param serviceAccountProject the project in which to create the service account
@@ -20,7 +28,7 @@ trait GoogleIamDAO {
   /**
     * Creates a service account in the given project.
     * @param serviceAccountProject the project in which to create the service account
-    * @param serviceAccountId the service account id
+    * @param serviceAccountId the service account id, which Google will use to construct the SA's email
     * @param displayName the service account display name
     * @return newly created service account
     */

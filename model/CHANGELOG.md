@@ -2,7 +2,28 @@
 
 This file documents changes to the `workbench-model` library, including notes on how to upgrade to new versions.
 
+## 0.2
+
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-model" % "0.2-ecc64be"`
+
+### Fixed
+
+- Fixed confusion around the `WorkbenchUserServiceAccount` class.
+
+### Upgrade notes
+
+`WorkbenchUserServiceAccountId` was often misconstrued to have two meanings:
+
+1. The service account's unique id (subject id); and
+2. The [local-part](https://en.wikipedia.org/wiki/Email_address)(i.e. before the `@`) of the service account's generated email address.
+
+The first of these is now known as `WorkbenchUserServiceAccountUniqueId` and has replaced the second in the definition of `WorkbenchUserServiceAccount`. The second gets to keep its name.
+
+Users are advised to watch for compile errors around `WorkbenchUserServiceAccount`, and do a text search for `WorkbenchUserServiceAccountId` to doublecheck you're using it correctly.
+
 ## 0.1
+
+**This version has a serious bug around service accounts, please use 0.2 or higher**
 
 SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-model" % "0.1-17b01fe"`
 

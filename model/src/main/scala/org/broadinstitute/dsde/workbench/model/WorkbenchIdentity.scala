@@ -43,7 +43,10 @@ case class WorkbenchGroup(name: WorkbenchGroupName, members: Set[WorkbenchSubjec
 case class WorkbenchGroupName(value: String) extends WorkbenchSubject
 case class WorkbenchGroupEmail(value: String) extends WorkbenchEmail
 
-case class WorkbenchUserServiceAccount(id: WorkbenchUserServiceAccountId, email: WorkbenchUserServiceAccountEmail, displayName: WorkbenchUserServiceAccountDisplayName)
-case class WorkbenchUserServiceAccountId(value: String) extends WorkbenchSubject
-case class WorkbenchUserServiceAccountEmail(value: String) extends WorkbenchEmail
-case class WorkbenchUserServiceAccountDisplayName(value: String) extends ValueObject
+case class WorkbenchUserServiceAccount(subjectId: WorkbenchUserServiceAccountUniqueId, email: WorkbenchUserServiceAccountEmail, displayName: WorkbenchUserServiceAccountDisplayName)
+case class WorkbenchUserServiceAccountUniqueId(value: String) extends WorkbenchSubject //The SA's Subject ID.
+case class WorkbenchUserServiceAccountId(value: String) extends ValueObject //The left half of the SA's email.
+case class WorkbenchUserServiceAccountEmail(value: String) extends WorkbenchEmail { //The SA's complete email.
+  def toAccountId: WorkbenchUserServiceAccountId = WorkbenchUserServiceAccountId(value.split("@")(0))
+}
+case class WorkbenchUserServiceAccountDisplayName(value: String) extends ValueObject //A friendly name.

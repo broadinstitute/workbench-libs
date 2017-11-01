@@ -4,6 +4,8 @@ This file documents changes to the `workbench-google` library, including notes o
 
 ## 0.6
 
+**This version has a serious bug around service accounts, please use 0.7 or higher**
+
 SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.6-ecc64be"`
 
 To depend on the `MockGoogle*` classes, additionally depend on:
@@ -16,6 +18,8 @@ To depend on the `MockGoogle*` classes, additionally depend on:
 
 ## 0.5
 
+**This version has a serious bug around service accounts, please use 0.7 or higher**
+
 SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.5-b4c9b5c"`
 
 ### Changed
@@ -23,6 +27,8 @@ SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.
 - Method signatures in `GoogleIamDAO` to take a `GoogleProject` instead of a `String`
 
 ## 0.4
+
+**This version has a serious bug around service accounts, please use 0.7 or higher**
 
 SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.4-b23a91c"`
 

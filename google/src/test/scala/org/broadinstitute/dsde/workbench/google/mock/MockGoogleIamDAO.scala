@@ -7,6 +7,7 @@ import org.broadinstitute.dsde.workbench.model._
 import scala.collection.concurrent.TrieMap
 import scala.collection.mutable
 import scala.concurrent.{ExecutionContext, Future}
+import scala.util.Random
 
 /**
   * Created by rtitle on 10/2/17.
@@ -25,14 +26,15 @@ class MockGoogleIamDAO(implicit executionContext: ExecutionContext) extends Goog
   }
 
   override def createServiceAccount(googleProject: GoogleProject, serviceAccountId: WorkbenchUserServiceAccountId, displayName: WorkbenchUserServiceAccountDisplayName): Future[WorkbenchUserServiceAccount] = {
-    val email = WorkbenchUserServiceAccountEmail(s"$serviceAccountId@test-project.iam.gserviceaccount.com")
-    val sa = WorkbenchUserServiceAccount(serviceAccountId, email, displayName)
+    val email = toServiceAccountEmail(googleProject, serviceAccountId)
+    val uniqueId = WorkbenchUserServiceAccountUniqueId(Random.nextLong.toString)
+    val sa = WorkbenchUserServiceAccount(uniqueId, email, displayName)
     serviceAccounts += email -> sa
     Future.successful(sa)
   }
 
   override def removeServiceAccount(googleProject: GoogleProject, serviceAccountId: WorkbenchUserServiceAccountId): Future[Unit] = {
-    serviceAccounts -= WorkbenchUserServiceAccountEmail(s"${serviceAccountId.value}@test-project.iam.gserviceaccount.com")
+    serviceAccounts -= toServiceAccountEmail(googleProject, serviceAccountId)
     Future.successful(())
   }
 
