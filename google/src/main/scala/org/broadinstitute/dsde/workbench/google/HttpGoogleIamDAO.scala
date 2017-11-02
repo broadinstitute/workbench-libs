@@ -161,14 +161,11 @@ class HttpGoogleIamDAO(serviceAccountClientId: String,
     retryWhen500orGoogleError { () =>
       executeGoogleRequest(creater)
     } map { key =>
-      logger.info("Google returned " + key)
-      val res = WorkbenchUserServiceAccountKey(
+      WorkbenchUserServiceAccountKey(
         WorkbenchUserServiceAccountKeyId(key.getName),
         WorkbenchUserServiceAccountPrivateKeyData(key.getPrivateKeyData),
         Option(key.getValidAfterTime).flatMap(googleTimestampToInstant),
         Option(key.getValidBeforeTime).flatMap(googleTimestampToInstant))
-      logger.info("workbench key: " + res)
-      res
     }
   }
 
