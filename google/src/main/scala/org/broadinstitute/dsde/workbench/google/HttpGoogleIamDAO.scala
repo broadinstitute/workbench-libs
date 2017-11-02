@@ -63,8 +63,9 @@ class HttpGoogleIamDAO(serviceAccountClientId: String,
 
   implicit val service = GoogleInstrumentedService.Iam
 
-  override def findServiceAccount(serviceAccountProject: GoogleProject, serviceAccountId: WorkbenchUserServiceAccountId): Future[Option[WorkbenchUserServiceAccount]] = {
-    val name = s"projects/${serviceAccountProject.value}/serviceAccounts/${serviceAccountId.value}"
+  override def findServiceAccount(serviceAccountProject: GoogleProject, serviceAccountName: WorkbenchUserServiceAccountName): Future[Option[WorkbenchUserServiceAccount]] = {
+    val serviceAccountEmail = toServiceAccountEmail(serviceAccountProject, serviceAccountName)
+    val name = s"projects/${serviceAccountProject.value}/serviceAccounts/${serviceAccountEmail.value}"
     val getter = iam.projects().serviceAccounts().get(name)
 
     //Return a Future[Option[ServiceAccount]]. The future fails if we get a Google error we don't understand. The Option is None if we get a 404, i.e. the SA doesn't exist.
@@ -78,25 +79,26 @@ class HttpGoogleIamDAO(serviceAccountClientId: String,
     //Turn it into a Workbench SA type.
     (findOption map { serviceAccount =>
         WorkbenchUserServiceAccount(
-          WorkbenchUserServiceAccountId(serviceAccount.getUniqueId),
+          WorkbenchUserServiceAccountSubjectId(serviceAccount.getUniqueId),
           WorkbenchUserServiceAccountEmail(serviceAccount.getEmail),
           WorkbenchUserServiceAccountDisplayName(serviceAccount.getDisplayName))
     }).value
   }
 
-  override def createServiceAccount(serviceAccountProject: GoogleProject, serviceAccountId: WorkbenchUserServiceAccountId, displayName: WorkbenchUserServiceAccountDisplayName): Future[WorkbenchUserServiceAccount] = {
-    val request = new CreateServiceAccountRequest().setAccountId(serviceAccountId.value)
+  override def createServiceAccount(serviceAccountProject: GoogleProject, serviceAccountName: WorkbenchUserServiceAccountName, displayName: WorkbenchUserServiceAccountDisplayName): Future[WorkbenchUserServiceAccount] = {
+    val request = new CreateServiceAccountRequest().setAccountId(serviceAccountName.value)
       .setServiceAccount(new ServiceAccount().setDisplayName(displayName.value))
     val inserter = iam.projects().serviceAccounts().create(s"projects/${serviceAccountProject.value}", request)
     retryWhen500orGoogleError { () =>
       executeGoogleRequest(inserter)
     } map { serviceAccount =>
-      WorkbenchUserServiceAccount(WorkbenchUserServiceAccountId(serviceAccount.getUniqueId), WorkbenchUserServiceAccountEmail(serviceAccount.getEmail), WorkbenchUserServiceAccountDisplayName(serviceAccount.getDisplayName))
+      WorkbenchUserServiceAccount(WorkbenchUserServiceAccountSubjectId(serviceAccount.getUniqueId), WorkbenchUserServiceAccountEmail(serviceAccount.getEmail), WorkbenchUserServiceAccountDisplayName(serviceAccount.getDisplayName))
     }
   }
 
-  override def removeServiceAccount(serviceAccountProject: GoogleProject, serviceAccountId: WorkbenchUserServiceAccountId): Future[Unit] = {
-    val name = s"projects/${serviceAccountProject.value}/serviceAccounts/${serviceAccountId.value}"
+  override def removeServiceAccount(serviceAccountProject: GoogleProject, serviceAccountName: WorkbenchUserServiceAccountName): Future[Unit] = {
+    val serviceAccountEmail = toServiceAccountEmail(serviceAccountProject, serviceAccountName)
+    val name = s"projects/${serviceAccountProject.value}/serviceAccounts/${serviceAccountEmail.value}"
     val deleter = iam.projects().serviceAccounts().delete(name)
     retryWithRecoverWhen500orGoogleError { () =>
       executeGoogleRequest(deleter)
