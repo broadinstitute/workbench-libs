@@ -29,9 +29,11 @@ object Subsystems {
       case "GoogleGenomics" => GoogleGenomics
       case "GoogleGroups" => GoogleGroups
       case "GooglePubSub" => GooglePubSub
+      case "GoogleDataproc" => GoogleDataproc
       case "Sam" => Sam
       case "Thurloe" => Thurloe
       case "Mongo" => Mongo
+      case "Leonardo" => Leonardo
       case _ => throw new WorkbenchException(s"invalid Subsystem [$name]")
     }
   }
@@ -45,9 +47,11 @@ object Subsystems {
   case object GoogleGenomics extends Subsystem
   case object GoogleGroups extends Subsystem
   case object GooglePubSub extends Subsystem
+  case object GoogleDataproc extends Subsystem
   case object Sam extends Subsystem
   case object Thurloe extends Subsystem
   case object Mongo extends Subsystem
+  case object Leonardo extends Subsystem
 }
 
 object StatusJsonSupport {
