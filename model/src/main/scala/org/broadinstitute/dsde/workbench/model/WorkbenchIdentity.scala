@@ -26,7 +26,7 @@ object WorkbenchIdentityJsonSupport {
   implicit val WorkbenchGroupNameFormat = ValueObjectFormat(WorkbenchGroupName)
   implicit val WorkbenchGroupEmailFormat = ValueObjectFormat(WorkbenchGroupEmail)
 
-  implicit val WorkbenchUserPetServiceAccountUniqueIdFormat = ValueObjectFormat(WorkbenchUserServiceAccountUniqueId)
+  implicit val WorkbenchUserPetServiceAccountUniqueIdFormat = ValueObjectFormat(WorkbenchUserServiceAccountSubjectId)
   implicit val WorkbenchUserPetServiceAccountNameFormat = ValueObjectFormat(WorkbenchUserServiceAccountName)
   implicit val WorkbenchUserPetServiceAccountEmailFormat = ValueObjectFormat(WorkbenchUserServiceAccountEmail)
   implicit val workbenchUserPetServiceAccountDisplayNameFormat = ValueObjectFormat(WorkbenchUserServiceAccountDisplayName)
@@ -44,8 +44,8 @@ case class WorkbenchGroup(name: WorkbenchGroupName, members: Set[WorkbenchSubjec
 case class WorkbenchGroupName(value: String) extends WorkbenchSubject
 case class WorkbenchGroupEmail(value: String) extends WorkbenchEmail
 
-case class WorkbenchUserServiceAccount(subjectId: WorkbenchUserServiceAccountUniqueId, email: WorkbenchUserServiceAccountEmail, displayName: WorkbenchUserServiceAccountDisplayName)
-case class WorkbenchUserServiceAccountUniqueId(value: String) extends WorkbenchSubject //The SA's Subject ID.
+case class WorkbenchUserServiceAccount(subjectId: WorkbenchUserServiceAccountSubjectId, email: WorkbenchUserServiceAccountEmail, displayName: WorkbenchUserServiceAccountDisplayName)
+case class WorkbenchUserServiceAccountSubjectId(value: String) extends WorkbenchSubject //The SA's Subject ID.
 case class WorkbenchUserServiceAccountName(value: String) extends ValueObject //The left half of the SA's email.
 case class WorkbenchUserServiceAccountEmail(value: String) extends WorkbenchEmail { //The SA's complete email.
   def toAccountName: WorkbenchUserServiceAccountName = WorkbenchUserServiceAccountName(value.split("@")(0))

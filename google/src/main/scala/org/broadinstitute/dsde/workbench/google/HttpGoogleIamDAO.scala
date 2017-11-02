@@ -79,7 +79,7 @@ class HttpGoogleIamDAO(serviceAccountClientId: String,
     //Turn it into a Workbench SA type.
     (findOption map { serviceAccount =>
         WorkbenchUserServiceAccount(
-          WorkbenchUserServiceAccountUniqueId(serviceAccount.getUniqueId),
+          WorkbenchUserServiceAccountSubjectId(serviceAccount.getUniqueId),
           WorkbenchUserServiceAccountEmail(serviceAccount.getEmail),
           WorkbenchUserServiceAccountDisplayName(serviceAccount.getDisplayName))
     }).value
@@ -92,7 +92,7 @@ class HttpGoogleIamDAO(serviceAccountClientId: String,
     retryWhen500orGoogleError { () =>
       executeGoogleRequest(inserter)
     } map { serviceAccount =>
-      WorkbenchUserServiceAccount(WorkbenchUserServiceAccountUniqueId(serviceAccount.getUniqueId), WorkbenchUserServiceAccountEmail(serviceAccount.getEmail), WorkbenchUserServiceAccountDisplayName(serviceAccount.getDisplayName))
+      WorkbenchUserServiceAccount(WorkbenchUserServiceAccountSubjectId(serviceAccount.getUniqueId), WorkbenchUserServiceAccountEmail(serviceAccount.getEmail), WorkbenchUserServiceAccountDisplayName(serviceAccount.getDisplayName))
     }
   }
 

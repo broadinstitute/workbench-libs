@@ -27,7 +27,7 @@ class MockGoogleIamDAO(implicit executionContext: ExecutionContext) extends Goog
 
   override def createServiceAccount(googleProject: GoogleProject, serviceAccountName: WorkbenchUserServiceAccountName, displayName: WorkbenchUserServiceAccountDisplayName): Future[WorkbenchUserServiceAccount] = {
     val email = toServiceAccountEmail(googleProject, serviceAccountName)
-    val uniqueId = WorkbenchUserServiceAccountUniqueId(Random.nextLong.toString)
+    val uniqueId = WorkbenchUserServiceAccountSubjectId(Random.nextLong.toString)
     val sa = WorkbenchUserServiceAccount(uniqueId, email, displayName)
     serviceAccounts += email -> sa
     Future.successful(sa)
