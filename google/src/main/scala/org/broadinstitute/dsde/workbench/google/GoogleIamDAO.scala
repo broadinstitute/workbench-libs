@@ -13,37 +13,37 @@ trait GoogleIamDAO {
    * Constructs a service account email from a project and account id.
    * Relies on spooky knowledge of how Google constructs SA emails, which isn't the best.
    */
-  protected def toServiceAccountEmail(serviceAccountProject: GoogleProject, serviceAccountId: WorkbenchUserServiceAccountId): WorkbenchUserServiceAccountEmail = {
-    WorkbenchUserServiceAccountEmail(s"$serviceAccountId@$serviceAccountProject.iam.gserviceaccount.com")
+  protected def toServiceAccountEmail(serviceAccountProject: GoogleProject, serviceAccountName: WorkbenchUserServiceAccountName): WorkbenchUserServiceAccountEmail = {
+    WorkbenchUserServiceAccountEmail(s"$serviceAccountName@$serviceAccountProject.iam.gserviceaccount.com")
   }
 
   /**
     * Looks for a service account in the given project.
     * @param serviceAccountProject the project in which to create the service account
-    * @param serviceAccountId the service account id
+    * @param serviceAccountName the service account name
     * @return An option representing either finding the SA, or not, wrapped in a Future, representing any other failures.
     */
-  def findServiceAccount(serviceAccountProject: GoogleProject, serviceAccountId: WorkbenchUserServiceAccountId): Future[Option[WorkbenchUserServiceAccount]]
+  def findServiceAccount(serviceAccountProject: GoogleProject, serviceAccountName: WorkbenchUserServiceAccountName): Future[Option[WorkbenchUserServiceAccount]]
 
   /**
     * Creates a service account in the given project.
     * @param serviceAccountProject the project in which to create the service account
-    * @param serviceAccountId the service account id, which Google will use to construct the SA's email
+    * @param serviceAccountName the service account name, which Google will use to construct the SA's email
     * @param displayName the service account display name
     * @return newly created service account
     */
-  def createServiceAccount(serviceAccountProject: GoogleProject, serviceAccountId: WorkbenchUserServiceAccountId, displayName: WorkbenchUserServiceAccountDisplayName): Future[WorkbenchUserServiceAccount]
+  def createServiceAccount(serviceAccountProject: GoogleProject, serviceAccountName: WorkbenchUserServiceAccountName, displayName: WorkbenchUserServiceAccountDisplayName): Future[WorkbenchUserServiceAccount]
 
     /**
       * Get or create a service account in the given project.
       * @param serviceAccountProject the project in which to create the service account
-      * @param serviceAccountId the service account id
+      * @param serviceAccountName the service account name
       * @param displayName the service account display name
       * @return the service account. Note that it may not have the same display name as the request you made if one already existed.
       */
-    def getOrCreateServiceAccount(serviceAccountProject: GoogleProject, serviceAccountId: WorkbenchUserServiceAccountId, displayName: WorkbenchUserServiceAccountDisplayName)(implicit executionContext: ExecutionContext): Future[WorkbenchUserServiceAccount] = {
-      findServiceAccount(serviceAccountProject, serviceAccountId) flatMap {
-        case None => createServiceAccount(serviceAccountProject, serviceAccountId, displayName)
+    def getOrCreateServiceAccount(serviceAccountProject: GoogleProject, serviceAccountName: WorkbenchUserServiceAccountName, displayName: WorkbenchUserServiceAccountDisplayName)(implicit executionContext: ExecutionContext): Future[WorkbenchUserServiceAccount] = {
+      findServiceAccount(serviceAccountProject, serviceAccountName) flatMap {
+        case None => createServiceAccount(serviceAccountProject, serviceAccountName, displayName)
         case Some(serviceAccount) => Future.successful(serviceAccount)
       }
     }
@@ -51,9 +51,9 @@ trait GoogleIamDAO {
   /**
     * Removes a service account in the given project.
     * @param serviceAccountProject the project in which to remove the service account
-    * @param serviceAccountId the service account id
+    * @param serviceAccountName the service account name
     */
-  def removeServiceAccount(serviceAccountProject: GoogleProject, serviceAccountId: WorkbenchUserServiceAccountId): Future[Unit]
+  def removeServiceAccount(serviceAccountProject: GoogleProject, serviceAccountName: WorkbenchUserServiceAccountName): Future[Unit]
 
   /**
     * Adds project-level IAM roles for the given user.

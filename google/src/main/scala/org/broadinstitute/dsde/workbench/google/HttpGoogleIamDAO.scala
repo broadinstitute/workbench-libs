@@ -63,8 +63,8 @@ class HttpGoogleIamDAO(serviceAccountClientId: String,
 
   implicit val service = GoogleInstrumentedService.Iam
 
-  override def findServiceAccount(serviceAccountProject: GoogleProject, serviceAccountId: WorkbenchUserServiceAccountId): Future[Option[WorkbenchUserServiceAccount]] = {
-    val serviceAccountEmail = toServiceAccountEmail(serviceAccountProject, serviceAccountId)
+  override def findServiceAccount(serviceAccountProject: GoogleProject, serviceAccountName: WorkbenchUserServiceAccountName): Future[Option[WorkbenchUserServiceAccount]] = {
+    val serviceAccountEmail = toServiceAccountEmail(serviceAccountProject, serviceAccountName)
     val name = s"projects/${serviceAccountProject.value}/serviceAccounts/${serviceAccountEmail.value}"
     val getter = iam.projects().serviceAccounts().get(name)
 
@@ -85,8 +85,8 @@ class HttpGoogleIamDAO(serviceAccountClientId: String,
     }).value
   }
 
-  override def createServiceAccount(serviceAccountProject: GoogleProject, serviceAccountId: WorkbenchUserServiceAccountId, displayName: WorkbenchUserServiceAccountDisplayName): Future[WorkbenchUserServiceAccount] = {
-    val request = new CreateServiceAccountRequest().setAccountId(serviceAccountId.value)
+  override def createServiceAccount(serviceAccountProject: GoogleProject, serviceAccountName: WorkbenchUserServiceAccountName, displayName: WorkbenchUserServiceAccountDisplayName): Future[WorkbenchUserServiceAccount] = {
+    val request = new CreateServiceAccountRequest().setAccountId(serviceAccountName.value)
       .setServiceAccount(new ServiceAccount().setDisplayName(displayName.value))
     val inserter = iam.projects().serviceAccounts().create(s"projects/${serviceAccountProject.value}", request)
     retryWhen500orGoogleError { () =>
@@ -96,8 +96,8 @@ class HttpGoogleIamDAO(serviceAccountClientId: String,
     }
   }
 
-  override def removeServiceAccount(serviceAccountProject: GoogleProject, serviceAccountId: WorkbenchUserServiceAccountId): Future[Unit] = {
-    val serviceAccountEmail = toServiceAccountEmail(serviceAccountProject, serviceAccountId)
+  override def removeServiceAccount(serviceAccountProject: GoogleProject, serviceAccountName: WorkbenchUserServiceAccountName): Future[Unit] = {
+    val serviceAccountEmail = toServiceAccountEmail(serviceAccountProject, serviceAccountName)
     val name = s"projects/${serviceAccountProject.value}/serviceAccounts/${serviceAccountEmail.value}"
     val deleter = iam.projects().serviceAccounts().delete(name)
     retryWithRecoverWhen500orGoogleError { () =>

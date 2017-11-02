@@ -17,9 +17,10 @@ SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-model" % "0.5
 1. The service account's unique id (subject id); and
 2. The [local-part](https://en.wikipedia.org/wiki/Email_address)(i.e. before the `@`) of the service account's generated email address.
 
-The first of these is now known as `WorkbenchUserServiceAccountUniqueId` and has replaced the second in the definition of `WorkbenchUserServiceAccount`. The second gets to keep its name.
+The first of these is now known as `WorkbenchUserServiceAccountUniqueId` and has replaced the second in the definition of `WorkbenchUserServiceAccount`.  
+The second has been renamed to `WorkbenchUserServiceAccountName`.
 
-Users are advised to watch for compile errors around `WorkbenchUserServiceAccount`, and do a text search for `WorkbenchUserServiceAccountId` to doublecheck you're using it correctly.
+Users are advised to watch for compile errors around `WorkbenchUserServiceAccount`. The `WorkbenchUserServiceAccountId` class no longer exists so errors should be easy to spot.
 
 ## 0.4
 

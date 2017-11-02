@@ -16,8 +16,8 @@ class MockGoogleIamDAO(implicit executionContext: ExecutionContext) extends Goog
 
   val serviceAccounts: mutable.Map[WorkbenchEmail, WorkbenchUserServiceAccount] = new TrieMap()
 
-  override def findServiceAccount(serviceAccountProject: GoogleProject, serviceAccountId: WorkbenchUserServiceAccountId): Future[Option[WorkbenchUserServiceAccount]] = {
-    val email = WorkbenchUserServiceAccountEmail(s"$serviceAccountId@test-project.iam.gserviceaccount.com")
+  override def findServiceAccount(serviceAccountProject: GoogleProject, serviceAccountName: WorkbenchUserServiceAccountName): Future[Option[WorkbenchUserServiceAccount]] = {
+    val email = WorkbenchUserServiceAccountEmail(s"$serviceAccountName@$serviceAccountName.iam.gserviceaccount.com")
     if( serviceAccounts.contains(email) ) {
       Future.successful(Some(serviceAccounts(email)))
     } else {
@@ -25,16 +25,16 @@ class MockGoogleIamDAO(implicit executionContext: ExecutionContext) extends Goog
     }
   }
 
-  override def createServiceAccount(googleProject: GoogleProject, serviceAccountId: WorkbenchUserServiceAccountId, displayName: WorkbenchUserServiceAccountDisplayName): Future[WorkbenchUserServiceAccount] = {
-    val email = toServiceAccountEmail(googleProject, serviceAccountId)
+  override def createServiceAccount(googleProject: GoogleProject, serviceAccountName: WorkbenchUserServiceAccountName, displayName: WorkbenchUserServiceAccountDisplayName): Future[WorkbenchUserServiceAccount] = {
+    val email = toServiceAccountEmail(googleProject, serviceAccountName)
     val uniqueId = WorkbenchUserServiceAccountUniqueId(Random.nextLong.toString)
     val sa = WorkbenchUserServiceAccount(uniqueId, email, displayName)
     serviceAccounts += email -> sa
     Future.successful(sa)
   }
 
-  override def removeServiceAccount(googleProject: GoogleProject, serviceAccountId: WorkbenchUserServiceAccountId): Future[Unit] = {
-    serviceAccounts -= toServiceAccountEmail(googleProject, serviceAccountId)
+  override def removeServiceAccount(googleProject: GoogleProject, serviceAccountName: WorkbenchUserServiceAccountName): Future[Unit] = {
+    serviceAccounts -= toServiceAccountEmail(googleProject, serviceAccountName)
     Future.successful(())
   }
 
