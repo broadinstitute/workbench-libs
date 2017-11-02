@@ -1,5 +1,8 @@
 package org.broadinstitute.dsde.workbench.google
 
+import java.time.Instant
+import java.time.format.DateTimeFormatter
+
 import akka.actor.ActorSystem
 import akka.http.scaladsl.model.StatusCodes
 import cats.data.OptionT
@@ -26,6 +29,7 @@ import org.broadinstitute.dsde.workbench.model._
 
 import scala.collection.JavaConverters._
 import scala.concurrent.{ExecutionContext, Future}
+import scala.util.Try
 
 /**
   * Created by rtitle on 10/2/17.
@@ -157,9 +161,14 @@ class HttpGoogleIamDAO(serviceAccountClientId: String,
     retryWhen500orGoogleError { () =>
       executeGoogleRequest(creater)
     } map { key =>
-      WorkbenchUserServiceAccountKey(
+      logger.info("Google returned " + key)
+      val res = WorkbenchUserServiceAccountKey(
         WorkbenchUserServiceAccountKeyId(key.getName),
-        WorkbenchUserServiceAccountPrivateKeyData(key.getPrivateKeyData))
+        WorkbenchUserServiceAccountPrivateKeyData(key.getPrivateKeyData),
+        Option(key.getValidAfterTime).flatMap(googleTimestampToInstant),
+        Option(key.getValidBeforeTime).flatMap(googleTimestampToInstant))
+      logger.info("workbench key: " + res)
+      res
     }
   }
 
@@ -172,6 +181,10 @@ class HttpGoogleIamDAO(serviceAccountClientId: String,
       case e: HttpResponseException if e.getStatusCode == StatusCodes.NotFound.intValue => ()
     }
   }
+
+  private def googleTimestampToInstant(googleTimestamp: String): Option[Instant] = Try {
+    Instant.from(DateTimeFormatter.ISO_INSTANT.parse(googleTimestamp))
+  }.toOption
 
   private def getProjectPolicy(googleProject: GoogleProject): Future[Policy] = {
     val request = cloudResourceManager.projects().getIamPolicy(googleProject.value, null)

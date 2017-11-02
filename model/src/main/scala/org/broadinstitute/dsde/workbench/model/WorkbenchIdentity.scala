@@ -1,5 +1,8 @@
 package org.broadinstitute.dsde.workbench.model
 
+import java.time.Instant
+import java.time.format.DateTimeFormatter
+
 import spray.json.{DefaultJsonProtocol, JsString, JsValue, RootJsonFormat}
 
 /**
@@ -19,6 +22,17 @@ object WorkbenchIdentityJsonSupport {
     def read(value: JsValue) = ???
   }
 
+  implicit object InstantFormat extends RootJsonFormat[Instant] {
+    def write(instant: Instant): JsString = {
+      JsString(DateTimeFormatter.ISO_INSTANT.format(instant))
+    }
+
+    def read(value: JsValue): Instant = value match {
+      case JsString(str) => Instant.from(DateTimeFormatter.ISO_INSTANT.parse(str))
+      case _ => throw new WorkbenchException(s"unable to unmarshal Instant from $value")
+    }
+  }
+
   implicit val WorkbenchUserIdFormat = ValueObjectFormat(WorkbenchUserId)
   implicit val WorkbenchUserEmailFormat = ValueObjectFormat(WorkbenchUserEmail)
   implicit val WorkbenchUserFormat = jsonFormat2(WorkbenchUser)
@@ -34,7 +48,7 @@ object WorkbenchIdentityJsonSupport {
 
   implicit val WorkbenchUserServiceAccountKeyIdFormat = ValueObjectFormat(WorkbenchUserServiceAccountKeyId)
   implicit val WorkbenchUserServiceAccountPrivateKeyDataFormat = ValueObjectFormat(WorkbenchUserServiceAccountPrivateKeyData)
-  implicit val WorkbenchUserServiceAccountKeyFormat = jsonFormat2(WorkbenchUserServiceAccountKey)
+  implicit val WorkbenchUserServiceAccountKeyFormat = jsonFormat4(WorkbenchUserServiceAccountKey)
 }
 
 sealed trait WorkbenchSubject

@@ -1,5 +1,7 @@
 package org.broadinstitute.dsde.workbench.google.mock
 
+import java.time.Instant
+
 import org.broadinstitute.dsde.workbench.google.GoogleIamDAO
 import org.broadinstitute.dsde.workbench.google.model.GoogleProject
 import org.broadinstitute.dsde.workbench.model._
@@ -56,7 +58,7 @@ class MockGoogleIamDAO(implicit executionContext: ExecutionContext) extends Goog
   }
 
   override def createServiceAccountKey(serviceAccountProject: GoogleProject, serviceAccountEmail: WorkbenchUserServiceAccountEmail): Future[WorkbenchUserServiceAccountKey] = {
-    val key = WorkbenchUserServiceAccountKey(WorkbenchUserServiceAccountKeyId("123"), WorkbenchUserServiceAccountPrivateKeyData("abcdefg"))
+    val key = WorkbenchUserServiceAccountKey(WorkbenchUserServiceAccountKeyId("123"), WorkbenchUserServiceAccountPrivateKeyData("abcdefg"), Some(Instant.now), Some(Instant.now.plusSeconds(300)))
     serviceAccountKeys += serviceAccountEmail -> key
     Future.successful(key)
   }
