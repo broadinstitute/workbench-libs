@@ -33,6 +33,7 @@ object Subsystems {
       case "Sam" => Sam
       case "Thurloe" => Thurloe
       case "Mongo" => Mongo
+      case "Leonardo" => Leonardo
       case _ => throw new WorkbenchException(s"invalid Subsystem [$name]")
     }
   }
@@ -50,6 +51,7 @@ object Subsystems {
   case object Sam extends Subsystem
   case object Thurloe extends Subsystem
   case object Mongo extends Subsystem
+  case object Leonardo extends Subsystem
 }
 
 object StatusJsonSupport {
