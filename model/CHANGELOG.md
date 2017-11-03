@@ -2,6 +2,21 @@
 
 This file documents changes to the `workbench-model` library, including notes on how to upgrade to new versions.
 
+## 0.6
+
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-model" % "0.6-xxxxxx"`
+
+### Changed
+
+- Reorganization of workbench identity class hierarchy to allow different implementation of WorkbenchGroup
+
+### Upgrade notes
+
+- `WorkbenchGroup` has been changed from a case class to a trait.
+- `WorbenchSubject` no longer extends ValueObject as not all subjects can be represented by a single value
+- Introduced `WorkbenchGroupIdentity` which extends `WorbenchSubject`
+
+
 ## 0.5
 
 SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-model" % "0.5-af345cd"`
