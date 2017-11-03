@@ -20,7 +20,7 @@ trait ValueObject {
   * A ValueObject whose value can base 64 encoded/decoded.
   */
 trait Base64Support { self: ValueObject =>
-  val charset = StandardCharsets.UTF_8
+  private final val charset = StandardCharsets.UTF_8
 
   def decode: Option[String] = {
     Try(new String(Base64.getDecoder.decode(self.value.getBytes(charset)), charset)).toOption

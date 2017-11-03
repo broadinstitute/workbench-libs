@@ -29,7 +29,7 @@ object WorkbenchIdentityJsonSupport {
 
     def read(value: JsValue): Instant = value match {
       case JsString(str) => Instant.from(DateTimeFormatter.ISO_INSTANT.parse(str))
-      case _ => throw new WorkbenchException(s"unable to unmarshal Instant from $value")
+      case _ => throw new WorkbenchException(s"Unable to unmarshal Instant from $value")
     }
   }
 

@@ -93,6 +93,7 @@ trait GoogleIamDAO {
     * Deletes a user-managed key for the given service account.
     * @param serviceAccountProject the google project the service account resides in
     * @param serviceAccountEmail the service account email
+    * @param keyId the key identifier
     */
   def removeServiceAccountKey(serviceAccountProject: GoogleProject, serviceAccountEmail: WorkbenchUserServiceAccountEmail, keyId: WorkbenchUserServiceAccountKeyId): Future[Unit]
 }

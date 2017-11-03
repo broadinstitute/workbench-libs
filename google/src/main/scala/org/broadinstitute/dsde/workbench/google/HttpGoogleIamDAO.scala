@@ -179,9 +179,11 @@ class HttpGoogleIamDAO(serviceAccountClientId: String,
     }
   }
 
-  private def googleTimestampToInstant(googleTimestamp: String): Option[Instant] = Try {
-    Instant.from(DateTimeFormatter.ISO_INSTANT.parse(googleTimestamp))
-  }.toOption
+  private def googleTimestampToInstant(googleTimestamp: String): Option[Instant] = {
+    Try {
+      Instant.from(DateTimeFormatter.ISO_INSTANT.parse(googleTimestamp))
+    }.toOption
+  }
 
   private def getProjectPolicy(googleProject: GoogleProject): Future[Policy] = {
     val request = cloudResourceManager.projects().getIamPolicy(googleProject.value, null)
