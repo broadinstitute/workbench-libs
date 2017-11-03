@@ -170,7 +170,9 @@ class HttpGoogleIamDAO(serviceAccountClientId: String,
   }
 
   override def removeServiceAccountKey(serviceAccountProject: GoogleProject, serviceAccountEmail: WorkbenchUserServiceAccountEmail, keyId: WorkbenchUserServiceAccountKeyId): Future[Unit] = {
-    val request = iam.projects().serviceAccounts().keys().delete(s"projects/${serviceAccountProject.value}/serviceAccounts/${serviceAccountEmail.value}/keys/${keyId.value}")
+    val req = s"projects/${serviceAccountProject.value}/serviceAccounts/${serviceAccountEmail.value}/keys/${keyId.value}"
+    logger.info("Deleting key, request = " + req)
+    val request = iam.projects().serviceAccounts().keys().delete(req)
     retryWithRecoverWhen500orGoogleError{ () =>
       executeGoogleRequest(request)
       ()
