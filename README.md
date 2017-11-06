@@ -39,6 +39,6 @@ Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google
 
 To depend on the `MockGoogle*` classes, additionally depend on:
 
-`"org.broadinstitute.dsde.workbench" %% "workbench-google"  % "0.7-xxxxxxx" % "test" classifier "tests"`
+`"org.broadinstitute.dsde.workbench" %% "workbench-google"  % "0.8-xxxxxxx" % "test" classifier "tests"`
 
 [Changelog](google/CHANGELOG.md)
