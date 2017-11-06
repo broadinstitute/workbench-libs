@@ -2,6 +2,16 @@
 
 This file documents changes to the `workbench-model` library, including notes on how to upgrade to new versions.
 
+## 0.7
+
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-model" % "0.7-???????"`
+
+### Added
+
+- Model objects for pet service account keys
+- Support for base 64 encoding/decoding value objects
+- JSON formatters for java.time.Instant
+
 ## 0.6
 
 SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-model" % "0.6-xxxxxx"`
