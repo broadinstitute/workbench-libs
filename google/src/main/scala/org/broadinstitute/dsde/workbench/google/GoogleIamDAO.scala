@@ -72,12 +72,28 @@ trait GoogleIamDAO {
   def removeIamRolesForUser(iamProject: GoogleProject, email: WorkbenchEmail, rolesToRemove: Set[String]): Future[Unit]
 
   /**
-    * Adds the Service Account USer role for the given users on the given service account.
+    * Adds the Service Account User role for the given users on the given service account.
     * This allows the users to impersonate as the service account.
     * @param serviceAccountProject the project in which to add the roles
-    * @param serviceAccountEmail the service account on which to add the Service Account Actor role
+    * @param serviceAccountEmail the service account on which to add the Service Account User role
     *                               (i.e. the IAM resource).
-    * @param email the user email address for which to add Service Account Actor
+    * @param email the user email address for which to add Service Account User
     */
   def addServiceAccountUserRoleForUser(serviceAccountProject: GoogleProject, serviceAccountEmail: WorkbenchUserServiceAccountEmail, email: WorkbenchEmail): Future[Unit]
+
+  /**
+    * Creates a user-managed key for the given service account.
+    * @param serviceAccountProject the google project the service account resides in
+    * @param serviceAccountEmail the service account email
+    * @return instance of WorkbenchUserServiceAccountKey
+    */
+  def createServiceAccountKey(serviceAccountProject: GoogleProject, serviceAccountEmail: WorkbenchUserServiceAccountEmail): Future[WorkbenchUserServiceAccountKey]
+
+  /**
+    * Deletes a user-managed key for the given service account.
+    * @param serviceAccountProject the google project the service account resides in
+    * @param serviceAccountEmail the service account email
+    * @param keyId the key identifier
+    */
+  def removeServiceAccountKey(serviceAccountProject: GoogleProject, serviceAccountEmail: WorkbenchUserServiceAccountEmail, keyId: WorkbenchUserServiceAccountKeyId): Future[Unit]
 }
