@@ -20,12 +20,22 @@ import scala.concurrent.{ExecutionContext, Future}
   * Created by mbemis on 8/17/17.
   */
 
-class HttpGoogleDirectoryDAO(val clientSecrets: GoogleClientSecrets,
+class HttpGoogleDirectoryDAO(serviceAccountClientId: String,
                              pemFile: String,
+                             subEmail: String,
                              appsDomain: String,
                              appName: String,
-                             serviceProject: String,
                              override val workbenchMetricBaseName: String)( implicit val system: ActorSystem, implicit val executionContext: ExecutionContext ) extends GoogleDirectoryDAO with FutureSupport with GoogleUtilities {
+
+  @deprecated(message = "This way of instantiating HttpGoogleDirectoryDAO has been deprecated. Please upgrade your configs appropriately.", since = "0.9")
+  def this(clientSecrets: GoogleClientSecrets,
+           pemFile: String,
+           appsDomain: String,
+           appName: String,
+           workbenchMetricBaseName: String)
+          (implicit system: ActorSystem, executionContext: ExecutionContext) = {
+    this(clientSecrets.getDetails.get("client_email").toString, pemFile, clientSecrets.getDetails.get("sub_email").toString, appsDomain, appName, workbenchMetricBaseName)
+  }
 
   val directoryScopes = Seq(DirectoryScopes.ADMIN_DIRECTORY_GROUP)
 
@@ -33,7 +43,6 @@ class HttpGoogleDirectoryDAO(val clientSecrets: GoogleClientSecrets,
   val jsonFactory = JacksonFactory.getDefaultInstance
 
   val groupMemberRole = "MEMBER" // the Google Group role corresponding to a member (note that this is distinct from the GCS roles defined in WorkspaceAccessLevel)
-  val serviceAccountClientId: String = clientSecrets.getDetails.get("client_email").toString
 
   implicit val service = GoogleInstrumentedService.Groups
 
@@ -113,7 +122,7 @@ class HttpGoogleDirectoryDAO(val clientSecrets: GoogleClientSecrets,
       .setJsonFactory(jsonFactory)
       .setServiceAccountId(serviceAccountClientId)
       .setServiceAccountScopes(directoryScopes.asJava)
-      .setServiceAccountUser(clientSecrets.getDetails.get("sub_email").toString)
+      .setServiceAccountUser(subEmail)
       .setServiceAccountPrivateKeyFromPemFile(new java.io.File(pemFile))
       .build()
   }
