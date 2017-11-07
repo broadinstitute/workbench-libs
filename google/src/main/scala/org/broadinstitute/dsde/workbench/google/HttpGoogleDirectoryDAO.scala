@@ -27,7 +27,7 @@ class HttpGoogleDirectoryDAO(serviceAccountClientId: String,
                              appName: String,
                              override val workbenchMetricBaseName: String)( implicit val system: ActorSystem, implicit val executionContext: ExecutionContext ) extends GoogleDirectoryDAO with FutureSupport with GoogleUtilities {
 
-  @deprecated(message = "This way of instantiating a HttpGoogleDirectoryDAO has been deprecated. Please upgrade your configs appropriately.")
+  @deprecated(message = "This way of instantiating HttpGoogleDirectoryDAO has been deprecated. Please upgrade your configs appropriately.", since = "0.9")
   def this(clientSecrets: GoogleClientSecrets,
            pemFile: String,
            appsDomain: String,
