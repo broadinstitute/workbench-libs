@@ -2,6 +2,14 @@
 
 This file documents changes to the `workbench-google` library, including notes on how to upgrade to new versions.
 
+## 0.9
+
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.9-xxxxxx"`
+
+### Added
+
+- Reduced amount of config required to use HttpGoogleDirectoryDAO. The old way still is supported but is now deprecated.
+
 ## 0.8
 
 SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.8-58a51e7"`
