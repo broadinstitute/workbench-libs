@@ -68,6 +68,7 @@ object Dependencies {
   )
 
   val googleDependencies = commonDependencies ++ Seq(
+    cats,
     googleCloudBilling,
     googleGenomics,
     googleStorage,
