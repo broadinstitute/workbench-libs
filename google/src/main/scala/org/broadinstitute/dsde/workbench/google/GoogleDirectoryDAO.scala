@@ -17,5 +17,5 @@ trait GoogleDirectoryDAO {
   def removeMemberFromGroup(groupEmail: WorkbenchGroupEmail, memberEmail: WorkbenchEmail): Future[Unit]
   def getGoogleGroup(groupEmail: WorkbenchGroupEmail): Future[Option[Group]]
   def isGroupMember(groupEmail: WorkbenchGroupEmail, memberEmail: WorkbenchEmail): Future[Boolean]
-
+  def listGroupMembers(groupEmail: WorkbenchGroupEmail): Future[Option[Seq[String]]]
 }
