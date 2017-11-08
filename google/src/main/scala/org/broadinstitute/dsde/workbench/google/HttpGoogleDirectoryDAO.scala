@@ -47,10 +47,12 @@ class HttpGoogleDirectoryDAO(serviceAccountClientId: String,
 
   implicit val service = GoogleInstrumentedService.Groups
 
-  override def createGroup(groupName: WorkbenchGroupName, groupEmail: WorkbenchGroupEmail): Future[Unit] = {
+  override def createGroup(groupId: WorkbenchGroupName, groupEmail: WorkbenchGroupEmail): Future[Unit] = createGroup(groupId.value, groupEmail)
+
+  override def createGroup(displayName: String, groupEmail: WorkbenchGroupEmail): Future[Unit] = {
     val directory = getGroupDirectory
     val groups = directory.groups
-    val group = new Group().setEmail(groupEmail.value).setName(groupName.value.take(60)) //max google group name length is 60 characters
+    val group = new Group().setEmail(groupEmail.value).setName(displayName.take(60)) //max google group name length is 60 characters
     val inserter = groups.insert(group)
 
     retryWhen500orGoogleError (() => { executeGoogleRequest(inserter) })

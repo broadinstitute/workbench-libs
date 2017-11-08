@@ -6,10 +6,11 @@ This file documents changes to the `workbench-google` library, including notes o
 
 SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.9-xxxxxx"`
 
-### Added
+### Changed
 
 - Reduced amount of config required to use HttpGoogleDirectoryDAO. The old way still is supported but is now deprecated.
-- listGroupMembers to GoogleDirectoryDAO
+- Added listGroupMembers to GoogleDirectoryDAO
+- Added createGroup variant the takes just a string instead of WorkbenchGroupName and deprecated the old version
 
 ## 0.8
 

@@ -14,7 +14,9 @@ class MockGoogleDirectoryDAO( implicit val executionContext: ExecutionContext ) 
 
   val groups: TrieMap[WorkbenchGroupEmail, Set[WorkbenchEmail]] = TrieMap()
 
-  override def createGroup(groupName: WorkbenchGroupName, groupEmail: WorkbenchGroupEmail): Future[Unit] = {
+  override def createGroup(groupName: WorkbenchGroupName, groupEmail: WorkbenchGroupEmail): Future[Unit] = createGroup(groupName.value, groupEmail)
+
+  override def createGroup(displayName: String, groupEmail: WorkbenchGroupEmail): Future[Unit] = {
     Future.successful(groups.putIfAbsent(groupEmail, Set.empty))
   }
 
