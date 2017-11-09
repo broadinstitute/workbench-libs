@@ -23,6 +23,10 @@ trait FutureSupport {
    */
   def toFutureTry[T](f: Future[T])(implicit executionContext: ExecutionContext): Future[Try[T]] = f map(Success(_)) recover { case t => Failure(t) }
 
+  implicit class FutureTry[A](f: Future[A]) {
+    def toTry(implicit executionContext: ExecutionContext) = toFutureTry(f)
+  }
+
   /**
    * Returns a failed future if any of the input tries have failed, otherwise returns the input with tries unwrapped in a successful Future
    */
