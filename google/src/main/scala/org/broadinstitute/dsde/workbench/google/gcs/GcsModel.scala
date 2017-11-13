@@ -2,8 +2,10 @@ package org.broadinstitute.dsde.workbench.google.gcs
 
 import com.google.common.net.UrlEscapers
 import java.net.URI
+
 import org.broadinstitute.dsde.workbench.google.gcs.GcsPathParser._
-import scala.util.Try
+
+import scala.util.{Failure, Success, Try}
 
 /** A GCS path including bucket name and path */
 case class GcsPath(bucketName: GcsBucketName, relativePath: GcsRelativePath) {
@@ -51,18 +53,19 @@ private object GcsPathParser {
 
   def parseGcsPathFromString(path: String): Either[GcsParseError, GcsPath] = {
     for {
-      uri <- parseAsUri(path)
-      _ <- validateScheme(uri)
-      host <- getAndValidateHost(path, uri)
-      relativePath <- getAndValidateRelativePath(uri)
+      uri <- parseAsUri(path).right
+      _ <- validateScheme(uri).right
+      host <- getAndValidateHost(path, uri).right
+      relativePath <- getAndValidateRelativePath(uri).right
     } yield GcsPath(host, relativePath)
   }
 
   def parseAsUri(path: String): Either[GcsParseError, URI] = {
     Try {
       URI.create(UrlEscapers.urlFragmentEscaper().escape(path))
-    }.toEither.left.map { e =>
-      GcsParseError(s"Unparseable GCS path: ${e.getMessage}")
+    } match {
+      case Success(uri) => Right[GcsParseError, URI](uri)
+      case Failure(regret) => Left[GcsParseError, URI](GcsParseError(s"Unparseable GCS path: ${regret.getMessage}"))
     }
   }
 
