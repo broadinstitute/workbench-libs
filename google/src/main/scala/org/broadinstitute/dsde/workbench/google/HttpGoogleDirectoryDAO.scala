@@ -7,7 +7,7 @@ import com.google.api.client.googleapis.auth.oauth2.{GoogleClientSecrets, Google
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport
 import com.google.api.client.http.HttpResponseException
 import com.google.api.client.json.jackson2.JacksonFactory
-import com.google.api.services.admin.directory.model.{Group, Member}
+import com.google.api.services.admin.directory.model.{Group, Member, Members}
 import com.google.api.services.admin.directory.{Directory, DirectoryScopes}
 import org.broadinstitute.dsde.workbench.metrics.GoogleInstrumentedService
 import org.broadinstitute.dsde.workbench.model._
@@ -25,7 +25,8 @@ class HttpGoogleDirectoryDAO(serviceAccountClientId: String,
                              subEmail: String,
                              appsDomain: String,
                              appName: String,
-                             override val workbenchMetricBaseName: String)( implicit val system: ActorSystem, implicit val executionContext: ExecutionContext ) extends GoogleDirectoryDAO with FutureSupport with GoogleUtilities {
+                             override val workbenchMetricBaseName: String,
+                             maxPageSize: Int = 200)( implicit val system: ActorSystem, implicit val executionContext: ExecutionContext ) extends GoogleDirectoryDAO with FutureSupport with GoogleUtilities {
 
   @deprecated(message = "This way of instantiating HttpGoogleDirectoryDAO has been deprecated. Please upgrade your configs appropriately.", since = "0.9")
   def this(clientSecrets: GoogleClientSecrets,
@@ -46,10 +47,12 @@ class HttpGoogleDirectoryDAO(serviceAccountClientId: String,
 
   implicit val service = GoogleInstrumentedService.Groups
 
-  override def createGroup(groupName: WorkbenchGroupName, groupEmail: WorkbenchGroupEmail): Future[Unit] = {
+  override def createGroup(groupId: WorkbenchGroupName, groupEmail: WorkbenchGroupEmail): Future[Unit] = createGroup(groupId.value, groupEmail)
+
+  override def createGroup(displayName: String, groupEmail: WorkbenchGroupEmail): Future[Unit] = {
     val directory = getGroupDirectory
     val groups = directory.groups
-    val group = new Group().setEmail(groupEmail.value).setName(groupName.value.take(60)) //max google group name length is 60 characters
+    val group = new Group().setEmail(groupEmail.value).setName(displayName.take(60)) //max google group name length is 60 characters
     val inserter = groups.insert(group)
 
     retryWhen500orGoogleError (() => { executeGoogleRequest(inserter) })
@@ -109,6 +112,50 @@ class HttpGoogleDirectoryDAO(serviceAccountClientId: String,
       true
     }) {
       case e: HttpResponseException if e.getStatusCode == StatusCodes.NotFound.intValue => false
+    }
+  }
+
+  override def listGroupMembers(groupEmail: WorkbenchGroupEmail): Future[Option[Seq[String]]] = {
+    val fetcher = getGroupDirectory.members.list(groupEmail.value).setMaxResults(maxPageSize)
+
+    import scala.collection.JavaConverters._
+    listGroupMembersRecursive(fetcher) map { pagesOption =>
+      pagesOption.map { pages =>
+        pages.flatMap { page =>
+          Option(page.getMembers.asScala) match {
+            case None => Seq.empty
+            case Some(members) => members.map(_.getEmail)
+          }
+        }
+      }
+    }
+  }
+
+  /**
+    * recursive because the call to list all members is paginated.
+    * @param fetcher
+    * @param accumulated the accumulated Members objects, 1 for each page, the head element is the last prior request
+    *                    for easy retrieval. The initial state is Some(Nil). This is what is eventually returned. This
+    *                    is None when the group does not exist.
+    * @return None if the group does not exist or a Members object for each page.
+    */
+  private def listGroupMembersRecursive(fetcher: Directory#Members#List, accumulated: Option[List[Members]] = Some(Nil)): Future[Option[List[Members]]] = {
+    implicit val service = GoogleInstrumentedService.Groups
+    accumulated match {
+      // when accumulated has a Nil list then this must be the first request
+      case Some(Nil) => retryWithRecoverWhen500orGoogleError(() => {
+        Option(executeGoogleRequest(fetcher))
+      }) {
+        case e: HttpResponseException if e.getStatusCode == StatusCodes.NotFound.intValue => None
+      }.flatMap(firstPage => listGroupMembersRecursive(fetcher, firstPage.map(List(_))))
+
+      // the head is the Members object of the prior request which contains next page token
+      case Some(head :: xs) if head.getNextPageToken != null => retryWhen500orGoogleError(() => {
+        executeGoogleRequest(fetcher.setPageToken(head.getNextPageToken))
+      }).flatMap(nextPage => listGroupMembersRecursive(fetcher, accumulated.map(pages => nextPage :: pages)))
+
+      // when accumulated is None (group does not exist) or next page token is null
+      case _ => Future.successful(accumulated)
     }
   }
 
