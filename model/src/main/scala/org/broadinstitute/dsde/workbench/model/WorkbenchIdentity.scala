@@ -51,7 +51,13 @@ object WorkbenchIdentityJsonSupport {
   implicit val WorkbenchUserServiceAccountKeyFormat = jsonFormat4(WorkbenchUserServiceAccountKey)
 }
 
-sealed trait WorkbenchSubject
+sealed trait WorkbenchSubject {
+  def emailOf(emailString: String): WorkbenchEmail = this match {
+    case _: WorkbenchUserId => WorkbenchUserEmail(emailString)
+    case _: WorkbenchGroupIdentity => WorkbenchGroupEmail(emailString)
+    case _: WorkbenchUserServiceAccountSubjectId => WorkbenchUserServiceAccountEmail(emailString)
+  }
+}
 sealed trait WorkbenchEmail extends ValueObject
 
 case class WorkbenchUser(id: WorkbenchUserId, email: WorkbenchUserEmail)

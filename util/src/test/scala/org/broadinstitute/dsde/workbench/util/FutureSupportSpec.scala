@@ -22,15 +22,15 @@ class FutureSupportSpec extends TestKit(ActorSystem("FutureSupportSpec")) with F
   "toFutureTry" should "turn a successful Future into a successful Future(Success)" in {
     val successFuture = Future.successful(2)
     
-    whenReady( toFutureTry(successFuture) ) { t =>
+    whenReady( successFuture.toTry ) { t =>
       t.success.value shouldBe 2
     }
   }
   
   it should "turn a failed Future into a successful Future(Failure)" in {
-    val failFuture = Future.failed(new RuntimeException)
+    val failFuture: Future[Unit] = Future.failed(new RuntimeException)
     
-    whenReady( toFutureTry(failFuture) ) { t =>
+    whenReady( failFuture.toTry ) { t =>
       t shouldBe a [Failure[_]]
     }
   }
