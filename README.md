@@ -9,7 +9,7 @@ In this repo:
 
 Contains utility functions and classes.
 
-Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util" % "0.2-1b977d7"`
+Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util" % "0.2-dcca21f"`
 
 [Changelog](util/CHANGELOG.md)
 
@@ -17,7 +17,7 @@ Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util" 
 
 Contains generic, externally-facing model classes used across Workbench.
 
-Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-model" % "0.7-58a51e7"`
+Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-model" % "0.7-dcca21f"`
 
 [Changelog](model/CHANGELOG.md)
 
@@ -35,7 +35,7 @@ Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-metric
 
 Contains utility functions for talking to Google APIs and DAOs for Google PubSub, Google Directory, and Google IAM. 
 
-Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.8-58a51e7"`
+Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.9-dcca21f"`
 
 To depend on the `MockGoogle*` classes, additionally depend on:
 
