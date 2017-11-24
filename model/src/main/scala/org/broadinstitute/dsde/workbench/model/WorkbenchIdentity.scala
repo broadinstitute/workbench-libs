@@ -70,7 +70,7 @@ case class WorkbenchGroupName(value: String) extends WorkbenchGroupIdentity with
 case class WorkbenchGroupEmail(value: String) extends WorkbenchEmail
 
 case class WorkbenchUserServiceAccount(subjectId: WorkbenchUserServiceAccountSubjectId, email: WorkbenchUserServiceAccountEmail, displayName: WorkbenchUserServiceAccountDisplayName)
-case class WorkbenchUserServiceAccountSubjectId(value: String) extends WorkbenchSubject with ValueObject //The SA's Subject ID.
+case class WorkbenchUserServiceAccountSubjectId(value: String) extends ValueObject //The SA's Subject ID.
 case class WorkbenchUserServiceAccountName(value: String) extends ValueObject //The left half of the SA's email.
 case class WorkbenchUserServiceAccountEmail(value: String) extends WorkbenchEmail { //The SA's complete email.
   def toAccountName: WorkbenchUserServiceAccountName = WorkbenchUserServiceAccountName(value.split("@")(0))
@@ -80,3 +80,5 @@ case class WorkbenchUserServiceAccountDisplayName(value: String) extends ValueOb
 case class WorkbenchUserServiceAccountKeyId(value: String) extends ValueObject
 case class WorkbenchUserServiceAccountPrivateKeyData(value: String) extends ValueObject with Base64Support
 case class WorkbenchUserServiceAccountKey(id: WorkbenchUserServiceAccountKeyId, privateKeyData: WorkbenchUserServiceAccountPrivateKeyData, validAfter: Option[Instant], validBefore: Option[Instant])
+
+case class PetServiceAccountId(userId: WorkbenchUserId, petId: WorkbenchUserServiceAccountSubjectId) extends WorkbenchSubject
