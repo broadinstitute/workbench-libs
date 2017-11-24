@@ -22,6 +22,7 @@ object Subsystems {
     name match {
       case "OpenDJ" => OpenDJ
       case "Agora" => Agora
+      case "Consent" => Consent
       case "Cromwell" => Cromwell
       case "Database" => Database
       case "GoogleBilling" => GoogleBilling
@@ -31,6 +32,9 @@ object Subsystems {
       case "GooglePubSub" => GooglePubSub
       case "GoogleDataproc" => GoogleDataproc
       case "GoogleIam" => GoogleIam
+      case "LibraryIndex" => LibraryIndex
+      case "OntologyIndex" => OntologyIndex
+      case "Rawls" => Rawls
       case "Sam" => Sam
       case "Thurloe" => Thurloe
       case "Mongo" => Mongo
@@ -41,6 +45,7 @@ object Subsystems {
 
   case object OpenDJ extends Subsystem
   case object Agora extends Subsystem
+  case object Consent extends Subsystem
   case object Cromwell extends Subsystem
   case object Database extends Subsystem
   case object GoogleBilling extends Subsystem
@@ -50,6 +55,9 @@ object Subsystems {
   case object GooglePubSub extends Subsystem
   case object GoogleDataproc extends Subsystem
   case object GoogleIam extends Subsystem
+  case object LibraryIndex extends Subsystem
+  case object OntologyIndex extends Subsystem
+  case object Rawls extends Subsystem
   case object Sam extends Subsystem
   case object Thurloe extends Subsystem
   case object Mongo extends Subsystem
