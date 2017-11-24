@@ -20,7 +20,6 @@ object Subsystems {
 
   def withName(name: String): Subsystem = {
     name match {
-      case "OpenDJ" => OpenDJ
       case "Agora" => Agora
       case "Consent" => Consent
       case "Cromwell" => Cromwell
@@ -32,18 +31,18 @@ object Subsystems {
       case "GooglePubSub" => GooglePubSub
       case "GoogleDataproc" => GoogleDataproc
       case "GoogleIam" => GoogleIam
+      case "Leonardo" => Leonardo
       case "LibraryIndex" => LibraryIndex
+      case "Mongo" => Mongo
       case "OntologyIndex" => OntologyIndex
+      case "OpenDJ" => OpenDJ
       case "Rawls" => Rawls
       case "Sam" => Sam
       case "Thurloe" => Thurloe
-      case "Mongo" => Mongo
-      case "Leonardo" => Leonardo
       case _ => throw new WorkbenchException(s"invalid Subsystem [$name]")
     }
   }
 
-  case object OpenDJ extends Subsystem
   case object Agora extends Subsystem
   case object Consent extends Subsystem
   case object Cromwell extends Subsystem
@@ -55,13 +54,14 @@ object Subsystems {
   case object GooglePubSub extends Subsystem
   case object GoogleDataproc extends Subsystem
   case object GoogleIam extends Subsystem
+  case object Leonardo extends Subsystem
   case object LibraryIndex extends Subsystem
+  case object Mongo extends Subsystem
   case object OntologyIndex extends Subsystem
+  case object OpenDJ extends Subsystem
   case object Rawls extends Subsystem
   case object Sam extends Subsystem
   case object Thurloe extends Subsystem
-  case object Mongo extends Subsystem
-  case object Leonardo extends Subsystem
 }
 
 object StatusJsonSupport {
