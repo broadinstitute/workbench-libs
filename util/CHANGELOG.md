@@ -13,6 +13,7 @@ SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util" % "0.2-
 - `Retry` methods now return a `RetryableFuture[T]` which tracks intermediate errors. It comes with an implicit conversion to `Future[T]` so callers need not take action if they only care about the final result.
 - Added HealthMonitor
 - Added implicit class FutureTry
+- Added GoogleIam subsystem
 
 ### Upgrade notes
 
