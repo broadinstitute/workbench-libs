@@ -11,7 +11,11 @@ SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-model" % "0.8
 - Consolidated all Workbench*Email classes into one WorkbenchEmail class
 - Created model.google package with all ServiceAccount classes (moved from model)
 - Moved GoogleProject from google lib to model.google
-- Removed WorkbenchUser prefix from all SerivceAccount model classes 
+- Removed WorkbenchUser prefix from all SerivceAccount model classes
+
+## Added
+
+- PetServiceAccount and PetServiceAccountId 
 
 ## 0.7
 

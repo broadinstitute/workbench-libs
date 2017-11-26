@@ -1,6 +1,6 @@
 package org.broadinstitute.dsde.workbench.model
 
-import org.broadinstitute.dsde.workbench.model.google.{GoogleProject, ServiceAccountSubjectId}
+import org.broadinstitute.dsde.workbench.model.google.{GoogleProject, ServiceAccount, ServiceAccountSubjectId}
 
 /**
   * Created by mbemis on 8/23/17.
@@ -27,5 +27,5 @@ trait WorkbenchGroup { val id: WorkbenchGroupIdentity; val members: Set[Workbenc
 trait WorkbenchGroupIdentity extends WorkbenchSubject
 case class WorkbenchGroupName(value: String) extends WorkbenchGroupIdentity with ValueObject
 
-case class PetServiceAccountId(userId: WorkbenchUserId, petId: ServiceAccountSubjectId) extends WorkbenchSubject
-case class PetServiceAccount(id: PetServiceAccountId, project: GoogleProject)
+case class PetServiceAccountId(userId: WorkbenchUserId, project: GoogleProject) extends WorkbenchSubject
+case class PetServiceAccount(id: PetServiceAccountId, serviceAccount: ServiceAccount)
