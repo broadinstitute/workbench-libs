@@ -47,9 +47,9 @@ class HttpGoogleDirectoryDAO(serviceAccountClientId: String,
 
   implicit val service = GoogleInstrumentedService.Groups
 
-  override def createGroup(groupId: WorkbenchGroupName, groupEmail: WorkbenchGroupEmail): Future[Unit] = createGroup(groupId.value, groupEmail)
+  override def createGroup(groupId: WorkbenchGroupName, groupEmail: WorkbenchEmail): Future[Unit] = createGroup(groupId.value, groupEmail)
 
-  override def createGroup(displayName: String, groupEmail: WorkbenchGroupEmail): Future[Unit] = {
+  override def createGroup(displayName: String, groupEmail: WorkbenchEmail): Future[Unit] = {
     val directory = getGroupDirectory
     val groups = directory.groups
     val group = new Group().setEmail(groupEmail.value).setName(displayName.take(60)) //max google group name length is 60 characters
@@ -58,7 +58,7 @@ class HttpGoogleDirectoryDAO(serviceAccountClientId: String,
     retryWhen500orGoogleError (() => { executeGoogleRequest(inserter) })
   }
 
-  override def deleteGroup(groupEmail: WorkbenchGroupEmail): Future[Unit] = {
+  override def deleteGroup(groupEmail: WorkbenchEmail): Future[Unit] = {
     val directory = getGroupDirectory
     val groups = directory.groups
     val deleter = groups.delete(groupEmail.value)
@@ -71,7 +71,7 @@ class HttpGoogleDirectoryDAO(serviceAccountClientId: String,
     }
   }
 
-  override def addMemberToGroup(groupEmail: WorkbenchGroupEmail, memberEmail: WorkbenchEmail): Future[Unit] = {
+  override def addMemberToGroup(groupEmail: WorkbenchEmail, memberEmail: WorkbenchEmail): Future[Unit] = {
     val member = new Member().setEmail(memberEmail.value).setRole(groupMemberRole)
     val inserter = getGroupDirectory.members.insert(groupEmail.value, member)
 
@@ -85,7 +85,7 @@ class HttpGoogleDirectoryDAO(serviceAccountClientId: String,
     }
   }
 
-  override def removeMemberFromGroup(groupEmail: WorkbenchGroupEmail, memberEmail: WorkbenchEmail): Future[Unit] = {
+  override def removeMemberFromGroup(groupEmail: WorkbenchEmail, memberEmail: WorkbenchEmail): Future[Unit] = {
     val deleter = getGroupDirectory.members.delete(groupEmail.value, memberEmail.value)
 
     retryWithRecoverWhen500orGoogleError(() => {
@@ -96,7 +96,7 @@ class HttpGoogleDirectoryDAO(serviceAccountClientId: String,
     }
   }
 
-  override def getGoogleGroup(groupEmail: WorkbenchGroupEmail): Future[Option[Group]] = {
+  override def getGoogleGroup(groupEmail: WorkbenchEmail): Future[Option[Group]] = {
     val getter = getGroupDirectory.groups().get(groupEmail.value)
 
     retryWithRecoverWhen500orGoogleError(() => { Option(executeGoogleRequest(getter)) }){
@@ -104,7 +104,7 @@ class HttpGoogleDirectoryDAO(serviceAccountClientId: String,
     }
   }
 
-  override def isGroupMember(groupEmail: WorkbenchGroupEmail, memberEmail: WorkbenchEmail): Future[Boolean] = {
+  override def isGroupMember(groupEmail: WorkbenchEmail, memberEmail: WorkbenchEmail): Future[Boolean] = {
     val getter = getGroupDirectory.members.get(groupEmail.value, memberEmail.value)
 
     retryWithRecoverWhen500orGoogleError(() => {
@@ -115,7 +115,7 @@ class HttpGoogleDirectoryDAO(serviceAccountClientId: String,
     }
   }
 
-  override def listGroupMembers(groupEmail: WorkbenchGroupEmail): Future[Option[Seq[String]]] = {
+  override def listGroupMembers(groupEmail: WorkbenchEmail): Future[Option[Seq[String]]] = {
     val fetcher = getGroupDirectory.members.list(groupEmail.value).setMaxResults(maxPageSize)
 
     import scala.collection.JavaConverters._

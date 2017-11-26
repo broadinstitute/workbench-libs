@@ -2,6 +2,15 @@
 
 This file documents changes to the `workbench-google` library, including notes on how to upgrade to new versions.
 
+## 0.10
+
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.10-xxxxxxx"`
+
+### Changed
+
+- Moved GoogleProject to model lib
+- Wpdated for 0.8 version of model 
+
 ## 0.9
 
 SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.9-dcca21f"`
