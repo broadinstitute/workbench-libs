@@ -20,40 +20,48 @@ object Subsystems {
 
   def withName(name: String): Subsystem = {
     name match {
-      case "OpenDJ" => OpenDJ
       case "Agora" => Agora
+      case "Consent" => Consent
       case "Cromwell" => Cromwell
       case "Database" => Database
       case "GoogleBilling" => GoogleBilling
       case "GoogleBuckets" => GoogleBuckets
+      case "GoogleDataproc" => GoogleDataproc
       case "GoogleGenomics" => GoogleGenomics
       case "GoogleGroups" => GoogleGroups
-      case "GooglePubSub" => GooglePubSub
-      case "GoogleDataproc" => GoogleDataproc
       case "GoogleIam" => GoogleIam
+      case "GooglePubSub" => GooglePubSub
+      case "Leonardo" => Leonardo
+      case "LibraryIndex" => LibraryIndex
+      case "Mongo" => Mongo
+      case "OntologyIndex" => OntologyIndex
+      case "OpenDJ" => OpenDJ
+      case "Rawls" => Rawls
       case "Sam" => Sam
       case "Thurloe" => Thurloe
-      case "Mongo" => Mongo
-      case "Leonardo" => Leonardo
       case _ => throw new WorkbenchException(s"invalid Subsystem [$name]")
     }
   }
 
-  case object OpenDJ extends Subsystem
   case object Agora extends Subsystem
+  case object Consent extends Subsystem
   case object Cromwell extends Subsystem
   case object Database extends Subsystem
   case object GoogleBilling extends Subsystem
   case object GoogleBuckets extends Subsystem
+  case object GoogleDataproc extends Subsystem
   case object GoogleGenomics extends Subsystem
   case object GoogleGroups extends Subsystem
-  case object GooglePubSub extends Subsystem
-  case object GoogleDataproc extends Subsystem
   case object GoogleIam extends Subsystem
+  case object GooglePubSub extends Subsystem
+  case object Leonardo extends Subsystem
+  case object LibraryIndex extends Subsystem
+  case object Mongo extends Subsystem
+  case object OntologyIndex extends Subsystem
+  case object OpenDJ extends Subsystem
+  case object Rawls extends Subsystem
   case object Sam extends Subsystem
   case object Thurloe extends Subsystem
-  case object Mongo extends Subsystem
-  case object Leonardo extends Subsystem
 }
 
 object StatusJsonSupport {

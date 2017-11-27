@@ -4,7 +4,7 @@ This file documents changes to the `workbench-util` library, including notes on 
 
 ## 0.2
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util" % "0.2-dcca21f"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util" % "0.2-TBD"`
 
 ### Changed
 
@@ -14,6 +14,7 @@ SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util" % "0.2-
 - Added HealthMonitor
 - Added implicit class FutureTry
 - Added GoogleIam subsystem
+- Added Consent, LibraryIndex, OntologyIndex, Rawls subsystems
 
 ### Upgrade notes
 
