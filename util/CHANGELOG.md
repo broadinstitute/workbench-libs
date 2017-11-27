@@ -14,6 +14,7 @@ SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util" % "0.2-
 - Added HealthMonitor
 - Added implicit class FutureTry
 - Added GoogleIam subsystem
+- Added Consent, LibraryIndex, OntologyIndex, Rawls subsystems
 
 ### Upgrade notes
 
