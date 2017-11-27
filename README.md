@@ -9,7 +9,7 @@ In this repo:
 
 Contains utility functions and classes.
 
-Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util" % "0.2-TBD"`
+Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util" % "0.2-0b34b93"`
 
 [Changelog](util/CHANGELOG.md)
 
