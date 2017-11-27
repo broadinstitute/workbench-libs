@@ -26,11 +26,11 @@ object Subsystems {
       case "Database" => Database
       case "GoogleBilling" => GoogleBilling
       case "GoogleBuckets" => GoogleBuckets
+      case "GoogleDataproc" => GoogleDataproc
       case "GoogleGenomics" => GoogleGenomics
       case "GoogleGroups" => GoogleGroups
-      case "GooglePubSub" => GooglePubSub
-      case "GoogleDataproc" => GoogleDataproc
       case "GoogleIam" => GoogleIam
+      case "GooglePubSub" => GooglePubSub
       case "Leonardo" => Leonardo
       case "LibraryIndex" => LibraryIndex
       case "Mongo" => Mongo
@@ -49,11 +49,11 @@ object Subsystems {
   case object Database extends Subsystem
   case object GoogleBilling extends Subsystem
   case object GoogleBuckets extends Subsystem
+  case object GoogleDataproc extends Subsystem
   case object GoogleGenomics extends Subsystem
   case object GoogleGroups extends Subsystem
-  case object GooglePubSub extends Subsystem
-  case object GoogleDataproc extends Subsystem
   case object GoogleIam extends Subsystem
+  case object GooglePubSub extends Subsystem
   case object Leonardo extends Subsystem
   case object LibraryIndex extends Subsystem
   case object Mongo extends Subsystem
