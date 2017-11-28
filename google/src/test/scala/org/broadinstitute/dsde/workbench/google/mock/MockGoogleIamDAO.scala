@@ -3,8 +3,8 @@ package org.broadinstitute.dsde.workbench.google.mock
 import java.time.Instant
 
 import org.broadinstitute.dsde.workbench.google.GoogleIamDAO
-import org.broadinstitute.dsde.workbench.google.model.GoogleProject
 import org.broadinstitute.dsde.workbench.model._
+import org.broadinstitute.dsde.workbench.model.google._
 
 import scala.collection.concurrent.TrieMap
 import scala.collection.mutable
@@ -16,11 +16,11 @@ import scala.util.Random
   */
 class MockGoogleIamDAO(implicit executionContext: ExecutionContext) extends GoogleIamDAO {
 
-  val serviceAccounts: mutable.Map[WorkbenchEmail, WorkbenchUserServiceAccount] = new TrieMap()
-  val serviceAccountKeys: mutable.Map[WorkbenchUserServiceAccountEmail, WorkbenchUserServiceAccountKey] = new TrieMap()
+  val serviceAccounts: mutable.Map[WorkbenchEmail, ServiceAccount] = new TrieMap()
+  val serviceAccountKeys: mutable.Map[WorkbenchEmail, ServiceAccountKey] = new TrieMap()
 
-  override def findServiceAccount(serviceAccountProject: GoogleProject, serviceAccountName: WorkbenchUserServiceAccountName): Future[Option[WorkbenchUserServiceAccount]] = {
-    val email = WorkbenchUserServiceAccountEmail(s"$serviceAccountName@$serviceAccountName.iam.gserviceaccount.com")
+  override def findServiceAccount(serviceAccountProject: GoogleProject, serviceAccountName: ServiceAccountName): Future[Option[ServiceAccount]] = {
+    val email = WorkbenchEmail(s"$serviceAccountName@$serviceAccountName.iam.gserviceaccount.com")
     if( serviceAccounts.contains(email) ) {
       Future.successful(Some(serviceAccounts(email)))
     } else {
@@ -28,15 +28,15 @@ class MockGoogleIamDAO(implicit executionContext: ExecutionContext) extends Goog
     }
   }
 
-  override def createServiceAccount(googleProject: GoogleProject, serviceAccountName: WorkbenchUserServiceAccountName, displayName: WorkbenchUserServiceAccountDisplayName): Future[WorkbenchUserServiceAccount] = {
+  override def createServiceAccount(googleProject: GoogleProject, serviceAccountName: ServiceAccountName, displayName: ServiceAccountDisplayName): Future[ServiceAccount] = {
     val email = toServiceAccountEmail(googleProject, serviceAccountName)
-    val uniqueId = WorkbenchUserServiceAccountSubjectId(Random.nextLong.toString)
-    val sa = WorkbenchUserServiceAccount(uniqueId, email, displayName)
+    val uniqueId = ServiceAccountSubjectId(Random.nextLong.toString)
+    val sa = ServiceAccount(uniqueId, email, displayName)
     serviceAccounts += email -> sa
     Future.successful(sa)
   }
 
-  override def removeServiceAccount(googleProject: GoogleProject, serviceAccountName: WorkbenchUserServiceAccountName): Future[Unit] = {
+  override def removeServiceAccount(googleProject: GoogleProject, serviceAccountName: ServiceAccountName): Future[Unit] = {
     serviceAccounts -= toServiceAccountEmail(googleProject, serviceAccountName)
     Future.successful(())
   }
@@ -49,7 +49,7 @@ class MockGoogleIamDAO(implicit executionContext: ExecutionContext) extends Goog
     Future.successful(())
   }
 
-  override def addServiceAccountUserRoleForUser(googleProject: GoogleProject, serviceAccountEmail: WorkbenchUserServiceAccountEmail, userEmail: WorkbenchEmail): Future[Unit] = {
+  override def addServiceAccountUserRoleForUser(googleProject: GoogleProject, serviceAccountEmail: WorkbenchEmail, userEmail: WorkbenchEmail): Future[Unit] = {
     if (serviceAccounts.contains(serviceAccountEmail)) {
       Future.successful(())
     } else {
@@ -57,13 +57,13 @@ class MockGoogleIamDAO(implicit executionContext: ExecutionContext) extends Goog
     }
   }
 
-  override def createServiceAccountKey(serviceAccountProject: GoogleProject, serviceAccountEmail: WorkbenchUserServiceAccountEmail): Future[WorkbenchUserServiceAccountKey] = {
-    val key = WorkbenchUserServiceAccountKey(WorkbenchUserServiceAccountKeyId("123"), WorkbenchUserServiceAccountPrivateKeyData("abcdefg"), Some(Instant.now), Some(Instant.now.plusSeconds(300)))
+  override def createServiceAccountKey(serviceAccountProject: GoogleProject, serviceAccountEmail: WorkbenchEmail): Future[ServiceAccountKey] = {
+    val key = ServiceAccountKey(ServiceAccountKeyId("123"), ServiceAccountPrivateKeyData("abcdefg"), Some(Instant.now), Some(Instant.now.plusSeconds(300)))
     serviceAccountKeys += serviceAccountEmail -> key
     Future.successful(key)
   }
 
-  override def removeServiceAccountKey(serviceAccountProject: GoogleProject, serviceAccountEmail: WorkbenchUserServiceAccountEmail, keyId: WorkbenchUserServiceAccountKeyId): Future[Unit] = {
+  override def removeServiceAccountKey(serviceAccountProject: GoogleProject, serviceAccountEmail: WorkbenchEmail, keyId: ServiceAccountKeyId): Future[Unit] = {
     serviceAccounts -= serviceAccountEmail
     Future.successful(())
   }
