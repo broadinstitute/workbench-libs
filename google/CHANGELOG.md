@@ -9,7 +9,7 @@ SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.
 ### Changed
 
 - Moved GoogleProject to model lib
-- Wpdated for 0.8 version of model 
+- Updated for 0.8 version of model 
 
 ## 0.9
 
