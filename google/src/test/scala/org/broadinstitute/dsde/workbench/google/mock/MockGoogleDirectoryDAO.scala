@@ -12,19 +12,19 @@ import scala.concurrent.{ExecutionContext, Future}
   */
 class MockGoogleDirectoryDAO( implicit val executionContext: ExecutionContext ) extends GoogleDirectoryDAO {
 
-  val groups: TrieMap[WorkbenchGroupEmail, Set[WorkbenchEmail]] = TrieMap()
+  val groups: TrieMap[WorkbenchEmail, Set[WorkbenchEmail]] = TrieMap()
 
-  override def createGroup(groupName: WorkbenchGroupName, groupEmail: WorkbenchGroupEmail): Future[Unit] = createGroup(groupName.value, groupEmail)
+  override def createGroup(groupName: WorkbenchGroupName, groupEmail: WorkbenchEmail): Future[Unit] = createGroup(groupName.value, groupEmail)
 
-  override def createGroup(displayName: String, groupEmail: WorkbenchGroupEmail): Future[Unit] = {
+  override def createGroup(displayName: String, groupEmail: WorkbenchEmail): Future[Unit] = {
     Future.successful(groups.putIfAbsent(groupEmail, Set.empty))
   }
 
-  override def deleteGroup(groupEmail: WorkbenchGroupEmail): Future[Unit] = {
+  override def deleteGroup(groupEmail: WorkbenchEmail): Future[Unit] = {
     Future.successful(groups.remove(groupEmail))
   }
 
-  override def addMemberToGroup(groupEmail: WorkbenchGroupEmail, memberEmail: WorkbenchEmail): Future[Unit] = {
+  override def addMemberToGroup(groupEmail: WorkbenchEmail, memberEmail: WorkbenchEmail): Future[Unit] = {
     Future {
       val currentMembers = groups.getOrElse(groupEmail, throw new NoSuchElementException(s"group ${groupEmail.value} not found"))
       val newMembersList = currentMembers + memberEmail
@@ -33,7 +33,7 @@ class MockGoogleDirectoryDAO( implicit val executionContext: ExecutionContext ) 
     }
   }
 
-  override def removeMemberFromGroup(groupEmail: WorkbenchGroupEmail, memberEmail: WorkbenchEmail): Future[Unit] = {
+  override def removeMemberFromGroup(groupEmail: WorkbenchEmail, memberEmail: WorkbenchEmail): Future[Unit] = {
     Future {
       val currentMembers = groups.getOrElse(groupEmail, throw new NoSuchElementException(s"group ${groupEmail.value} not found"))
       val newMembersList = currentMembers - memberEmail
@@ -42,7 +42,7 @@ class MockGoogleDirectoryDAO( implicit val executionContext: ExecutionContext ) 
     }
   }
 
-  override def getGoogleGroup(groupEmail: WorkbenchGroupEmail): Future[Option[Group]] = {
+  override def getGoogleGroup(groupEmail: WorkbenchEmail): Future[Option[Group]] = {
     Future.successful(groups.get(groupEmail).map { _ =>
       val googleGroup = new Group()
       googleGroup.setEmail(groupEmail.value)
@@ -50,14 +50,14 @@ class MockGoogleDirectoryDAO( implicit val executionContext: ExecutionContext ) 
     })
   }
 
-  override def isGroupMember(groupEmail: WorkbenchGroupEmail, memberEmail: WorkbenchEmail): Future[Boolean] = {
+  override def isGroupMember(groupEmail: WorkbenchEmail, memberEmail: WorkbenchEmail): Future[Boolean] = {
     Future {
       val currentMembers = groups.getOrElse(groupEmail, throw new NoSuchElementException(s"group ${groupEmail.value} not found"))
       currentMembers.map(_.value).contains(memberEmail.value)
     }
   }
 
-  override def listGroupMembers(groupEmail: WorkbenchGroupEmail): Future[Option[Seq[String]]] = Future {
+  override def listGroupMembers(groupEmail: WorkbenchEmail): Future[Option[Seq[String]]] = Future {
     groups.get(groupEmail).map(_.map(_.value).toSeq)
   }
 }

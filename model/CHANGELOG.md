@@ -2,9 +2,24 @@
 
 This file documents changes to the `workbench-model` library, including notes on how to upgrade to new versions.
 
+## 0.8
+
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-model" % "0.8-xxxxxxx"`
+
+### Changed
+
+- Consolidated all Workbench*Email classes into one WorkbenchEmail class
+- Created model.google package with all ServiceAccount classes (moved from model)
+- Moved GoogleProject from google lib to model.google
+- Removed WorkbenchUser prefix from all SerivceAccount model classes
+
+## Added
+
+- PetServiceAccount and PetServiceAccountId 
+
 ## 0.7
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-model" % "0.9-dcca21f"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-model" % "0.7-dcca21f"`
 
 ### Added
 

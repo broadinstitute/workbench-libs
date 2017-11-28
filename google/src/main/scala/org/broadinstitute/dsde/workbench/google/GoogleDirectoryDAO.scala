@@ -11,13 +11,13 @@ import scala.concurrent.Future
 
 trait GoogleDirectoryDAO {
 
-  @deprecated(message = "use createGroup(String, WorkbenchGroupEmail) instead", since = "0.9")
-  def createGroup(groupName: WorkbenchGroupName, groupEmail: WorkbenchGroupEmail): Future[Unit]
-  def createGroup(displayName: String, groupEmail: WorkbenchGroupEmail): Future[Unit]
-  def deleteGroup(groupEmail: WorkbenchGroupEmail): Future[Unit]
-  def addMemberToGroup(groupEmail: WorkbenchGroupEmail, memberEmail: WorkbenchEmail): Future[Unit]
-  def removeMemberFromGroup(groupEmail: WorkbenchGroupEmail, memberEmail: WorkbenchEmail): Future[Unit]
-  def getGoogleGroup(groupEmail: WorkbenchGroupEmail): Future[Option[Group]]
-  def isGroupMember(groupEmail: WorkbenchGroupEmail, memberEmail: WorkbenchEmail): Future[Boolean]
-  def listGroupMembers(groupEmail: WorkbenchGroupEmail): Future[Option[Seq[String]]]
+  @deprecated(message = "use createGroup(String, WorkbenchEmail) instead", since = "0.9")
+  def createGroup(groupName: WorkbenchGroupName, groupEmail: WorkbenchEmail): Future[Unit]
+  def createGroup(displayName: String, groupEmail: WorkbenchEmail): Future[Unit]
+  def deleteGroup(groupEmail: WorkbenchEmail): Future[Unit]
+  def addMemberToGroup(groupEmail: WorkbenchEmail, memberEmail: WorkbenchEmail): Future[Unit]
+  def removeMemberFromGroup(groupEmail: WorkbenchEmail, memberEmail: WorkbenchEmail): Future[Unit]
+  def getGoogleGroup(groupEmail: WorkbenchEmail): Future[Option[Group]]
+  def isGroupMember(groupEmail: WorkbenchEmail, memberEmail: WorkbenchEmail): Future[Boolean]
+  def listGroupMembers(groupEmail: WorkbenchEmail): Future[Option[Seq[String]]]
 }
