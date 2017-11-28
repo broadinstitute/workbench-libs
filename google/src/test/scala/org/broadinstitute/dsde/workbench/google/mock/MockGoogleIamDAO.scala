@@ -64,7 +64,7 @@ class MockGoogleIamDAO(implicit executionContext: ExecutionContext) extends Goog
   }
 
   override def removeServiceAccountKey(serviceAccountProject: GoogleProject, serviceAccountEmail: WorkbenchEmail, keyId: ServiceAccountKeyId): Future[Unit] = {
-    serviceAccounts -= serviceAccountEmail
+    serviceAccountKeys -= serviceAccountEmail
     Future.successful(())
   }
 }
