@@ -75,25 +75,25 @@ trait GoogleIamDAO {
     * Adds the Service Account User role for the given users on the given service account.
     * This allows the users to impersonate as the service account.
     * @param serviceAccountProject the project in which to add the roles
-    * @param WorkbenchEmail the service account on which to add the Service Account User role
+    * @param serviceAccountEmail the service account on which to add the Service Account User role
     *                               (i.e. the IAM resource).
     * @param email the user email address for which to add Service Account User
     */
-  def addServiceAccountUserRoleForUser(serviceAccountProject: GoogleProject, WorkbenchEmail: WorkbenchEmail, email: WorkbenchEmail): Future[Unit]
+  def addServiceAccountUserRoleForUser(serviceAccountProject: GoogleProject, serviceAccountEmail: WorkbenchEmail, email: WorkbenchEmail): Future[Unit]
 
   /**
     * Creates a user-managed key for the given service account.
     * @param serviceAccountProject the google project the service account resides in
-    * @param WorkbenchEmail the service account email
+    * @param serviceAccountEmail the service account email
     * @return instance of ServiceAccountKey
     */
-  def createServiceAccountKey(serviceAccountProject: GoogleProject, WorkbenchEmail: WorkbenchEmail): Future[ServiceAccountKey]
+  def createServiceAccountKey(serviceAccountProject: GoogleProject, serviceAccountEmail: WorkbenchEmail): Future[ServiceAccountKey]
 
   /**
     * Deletes a user-managed key for the given service account.
     * @param serviceAccountProject the google project the service account resides in
-    * @param WorkbenchEmail the service account email
+    * @param serviceAccountEmail the service account email
     * @param keyId the key identifier
     */
-  def removeServiceAccountKey(serviceAccountProject: GoogleProject, WorkbenchEmail: WorkbenchEmail, keyId: ServiceAccountKeyId): Future[Unit]
+  def removeServiceAccountKey(serviceAccountProject: GoogleProject, serviceAccountEmail: WorkbenchEmail, keyId: ServiceAccountKeyId): Future[Unit]
 }
