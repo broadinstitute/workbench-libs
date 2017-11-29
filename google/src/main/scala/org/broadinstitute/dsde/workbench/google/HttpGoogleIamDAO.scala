@@ -20,13 +20,12 @@ import com.google.api.client.http.HttpResponseException
 import com.google.api.client.json.jackson2.JacksonFactory
 import com.google.api.services.cloudresourcemanager.CloudResourceManager
 import com.google.api.services.cloudresourcemanager.model.{Binding => ProjectBinding, Policy => ProjectPolicy, SetIamPolicyRequest => ProjectSetIamPolicyRequest}
-import com.google.api.services.iam.v1.model.{CreateServiceAccountKeyRequest, CreateServiceAccountRequest, ServiceAccount, Binding => ServiceAccountBinding, Policy => ServiceAccountPolicy, SetIamPolicyRequest => ServiceAccountSetIamPolicyRequest}
+import com.google.api.services.iam.v1.model.{CreateServiceAccountKeyRequest, CreateServiceAccountRequest, ServiceAccount, Binding => ServiceAccountBinding, Policy => ServiceAccountPolicy, ServiceAccountKey => GoogleServiceAccountKey, SetIamPolicyRequest => ServiceAccountSetIamPolicyRequest}
 import com.google.api.services.iam.v1.{Iam, IamScopes}
 import org.broadinstitute.dsde.workbench.google.HttpGoogleIamDAO._
 import org.broadinstitute.dsde.workbench.model.google._
 import org.broadinstitute.dsde.workbench.metrics.GoogleInstrumentedService
 import org.broadinstitute.dsde.workbench.model._
-import org.broadinstitute.dsde.workbench.model.google.GoogleProject
 
 import scala.collection.JavaConverters._
 import scala.concurrent.{ExecutionContext, Future}
@@ -161,13 +160,7 @@ class HttpGoogleIamDAO(serviceAccountClientId: String,
     val creater = iam.projects().serviceAccounts().keys().create(s"projects/${serviceAccountProject.value}/serviceAccounts/${serviceAccountEmail.value}", request)
     retryWhen500orGoogleError { () =>
       executeGoogleRequest(creater)
-    } map { key =>
-      ServiceAccountKey(
-        ServiceAccountKeyId(key.getName.split('/').last),
-        ServiceAccountPrivateKeyData(key.getPrivateKeyData),
-        Option(key.getValidAfterTime).flatMap(googleTimestampToInstant),
-        Option(key.getValidBeforeTime).flatMap(googleTimestampToInstant))
-    }
+    } map googleKeyToWorkbenchKey
   }
 
   override def removeServiceAccountKey(serviceAccountProject: GoogleProject, serviceAccountEmail: WorkbenchEmail, keyId: ServiceAccountKeyId): Future[Unit] = {
@@ -178,6 +171,23 @@ class HttpGoogleIamDAO(serviceAccountClientId: String,
     } {
       case e: HttpResponseException if e.getStatusCode == StatusCodes.NotFound.intValue => ()
     }
+  }
+
+  override def listServiceAccountKeys(serviceAccountProject: GoogleProject, serviceAccountEmail: WorkbenchEmail): Future[Seq[ServiceAccountKey]] = {
+    val request = iam.projects().serviceAccounts().keys().list(s"projects/${serviceAccountProject.value}/serviceAccounts/${serviceAccountEmail.value}")
+    retryWhen500orGoogleError { () =>
+      executeGoogleRequest(request)
+    } map { response =>
+      response.getKeys.asScala map googleKeyToWorkbenchKey
+    }
+  }
+
+  private def googleKeyToWorkbenchKey(googleKey: GoogleServiceAccountKey): ServiceAccountKey = {
+    ServiceAccountKey(
+      ServiceAccountKeyId(googleKey.getName.split('/').last),
+      ServiceAccountPrivateKeyData(googleKey.getPrivateKeyData),
+      Option(googleKey.getValidAfterTime).flatMap(googleTimestampToInstant),
+      Option(googleKey.getValidBeforeTime).flatMap(googleTimestampToInstant))
   }
 
   private def googleTimestampToInstant(googleTimestamp: String): Option[Instant] = {

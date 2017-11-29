@@ -21,7 +21,7 @@ class MockGoogleIamDAO(implicit executionContext: ExecutionContext) extends Goog
 
   override def findServiceAccount(serviceAccountProject: GoogleProject, serviceAccountName: ServiceAccountName): Future[Option[ServiceAccount]] = {
     val email = WorkbenchEmail(s"$serviceAccountName@$serviceAccountName.iam.gserviceaccount.com")
-    if( serviceAccounts.contains(email) ) {
+    if (serviceAccounts.contains(email)) {
       Future.successful(Some(serviceAccounts(email)))
     } else {
       Future.successful(None)
@@ -67,4 +67,9 @@ class MockGoogleIamDAO(implicit executionContext: ExecutionContext) extends Goog
     serviceAccountKeys -= serviceAccountEmail
     Future.successful(())
   }
+
+  override def listServiceAccountKeys(serviceAccountProject: GoogleProject, serviceAccountEmail: WorkbenchEmail): Future[Seq[ServiceAccountKey]] = {
+    Future.successful(serviceAccountKeys.values.toSeq)
+  }
+
 }

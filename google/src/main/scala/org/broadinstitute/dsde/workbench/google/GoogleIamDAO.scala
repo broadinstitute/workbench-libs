@@ -34,19 +34,19 @@ trait GoogleIamDAO {
     */
   def createServiceAccount(serviceAccountProject: GoogleProject, serviceAccountName: ServiceAccountName, displayName: ServiceAccountDisplayName): Future[ServiceAccount]
 
-    /**
-      * Get or create a service account in the given project.
-      * @param serviceAccountProject the project in which to create the service account
-      * @param serviceAccountName the service account name
-      * @param displayName the service account display name
-      * @return the service account. Note that it may not have the same display name as the request you made if one already existed.
-      */
-    def getOrCreateServiceAccount(serviceAccountProject: GoogleProject, serviceAccountName: ServiceAccountName, displayName: ServiceAccountDisplayName)(implicit executionContext: ExecutionContext): Future[ServiceAccount] = {
-      findServiceAccount(serviceAccountProject, serviceAccountName) flatMap {
-        case None => createServiceAccount(serviceAccountProject, serviceAccountName, displayName)
-        case Some(serviceAccount) => Future.successful(serviceAccount)
-      }
+  /**
+    * Get or create a service account in the given project.
+    * @param serviceAccountProject the project in which to create the service account
+    * @param serviceAccountName the service account name
+    * @param displayName the service account display name
+    * @return the service account. Note that it may not have the same display name as the request you made if one already existed.
+    */
+  def getOrCreateServiceAccount(serviceAccountProject: GoogleProject, serviceAccountName: ServiceAccountName, displayName: ServiceAccountDisplayName)(implicit executionContext: ExecutionContext): Future[ServiceAccount] = {
+    findServiceAccount(serviceAccountProject, serviceAccountName) flatMap {
+      case None => createServiceAccount(serviceAccountProject, serviceAccountName, displayName)
+      case Some(serviceAccount) => Future.successful(serviceAccount)
     }
+  }
 
   /**
     * Removes a service account in the given project.
@@ -96,4 +96,12 @@ trait GoogleIamDAO {
     * @param keyId the key identifier
     */
   def removeServiceAccountKey(serviceAccountProject: GoogleProject, serviceAccountEmail: WorkbenchEmail, keyId: ServiceAccountKeyId): Future[Unit]
+
+  /**
+    * Lists keys associated with a given service account.
+    * @param serviceAccountProject the google project the service account resides in
+    * @param serviceAccountEmail the service account email
+    * @return list of service account keys
+    */
+  def listServiceAccountKeys(serviceAccountProject: GoogleProject, serviceAccountEmail: WorkbenchEmail): Future[Seq[ServiceAccountKey]]
 }
