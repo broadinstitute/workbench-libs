@@ -3,25 +3,7 @@ package org.broadinstitute.dsde.workbench.model
 import akka.http.scaladsl.model.StatusCode
 import spray.json._
 
-case class ErrorReport(source: String, message: String, statusCode: Option[StatusCode], causes: Seq[ErrorReport], stackTrace: Seq[StackTraceElement], exceptionClass: Option[Class[_]]) {
-
-  override def toString: String = {
-    val sb = new StringBuilder(this.copy(causes = Seq.empty, stackTrace = Seq.empty).toString)
-
-    if (stackTrace.nonEmpty) {
-      sb.append("\nStack trace:\n")
-      sb.append(stackTrace.mkString("\n\tat "))
-    }
-
-    if (causes.nonEmpty) {
-      sb.append("\nCauses:\n")
-      sb.append(causes.mkString("\n"))
-    }
-
-    sb.toString
-  }
-
-}
+case class ErrorReport(source: String, message: String, statusCode: Option[StatusCode], causes: Seq[ErrorReport], stackTrace: Seq[StackTraceElement], exceptionClass: Option[Class[_]])
 
 case class ErrorReportSource(source: String)
 
@@ -77,6 +59,22 @@ object ErrorReport {
   private def causeThrowables(throwable: Throwable) = {
     if (throwable.getSuppressed.nonEmpty || throwable.getCause == null) throwable.getSuppressed
     else Array(throwable.getCause)
+  }
+
+  def loggableString(errorReport: ErrorReport): String = {
+    val sb = new StringBuilder(errorReport.copy(causes = Seq.empty, stackTrace = Seq.empty).toString)
+
+    if (errorReport.stackTrace.nonEmpty) {
+      sb.append("\nStack trace:\n")
+      sb.append(errorReport.stackTrace.mkString("\n\tat "))
+    }
+
+    if (errorReport.causes.nonEmpty) {
+      sb.append("\nCauses:\n")
+      sb.append(errorReport.causes.mkString("\n"))
+    }
+
+    sb.toString
   }
 
 }
