@@ -3,7 +3,25 @@ package org.broadinstitute.dsde.workbench.model
 import akka.http.scaladsl.model.StatusCode
 import spray.json._
 
-case class ErrorReport(source: String, message: String, statusCode: Option[StatusCode], causes: Seq[ErrorReport], stackTrace: Seq[StackTraceElement], exceptionClass: Option[Class[_]])
+case class ErrorReport(source: String, message: String, statusCode: Option[StatusCode], causes: Seq[ErrorReport], stackTrace: Seq[StackTraceElement], exceptionClass: Option[Class[_]]) {
+
+  override def toString: String = {
+    val sb = new StringBuilder(this.copy(causes = Seq.empty, stackTrace = Seq.empty).toString)
+
+    if (stackTrace.nonEmpty) {
+      sb.append("\nStack trace:\n")
+      sb.append(stackTrace.mkString("\n\tat "))
+    }
+
+    if (causes.nonEmpty) {
+      sb.append("\nCauses:\n")
+      sb.append(causes.mkString("\n"))
+    }
+
+    sb.toString
+  }
+
+}
 
 case class ErrorReportSource(source: String)
 
