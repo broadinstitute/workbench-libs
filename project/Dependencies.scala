@@ -21,6 +21,8 @@ object Dependencies {
   val akkaTestkit: ModuleID =       "com.typesafe.akka" %% "akka-testkit"         % akkaV     % "test"
   val akkaHttpTestkit: ModuleID =   "com.typesafe.akka" %% "akka-http-testkit"    % akkaHttpV % "test"
 
+  val jacksonModule: ModuleID =   "com.fasterxml.jackson.module" %% "jackson-module-scala"   % jacksonV % "test"
+
   val cats: ModuleID = "org.typelevel" %% "cats" % catsV
 
   // metrics-scala transitively pulls in io.dropwizard.metrics:metrics-core
@@ -83,4 +85,14 @@ object Dependencies {
     akkaHttpSprayJson,
     akkaTestkit
   ).map(excludeGuavaJDK5)
+
+  val serviceTestDependencies = commonDependencies ++ Seq(
+    akkaActor,
+    akkaHttp,
+    akkaTestkit,
+    jacksonModule
+  )
+
+  val uiTestDependencies = commonDependencies ++ Seq(
+  )
 }
