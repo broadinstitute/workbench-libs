@@ -24,12 +24,23 @@ lazy val workbenchGoogle = project.in(file("google"))
   .dependsOn(workbenchMetrics % testAndCompile)
   .withTestSettings
 
+lazy val workbenchServiceTest = project.in(file("serviceTest"))
+  .settings(serviceTestSettings)
+  .withTestSettings
+
+/*
+lazy val workbenchUiTest = project.in(file("uiTest"))
+  .settings(uiTestSettings)
+  .withTestSettings
+*/
+
 lazy val workbenchLibs = project.in(file("."))
   .settings(rootSettings:_*)
   .aggregate(workbenchUtil)
   .aggregate(workbenchModel)
   .aggregate(workbenchMetrics)
   .aggregate(workbenchGoogle)
+  .aggregate(workbenchServiceTest)
 
 Revolver.settings
 
