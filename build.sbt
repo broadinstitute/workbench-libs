@@ -40,6 +40,7 @@ lazy val workbenchLibs = project.in(file("."))
   .aggregate(workbenchModel)
   .aggregate(workbenchMetrics)
   .aggregate(workbenchGoogle)
+  .aggregate(workbenchServiceTest)
 
 Revolver.settings
 
