@@ -3,7 +3,6 @@ package org.broadinstitute.dsde.workbench.service
 import akka.http.scaladsl.model.headers.{ModeledCustomHeader, ModeledCustomHeaderCompanion}
 import com.typesafe.scalalogging.LazyLogging
 import org.broadinstitute.dsde.workbench.auth.AuthToken
-//import org.broadinstitute.dsde.firecloud.config.Config
 
 import scala.util.Try
 
