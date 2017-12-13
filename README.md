@@ -42,3 +42,11 @@ To depend on the `MockGoogle*` classes, additionally depend on:
 `"org.broadinstitute.dsde.workbench" %% "workbench-google"  % "0.10-d6801ce" % "test" classifier "tests"`
 
 [Changelog](google/CHANGELOG.md)
+
+## workbench-service-test
+
+Contains common classes and utilities for writing tests against Workbench REST web services.
+
+Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "0.0.1-alpha-TBD" % "test" classifier "tests"`
+
+[Changelog](serviceTest/CHANGELOG.md)
