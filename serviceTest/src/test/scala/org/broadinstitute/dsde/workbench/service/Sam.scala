@@ -2,31 +2,30 @@ package org.broadinstitute.dsde.firecloud.api
 
 import akka.http.scaladsl.model.StatusCodes
 import com.typesafe.scalalogging.LazyLogging
-import org.broadinstitute.dsde.firecloud.api.Sam.user.UserStatusDetails
-import org.broadinstitute.dsde.firecloud.config.UserPool
-import org.broadinstitute.dsde.firecloud.dao.Google.googleIamDAO
+import org.broadinstitute.dsde.workbench.auth.AuthToken
+import org.broadinstitute.dsde.workbench.config.{UserPool, _}
+import org.broadinstitute.dsde.workbench.dao.Google
+import org.broadinstitute.dsde.workbench.model.WorkbenchEmail
+import org.broadinstitute.dsde.workbench.service.RestClient
 import org.broadinstitute.dsde.workbench.model.google.{GoogleProject, ServiceAccountName}
 import org.scalatest.time.{Seconds, Span}
 import org.scalatest.concurrent.ScalaFutures
-import org.broadinstitute.dsde.firecloud.auth.AuthToken
-import org.broadinstitute.dsde.firecloud.config.Config
-import org.broadinstitute.dsde.workbench.model.WorkbenchEmail
 
 /**
   * Sam API service client. This should only be used when Orchestration does
   * not provide a required endpoint. This should primarily be used for admin
   * functions.
   */
-class Sam(url: String) extends FireCloudClient with LazyLogging with ScalaFutures{
+class Sam(url: String) extends RestClient with LazyLogging with ScalaFutures{
 
   implicit override val patienceConfig: PatienceConfig = PatienceConfig(timeout = scaled(Span(5, Seconds)))
 
-  def petName(userInfo: UserStatusDetails) = ServiceAccountName(s"pet-${userInfo.userSubjectId}")
+  def petName(userInfo: user.UserStatusDetails) = ServiceAccountName(s"pet-${userInfo.userSubjectId}")
 
-  def removePet(userInfo: UserStatusDetails): Unit = {
-    Sam.admin.deletePetServiceAccount(userInfo.userSubjectId)(UserPool.chooseAdmin.makeAuthToken())
+  def removePet(userInfo: user.UserStatusDetails): Unit = {
+    admin.deletePetServiceAccount(userInfo.userSubjectId)(UserPool.chooseAdmin.makeAuthToken())
     // TODO: why is this necessary?  GAWB-2867
-    googleIamDAO.removeServiceAccount(GoogleProject(Config.Projects.default), petName(userInfo)).futureValue
+    Google.googleIamDAO.removeServiceAccount(GoogleProject(Config.Projects.default), petName(userInfo)).futureValue
   }
 
   object admin {
