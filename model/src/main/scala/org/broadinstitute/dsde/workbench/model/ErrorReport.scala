@@ -61,6 +61,22 @@ object ErrorReport {
     else Array(throwable.getCause)
   }
 
+  def loggableString(errorReport: ErrorReport): String = {
+    val sb = new StringBuilder(errorReport.copy(causes = Seq.empty, stackTrace = Seq.empty).toString)
+
+    if (errorReport.stackTrace.nonEmpty) {
+      sb.append("\nStack trace:\n")
+      sb.append(errorReport.stackTrace.mkString("\n\tat "))
+    }
+
+    if (errorReport.causes.nonEmpty) {
+      sb.append("\nCauses:\n")
+      sb.append(errorReport.causes.mkString("\n"))
+    }
+
+    sb.toString
+  }
+
 }
 
 object ErrorReportJsonSupport {
