@@ -76,4 +76,3 @@ class Thurloe(url: String, firecloudId: String) extends RestClient with LazyLogg
     }
   }
 }
-
