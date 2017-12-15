@@ -1,4 +1,4 @@
-package org.broadinstitute.dsde.workbench.auth
+package org.broadinstitute.dsde.workbench.service.auth
 
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport

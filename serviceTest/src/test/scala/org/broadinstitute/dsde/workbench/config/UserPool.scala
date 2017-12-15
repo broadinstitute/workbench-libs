@@ -1,4 +1,4 @@
-package org.broadinstitute.dsde.workbench.config
+package org.broadinstitute.dsde.workbench.service.config
 
 object UserPool {
 
