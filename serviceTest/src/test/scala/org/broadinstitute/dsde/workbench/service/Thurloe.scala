@@ -8,9 +8,9 @@ import scala.util.Try
 
 /**
   */
-class Thurloe(url: String, firecloudId: String) extends RestClient with LazyLogging {
+class Thurloe(url: String, fireCloudId: String) extends RestClient with LazyLogging {
 
-  private val thurloeHeaders = List(FireCloudIdHeader(firecloudId))
+  private val thurloeHeaders = List(FireCloudIdHeader(fireCloudId))
 
   object FireCloudIdHeader extends ModeledCustomHeaderCompanion[FireCloudIdHeader] {
     override def name = "X-FireCloud-Id"
