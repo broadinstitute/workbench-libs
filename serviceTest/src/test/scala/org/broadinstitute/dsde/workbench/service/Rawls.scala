@@ -4,6 +4,7 @@ import com.typesafe.scalalogging.LazyLogging
 import org.broadinstitute.dsde.workbench.auth.AuthToken
 
 class Rawls(url: String) extends RestClient with LazyLogging {
+
   object admin {
     def deleteBillingProject(projectName: String)(implicit token: AuthToken): Unit = {
       logger.info(s"Deleting billing project: $projectName")
@@ -31,6 +32,7 @@ class Rawls(url: String) extends RestClient with LazyLogging {
     }
 
     def list()(implicit token: AuthToken):String  = {
+      logger.info(s"Listing workspaces")
       parseResponse(getRequest(url + s"api/workspaces"))
     }
   }
