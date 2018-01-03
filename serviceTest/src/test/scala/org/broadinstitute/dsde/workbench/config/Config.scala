@@ -1,4 +1,4 @@
-package org.broadinstitute.dsde.workbench.service.config
+package org.broadinstitute.dsde.workbench.config
 
 import com.typesafe.config.ConfigFactory
 import scala.util.Random
