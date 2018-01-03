@@ -2,6 +2,14 @@
 
 This file documents changes to the `workbench-google` library, including notes on how to upgrade to new versions.
 
+## 0.11
+
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.11-xxxxxxx"`
+
+### Changed
+
+- Added BigQuery
+
 ## 0.10
 
 SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.10-0967a99"`
