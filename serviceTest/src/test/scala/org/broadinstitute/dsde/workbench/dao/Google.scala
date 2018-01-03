@@ -1,7 +1,7 @@
-package org.broadinstitute.dsde.workbench.service.dao
+package org.broadinstitute.dsde.workbench.dao
 
 import akka.actor.ActorSystem
-import org.broadinstitute.dsde.workbench.service.config.Config
+import org.broadinstitute.dsde.workbench.config.Config
 import org.broadinstitute.dsde.workbench.google.HttpGoogleIamDAO
 
 import scala.concurrent.{ExecutionContext, ExecutionContextExecutor}
