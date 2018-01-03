@@ -79,7 +79,7 @@ object Settings {
   val serviceTestSettings = commonSettings ++ List(
     name := "workbench-service-test",
     libraryDependencies ++= serviceTestDependencies,
-    version := "0.1.1-SNAPSHOT"
+    version := createVersion("0.1.1-alpha-sam")
   ) ++ publishSettings
 
   val uiTestSettings = commonSettings ++ List(
