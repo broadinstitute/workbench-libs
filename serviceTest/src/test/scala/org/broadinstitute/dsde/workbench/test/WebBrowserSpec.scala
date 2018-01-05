@@ -7,7 +7,7 @@ import java.text.SimpleDateFormat
 import java.util.UUID
 
 import com.typesafe.scalalogging.LazyLogging
-import org.broadinstitute.dsde.workbench.api.Orchestration
+import org.broadinstitute.dsde.workbench.service.Orchestration
 import org.broadinstitute.dsde.workbench.config.Config
 import org.broadinstitute.dsde.workbench.util.ExceptionHandling
 import org.openqa.selenium.chrome.{ChromeDriverService, ChromeOptions}
