@@ -1,4 +1,4 @@
-package org.broadinstitute.dsde.workbench.service.util
+package org.broadinstitute.dsde.workbench.util
 
 import com.typesafe.scalalogging.LazyLogging
 
@@ -6,7 +6,6 @@ import scala.util.control.NonFatal
 
 /**
   */
-//trait ExceptionHandling { self: LazyLogging =>
 trait ExceptionHandling extends LazyLogging {
   /**
     * Return a partial function that logs and suppresses any "non-fatal"

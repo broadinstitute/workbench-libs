@@ -1,4 +1,4 @@
-package org.broadinstitute.dsde.workbench.service.util
+package org.broadinstitute.dsde.workbench.util
 
 import java.io.File
 import java.nio.file.Files

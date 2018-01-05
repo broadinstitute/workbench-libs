@@ -14,6 +14,7 @@ object Dependencies {
   val scalaLogging: ModuleID = "com.typesafe.scala-logging"    %% "scala-logging" % "3.7.2"  % "provided"
   val scalatest: ModuleID =    "org.scalatest"                 %% "scalatest"     % "3.0.1"  % "test"
   val mockito: ModuleID =      "org.mockito"                   %  "mockito-core"  % "2.8.47" % "test"
+  val selenium: ModuleID =     "org.seleniumhq.selenium"       %  "selenium-java" % "3.8.1"  % "test"
 
   val akkaActor: ModuleID =         "com.typesafe.akka" %% "akka-actor"           % akkaV     % "provided"
   val akkaHttp: ModuleID =          "com.typesafe.akka" %% "akka-http"            % akkaHttpV % "provided"
@@ -90,7 +91,8 @@ object Dependencies {
     akkaActor,
     akkaHttp,
     akkaTestkit,
-    jacksonModule
+    jacksonModule,
+    selenium
   )
 
   val uiTestDependencies = commonDependencies ++ Seq(

@@ -6,9 +6,9 @@ import org.broadinstitute.dsde.workbench.auth.AuthToken
 import org.broadinstitute.dsde.workbench.config.Config
 import org.broadinstitute.dsde.workbench.fixture.Method
 import org.broadinstitute.dsde.workbench.fixture.MethodData.SimpleMethod
-import org.broadinstitute.dsde.workbench.service.util.Retry.retry
-import org.broadinstitute.dsde.workbench.service.util.Util
-import org.broadinstitute.dsde.workbench.service.util.Util.appendUnderscore
+import org.broadinstitute.dsde.workbench.util.Retry.retry
+import org.broadinstitute.dsde.workbench.util.Util.appendUnderscore
+import org.broadinstitute.dsde.workbench.util.Util
 
 import scala.concurrent.duration._
 
