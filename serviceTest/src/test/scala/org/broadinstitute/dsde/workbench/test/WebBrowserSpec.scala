@@ -9,7 +9,7 @@ import java.util.UUID
 import com.typesafe.scalalogging.LazyLogging
 import org.broadinstitute.dsde.workbench.service.Orchestration
 import org.broadinstitute.dsde.workbench.config.Config
-import org.broadinstitute.dsde.workbench.util.ExceptionHandling
+import org.broadinstitute.dsde.workbench.service.util.ExceptionHandling
 import org.openqa.selenium.chrome.{ChromeDriverService, ChromeOptions}
 import org.openqa.selenium.remote.{Augmenter, DesiredCapabilities, LocalFileDetector, RemoteWebDriver}
 import org.openqa.selenium.{OutputType, TakesScreenshot, WebDriver}
@@ -122,7 +122,7 @@ trait WebBrowserSpec extends WebBrowserUtil with ExceptionHandling with LazyLogg
     * Override of withScreenshot that works with a remote Chrome driver and
     * lets us control the image file name.
     */
-  override def withScreenshot(f: => Unit)(implicit driver: WebDriver): Unit = {
+  def withScreenshot(f: => Unit)(implicit driver: WebDriver): Unit = {
     try {
       f
     } catch {

@@ -1,7 +1,7 @@
 package org.broadinstitute.dsde.workbench.test
 
 import com.typesafe.scalalogging.LazyLogging
-import org.broadinstitute.dsde.workbench.util.ExceptionHandling
+import org.broadinstitute.dsde.workbench.service.util.ExceptionHandling
 import org.scalatest.{Outcome, TestSuite, TestSuiteMixin}
 
 import scala.collection.mutable
