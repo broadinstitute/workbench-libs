@@ -5,7 +5,7 @@ import com.typesafe.scalalogging.LazyLogging
 import org.broadinstitute.dsde.workbench.auth.AuthToken
 import org.broadinstitute.dsde.workbench.config.{UserPool, _}
 import org.broadinstitute.dsde.workbench.dao.Google
-import org.broadinstitute.dsde.workbench.model.WorkbenchEmail
+import org.broadinstitute.dsde.workbench.model.{WorkbenchEmail, WorkbenchUserId}
 import org.broadinstitute.dsde.workbench.model.google.{GoogleProject, ServiceAccountName}
 import org.scalatest.time.{Seconds, Span}
 import org.scalatest.concurrent.ScalaFutures
@@ -50,8 +50,13 @@ trait Sam extends RestClient with LazyLogging with ScalaFutures{
     }
   }
 
+}
+object Sam extends Sam {
+
   object user {
-    case class UserStatusDetails(userSubjectId: String, userEmail: String)
+
+    case class UserStatusDetails(userSubjectId: WorkbenchUserId, userEmail: WorkbenchEmail)
+
     case class UserStatus(userInfo: UserStatusDetails, enabled: Map[String, Boolean])
 
     def status()(implicit token: AuthToken): Option[UserStatus] = {
@@ -64,11 +69,12 @@ trait Sam extends RestClient with LazyLogging with ScalaFutures{
       val petEmailStr = parseResponseAs[String](getRequest(url + "api/user/petServiceAccount"))
       WorkbenchEmail(petEmailStr)
     }
+
     def proxyGroup()(implicit token: AuthToken): WorkbenchEmail = {
       logger.info(s"Getting proxy group email")
       val proxyGroupEmailStr = parseResponseAs[String](getRequest(url + "api/google/user/proxyGroup"))
       WorkbenchEmail(proxyGroupEmailStr)
     }
   }
+
 }
-object Sam extends Sam
