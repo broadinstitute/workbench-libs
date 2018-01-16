@@ -7,6 +7,7 @@ import org.broadinstitute.dsde.workbench.config.{UserPool, _}
 import org.broadinstitute.dsde.workbench.dao.Google
 import org.broadinstitute.dsde.workbench.model.{WorkbenchEmail, WorkbenchUserId}
 import org.broadinstitute.dsde.workbench.model.google.{GoogleProject, ServiceAccountName}
+import org.broadinstitute.dsde.workbench.service.Sam.user
 import org.scalatest.time.{Seconds, Span}
 import org.scalatest.concurrent.ScalaFutures
 
@@ -17,7 +18,7 @@ import org.scalatest.concurrent.ScalaFutures
   */
 trait Sam extends RestClient with LazyLogging with ScalaFutures{
 
-  private val url = Config.FireCloud.samApiUrl
+  val url = Config.FireCloud.samApiUrl
 
   implicit override val patienceConfig: PatienceConfig = PatienceConfig(timeout = scaled(Span(5, Seconds)))
 
@@ -55,7 +56,7 @@ object Sam extends Sam {
 
   object user {
 
-    case class UserStatusDetails(userSubjectId: WorkbenchUserId, userEmail: WorkbenchEmail)
+    case class UserStatusDetails(userSubjectId: String, userEmail: String)
 
     case class UserStatus(userInfo: UserStatusDetails, enabled: Map[String, Boolean])
 
