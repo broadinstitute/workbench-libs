@@ -2,6 +2,14 @@
 
 This file documents changes to the `workbench-util` library, including notes on how to upgrade to new versions.
 
+## 0.3
+
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util" % "0.3-xxxxxxx"`
+
+### Added
+
+- `EnhancedScalaConfig` for nice extension methods to Typesafe Config objects
+
 ## 0.2
 
 SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util" % "0.2-0b34b93"`
