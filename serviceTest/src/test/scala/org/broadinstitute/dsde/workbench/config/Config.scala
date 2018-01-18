@@ -23,9 +23,7 @@ case class UserSet(userMap: Map[String, Credentials]) {
   }
 }
 
-trait Config
-
-object Config extends Config {
+trait Config {
   private val config = ConfigFactory.load()
 
   private val fireCloud = config.getConfig("fireCloud")
@@ -102,3 +100,4 @@ object Config extends Config {
     val chromeDriverPath = chromeSettings.getString("chromedriverPath")
   }
 }
+object Config extends Config
