@@ -39,3 +39,5 @@ trait Rawls extends RestClient with LazyLogging {
     }
   }
 }
+
+object Rawls extends Rawls
