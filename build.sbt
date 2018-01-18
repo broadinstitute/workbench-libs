@@ -25,7 +25,9 @@ lazy val workbenchGoogle = project.in(file("google"))
   .withTestSettings
 
 lazy val workbenchServiceTest = project.in(file("serviceTest"))
-  .settings(serviceTestSettings)
+  .settings(serviceTestSettings:_*)
+  .dependsOn(workbenchModel % testAndCompile)
+  .dependsOn(workbenchGoogle)
   .withTestSettings
 
 /*
