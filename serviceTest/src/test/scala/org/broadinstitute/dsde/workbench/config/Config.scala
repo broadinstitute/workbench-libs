@@ -26,7 +26,7 @@ case class UserSet(userMap: Map[String, Credentials]) {
 trait Config
 
 object Config extends Config {
-  private val config = ConfigFactory.load()
+  protected val config = ConfigFactory.load()
 
   private val fireCloud = config.getConfig("fireCloud")
   private val users = config.getConfig("users")
