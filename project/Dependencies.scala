@@ -23,6 +23,8 @@ object Dependencies {
 
   val jacksonModule: ModuleID =   "com.fasterxml.jackson.module" %% "jackson-module-scala"   % jacksonV % "test"
 
+  val selenium: ModuleID = "org.seleniumhq.selenium" % "selenium-java" % "3.8.1" % "test"
+
   val cats: ModuleID = "org.typelevel" %% "cats" % catsV
 
   // metrics-scala transitively pulls in io.dropwizard.metrics:metrics-core
@@ -92,7 +94,8 @@ object Dependencies {
     akkaActor,
     akkaHttp,
     akkaTestkit,
-    jacksonModule
+    jacksonModule,
+    selenium
   )
 
   val uiTestDependencies = commonDependencies ++ Seq(

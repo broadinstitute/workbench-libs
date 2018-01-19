@@ -1,7 +1,6 @@
 package org.broadinstitute.dsde.workbench.service.test
 
-import org.broadinstitute.dsde.workbench.service.test.Awaiter
-import org.openqa.selenium.support.ui.{ExpectedCondition, WebDriverWait}
+import org.openqa.selenium.support.ui.WebDriverWait
 import org.openqa.selenium.{StaleElementReferenceException, WebDriver}
 import org.scalatest.selenium.WebBrowser
 
