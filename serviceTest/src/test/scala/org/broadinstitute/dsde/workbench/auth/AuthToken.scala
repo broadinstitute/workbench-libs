@@ -11,7 +11,7 @@ trait AuthToken {
 
   lazy val value: String = makeToken()
 
-  protected def buildCredential(): GoogleCredential
+  def buildCredential(): GoogleCredential
 
   private def makeToken(): String = {
     val cred = buildCredential()
