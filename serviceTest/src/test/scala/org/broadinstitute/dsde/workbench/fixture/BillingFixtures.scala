@@ -1,4 +1,4 @@
-package org.broadinstitute.dsde.firecloud.fixture
+package org.broadinstitute.dsde.workbench.fixture
 
 import org.broadinstitute.dsde.workbench.auth.AuthToken
 import org.broadinstitute.dsde.workbench.config.{Config, UserPool}
