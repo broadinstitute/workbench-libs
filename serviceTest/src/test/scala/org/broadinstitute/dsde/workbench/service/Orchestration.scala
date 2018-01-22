@@ -304,4 +304,17 @@ object WorkspaceAccessLevel extends Enumeration {
   val Writer = Value("WRITER")
 }
 
-case class AclEntry(email: String, accessLevel: WorkspaceAccessLevel)
+case class AclEntry(email: String, accessLevel: WorkspaceAccessLevel, canShare: Option[Boolean] = None, canCompute: Option[Boolean] = None) {
+  def toMap: Map[String,Any] = {
+    val resp: Map[String, Any] = Map("email"->email, "accessLevel"->accessLevel.toString)
+    val shared = canShare match {
+      case Some(sh) => resp ++ Map("canShare"->sh)
+      case None => resp
+    }
+    val compute = canCompute match {
+      case Some(comp) => shared ++ Map("canCompute"->comp)
+      case None => shared
+    }
+    compute
+  }
+}
