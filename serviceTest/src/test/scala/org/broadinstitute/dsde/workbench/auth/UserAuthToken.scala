@@ -6,7 +6,7 @@ import org.broadinstitute.dsde.workbench.config.{Config, Credentials}
 import scala.collection.JavaConverters._
 
 case class UserAuthToken(user: Credentials) extends AuthToken {
-  override protected def buildCredential(): GoogleCredential = {
+  override def buildCredential(): GoogleCredential = {
     val pemfile = new java.io.File(Config.GCS.pathToQAPem)
     val email = Config.GCS.qaEmail
 

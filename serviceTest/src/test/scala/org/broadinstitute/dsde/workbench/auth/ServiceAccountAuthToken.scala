@@ -26,7 +26,7 @@ case class ServiceAccountAuthToken(saId: WorkbenchEmail) extends AuthToken with 
     googleIamDAO.removeServiceAccountKey(GoogleProject(Config.Projects.default), saId, serviceAccountPrivateKey.id).futureValue
   }
 
-  override protected def buildCredential(): GoogleCredential = {
+  override def buildCredential(): GoogleCredential = {
     val privateKeyJsonString = serviceAccountPrivateKey.privateKeyData.decode.get
     GoogleCredential.fromStream(new ByteArrayInputStream(privateKeyJsonString.getBytes())).createScoped(authScopes.asJava)
   }
