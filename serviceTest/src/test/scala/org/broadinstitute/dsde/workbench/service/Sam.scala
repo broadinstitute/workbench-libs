@@ -8,6 +8,7 @@ import org.broadinstitute.dsde.workbench.dao.Google.googleIamDAO
 import org.broadinstitute.dsde.workbench.model.{WorkbenchEmail, WorkbenchUserId}
 import org.broadinstitute.dsde.workbench.model.google.{GoogleProject, ServiceAccountName}
 import org.broadinstitute.dsde.workbench.service.Sam.user
+import org.broadinstitute.dsde.workbench.service.Sam.user.UserStatusDetails
 import org.scalatest.time.{Seconds, Span}
 import org.scalatest.concurrent.ScalaFutures
 
@@ -24,10 +25,8 @@ trait Sam extends RestClient with LazyLogging with ScalaFutures{
 
   def petName(userInfo: user.UserStatusDetails) = ServiceAccountName(s"pet-${userInfo.userSubjectId}")
 
-  def removePet(userInfo: user.UserStatusDetails): Unit = {
-    admin.deletePetServiceAccount(userInfo.userSubjectId)(UserPool.chooseAdmin.makeAuthToken())
-    // TODO: why is this necessary?  GAWB-2867
-    googleIamDAO.removeServiceAccount(GoogleProject(Config.Projects.default), petName(userInfo)).futureValue
+  def removePet(project: String, userInfo: UserStatusDetails): Unit = {
+    Sam.admin.deletePetServiceAccount(project, userInfo.userSubjectId)(UserPool.chooseAdmin.makeAuthToken())
   }
 
   object admin {
@@ -45,9 +44,9 @@ trait Sam extends RestClient with LazyLogging with ScalaFutures{
       }
     }
 
-    def deletePetServiceAccount(userSubjectId: String)(implicit token: AuthToken): Unit = {
-      logger.info(s"Deleting pet service account for user $userSubjectId")
-      deleteRequest(url + s"api/admin/user/$userSubjectId/petServiceAccount")
+    def deletePetServiceAccount(project: String, userSubjectId: String)(implicit token: AuthToken): Unit = {
+      logger.info(s"Deleting pet service account in project $project for user $userSubjectId")
+      deleteRequest(url + s"api/admin/user/$userSubjectId/petServiceAccount/$project")
     }
   }
 
