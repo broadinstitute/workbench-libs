@@ -29,3 +29,5 @@ trait BillingFixtures extends CleanUp { self: TestSuite =>
     }
   }
 }
+
+object BillingFixtures extends BillingFixtures
