@@ -80,3 +80,5 @@ trait Thurloe extends RestClient with LazyLogging {
     }
   }
 }
+
+object Thurloe extends Thurloe
