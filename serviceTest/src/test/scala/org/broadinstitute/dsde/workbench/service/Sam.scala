@@ -64,9 +64,9 @@ object Sam extends Sam {
       parseResponseOption[UserStatus](getRequest(url + "register/user"))
     }
 
-    def petServiceAccountEmail()(implicit token: AuthToken): WorkbenchEmail = {
+    def petServiceAccountEmail(project: String)(implicit token: AuthToken): WorkbenchEmail = {
       logger.info(s"Getting pet service account email")
-      val petEmailStr = parseResponseAs[String](getRequest(url + "api/user/petServiceAccount"))
+      val petEmailStr = parseResponseAs[String](getRequest(url + s"api/google/user/petServiceAccount/$project"))
       WorkbenchEmail(petEmailStr)
     }
 
