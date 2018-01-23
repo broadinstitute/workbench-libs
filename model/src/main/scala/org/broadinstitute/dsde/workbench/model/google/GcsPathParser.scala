@@ -1,30 +1,13 @@
-package org.broadinstitute.dsde.workbench.google.gcs
+package org.broadinstitute.dsde.workbench.model.google
 
 import com.google.common.net.UrlEscapers
 import java.net.URI
-
-import org.broadinstitute.dsde.workbench.google.gcs.GcsPathParser._
-
+import org.broadinstitute.dsde.workbench.model.ValueObject
 import scala.util.{Failure, Success, Try}
 
-/** A GCS path including bucket name and path */
-case class GcsPath(bucketName: GcsBucketName, relativePath: GcsRelativePath) {
-  def toUri: String = s"$GCS_SCHEME://${bucketName.name}/${relativePath.name}"
-}
-object GcsPath {
-  def parse(str: String): Either[GcsParseError, GcsPath] =
-    GcsPathParser.parseGcsPathFromString(str)
-}
+case class GcsParseError(value: String) extends ValueObject
 
-/** A GCS relative path */
-case class GcsRelativePath(name: String) extends AnyVal
-
-/** A valid GCS bucket name */
-case class GcsBucketName(name: String) extends AnyVal
-
-case class GcsParseError(message: String) extends AnyVal
-
-private object GcsPathParser {
+private[model] object GcsPathParser {
   final val GCS_SCHEME = "gs"
 
   /*
