@@ -4,10 +4,13 @@ import java.time.Instant
 import java.time.format.DateTimeFormatter
 
 import org.broadinstitute.dsde.workbench.model._
+import org.broadinstitute.dsde.workbench.model.google.GcsPathParser.GCS_SCHEME
 import spray.json.{JsString, JsValue, RootJsonFormat}
 
+// Projects
 case class GoogleProject(value: String) extends ValueObject
 
+// Service Accounts
 case class ServiceAccount(subjectId: ServiceAccountSubjectId, email: WorkbenchEmail, displayName: ServiceAccountDisplayName)
 case class ServiceAccountSubjectId(value: String) extends ValueObject //The SA's Subject ID.
 case class ServiceAccountName(value: String) extends ValueObject //The left half of the SA's email.
@@ -16,6 +19,18 @@ case class ServiceAccountDisplayName(value: String) extends ValueObject //A frie
 case class ServiceAccountKeyId(value: String) extends ValueObject
 case class ServiceAccountPrivateKeyData(value: String) extends ValueObject with Base64Support
 case class ServiceAccountKey(id: ServiceAccountKeyId, privateKeyData: ServiceAccountPrivateKeyData, validAfter: Option[Instant], validBefore: Option[Instant])
+
+// Storage
+case class GcsRelativePath(value: String) extends ValueObject
+case class GcsBucketName(value: String) extends ValueObject
+case class GcsPath(bucketName: GcsBucketName, relativePath: GcsRelativePath)
+
+sealed trait StoragePermission extends ValueObject
+case object Reader extends StoragePermission { val value = "READER" }
+case object Writer extends StoragePermission { val value = "WRITER" }
+case object Owner extends StoragePermission { val value = "OWNER" }
+
+case class StorageAcl(email: WorkbenchEmail, permission: StoragePermission)
 
 object GoogleModelJsonSupport {
   import spray.json.DefaultJsonProtocol._
