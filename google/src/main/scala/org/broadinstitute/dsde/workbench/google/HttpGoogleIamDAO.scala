@@ -13,20 +13,17 @@ import cats.instances.map._
 import cats.syntax.foldable._
 import cats.syntax.functor._
 import cats.syntax.semigroup._
-import com.google.api.client.auth.oauth2.Credential
-import com.google.api.client.googleapis.auth.oauth2.{GoogleClientSecrets, GoogleCredential}
-import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport
 import com.google.api.client.googleapis.json.GoogleJsonResponseException
 import com.google.api.client.http.HttpResponseException
-import com.google.api.client.json.jackson2.JacksonFactory
 import com.google.api.services.cloudresourcemanager.CloudResourceManager
 import com.google.api.services.cloudresourcemanager.model.{Binding => ProjectBinding, Policy => ProjectPolicy, SetIamPolicyRequest => ProjectSetIamPolicyRequest}
 import com.google.api.services.iam.v1.model.{CreateServiceAccountKeyRequest, CreateServiceAccountRequest, ServiceAccount, Binding => ServiceAccountBinding, Policy => ServiceAccountPolicy, ServiceAccountKey => GoogleServiceAccountKey, SetIamPolicyRequest => ServiceAccountSetIamPolicyRequest}
 import com.google.api.services.iam.v1.{Iam, IamScopes}
+import org.broadinstitute.dsde.workbench.google.GoogleCredentialMode._
 import org.broadinstitute.dsde.workbench.google.HttpGoogleIamDAO._
-import org.broadinstitute.dsde.workbench.model.google._
 import org.broadinstitute.dsde.workbench.metrics.GoogleInstrumentedService
 import org.broadinstitute.dsde.workbench.model._
+import org.broadinstitute.dsde.workbench.model.google._
 
 import scala.collection.JavaConverters._
 import scala.concurrent.{ExecutionContext, Future}
@@ -35,38 +32,18 @@ import scala.util.Try
 /**
   * Created by rtitle on 10/2/17.
   */
-class HttpGoogleIamDAO(serviceAccountClientId: String,
-                       pemFile: String,
-                       appName: String,
-                       override val workbenchMetricBaseName: String)
-                      (implicit val system: ActorSystem, val executionContext: ExecutionContext) extends GoogleIamDAO with GoogleUtilities {
+class HttpGoogleIamDAO(appName: String,
+                       googleCredentialMode: GoogleCredentialMode,
+                       workbenchMetricBaseName: String)
+                      (implicit system: ActorSystem, executionContext: ExecutionContext)
+  extends AbstractHttpGoogleDAO(appName, googleCredentialMode, workbenchMetricBaseName) with GoogleIamDAO {
 
-  def this(clientSecrets: GoogleClientSecrets,
-           pemFile: String,
-           appName: String,
-           workbenchMetricBaseName: String)
-          (implicit system: ActorSystem, executionContext: ExecutionContext) = {
-    this(clientSecrets.getDetails.get("client_email").toString, pemFile, appName, workbenchMetricBaseName)
-  }
+  override val scopes = List(IamScopes.CLOUD_PLATFORM)
 
-  lazy val httpTransport = GoogleNetHttpTransport.newTrustedTransport
-  lazy val jsonFactory = JacksonFactory.getDefaultInstance
-  lazy val scopes = List(IamScopes.CLOUD_PLATFORM)
+  lazy val iam = new Iam.Builder(httpTransport, jsonFactory, googleCredential).setApplicationName(appName).build()
+  lazy val cloudResourceManager = new CloudResourceManager.Builder(httpTransport, jsonFactory, googleCredential).setApplicationName(appName).build()
 
-  lazy val credential: Credential = {
-    new GoogleCredential.Builder()
-      .setTransport(httpTransport)
-      .setJsonFactory(jsonFactory)
-      .setServiceAccountId(serviceAccountClientId)
-      .setServiceAccountScopes(scopes.asJava)
-      .setServiceAccountPrivateKeyFromPemFile(new java.io.File(pemFile))
-      .build()
-  }
-
-  lazy val iam = new Iam.Builder(httpTransport, jsonFactory, credential).setApplicationName(appName).build()
-  lazy val cloudResourceManager = new CloudResourceManager.Builder(httpTransport, jsonFactory, credential).setApplicationName(appName).build()
-
-  implicit val service = GoogleInstrumentedService.Iam
+  override implicit val service = GoogleInstrumentedService.Iam
 
   override def findServiceAccount(serviceAccountProject: GoogleProject, serviceAccountName: ServiceAccountName): Future[Option[google.ServiceAccount]] = {
     val serviceAccountEmail = toServiceAccountEmail(serviceAccountProject, serviceAccountName)
