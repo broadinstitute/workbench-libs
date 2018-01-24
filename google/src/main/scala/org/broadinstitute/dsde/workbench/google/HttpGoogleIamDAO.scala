@@ -2,6 +2,7 @@ package org.broadinstitute.dsde.workbench.google
 
 import java.time.Instant
 import java.time.format.DateTimeFormatter
+import java.util.Collections
 
 import akka.actor.ActorSystem
 import akka.http.scaladsl.model.StatusCodes
@@ -175,10 +176,21 @@ class HttpGoogleIamDAO(serviceAccountClientId: String,
 
   override def listServiceAccountKeys(serviceAccountProject: GoogleProject, serviceAccountEmail: WorkbenchEmail): Future[Seq[ServiceAccountKey]] = {
     val request = iam.projects().serviceAccounts().keys().list(s"projects/${serviceAccountProject.value}/serviceAccounts/${serviceAccountEmail.value}")
+
     retryWhen500orGoogleError { () =>
       executeGoogleRequest(request)
     } map { response =>
-      response.getKeys.asScala map googleKeyToWorkbenchKey
+      Option(response.getKeys).getOrElse(Collections.emptyList()).asScala map googleKeyToWorkbenchKey
+    }
+  }
+
+  override def listUserManagedServiceAccountKeys(serviceAccountProject: GoogleProject, serviceAccountEmail: WorkbenchEmail): Future[Seq[ServiceAccountKey]] = {
+    val request = iam.projects().serviceAccounts().keys().list(s"projects/${serviceAccountProject.value}/serviceAccounts/${serviceAccountEmail.value}").setKeyTypes(List("USER_MANAGED").asJava)
+
+    retryWhen500orGoogleError { () =>
+      executeGoogleRequest(request)
+    } map { response =>
+      Option(response.getKeys).getOrElse(Collections.emptyList()).asScala map googleKeyToWorkbenchKey
     }
   }
 
