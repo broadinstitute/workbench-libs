@@ -58,8 +58,6 @@ class MockGooglePubSubDAO extends GooglePubSubDAO {
     }
   }
 
-  override def getPubSubServiceAccountCredential: Credential = getPreparedMockGoogleCredential
-
   override def deleteSubscription(subscriptionName: String): Future[Boolean] = Future {
     subscriptionsByName.get(subscriptionName) match {
       case None =>
