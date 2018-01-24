@@ -7,7 +7,6 @@ import org.scalatest.TestSuite
 
 trait MethodFixtures extends CleanUp { self: WebBrowserSpec with TestSuite =>
 
-
   def withMethod(testName:String, method:Method, numSnapshots: Int = 1, cleanUp: Boolean = true)
                 (testCode: (String) => Any)
                 (implicit token: AuthToken): Unit = {

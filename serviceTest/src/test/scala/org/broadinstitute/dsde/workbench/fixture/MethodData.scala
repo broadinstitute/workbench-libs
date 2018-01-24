@@ -61,5 +61,3 @@ object InputRequiredMethodConfig {
   val inputs = Map("test.hello.name" -> "\"a\"")
   val outputs = Map("test.hello.response" -> "workspace.result")
 }
-
-

@@ -23,9 +23,7 @@ case class UserSet(userMap: Map[String, Credentials]) {
   }
 }
 
-trait Config
-
-object Config extends Config {
+object Config {
   val config = ConfigFactory.load()
 
   private val fireCloud = config.getConfig("fireCloud")
@@ -38,6 +36,8 @@ object Config extends Config {
   object GCS {
     val pathToQAPem = gcsConfig.getString("qaPemFile")
     val qaEmail = gcsConfig.getString("qaEmail")
+    val trialBillingPemFile = gcsConfig.getString("trialBillingPemFile")
+    val trialBillingPemFileClientId = gcsConfig.getString("trialBillingPemFileClientId")
     val appsDomain = gcsConfig.getString("appsDomain")
   }
 
@@ -73,9 +73,7 @@ object Config extends Config {
     val testUser = Students.getUserCredential("harry")
     val temp = Temps.getUserCredential("luna")
     val notebooksWhitelisted = NotebooksWhitelisted.getUserCredential("hermione")
-
     val tempSubjectId = users.getString("tempSubjectId")
-
     val smoketestpassword = users.getString("smoketestpassword")
     val smoketestuser = Credentials(users.getString("smoketestuser"), smoketestpassword)
   }
