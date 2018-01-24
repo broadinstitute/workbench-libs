@@ -1,12 +1,12 @@
 package org.broadinstitute.dsde.workbench.google.mock
 
-import java.io.{ByteArrayInputStream, ByteArrayOutputStream, StringWriter}
-import java.util.Base64
-import com.google.api.client.util.DateTime
+import java.io.{ByteArrayInputStream, ByteArrayOutputStream, File}
+import java.nio.file.Files
 
 import com.google.api.client.util.IOUtils
-import com.google.api.services.storage.model.StorageObject
 import org.broadinstitute.dsde.workbench.google.GoogleStorageDAO
+import org.broadinstitute.dsde.workbench.model.WorkbenchEmail
+import org.broadinstitute.dsde.workbench.model.google.{GcsAccessControl, GcsBucketName, GcsObjectName, GoogleProject}
 
 import scala.collection.concurrent.TrieMap
 import scala.concurrent.{ExecutionContext, Future}
@@ -15,14 +15,23 @@ import scala.concurrent.{ExecutionContext, Future}
   * Created by mbemis on 1/12/18.
   */
 class MockGoogleStorageDAO(  implicit val executionContext: ExecutionContext ) extends GoogleStorageDAO {
-  val buckets: TrieMap[String, Set[(String, ByteArrayInputStream)]] = TrieMap()
+  val buckets: TrieMap[GcsBucketName, Set[(GcsObjectName, ByteArrayInputStream)]] = TrieMap()
 
-  override def createBucket(billingProjectName: String, bucketName: String): Future[String] = {
-    buckets.putIfAbsent(s"$billingProjectName/$bucketName", Set.empty)
+  override def createBucket(billingProject: GoogleProject, bucketName: GcsBucketName): Future[GcsBucketName] = {
+    buckets.putIfAbsent(bucketName, Set.empty)
     Future.successful(bucketName)
   }
 
-  override def storeObject(bucketName: String, objectName: String, objectContents: ByteArrayInputStream, objectType: String = "text/plain"): Future[Unit] = {
+  override def deleteBucket(bucketName: GcsBucketName, recurse: Boolean): Future[Unit] = {
+    buckets.remove(bucketName)
+    Future.successful(())
+  }
+
+  override def bucketExists(bucketName: GcsBucketName): Future[Boolean] = {
+    Future.successful(buckets.contains(bucketName))
+  }
+
+  override def storeObject(bucketName: GcsBucketName, objectName: GcsObjectName, objectContents: ByteArrayInputStream, objectType: String = "text/plain"): Future[Unit] = {
     val current = buckets.get(bucketName)
 
     current match {
@@ -33,25 +42,35 @@ class MockGoogleStorageDAO(  implicit val executionContext: ExecutionContext ) e
     Future.successful(())
   }
 
-  override def removeObject(bucketName: String, objectName: String): Future[Unit] = {
+  override def storeObject(bucketName: GcsBucketName, objectName: GcsObjectName, objectContents: File, objectType: String): Future[Unit] = {
     val current = buckets.get(bucketName)
 
     current match {
-      case Some(objects) => buckets.put(bucketName, objects.filter(_._1.equalsIgnoreCase(objectName)))
-      case None => ()
+      case Some(objects) => buckets.put(bucketName, objects ++ Set((objectName, new ByteArrayInputStream(Files.readAllBytes(objectContents.toPath)))))
+      case None => buckets.put(bucketName, Set((objectName, new ByteArrayInputStream(Files.readAllBytes(objectContents.toPath)))))
     }
 
     Future.successful(())
   }
 
-  override def getObject(bucketName: String, objectName: String): Future[Option[ByteArrayOutputStream]] = {
+  override def removeObject(bucketName: GcsBucketName, objectName: GcsObjectName): Future[Unit] = {
+    val current = buckets.get(bucketName)
+
+    current.foreach { objects =>
+      buckets.put(bucketName, objects.filter(_._1 != objectName))
+    }
+
+    Future.successful(())
+  }
+
+  override def getObject(bucketName: GcsBucketName, objectName: GcsObjectName): Future[Option[ByteArrayOutputStream]] = {
     val current = buckets.get(bucketName)
     val response = new ByteArrayOutputStream()
 
     Future {
       current match {
         case Some(objs) => {
-          val objects = objs.filter(_._1.equalsIgnoreCase(objectName)).toList
+          val objects = objs.filter(_._1 == objectName).toList
 
           objects match {
             case obj :: Nil => {
@@ -67,22 +86,43 @@ class MockGoogleStorageDAO(  implicit val executionContext: ExecutionContext ) e
     }
   }
 
-  override def setBucketLifecycle(bucketName: String, lifecycleAge: Int, lifecycleType: String): Future[Unit] = Future.successful(())
+  override def setBucketLifecycle(bucketName: GcsBucketName, lifecycleAge: Int, lifecycleType: String): Future[Unit] = {
+    Future.successful(())
+  }
 
-  override def setObjectChangePubSubTrigger(bucketName: String, topicName: String, eventTypes: List[String]): Future[Unit] = Future.successful(())
-
-  override def listObjectsWithPrefix(bucketName: String, objectNamePrefix: String): Future[List[StorageObject]] = {
+  override def listObjectsWithPrefix(bucketName: GcsBucketName, objectNamePrefix: String): Future[Seq[GcsObjectName]] = {
     val current = buckets.get(bucketName)
 
     val objects = current match {
-      case Some(objs) => {
-        objs.filter(_._1.startsWith(objectNamePrefix)) map { x =>
-          new StorageObject().setName(x._1).setTimeCreated(new DateTime(System.currentTimeMillis()))
-        }
-      }.toList
-      case None => List.empty
+      case Some(objs) =>
+        objs.map(_._1).filter(_.value.startsWith(objectNamePrefix)).toSeq
+      case None => Seq.empty
     }
 
     Future.successful(objects)
+  }
+
+  override def setBucketAccessControl(bucketName: GcsBucketName, accessControl: GcsAccessControl): Future[Unit] = {
+    Future.successful(())
+  }
+
+  override def removeBucketAccessControl(bucketName: GcsBucketName, email: WorkbenchEmail): Future[Unit] = {
+    Future.successful(())
+  }
+
+  override def setObjectAccessControl(bucketName: GcsBucketName, objectName: GcsObjectName, accessControl: GcsAccessControl): Future[Unit] = {
+    Future.successful(())
+  }
+
+  override def removeObjectAccessControl(bucketName: GcsBucketName, objectName: GcsObjectName, email: WorkbenchEmail): Future[Unit] = {
+    Future.successful(())
+  }
+
+  override def setDefaultObjectAccessControl(bucketName: GcsBucketName, accessControl: GcsAccessControl): Future[Unit] = {
+    Future.successful(())
+  }
+
+  override def removeDefaultObjectAccessControl(bucketName: GcsBucketName, email: WorkbenchEmail): Future[Unit] = {
+    Future.successful(())
   }
 }
