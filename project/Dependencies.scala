@@ -93,6 +93,7 @@ object Dependencies {
   val serviceTestDependencies = commonDependencies ++ Seq(
     akkaActor,
     akkaHttp,
+    akkaHttpSprayJson,
     akkaTestkit,
     jacksonModule,
     selenium
