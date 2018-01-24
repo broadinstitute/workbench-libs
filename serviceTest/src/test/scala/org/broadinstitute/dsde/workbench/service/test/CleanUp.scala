@@ -1,17 +1,16 @@
 package org.broadinstitute.dsde.workbench.service.test
 
 import com.typesafe.scalalogging.LazyLogging
+import java.util.concurrent.{ConcurrentLinkedQueue, _}
 import org.broadinstitute.dsde.workbench.service.util.ExceptionHandling
 import org.scalatest.{Outcome, TestSuite, TestSuiteMixin}
-
-import scala.collection.mutable
 
 /**
   * Mix-in for cleaning up data created during a test.
   */
 trait CleanUp extends TestSuiteMixin with ExceptionHandling with LazyLogging { self: TestSuite =>
 
-  private val cleanUpFunctions = mutable.MutableList[() => Any]()
+  private val cleanUpFunctions = new ConcurrentLinkedQueue[() => Any]()
 
 
   /**
@@ -26,7 +25,7 @@ trait CleanUp extends TestSuiteMixin with ExceptionHandling with LazyLogging { s
       * @param f the clean-up function
       */
     def cleanUp(f: => Any): Unit = {
-      f _ +=: cleanUpFunctions
+      cleanUpFunctions.add(f _)
     }
   }
 
@@ -94,7 +93,7 @@ trait CleanUp extends TestSuiteMixin with ExceptionHandling with LazyLogging { s
   }
 
   private def runCleanUpFunctions() = {
-    cleanUpFunctions foreach { f => try f() catch nonFatalAndLog("Error in clean-up function") }
+    cleanUpFunctions.toArray().foreach { f  => try f catch nonFatalAndLog("Error in clean-up function")}
     cleanUpFunctions.clear()
   }
 }
