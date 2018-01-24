@@ -23,7 +23,9 @@ case class UserSet(userMap: Map[String, Credentials]) {
   }
 }
 
-object Config {
+trait Config
+
+object Config extends Config {
   val config = ConfigFactory.load()
 
   private val fireCloud = config.getConfig("fireCloud")
