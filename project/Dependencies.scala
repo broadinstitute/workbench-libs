@@ -60,7 +60,8 @@ object Dependencies {
   )
 
   val modelDependencies = commonDependencies ++ Seq(
-    akkaHttpSprayJson
+    akkaHttpSprayJson,
+    googleGuava
   )
 
   val metricsDependencies = commonDependencies ++ Seq(
