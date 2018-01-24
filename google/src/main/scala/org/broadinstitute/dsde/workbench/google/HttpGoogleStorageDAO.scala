@@ -30,31 +30,19 @@ import org.broadinstitute.dsde.workbench.util.FutureSupport
 import scala.collection.JavaConverters._
 import scala.concurrent.{ExecutionContext, Future}
 
-class HttpGoogleStorageDAO(serviceAccountClientId: String,
-                           pemFile: String,
-                           appName: String,
-                           override val workbenchMetricBaseName: String,
-                           maxPageSize: Long = 1000)( implicit val system: ActorSystem, implicit val executionContext: ExecutionContext ) extends GoogleStorageDAO with FutureSupport with GoogleUtilities {
+class HttpGoogleStorageDAO(appName: String,
+                           googleCredentialMode: GoogleCredentialMode,
+                           workbenchMetricBaseName: String,
+                           maxPageSize: Long = 1000)
+                          (implicit system: ActorSystem, executionContext: ExecutionContext)
+  extends AbstractHttpGoogleDAO(appName, googleCredentialMode, workbenchMetricBaseName) with GoogleStorageDAO {
 
-  val storageScopes = Seq(StorageScopes.DEVSTORAGE_FULL_CONTROL, ComputeScopes.COMPUTE, PlusScopes.USERINFO_EMAIL, PlusScopes.USERINFO_PROFILE)
+  override val scopes = Seq(StorageScopes.DEVSTORAGE_FULL_CONTROL, ComputeScopes.COMPUTE, PlusScopes.USERINFO_EMAIL, PlusScopes.USERINFO_PROFILE)
 
-  val httpTransport = GoogleNetHttpTransport.newTrustedTransport
-  val jsonFactory = JacksonFactory.getDefaultInstance
+  override implicit val service = GoogleInstrumentedService.Storage
 
-  implicit val service = GoogleInstrumentedService.Storage
-
-  private lazy val storage: Storage = {
-    new Storage.Builder(httpTransport, jsonFactory, bucketServiceAccountCredential).setApplicationName(appName).build()
-  }
-
-  private lazy val bucketServiceAccountCredential: Credential = {
-    new GoogleCredential.Builder()
-      .setTransport(httpTransport)
-      .setJsonFactory(jsonFactory)
-      .setServiceAccountId(serviceAccountClientId)
-      .setServiceAccountScopes(storageScopes.asJava) // grant bucket-creation powers
-      .setServiceAccountPrivateKeyFromPemFile(new java.io.File(pemFile))
-      .build()
+  private lazy val storage = {
+    new Storage.Builder(httpTransport, jsonFactory, googleCredential).setApplicationName(appName).build()
   }
 
   override def createBucket(billingProject: GoogleProject, bucketName: GcsBucketName): Future[GcsBucketName] = {

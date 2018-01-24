@@ -2,50 +2,31 @@ package org.broadinstitute.dsde.workbench.google
 
 import akka.actor.ActorSystem
 import akka.http.scaladsl.model.StatusCodes
-import com.google.api.client.auth.oauth2.Credential
-import com.google.api.client.googleapis.auth.oauth2.{GoogleClientSecrets, GoogleCredential}
-import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport
 import com.google.api.client.http.HttpResponseException
-import com.google.api.client.json.jackson2.JacksonFactory
 import com.google.api.services.admin.directory.model.{Group, Member, Members}
 import com.google.api.services.admin.directory.{Directory, DirectoryScopes}
+import org.broadinstitute.dsde.workbench.google.GoogleCredentialMode._
 import org.broadinstitute.dsde.workbench.metrics.GoogleInstrumentedService
 import org.broadinstitute.dsde.workbench.model._
-import org.broadinstitute.dsde.workbench.util.FutureSupport
 
-import scala.collection.JavaConverters._
 import scala.concurrent.{ExecutionContext, Future}
 
 /**
   * Created by mbemis on 8/17/17.
   */
 
-class HttpGoogleDirectoryDAO(serviceAccountClientId: String,
-                             pemFile: String,
-                             subEmail: String,
-                             appsDomain: String,
-                             appName: String,
-                             override val workbenchMetricBaseName: String,
-                             maxPageSize: Int = 200)( implicit val system: ActorSystem, implicit val executionContext: ExecutionContext ) extends GoogleDirectoryDAO with FutureSupport with GoogleUtilities {
+class HttpGoogleDirectoryDAO(appName: String,
+                             googleCredentialMode: GoogleCredentialMode,
+                             workbenchMetricBaseName: String,
+                             maxPageSize: Int = 200)
+                            (implicit system: ActorSystem, executionContext: ExecutionContext)
+  extends AbstractHttpGoogleDAO(appName, googleCredentialMode, workbenchMetricBaseName) with GoogleDirectoryDAO {
 
-  @deprecated(message = "This way of instantiating HttpGoogleDirectoryDAO has been deprecated. Please upgrade your configs appropriately.", since = "0.9")
-  def this(clientSecrets: GoogleClientSecrets,
-           pemFile: String,
-           appsDomain: String,
-           appName: String,
-           workbenchMetricBaseName: String)
-          (implicit system: ActorSystem, executionContext: ExecutionContext) = {
-    this(clientSecrets.getDetails.get("client_email").toString, pemFile, clientSecrets.getDetails.get("sub_email").toString, appsDomain, appName, workbenchMetricBaseName)
-  }
-
-  val directoryScopes = Seq(DirectoryScopes.ADMIN_DIRECTORY_GROUP)
-
-  val httpTransport = GoogleNetHttpTransport.newTrustedTransport
-  val jsonFactory = JacksonFactory.getDefaultInstance
+  override val scopes = Seq(DirectoryScopes.ADMIN_DIRECTORY_GROUP)
 
   val groupMemberRole = "MEMBER" // the Google Group role corresponding to a member (note that this is distinct from the GCS roles defined in WorkspaceAccessLevel)
 
-  implicit val service = GoogleInstrumentedService.Groups
+  override implicit val service = GoogleInstrumentedService.Groups
 
   override def createGroup(groupId: WorkbenchGroupName, groupEmail: WorkbenchEmail): Future[Unit] = createGroup(groupId.value, groupEmail)
 
@@ -160,18 +141,7 @@ class HttpGoogleDirectoryDAO(serviceAccountClientId: String,
   }
 
   private def getGroupDirectory = {
-    new Directory.Builder(httpTransport, jsonFactory, getGroupServiceAccountCredential).setApplicationName(appName).build()
-  }
-
-  private def getGroupServiceAccountCredential: Credential = {
-    new GoogleCredential.Builder()
-      .setTransport(httpTransport)
-      .setJsonFactory(jsonFactory)
-      .setServiceAccountId(serviceAccountClientId)
-      .setServiceAccountScopes(directoryScopes.asJava)
-      .setServiceAccountUser(subEmail)
-      .setServiceAccountPrivateKeyFromPemFile(new java.io.File(pemFile))
-      .build()
+    new Directory.Builder(httpTransport, jsonFactory, googleCredential).setApplicationName(appName).build()
   }
 
 }

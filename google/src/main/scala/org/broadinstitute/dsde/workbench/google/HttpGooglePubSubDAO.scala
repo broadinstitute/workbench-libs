@@ -1,16 +1,12 @@
 package org.broadinstitute.dsde.workbench.google
 
 import akka.actor.ActorSystem
-import com.google.api.client.auth.oauth2.Credential
-import com.google.api.client.googleapis.auth.oauth2.{GoogleClientSecrets, GoogleCredential}
-import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport
+import akka.http.scaladsl.model.StatusCodes
 import com.google.api.client.http.HttpResponseException
-import com.google.api.client.json.jackson2.JacksonFactory
 import com.google.api.services.pubsub.model._
 import com.google.api.services.pubsub.{Pubsub, PubsubScopes}
+import org.broadinstitute.dsde.workbench.google.GoogleCredentialMode._
 import org.broadinstitute.dsde.workbench.google.GooglePubSubDAO._
-import org.broadinstitute.dsde.workbench.util.FutureSupport
-import akka.http.scaladsl.model.StatusCodes
 import org.broadinstitute.dsde.workbench.metrics.GoogleInstrumentedService
 import org.broadinstitute.dsde.workbench.model.WorkbenchEmail
 import org.broadinstitute.dsde.workbench.model.google.isServiceAccount
@@ -22,19 +18,18 @@ import scala.concurrent._
  * Created by mbemis on 5/6/16.
  */
 
-class HttpGooglePubSubDAO(clientEmail: String,
-                          pemFile: String,
-                          appName: String,
-                          serviceProject: String,
-                          override val workbenchMetricBaseName: String)( implicit val system: ActorSystem, implicit val executionContext: ExecutionContext ) extends FutureSupport with GoogleUtilities with GooglePubSubDAO {
+class HttpGooglePubSubDAO(appName: String,
+                          googleCredentialMode: GoogleCredentialMode,
+                          workbenchMetricBaseName: String,
+                          serviceProject: String)
+                         (implicit system: ActorSystem, executionContext: ExecutionContext)
+  extends AbstractHttpGoogleDAO(appName, googleCredentialMode, workbenchMetricBaseName) with GooglePubSubDAO {
 
-  val pubSubScopes = Seq(PubsubScopes.PUBSUB)
+  override val scopes = Seq(PubsubScopes.PUBSUB)
 
-  val httpTransport = GoogleNetHttpTransport.newTrustedTransport
-  val jsonFactory = JacksonFactory.getDefaultInstance
+  override implicit val service = GoogleInstrumentedService.PubSub
 
   private val characterEncoding = "UTF-8"
-  implicit val service = GoogleInstrumentedService.PubSub
 
   override def createTopic(topicName: String) = {
     retryWithRecoverWhen500orGoogleError(() => {
@@ -132,17 +127,7 @@ class HttpGooglePubSubDAO(clientEmail: String,
   def subscriptionToFullPath(subscriptionName: String) = s"projects/${serviceProject}/subscriptions/${subscriptionName}"
 
   def getPubSubDirectory = {
-    new Pubsub.Builder(httpTransport, jsonFactory, getPubSubServiceAccountCredential).setApplicationName(appName).build()
-  }
-
-  def getPubSubServiceAccountCredential: Credential = {
-    new GoogleCredential.Builder()
-      .setTransport(httpTransport)
-      .setJsonFactory(jsonFactory)
-      .setServiceAccountId(clientEmail)
-      .setServiceAccountScopes(pubSubScopes.asJava) // grant pub sub powers
-      .setServiceAccountPrivateKeyFromPemFile(new java.io.File(pemFile))
-      .build()
+    new Pubsub.Builder(httpTransport, jsonFactory, googleCredential).setApplicationName(appName).build()
   }
 
 }
