@@ -1,7 +1,7 @@
 package org.broadinstitute.dsde.workbench.service.test
 
 import com.typesafe.scalalogging.LazyLogging
-import java.util.concurrent.{ConcurrentLinkedQueue, _}
+import java.util.concurrent.ConcurrentLinkedDeque
 import org.broadinstitute.dsde.workbench.service.util.ExceptionHandling
 import org.scalatest.{Outcome, TestSuite, TestSuiteMixin}
 
@@ -10,7 +10,7 @@ import org.scalatest.{Outcome, TestSuite, TestSuiteMixin}
   */
 trait CleanUp extends TestSuiteMixin with ExceptionHandling with LazyLogging { self: TestSuite =>
 
-  private val cleanUpFunctions = new ConcurrentLinkedQueue[() => Any]()
+  private val cleanUpFunctions = new ConcurrentLinkedDeque[() => Any]()
 
 
   /**
@@ -25,7 +25,7 @@ trait CleanUp extends TestSuiteMixin with ExceptionHandling with LazyLogging { s
       * @param f the clean-up function
       */
     def cleanUp(f: => Any): Unit = {
-      cleanUpFunctions.add(f _)
+      cleanUpFunctions.addFirst(f _)
     }
   }
 
