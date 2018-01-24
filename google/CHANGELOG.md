@@ -16,6 +16,22 @@ SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "1.
       - via an access token (`GoogleCredentialModes.Token`)
    - This allows for more flexibility in how Google DAOs can be used.
 
+## 0.13
+
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.13-???????"`
+
+### Changed
+
+- Updated GoogleStorageDAO to use model objects from `workbench-model`
+- Updated methods in GoogleStorageDAO:
+   - Added methods to create/remove bucket/object ACLs
+   - Added `bucketExists(GcsBucketName): Future[Boolean]`
+   - Added `storeObject` variants which take an `ByteArrayInputStream` or a `File`
+   
+### Removed
+
+- `org.broadinstitute.dsde.workbench.google.gcs` package (functionality moved to workbench-model)
+
 ## 0.12
 
 SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.12-5913740"`
