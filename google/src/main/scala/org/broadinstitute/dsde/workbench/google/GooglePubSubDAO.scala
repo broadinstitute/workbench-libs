@@ -2,7 +2,7 @@ package org.broadinstitute.dsde.workbench.google
 
 import com.google.api.client.auth.oauth2.Credential
 import com.google.api.services.pubsub.model.Topic
-import org.broadinstitute.dsde.workbench.model.WorkbenchException
+import org.broadinstitute.dsde.workbench.model.{WorkbenchEmail, WorkbenchException}
 import org.broadinstitute.dsde.workbench.google.GooglePubSubDAO._
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -33,6 +33,8 @@ trait GooglePubSubDAO {
   def deleteTopic(topicName: String): Future[Boolean]
 
   def getTopic(topicName: String)(implicit executionContext: ExecutionContext): Future[Option[Topic]]
+
+  def grantTopicIamPermissions(topicName: String, permissions: Map[WorkbenchEmail, String]): Future[Unit]
 
   def createSubscription(topicName: String, subscriptionName: String): Future[Boolean]
 
