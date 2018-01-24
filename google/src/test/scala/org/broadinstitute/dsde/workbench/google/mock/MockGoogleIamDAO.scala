@@ -1,6 +1,8 @@
 package org.broadinstitute.dsde.workbench.google.mock
 
+import java.nio.charset.StandardCharsets
 import java.time.Instant
+import java.util.Base64
 
 import org.broadinstitute.dsde.workbench.google.GoogleIamDAO
 import org.broadinstitute.dsde.workbench.model._
@@ -58,7 +60,7 @@ class MockGoogleIamDAO(implicit executionContext: ExecutionContext) extends Goog
   }
 
   override def createServiceAccountKey(serviceAccountProject: GoogleProject, serviceAccountEmail: WorkbenchEmail): Future[ServiceAccountKey] = {
-    val key = ServiceAccountKey(ServiceAccountKeyId("123"), ServiceAccountPrivateKeyData("abcdefg"), Some(Instant.now), Some(Instant.now.plusSeconds(300)))
+    val key = ServiceAccountKey(ServiceAccountKeyId("123"), ServiceAccountPrivateKeyData(Base64.getEncoder.encodeToString(s"abcdefg:${System.currentTimeMillis}".getBytes(StandardCharsets.UTF_8))), Some(Instant.now), Some(Instant.now.plusSeconds(300)))
     serviceAccountKeys += serviceAccountEmail -> key
     Future.successful(key)
   }
@@ -69,6 +71,10 @@ class MockGoogleIamDAO(implicit executionContext: ExecutionContext) extends Goog
   }
 
   override def listServiceAccountKeys(serviceAccountProject: GoogleProject, serviceAccountEmail: WorkbenchEmail): Future[Seq[ServiceAccountKey]] = {
+    Future.successful(serviceAccountKeys.values.toSeq)
+  }
+
+  override def listUserManagedServiceAccountKeys(serviceAccountProject: GoogleProject, serviceAccountEmail: WorkbenchEmail): Future[Seq[ServiceAccountKey]] = {
     Future.successful(serviceAccountKeys.values.toSeq)
   }
 

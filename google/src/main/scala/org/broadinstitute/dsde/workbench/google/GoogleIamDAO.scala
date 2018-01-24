@@ -104,4 +104,12 @@ trait GoogleIamDAO {
     * @return list of service account keys
     */
   def listServiceAccountKeys(serviceAccountProject: GoogleProject, serviceAccountEmail: WorkbenchEmail): Future[Seq[ServiceAccountKey]]
+
+  /**
+    * Lists user managed keys associated with a given service account.
+    * @param serviceAccountProject the google project the service account resides in
+    * @param serviceAccountEmail the service account email
+    * @return list of service account keys
+    */
+  def listUserManagedServiceAccountKeys(serviceAccountProject: GoogleProject, serviceAccountEmail: WorkbenchEmail): Future[Seq[ServiceAccountKey]]
 }

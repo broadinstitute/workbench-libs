@@ -2,6 +2,15 @@
 
 This file documents changes to the `workbench-google` library, including notes on how to upgrade to new versions.
 
+## 0.12
+
+SBT dependency: `TBD`
+
+### Changed
+
+- Added GoogleStorageDAO
+- Added `listUserManagedServiceAccountKeys` to `GoogleIamDAO`
+
 ## 0.11
 
 SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.11-7ad0aa8"`
