@@ -78,49 +78,6 @@ class HttpGooglePubSubDAO(clientEmail: String,
     })
   }
 
-  /**
-    * Read-modify-write a Policy to insert or remove new bindings for the given member and roles.
-    * Note that if the same role is in both rolesToAdd and rolesToRemove, the deletion takes precedence.
-    */
-//  private def updatePolicy(policy: Policy, userEmail: WorkbenchEmail, rolesToAdd: Set[String], rolesToRemove: Set[String]): Policy = {
-//    val memberType = if (isServiceAccount(userEmail)) "serviceAccount" else "user"
-//    val email = s"$memberType:${userEmail.value}"
-//
-//    // current members grouped by role
-//    val curMembersByRole: Map[String, List[String]] = policy.bindings.foldMap { binding =>
-//      Map(binding.role -> binding.members)
-//    }
-//
-//    // Apply additions
-//    val withAdditions = if (rolesToAdd.nonEmpty) {
-//      val rolesToAddMap = rolesToAdd.map { _ -> List(email) }.toMap
-//      curMembersByRole |+| rolesToAddMap
-//    } else {
-//      curMembersByRole
-//    }
-//
-//    // Apply deletions
-//    val newMembersByRole = if (rolesToRemove.nonEmpty) {
-//      withAdditions.toList.foldMap { case (role, members) =>
-//        if (rolesToRemove.contains(role)) {
-//          val filtered = members.filterNot(_ == email)
-//          if (filtered.isEmpty) Map.empty[String, List[String]]
-//          else Map(role -> filtered)
-//        } else {
-//          Map(role -> members)
-//        }
-//      }
-//    } else {
-//      withAdditions
-//    }
-//
-//    val bindings = newMembersByRole.map { case (role, members) =>
-//      Binding(role, members)
-//    }.toList
-//
-//    Policy(bindings)
-//  }
-
   override def createSubscription(topicName: String, subscriptionName: String) = {
     retryWithRecoverWhen500orGoogleError(() => {
       val subscription = new Subscription().setTopic(topicToFullPath(topicName))
