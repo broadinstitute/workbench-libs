@@ -81,20 +81,26 @@ class HttpGoogleStorageDAO(serviceAccountClientId: String,
 
   //This functionality doesn't exist in the com.google.apis Java library.
   //When we migrate to the com.google.cloud library, we will be able to re-write this to use their implementation
-  override def setObjectChangePubSubTrigger(bucketName: String, topicName: String): Future[Unit] = {
+  override def setObjectChangePubSubTrigger(bucketName: String, topicName: String, eventTypes: Seq[String]): Future[Unit] = {
+    import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
+    import org.broadinstitute.dsde.workbench.google.GoogleRequestJsonSupport._
+    import spray.json._
     implicit val materializer = ActorMaterializer()
+
     val refreshToken = getBucketServiceAccountCredential
     refreshToken.refreshToken()
     val accessToken = refreshToken.getAccessToken
     val url = s"https://www.googleapis.com/storage/v1/b/$bucketName/notificationConfigs"
     val header = headers.Authorization(OAuth2BearerToken(accessToken))
 
-    val topicNameFull = s"projects/broad-dsde-dev/topics/$topicName"
+    val entity = JsObject(
+      Map(
+        "topic" -> JsString(topicName),
+        "payload_format" -> JsString("JSON_API_V1"),
+        "event_types" -> JsArray(eventTypes.map(JsString(_)).toVector)
+      )
+    )
 
-    logger.debug(s"token is $accessToken")
-
-    val entity = JsObject(Map("topic" -> JsString(topicNameFull), "payload_format" -> JsString("JSON_API_V1"), "event_types" -> JsArray(JsString("OBJECT_DELETE"))))
-    
     Marshal(entity).to[RequestEntity].flatMap { requestEntity =>
       val request = HttpRequest(
         HttpMethods.POST,
@@ -104,7 +110,7 @@ class HttpGoogleStorageDAO(serviceAccountClientId: String,
       )
 
       Http().singleRequest(request).map { response =>
-        logger.debug(response.toString())
+        logger.debug(GoogleRequest(HttpMethods.POST.toString(), url, Option(entity), 0, Option(response.status.intValue), None).toJson(GoogleRequestFormat).compactPrint)
         ()
       }
     }

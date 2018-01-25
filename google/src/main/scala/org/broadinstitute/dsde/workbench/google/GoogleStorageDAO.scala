@@ -16,7 +16,7 @@ trait GoogleStorageDAO {
   def removeObject(bucketName: String, objectName: String): Future[Unit]
   def getObject(bucketName: String, objectName: String): Future[Option[ByteArrayOutputStream]]
   def setBucketLifecycle(bucketName: String, lifecycleAge: Int, lifecycleType: String = "Delete"): Future[Unit]
-  def setObjectChangePubSubTrigger(bucketName: String, topicName: String): Future[Unit]
+  def setObjectChangePubSubTrigger(bucketName: String, topicName: String, eventTypes: Seq[String]): Future[Unit]
   def listObjectsWithPrefix(bucketName: String, objectNamePrefix: String): Future[Seq[StorageObject]]
 
 }
