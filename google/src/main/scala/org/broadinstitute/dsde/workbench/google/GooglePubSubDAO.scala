@@ -34,7 +34,7 @@ trait GooglePubSubDAO {
 
   def getTopic(topicName: String)(implicit executionContext: ExecutionContext): Future[Option[Topic]]
 
-  def grantTopicIamPermissions(topicName: String, permissions: Map[WorkbenchEmail, String]): Future[Unit]
+  def setTopicIamPermissions(topicName: String, permissions: Map[WorkbenchEmail, String]): Future[Unit]
 
   def createSubscription(topicName: String, subscriptionName: String): Future[Boolean]
 

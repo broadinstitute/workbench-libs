@@ -106,7 +106,7 @@ class MockGooglePubSubDAO extends GooglePubSubDAO {
     } else None
   }
 
-  override def grantTopicIamPermissions(topicName: String, permissions: scala.collection.immutable.Map[WorkbenchEmail, String]): Future[Unit] = {
+  override def setTopicIamPermissions(topicName: String, permissions: scala.collection.immutable.Map[WorkbenchEmail, String]): Future[Unit] = {
     Future.successful(())
   }
 

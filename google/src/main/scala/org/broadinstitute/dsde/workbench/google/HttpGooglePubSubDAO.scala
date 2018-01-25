@@ -11,7 +11,6 @@ import com.google.api.services.pubsub.{Pubsub, PubsubScopes}
 import org.broadinstitute.dsde.workbench.google.GooglePubSubDAO._
 import org.broadinstitute.dsde.workbench.util.FutureSupport
 import akka.http.scaladsl.model.StatusCodes
-import org.broadinstitute.dsde.workbench.google.HttpGoogleIamDAO.{Binding, Policy}
 import org.broadinstitute.dsde.workbench.metrics.GoogleInstrumentedService
 import org.broadinstitute.dsde.workbench.model.WorkbenchEmail
 import org.broadinstitute.dsde.workbench.model.google.isServiceAccount
@@ -63,7 +62,7 @@ class HttpGooglePubSubDAO(clientEmail: String,
     }
   }
 
-  override def grantTopicIamPermissions(topicName: String, permissions: Map[WorkbenchEmail, String]): Future[Unit] = {
+  override def setTopicIamPermissions(topicName: String, permissions: Map[WorkbenchEmail, String]): Future[Unit] = {
     val bindings = permissions.map { case (userEmail, role) =>
       val memberType = if (isServiceAccount(userEmail)) "serviceAccount" else "user"
       val email = s"$memberType:${userEmail.value}"
