@@ -21,7 +21,6 @@ import com.google.api.services.storage.model.Bucket.Lifecycle.Rule.{Action, Cond
 import com.google.api.services.storage.{Storage, StorageScopes}
 import org.broadinstitute.dsde.workbench.metrics.GoogleInstrumentedService
 import org.broadinstitute.dsde.workbench.util.FutureSupport
-import spray.json.{JsArray, JsObject, JsString}
 
 import scala.collection.JavaConverters._
 import scala.concurrent.{ExecutionContext, Future}
