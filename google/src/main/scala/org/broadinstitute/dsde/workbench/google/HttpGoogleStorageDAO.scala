@@ -89,9 +89,9 @@ class HttpGoogleStorageDAO(serviceAccountClientId: String,
 
     val refreshToken = getBucketServiceAccountCredential
     refreshToken.refreshToken()
-    val accessToken = refreshToken.getAccessToken
+
     val url = s"https://www.googleapis.com/storage/v1/b/$bucketName/notificationConfigs"
-    val header = headers.Authorization(OAuth2BearerToken(accessToken))
+    val header = headers.Authorization(OAuth2BearerToken(refreshToken.getAccessToken))
 
     val entity = JsObject(
       Map(
@@ -110,7 +110,7 @@ class HttpGoogleStorageDAO(serviceAccountClientId: String,
       )
 
       Http().singleRequest(request).map { response =>
-        logger.debug(GoogleRequest(HttpMethods.POST.toString(), url, Option(entity), 0, Option(response.status.intValue), None).toJson(GoogleRequestFormat).compactPrint)
+        logger.debug(GoogleRequest(HttpMethods.POST.value, url, Option(entity), 0, Option(response.status.intValue), None).toJson(GoogleRequestFormat).compactPrint)
         ()
       }
     }
