@@ -81,9 +81,13 @@ class HttpGoogleStorageDAO(serviceAccountClientId: String,
   //When we migrate to the com.google.cloud library, we will be able to re-write this to use their implementation
   override def setObjectChangePubSubTrigger(bucketName: String, topicName: String): Future[Unit] = {
     implicit val materializer = ActorMaterializer()
-    val token = getBucketServiceAccountCredential.getAccessToken
+    val refreshToken = getBucketServiceAccountCredential
+    refreshToken.refreshToken()
+    val accessToken = refreshToken.getAccessToken
     val url = s"https://www.googleapis.com/storage/v1/b/$bucketName/notificationConfigs"
-    val header = headers.Authorization(OAuth2BearerToken(token))
+    val header = headers.Authorization(OAuth2BearerToken(accessToken))
+
+    logger.debug(s"token is $accessToken")
 
     val request = HttpRequest(
       HttpMethods.POST,
