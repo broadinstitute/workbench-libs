@@ -4,6 +4,7 @@ import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
 
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
+import akka.http.scaladsl.marshalling.Marshal
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.model.headers.OAuth2BearerToken
 import akka.stream.ActorMaterializer
@@ -20,6 +21,7 @@ import com.google.api.services.storage.model.Bucket.Lifecycle.Rule.{Action, Cond
 import com.google.api.services.storage.{Storage, StorageScopes}
 import org.broadinstitute.dsde.workbench.metrics.GoogleInstrumentedService
 import org.broadinstitute.dsde.workbench.util.FutureSupport
+import spray.json.{JsArray, JsObject, JsString}
 
 import scala.collection.JavaConverters._
 import scala.concurrent.{ExecutionContext, Future}
@@ -87,17 +89,24 @@ class HttpGoogleStorageDAO(serviceAccountClientId: String,
     val url = s"https://www.googleapis.com/storage/v1/b/$bucketName/notificationConfigs"
     val header = headers.Authorization(OAuth2BearerToken(accessToken))
 
+    val topicNameFull = s"projects/broad-dsde-dev/topics/$topicName"
+
     logger.debug(s"token is $accessToken")
 
-    val request = HttpRequest(
-      HttpMethods.POST,
-      uri = url,
-      headers = List(header)
-    )
+    val entity = JsObject(Map("topic" -> JsString(topicNameFull), "payload_format" -> JsString("JSON_API_V1"), "event_types" -> JsArray(JsString("OBJECT_DELETE"))))
+    
+    Marshal(entity).to[RequestEntity].flatMap { requestEntity =>
+      val request = HttpRequest(
+        HttpMethods.POST,
+        uri = url,
+        headers = List(header),
+        entity = requestEntity
+      )
 
-    Http().singleRequest(request).map { response =>
-      logger.debug(response.toString())
-      ()
+      Http().singleRequest(request).map { response =>
+        logger.debug(response.toString())
+        ()
+      }
     }
   }
 
