@@ -68,6 +68,8 @@ class MockGoogleStorageDAO(  implicit val executionContext: ExecutionContext ) e
 
   override def setBucketLifecycle(bucketName: String, lifecycleAge: Int, lifecycleType: String): Future[Unit] = Future.successful(())
 
+  override def setObjectChangePubSubTrigger(bucketName: String, topicName: String): Future[Unit] = Future.successful(())
+
   override def listObjectsWithPrefix(bucketName: String, objectNamePrefix: String): Future[Seq[StorageObject]] = {
     val current = buckets.get(bucketName)
 

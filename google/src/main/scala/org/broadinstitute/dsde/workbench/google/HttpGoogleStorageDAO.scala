@@ -5,13 +5,12 @@ import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model._
-import akka.http.scaladsl.model.headers.{BasicHttpCredentials, OAuth2BearerToken, RawHeader}
+import akka.http.scaladsl.model.headers.OAuth2BearerToken
+import akka.stream.ActorMaterializer
 import com.google.api.client.auth.oauth2.Credential
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport
-import com.google.api.client.googleapis.services.AbstractGoogleClientRequest
-import com.google.api.client.googleapis.services.json.AbstractGoogleJsonClientRequest
-import com.google.api.client.http.{HttpMediaType, HttpResponseException, InputStreamContent}
+import com.google.api.client.http.{HttpResponseException, InputStreamContent}
 import com.google.api.client.json.jackson2.JacksonFactory
 import com.google.api.services.compute.ComputeScopes
 import com.google.api.services.plus.PlusScopes
@@ -20,7 +19,6 @@ import com.google.api.services.storage.model.Bucket.Lifecycle
 import com.google.api.services.storage.model.Bucket.Lifecycle.Rule.{Action, Condition}
 import com.google.api.services.storage.{Storage, StorageScopes}
 import org.broadinstitute.dsde.workbench.metrics.GoogleInstrumentedService
-import org.broadinstitute.dsde.workbench.model.UserInfo
 import org.broadinstitute.dsde.workbench.util.FutureSupport
 
 import scala.collection.JavaConverters._
@@ -81,7 +79,8 @@ class HttpGoogleStorageDAO(serviceAccountClientId: String,
 
   //This functionality doesn't exist in the com.google.apis Java library.
   //When we migrate to the com.google.cloud library, we will be able to re-write this to use their implementation
-  def setObjectChangePubSubTrigger(bucketName: String, topicName: String): Future[Unit] = {
+  override def setObjectChangePubSubTrigger(bucketName: String, topicName: String): Future[Unit] = {
+    implicit val materializer = ActorMaterializer()
     val token = getBucketServiceAccountCredential.getAccessToken
     val url = s"https://www.googleapis.com/storage/v1/b/$bucketName/notificationConfigs"
     val header = headers.Authorization(OAuth2BearerToken(token))
