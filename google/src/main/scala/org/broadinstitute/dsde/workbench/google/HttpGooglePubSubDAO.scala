@@ -74,7 +74,7 @@ class HttpGooglePubSubDAO(clientEmail: String,
     val request = new SetIamPolicyRequest().setPolicy(new Policy().setBindings(bindings.toList.asJava))
 
     retryWhen500orGoogleError(() => {
-      getPubSubDirectory.projects().topics().setIamPolicy(topicToFullPath(topicName), request)
+      executeGoogleRequest(getPubSubDirectory.projects().topics().setIamPolicy(topicToFullPath(topicName), request))
     })
   }
 
