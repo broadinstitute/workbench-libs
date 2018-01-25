@@ -2,6 +2,7 @@ package org.broadinstitute.dsde.workbench.google.mock
 
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream, StringWriter}
 import java.util.Base64
+import com.google.api.client.util.DateTime
 
 import com.google.api.client.util.IOUtils
 import com.google.api.services.storage.model.StorageObject
@@ -76,7 +77,7 @@ class MockGoogleStorageDAO(  implicit val executionContext: ExecutionContext ) e
     val objects = current match {
       case Some(objs) => {
         objs.filter(_._1.startsWith(objectNamePrefix)) map { x =>
-          new StorageObject().setName(x._1)
+          new StorageObject().setName(x._1).setTimeCreated(new DateTime(System.currentTimeMillis()))
         }
       }.toSeq
       case None => Seq.empty
