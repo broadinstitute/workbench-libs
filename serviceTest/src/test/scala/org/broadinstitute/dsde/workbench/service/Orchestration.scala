@@ -7,8 +7,7 @@ import org.broadinstitute.dsde.workbench.auth.AuthToken
 import org.broadinstitute.dsde.workbench.config.Config
 import org.broadinstitute.dsde.workbench.fixture.Method
 import org.broadinstitute.dsde.workbench.fixture.MethodData.SimpleMethod
-import org.broadinstitute.dsde.workbench.service.util.Retry.retry
-import org.broadinstitute.dsde.workbench.service.util.Util
+import org.broadinstitute.dsde.workbench.service.util.{Retry, Util}
 import org.broadinstitute.dsde.workbench.service.util.Util.appendUnderscore
 import spray.json.{DefaultJsonProtocol, _}
 
@@ -57,7 +56,7 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
       logger.info(s"Creating billing project: $projectName $billingAccount")
       postRequest(apiUrl("api/billing"), Map("projectName" -> projectName, "billingAccount" -> billingAccount))
 
-      retry(10.seconds, 10.minutes)({
+      Retry.retry(10.seconds, 10.minutes)({
               val response: String = parseResponse(getRequest(apiUrl("api/profile/billing")))
               val projects: List[Map[String, Object]] = responseAsList(response)
               projects.find((e) =>
@@ -343,7 +342,7 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
       val trialProjects: TrialProjects = countTrialProjects()
       if (trialProjects.available < count) {
         postRequest(apiUrl(s"api/trial/manager/projects?operation=create&count=${count - trialProjects.available}"))
-        retry(30.seconds, 10.minutes)({
+        Retry.retry(30.seconds, 10.minutes)({
           val report: TrialProjects = countTrialProjects()
           if (report.available >= count)
             Some(report)
