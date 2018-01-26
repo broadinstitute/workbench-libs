@@ -121,17 +121,21 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
       deleteRequest(apiUrl(s"api/workspaces/$namespace/$name"))
     }
 
-    def updateAcl(namespace: String, name: String, email: String, accessLevel: WorkspaceAccessLevel)(implicit token: AuthToken): Unit = {
-      updateAcl(namespace, name, List(AclEntry(email, accessLevel)))
+    def updateAcl(namespace: String, name: String, email: String, accessLevel: WorkspaceAccessLevel, canShare: Option[Boolean], canCompute: Option[Boolean])(implicit token: AuthToken): Unit = {
+      updateAcl(namespace, name, List(AclEntry(email, accessLevel, canCompute, canShare)))
     }
 
     def updateAcl(namespace: String, name: String, aclEntries: List[AclEntry] = List())(implicit token: AuthToken): Unit = {
       logger.info(s"Updating ACLs for workspace: $namespace/$name $aclEntries")
       patchRequest(apiUrl(s"api/workspaces/$namespace/$name/acl"),
-        aclEntries.map(e => Map("email" -> e.email, "accessLevel" -> e.accessLevel.toString)))
+        aclEntries.map{ e => e.toMap })
     }
 
-    def setAttributes(namespace: String, name: String, attributes: Map[String, String])(implicit token: AuthToken): Unit = {
+    /*
+    * The values in the attributes map should be either String or Seq[String]. An Either is not used because the object
+    * mapper that converts scala to json represents the either in the json string.
+    */
+    def setAttributes(namespace: String, name: String, attributes: Map[String, Any])(implicit token: AuthToken): Unit = {
       logger.info(s"Setting attributes for workspace: $namespace/$name $attributes")
       patchRequest(apiUrl(s"api/workspaces/$namespace/$name/setAttributes"), attributes)
     }
