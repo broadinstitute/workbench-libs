@@ -293,7 +293,6 @@ object HttpGoogleIamDAO {
     Binding(serviceAccountBinding.getRole, serviceAccountBinding.getMembers)
   }
 
-  // TODO: next four need to include etags
   private implicit def fromProjectPolicy(projectPolicy: ProjectPolicy): Policy = {
     Policy(projectPolicy.getBindings.map(fromProjectBinding), projectPolicy.getEtag)
   }
