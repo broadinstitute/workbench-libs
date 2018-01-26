@@ -10,14 +10,12 @@ import akka.stream.scaladsl.{Sink, _}
 import akka.util.ByteString
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
-import com.typesafe.scalalogging.LazyLogging
 import org.broadinstitute.dsde.workbench.auth.AuthToken
-import org.broadinstitute.dsde.workbench.util.Retry
 
 import scala.concurrent.duration._
 import scala.concurrent.{Await, ExecutionContextExecutor, Future}
 
-trait RestClient extends Retry with LazyLogging {
+trait FireCloudClient {
   implicit val system = ActorSystem()
   implicit val materializer = ActorMaterializer()
   implicit val ec: ExecutionContextExecutor = system.dispatcher
@@ -35,19 +33,20 @@ trait RestClient extends Retry with LazyLogging {
   }
 
   private def sendRequest(httpRequest: HttpRequest): HttpResponse = {
-    val responseFuture = retry() {
-      () => Http().singleRequest(httpRequest).map { response =>
-        // retry any 401 or 500 errors - this is because we have seen the proxy get backend errors
-        // from google querying for token info which causes a 401 if it is at the level if the
-        // service being directly called or a 500 if it happens at a lower level service
-        if (response.status == StatusCodes.Unauthorized || response.status == StatusCodes.InternalServerError) {
-          throwRestException(response)
-        } else {
-          response
-        }
-      }
+    Await.result(Http().singleRequest(httpRequest), 5.minutes)
+  }
+
+  private def handleResponse(response: HttpResponse): String = {
+    response.status.isSuccess() match {
+      case true =>
+        val byteStringSink: Sink[ByteString, Future[ByteString]] = Sink.fold(ByteString("")) { (z, i) => z.concat(i) }
+        val entityFuture = response.entity.dataBytes.runWith(byteStringSink)
+        Await.result(entityFuture, 1.second).decodeString("UTF-8")
+      case _ =>
+        val byteStringSink: Sink[ByteString, Future[ByteString]] = Sink.fold(ByteString("")) { (z, i) => z.concat(i) }
+        val entityFuture = response.entity.dataBytes.runWith(byteStringSink)
+        throw APIException(Await.result(entityFuture, 1.second).decodeString("UTF-8"))
     }
-    Await.result(responseFuture, 5.minutes)
   }
 
   def parseResponse(response: HttpResponse): String = {
@@ -57,14 +56,10 @@ trait RestClient extends Retry with LazyLogging {
         val entityFuture = response.entity.dataBytes.runWith(byteStringSink)
         Await.result(entityFuture, 1.second).decodeString("UTF-8")
       case _ =>
-        throwRestException(response)
+        val byteStringSink: Sink[ByteString, Future[ByteString]] = Sink.fold(ByteString("")) { (z, i) => z.concat(i) }
+        val entityFuture = response.entity.dataBytes.runWith(byteStringSink)
+        throw APIException(Await.result(entityFuture, 1.second).decodeString("UTF-8"))
     }
-  }
-
-  private def throwRestException(response: HttpResponse) = {
-    val byteStringSink: Sink[ByteString, Future[ByteString]] = Sink.fold(ByteString("")) { (z, i) => z.concat(i) }
-    val entityFuture = response.entity.dataBytes.runWith(byteStringSink)
-    throw RestException(Await.result(entityFuture, 1.second).decodeString("UTF-8"))
   }
 
   import scala.reflect.{ClassTag, classTag}
@@ -84,14 +79,14 @@ trait RestClient extends Retry with LazyLogging {
 
   private def requestWithJsonContent(method: HttpMethod, uri: String, content: Any, httpHeaders: List[HttpHeader] = List())(implicit token: AuthToken): String = {
     val req = HttpRequest(method, uri, List(makeAuthHeader(token)) ++ httpHeaders, HttpEntity(ContentTypes.`application/json`, mapper.writeValueAsString(content)))
-    parseResponse(sendRequest(req))
+    handleResponse(sendRequest(req))
   }
 
   def postRequestWithMultipart(uri:String, name: String, content: String)(implicit token: AuthToken): String = {
     val part = Multipart.FormData.BodyPart(name, HttpEntity(ByteString(content)))
     val formData = Multipart.FormData(Source.single(part))
     val req = HttpRequest(POST, uri, List(makeAuthHeader(token)), formData.toEntity())
-    parseResponse(sendRequest(req))
+    handleResponse(sendRequest(req))
   }
 
   private def requestBasic(method: HttpMethod, uri: String, httpHeaders: List[HttpHeader] = List())(implicit token: AuthToken): HttpResponse = {
@@ -112,7 +107,7 @@ trait RestClient extends Retry with LazyLogging {
   }
 
   def deleteRequest(uri: String, httpHeaders: List[HttpHeader] = List())(implicit token: AuthToken): String = {
-    parseResponse(requestBasic(DELETE, uri, httpHeaders))
+    handleResponse(requestBasic(DELETE, uri, httpHeaders))
   }
 
   def getRequest(uri: String, httpHeaders: List[HttpHeader] = List())(implicit token: AuthToken): HttpResponse = {

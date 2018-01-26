@@ -2,9 +2,11 @@ package org.broadinstitute.dsde.workbench.service
 
 import com.typesafe.scalalogging.LazyLogging
 import org.broadinstitute.dsde.workbench.auth.AuthToken
+import org.broadinstitute.dsde.workbench.config.Config
 
-class Rawls(url: String) extends RestClient with LazyLogging {
+trait Rawls extends RestClient with LazyLogging {
 
+  val url = Config.FireCloud.rawlsApiUrl
   object admin {
     def deleteBillingProject(projectName: String)(implicit token: AuthToken): Unit = {
       logger.info(s"Deleting billing project: $projectName")
@@ -37,3 +39,5 @@ class Rawls(url: String) extends RestClient with LazyLogging {
     }
   }
 }
+
+object Rawls extends Rawls
