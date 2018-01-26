@@ -80,7 +80,7 @@ class HttpGoogleStorageDAO(serviceAccountClientId: String,
 
   //This functionality doesn't exist in the com.google.apis Java library.
   //When we migrate to the com.google.cloud library, we will be able to re-write this to use their implementation
-  override def setObjectChangePubSubTrigger(bucketName: String, topicName: String, eventTypes: Seq[String]): Future[Unit] = {
+  override def setObjectChangePubSubTrigger(bucketName: String, topicName: String, eventTypes: List[String]): Future[Unit] = {
     import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
     import org.broadinstitute.dsde.workbench.google.GoogleRequestJsonSupport._
     import spray.json._
@@ -108,8 +108,10 @@ class HttpGoogleStorageDAO(serviceAccountClientId: String,
         entity = requestEntity
       )
 
+      val startTime = System.currentTimeMillis()
       Http().singleRequest(request).map { response =>
-        logger.debug(GoogleRequest(HttpMethods.POST.value, url, Option(entity), 0, Option(response.status.intValue), None).toJson(GoogleRequestFormat).compactPrint)
+        val endTime = System.currentTimeMillis()
+        logger.debug(GoogleRequest(HttpMethods.POST.value, url, Option(entity), endTime - startTime, Option(response.status.intValue), None).toJson(GoogleRequestFormat).compactPrint)
         ()
       }
     }
