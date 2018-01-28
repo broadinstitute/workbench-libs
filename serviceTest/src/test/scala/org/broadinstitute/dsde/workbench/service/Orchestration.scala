@@ -139,6 +139,17 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
       logger.info(s"Setting attributes for workspace: $namespace/$name $attributes")
       patchRequest(apiUrl(s"api/workspaces/$namespace/$name/setAttributes"), attributes)
     }
+
+    def waitForBucketReadAccess(namespace: String, name: String)(implicit token: AuthToken): Unit = {
+      logger.info(s"checking bucket read access for workspace: $namespace/$name")
+      Retry.retry(10.seconds, 10.minutes)({
+        val response = getRequest(apiUrl(s"api/workspaces/$namespace/$name/checkBucketReadAccess"))
+        if(response.status.isSuccess()) Some("done") else None
+      }) match {
+        case None => throw new Exception(s"workspace $namespace/$name bucket did not become readable")
+        case Some(_) => logger.info(s"workspace $namespace/$name bucket readable")
+      }
+    }
   }
 
 
@@ -371,16 +382,6 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
       trialProjects
     }
 
-    def waitForBucketReadAccess(namespace: String, name: String)(implicit token: AuthToken): Unit = {
-      logger.info(s"checking bucket read access for workspace: $namespace/$name")
-      Retry.retry(10.seconds, 10.minutes)({
-        val response = getRequest(apiUrl(s"api/workspaces/$namespace/$name/checkBucketReadAccess"))
-        if(response.status.isSuccess()) Some("done") else None
-      }) match {
-        case None => throw new Exception(s"workspace $namespace/$name bucket did not become readable")
-        case Some(_) => logger.info(s"workspace $namespace/$name bucket readable")
-      }
-    }
   }
 
 }
