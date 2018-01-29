@@ -75,6 +75,16 @@ object Sam extends Sam {
       val proxyGroupEmailStr = parseResponseAs[String](getRequest(url + s"api/google/user/proxyGroup/$userEmail"))
       WorkbenchEmail(proxyGroupEmailStr)
     }
+
+    def getPetServiceAccountKey(project: String)(implicit token: AuthToken): String = {
+      logger.info(s"Getting pet service account key in project $project")
+      parseResponseAs[String](getRequest(url + s"api/google/user/petServiceAccount/$project/key"))
+    }
+
+    def deletePetServiceAccountKey(project: String, keyId: String)(implicit token: AuthToken): Unit = {
+      logger.info(s"Getting pet service account key in project $project")
+      deleteRequest(url + s"api/google/user/petServiceAccount/$project/key/$keyId")
+    }
   }
 
 }
