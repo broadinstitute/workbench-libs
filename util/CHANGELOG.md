@@ -2,6 +2,15 @@
 
 This file documents changes to the `workbench-util` library, including notes on how to upgrade to new versions.
 
+## 0.3
+
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util" % "0.3-xxxxxxx" % "test" classifier "tests"``
+
+
+### Added
+
+- `NoopActor`, an actor that receives all messages and doesn't do anything with them. This is in the test package.
+
 ## 0.2
 
 SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util" % "0.2-0b34b93"`
