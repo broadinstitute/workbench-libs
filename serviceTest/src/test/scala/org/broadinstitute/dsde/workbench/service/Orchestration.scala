@@ -115,7 +115,17 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
 
       postRequest(apiUrl(s"api/workspaces"), request)
     }
+    def clone(originNamespace: String, originName: String, cloneNamespace: String, cloneName: String, authDomain: Set[String] = Set.empty, membersGroupName: String, attributes: Map[String, String])
+             (implicit token: AuthToken): Unit = {
+      logger.info(s"Copying workspace: $originNamespace/$originName authDomain: $authDomain")
 
+      val authDomainGroups = authDomain.map(a => Map("membersGroupName" -> a))
+
+      val request = Map("namespace" -> cloneNamespace, "name" -> cloneName,
+        "attributes" -> Map.empty, "authorizationDomain" -> authDomainGroups)
+
+      postRequest(apiUrl(s"api/workspaces/$originNamespace/$originName/clone"), request)
+    }
     def delete(namespace: String, name: String)(implicit token: AuthToken): Unit = {
       logger.info(s"Deleting workspace: $namespace/$name")
       deleteRequest(apiUrl(s"api/workspaces/$namespace/$name"))
@@ -170,6 +180,11 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
     def duosAutocomplete(query: String)(implicit token: AuthToken): String = {
       logger.info(s"DUOS Autocomplete: $query")
       parseResponse(getRequest(apiUrl(s"duos/autocomplete/$query")))
+    }
+
+    def getDiscoverableGroups(ns: String, wName: String)(implicit token: AuthToken): Seq[String] = {
+      logger.info(s"Getting discoverable groups for workspace: $ns/$wName")
+      parseResponseAs[Seq[String]](getRequest(apiUrl(s"api/library/$ns/$wName/discoverableGroups")))
     }
   }
 
@@ -256,148 +271,162 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
       postRequest(apiUrl(s"api/methods/$ns/$name/$snapshotId/permissions"), request)
     }
   }
-
-  /*
-   *  Submissions requests
-   */
-
-  object submissions {
-    def launchWorkflow(ns: String, wsName: String, methodConfigurationNamespace: String, methodConfigurationName: String, entityType: String, entityName: String, expression: String, useCallCache: Boolean, workflowFailureMode: String = "NoNewCalls")(implicit token: AuthToken): String = {
-      logger.info(s"Creating a submission: $ns/$wsName config: $methodConfigurationNamespace/$methodConfigurationName")
-      postRequest(apiUrl(s"api/workspaces/$ns/$wsName/submissions"),
-        Map("methodConfigurationNamespace" -> methodConfigurationNamespace, "methodConfigurationName" -> methodConfigurationName, "entityType" -> entityType, "entityName" -> entityName, "expression" -> expression, "useCallCache" -> useCallCache, "workflowFailureMode" -> workflowFailureMode))
-    }
-
+/*
+*  NIH requests
+*/
+object NIH {
+  def addUserInNIH(jwt: String)(implicit token: AuthToken): Unit = {
+    logger.info(s"Adding user to NIH whitelist: $jwt")
+    postRequest(apiUrl(s"/api/nih/callback"), Map("jwt" -> jwt))
   }
 
-  object profile {
-    // copied from firecloud-orchestration repo
-    case class BasicProfile (
-                              firstName: String,
-                              lastName: String,
-                              title: String,
-                              contactEmail: Option[String],
-                              institute: String,
-                              institutionalProgram: String,
-                              programLocationCity: String,
-                              programLocationState: String,
-                              programLocationCountry: String,
-                              pi: String,
-                              nonProfitStatus: String
-                            )
+  def refreshUserInNIH(jwt: String)(implicit token: AuthToken): Unit = {
+    logger.info(s"Refershing user's NIH status")
+    NIH.addUserInNIH(jwt)
+  }
+
+}
+/*
+ *  Submissions requests
+ */
+
+object submissions {
+  def launchWorkflow(ns: String, wsName: String, methodConfigurationNamespace: String, methodConfigurationName: String, entityType: String, entityName: String, expression: String, useCallCache: Boolean, workflowFailureMode: String = "NoNewCalls")(implicit token: AuthToken): String = {
+    logger.info(s"Creating a submission: $ns/$wsName config: $methodConfigurationNamespace/$methodConfigurationName")
+    postRequest(apiUrl(s"api/workspaces/$ns/$wsName/submissions"),
+      Map("methodConfigurationNamespace" -> methodConfigurationNamespace, "methodConfigurationName" -> methodConfigurationName, "entityType" -> entityType, "entityName" -> entityName, "expression" -> expression, "useCallCache" -> useCallCache, "workflowFailureMode" -> workflowFailureMode))
+  }
+
+}
+
+object profile {
+  // copied from firecloud-orchestration repo
+  case class BasicProfile (
+                            firstName: String,
+                            lastName: String,
+                            title: String,
+                            contactEmail: Option[String],
+                            institute: String,
+                            institutionalProgram: String,
+                            programLocationCity: String,
+                            programLocationState: String,
+                            programLocationCountry: String,
+                            pi: String,
+                            nonProfitStatus: String
+                          )
 
 
-    def registerUser(profile: BasicProfile)(implicit token: AuthToken): Unit = {
-      profile.contactEmail match {
-        case Some(email) => logger.info(s"Creating profile for user $email")
-        case _ => logger.info("Creating user profile")
-      }
-
-      postRequest(apiUrl(s"register/profile"), profile)
+  def registerUser(profile: BasicProfile)(implicit token: AuthToken): Unit = {
+    profile.contactEmail match {
+      case Some(email) => logger.info(s"Creating profile for user $email")
+      case _ => logger.info("Creating user profile")
     }
 
-    def getUser()(implicit token: AuthToken): Map[String, String] = {
-      parseResponseAs[Map[String, String]](getRequest(apiUrl(s"register/profile")))
-    }
+    postRequest(apiUrl(s"register/profile"), profile)
+  }
 
-    def getUserBillingProjects()(implicit token: AuthToken): List[Map[String, String]] = {
-      parseResponseAs[List[Map[String, String]]](getRequest(apiUrl(s"api/profile/billing")))
+  def getUser()(implicit token: AuthToken): Map[String, String] = {
+    parseResponseAs[Map[String, String]](getRequest(apiUrl(s"register/profile")))
+  }
+
+  def getUserBillingProjects()(implicit token: AuthToken): List[Map[String, String]] = {
+    parseResponseAs[List[Map[String, String]]](getRequest(apiUrl(s"api/profile/billing")))
+  }
+}
+
+def importMetaData(ns: String, wsName: String, fileName: String, fileContent: String)(implicit token: AuthToken): String = {
+  logger.info(s"Importing metadata: $ns/$wsName $fileName")
+  postRequestWithMultipart(apiUrl(s"api/workspaces/$ns/$wsName/importEntities"), fileName, fileContent)
+}
+
+object trial {
+
+  case class TrialProjects(unverified: Int,
+                           errored: Int,
+                           available: Int,
+                           claimed: Int)
+
+  private def checkUserStatusUpdate(userEmail: String, update: String, response: String): Unit = {
+    val successfulResponseKeys = Seq("Success", "NoChangeRequired")
+
+    response.parseJson.asJsObject.fields.map {
+      case f@x if successfulResponseKeys.contains(f._1) =>
+        logger.info(s"${f._1}: ${f._2.toString()}")
+        return
+      case f@y =>
+        logger.error(s"${f._1}: ${f._2.toString()}")
+        throw new Exception(s"Unable to $update trial user: $userEmail. Error message: $response")
     }
   }
 
-  def importMetaData(ns: String, wsName: String, fileName: String, fileContent: String)(implicit token: AuthToken): String = {
-    logger.info(s"Importing metadata: $ns/$wsName $fileName")
-    postRequestWithMultipart(apiUrl(s"api/workspaces/$ns/$wsName/importEntities"), fileName, fileContent)
+  def enableUser(userEmail: String)(implicit token: AuthToken): Unit = {
+    val enableResponse: String = postRequest(apiUrl("api/trial/manager/enable"), Seq(userEmail))
+
+    checkUserStatusUpdate(userEmail, "enable", enableResponse)
   }
 
-  object trial {
+  def terminateUser(userEmail: String)(implicit token: AuthToken): Unit = {
+    val terminateResponse: String = postRequest(apiUrl("api/trial/manager/terminate"), Seq(userEmail))
 
-    case class TrialProjects(unverified: Int,
-                             errored: Int,
-                             available: Int,
-                             claimed: Int)
-
-    private def checkUserStatusUpdate(userEmail: String, update: String, response: String): Unit = {
-      val successfulResponseKeys = Seq("Success", "NoChangeRequired")
-
-      response.parseJson.asJsObject.fields.map {
-        case f@x if successfulResponseKeys.contains(f._1) =>
-          logger.info(s"${f._1}: ${f._2.toString()}")
-          return
-        case f@y =>
-          logger.error(s"${f._1}: ${f._2.toString()}")
-          throw new Exception(s"Unable to $update trial user: $userEmail. Error message: $response")
-      }
-    }
-
-    def enableUser(userEmail: String)(implicit token: AuthToken): Unit = {
-      val enableResponse: String = postRequest(apiUrl("api/trial/manager/enable"), Seq(userEmail))
-
-      checkUserStatusUpdate(userEmail, "enable", enableResponse)
-    }
-
-    def terminateUser(userEmail: String)(implicit token: AuthToken): Unit = {
-      val terminateResponse: String = postRequest(apiUrl("api/trial/manager/terminate"), Seq(userEmail))
-
-      checkUserStatusUpdate(userEmail, "terminate", terminateResponse)
-    }
-
-    def createTrialProjects(count: Int)(implicit token: AuthToken): Unit = {
-      val trialProjects: TrialProjects = countTrialProjects()
-      if (trialProjects.available < count) {
-        postRequest(apiUrl(s"api/trial/manager/projects?operation=create&count=${count - trialProjects.available}"))
-        Retry.retry(30.seconds, 10.minutes)({
-          val report: TrialProjects = countTrialProjects()
-          if (report.available >= count)
-            Some(report)
-          else
-            None
-        }) match {
-          case Some(_) => logger.info("Finished creating free tier project")
-          case None => throw new Exception("Free tier project creation did not complete")
-        }
-      }
-      else {
-        logger.info("Available free tier project(s) already exist")
-        // No-op. We have at least one available project to claim.
-      }
-    }
-
-    def countTrialProjects()(implicit token: AuthToken): TrialProjects = {
-      val response = postRequest(apiUrl(s"api/trial/manager/projects?operation=count"))
-      implicit val impTrialProjectReport: RootJsonFormat[TrialProjects] = jsonFormat4(TrialProjects)
-      val trialProjects: TrialProjects = response.parseJson.convertTo[TrialProjects]
-      logger.info(s"Trial Projects Available: ${trialProjects.available}")
-      trialProjects
-    }
-
+    checkUserStatusUpdate(userEmail, "terminate", terminateResponse)
   }
+
+  def createTrialProjects(count: Int)(implicit token: AuthToken): Unit = {
+    val trialProjects: TrialProjects = countTrialProjects()
+    if (trialProjects.available < count) {
+      postRequest(apiUrl(s"api/trial/manager/projects?operation=create&count=${count - trialProjects.available}"))
+      Retry.retry(30.seconds, 10.minutes)({
+        val report: TrialProjects = countTrialProjects()
+        if (report.available >= count)
+          Some(report)
+        else
+          None
+      }) match {
+        case Some(_) => logger.info("Finished creating free tier project")
+        case None => throw new Exception("Free tier project creation did not complete")
+      }
+    }
+    else {
+      logger.info("Available free tier project(s) already exist")
+      // No-op. We have at least one available project to claim.
+    }
+  }
+
+  def countTrialProjects()(implicit token: AuthToken): TrialProjects = {
+    val response = postRequest(apiUrl(s"api/trial/manager/projects?operation=count"))
+    implicit val impTrialProjectReport: RootJsonFormat[TrialProjects] = jsonFormat4(TrialProjects)
+    val trialProjects: TrialProjects = response.parseJson.convertTo[TrialProjects]
+    logger.info(s"Trial Projects Available: ${trialProjects.available}")
+    trialProjects
+  }
+
+}
 
 }
 object Orchestration extends Orchestration
 
 /**
-  * Dictionary of access level values expected by the web service API.
-  */
+* Dictionary of access level values expected by the web service API.
+*/
 object WorkspaceAccessLevel extends Enumeration {
-  type WorkspaceAccessLevel = Value
-  val NoAccess = Value("NO ACCESS")
-  val Owner = Value("OWNER")
-  val Reader = Value("READER")
-  val Writer = Value("WRITER")
+type WorkspaceAccessLevel = Value
+val NoAccess = Value("NO ACCESS")
+val Owner = Value("OWNER")
+val Reader = Value("READER")
+val Writer = Value("WRITER")
 }
 
 case class AclEntry(email: String, accessLevel: WorkspaceAccessLevel, canShare: Option[Boolean] = None, canCompute: Option[Boolean] = None) {
-  def toMap: Map[String,Any] = {
-    val resp: Map[String, Any] = Map("email"->email, "accessLevel"->accessLevel.toString)
-    val shared = canShare match {
-      case Some(sh) => resp ++ Map("canShare"->sh)
-      case None => resp
-    }
-    val compute = canCompute match {
-      case Some(comp) => shared ++ Map("canCompute"->comp)
-      case None => shared
-    }
-    compute
+def toMap: Map[String,Any] = {
+  val resp: Map[String, Any] = Map("email"->email, "accessLevel"->accessLevel.toString)
+  val shared = canShare match {
+    case Some(sh) => resp ++ Map("canShare"->sh)
+    case None => resp
   }
+  val compute = canCompute match {
+    case Some(comp) => shared ++ Map("canCompute"->comp)
+    case None => shared
+  }
+  compute
+}
 }
