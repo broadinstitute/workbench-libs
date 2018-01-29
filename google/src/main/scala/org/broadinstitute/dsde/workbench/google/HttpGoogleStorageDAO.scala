@@ -15,7 +15,7 @@ import com.google.api.client.http.{HttpResponseException, InputStreamContent}
 import com.google.api.client.json.jackson2.JacksonFactory
 import com.google.api.services.compute.ComputeScopes
 import com.google.api.services.plus.PlusScopes
-import com.google.api.services.storage.model.{Bucket, StorageObject}
+import com.google.api.services.storage.model.{Bucket, Objects, StorageObject}
 import com.google.api.services.storage.model.Bucket.Lifecycle
 import com.google.api.services.storage.model.Bucket.Lifecycle.Rule.{Action, Condition}
 import com.google.api.services.storage.{Storage, StorageScopes}
@@ -32,7 +32,8 @@ import scala.concurrent.{ExecutionContext, Future}
 class HttpGoogleStorageDAO(serviceAccountClientId: String,
                            pemFile: String,
                            appName: String,
-                           override val workbenchMetricBaseName: String)( implicit val system: ActorSystem, implicit val executionContext: ExecutionContext ) extends GoogleStorageDAO with FutureSupport with GoogleUtilities {
+                           override val workbenchMetricBaseName: String,
+                           maxPageSize: Long = 1000)( implicit val system: ActorSystem, implicit val executionContext: ExecutionContext ) extends GoogleStorageDAO with FutureSupport with GoogleUtilities {
 
   val storageScopes = Seq(StorageScopes.DEVSTORAGE_FULL_CONTROL, ComputeScopes.COMPUTE, PlusScopes.USERINFO_EMAIL, PlusScopes.USERINFO_PROFILE)
 
@@ -117,12 +118,40 @@ class HttpGoogleStorageDAO(serviceAccountClientId: String,
     }
   }
 
-  override def listObjectsWithPrefix(bucketName: String, objectNamePrefix: String): Future[Seq[StorageObject]] = {
-    val getter = getStorage(getBucketServiceAccountCredential).objects().list(bucketName).setPrefix(objectNamePrefix)
+  override def listObjectsWithPrefix(bucketName: String, objectNamePrefix: String): Future[List[StorageObject]] = {
+    val getter = getStorage(getBucketServiceAccountCredential).objects().list(bucketName).setPrefix(objectNamePrefix).setMaxResults(maxPageSize)
 
-    retryWhen500orGoogleError(() => {
-      Option(executeGoogleRequest(getter).getItems.asScala).getOrElse(Seq[StorageObject]())
-    })
+    import scala.collection.JavaConverters._
+    listObjectsRecursive(getter) map { pagesOption =>
+      pagesOption.map { pages =>
+        pages.flatMap { page =>
+          Option(page.getItems.asScala) match {
+            case None => List.empty
+            case Some(objects) => objects.toList
+          }
+        }
+      }.getOrElse(List.empty)
+    }
+  }
+
+  private def listObjectsRecursive(fetcher: Storage#Objects#List, accumulated: Option[List[Objects]] = Some(Nil)): Future[Option[List[Objects]]] = {
+    implicit val service = GoogleInstrumentedService.Storage
+    accumulated match {
+      // when accumulated has a Nil list then this must be the first request
+      case Some(Nil) => retryWithRecoverWhen500orGoogleError(() => {
+        Option(executeGoogleRequest(fetcher))
+      }) {
+        case e: HttpResponseException if e.getStatusCode == StatusCodes.NotFound.intValue => None
+      }.flatMap(firstPage => listObjectsRecursive(fetcher, firstPage.map(List(_))))
+
+      // the head is the Objects object of the prior request which contains next page token
+      case Some(head :: xs) if head.getNextPageToken != null => retryWhen500orGoogleError(() => {
+        executeGoogleRequest(fetcher.setPageToken(head.getNextPageToken))
+      }).flatMap(nextPage => listObjectsRecursive(fetcher, accumulated.map(pages => nextPage :: pages)))
+
+      // when accumulated is None (bucket does not exist) or next page token is null
+      case _ => Future.successful(accumulated)
+    }
   }
 
   override def removeObject(bucketName: String, objectName: String): Future[Unit] = {

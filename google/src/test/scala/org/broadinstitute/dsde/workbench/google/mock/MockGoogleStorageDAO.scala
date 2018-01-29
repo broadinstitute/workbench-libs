@@ -71,7 +71,7 @@ class MockGoogleStorageDAO(  implicit val executionContext: ExecutionContext ) e
 
   override def setObjectChangePubSubTrigger(bucketName: String, topicName: String, eventTypes: List[String]): Future[Unit] = Future.successful(())
 
-  override def listObjectsWithPrefix(bucketName: String, objectNamePrefix: String): Future[Seq[StorageObject]] = {
+  override def listObjectsWithPrefix(bucketName: String, objectNamePrefix: String): Future[List[StorageObject]] = {
     val current = buckets.get(bucketName)
 
     val objects = current match {
@@ -79,8 +79,8 @@ class MockGoogleStorageDAO(  implicit val executionContext: ExecutionContext ) e
         objs.filter(_._1.startsWith(objectNamePrefix)) map { x =>
           new StorageObject().setName(x._1).setTimeCreated(new DateTime(System.currentTimeMillis()))
         }
-      }.toSeq
-      case None => Seq.empty
+      }.toList
+      case None => List.empty
     }
 
     Future.successful(objects)
