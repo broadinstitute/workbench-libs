@@ -4,7 +4,7 @@ This file documents changes to the `workbench-util` library, including notes on 
 
 ## 0.3
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util" % "0.3-xxxxxxx" % "test" classifier "tests"``
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util" % "0.3-f3ce961" % "test" classifier "tests"``
 
 
 ### Added
