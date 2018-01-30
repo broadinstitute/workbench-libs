@@ -11,7 +11,7 @@ import org.broadinstitute.dsde.workbench.service.Sam.user
 import org.broadinstitute.dsde.workbench.service.Sam.user.UserStatusDetails
 import org.scalatest.time.{Seconds, Span}
 import org.scalatest.concurrent.ScalaFutures
-import spray.json.JsValue
+import spray.json.JsObject
 
 /**
   * Sam API service client. This should only be used when Orchestration does
@@ -77,9 +77,9 @@ object Sam extends Sam {
       WorkbenchEmail(proxyGroupEmailStr)
     }
 
-    def getPetServiceAccountKey(project: String)(implicit token: AuthToken): JsValue = {
+    def getPetServiceAccountKey(project: String)(implicit token: AuthToken): JsObject = {
       logger.info(s"Getting pet service account key in project $project")
-      parseResponseAs[JsValue](getRequest(url + s"api/google/user/petServiceAccount/$project/key"))
+      parseResponseAs[JsObject](getRequest(url + s"api/google/user/petServiceAccount/$project/key"))
     }
 
     def deletePetServiceAccountKey(project: String, keyId: String)(implicit token: AuthToken): Unit = {
