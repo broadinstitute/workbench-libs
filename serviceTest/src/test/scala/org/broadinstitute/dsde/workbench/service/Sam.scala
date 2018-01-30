@@ -77,11 +77,11 @@ object Sam extends Sam {
       WorkbenchEmail(proxyGroupEmailStr)
     }
 
-    def getPetServiceAccountKey(project: String)(implicit token: AuthToken): Map[String, JsValue] = {
+    def getPetServiceAccountKey(project: String)(implicit token: AuthToken): Map[String, Any] = {
 //      import spray.json._
 //      import spray.json.DefaultJsonProtocol._
       logger.info(s"Getting pet service account key in project $project")
-      parseResponseAs[JsObject](getRequest(url + s"api/google/user/petServiceAccount/$project/key")).fields
+      parseResponseAs[Map[String, Any]](getRequest(url + s"api/google/user/petServiceAccount/$project/key"))
     }
 
     def deletePetServiceAccountKey(project: String, keyId: String)(implicit token: AuthToken): Unit = {
