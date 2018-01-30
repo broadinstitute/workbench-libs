@@ -117,6 +117,8 @@ class MockGoogleStorageDAO(  implicit val executionContext: ExecutionContext ) e
     Future.successful(objects)
   }
 
+  override def copyObject(srcBucketName: GcsBucketName, srcObjectName: GcsObjectName, destBucketName: GcsBucketName, destObjectName: GcsObjectName): Future[Unit] = Future.successful(())
+
   override def setBucketAccessControl(bucketName: GcsBucketName, entity: GcsEntity, role: GcsRole): Future[Unit] = {
     Future.successful(())
   }

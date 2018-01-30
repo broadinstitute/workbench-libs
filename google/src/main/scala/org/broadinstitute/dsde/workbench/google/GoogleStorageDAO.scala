@@ -26,6 +26,7 @@ trait GoogleStorageDAO {
   def setBucketLifecycle(bucketName: GcsBucketName, lifecycleAge: Int, lifecycleType: GcsLifecycleType = Delete): Future[Unit]
   def setObjectChangePubSubTrigger(bucketName: GcsBucketName, topicName: String, eventTypes: List[String]): Future[Unit]
   def listObjectsWithPrefix(bucketName: GcsBucketName, objectNamePrefix: String): Future[List[GcsObjectName]]
+  def copyObject(srcBucketName: GcsBucketName, srcObjectName: GcsObjectName, destBucketName: GcsBucketName, destObjectName: GcsObjectName): Future[Unit]
 
   def setBucketAccessControl(bucketName: GcsBucketName, entity: GcsEntity, role: GcsRole): Future[Unit]
   def removeBucketAccessControl(bucketName: GcsBucketName, entity: GcsEntity): Future[Unit]
