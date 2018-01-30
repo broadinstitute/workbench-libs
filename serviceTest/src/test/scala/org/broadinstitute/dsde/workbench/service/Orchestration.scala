@@ -140,14 +140,23 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
       patchRequest(apiUrl(s"api/workspaces/$namespace/$name/setAttributes"), attributes)
     }
 
-    def waitForBucketReadAccess(namespace: String, name: String)(implicit token: AuthToken): Unit = {
-      logger.info(s"checking bucket read access for workspace: $namespace/$name")
+    /**
+      * Sometimes access control takes a little while to propagate in google land, use this function to wait
+      * for anything where bucket access is required. Specifically the launch workflow button is disabled
+      * when checkBucketReadAccess returns false.
+      *
+      * @param workspaceNamespace
+      * @param workspaceName
+      * @param token
+      */
+    def waitForBucketReadAccess(workspaceNamespace: String, workspaceName: String)(implicit token: AuthToken): Unit = {
+      logger.info(s"checking bucket read access for workspace: $workspaceNamespace/$workspaceName")
       Retry.retry(10.seconds, 10.minutes)({
-        val response = getRequest(apiUrl(s"api/workspaces/$namespace/$name/checkBucketReadAccess"))
+        val response = getRequest(apiUrl(s"api/workspaces/$workspaceNamespace/$workspaceName/checkBucketReadAccess"))
         if(response.status.isSuccess()) Some("done") else None
       }) match {
-        case None => throw new Exception(s"workspace $namespace/$name bucket did not become readable")
-        case Some(_) => logger.info(s"workspace $namespace/$name bucket readable")
+        case None => throw new Exception(s"workspace $workspaceNamespace/$workspaceName bucket did not become readable")
+        case Some(_) => logger.info(s"workspace $workspaceNamespace/$workspaceName bucket readable")
       }
     }
   }
