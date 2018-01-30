@@ -10,6 +10,7 @@ SBT dependency: `TBD`
 
 - Added GoogleStorageDAO
 - Added `listUserManagedServiceAccountKeys` to `GoogleIamDAO`
+- `HttpGoogleIamDAO` now properly preserves etags to protect against concurrent policy changes
 
 ## 0.11
 
