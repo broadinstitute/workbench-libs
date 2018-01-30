@@ -78,8 +78,9 @@ object Sam extends Sam {
     }
 
     def getPetServiceAccountKey(project: String)(implicit token: AuthToken): JsObject = {
+      import spray.json._
       logger.info(s"Getting pet service account key in project $project")
-      parseResponseAs[JsObject](getRequest(url + s"api/google/user/petServiceAccount/$project/key"))
+      parseResponseAs[String](getRequest(url + s"api/google/user/petServiceAccount/$project/key")).toJson.asJsObject
     }
 
     def deletePetServiceAccountKey(project: String, keyId: String)(implicit token: AuthToken): Unit = {
