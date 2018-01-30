@@ -118,7 +118,7 @@ class HttpGoogleIamDAO(serviceAccountClientId: String,
     // Note the project here is the one in which we're adding the IAM roles
     getProjectPolicy(iamProject).flatMap { policy =>
       val updatedPolicy = updatePolicy(policy, userEmail, rolesToAdd, Set.empty)
-      val policyRequest = new ProjectSetIamPolicyRequest().setPolicy(updatedPolicy)
+      val policyRequest = new ProjectSetIamPolicyRequest().setPolicy(updatedPolicy).setUpdateMask("bindings,etag")
       val request = cloudResourceManager.projects().setIamPolicy(iamProject.value, policyRequest)
       retryWhen500orGoogleError { () =>
         executeGoogleRequest(request)
@@ -130,7 +130,7 @@ class HttpGoogleIamDAO(serviceAccountClientId: String,
     // Note the project here is the one in which we're removing the IAM roles
     getProjectPolicy(iamProject).flatMap { policy =>
       val updatedPolicy = updatePolicy(policy, userEmail, Set.empty, rolesToRemove)
-      val policyRequest = new ProjectSetIamPolicyRequest().setPolicy(updatedPolicy)
+      val policyRequest = new ProjectSetIamPolicyRequest().setPolicy(updatedPolicy).setUpdateMask("bindings,etag")
       val request = cloudResourceManager.projects().setIamPolicy(iamProject.value, policyRequest)
       retryWhen500orGoogleError { () =>
         executeGoogleRequest(request)
@@ -262,7 +262,7 @@ class HttpGoogleIamDAO(serviceAccountClientId: String,
       Binding(role, members)
     }.toList
 
-    Policy(bindings)
+    Policy(bindings, policy.etag)
   }
 }
 
@@ -283,7 +283,7 @@ object HttpGoogleIamDAO {
    */
 
   private case class Binding(role: String, members: List[String])
-  private case class Policy(bindings: List[Binding])
+  private case class Policy(bindings: List[Binding], etag: String)
 
   private implicit def fromProjectBinding(projectBinding: ProjectBinding): Binding = {
     Binding(projectBinding.getRole, projectBinding.getMembers)
@@ -294,23 +294,23 @@ object HttpGoogleIamDAO {
   }
 
   private implicit def fromProjectPolicy(projectPolicy: ProjectPolicy): Policy = {
-    Policy(projectPolicy.getBindings.map(fromProjectBinding))
+    Policy(projectPolicy.getBindings.map(fromProjectBinding), projectPolicy.getEtag)
   }
 
   private implicit def fromServiceAccountPolicy(serviceAccountPolicy: ServiceAccountPolicy): Policy = {
-    Policy(serviceAccountPolicy.getBindings.map(fromServiceAccountBinding))
+    Policy(serviceAccountPolicy.getBindings.map(fromServiceAccountBinding), serviceAccountPolicy.getEtag)
   }
 
   private implicit def toServiceAccountPolicy(policy: Policy): ServiceAccountPolicy = {
     new ServiceAccountPolicy().setBindings(policy.bindings.map { b =>
       new ServiceAccountBinding().setRole(b.role).setMembers(b.members.asJava)
-    }.asJava)
+    }.asJava).setEtag(policy.etag)
   }
 
   private implicit def toProjectPolicy(policy: Policy): ProjectPolicy = {
     new ProjectPolicy().setBindings(policy.bindings.map { b =>
       new ProjectBinding().setRole(b.role).setMembers(b.members.asJava)
-    }.asJava)
+    }.asJava).setEtag(policy.etag)
   }
 
   private implicit def nullSafeList[A](list: java.util.List[A]): List[A] = {
