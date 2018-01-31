@@ -2,7 +2,7 @@ package org.broadinstitute.dsde.workbench.google
 
 import akka.actor.ActorSystem
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential
-import org.broadinstitute.dsde.workbench.google.GoogleCredentialMode._
+import org.broadinstitute.dsde.workbench.google.GoogleCredentialModes._
 import org.broadinstitute.dsde.workbench.metrics.GoogleInstrumentedService.GoogleInstrumentedService
 import org.broadinstitute.dsde.workbench.util.FutureSupport
 

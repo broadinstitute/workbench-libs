@@ -11,7 +11,7 @@ import com.google.api.services.storage.model.Bucket.Lifecycle
 import com.google.api.services.storage.model.Bucket.Lifecycle.Rule.{Action, Condition}
 import com.google.api.services.storage.model.{Bucket, StorageObject}
 import com.google.api.services.storage.{Storage, StorageScopes}
-import org.broadinstitute.dsde.workbench.google.GoogleCredentialMode._
+import org.broadinstitute.dsde.workbench.google.GoogleCredentialModes._
 import org.broadinstitute.dsde.workbench.metrics.GoogleInstrumentedService
 
 import scala.collection.JavaConverters._

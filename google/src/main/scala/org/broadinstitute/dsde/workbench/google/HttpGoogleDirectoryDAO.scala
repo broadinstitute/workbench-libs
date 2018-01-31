@@ -5,7 +5,7 @@ import akka.http.scaladsl.model.StatusCodes
 import com.google.api.client.http.HttpResponseException
 import com.google.api.services.admin.directory.model.{Group, Member, Members}
 import com.google.api.services.admin.directory.{Directory, DirectoryScopes}
-import org.broadinstitute.dsde.workbench.google.GoogleCredentialMode._
+import org.broadinstitute.dsde.workbench.google.GoogleCredentialModes._
 import org.broadinstitute.dsde.workbench.metrics.GoogleInstrumentedService
 import org.broadinstitute.dsde.workbench.model._
 
