@@ -189,6 +189,7 @@ class HttpGoogleStorageDAO(serviceAccountClientId: String,
       }.getOrElse(List.empty)
     }
 
+    // Convert Google StorageObjects to Workbench GcsObjectNames
     objects.map(_.map(obj => GcsObjectName(obj.getName)))
   }
 
