@@ -116,6 +116,18 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
       postRequest(apiUrl(s"api/workspaces"), request)
     }
 
+    def clone(originNamespace: String, originName: String, cloneNamespace: String, cloneName: String, authDomain: Set[String] = Set.empty, membersGroupName: String, attributes: Map[String, String])
+             (implicit token: AuthToken): Unit = {
+      logger.info(s"Copying workspace: $originNamespace/$originName authDomain: $authDomain")
+
+      val authDomainGroups = authDomain.map(a => Map("membersGroupName" -> a))
+
+      val request = Map("namespace" -> cloneNamespace, "name" -> cloneName,
+        "attributes" -> Map.empty, "authorizationDomain" -> authDomainGroups)
+
+      postRequest(apiUrl(s"api/workspaces/$originNamespace/$originName/clone"), request)
+    }
+
     def delete(namespace: String, name: String)(implicit token: AuthToken): Unit = {
       logger.info(s"Deleting workspace: $namespace/$name")
       deleteRequest(apiUrl(s"api/workspaces/$namespace/$name"))
@@ -190,6 +202,11 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
     def duosAutocomplete(query: String)(implicit token: AuthToken): String = {
       logger.info(s"DUOS Autocomplete: $query")
       parseResponse(getRequest(apiUrl(s"duos/autocomplete/$query")))
+    }
+
+    def getDiscoverableGroups(ns: String, wName: String)(implicit token: AuthToken): Seq[String] = {
+      logger.info(s"Getting discoverable groups for workspace: $ns/$wName")
+      parseResponseAs[Seq[String]](getRequest(apiUrl(s"api/library/$ns/$wName/discoverableGroups")))
     }
   }
 
@@ -276,7 +293,21 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
       postRequest(apiUrl(s"api/methods/$ns/$name/$snapshotId/permissions"), request)
     }
   }
+  /*
+     *  NIH requests
+    */
+    object NIH {
+      def addUserInNIH(jwt: String)(implicit token: AuthToken): Unit = {
+      logger.info(s"Adding user to NIH whitelist: $jwt")
+      postRequest(apiUrl(s"/api/nih/callback"), Map("jwt" -> jwt))
+    }
 
+      def refreshUserInNIH(jwt: String)(implicit token: AuthToken): Unit = {
+        logger.info(s"Refershing user's NIH status")
+        NIH.addUserInNIH(jwt)
+    }
+
+  }
   /*
    *  Submissions requests
    */

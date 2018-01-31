@@ -54,7 +54,7 @@ object Config extends Config {
   object Users {
     private val notSoSecretPassword = users.getString("notSoSecretPassword")
     private val userDataJson = JSON.parseFull(scala.io.Source.fromFile(users.getString("userDataPath")).getLines.mkString).get.asInstanceOf[Map[String, Map[String,String]]]
-
+    val tcgaJsonWebTokenKey = users.getString("tcgaJsonWebTokenKey")
     def makeCredsMap(jsonMap: Map[String, String]): Map[String, Credentials] = {
       for((k,v) <- jsonMap) yield (k, Credentials(v, notSoSecretPassword))
     }
@@ -96,6 +96,7 @@ object Config extends Config {
     val rawlsApiUrl: String = fireCloud.getString("rawlsApiUrl")
     val samApiUrl: String = fireCloud.getString("samApiUrl")
     val thurloeApiUrl: String = fireCloud.getString("thurloeApiUrl")
+    val tcgaAuthDomain: String = fireCloud.getString("tcgaAuthDomain")
   }
 
   object ChromeSettings {
