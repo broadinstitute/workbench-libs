@@ -2,6 +2,7 @@ package org.broadinstitute.dsde.workbench.model.google
 
 import com.google.common.net.UrlEscapers
 import java.net.URI
+
 import org.broadinstitute.dsde.workbench.model.google.GcsPathParser._
 
 import scala.util.{Failure, Success, Try}
@@ -82,7 +83,7 @@ private[model] object GcsPathParser {
   }
 
   def getAndValidateRelativePath(uri: URI): Either[GcsParseError, GcsObjectName] = {
-    Option(uri.getPath).map(_.stripPrefix("/")).map(GcsObjectName.apply)
+    Option(uri.getPath).map(_.stripPrefix("/")).map(path => GcsObjectName(path))
       .toRight(GcsParseError(s"Could not parse bucket relative path from path: ${uri.toString}"))
   }
 }

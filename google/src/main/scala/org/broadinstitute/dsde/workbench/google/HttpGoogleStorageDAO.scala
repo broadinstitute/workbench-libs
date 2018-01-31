@@ -1,14 +1,12 @@
 package org.broadinstitute.dsde.workbench.google
 
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream, File}
+import java.time.Instant
 
 import akka.actor.ActorSystem
-import akka.http.scaladsl.model.StatusCodes
-import akka.http.scaladsl.model.headers.OAuth2BearerToken
-import akka.stream.ActorMaterializer
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.marshalling.Marshal
-import akka.http.scaladsl.model._
+import akka.http.scaladsl.model.{StatusCodes, _}
 import akka.http.scaladsl.model.headers.OAuth2BearerToken
 import akka.stream.ActorMaterializer
 import cats.implicits._
@@ -19,9 +17,9 @@ import com.google.api.client.http.{AbstractInputStreamContent, FileContent, Http
 import com.google.api.client.json.jackson2.JacksonFactory
 import com.google.api.services.compute.ComputeScopes
 import com.google.api.services.plus.PlusScopes
-import com.google.api.services.storage.model._
 import com.google.api.services.storage.model.Bucket.Lifecycle
 import com.google.api.services.storage.model.Bucket.Lifecycle.Rule.{Action, Condition}
+import com.google.api.services.storage.model._
 import com.google.api.services.storage.{Storage, StorageScopes}
 import org.broadinstitute.dsde.workbench.metrics.GoogleInstrumentedService
 import org.broadinstitute.dsde.workbench.model.WorkbenchEmail
@@ -77,7 +75,7 @@ class HttpGoogleStorageDAO(serviceAccountClientId: String,
         // Handle null responses from Google
         val items = Option(objects).flatMap(objs => Option(objs.getItems)).map(_.asScala).getOrElse(Seq.empty)
         Future.traverse(items) { item =>
-          removeObject(bucketName, GcsObjectName(item.getName))
+          removeObject(bucketName, GcsObjectName(item.getName, Instant.ofEpochMilli(item.getTimeCreated.getValue)))
         }
       }.void
     } else Future.successful(())
@@ -190,7 +188,7 @@ class HttpGoogleStorageDAO(serviceAccountClientId: String,
     }
 
     // Convert Google StorageObjects to Workbench GcsObjectNames
-    objects.map(_.map(obj => GcsObjectName(obj.getName)))
+    objects.map(_.map(obj => GcsObjectName(obj.getName, Instant.ofEpochMilli(obj.getTimeCreated.getValue))))
   }
 
   private def listObjectsRecursive(fetcher: Storage#Objects#List, accumulated: Option[List[Objects]] = Some(Nil)): Future[Option[List[Objects]]] = {

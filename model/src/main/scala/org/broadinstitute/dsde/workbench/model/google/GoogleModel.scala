@@ -22,7 +22,7 @@ case class ServiceAccountKey(id: ServiceAccountKeyId, privateKeyData: ServiceAcc
 
 // Storage
 case class GcsBucketName(value: String) extends ValueObject
-case class GcsObjectName(value: String) extends ValueObject
+case class GcsObjectName(value: String, timeCreated: Instant = Instant.now) extends ValueObject
 case class GcsPath(bucketName: GcsBucketName, objectName: GcsObjectName)
 case class GcsParseError(value: String) extends ValueObject
 
@@ -81,7 +81,7 @@ object GoogleModelJsonSupport {
   implicit val ServiceAccountKeyFormat = jsonFormat4(ServiceAccountKey)
 
   implicit val GcsBucketNameFormat = ValueObjectFormat(GcsBucketName)
-  implicit val GcsObjectNameFormat = ValueObjectFormat(GcsObjectName)
+  implicit val GcsObjectNameFormat = jsonFormat2(GcsObjectName)
   implicit val GcsPathFormat = jsonFormat2(GcsPath)
   implicit val GcsParseErrorFormat = ValueObjectFormat(GcsParseError)
   implicit val GcsLifecycleTypeFormat = ValueObjectFormat(GcsLifecycleTypes.withName)
