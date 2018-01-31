@@ -37,6 +37,15 @@ class HttpGoogleStorageDAO(appName: String,
                           (implicit system: ActorSystem, executionContext: ExecutionContext)
   extends AbstractHttpGoogleDAO(appName, googleCredentialMode, workbenchMetricBaseName) with GoogleStorageDAO {
 
+  @deprecated(message = "This way of instantiating HttpGoogleStorageDAO has been deprecated. Please upgrade your configs appropriately.", since = "1.0")
+  def this(serviceAccountClientId: String,
+           pemFile: String,
+           appName: String,
+           workbenchMetricBaseName: String,
+           maxPageSize: Long = 1000)
+          (implicit system: ActorSystem, executionContext: ExecutionContext) = {
+    this(appName, Pem(WorkbenchEmail(serviceAccountClientId), new File(pemFile)), workbenchMetricBaseName, maxPageSize)
+  }
   override val scopes = Seq(StorageScopes.DEVSTORAGE_FULL_CONTROL, ComputeScopes.COMPUTE, PlusScopes.USERINFO_EMAIL, PlusScopes.USERINFO_PROFILE)
 
   override implicit val service = GoogleInstrumentedService.Storage

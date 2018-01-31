@@ -1,7 +1,10 @@
 package org.broadinstitute.dsde.workbench.google
 
+import java.io.File
+
 import akka.actor.ActorSystem
 import akka.http.scaladsl.model.StatusCodes
+import com.google.api.client.googleapis.auth.oauth2.GoogleClientSecrets
 import com.google.api.client.http.HttpResponseException
 import com.google.api.services.admin.directory.model.{Group, Member, Members}
 import com.google.api.services.admin.directory.{Directory, DirectoryScopes}
@@ -22,16 +25,41 @@ class HttpGoogleDirectoryDAO(appName: String,
                             (implicit system: ActorSystem, executionContext: ExecutionContext)
   extends AbstractHttpGoogleDAO(appName, googleCredentialMode, workbenchMetricBaseName) with GoogleDirectoryDAO {
 
+  @deprecated(message = "This way of instantiating HttpGoogleDirectoryDAO has been deprecated. Please upgrade your configs appropriately.", since = "1.0")
+  def this (serviceAccountClientId: String,
+            pemFile: String,
+            ubEmail: String,
+            appsDomain: String,
+            appName: String,
+            workbenchMetricBaseName: String,
+            maxPageSize: Int)
+           (implicit system: ActorSystem, executionContext: ExecutionContext) = {
+    this(appName, Pem(WorkbenchEmail(serviceAccountClientId), new File(pemFile), Some(WorkbenchEmail(ubEmail))), workbenchMetricBaseName, maxPageSize)
+  }
+
+  @deprecated(message = "This way of instantiating HttpGoogleDirectoryDAO has been deprecated. Please upgrade your configs appropriately.", since = "0.9")
+  def this(clientSecrets: GoogleClientSecrets,
+           pemFile: String,
+           appsDomain: String,
+           appName: String,
+           workbenchMetricBaseName: String)
+          (implicit system: ActorSystem, executionContext: ExecutionContext) = {
+    this(appName, Pem(WorkbenchEmail(clientSecrets.getDetails.get("client_email").toString), new File(pemFile), Some(WorkbenchEmail(clientSecrets.getDetails.get("sub_email").toString))), workbenchMetricBaseName)
+  }
+
   override val scopes = Seq(DirectoryScopes.ADMIN_DIRECTORY_GROUP)
 
   val groupMemberRole = "MEMBER" // the Google Group role corresponding to a member (note that this is distinct from the GCS roles defined in WorkspaceAccessLevel)
 
   override implicit val service = GoogleInstrumentedService.Groups
 
+  private lazy val directory = {
+    new Directory.Builder(httpTransport, jsonFactory, googleCredential).setApplicationName(appName).build()
+  }
+
   override def createGroup(groupId: WorkbenchGroupName, groupEmail: WorkbenchEmail): Future[Unit] = createGroup(groupId.value, groupEmail)
 
   override def createGroup(displayName: String, groupEmail: WorkbenchEmail): Future[Unit] = {
-    val directory = getGroupDirectory
     val groups = directory.groups
     val group = new Group().setEmail(groupEmail.value).setName(displayName.take(60)) //max google group name length is 60 characters
     val inserter = groups.insert(group)
@@ -40,7 +68,6 @@ class HttpGoogleDirectoryDAO(appName: String,
   }
 
   override def deleteGroup(groupEmail: WorkbenchEmail): Future[Unit] = {
-    val directory = getGroupDirectory
     val groups = directory.groups
     val deleter = groups.delete(groupEmail.value)
 
@@ -54,7 +81,7 @@ class HttpGoogleDirectoryDAO(appName: String,
 
   override def addMemberToGroup(groupEmail: WorkbenchEmail, memberEmail: WorkbenchEmail): Future[Unit] = {
     val member = new Member().setEmail(memberEmail.value).setRole(groupMemberRole)
-    val inserter = getGroupDirectory.members.insert(groupEmail.value, member)
+    val inserter = directory.members.insert(groupEmail.value, member)
 
     retryWithRecoverWhen500orGoogleError(() => {
       executeGoogleRequest(inserter)
@@ -67,7 +94,7 @@ class HttpGoogleDirectoryDAO(appName: String,
   }
 
   override def removeMemberFromGroup(groupEmail: WorkbenchEmail, memberEmail: WorkbenchEmail): Future[Unit] = {
-    val deleter = getGroupDirectory.members.delete(groupEmail.value, memberEmail.value)
+    val deleter = directory.members.delete(groupEmail.value, memberEmail.value)
 
     retryWithRecoverWhen500orGoogleError(() => {
       executeGoogleRequest(deleter)
@@ -78,7 +105,7 @@ class HttpGoogleDirectoryDAO(appName: String,
   }
 
   override def getGoogleGroup(groupEmail: WorkbenchEmail): Future[Option[Group]] = {
-    val getter = getGroupDirectory.groups().get(groupEmail.value)
+    val getter = directory.groups().get(groupEmail.value)
 
     retryWithRecoverWhen500orGoogleError(() => { Option(executeGoogleRequest(getter)) }){
       case e: HttpResponseException if e.getStatusCode == StatusCodes.NotFound.intValue => None
@@ -86,7 +113,7 @@ class HttpGoogleDirectoryDAO(appName: String,
   }
 
   override def isGroupMember(groupEmail: WorkbenchEmail, memberEmail: WorkbenchEmail): Future[Boolean] = {
-    val getter = getGroupDirectory.members.get(groupEmail.value, memberEmail.value)
+    val getter = directory.members.get(groupEmail.value, memberEmail.value)
 
     retryWithRecoverWhen500orGoogleError(() => {
       executeGoogleRequest(getter)
@@ -97,7 +124,7 @@ class HttpGoogleDirectoryDAO(appName: String,
   }
 
   override def listGroupMembers(groupEmail: WorkbenchEmail): Future[Option[Seq[String]]] = {
-    val fetcher = getGroupDirectory.members.list(groupEmail.value).setMaxResults(maxPageSize)
+    val fetcher = directory.members.list(groupEmail.value).setMaxResults(maxPageSize)
 
     import scala.collection.JavaConverters._
     listGroupMembersRecursive(fetcher) map { pagesOption =>
@@ -138,10 +165,6 @@ class HttpGoogleDirectoryDAO(appName: String,
       // when accumulated is None (group does not exist) or next page token is null
       case _ => Future.successful(accumulated)
     }
-  }
-
-  private def getGroupDirectory = {
-    new Directory.Builder(httpTransport, jsonFactory, googleCredential).setApplicationName(appName).build()
   }
 
 }

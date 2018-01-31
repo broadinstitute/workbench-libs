@@ -1,5 +1,6 @@
 package org.broadinstitute.dsde.workbench.google
 
+import java.io.File
 import java.time.Instant
 import java.time.format.DateTimeFormatter
 import java.util.Collections
@@ -13,6 +14,7 @@ import cats.instances.map._
 import cats.syntax.foldable._
 import cats.syntax.functor._
 import cats.syntax.semigroup._
+import com.google.api.client.googleapis.auth.oauth2.GoogleClientSecrets
 import com.google.api.client.googleapis.json.GoogleJsonResponseException
 import com.google.api.client.http.HttpResponseException
 import com.google.api.services.cloudresourcemanager.CloudResourceManager
@@ -38,12 +40,33 @@ class HttpGoogleIamDAO(appName: String,
                       (implicit system: ActorSystem, executionContext: ExecutionContext)
   extends AbstractHttpGoogleDAO(appName, googleCredentialMode, workbenchMetricBaseName) with GoogleIamDAO {
 
+  @deprecated(message = "This way of instantiating HttpGoogleIamDAO has been deprecated. Please upgrade your configs appropriately.", since = "1.0")
+  def this(serviceAccountClientId: String,
+           pemFile: String,
+           appName: String,
+           workbenchMetricBaseName: String)
+          (implicit system: ActorSystem, executionContext: ExecutionContext) = {
+    this(appName, Pem(WorkbenchEmail(serviceAccountClientId), new File(pemFile)), workbenchMetricBaseName)
+  }
+
+  @deprecated(message = "This way of instantiating HttpGoogleIamDAO has been deprecated. Please upgrade your configs appropriately.", since = "1.0")
+  def this(clientSecrets: GoogleClientSecrets,
+           pemFile: String,
+           appName: String,
+           workbenchMetricBaseName: String)
+          (implicit system: ActorSystem, executionContext: ExecutionContext) = {
+    this(appName, Pem(WorkbenchEmail(clientSecrets.getDetails.get("client_email").toString), new File(pemFile)), workbenchMetricBaseName)
+  }
+
   override val scopes = List(IamScopes.CLOUD_PLATFORM)
 
-  lazy val iam = new Iam.Builder(httpTransport, jsonFactory, googleCredential).setApplicationName(appName).build()
   lazy val cloudResourceManager = new CloudResourceManager.Builder(httpTransport, jsonFactory, googleCredential).setApplicationName(appName).build()
 
   override implicit val service = GoogleInstrumentedService.Iam
+
+  lazy val iam = {
+    new Iam.Builder(httpTransport, jsonFactory, googleCredential).setApplicationName(appName).build()
+  }
 
   override def findServiceAccount(serviceAccountProject: GoogleProject, serviceAccountName: ServiceAccountName): Future[Option[google.ServiceAccount]] = {
     val serviceAccountEmail = toServiceAccountEmail(serviceAccountProject, serviceAccountName)

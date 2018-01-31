@@ -16,13 +16,13 @@ class HttpGoogleBigQueryDAO(appName: String,
                            (implicit system: ActorSystem, executionContext: ExecutionContext)
   extends AbstractHttpGoogleDAO(appName, googleCredentialMode, workbenchMetricBaseName) with GoogleBigQueryDAO {
 
+  override val scopes = Seq(BigqueryScopes.BIGQUERY)
+
   override implicit val service = GoogleInstrumentedService.BigQuery
 
   private lazy val bigquery: Bigquery = {
     new Bigquery.Builder(httpTransport, jsonFactory, googleCredential).setApplicationName(appName).build()
   }
-
-  override def scopes = Seq(BigqueryScopes.BIGQUERY)
 
   override def startQuery(project: GoogleProject, querySql: String): Future[JobReference] = {
     val job = new Job()

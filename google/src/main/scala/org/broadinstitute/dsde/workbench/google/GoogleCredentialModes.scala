@@ -6,6 +6,7 @@ import com.google.api.client.googleapis.auth.oauth2.GoogleCredential
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport
 import com.google.api.client.json.jackson2.JacksonFactory
 import com.google.api.client.util.Charsets
+import org.broadinstitute.dsde.workbench.model.WorkbenchEmail
 
 import scala.collection.JavaConverters._
 
@@ -26,13 +27,13 @@ object GoogleCredentialModes {
   /**
     * Gets a GoogleCredential from a pem file.
     */
-  case class Pem(serviceAccountClientId: String, pemFile: File, serviceAccountUser: Option[String] = None) extends GoogleCredentialMode {
+  case class Pem(serviceAccountClientId: WorkbenchEmail, pemFile: File, serviceAccountUser: Option[WorkbenchEmail] = None) extends GoogleCredentialMode {
     def toGoogleCredential(scopes: Seq[String]) = {
       new GoogleCredential.Builder()
         .setTransport(httpTransport)
         .setJsonFactory(jsonFactory)
-        .setServiceAccountId(serviceAccountClientId)
-        .setServiceAccountUser(serviceAccountUser.orNull)
+        .setServiceAccountId(serviceAccountClientId.value)
+        .setServiceAccountUser(serviceAccountUser.map(_.value).orNull)
         .setServiceAccountScopes(scopes.asJava)
         .setServiceAccountPrivateKeyFromPemFile(pemFile)
         .build
