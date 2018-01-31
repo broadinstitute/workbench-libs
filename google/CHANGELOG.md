@@ -2,13 +2,22 @@
 
 This file documents changes to the `workbench-google` library, including notes on how to upgrade to new versions.
 
+## 0.13
+
+SBT dependency: `TBD`
+
+### Changed
+
+- Added `setObjectChangePubSubTrigger` to `GoogleStorageDAO`
+- Added `setTopicIamPermissions` to `GooglePubSubDAO`
+
 ## 0.12
 
 SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.12-5913740"`
 
 ### Changed
 
-- Added GoogleStorageDAO
+- Added `GoogleStorageDAO`
 - Added `listUserManagedServiceAccountKeys` to `GoogleIamDAO`
 - `HttpGoogleIamDAO` now properly preserves etags to protect against concurrent policy changes
 

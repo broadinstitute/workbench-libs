@@ -9,7 +9,7 @@ import com.google.api.client.googleapis.testing.auth.oauth2.MockGoogleCredential
 import com.google.api.services.pubsub.model.Topic
 import org.broadinstitute.dsde.workbench.google.GooglePubSubDAO
 import org.broadinstitute.dsde.workbench.google.GooglePubSubDAO.PubSubMessage
-import org.broadinstitute.dsde.workbench.model.WorkbenchException
+import org.broadinstitute.dsde.workbench.model.{WorkbenchEmail, WorkbenchException}
 
 import scala.collection.JavaConverters._
 import scala.collection.{mutable, _}
@@ -104,6 +104,10 @@ class MockGooglePubSubDAO extends GooglePubSubDAO {
       topic.setName(topicName)
       Some(topic)
     } else None
+  }
+
+  override def setTopicIamPermissions(topicName: String, permissions: scala.collection.immutable.Map[WorkbenchEmail, String]): Future[Unit] = {
+    Future.successful(())
   }
 
   case class Subscription(name: String, topic: String, queue: ConcurrentLinkedQueue[String])
