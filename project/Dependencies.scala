@@ -44,6 +44,8 @@ object Dependencies {
   val googleServicemanagement: ModuleID =    "com.google.apis"       % "google-api-services-servicemanagement"    % s"v1-rev359-$googleV"
   val googleIam: ModuleID =                  "com.google.apis"       % "google-api-services-iam"                  % s"v1-rev215-$googleV"
   val googleBigQuery: ModuleID =             "com.google.apis"       % "google-api-services-bigquery"             % s"v2-rev367-$googleV"
+  val googleDataproc: ModuleID =             "com.google.apis"       % "google-api-services-dataproc"             % s"v1-rev53-$googleV"
+
   val googleGuava: ModuleID = "com.google.guava"  % "guava" % "22.0"
 
   val commonDependencies = Seq(
@@ -86,6 +88,7 @@ object Dependencies {
     googleServicemanagement,
     googleIam,
     googleBigQuery,
+    googleDataproc,
     googleGuava,
     akkaHttpSprayJson,
     akkaTestkit
