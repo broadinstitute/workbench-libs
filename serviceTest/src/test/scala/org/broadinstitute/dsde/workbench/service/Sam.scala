@@ -6,11 +6,12 @@ import org.broadinstitute.dsde.workbench.auth.AuthToken
 import org.broadinstitute.dsde.workbench.config.{UserPool, _}
 import org.broadinstitute.dsde.workbench.dao.Google.googleIamDAO
 import org.broadinstitute.dsde.workbench.model.{WorkbenchEmail, WorkbenchUserId}
-import org.broadinstitute.dsde.workbench.model.google.{GoogleProject, ServiceAccountName}
+import org.broadinstitute.dsde.workbench.model.google.{GoogleProject, ServiceAccountKey, ServiceAccountName}
 import org.broadinstitute.dsde.workbench.service.Sam.user
 import org.broadinstitute.dsde.workbench.service.Sam.user.UserStatusDetails
 import org.scalatest.time.{Seconds, Span}
 import org.scalatest.concurrent.ScalaFutures
+import spray.json.{JsObject, JsValue}
 
 /**
   * Sam API service client. This should only be used when Orchestration does
@@ -74,6 +75,16 @@ object Sam extends Sam {
       logger.info(s"Getting proxy group email")
       val proxyGroupEmailStr = parseResponseAs[String](getRequest(url + s"api/google/user/proxyGroup/$userEmail"))
       WorkbenchEmail(proxyGroupEmailStr)
+    }
+
+    def getPetServiceAccountKey(project: String)(implicit token: AuthToken): Map[String, Any] = {
+      logger.info(s"Getting pet service account key in project $project")
+      parseResponseAs[Map[String, Any]](getRequest(url + s"api/google/user/petServiceAccount/$project/key"))
+    }
+
+    def deletePetServiceAccountKey(project: String, keyId: String)(implicit token: AuthToken): Unit = {
+      logger.info(s"Deleting pet service account key $keyId in project $project")
+      deleteRequest(url + s"api/google/user/petServiceAccount/$project/key/$keyId")
     }
   }
 

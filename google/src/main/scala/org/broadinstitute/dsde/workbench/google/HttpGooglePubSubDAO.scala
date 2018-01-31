@@ -12,6 +12,8 @@ import org.broadinstitute.dsde.workbench.google.GooglePubSubDAO._
 import org.broadinstitute.dsde.workbench.util.FutureSupport
 import akka.http.scaladsl.model.StatusCodes
 import org.broadinstitute.dsde.workbench.metrics.GoogleInstrumentedService
+import org.broadinstitute.dsde.workbench.model.WorkbenchEmail
+import org.broadinstitute.dsde.workbench.model.google.isServiceAccount
 
 import scala.collection.JavaConverters._
 import scala.concurrent._
@@ -58,6 +60,21 @@ class HttpGooglePubSubDAO(clientEmail: String,
     }) {
       case e: HttpResponseException if e.getStatusCode == StatusCodes.NotFound.intValue => None
     }
+  }
+
+  override def setTopicIamPermissions(topicName: String, permissions: Map[WorkbenchEmail, String]): Future[Unit] = {
+    val bindings = permissions.map { case (userEmail, role) =>
+      val memberType = if (isServiceAccount(userEmail)) "serviceAccount" else "user"
+      val email = s"$memberType:${userEmail.value}"
+
+      new Binding().setMembers(List(email).asJava).setRole(role)
+    }
+
+    val request = new SetIamPolicyRequest().setPolicy(new Policy().setBindings(bindings.toList.asJava))
+
+    retryWhen500orGoogleError(() => {
+      executeGoogleRequest(getPubSubDirectory.projects().topics().setIamPolicy(topicToFullPath(topicName), request))
+    })
   }
 
   override def createSubscription(topicName: String, subscriptionName: String) = {
