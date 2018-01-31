@@ -23,7 +23,8 @@ trait GoogleStorageDAO {
   def removeObject(bucketName: GcsBucketName, objectName: GcsObjectName): Future[Unit]
   def getObject(bucketName: GcsBucketName, objectName: GcsObjectName): Future[Option[ByteArrayOutputStream]]
   def setBucketLifecycle(bucketName: GcsBucketName, lifecycleAge: Int, lifecycleType: GcsLifecycleType = Delete): Future[Unit]
-  def listObjectsWithPrefix(bucketName: GcsBucketName, objectNamePrefix: String): Future[Seq[GcsObjectName]]
+  def setObjectChangePubSubTrigger(bucketName: GcsBucketName, topicName: String, eventTypes: List[String]): Future[Unit]
+  def listObjectsWithPrefix(bucketName: GcsBucketName, objectNamePrefix: String): Future[List[GcsObjectName]]
 
   def setBucketAccessControl(bucketName: GcsBucketName, accessControl: GcsAccessControl): Future[Unit]
   def removeBucketAccessControl(bucketName: GcsBucketName, email: WorkbenchEmail): Future[Unit]

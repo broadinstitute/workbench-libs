@@ -4,6 +4,13 @@ import java.io.{ByteArrayInputStream, ByteArrayOutputStream, File}
 
 import akka.actor.ActorSystem
 import akka.http.scaladsl.model.StatusCodes
+import akka.http.scaladsl.model.headers.OAuth2BearerToken
+import akka.stream.ActorMaterializer
+import akka.http.scaladsl.Http
+import akka.http.scaladsl.marshalling.Marshal
+import akka.http.scaladsl.model._
+import akka.http.scaladsl.model.headers.OAuth2BearerToken
+import akka.stream.ActorMaterializer
 import cats.implicits._
 import com.google.api.client.auth.oauth2.Credential
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential
@@ -12,7 +19,7 @@ import com.google.api.client.http.{AbstractInputStreamContent, FileContent, Http
 import com.google.api.client.json.jackson2.JacksonFactory
 import com.google.api.services.compute.ComputeScopes
 import com.google.api.services.plus.PlusScopes
-import com.google.api.services.storage.model.{Bucket, BucketAccessControl, ObjectAccessControl, StorageObject}
+import com.google.api.services.storage.model._
 import com.google.api.services.storage.model.Bucket.Lifecycle
 import com.google.api.services.storage.model.Bucket.Lifecycle.Rule.{Action, Condition}
 import com.google.api.services.storage.{Storage, StorageScopes}
@@ -28,7 +35,8 @@ import scala.concurrent.{ExecutionContext, Future}
 class HttpGoogleStorageDAO(serviceAccountClientId: String,
                            pemFile: String,
                            appName: String,
-                           override val workbenchMetricBaseName: String)( implicit val system: ActorSystem, implicit val executionContext: ExecutionContext ) extends GoogleStorageDAO with FutureSupport with GoogleUtilities {
+                           override val workbenchMetricBaseName: String,
+                           maxPageSize: Long = 1000)( implicit val system: ActorSystem, implicit val executionContext: ExecutionContext ) extends GoogleStorageDAO with FutureSupport with GoogleUtilities {
 
   val storageScopes = Seq(StorageScopes.DEVSTORAGE_FULL_CONTROL, ComputeScopes.COMPUTE, PlusScopes.USERINFO_EMAIL, PlusScopes.USERINFO_PROFILE)
 
@@ -129,13 +137,77 @@ class HttpGoogleStorageDAO(serviceAccountClientId: String,
     })
   }
 
-  override def listObjectsWithPrefix(bucketName: GcsBucketName, objectNamePrefix: String): Future[Seq[GcsObjectName]] = {
-    val getter = storage.objects().list(bucketName.value).setPrefix(objectNamePrefix)
+  //This functionality doesn't exist in the com.google.apis Java library.
+  //When we migrate to the com.google.cloud library, we will be able to re-write this to use their implementation
+  override def setObjectChangePubSubTrigger(bucketName: GcsBucketName, topicName: String, eventTypes: List[String]): Future[Unit] = {
+    import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
+    import org.broadinstitute.dsde.workbench.google.GoogleRequestJsonSupport._
+    import spray.json._
+    implicit val materializer = ActorMaterializer()
 
-    retryWhen500orGoogleError(() => {
-      executeGoogleRequest(getter)
-    }) map { objects =>
-      Option(objects.getItems).map(_.asScala.map(obj => GcsObjectName(obj.getName))).getOrElse(Seq.empty)
+    bucketServiceAccountCredential.refreshToken()
+
+    val url = s"https://www.googleapis.com/storage/v1/b/$bucketName/notificationConfigs"
+    val header = headers.Authorization(OAuth2BearerToken(bucketServiceAccountCredential.getAccessToken))
+
+    val entity = JsObject(
+      Map(
+        "topic" -> JsString(topicName),
+        "payload_format" -> JsString("JSON_API_V1"),
+        "event_types" -> JsArray(eventTypes.map(JsString(_)).toVector)
+      )
+    )
+
+    Marshal(entity).to[RequestEntity].flatMap { requestEntity =>
+      val request = HttpRequest(
+        HttpMethods.POST,
+        uri = url,
+        headers = List(header),
+        entity = requestEntity
+      )
+
+      val startTime = System.currentTimeMillis()
+      Http().singleRequest(request).map { response =>
+        val endTime = System.currentTimeMillis()
+        logger.debug(GoogleRequest(HttpMethods.POST.value, url, Option(entity), endTime - startTime, Option(response.status.intValue), None).toJson(GoogleRequestFormat).compactPrint)
+        ()
+      }
+    }
+  }
+
+  override def listObjectsWithPrefix(bucketName: GcsBucketName, objectNamePrefix: String): Future[List[GcsObjectName]] = {
+    val getter = storage.objects().list(bucketName.value).setPrefix(objectNamePrefix).setMaxResults(maxPageSize)
+
+    val objects = listObjectsRecursive(getter) map { pagesOption =>
+      pagesOption.map { pages =>
+        pages.flatMap { page =>
+          Option(page.getItems.asScala) match {
+            case None => List.empty
+            case Some(objects) => objects.toList
+          }
+        }
+      }.getOrElse(List.empty)
+    }
+
+    objects.map(_.map(obj => GcsObjectName(obj.getName)))
+  }
+
+  private def listObjectsRecursive(fetcher: Storage#Objects#List, accumulated: Option[List[Objects]] = Some(Nil)): Future[Option[List[Objects]]] = {
+    accumulated match {
+      // when accumulated has a Nil list then this must be the first request
+      case Some(Nil) => retryWithRecoverWhen500orGoogleError(() => {
+        Option(executeGoogleRequest(fetcher))
+      }) {
+        case e: HttpResponseException if e.getStatusCode == StatusCodes.NotFound.intValue => None
+      }.flatMap(firstPage => listObjectsRecursive(fetcher, firstPage.map(List(_))))
+
+      // the head is the Objects object of the prior request which contains next page token
+      case Some(head :: xs) if head.getNextPageToken != null => retryWhen500orGoogleError(() => {
+        executeGoogleRequest(fetcher.setPageToken(head.getNextPageToken))
+      }).flatMap(nextPage => listObjectsRecursive(fetcher, accumulated.map(pages => nextPage :: pages)))
+
+      // when accumulated is None (bucket does not exist) or next page token is null
+      case _ => Future.successful(accumulated)
     }
   }
 

@@ -92,13 +92,17 @@ class MockGoogleStorageDAO(  implicit val executionContext: ExecutionContext ) e
     Future.successful(())
   }
 
-  override def listObjectsWithPrefix(bucketName: GcsBucketName, objectNamePrefix: String): Future[Seq[GcsObjectName]] = {
+  override def setObjectChangePubSubTrigger(bucketName: GcsBucketName, topicName: String, eventTypes: List[String]): Future[Unit] = {
+    Future.successful(())
+  }
+
+  override def listObjectsWithPrefix(bucketName: GcsBucketName, objectNamePrefix: String): Future[List[GcsObjectName]] = {
     val current = buckets.get(bucketName)
 
     val objects = current match {
       case Some(objs) =>
-        objs.map(_._1).filter(_.value.startsWith(objectNamePrefix)).toSeq
-      case None => Seq.empty
+        objs.map(_._1).filter(_.value.startsWith(objectNamePrefix)).toList
+      case None => List.empty
     }
 
     Future.successful(objects)
