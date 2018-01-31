@@ -26,7 +26,7 @@ object GoogleCredentialMode {
   /**
     * Gets a GoogleCredential from a pem file.
     */
-  case class Pem(serviceAccountClientId: String, serviceAccountUser: Option[String], pemFile: File) extends GoogleCredentialMode {
+  case class Pem(serviceAccountClientId: String, pemFile: File, serviceAccountUser: Option[String] = None) extends GoogleCredentialMode {
     def toGoogleCredential(scopes: Seq[String]) = {
       new GoogleCredential.Builder()
         .setTransport(httpTransport)
