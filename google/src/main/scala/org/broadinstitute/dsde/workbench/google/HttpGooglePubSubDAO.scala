@@ -5,7 +5,7 @@ import akka.http.scaladsl.model.StatusCodes
 import com.google.api.client.http.HttpResponseException
 import com.google.api.services.pubsub.model._
 import com.google.api.services.pubsub.{Pubsub, PubsubScopes}
-import org.broadinstitute.dsde.workbench.google.GoogleCredentialMode._
+import org.broadinstitute.dsde.workbench.google.GoogleCredentialModes._
 import org.broadinstitute.dsde.workbench.google.GooglePubSubDAO._
 import org.broadinstitute.dsde.workbench.metrics.GoogleInstrumentedService
 
