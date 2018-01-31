@@ -6,6 +6,7 @@ import java.nio.file.Files
 import com.google.api.client.util.IOUtils
 import org.broadinstitute.dsde.workbench.google.GoogleStorageDAO
 import org.broadinstitute.dsde.workbench.model.WorkbenchEmail
+import org.broadinstitute.dsde.workbench.model.google.GcsLifecycleTypes.{Delete, GcsLifecycleType}
 import org.broadinstitute.dsde.workbench.model.google.{GcsAccessControl, GcsBucketName, GcsObjectName, GoogleProject}
 
 import scala.collection.concurrent.TrieMap
@@ -18,6 +19,7 @@ class MockGoogleStorageDAO(  implicit val executionContext: ExecutionContext ) e
   val buckets: TrieMap[GcsBucketName, Set[(GcsObjectName, ByteArrayInputStream)]] = TrieMap()
 
   override def createBucket(billingProject: GoogleProject, bucketName: GcsBucketName): Future[GcsBucketName] = {
+    // Note: the mock doesn't keep track of the billing project - assumes buckets are global
     buckets.putIfAbsent(bucketName, Set.empty)
     Future.successful(bucketName)
   }
@@ -86,7 +88,7 @@ class MockGoogleStorageDAO(  implicit val executionContext: ExecutionContext ) e
     }
   }
 
-  override def setBucketLifecycle(bucketName: GcsBucketName, lifecycleAge: Int, lifecycleType: String): Future[Unit] = {
+  override def setBucketLifecycle(bucketName: GcsBucketName, lifecycleAge: Int, lifecycleType: GcsLifecycleType = Delete): Future[Unit] = {
     Future.successful(())
   }
 

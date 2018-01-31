@@ -4,6 +4,7 @@ import java.time.Instant
 import java.time.format.DateTimeFormatter
 
 import org.broadinstitute.dsde.workbench.model._
+import org.broadinstitute.dsde.workbench.model.google.GcsRoles.GcsRole
 import spray.json.{JsString, JsValue, RootJsonFormat}
 
 // Projects
@@ -25,18 +26,31 @@ case class GcsObjectName(value: String) extends ValueObject
 case class GcsPath(bucketName: GcsBucketName, objectName: GcsObjectName)
 case class GcsParseError(value: String) extends ValueObject
 
-sealed trait GcsRole extends ValueObject
-object GcsRole {
+object GcsLifecycleTypes {
+  sealed trait GcsLifecycleType extends ValueObject
+  case object Delete extends GcsLifecycleType { val value = "Delete" }
+  case object SetStorageClass extends GcsLifecycleType { val value = "SetStorageClass" }
+
+  def withName(name: String): GcsLifecycleType = name.toLowerCase() match {
+    case "delete" => Delete
+    case "setstorageclass" => SetStorageClass
+    case _ => throw new WorkbenchException(s"Invalid lifecycle type: $name")
+  }
+}
+
+object GcsRoles {
+  sealed trait GcsRole extends ValueObject
+  case object Reader extends GcsRole { val value = "READER" }
+  case object Writer extends GcsRole { val value = "WRITER" }
+  case object Owner extends GcsRole { val value = "OWNER" }
+
   def withName(name: String): GcsRole = name.toLowerCase() match {
     case "reader" => Reader
     case "writer" => Writer
     case "owner" => Owner
-    case _ => throw new WorkbenchException(s"Invalid role $name")
+    case _ => throw new WorkbenchException(s"Invalid role: $name")
   }
 }
-case object Reader extends GcsRole { val value = "READER" }
-case object Writer extends GcsRole { val value = "WRITER" }
-case object Owner extends GcsRole { val value = "OWNER" }
 
 case class GcsAccessControl(email: WorkbenchEmail, permission: GcsRole)
 
@@ -70,6 +84,7 @@ object GoogleModelJsonSupport {
   implicit val GcsObjectNameFormat = ValueObjectFormat(GcsObjectName)
   implicit val GcsPathFormat = jsonFormat2(GcsPath)
   implicit val GcsParseErrorFormat = ValueObjectFormat(GcsParseError)
-  implicit val GcsRoleFormat = ValueObjectFormat(GcsRole.withName)
+  implicit val GcsLifecycleTypeFormat = ValueObjectFormat(GcsLifecycleTypes.withName)
+  implicit val GcsRoleFormat = ValueObjectFormat(GcsRoles.withName)
   implicit val GcsAccessControlFormat = jsonFormat2(GcsAccessControl)
 }

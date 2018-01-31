@@ -18,15 +18,12 @@ import com.google.api.services.storage.model.Bucket.Lifecycle.Rule.{Action, Cond
 import com.google.api.services.storage.{Storage, StorageScopes}
 import org.broadinstitute.dsde.workbench.metrics.GoogleInstrumentedService
 import org.broadinstitute.dsde.workbench.model.WorkbenchEmail
+import org.broadinstitute.dsde.workbench.model.google.GcsLifecycleTypes.{Delete, GcsLifecycleType}
 import org.broadinstitute.dsde.workbench.model.google._
 import org.broadinstitute.dsde.workbench.util.FutureSupport
 
 import scala.collection.JavaConverters._
 import scala.concurrent.{ExecutionContext, Future}
-
-/**
-  * Created by mbemis on 1/8/18.
-  */
 
 class HttpGoogleStorageDAO(serviceAccountClientId: String,
                            pemFile: String,
@@ -153,9 +150,8 @@ class HttpGoogleStorageDAO(serviceAccountClientId: String,
     }
   }
 
-  //"Delete" is the only lifecycle type currently supported, so we'll default to it
-  override def setBucketLifecycle(bucketName: GcsBucketName, lifecycleAge: Int, lifecycleType: String = "Delete"): Future[Unit] = {
-    val lifecycle = new Lifecycle.Rule().setAction(new Action().setType(lifecycleType)).setCondition(new Condition().setAge(lifecycleAge))
+  override def setBucketLifecycle(bucketName: GcsBucketName, lifecycleAge: Int, lifecycleType: GcsLifecycleType = Delete): Future[Unit] = {
+    val lifecycle = new Lifecycle.Rule().setAction(new Action().setType(lifecycleType.value)).setCondition(new Condition().setAge(lifecycleAge))
     val bucket = new Bucket().setName(bucketName.value).setLifecycle(new Lifecycle().setRule(List(lifecycle).asJava))
     val updater = storage.buckets().update(bucketName.value, bucket)
 
@@ -184,10 +180,10 @@ class HttpGoogleStorageDAO(serviceAccountClientId: String,
     }
   }
 
-  override def setObjectAccessControl(bucketName: GcsBucketName, objetName: GcsObjectName, accessControl: GcsAccessControl): Future[Unit] = {
+  override def setObjectAccessControl(bucketName: GcsBucketName, objectName: GcsObjectName, accessControl: GcsAccessControl): Future[Unit] = {
     val entity: String = s"user-${accessControl.email.value}"
     val acl = new ObjectAccessControl().setEntity(entity).setRole(accessControl.permission.value)
-    val inserter = storage.objectAccessControls().insert(bucketName.value, objetName.value, acl)
+    val inserter = storage.objectAccessControls().insert(bucketName.value, objectName.value, acl)
 
     retryWhen500orGoogleError(() => executeGoogleRequest(inserter)).void
   }

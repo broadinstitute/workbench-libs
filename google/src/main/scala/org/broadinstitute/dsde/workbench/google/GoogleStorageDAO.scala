@@ -3,13 +3,11 @@ package org.broadinstitute.dsde.workbench.google
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream, File}
 
 import org.broadinstitute.dsde.workbench.model.WorkbenchEmail
+import org.broadinstitute.dsde.workbench.model.google.GcsLifecycleTypes.{Delete, GcsLifecycleType}
 import org.broadinstitute.dsde.workbench.model.google.{GcsAccessControl, GcsBucketName, GcsObjectName, GoogleProject}
 
 import scala.concurrent.Future
 
-/**
-  * Created by mbemis on 1/8/18.
-  */
 trait GoogleStorageDAO {
 
   def createBucket(billingProject: GoogleProject, bucketName: GcsBucketName): Future[GcsBucketName]
@@ -24,7 +22,7 @@ trait GoogleStorageDAO {
 
   def removeObject(bucketName: GcsBucketName, objectName: GcsObjectName): Future[Unit]
   def getObject(bucketName: GcsBucketName, objectName: GcsObjectName): Future[Option[ByteArrayOutputStream]]
-  def setBucketLifecycle(bucketName: GcsBucketName, lifecycleAge: Int, lifecycleType: String = "Delete"): Future[Unit]
+  def setBucketLifecycle(bucketName: GcsBucketName, lifecycleAge: Int, lifecycleType: GcsLifecycleType = Delete): Future[Unit]
   def listObjectsWithPrefix(bucketName: GcsBucketName, objectNamePrefix: String): Future[Seq[GcsObjectName]]
 
   def setBucketAccessControl(bucketName: GcsBucketName, accessControl: GcsAccessControl): Future[Unit]
