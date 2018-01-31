@@ -42,7 +42,7 @@ class HttpGoogleStorageDAO(appName: String,
            pemFile: String,
            appName: String,
            workbenchMetricBaseName: String,
-           maxPageSize: Long = 1000)
+           maxPageSize: Long)
           (implicit system: ActorSystem, executionContext: ExecutionContext) = {
     this(appName, Pem(WorkbenchEmail(serviceAccountClientId), new File(pemFile)), workbenchMetricBaseName, maxPageSize)
   }
