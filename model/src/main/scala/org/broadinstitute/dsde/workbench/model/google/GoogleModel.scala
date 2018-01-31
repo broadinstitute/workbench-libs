@@ -26,6 +26,14 @@ case class GcsPath(bucketName: GcsBucketName, objectName: GcsObjectName)
 case class GcsParseError(value: String) extends ValueObject
 
 sealed trait GcsRole extends ValueObject
+object GcsRole {
+  def withName(name: String): GcsRole = name.toLowerCase() match {
+    case "reader" => Reader
+    case "writer" => Writer
+    case "owner" => Owner
+    case _ => throw new WorkbenchException(s"Invalid role $name")
+  }
+}
 case object Reader extends GcsRole { val value = "READER" }
 case object Writer extends GcsRole { val value = "WRITER" }
 case object Owner extends GcsRole { val value = "OWNER" }
@@ -57,4 +65,11 @@ object GoogleModelJsonSupport {
   implicit val ServiceAccountKeyIdFormat = ValueObjectFormat(ServiceAccountKeyId)
   implicit val ServiceAccountPrivateKeyDataFormat = ValueObjectFormat(ServiceAccountPrivateKeyData)
   implicit val ServiceAccountKeyFormat = jsonFormat4(ServiceAccountKey)
+
+  implicit val GcsBucketNameFormat = ValueObjectFormat(GcsBucketName)
+  implicit val GcsObjectNameFormat = ValueObjectFormat(GcsObjectName)
+  implicit val GcsPathFormat = jsonFormat2(GcsPath)
+  implicit val GcsParseErrorFormat = ValueObjectFormat(GcsParseError)
+  implicit val GcsRoleFormat = ValueObjectFormat(GcsRole.withName)
+  implicit val GcsAccessControlFormat = jsonFormat2(GcsAccessControl)
 }
