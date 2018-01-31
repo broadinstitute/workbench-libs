@@ -3,7 +3,7 @@ package org.broadinstitute.dsde.workbench.google
 import akka.actor.ActorSystem
 import com.google.api.services.bigquery.{Bigquery, BigqueryScopes}
 import com.google.api.services.bigquery.model._
-import org.broadinstitute.dsde.workbench.google.GoogleCredentialMode._
+import org.broadinstitute.dsde.workbench.google.GoogleCredentialModes._
 import org.broadinstitute.dsde.workbench.metrics.GoogleInstrumentedService
 import org.broadinstitute.dsde.workbench.model.WorkbenchException
 import org.broadinstitute.dsde.workbench.model.google.GoogleProject

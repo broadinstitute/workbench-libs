@@ -12,7 +12,7 @@ import scala.collection.JavaConverters._
 /**
   * Created by rtitle on 1/30/18.
   */
-object GoogleCredentialMode {
+object GoogleCredentialModes {
   val httpTransport = GoogleNetHttpTransport.newTrustedTransport
   val jsonFactory = JacksonFactory.getDefaultInstance
 
