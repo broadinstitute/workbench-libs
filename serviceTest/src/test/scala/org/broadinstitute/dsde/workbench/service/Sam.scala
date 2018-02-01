@@ -71,6 +71,11 @@ object Sam extends Sam {
       WorkbenchEmail(petEmailStr)
     }
 
+    def petServiceAccountKey(project: String)(implicit token: AuthToken): String = {
+      logger.info(s"Getting pet service account email")
+      parseResponseAs[String](getRequest(url + s"api/google/user/petServiceAccount/$project/key"))
+    }
+
     def proxyGroup(userEmail: String)(implicit token: AuthToken): WorkbenchEmail = {
       logger.info(s"Getting proxy group email")
       val proxyGroupEmailStr = parseResponseAs[String](getRequest(url + s"api/google/user/proxyGroup/$userEmail"))
