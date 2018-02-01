@@ -13,27 +13,27 @@ import org.scalatest.time.{Seconds, Span}
 
 import scala.collection.JavaConverters._
 
-case class ServiceAccountAuthToken(privateKeyJsonString: String) extends AuthToken with ScalaFutures {
-  implicit override val patienceConfig: PatienceConfig = PatienceConfig(timeout = scaled(Span(5, Seconds)))
-
+case class ServiceAccountAuthTokenFromJson(privateKeyJsonString: String, scopes: Option[Seq[String]] = None) extends AuthToken {
   override def buildCredential(): GoogleCredential = {
-    GoogleCredential.fromStream(new ByteArrayInputStream(privateKeyJsonString.getBytes())).createScoped(authScopes.asJava)
+    GoogleCredential.fromStream(new ByteArrayInputStream(privateKeyJsonString.getBytes())).createScoped(scopes.getOrElse(authScopes).asJava)
   }
 }
 
-case class TrialBillingAccountAuthToken() extends AuthToken {
-  val trialBillingPemFile = Config.GCS.trialBillingPemFile
-  val trialBillingPemFileClientId = Config.GCS.trialBillingPemFileClientId
+object ServiceAccountAuthTokenFromPem {
+  def apply(clientId: String, pemFilePath: String, scopes: Option[Seq[String]] = None) = new ServiceAccountAuthTokenFromPem(clientId, pemFilePath, scopes)
+}
 
+class ServiceAccountAuthTokenFromPem(clientId: String, pemFilePath: String, scopes: Option[Seq[String]] = None) extends AuthToken {
   def buildCredential(): GoogleCredential = {
-    val scopes: util.Collection[String] = (authScopes ++ billingScope).asJavaCollection
     val builder = new GoogleCredential.Builder()
       .setTransport(httpTransport)
       .setJsonFactory(jsonFactory)
-      .setServiceAccountId(trialBillingPemFileClientId)
-      .setServiceAccountScopes(scopes)
-      .setServiceAccountPrivateKeyFromPemFile(new java.io.File(trialBillingPemFile))
+      .setServiceAccountId(clientId)
+      .setServiceAccountScopes(scopes.getOrElse(authScopes).asJava)
+      .setServiceAccountPrivateKeyFromPemFile(new java.io.File(pemFilePath))
 
     builder.build()
   }
 }
+
+case class TrialBillingAccountAuthToken() extends ServiceAccountAuthTokenFromPem(Config.GCS.trialBillingPemFileClientId, Config.GCS.trialBillingPemFile)

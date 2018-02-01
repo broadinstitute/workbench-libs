@@ -82,11 +82,6 @@ object Sam extends Sam {
       WorkbenchEmail(proxyGroupEmailStr)
     }
 
-    def getPetServiceAccountKey(project: String)(implicit token: AuthToken): Map[String, Any] = {
-      logger.info(s"Getting pet service account key in project $project")
-      parseResponseAs[Map[String, Any]](getRequest(url + s"api/google/user/petServiceAccount/$project/key"))
-    }
-
     def deletePetServiceAccountKey(project: String, keyId: String)(implicit token: AuthToken): Unit = {
       logger.info(s"Deleting pet service account key $keyId in project $project")
       deleteRequest(url + s"api/google/user/petServiceAccount/$project/key/$keyId")
