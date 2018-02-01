@@ -6,26 +6,23 @@ import java.time.Instant
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.marshalling.Marshal
-import akka.http.scaladsl.model.{StatusCodes, _}
 import akka.http.scaladsl.model.headers.OAuth2BearerToken
+import akka.http.scaladsl.model.{StatusCodes, _}
 import akka.stream.ActorMaterializer
 import cats.implicits._
-import com.google.api.client.auth.oauth2.Credential
-import com.google.api.client.googleapis.auth.oauth2.GoogleCredential
-import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport
 import com.google.api.client.http.{AbstractInputStreamContent, FileContent, HttpResponseException, InputStreamContent}
-import com.google.api.client.json.jackson2.JacksonFactory
 import com.google.api.services.compute.ComputeScopes
 import com.google.api.services.plus.PlusScopes
 import com.google.api.services.storage.model.Bucket.Lifecycle
 import com.google.api.services.storage.model.Bucket.Lifecycle.Rule.{Action, Condition}
 import com.google.api.services.storage.model._
 import com.google.api.services.storage.{Storage, StorageScopes}
+import org.broadinstitute.dsde.workbench.google.GoogleCredentialModes._
 import org.broadinstitute.dsde.workbench.metrics.GoogleInstrumentedService
+import org.broadinstitute.dsde.workbench.model.WorkbenchEmail
 import org.broadinstitute.dsde.workbench.model.google.GcsLifecycleTypes.{Delete, GcsLifecycleType}
 import org.broadinstitute.dsde.workbench.model.google.GcsRoles.GcsRole
 import org.broadinstitute.dsde.workbench.model.google._
-import org.broadinstitute.dsde.workbench.util.FutureSupport
 
 import scala.collection.JavaConverters._
 import scala.concurrent.{ExecutionContext, Future}
@@ -140,10 +137,10 @@ class HttpGoogleStorageDAO(appName: String,
     import spray.json._
     implicit val materializer = ActorMaterializer()
 
-    bucketServiceAccountCredential.refreshToken()
+    googleCredential.refreshToken()
 
     val url = s"https://www.googleapis.com/storage/v1/b/$bucketName/notificationConfigs"
-    val header = headers.Authorization(OAuth2BearerToken(bucketServiceAccountCredential.getAccessToken))
+    val header = headers.Authorization(OAuth2BearerToken(googleCredential.getAccessToken))
 
     val entity = JsObject(
       Map(
