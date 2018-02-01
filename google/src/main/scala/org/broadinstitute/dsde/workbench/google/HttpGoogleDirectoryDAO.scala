@@ -25,7 +25,7 @@ class HttpGoogleDirectoryDAO(appName: String,
                             (implicit system: ActorSystem, executionContext: ExecutionContext)
   extends AbstractHttpGoogleDAO(appName, googleCredentialMode, workbenchMetricBaseName) with GoogleDirectoryDAO {
 
-  @deprecated(message = "This way of instantiating HttpGoogleStorageDAO has been deprecated. Please update to use the primary constructor.", since = "0.14")
+  @deprecated(message = "This way of instantiating HttpGoogleDirectoryDAO has been deprecated. Please update to use the primary constructor.", since = "0.15")
   def this (serviceAccountClientId: String,
             pemFile: String,
             ubEmail: String,
@@ -37,7 +37,7 @@ class HttpGoogleDirectoryDAO(appName: String,
     this(appName, Pem(WorkbenchEmail(serviceAccountClientId), new File(pemFile), Some(WorkbenchEmail(ubEmail))), workbenchMetricBaseName, maxPageSize)
   }
 
-  @deprecated(message = "This way of instantiating HttpGoogleStorageDAO has been deprecated. Please update to use the primary constructor.", since = "0.14")
+  @deprecated(message = "This way of instantiating HttpGoogleDirectoryDAO has been deprecated. Please update to use the primary constructor.", since = "0.15")
   def this(clientSecrets: GoogleClientSecrets,
            pemFile: String,
            appsDomain: String,

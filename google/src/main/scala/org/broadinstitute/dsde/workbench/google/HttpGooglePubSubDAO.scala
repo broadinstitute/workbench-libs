@@ -27,7 +27,7 @@ class HttpGooglePubSubDAO(appName: String,
                          (implicit system: ActorSystem, executionContext: ExecutionContext)
   extends AbstractHttpGoogleDAO(appName, googleCredentialMode, workbenchMetricBaseName) with GooglePubSubDAO {
 
-  @deprecated(message = "This way of instantiating HttpGoogleStorageDAO has been deprecated. Please update to use the primary constructor.", since = "0.14")
+  @deprecated(message = "This way of instantiating HttpGooglePubSubDAO has been deprecated. Please update to use the primary constructor.", since = "0.15")
   def this(clientEmail: String,
            pemFile: String,
            appName: String,
@@ -43,7 +43,7 @@ class HttpGooglePubSubDAO(appName: String,
 
   private val characterEncoding = "UTF-8"
 
-  lazy val pubSub = {
+  private lazy val pubSub = {
     new Pubsub.Builder(httpTransport, jsonFactory, googleCredential).setApplicationName(appName).build()
   }
 
