@@ -22,8 +22,8 @@ import com.google.api.services.storage.model.Bucket.Lifecycle.Rule.{Action, Cond
 import com.google.api.services.storage.model._
 import com.google.api.services.storage.{Storage, StorageScopes}
 import org.broadinstitute.dsde.workbench.metrics.GoogleInstrumentedService
-import org.broadinstitute.dsde.workbench.model.WorkbenchEmail
 import org.broadinstitute.dsde.workbench.model.google.GcsLifecycleTypes.{Delete, GcsLifecycleType}
+import org.broadinstitute.dsde.workbench.model.google.GcsRoles.GcsRole
 import org.broadinstitute.dsde.workbench.model.google._
 import org.broadinstitute.dsde.workbench.util.FutureSupport
 
@@ -231,17 +231,15 @@ class HttpGoogleStorageDAO(serviceAccountClientId: String,
     })
   }
 
-  override def setBucketAccessControl(bucketName: GcsBucketName, accessControl: GcsAccessControl): Future[Unit] = {
-    val entity: String = s"user-${accessControl.email.value}"
-    val acl = new BucketAccessControl().setEntity(entity).setRole(accessControl.permission.value)
+  override def setBucketAccessControl(bucketName: GcsBucketName, entity: GcsEntity, role: GcsRole): Future[Unit] = {
+    val acl = new BucketAccessControl().setEntity(entity.toString).setRole(role.value)
     val inserter = storage.bucketAccessControls().insert(bucketName.value, acl)
 
     retryWhen500orGoogleError(() => executeGoogleRequest(inserter)).void
   }
 
-  override def removeBucketAccessControl(bucketName: GcsBucketName, email: WorkbenchEmail): Future[Unit] = {
-    val entity: String = s"user-${email.value}"
-    val deleter = storage.bucketAccessControls().delete(bucketName.value, entity)
+  override def removeBucketAccessControl(bucketName: GcsBucketName, entity: GcsEntity): Future[Unit] = {
+    val deleter = storage.bucketAccessControls().delete(bucketName.value, entity.toString)
 
     retryWithRecoverWhen500orGoogleError { () =>
       executeGoogleRequest(deleter)
@@ -251,17 +249,15 @@ class HttpGoogleStorageDAO(serviceAccountClientId: String,
     }
   }
 
-  override def setObjectAccessControl(bucketName: GcsBucketName, objectName: GcsObjectName, accessControl: GcsAccessControl): Future[Unit] = {
-    val entity: String = s"user-${accessControl.email.value}"
-    val acl = new ObjectAccessControl().setEntity(entity).setRole(accessControl.permission.value)
+  override def setObjectAccessControl(bucketName: GcsBucketName, objectName: GcsObjectName, entity: GcsEntity, role: GcsRole): Future[Unit] = {
+    val acl = new ObjectAccessControl().setEntity(entity.toString).setRole(role.value)
     val inserter = storage.objectAccessControls().insert(bucketName.value, objectName.value, acl)
 
     retryWhen500orGoogleError(() => executeGoogleRequest(inserter)).void
   }
 
-  override def removeObjectAccessControl(bucketName: GcsBucketName, objectName: GcsObjectName, email: WorkbenchEmail): Future[Unit] = {
-    val entity: String = s"user-${email.value}"
-    val deleter = storage.objectAccessControls().delete(bucketName.value, objectName.value, entity)
+  override def removeObjectAccessControl(bucketName: GcsBucketName, objectName: GcsObjectName, entity: GcsEntity): Future[Unit] = {
+    val deleter = storage.objectAccessControls().delete(bucketName.value, objectName.value, entity.toString)
 
     retryWithRecoverWhen500orGoogleError { () =>
       executeGoogleRequest(deleter)
@@ -271,17 +267,15 @@ class HttpGoogleStorageDAO(serviceAccountClientId: String,
     }
   }
 
-  override def setDefaultObjectAccessControl(bucketName: GcsBucketName, accessControl: GcsAccessControl): Future[Unit] = {
-    val entity: String = s"user-${accessControl.email.value}"
-    val acl = new ObjectAccessControl().setEntity(entity).setRole(accessControl.permission.value)
+  override def setDefaultObjectAccessControl(bucketName: GcsBucketName, entity: GcsEntity, role: GcsRole): Future[Unit] = {
+    val acl = new ObjectAccessControl().setEntity(entity.toString).setRole(role.value)
     val inserter = storage.defaultObjectAccessControls().insert(bucketName.value, acl)
 
     retryWhen500orGoogleError(() => executeGoogleRequest(inserter)).void
   }
 
-  override def removeDefaultObjectAccessControl(bucketName: GcsBucketName, email: WorkbenchEmail): Future[Unit] = {
-    val entity: String = s"user-${email.value}"
-    val deleter = storage.defaultObjectAccessControls().delete(bucketName.value, entity)
+  override def removeDefaultObjectAccessControl(bucketName: GcsBucketName, entity: GcsEntity): Future[Unit] = {
+    val deleter = storage.defaultObjectAccessControls().delete(bucketName.value, entity.toString)
 
     retryWithRecoverWhen500orGoogleError { () =>
       executeGoogleRequest(deleter)

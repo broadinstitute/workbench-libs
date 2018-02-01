@@ -4,6 +4,7 @@ import java.time.Instant
 import java.time.format.DateTimeFormatter
 
 import org.broadinstitute.dsde.workbench.model._
+import org.broadinstitute.dsde.workbench.model.google.GcsEntityTypes.GcsEntityType
 import org.broadinstitute.dsde.workbench.model.google.GcsRoles.GcsRole
 import spray.json.{JsString, JsValue, RootJsonFormat}
 
@@ -52,7 +53,20 @@ object GcsRoles {
   }
 }
 
-case class GcsAccessControl(email: WorkbenchEmail, permission: GcsRole)
+object GcsEntityTypes {
+  sealed trait GcsEntityType extends ValueObject
+  case object User extends GcsEntityType { val value = "user" }
+  case object Group extends GcsEntityType { val value = "group" }
+
+  def withName(name: String): GcsEntityType = name.toLowerCase() match {
+    case "user" => User
+    case "group" => Group
+  }
+}
+
+case class GcsEntity(email: WorkbenchEmail, entityType: GcsEntityType) {
+  override def toString: String = s"${entityType.value}-${email.value}"
+}
 
 object GoogleModelJsonSupport {
   import spray.json.DefaultJsonProtocol._
@@ -86,5 +100,6 @@ object GoogleModelJsonSupport {
   implicit val GcsParseErrorFormat = ValueObjectFormat(GcsParseError)
   implicit val GcsLifecycleTypeFormat = ValueObjectFormat(GcsLifecycleTypes.withName)
   implicit val GcsRoleFormat = ValueObjectFormat(GcsRoles.withName)
-  implicit val GcsAccessControlFormat = jsonFormat2(GcsAccessControl)
+  implicit val GcsEntityTypeFormat = ValueObjectFormat(GcsEntityTypes.withName)
+  implicit val GcsEntityFormat = jsonFormat2(GcsEntity)
 }

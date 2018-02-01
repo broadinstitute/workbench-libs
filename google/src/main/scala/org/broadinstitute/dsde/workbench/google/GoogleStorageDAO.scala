@@ -2,9 +2,9 @@ package org.broadinstitute.dsde.workbench.google
 
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream, File}
 
-import org.broadinstitute.dsde.workbench.model.WorkbenchEmail
 import org.broadinstitute.dsde.workbench.model.google.GcsLifecycleTypes.{Delete, GcsLifecycleType}
-import org.broadinstitute.dsde.workbench.model.google.{GcsAccessControl, GcsBucketName, GcsObjectName, GoogleProject}
+import org.broadinstitute.dsde.workbench.model.google.GcsRoles.GcsRole
+import org.broadinstitute.dsde.workbench.model.google.{GcsBucketName, GcsEntity, GcsObjectName, GoogleProject}
 
 import scala.concurrent.Future
 
@@ -26,13 +26,13 @@ trait GoogleStorageDAO {
   def setObjectChangePubSubTrigger(bucketName: GcsBucketName, topicName: String, eventTypes: List[String]): Future[Unit]
   def listObjectsWithPrefix(bucketName: GcsBucketName, objectNamePrefix: String): Future[List[GcsObjectName]]
 
-  def setBucketAccessControl(bucketName: GcsBucketName, accessControl: GcsAccessControl): Future[Unit]
-  def removeBucketAccessControl(bucketName: GcsBucketName, email: WorkbenchEmail): Future[Unit]
+  def setBucketAccessControl(bucketName: GcsBucketName, entity: GcsEntity, role: GcsRole): Future[Unit]
+  def removeBucketAccessControl(bucketName: GcsBucketName, entity: GcsEntity): Future[Unit]
 
-  def setObjectAccessControl(bucketName: GcsBucketName, objectName: GcsObjectName, accessControl: GcsAccessControl): Future[Unit]
-  def removeObjectAccessControl(bucketName: GcsBucketName, objectName: GcsObjectName, email: WorkbenchEmail): Future[Unit]
+  def setObjectAccessControl(bucketName: GcsBucketName, objectName: GcsObjectName, entity: GcsEntity, role: GcsRole): Future[Unit]
+  def removeObjectAccessControl(bucketName: GcsBucketName, objectName: GcsObjectName, entity: GcsEntity): Future[Unit]
 
-  def setDefaultObjectAccessControl(bucketName: GcsBucketName, accessControl: GcsAccessControl): Future[Unit]
-  def removeDefaultObjectAccessControl(bucketName: GcsBucketName, email: WorkbenchEmail): Future[Unit]
+  def setDefaultObjectAccessControl(bucketName: GcsBucketName, entity: GcsEntity, role: GcsRole): Future[Unit]
+  def removeDefaultObjectAccessControl(bucketName: GcsBucketName, entity: GcsEntity): Future[Unit]
 
 }
