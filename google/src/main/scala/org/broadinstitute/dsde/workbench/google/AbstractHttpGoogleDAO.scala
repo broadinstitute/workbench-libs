@@ -21,5 +21,15 @@ abstract class AbstractHttpGoogleDAO protected (appName: String,
 
   def scopes: Seq[String]
 
-  protected def googleCredential: GoogleCredential = credentialMode.toGoogleCredential(scopes)
+  protected def googleCredential: GoogleCredential = {
+    // In token mode, invoke `toGoogleCredential` every time a credential is needed because it includes
+    // a callback to refresh expired tokens.
+    // Otherwise, use the cached GoogleCredential so it is only instantiated once.
+    credentialMode match {
+      case Token(_) => credentialMode.toGoogleCredential(scopes)
+      case _ => cachedGoogleCredential
+    }
+  }
+
+  private lazy val cachedGoogleCredential: GoogleCredential = credentialMode.toGoogleCredential(scopes)
 }

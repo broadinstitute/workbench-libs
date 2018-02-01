@@ -37,7 +37,7 @@ class HttpGoogleStorageDAO(appName: String,
                           (implicit system: ActorSystem, executionContext: ExecutionContext)
   extends AbstractHttpGoogleDAO(appName, googleCredentialMode, workbenchMetricBaseName) with GoogleStorageDAO {
 
-  @deprecated(message = "This way of instantiating HttpGoogleStorageDAO has been deprecated. Please upgrade your configs appropriately.", since = "1.0")
+  @deprecated(message = "This way of instantiating HttpGoogleStorageDAO has been deprecated. Please update to use the primary constructor.", since = "0.14")
   def this(serviceAccountClientId: String,
            pemFile: String,
            appName: String,
