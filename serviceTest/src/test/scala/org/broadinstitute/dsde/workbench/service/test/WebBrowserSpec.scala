@@ -6,10 +6,11 @@ import java.text.SimpleDateFormat
 import java.util.UUID
 
 import com.typesafe.scalalogging.LazyLogging
-import org.broadinstitute.dsde.workbench.service.Orchestration
 import org.broadinstitute.dsde.workbench.config.Config
+import org.broadinstitute.dsde.workbench.service.Orchestration
 import org.broadinstitute.dsde.workbench.service.util.ExceptionHandling
 import org.openqa.selenium.chrome.{ChromeDriverService, ChromeOptions}
+import org.openqa.selenium.logging.LogType
 import org.openqa.selenium.remote.{Augmenter, DesiredCapabilities, LocalFileDetector, RemoteWebDriver}
 import org.openqa.selenium.{OutputType, TakesScreenshot, WebDriver}
 import org.scalatest.Suite
@@ -129,6 +130,7 @@ trait WebBrowserSpec extends WebBrowserUtil with ExceptionHandling with LazyLogg
         val date = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss-SSS").format(new java.util.Date())
         val fileName = s"failure_screenshots/${date}_$suiteName.png"
         val htmlSourceFileName = s"failure_screenshots/${date}_$suiteName.html"
+        val logFileName = s"failure_screenshots/${date}_${suiteName}_console.txt"
         try {
           val directory = new File("failure_screenshots")
           if (!directory.exists()) {
@@ -141,6 +143,12 @@ trait WebBrowserSpec extends WebBrowserUtil with ExceptionHandling with LazyLogg
 
           val html = tagName("html").element.underlying.getAttribute("outerHTML")
           new FileOutputStream(new File(htmlSourceFileName)).write(html.getBytes)
+
+          val logLines = driver.manage().logs().get(LogType.BROWSER).iterator().asScala.toList
+          if (logLines.nonEmpty) {
+            val logString = logLines.map(_.toString).reduce(_ + "\n" + _)
+            new FileOutputStream(new File(logFileName)).write(logString.getBytes)
+          }
         } catch nonFatalAndLog(s"FAILED TO SAVE SCREENSHOT $fileName")
         throw t
     }
