@@ -55,7 +55,7 @@ trait RestClient extends Retry with LazyLogging {
       case true =>
         val byteStringSink: Sink[ByteString, Future[ByteString]] = Sink.fold(ByteString("")) { (z, i) => z.concat(i) }
         val entityFuture = response.entity.dataBytes.runWith(byteStringSink)
-        Await.result(entityFuture, 1.second).decodeString("UTF-8")
+        Await.result(entityFuture, 5.minute).decodeString("UTF-8")
       case _ =>
         throwRestException(response)
     }
@@ -64,7 +64,7 @@ trait RestClient extends Retry with LazyLogging {
   private def throwRestException(response: HttpResponse) = {
     val byteStringSink: Sink[ByteString, Future[ByteString]] = Sink.fold(ByteString("")) { (z, i) => z.concat(i) }
     val entityFuture = response.entity.dataBytes.runWith(byteStringSink)
-    throw RestException(Await.result(entityFuture, 1.second).decodeString("UTF-8"))
+    throw RestException(Await.result(entityFuture, 5.minute).decodeString("UTF-8"))
   }
 
   import scala.reflect.{ClassTag, classTag}
