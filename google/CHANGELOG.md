@@ -2,6 +2,23 @@
 
 This file documents changes to the `workbench-google` library, including notes on how to upgrade to new versions.
 
+## 0.14
+
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.14-6800f3a"`
+
+### Changed
+
+- Updated GoogleStorageDAO to use model objects from `workbench-model`
+- Updated methods in GoogleStorageDAO:
+   - Added methods to create/remove bucket/object ACLs
+   - Added `bucketExists(GcsBucketName): Future[Boolean]`
+   - Added `storeObject` variants which take an `ByteArrayInputStream` or a `File`
+   
+### Removed
+
+- `org.broadinstitute.dsde.workbench.google.gcs` package (functionality moved to workbench-model)
+
+
 ## 0.13
 
 SBT dependency: `TBD`
