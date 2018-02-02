@@ -25,6 +25,7 @@ trait CleanUp extends TestSuiteMixin with ExceptionHandling with LazyLogging { s
       * @param f the clean-up function
       */
     def cleanUp(f: => Any): Unit = {
+      print("adding cleanup function")
       cleanUpFunctions.addFirst(f _)
     }
   }
@@ -95,7 +96,7 @@ trait CleanUp extends TestSuiteMixin with ExceptionHandling with LazyLogging { s
   }
 
   private def runCleanUpFunctions() = {
-    print("number of cleanup functions: " + cleanUpFunctions.size())
+    println("number of cleanup functions: " + cleanUpFunctions.size())
     cleanUpFunctions.toArray().foreach { f  => try f catch nonFatalAndLog("Error in clean-up function")}
     cleanUpFunctions.clear()
   }
