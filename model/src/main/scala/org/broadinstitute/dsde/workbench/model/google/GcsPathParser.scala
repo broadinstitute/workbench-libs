@@ -1,30 +1,13 @@
-package org.broadinstitute.dsde.workbench.google.gcs
+package org.broadinstitute.dsde.workbench.model.google
 
 import com.google.common.net.UrlEscapers
 import java.net.URI
 
-import org.broadinstitute.dsde.workbench.google.gcs.GcsPathParser._
+import org.broadinstitute.dsde.workbench.model.google.GcsPathParser._
 
 import scala.util.{Failure, Success, Try}
 
-/** A GCS path including bucket name and path */
-case class GcsPath(bucketName: GcsBucketName, relativePath: GcsRelativePath) {
-  def toUri: String = s"$GCS_SCHEME://${bucketName.name}/${relativePath.name}"
-}
-object GcsPath {
-  def parse(str: String): Either[GcsParseError, GcsPath] =
-    GcsPathParser.parseGcsPathFromString(str)
-}
-
-/** A GCS relative path */
-case class GcsRelativePath(name: String) extends AnyVal
-
-/** A valid GCS bucket name */
-case class GcsBucketName(name: String) extends AnyVal
-
-case class GcsParseError(message: String) extends AnyVal
-
-private object GcsPathParser {
+private[model] object GcsPathParser {
   final val GCS_SCHEME = "gs"
 
   /*
@@ -99,8 +82,8 @@ private object GcsPathParser {
       .toRight(GcsParseError(s"Could not parse bucket name from path: $path"))
   }
 
-  def getAndValidateRelativePath(uri: URI): Either[GcsParseError, GcsRelativePath] = {
-    Option(uri.getPath).map(_.stripPrefix("/")).map(GcsRelativePath.apply)
+  def getAndValidateRelativePath(uri: URI): Either[GcsParseError, GcsObjectName] = {
+    Option(uri.getPath).map(_.stripPrefix("/")).map(path => GcsObjectName(path))
       .toRight(GcsParseError(s"Could not parse bucket relative path from path: ${uri.toString}"))
   }
 }

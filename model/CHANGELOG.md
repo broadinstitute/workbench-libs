@@ -2,6 +2,15 @@
 
 This file documents changes to the `workbench-model` library, including notes on how to upgrade to new versions.
 
+## 0.10
+
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-model" % "0.10-6800f3a"`
+
+### Added
+
+- Model objects for Google Storage
+- `GcsPathParser` (functionality moved from `workbench-google`)
+
 ## 0.9
 
 SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-model" % "0.9-d722ae2"`
