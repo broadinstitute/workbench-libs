@@ -16,8 +16,8 @@ import scala.concurrent.duration._
 
 trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport with DefaultJsonProtocol {
 
-  def responseAsList(response: String): List[Map[String, Object]] = {
-    mapper.readValue(response, classOf[List[Map[String, Object]]])
+  def responseAsList[T](response: String): List[Map[String, T]] = {
+    mapper.readValue(response, classOf[List[Map[String, T]]])
   }
 
   private def apiUrl(s: String) = {
@@ -28,10 +28,25 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
 
     object BillingProjectRole extends Enumeration {
       type BillingProjectRole = Value
-      val User = Value("user")
-      val Owner = Value("owner")
+      val User = Value("User")
+      val Owner = Value("Owner")
     }
+
+    object BillingProjectStatus extends Enumeration {
+      type BillingProjectStatus = Value
+      val Creating = Value("Creating")
+      val Ready = Value("Ready")
+      val Error = Value("Error")
+
+      val terminalStates = List(Ready, Error)
+      def isTerminal(status: BillingProjectStatus): Boolean = terminalStates.contains(status)
+      def isActive(status: BillingProjectStatus): Boolean = !isTerminal(status)
+    }
+
     import BillingProjectRole._
+    import BillingProjectStatus._
+
+    case class BillingProject(projectName: String, role: BillingProjectRole, creationStatus: BillingProjectStatus)
 
     def addUserToBillingProject(projectName: String, email: String, role: BillingProjectRole)(implicit token: AuthToken): Unit = {
       logger.info(s"Adding user to billing project: $projectName $email ${role.toString}")
@@ -58,13 +73,21 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
       postRequest(apiUrl("api/billing"), Map("projectName" -> projectName, "billingAccount" -> billingAccount))
 
       Retry.retry(10.seconds, 10.minutes)({
-              val response: String = parseResponse(getRequest(apiUrl("api/profile/billing")))
-              val projects: List[Map[String, Object]] = responseAsList(response)
-              projects.find((e) =>
-                e.exists(_ == ("creationStatus", "Ready")) && e.exists(_ == ("projectName", projectName)))
-            }) match {
+        val response: String = parseResponse(getRequest(apiUrl("api/profile/billing")))
+        val projects = responseAsList(response).map { p =>
+          BillingProject.apply(p("projectName"), BillingProjectRole.withName(p("role")), BillingProjectStatus.withName(p("creationStatus")))
+        }
+
+        projects.find(p => p.projectName == projectName && BillingProjectStatus.isTerminal(p.creationStatus))
+      }) match {
         case None => throw new Exception("Billing project creation did not complete")
-        case Some(_) => logger.info(s"Finished creating billing project: $projectName $billingAccount")
+        case Some(p) =>
+          if(p.creationStatus.equals(BillingProjectStatus.Ready))
+            logger.info(s"Finished creating billing project: $projectName $billingAccount")
+          else {
+            logger.info(s"Encountered an error creating billing project: $projectName $billingAccount")
+            throw new Exception("Billing project creation encountered an error")
+          }
       }
     }
   }
