@@ -1,12 +1,12 @@
 # Changelog
 
-This file documents changes to the `workbench-google` library, including notes on how to upgrade to new versions.
+This file documents changes to the `workbench-service-test` library, including notes on how to upgrade to new versions.
 
-## 0.0.1-alpha
+## 0.1
 
-**NOTE: This is not a real version. This version block should be removed when publishing the first real version. It is provided now mainly to establish this changelog file.**
+** Alpha version, subject to iteration and revision **
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "0.0.1-alpha-TBD"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "0.1-74d2dc6"`
 
 ### Added
 
