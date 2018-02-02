@@ -144,7 +144,6 @@ trait WebBrowserSpec extends WebBrowserUtil with ExceptionHandling with LazyLogg
           val html = tagName("html").element.underlying.getAttribute("outerHTML")
           new FileOutputStream(new File(htmlSourceFileName)).write(html.getBytes)
 
-          import scala.collection.JavaConverters._
           val logLines = driver.manage().logs().get(LogType.BROWSER).iterator().asScala.toList
           if (logLines.nonEmpty) {
             val logString = logLines.map(_.toString).reduce(_ + "\n" + _)
