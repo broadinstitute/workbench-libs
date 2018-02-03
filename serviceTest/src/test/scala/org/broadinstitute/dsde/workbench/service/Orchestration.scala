@@ -7,6 +7,7 @@ import org.broadinstitute.dsde.workbench.auth.AuthToken
 import org.broadinstitute.dsde.workbench.config.Config
 import org.broadinstitute.dsde.workbench.fixture.Method
 import org.broadinstitute.dsde.workbench.fixture.MethodData.SimpleMethod
+import org.broadinstitute.dsde.workbench.service.Sam.user.UserStatusDetails
 import org.broadinstitute.dsde.workbench.service.util.{Retry, Util}
 import org.broadinstitute.dsde.workbench.service.util.Util.appendUnderscore
 import spray.json.{DefaultJsonProtocol, _}
@@ -368,6 +369,11 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
                              available: Int,
                              claimed: Int)
 
+    case class TrialProjectReport(name: String,
+                                  verified: Boolean,
+                                  user: Option[UserStatusDetails],
+                                  status: Option[String])
+
     private def checkUserStatusUpdate(userEmail: String, update: String, response: String): Unit = {
       val successfulResponseKeys = Seq("Success", "NoChangeRequired")
 
@@ -420,6 +426,15 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
       val trialProjects: TrialProjects = response.parseJson.convertTo[TrialProjects]
       logger.info(s"Trial Projects Available: ${trialProjects.available}")
       trialProjects
+    }
+
+    def reportTrialProjects()(implicit token: AuthToken): Seq[TrialProjectReport] = {
+      val response = postRequest(apiUrl(s"api/trial/manager/projects?operation=report"))
+      implicit val impUserStatusDetails: RootJsonFormat[UserStatusDetails] = jsonFormat2(UserStatusDetails)
+      implicit val impTrialProjectReport: RootJsonFormat[TrialProjectReport] = jsonFormat4(TrialProjectReport)
+      val trialProjectReports: Seq[TrialProjectReport] = response.parseJson.convertTo[Seq[TrialProjectReport]]
+      logger.info(s"Current Trial Project Reports: ${trialProjectReports.map(_.name).mkString(", ")}")
+      trialProjectReports
     }
 
   }
