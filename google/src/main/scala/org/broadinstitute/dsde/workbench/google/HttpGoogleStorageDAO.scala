@@ -129,6 +129,16 @@ class HttpGoogleStorageDAO(appName: String,
     })
   }
 
+  override def objectExists(bucketName: GcsBucketName, objectName: GcsObjectName): Future[Boolean] = {
+    val getter = storage.objects().get(bucketName.value, objectName.value)
+    retryWithRecoverWhen500orGoogleError { () =>
+      executeGoogleRequest(getter)
+      true
+    } {
+      case t: HttpResponseException if t.getStatusCode == StatusCodes.NotFound.intValue => false
+    }
+  }
+
   //This functionality doesn't exist in the com.google.apis Java library.
   //When we migrate to the com.google.cloud library, we will be able to re-write this to use their implementation
   override def setObjectChangePubSubTrigger(bucketName: GcsBucketName, topicName: String, eventTypes: List[String]): Future[Unit] = {
