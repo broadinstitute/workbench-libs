@@ -4,7 +4,6 @@ import com.typesafe.scalalogging.LazyLogging
 import java.util.concurrent.ConcurrentLinkedDeque
 import org.broadinstitute.dsde.workbench.service.util.ExceptionHandling
 import org.scalatest.{Outcome, TestSuite, TestSuiteMixin}
-//import scala.collection.concurrent.
 import collection.JavaConverters._
 
 /**
