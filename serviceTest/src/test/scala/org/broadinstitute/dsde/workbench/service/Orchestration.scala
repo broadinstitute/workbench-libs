@@ -72,22 +72,19 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
       logger.info(s"Creating billing project: $projectName $billingAccount")
       postRequest(apiUrl("api/billing"), Map("projectName" -> projectName, "billingAccount" -> billingAccount))
 
-      Retry.retry(10.seconds, 20.minutes)({
+      Retry.retry(10.seconds, 20.minutes, Option(s"Creating billing project $projectName $billingAccount"))({
         val response: String = parseResponse(getRequest(apiUrl("api/profile/billing")))
         val projects = responseAsList(response).map { p =>
-          BillingProject.apply(p("projectName"), BillingProjectRole.withName(p("role")), BillingProjectStatus.withName(p("creationStatus")))
+          BillingProject(p("projectName"), BillingProjectRole.withName(p("role")), BillingProjectStatus.withName(p("creationStatus")))
         }
 
         projects.find(p => p.projectName == projectName && BillingProjectStatus.isTerminal(p.creationStatus))
       }) match {
-        case None => throw new Exception("Billing project creation did not complete")
-        case Some(p) =>
-          if(p.creationStatus.equals(BillingProjectStatus.Ready))
-            logger.info(s"Finished creating billing project: $projectName $billingAccount")
-          else {
-            logger.info(s"Encountered an error creating billing project: $projectName $billingAccount")
-            throw new Exception("Billing project creation encountered an error")
-          }
+        case Some(BillingProject(name, _, BillingProjectStatus.Ready)) =>
+          logger.info(s"Finished creating billing project: $name $billingAccount")
+        case Some(BillingProject(name, _, _)) =>
+          logger.info(s"Encountered an error creating billing project: $name $billingAccount")
+          throw new Exception("Billing project creation encountered an error")
       }
     }
   }
