@@ -28,7 +28,6 @@ trait CleanUp extends TestSuiteMixin with ExceptionHandling with LazyLogging { s
       * @param f the clean-up function
       */
     def cleanUp(f: => Any): Unit = {
-      print("adding cleanup function")
       cleanUpFunctions.addFirst(f _)
     }
   }
@@ -81,7 +80,6 @@ trait CleanUp extends TestSuiteMixin with ExceptionHandling with LazyLogging { s
     * @param testCode the test code to run
     */
   def withCleanUp(testCode: => Any): Unit = {
-//    if (cleanUpFunctions.peek() != null) throw new Exception("cleanUpFunctions non empty at start of withCleanUp block")
     try {
       testCode
     } finally {
@@ -90,7 +88,7 @@ trait CleanUp extends TestSuiteMixin with ExceptionHandling with LazyLogging { s
   }
 
   abstract override def withFixture(test: NoArgTest): Outcome = {
-//    if (cleanUpFunctions.peek() != null) throw new Exception("cleanUpFunctions non empty at start of withFixture block")
+    if (cleanUpFunctions.peek() != null) throw new Exception("cleanUpFunctions non empty at start of withFixture block")
     try {
       super.withFixture(test)
     } finally {
@@ -99,7 +97,6 @@ trait CleanUp extends TestSuiteMixin with ExceptionHandling with LazyLogging { s
   }
 
   private def runCleanUpFunctions() = {
-    println("number of cleanup functions: " + cleanUpFunctions.size())
     cleanUpFunctions.asScala.foreach { f => try f() catch nonFatalAndLog("Error in clean-up function")}
     cleanUpFunctions.clear()
   }
