@@ -6,55 +6,49 @@ import java.time.Instant
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.marshalling.Marshal
-import akka.http.scaladsl.model.{StatusCodes, _}
 import akka.http.scaladsl.model.headers.OAuth2BearerToken
+import akka.http.scaladsl.model.{StatusCodes, _}
 import akka.stream.ActorMaterializer
 import cats.implicits._
-import com.google.api.client.auth.oauth2.Credential
-import com.google.api.client.googleapis.auth.oauth2.GoogleCredential
-import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport
 import com.google.api.client.http.{AbstractInputStreamContent, FileContent, HttpResponseException, InputStreamContent}
-import com.google.api.client.json.jackson2.JacksonFactory
 import com.google.api.services.compute.ComputeScopes
 import com.google.api.services.plus.PlusScopes
 import com.google.api.services.storage.model.Bucket.Lifecycle
 import com.google.api.services.storage.model.Bucket.Lifecycle.Rule.{Action, Condition}
 import com.google.api.services.storage.model._
 import com.google.api.services.storage.{Storage, StorageScopes}
+import org.broadinstitute.dsde.workbench.google.GoogleCredentialModes._
 import org.broadinstitute.dsde.workbench.metrics.GoogleInstrumentedService
+import org.broadinstitute.dsde.workbench.model.WorkbenchEmail
 import org.broadinstitute.dsde.workbench.model.google.GcsLifecycleTypes.{Delete, GcsLifecycleType}
 import org.broadinstitute.dsde.workbench.model.google.GcsRoles.GcsRole
 import org.broadinstitute.dsde.workbench.model.google._
-import org.broadinstitute.dsde.workbench.util.FutureSupport
 
 import scala.collection.JavaConverters._
 import scala.concurrent.{ExecutionContext, Future}
 
-class HttpGoogleStorageDAO(serviceAccountClientId: String,
-                           pemFile: String,
-                           appName: String,
-                           override val workbenchMetricBaseName: String,
-                           maxPageSize: Long = 1000)( implicit val system: ActorSystem, implicit val executionContext: ExecutionContext ) extends GoogleStorageDAO with FutureSupport with GoogleUtilities {
+class HttpGoogleStorageDAO(appName: String,
+                           googleCredentialMode: GoogleCredentialMode,
+                           workbenchMetricBaseName: String,
+                           maxPageSize: Long = 1000)
+                          (implicit system: ActorSystem, executionContext: ExecutionContext)
+  extends AbstractHttpGoogleDAO(appName, googleCredentialMode, workbenchMetricBaseName) with GoogleStorageDAO {
 
-  val storageScopes = Seq(StorageScopes.DEVSTORAGE_FULL_CONTROL, ComputeScopes.COMPUTE, PlusScopes.USERINFO_EMAIL, PlusScopes.USERINFO_PROFILE)
-
-  val httpTransport = GoogleNetHttpTransport.newTrustedTransport
-  val jsonFactory = JacksonFactory.getDefaultInstance
-
-  implicit val service = GoogleInstrumentedService.Storage
-
-  private lazy val storage: Storage = {
-    new Storage.Builder(httpTransport, jsonFactory, bucketServiceAccountCredential).setApplicationName(appName).build()
+  @deprecated(message = "This way of instantiating HttpGoogleStorageDAO has been deprecated. Please update to use the primary constructor.", since = "0.15")
+  def this(serviceAccountClientId: String,
+           pemFile: String,
+           appName: String,
+           workbenchMetricBaseName: String,
+           maxPageSize: Long)
+          (implicit system: ActorSystem, executionContext: ExecutionContext) = {
+    this(appName, Pem(WorkbenchEmail(serviceAccountClientId), new File(pemFile)), workbenchMetricBaseName, maxPageSize)
   }
+  override val scopes = Seq(StorageScopes.DEVSTORAGE_FULL_CONTROL, ComputeScopes.COMPUTE, PlusScopes.USERINFO_EMAIL, PlusScopes.USERINFO_PROFILE)
 
-  private lazy val bucketServiceAccountCredential: Credential = {
-    new GoogleCredential.Builder()
-      .setTransport(httpTransport)
-      .setJsonFactory(jsonFactory)
-      .setServiceAccountId(serviceAccountClientId)
-      .setServiceAccountScopes(storageScopes.asJava) // grant bucket-creation powers
-      .setServiceAccountPrivateKeyFromPemFile(new java.io.File(pemFile))
-      .build()
+  override implicit val service = GoogleInstrumentedService.Storage
+
+  private lazy val storage = {
+    new Storage.Builder(httpTransport, jsonFactory, googleCredential).setApplicationName(appName).build()
   }
 
   override def createBucket(billingProject: GoogleProject, bucketName: GcsBucketName): Future[GcsBucketName] = {
@@ -135,6 +129,16 @@ class HttpGoogleStorageDAO(serviceAccountClientId: String,
     })
   }
 
+  override def objectExists(bucketName: GcsBucketName, objectName: GcsObjectName): Future[Boolean] = {
+    val getter = storage.objects().get(bucketName.value, objectName.value)
+    retryWithRecoverWhen500orGoogleError { () =>
+      executeGoogleRequest(getter)
+      true
+    } {
+      case t: HttpResponseException if t.getStatusCode == StatusCodes.NotFound.intValue => false
+    }
+  }
+
   //This functionality doesn't exist in the com.google.apis Java library.
   //When we migrate to the com.google.cloud library, we will be able to re-write this to use their implementation
   override def setObjectChangePubSubTrigger(bucketName: GcsBucketName, topicName: String, eventTypes: List[String]): Future[Unit] = {
@@ -143,10 +147,10 @@ class HttpGoogleStorageDAO(serviceAccountClientId: String,
     import spray.json._
     implicit val materializer = ActorMaterializer()
 
-    bucketServiceAccountCredential.refreshToken()
+    googleCredential.refreshToken()
 
     val url = s"https://www.googleapis.com/storage/v1/b/$bucketName/notificationConfigs"
-    val header = headers.Authorization(OAuth2BearerToken(bucketServiceAccountCredential.getAccessToken))
+    val header = headers.Authorization(OAuth2BearerToken(googleCredential.getAccessToken))
 
     val entity = JsObject(
       Map(

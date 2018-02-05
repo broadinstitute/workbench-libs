@@ -1,11 +1,9 @@
 package org.broadinstitute.dsde.workbench.google
 
 import akka.actor.ActorSystem
-import com.google.api.client.googleapis.auth.oauth2.GoogleCredential
-import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport
-import com.google.api.client.json.jackson2.JacksonFactory
+import com.google.api.services.bigquery.{Bigquery, BigqueryScopes}
 import com.google.api.services.bigquery.model._
-import com.google.api.services.bigquery.Bigquery
+import org.broadinstitute.dsde.workbench.google.GoogleCredentialModes._
 import org.broadinstitute.dsde.workbench.metrics.GoogleInstrumentedService
 import org.broadinstitute.dsde.workbench.model.WorkbenchException
 import org.broadinstitute.dsde.workbench.model.google.GoogleProject
@@ -13,26 +11,26 @@ import org.broadinstitute.dsde.workbench.model.google.GoogleProject
 import scala.concurrent.{ExecutionContext, Future}
 
 class HttpGoogleBigQueryDAO(appName: String,
-                            override val workbenchMetricBaseName: String)
-                           (implicit val system: ActorSystem, val executionContext: ExecutionContext) extends GoogleBigQueryDAO with GoogleUtilities {
+                            googleCredentialMode: GoogleCredentialMode,
+                            workbenchMetricBaseName: String)
+                           (implicit system: ActorSystem, executionContext: ExecutionContext)
+  extends AbstractHttpGoogleDAO(appName, googleCredentialMode, workbenchMetricBaseName) with GoogleBigQueryDAO {
 
-  implicit val service = GoogleInstrumentedService.BigQuery
+  override val scopes = Seq(BigqueryScopes.BIGQUERY)
 
-  lazy val httpTransport = GoogleNetHttpTransport.newTrustedTransport
-  lazy val jsonFactory = JacksonFactory.getDefaultInstance
+  override implicit val service = GoogleInstrumentedService.BigQuery
 
-  private def bigquery(accessToken: String): Bigquery = {
-    val credential = new GoogleCredential().setAccessToken(accessToken)
-    new Bigquery.Builder(httpTransport, jsonFactory, credential).setApplicationName(appName).build()
+  private lazy val bigquery: Bigquery = {
+    new Bigquery.Builder(httpTransport, jsonFactory, googleCredential).setApplicationName(appName).build()
   }
 
-  override def startQuery(accessToken: String, project: GoogleProject, querySql: String): Future[JobReference] = {
+  override def startQuery(project: GoogleProject, querySql: String): Future[JobReference] = {
     val job = new Job()
       .setConfiguration(new JobConfiguration()
         .setQuery(new JobConfigurationQuery()
           .setQuery(querySql)))
 
-    val queryRequest = bigquery(accessToken).jobs.insert(project.value, job)
+    val queryRequest = bigquery.jobs.insert(project.value, job)
 
     retryWhen500orGoogleError { () =>
       executeGoogleRequest(queryRequest)
@@ -41,19 +39,19 @@ class HttpGoogleBigQueryDAO(appName: String,
     }
   }
 
-  override def getQueryStatus(accessToken: String, jobRef: JobReference): Future[Job] = {
-    val statusRequest = bigquery(accessToken).jobs.get(jobRef.getProjectId, jobRef.getJobId)
+  override def getQueryStatus(jobRef: JobReference): Future[Job] = {
+    val statusRequest = bigquery.jobs.get(jobRef.getProjectId, jobRef.getJobId)
 
     retryWhen500orGoogleError { () =>
       executeGoogleRequest(statusRequest)
     }
   }
 
-  override def getQueryResult(accessToken: String, job: Job): Future[GetQueryResultsResponse] = {
+  override def getQueryResult(job: Job): Future[GetQueryResultsResponse] = {
     if (job.getStatus.getState != "DONE")
       Future.failed(new WorkbenchException(s"job ${job.getJobReference.getJobId} not done"))
 
-    val resultRequest = bigquery(accessToken).jobs.getQueryResults(job.getJobReference.getProjectId, job.getJobReference.getJobId)
+    val resultRequest = bigquery.jobs.getQueryResults(job.getJobReference.getProjectId, job.getJobReference.getJobId)
     retryWhen500orGoogleError { () =>
       executeGoogleRequest(resultRequest)
     }
