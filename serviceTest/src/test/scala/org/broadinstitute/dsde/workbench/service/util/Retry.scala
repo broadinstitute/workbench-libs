@@ -23,7 +23,7 @@ object Retry extends LazyLogging {
       case None => remainingBackOffIntervals match {
         case Nil => None
         case h :: t =>
-          logger.info(s"Status: ${remainingBackOffIntervals.size} retries remaining, retrying in $h")
+          logger.info(s"Retrying: ${remainingBackOffIntervals.size} retries remaining, retrying in $h")
           Thread sleep h.toMillis
           retry(t)(op)
       }
