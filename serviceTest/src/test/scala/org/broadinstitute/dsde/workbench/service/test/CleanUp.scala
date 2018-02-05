@@ -100,7 +100,7 @@ trait CleanUp extends TestSuiteMixin with ExceptionHandling with LazyLogging { s
 
   private def runCleanUpFunctions() = {
     println("number of cleanup functions: " + cleanUpFunctions.size())
-    cleanUpFunctions.asScala.foreach { f => try f catch nonFatalAndLog("Error in clean-up function")}
+    cleanUpFunctions.asScala.foreach { f => try f() catch nonFatalAndLog("Error in clean-up function")}
     cleanUpFunctions.clear()
   }
 }
