@@ -13,7 +13,7 @@ import collection.JavaConverters._
 trait CleanUp extends TestSuiteMixin with ExceptionHandling with LazyLogging { self: TestSuite =>
 
 
-  private val cleanUpFunctions = new ConcurrentLinkedDeque[Function0[Any]]()
+  private val cleanUpFunctions = new ConcurrentLinkedDeque[() => Any]()
 
 
   /**
