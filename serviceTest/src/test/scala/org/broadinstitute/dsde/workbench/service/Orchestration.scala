@@ -85,6 +85,7 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
         case Some(BillingProject(name, _, _)) =>
           logger.info(s"Encountered an error creating billing project: $name $billingAccount")
           throw new Exception("Billing project creation encountered an error")
+        case None => throw new Exception("Billing project creation did not complete")
       }
     }
   }
