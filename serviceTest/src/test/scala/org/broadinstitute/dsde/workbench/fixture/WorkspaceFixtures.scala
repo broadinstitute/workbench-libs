@@ -10,7 +10,7 @@ import org.scalatest.TestSuite
 /**WorkspaceFixtures
   * Fixtures for creating and cleaning up test workspaces.
   */
-trait WorkspaceFixtures extends CleanUp { self: WebBrowserSpec with TestSuite =>
+trait WorkspaceFixtures { self: WebBrowserSpec with TestSuite =>
 
   /**
     * Loan method that creates a workspace that will be cleaned up after the
