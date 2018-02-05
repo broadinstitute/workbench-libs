@@ -13,7 +13,7 @@ import collection.JavaConverters._
 trait CleanUp extends TestSuiteMixin with ExceptionHandling with LazyLogging { self: TestSuite =>
 
 
-  private val cleanUpFunctions = new ConcurrentLinkedDeque[() => Any]()
+  private val cleanUpFunctions = new ConcurrentLinkedDeque[Function0[Any]]()
 
 
   /**
@@ -27,9 +27,9 @@ trait CleanUp extends TestSuiteMixin with ExceptionHandling with LazyLogging { s
       *
       * @param f the clean-up function
       */
-    def cleanUp(f: () => Any): Unit = {
+    def cleanUp(f: => Any): Unit = {
       print("adding cleanup function")
-      cleanUpFunctions.addFirst(f)
+      cleanUpFunctions.addFirst(f _)
     }
   }
 
@@ -100,7 +100,7 @@ trait CleanUp extends TestSuiteMixin with ExceptionHandling with LazyLogging { s
 
   private def runCleanUpFunctions() = {
     println("number of cleanup functions: " + cleanUpFunctions.size())
-    cleanUpFunctions.asScala.foreach { f => try f() catch nonFatalAndLog("Error in clean-up function")}
+    cleanUpFunctions.asScala.foreach { f => try f catch nonFatalAndLog("Error in clean-up function")}
     cleanUpFunctions.clear()
   }
 }
