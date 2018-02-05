@@ -2,6 +2,20 @@
 
 This file documents changes to the `workbench-google` library, including notes on how to upgrade to new versions.
 
+## 0.15
+
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.15-???????"`
+
+### Changed
+
+- Pluggable Google credential modes
+   - All Google DAOs now extend `AbstractHttpGoogleDAO` and take a `GoogleCredentialMode` as a constructor-arg.
+   - The `GoogleCredentialMode` specifies how access tokens should be obtained. Current possibilities are:
+      - via a pem file (`GoogleCredentialModes.Pem`)
+      - via a json file (`GoogleCredentialModes.Json`)
+      - via an access token (`GoogleCredentialModes.Token`)
+   - This allows for more flexibility in how Google DAOs can be used.
+
 ## 0.14
 
 SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.14-6800f3a"`

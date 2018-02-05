@@ -88,6 +88,15 @@ class MockGoogleStorageDAO(  implicit val executionContext: ExecutionContext ) e
     }
   }
 
+  override def objectExists(bucketName: GcsBucketName, objectName: GcsObjectName): Future[Boolean] = {
+    Future.successful {
+      buckets.get(bucketName) match {
+        case Some(objects) => objects.map(_._1).contains(objectName)
+        case None => false
+      }
+    }
+  }
+
   override def setBucketLifecycle(bucketName: GcsBucketName, lifecycleAge: Int, lifecycleType: GcsLifecycleType = Delete): Future[Unit] = {
     Future.successful(())
   }

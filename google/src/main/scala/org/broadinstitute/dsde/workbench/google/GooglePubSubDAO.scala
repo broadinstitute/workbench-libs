@@ -1,6 +1,5 @@
 package org.broadinstitute.dsde.workbench.google
 
-import com.google.api.client.auth.oauth2.Credential
 import com.google.api.services.pubsub.model.Topic
 import org.broadinstitute.dsde.workbench.model.{WorkbenchEmail, WorkbenchException}
 import org.broadinstitute.dsde.workbench.google.GooglePubSubDAO._
@@ -64,6 +63,4 @@ trait GooglePubSubDAO {
       }
     }
   }
-
-  def getPubSubServiceAccountCredential: Credential
 }
