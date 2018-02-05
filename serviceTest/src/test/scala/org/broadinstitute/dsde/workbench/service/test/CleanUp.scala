@@ -4,11 +4,13 @@ import com.typesafe.scalalogging.LazyLogging
 import java.util.concurrent.ConcurrentLinkedDeque
 import org.broadinstitute.dsde.workbench.service.util.ExceptionHandling
 import org.scalatest.{Outcome, TestSuite, TestSuiteMixin}
+import collection.JavaConverters._
 
 /**
   * Mix-in for cleaning up data created during a test.
   */
 trait CleanUp extends TestSuiteMixin with ExceptionHandling with LazyLogging { self: TestSuite =>
+
 
   private val cleanUpFunctions = new ConcurrentLinkedDeque[() => Any]()
 
@@ -77,7 +79,6 @@ trait CleanUp extends TestSuiteMixin with ExceptionHandling with LazyLogging { s
     * @param testCode the test code to run
     */
   def withCleanUp(testCode: => Any): Unit = {
-    if (cleanUpFunctions.peek() != null) throw new Exception("cleanUpFunctions non empty at start of withCleanUp block")
     try {
       testCode
     } finally {
@@ -95,7 +96,7 @@ trait CleanUp extends TestSuiteMixin with ExceptionHandling with LazyLogging { s
   }
 
   private def runCleanUpFunctions() = {
-    cleanUpFunctions.toArray().foreach { f  => try f catch nonFatalAndLog("Error in clean-up function")}
+    cleanUpFunctions.asScala.foreach { f => try f() catch nonFatalAndLog("Error in clean-up function")}
     cleanUpFunctions.clear()
   }
 }
