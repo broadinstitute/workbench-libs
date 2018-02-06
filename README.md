@@ -47,6 +47,6 @@ To depend on the `MockGoogle*` classes, additionally depend on:
 
 Contains common classes and utilities for writing tests against Workbench REST web services.
 
-Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "0.1-a38c2b4" % "test" classifier "tests"`
+Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "0.1-2fc79a3" % "test" classifier "tests"`
 
 [Changelog](serviceTest/CHANGELOG.md)
