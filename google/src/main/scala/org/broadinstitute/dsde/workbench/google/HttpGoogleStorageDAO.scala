@@ -235,6 +235,13 @@ class HttpGoogleStorageDAO(appName: String,
     })
   }
 
+  override def copyObject(srcBucketName: GcsBucketName, srcObjectName: GcsObjectName, destBucketName: GcsBucketName, destObjectName: GcsObjectName): Future[Unit] = {
+    val copier = storage.objects().copy(srcBucketName.value, srcObjectName.value, destBucketName.value, destObjectName.value, new StorageObject())
+    retryWhen500orGoogleError(() => {
+      executeGoogleRequest(copier)
+    })
+  }
+
   override def setBucketAccessControl(bucketName: GcsBucketName, entity: GcsEntity, role: GcsRole): Future[Unit] = {
     val acl = new BucketAccessControl().setEntity(entity.toString).setRole(role.value)
     val inserter = storage.bucketAccessControls().insert(bucketName.value, acl)
