@@ -50,21 +50,22 @@ trait RestClient extends Retry with LazyLogging {
     Await.result(responseFuture, 5.minutes)
   }
 
+  def extractResponseString(response: HttpResponse): String = {
+    val responseStringFuture: Future[String] = response.entity.toStrict(5 minutes).map(_.data.utf8String)
+    Await.result(responseStringFuture, 5 minutes)
+  }
+
   def parseResponse(response: HttpResponse): String = {
     response.status.isSuccess() match {
       case true =>
-        val byteStringSink: Sink[ByteString, Future[ByteString]] = Sink.fold(ByteString("")) { (z, i) => z.concat(i) }
-        val entityFuture = response.entity.dataBytes.runWith(byteStringSink)
-        Await.result(entityFuture, 5.minute).decodeString("UTF-8")
+        extractResponseString(response)
       case _ =>
         throwRestException(response)
     }
   }
 
   private def throwRestException(response: HttpResponse) = {
-    val byteStringSink: Sink[ByteString, Future[ByteString]] = Sink.fold(ByteString("")) { (z, i) => z.concat(i) }
-    val entityFuture = response.entity.dataBytes.runWith(byteStringSink)
-    throw RestException(Await.result(entityFuture, 5.minute).decodeString("UTF-8"))
+    throw RestException(extractResponseString(response))
   }
 
   import scala.reflect.{ClassTag, classTag}

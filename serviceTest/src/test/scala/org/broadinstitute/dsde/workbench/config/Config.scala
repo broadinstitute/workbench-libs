@@ -97,6 +97,7 @@ object Config extends Config {
     val samApiUrl: String = fireCloud.getString("samApiUrl")
     val thurloeApiUrl: String = fireCloud.getString("thurloeApiUrl")
     val tcgaAuthDomain: String = fireCloud.getString("tcgaAuthDomain")
+    val gpAllocApiUrl: String = fireCloud.getString("gpAllocApiUrl")
   }
 
   object ChromeSettings {

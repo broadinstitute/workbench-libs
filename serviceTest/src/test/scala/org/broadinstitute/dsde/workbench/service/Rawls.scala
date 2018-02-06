@@ -12,6 +12,18 @@ trait Rawls extends RestClient with LazyLogging {
       logger.info(s"Deleting billing project: $projectName")
       deleteRequest(url + s"api/admin/billing/$projectName")
     }
+
+    def claimProject(projectName: String, cromwellAuthBucket: String, newOwner: String)(implicit token: AuthToken): Unit = {
+      logger.info(s"Claiming ownership of billing project: $projectName $newOwner")
+      postRequest(url + s"api/admin/project/registration", Map("project" -> projectName, "bucket" -> cromwellAuthBucket, "newOwner" -> newOwner))
+    }
+
+    /**
+      * Q: where is releaseProject?
+      * A: There is no releaseProject. Rawls has no way of un-knowing about projects.
+      *    Instead, we rely on the disappearance of the FiaB to erase all memory that this project existed.
+      */
+
   }
 
   object workspaces {
