@@ -69,7 +69,7 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
     }
 
     def createBillingProject(projectName: String, billingAccount: String)(implicit token: AuthToken): Unit = {
-      logger.info(s"Creating billing project: $projectName $billingAccount")
+      logger.info(s"Creating billing project: $projectName $billingAccount, with start time of ${System.currentTimeMillis}")
       postRequest(apiUrl("api/billing"), Map("projectName" -> projectName, "billingAccount" -> billingAccount))
 
       Retry.retry(10.seconds, 20.minutes)({
@@ -81,9 +81,9 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
         projects.find(p => p.projectName == projectName && BillingProjectStatus.isTerminal(p.creationStatus))
       }) match {
         case Some(BillingProject(name, _, BillingProjectStatus.Ready)) =>
-          logger.info(s"Finished creating billing project: $name $billingAccount")
+          logger.info(s"Finished creating billing project: $name $billingAccount, with completion time of ${System.currentTimeMillis}")
         case Some(BillingProject(name, _, _)) =>
-          logger.info(s"Encountered an error creating billing project: $name $billingAccount")
+          logger.info(s"Encountered an error creating billing project: $name $billingAccount, with final attempt at ${System.currentTimeMillis}")
           throw new Exception("Billing project creation encountered an error")
         case None => throw new Exception("Billing project creation did not complete")
       }
