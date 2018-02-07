@@ -13,6 +13,7 @@ import org.broadinstitute.dsde.workbench.service.util.Util.appendUnderscore
 import spray.json.{DefaultJsonProtocol, _}
 
 import scala.concurrent.duration._
+import scala.util.{Failure, Success, Try}
 
 trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport with DefaultJsonProtocol {
 
@@ -73,12 +74,12 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
       postRequest(apiUrl("api/billing"), Map("projectName" -> projectName, "billingAccount" -> billingAccount))
 
       Retry.retry(10.seconds, 20.minutes)({
-        val response: String = parseResponse(getRequest(apiUrl("api/profile/billingz")))
-        val projects = responseAsList(response).map { p =>
-          BillingProject(p("projectName"), BillingProjectRole.withName(p("role")), BillingProjectStatus.withName(p("creationStatus")))
+        Try(responseAsList(parseResponse(getRequest(apiUrl("api/profile/billing"))))) match {
+          case Success(response) => response.map { p =>
+            BillingProject(p("projectName"), BillingProjectRole.withName(p("role")), BillingProjectStatus.withName(p("creationStatus")))
+          }.find(p => p.projectName == projectName && BillingProjectStatus.isTerminal(p.creationStatus))
+          case Failure(t) => logger.info(s"Billing project creation encountered an error: ${t.getStackTrace}"); None
         }
-
-        projects.find(p => p.projectName == projectName && BillingProjectStatus.isTerminal(p.creationStatus))
       }) match {
         case Some(BillingProject(name, _, BillingProjectStatus.Ready)) =>
           logger.info(s"Finished creating billing project: $name $billingAccount, with completion time of ${System.currentTimeMillis}")
