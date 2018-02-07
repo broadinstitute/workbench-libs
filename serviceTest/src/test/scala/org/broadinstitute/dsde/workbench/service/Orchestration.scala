@@ -73,7 +73,7 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
       postRequest(apiUrl("api/billing"), Map("projectName" -> projectName, "billingAccount" -> billingAccount))
 
       Retry.retry(10.seconds, 20.minutes)({
-        val response: String = parseResponse(getRequest(apiUrl("api/profile/billing")))
+        val response: String = parseResponse(getRequest(apiUrl("api/profile/billingz")))
         val projects = responseAsList(response).map { p =>
           BillingProject(p("projectName"), BillingProjectRole.withName(p("role")), BillingProjectStatus.withName(p("creationStatus")))
         }
