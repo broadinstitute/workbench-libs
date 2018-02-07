@@ -89,6 +89,7 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
         case None => throw new Exception("Billing project creation did not complete")
       }
     }
+    
   }
 
   object groups {
