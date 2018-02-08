@@ -11,6 +11,7 @@ export ARTIFACTORY_PASSWORD=getThisFromJenkins
 export ARTIFACTORY_USERNAME=getThisFromJenkinsToo
 ```
 Note: Get the credentials from a Jenkins build job, like rawls-build
+
 3. Publish your snapshot:  
 ```
 sbt +publish -Dproject.isSnapshot=true
