@@ -403,7 +403,7 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
       val trialProjects: TrialProjects = countTrialProjects()
       if (trialProjects.available < count) {
         postRequest(apiUrl(s"api/trial/manager/projects?operation=create&count=${count - trialProjects.available}"))
-        Retry.retry(30.seconds, 10.minutes)({
+        Retry.retry(20.seconds, 10.minutes)({
           val report: TrialProjects = countTrialProjects()
           if (report.available >= count)
             Some(report)
