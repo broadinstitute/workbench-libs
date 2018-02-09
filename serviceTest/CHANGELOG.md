@@ -6,7 +6,7 @@ This file documents changes to the `workbench-service-test` library, including n
 
 ** Alpha version, subject to iteration and revision **
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "0.1-2fc79a3"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "0.1-e6d94b3"`
 
 ### Added
 
