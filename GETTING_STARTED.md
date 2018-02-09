@@ -22,7 +22,7 @@ Example:  [info] 	published workbench-service-test_2.12 to https://broadinstitut
 ```
 5. Replace the version number in your target repo’s dependencies file (probably in Dependencies.scala) and make sure IntelliJ refreshes the dependency.
 6. Go through PR process etc etc etc
-7. Merge your workbench-libs branch first. Travis will build an official non-SNAP version of workbench-libs. Grab this version number and update the dependency in your target repo to use this non-SNAP version. You can find it in the Travis build history of your commit here.
+7. Merge your workbench-libs branch first. Travis will build an official non-SNAP version of workbench-libs. The version number is the first 7 characters of the commit hash. Grab this version number and update the dependency in your target repo to use this non-SNAP version. 
 8. Now you can merge your branches that depend on your workbench-libs changes.
 
 ## Things to keep in mind
