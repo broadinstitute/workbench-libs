@@ -19,6 +19,12 @@ class MockGoogleStorageDAO(  implicit val executionContext: ExecutionContext ) e
   val buckets: TrieMap[GcsBucketName, Set[(GcsObjectName, ByteArrayInputStream)]] = TrieMap()
 
   override def createBucket(billingProject: GoogleProject, bucketName: GcsBucketName): Future[GcsBucketName] = {
+    createBucket(billingProject, bucketName, None, None, None)
+  }
+
+  def createBucket(billingProject: GoogleProject, bucketName: GcsBucketName,
+                   lifecycle: Option[(Int, GcsLifecycleType)], bucketAcl: Option[(GcsEntity, GcsRole)],
+                   defaultObjectAcl: Option[(GcsEntity, GcsRole)]): Future[GcsBucketName] = {
     // Note: the mock doesn't keep track of the billing project - assumes buckets are global
     buckets.putIfAbsent(bucketName, Set.empty)
     Future.successful(bucketName)

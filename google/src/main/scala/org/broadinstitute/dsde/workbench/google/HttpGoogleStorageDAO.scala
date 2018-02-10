@@ -52,9 +52,30 @@ class HttpGoogleStorageDAO(appName: String,
   }
 
   override def createBucket(billingProject: GoogleProject, bucketName: GcsBucketName): Future[GcsBucketName] = {
-    val bucket = new Bucket().setName(bucketName.value)
-    val inserter = storage.buckets().insert(billingProject.value, bucket)
+    createBucket(billingProject, bucketName, None, None, None)
+  }
 
+  override def createBucket(billingProject: GoogleProject, bucketName: GcsBucketName,
+                   lifecycle: Option[(Int, GcsLifecycleType)], bucketAcl: Option[(GcsEntity, GcsRole)],
+                   defaultObjectAcl: Option[(GcsEntity, GcsRole)]): Future[GcsBucketName] = {
+    val googleLifecycle = lifecycle.map { case (age, lt) =>
+      new Lifecycle().setRule(List(new Lifecycle.Rule().setAction(new Action().setType(lt.value)).setCondition(new Condition().setAge(age))).asJava)
+    }
+
+    val googleAcl = bucketAcl.map { case (entity, role) =>
+      List(new BucketAccessControl().setEntity(entity.toString).setRole(role.value)).asJava
+    }
+
+    val googleDefaultObjectAcl = defaultObjectAcl.map { case (entity, role) =>
+      List(new ObjectAccessControl().setEntity(entity.toString).setRole(role.value)).asJava
+    }
+
+    val bucket = new Bucket().setName(bucketName.value)
+      .setLifecycle(googleLifecycle.orNull)
+      .setAcl(googleAcl.orNull)
+      .setDefaultObjectAcl(googleDefaultObjectAcl.orNull)
+
+    val inserter = storage.buckets().insert(billingProject.value, bucket)
     retryWhen500orGoogleError(() => {
       executeGoogleRequest(inserter)
       bucketName
