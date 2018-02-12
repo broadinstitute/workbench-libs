@@ -23,7 +23,7 @@ case class ServiceAccountKey(id: ServiceAccountKeyId, privateKeyData: ServiceAcc
 
 // Storage
 case class GcsBucketName(value: String) extends ValueObject
-case class GcsObjectName(value: String, timeCreated: Instant = Instant.MIN)
+case class GcsObjectName(value: String, timeCreated: Instant = new Instant(Long.MinValue))
 case class GcsPath(bucketName: GcsBucketName, objectName: GcsObjectName)
 case class GcsParseError(value: String) extends ValueObject
 
