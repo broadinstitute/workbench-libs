@@ -56,4 +56,4 @@ Defining your mocks in `src/test` rather than `src/main` will help greatly.
 
 ## Publishing
 
-Travis automatically builds Scala 2.11 and 2.12 versions of these libraries and publishes them to [Artifactory](https://broadinstitute.jfrog.io/broadinstitute/webapp/#/artifacts/browse/tree/General/libs-release-local/org/broadinstitute/dsde/workbench/). Commits to any other branch than develop will be labelled `<version>-<githash>-SNAP`; commits to develop will be labelled `<version>-<githash>`. You probably shouldn't be using `-SNAP` versions in downstream code.
+Travis automatically builds Scala 2.11 and 2.12 versions of these libraries and publishes them to [Artifactory](https://broadinstitute.jfrog.io/broadinstitute/webapp/#/artifacts/browse/tree/General/libs-release-local/org/broadinstitute/dsde/workbench/). Commits to any other branch than develop will be labelled `<version>-<githash>-SNAP`; commits to develop will be labelled `<version>-<githash>`. In both cases, the `<githash>` is the first 7 characters of the commit hash. You probably shouldn't be using `-SNAP` versions in downstream code.
