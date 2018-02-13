@@ -13,7 +13,7 @@ import scala.concurrent.{ExecutionContext, ExecutionContextExecutor}
 
 object Google {
   val appName = "automation"
-  val metricBaseName = appName
+  val metricBaseName: String = appName
   lazy val system = ActorSystem()
   val ec: ExecutionContextExecutor = ExecutionContext.global
 
@@ -21,7 +21,7 @@ object Google {
 
   lazy val googleIamDAO = new HttpGoogleIamDAO(appName, pemMode, metricBaseName)(system, ec)
   def googleBigQueryDAO(authToken: AuthToken) {
-    new HttpGoogleBigQueryDAO(appName, Token(authToken.value), metricBaseName)(system, ec)
+    new HttpGoogleBigQueryDAO(appName, Token( () => authToken.value), metricBaseName)(system, ec)
   }
   lazy val googleStorageDAO = new HttpGoogleStorageDAO(appName, pemMode, metricBaseName)(system, ec)
 }
