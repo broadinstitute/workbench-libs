@@ -66,4 +66,14 @@ object GoogleCredentialModes {
       new GoogleCredential().setAccessToken(tokenProvider())
     }
   }
+
+
+  /**
+    * Passes through a GoogleCredential.
+    */
+  case class RawGoogleCredential(googleCredential: GoogleCredential) extends GoogleCredentialMode {
+    override def toGoogleCredential(scopes: Seq[String]): GoogleCredential = {
+      googleCredential
+    }
+  }
 }

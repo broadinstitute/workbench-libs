@@ -21,7 +21,7 @@ object Google {
 
   lazy val googleIamDAO = new HttpGoogleIamDAO(appName, pemMode, metricBaseName)(system, ec)
   def googleBigQueryDAO(authToken: AuthToken) {
-    new HttpGoogleBigQueryDAO(appName, Token( () => authToken.value), metricBaseName)(system, ec)
+    new HttpGoogleBigQueryDAO(appName, GoogleCredentialModes.RawGoogleCredential(authToken.buildCredential()), metricBaseName)(system, ec)
   }
   lazy val googleStorageDAO = new HttpGoogleStorageDAO(appName, pemMode, metricBaseName)(system, ec)
 }
