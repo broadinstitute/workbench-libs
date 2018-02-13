@@ -69,7 +69,7 @@ object GoogleCredentialModes {
 
 
   /**
-    * Passes through a GoogleCredential.
+    * GoogleCredential pass-through.
     */
   case class RawGoogleCredential(googleCredential: GoogleCredential) extends GoogleCredentialMode {
     override def toGoogleCredential(scopes: Seq[String]): GoogleCredential = {
