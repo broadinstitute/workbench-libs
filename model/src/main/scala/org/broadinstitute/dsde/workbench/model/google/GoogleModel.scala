@@ -23,7 +23,7 @@ case class ServiceAccountKey(id: ServiceAccountKeyId, privateKeyData: ServiceAcc
 
 // Storage
 case class GcsBucketName(value: String) extends ValueObject
-case class GcsObjectName(value: String, timeCreated: Instant = Instant.EPOCH)
+case class GcsObjectName(value: String, timeCreated: Instant = Instant.ofEpochMilli(System.currentTimeMillis)
 case class GcsPath(bucketName: GcsBucketName, objectName: GcsObjectName)
 case class GcsParseError(value: String) extends ValueObject
 
