@@ -30,10 +30,8 @@ trait BillingFixtures extends CleanUp { self: TestSuite =>
   }
 
   def addUserInBillingProject(billingProjectName: String, email: String, role: BillingProjectRole)(implicit token: AuthToken): Unit = {
-    try {
       Orchestration.billing.addUserToBillingProject(billingProjectName, email, role)
       register cleanUp Orchestration.billing.removeUserFromBillingProject(billingProjectName, email, role)
-    } catch nonFatalAndLog(s"Error removing $email from $billingProjectName in addUserInBillingProject cleanup")
   }
 
 }
