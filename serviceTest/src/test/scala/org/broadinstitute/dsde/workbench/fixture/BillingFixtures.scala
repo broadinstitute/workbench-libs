@@ -1,4 +1,5 @@
 package org.broadinstitute.dsde.workbench.fixture
+
 import org.broadinstitute.dsde.workbench.auth.AuthToken
 import org.broadinstitute.dsde.workbench.config.{Config, UserPool}
 import org.broadinstitute.dsde.workbench.service.Orchestration.billing.BillingProjectRole.BillingProjectRole
