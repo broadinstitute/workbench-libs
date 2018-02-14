@@ -40,6 +40,8 @@ Examples where a minor version bump is necessary include:
 - Moving classes between packages
 - Behavioral changes
 
+To make a minor version bump, increment the version by 0.1.
+
 ### Major version bump
 
 Examples where a major version bump is necessary include:
@@ -47,6 +49,8 @@ Examples where a major version bump is necessary include:
 - Deletion of anything in the public API (functions, classes, etc)
 - Movement of classes between libraries
 - Breaking API changes that will require significant rewriting on the part of clients, including deletion of any functionality
+
+To make a major version bump, increment the version by 1.0.
 
 ## Testing
 
