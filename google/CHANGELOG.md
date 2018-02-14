@@ -4,7 +4,7 @@ This file documents changes to the `workbench-google` library, including notes o
 
 ## 0.15
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.15-2fc79a3"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.15-TBD"`
 
 ### Changed
 
@@ -14,6 +14,7 @@ SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.
       - via a pem file (`GoogleCredentialModes.Pem`)
       - via a json file (`GoogleCredentialModes.Json`)
       - via an access token (`GoogleCredentialModes.Token`)
+      - via a `GoogleCredential` as a passthrough.
    - This allows for more flexibility in how Google DAOs can be used.
 - Updated methods in GoogleStorageDAO:
    - Added `copyObject`
