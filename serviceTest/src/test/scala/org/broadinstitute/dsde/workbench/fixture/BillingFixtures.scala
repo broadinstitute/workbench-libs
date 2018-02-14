@@ -6,7 +6,6 @@ import org.broadinstitute.dsde.workbench.service.Orchestration.billing.BillingPr
 import org.broadinstitute.dsde.workbench.service.{Orchestration, Rawls}
 import org.broadinstitute.dsde.workbench.service.test.CleanUp
 import org.scalatest.TestSuite
-
 import scala.util.Random
 
 trait BillingFixtures extends CleanUp { self: TestSuite =>
