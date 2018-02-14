@@ -1,7 +1,7 @@
 package org.broadinstitute.dsde.workbench.fixture
-
 import org.broadinstitute.dsde.workbench.auth.AuthToken
 import org.broadinstitute.dsde.workbench.config.{Config, UserPool}
+import org.broadinstitute.dsde.workbench.service.Orchestration.billing.BillingProjectRole.BillingProjectRole
 import org.broadinstitute.dsde.workbench.service.{Orchestration, Rawls}
 import org.broadinstitute.dsde.workbench.service.test.CleanUp
 import org.scalatest.TestSuite
@@ -28,5 +28,13 @@ trait BillingFixtures extends CleanUp { self: TestSuite =>
       } catch nonFatalAndLog(s"Error deleting billing project in withBillingProject clean-up: $billingProjectName")
     }
   }
+
+  def addUserInBillingProject(billingProjectName: String, email: String, role: BillingProjectRole)(implicit token: AuthToken): Unit = {
+    try {
+      Orchestration.billing.addUserToBillingProject(billingProjectName, email, role)
+      register cleanUp Orchestration.billing.removeUserFromBillingProject(billingProjectName, email, role)
+    } catch nonFatalAndLog(s"Error removing $email from $billingProjectName in addUserInBillingProject cleanup")
+  }
+
 }
 
