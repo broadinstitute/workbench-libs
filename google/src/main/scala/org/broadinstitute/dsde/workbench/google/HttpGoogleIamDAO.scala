@@ -94,8 +94,10 @@ class HttpGoogleIamDAO(appName: String,
     val request = new CreateServiceAccountRequest().setAccountId(serviceAccountName.value)
       .setServiceAccount(new ServiceAccount().setDisplayName(displayName.value))
     val inserter = iam.projects().serviceAccounts().create(s"projects/${serviceAccountProject.value}", request)
-    retryWhen500orGoogleError { () =>
+    retryWithRecoverWhen500orGoogleError { () =>
       executeGoogleRequest(inserter)
+    } {
+      case t: GoogleJsonResponseException if t.getStatusCode == StatusCodes.NotFound.intValue => throw new WorkbenchException(s"The project [${serviceAccountProject.value}] was not found")
     } map { serviceAccount =>
       google.ServiceAccount(ServiceAccountSubjectId(serviceAccount.getUniqueId), WorkbenchEmail(serviceAccount.getEmail), ServiceAccountDisplayName(serviceAccount.getDisplayName))
     }
