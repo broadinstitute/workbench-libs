@@ -2,6 +2,10 @@
 
 This file documents changes to the `workbench-google` library, including notes on how to upgrade to new versions.
 
+## 0.16
+
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.16-8e9ac2a"`
+
 ## 0.15
 
 SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.15-2fc79a3"`
