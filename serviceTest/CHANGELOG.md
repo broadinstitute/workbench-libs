@@ -7,10 +7,10 @@ This file documents changes to the `workbench-service-test` library, including n
 
 ** Alpha version, subject to iteration and revision **
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "0.2-TBD"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "0.2-8e9ac2a"`
 
 - Updated to work with the new `AbstractHttpGoogleDAO` in workbench-libs/google version 0.15.
-    - `googleBigQueryDAO` constructor takes an AuthToken as a parameter. This will require at least workbench-libs/google v 0.15-TBD.
+    - `googleBigQueryDAO` constructor takes an AuthToken as a parameter. This will require at least workbench-libs/google v 0.16-8e9ac2a.
 
 ## 0.1
 
