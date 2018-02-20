@@ -6,7 +6,7 @@ This file documents changes to the `workbench-service-test` library, including n
 
 SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "0.3-TRAVIS-REPLACE-ME"`
 
-[Alex + Matt: please update this]
+- Billing project creation will now fail-fast. If an error state is reached before the specific timeout (currently 20 mins), the test will immediately fail.
 
 ## 0.2
 
