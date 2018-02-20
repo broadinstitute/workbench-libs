@@ -7,6 +7,7 @@ This file documents changes to the `workbench-service-test` library, including n
 SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "0.3-TRAVIS-REPLACE-ME"`
 
 - Billing project creation will now fail-fast. If an error state is reached before the specific timeout (currently 20 mins), the test will immediately fail.
+- BillingFixtures method `withBillingProject` will now take a List of emails as an optional parameter that will add users to Billing project.
 
 ## 0.2
 
