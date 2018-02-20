@@ -13,9 +13,12 @@ If you are making breaking API changes, do the first one of these that you can:
 
 Developers should take care to increment library versions when the library changes in ways that may affect users.
 
-To do this, find the `val xxxSettings =` block in `project/Settings.scala` for the library you are incrementing, and change the string inside the call to `createVersion()` using the scheme outlined below.
+To do this, find the `val xxxSettings =` block in `project/Settings.scala` for the library you are incrementing, and 
+change the string inside the call to `createVersion()` using the scheme outlined below.
 
-You should also update `README.md` and document your changes and upgrade path at `<yourlib>/CHANGELOG.md`. See [keepachangelog.com](http://keepachangelog.com/) for some guidance on the latter.
+You should also update `README.md` and document your changes and upgrade path at `<yourlib>/CHANGELOG.md`. See 
+[keepachangelog.com](http://keepachangelog.com/) for some guidance on the latter.  For any services you have updated, 
+change the git hash in these files to the string TRAVIS-REPLACE-ME.  Travis will update this text to the correct hash values. 
 
 ### No version bump necessary
 
