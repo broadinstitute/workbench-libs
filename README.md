@@ -35,11 +35,11 @@ Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-metric
 
 Contains utility functions for talking to Google APIs and DAOs for Google PubSub, Google Directory, Google IAM, and Google BigQuery. 
 
-Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.16-8e9ac2a"`
+Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.16-TRAVIS-REPLACE-ME"`
 
 To depend on the `MockGoogle*` classes, additionally depend on:
 
-`"org.broadinstitute.dsde.workbench" %% "workbench-google"  % "0.16-8e9ac2a" % "test" classifier "tests"`
+`"org.broadinstitute.dsde.workbench" %% "workbench-google"  % "0.16-TRAVIS-REPLACE-ME" % "test" classifier "tests"`
 
 [Changelog](google/CHANGELOG.md)
 
