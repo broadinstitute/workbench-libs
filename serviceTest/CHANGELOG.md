@@ -2,6 +2,14 @@
 
 This file documents changes to the `workbench-service-test` library, including notes on how to upgrade to new versions.
 
+## 0.4
+
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "0.4-TRAVIS-REPLACE-ME"`
+
+### Added
+
+* `GPAllocFixtures` added, contains `withCleanBillingProject` function to acquire a billing project from GPAlloc instead of making one manually. For more information, see [here](https://github.com/broadinstitute/gpalloc/blob/develop/USAGE.md). 
+
 ## 0.3
 
 SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "0.3-728e074"`
