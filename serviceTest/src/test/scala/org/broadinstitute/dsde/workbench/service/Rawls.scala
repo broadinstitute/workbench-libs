@@ -20,8 +20,7 @@ trait Rawls extends RestClient with LazyLogging {
 
     def releaseProject(projectName: String)(implicit token: AuthToken): Unit = {
       logger.info(s"Releasing ownership of billing project: $projectName")
-      //FIXME: this is a wild guess
-      postRequest(url + s"api/admin/project/deregistration", Map("project" -> projectName))
+      deleteRequest(url + s"api/admin/project/registration/$projectName")
     }
 
   }
