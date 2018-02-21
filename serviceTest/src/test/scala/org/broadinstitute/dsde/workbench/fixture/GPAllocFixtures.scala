@@ -112,35 +112,23 @@ trait GPAllocFixtures extends BillingFixtures with GPAllocSuperFixture { self: T
 
   def withCleanBillingProject(newOwnerCreds: Credentials, memberEmails: List[String] = List())(testCode: (String) => Any): Unit = {
     //request a GPAlloced project as the potential new owner
+    val newOwnerToken = newOwnerCreds.makeAuthToken()
     GPAllocFixtures.requestGPAllocedProject(self)(newOwnerCreds.makeAuthToken()) match {
       case Some(project) =>
         //call the Rawls endpoint to register a precreated project needs to be called by a Rawls admin
         val adminToken = UserPool.chooseAdmin.makeAuthToken()
         Rawls.admin.claimProject(project.projectName, project.cromwellAuthBucketUrl, newOwnerCreds.email)(adminToken)
-        addMembersToBillingProject(project.projectName, memberEmails)
+
+        addMembersToBillingProject(project.projectName, memberEmails)(newOwnerToken)
 
         testCode(project.projectName)
+
         //see the giant comment at the top of the GPAllocFixtures companion object for an explanation
         //of why there's no corresponding Rawls.admin.releaseProject here
+        removeMembersFromBillingProject(project.projectName, memberEmails)(newOwnerToken)
       case None =>
         logger.warn("withCleanBillingProject got no project back from GPAlloc. Falling back to making a brand new one...")
-        withBrandNewBillingProject("billingproj")(testCode)(newOwnerCreds.makeAuthToken())
-    }
-  }
-
-  def withCleanBillingProject(memberEmails: List[String] = List())(testCode: (String) => Any)(implicit token: AuthToken): Unit = {
-    GPAlloc.projects.requestProject match {
-      case Some(tempProject) =>
-        addMembersToBillingProject(tempProject.projectName, memberEmails)
-        try {
-          testCode(tempProject)
-        } finally {
-          removeMembersFromBillingProject(tempProject.projectName, memberEmails)
-          GPAlloc.projects.releaseProject(tempProject.projectName)
-        }
-      case None =>
-        logger.warn("withCleanBillingProject got no project back from GPAlloc. Falling back to making a brand new one...")
-        withBrandNewBillingProject("billingproj-", memberEmails)(testCode)
+        withBrandNewBillingProject("billingproj")(testCode)(newOwnerToken)
     }
   }
 }

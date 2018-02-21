@@ -19,13 +19,13 @@ trait BillingFixtures extends CleanUp {
     Random.alphanumeric.take(length).mkString.toLowerCase
   }
 
-  protected def addMembersToBillingProject(projectName: String, memberEmails: List[String]): Unit = {
+  protected def addMembersToBillingProject(projectName: String, memberEmails: List[String])(implicit token: AuthToken): Unit = {
     memberEmails foreach { email =>
       Orchestration.billing.addUserToBillingProject(projectName, email, BillingProjectRole.Owner)
     }
   }
 
-  protected def removeMembersFromBillingProject(projectName: String, memberEmails: List[String]): Unit = {
+  protected def removeMembersFromBillingProject(projectName: String, memberEmails: List[String])(implicit token: AuthToken): Unit = {
     memberEmails foreach { email =>
       try {
         Orchestration.billing.removeUserFromBillingProject(projectName, email, BillingProjectRole.Owner)
@@ -33,7 +33,8 @@ trait BillingFixtures extends CleanUp {
     }
   }
 
-  @deprecated("withBillingProject is deprecated. Use withCleanBillingProject if you want a billing project to isolate your tests, or withBrandNewBillingProject if you want to create a brand new one")
+  @deprecated(message = "withBillingProject is deprecated. Use withCleanBillingProject if you want a billing project to isolate your tests, or withBrandNewBillingProject if you want to create a brand new one",
+              since="workbench-service-test-0.4")
   def withBillingProject(namePrefix: String, memberEmails: List[String] = List())
                         (testCode: (String) => Any)(implicit token: AuthToken): Unit = {
     withBrandNewBillingProject(namePrefix, memberEmails)(testCode)(token)
