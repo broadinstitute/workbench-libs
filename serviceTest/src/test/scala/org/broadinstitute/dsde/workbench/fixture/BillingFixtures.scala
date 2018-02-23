@@ -1,7 +1,7 @@
 package org.broadinstitute.dsde.workbench.fixture
 
 import org.broadinstitute.dsde.workbench.auth.AuthToken
-import org.broadinstitute.dsde.workbench.config.{Config, UserPool}
+import org.broadinstitute.dsde.workbench.config.{Config, Credentials, UserPool}
 import org.broadinstitute.dsde.workbench.service.{GPAlloc, Orchestration, Rawls}
 import org.broadinstitute.dsde.workbench.service.Orchestration.billing.BillingProjectRole
 import org.broadinstitute.dsde.workbench.service.Orchestration.billing.BillingProjectRole.BillingProjectRole
@@ -34,7 +34,7 @@ trait BillingFixtures extends CleanUp {
   }
 
   @deprecated(message = "withBillingProject is deprecated. Use withCleanBillingProject if you want a billing project to isolate your tests, or withBrandNewBillingProject if you want to create a brand new one",
-              since="workbench-service-test-0.4")
+              since="workbench-service-test-0.5")
   def withBillingProject(namePrefix: String, memberEmails: List[String] = List())
                         (testCode: (String) => Any)(implicit token: AuthToken): Unit = {
     withBrandNewBillingProject(namePrefix, memberEmails)(testCode)(token)
@@ -52,6 +52,30 @@ trait BillingFixtures extends CleanUp {
       try {
         Rawls.admin.deleteBillingProject(billingProjectName)(UserPool.chooseAdmin.makeAuthToken())
       } catch nonFatalAndLog(s"Error deleting billing project in withBillingProject clean-up: $billingProjectName")
+    }
+  }
+
+  def withCleanBillingProject(newOwnerCreds: Credentials, memberEmails: List[String] = List())(testCode: (String) => Any): Unit = {
+    //request a GPAlloced project as the potential new owner
+    val newOwnerToken = newOwnerCreds.makeAuthToken()
+    GPAlloc.projects.requestProject(newOwnerToken) match {
+      case Some(project) =>
+        //call the Rawls endpoint to register a precreated project needs to be called by a Rawls admin
+        val adminToken = UserPool.chooseAdmin.makeAuthToken()
+        Rawls.admin.claimProject(project.projectName, project.cromwellAuthBucketUrl, newOwnerCreds.email)(adminToken)
+
+        addMembersToBillingProject(project.projectName, memberEmails)(newOwnerToken)
+
+        testCode(project.projectName)
+
+        removeMembersFromBillingProject(project.projectName, memberEmails)(newOwnerToken)
+
+        Rawls.admin.releaseProject(project.projectName)(adminToken)
+
+        GPAlloc.projects.releaseProject(project.projectName)(newOwnerToken)
+      case None =>
+        logger.warn("withCleanBillingProject got no project back from GPAlloc. Falling back to making a brand new one...")
+        withBrandNewBillingProject("billingproj")(testCode)(newOwnerToken)
     }
   }
 
