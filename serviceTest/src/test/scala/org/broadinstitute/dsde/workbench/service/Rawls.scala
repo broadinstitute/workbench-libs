@@ -16,12 +16,12 @@ trait Rawls extends RestClient with LazyLogging {
 
     def claimProject(projectName: String, cromwellAuthBucket: String, newOwner: UserInfo)(implicit token: AuthToken): Unit = {
       logger.info(s"Claiming ownership of billing project: $projectName ${newOwner.userEmail}")
-      postRequest(url + s"api/admin/project/registration", Map("project" -> projectName, "bucket" -> cromwellAuthBucket, "newOwner" -> newOwner))
+      postRequest(url + s"api/admin/project/registration", Map("project" -> projectName, "bucket" -> cromwellAuthBucket, "newOwnerEmail" -> newOwner.userEmail.value, "newOwnerToken" -> newOwner.accessToken.token))
     }
 
     def releaseProject(projectName: String, projectOwner: UserInfo)(implicit token: AuthToken): Unit = {
       logger.info(s"Releasing ownership of billing project: $projectName")
-      deleteRequest(url + s"api/admin/project/registration/$projectName", projectOwner)
+      deleteRequest(url + s"api/admin/project/registration/$projectName", Map("newOwnerEmail" -> projectOwner.userEmail.value, "newOwnerToken" -> projectOwner.accessToken.token))
     }
 
   }
