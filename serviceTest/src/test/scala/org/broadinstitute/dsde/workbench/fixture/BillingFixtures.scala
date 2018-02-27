@@ -66,13 +66,20 @@ trait BillingFixtures extends CleanUp {
 
         addMembersToBillingProject(project.projectName, memberEmails)(newOwnerToken)
 
-        testCode(project.projectName)
+        try {
+          testCode(project.projectName)
+        } finally {
+          removeMembersFromBillingProject(project.projectName, memberEmails)(newOwnerToken)
 
-        removeMembersFromBillingProject(project.projectName, memberEmails)(newOwnerToken)
+          try {
+            Rawls.admin.releaseProject(project.projectName)(adminToken)
+          } catch nonFatalAndLog(s"Error releasing billing project from Rawls in withCleanBillingProject clean-up: ${project.projectName}")
 
-        Rawls.admin.releaseProject(project.projectName)(adminToken)
+          try {
+            GPAlloc.projects.releaseProject(project.projectName)(newOwnerToken)
+          } catch nonFatalAndLog(s"Error releasing billing project from GPAlloc in withCleanBillingProject clean-up: ${project.projectName}")
+        }
 
-        GPAlloc.projects.releaseProject(project.projectName)(newOwnerToken)
       case None =>
         logger.warn("withCleanBillingProject got no project back from GPAlloc. Falling back to making a brand new one...")
         withBrandNewBillingProject("billingproj")(testCode)(newOwnerToken)
