@@ -3,6 +3,7 @@ package org.broadinstitute.dsde.workbench.service
 import com.typesafe.scalalogging.LazyLogging
 import org.broadinstitute.dsde.workbench.auth.AuthToken
 import org.broadinstitute.dsde.workbench.config.Config
+import org.broadinstitute.dsde.workbench.model.UserInfo
 
 trait Rawls extends RestClient with LazyLogging {
 
@@ -13,12 +14,12 @@ trait Rawls extends RestClient with LazyLogging {
       deleteRequest(url + s"api/admin/billing/$projectName")
     }
 
-    def claimProject(projectName: String, cromwellAuthBucket: String, newOwner: String)(implicit token: AuthToken): Unit = {
-      logger.info(s"Claiming ownership of billing project: $projectName $newOwner")
+    def claimProject(projectName: String, cromwellAuthBucket: String, newOwner: UserInfo)(implicit token: AuthToken): Unit = {
+      logger.info(s"Claiming ownership of billing project: $projectName ${newOwner.userEmail}")
       postRequest(url + s"api/admin/project/registration", Map("project" -> projectName, "bucket" -> cromwellAuthBucket, "newOwner" -> newOwner))
     }
 
-    def releaseProject(projectName: String)(implicit token: AuthToken): Unit = {
+    def releaseProject(projectName: String, projectOwner: UserInfo)(implicit token: AuthToken): Unit = {
       logger.info(s"Releasing ownership of billing project: $projectName")
       deleteRequest(url + s"api/admin/project/registration/$projectName")
     }

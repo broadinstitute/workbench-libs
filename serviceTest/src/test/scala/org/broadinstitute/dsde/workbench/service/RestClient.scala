@@ -112,8 +112,8 @@ trait RestClient extends Retry with LazyLogging {
     requestWithJsonContent(PUT, uri, content, httpHeaders)
   }
 
-  def deleteRequest(uri: String, httpHeaders: List[HttpHeader] = List())(implicit token: AuthToken): String = {
-    parseResponse(requestBasic(DELETE, uri, httpHeaders))
+  def deleteRequest(uri: String, content: Any = None, httpHeaders: List[HttpHeader] = List())(implicit token: AuthToken): String = {
+    requestWithJsonContent(DELETE, uri, content, httpHeaders)
   }
 
   def getRequest(uri: String, httpHeaders: List[HttpHeader] = List())(implicit token: AuthToken): HttpResponse = {
