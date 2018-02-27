@@ -1,7 +1,9 @@
 package org.broadinstitute.dsde.workbench.fixture
 
+import akka.http.scaladsl.model.headers.OAuth2BearerToken
 import org.broadinstitute.dsde.workbench.auth.AuthToken
 import org.broadinstitute.dsde.workbench.config.{Config, Credentials, UserPool}
+import org.broadinstitute.dsde.workbench.model.{UserInfo, WorkbenchEmail, WorkbenchUserId}
 import org.broadinstitute.dsde.workbench.service.{GPAlloc, Orchestration, Rawls}
 import org.broadinstitute.dsde.workbench.service.Orchestration.billing.BillingProjectRole
 import org.broadinstitute.dsde.workbench.service.Orchestration.billing.BillingProjectRole.BillingProjectRole
@@ -60,9 +62,11 @@ trait BillingFixtures extends CleanUp {
     val newOwnerToken = newOwnerCreds.makeAuthToken()
     GPAlloc.projects.requestProject(newOwnerToken) match {
       case Some(project) =>
-        //call the Rawls endpoint to register a precreated project needs to be called by a Rawls admin
+        //the Rawls endpoint to register a precreated project needs to be called by a Rawls admin
+        //but it also takes the new owner's UserInfo in order to create the resource as them in Sam
         val adminToken = UserPool.chooseAdmin.makeAuthToken()
-        Rawls.admin.claimProject(project.projectName, project.cromwellAuthBucketUrl, newOwnerCreds.email)(adminToken)
+        val newOwnerUserInfo = UserInfo(OAuth2BearerToken(newOwnerToken.value), WorkbenchUserId("0"), WorkbenchEmail(newOwnerCreds.email), 3600)
+        Rawls.admin.claimProject(project.projectName, project.cromwellAuthBucketUrl, newOwnerUserInfo)(adminToken)
 
         addMembersToBillingProject(project.projectName, memberEmails)(newOwnerToken)
 
@@ -72,7 +76,7 @@ trait BillingFixtures extends CleanUp {
           removeMembersFromBillingProject(project.projectName, memberEmails)(newOwnerToken)
 
           try {
-            Rawls.admin.releaseProject(project.projectName)(adminToken)
+            Rawls.admin.releaseProject(project.projectName, newOwnerUserInfo)(adminToken)
           } catch nonFatalAndLog(s"Error releasing billing project from Rawls in withCleanBillingProject clean-up: ${project.projectName}")
 
           try {
