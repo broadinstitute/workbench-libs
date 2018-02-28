@@ -66,12 +66,12 @@ class HttpGoogleStorageDAO(appName: String,
     val deleteObjectsFuture = if (recurse) {
       val listObjectsRequest = storage.objects().list(bucketName.value)
       retryWithRecoverWhen500orGoogleError { () =>
-        executeGoogleRequest(listObjectsRequest)
+        Option(executeGoogleRequest(listObjectsRequest))
       } {
         case e: HttpResponseException if e.getStatusCode == StatusCodes.NotFound.intValue => None
       }.flatMap { objects =>
         // Handle null responses from Google
-        val items = Option(objects).flatMap(objs => Option(objs.getItems)).map(_.asScala).getOrElse(Seq.empty)
+        val items = objects.flatMap(objs => Option(objs.getItems)).map(_.asScala).getOrElse(Seq.empty)
         Future.traverse(items) { item =>
           removeObject(bucketName, GcsObjectName(item.getName, Instant.ofEpochMilli(item.getTimeCreated.getValue)))
         }
