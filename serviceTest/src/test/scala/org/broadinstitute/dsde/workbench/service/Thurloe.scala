@@ -31,7 +31,7 @@ trait Thurloe extends RestClient with LazyLogging {
 
     def delete(subjectId: String, key: String)(implicit token: AuthToken): Unit = {
       logger.info(s"Deleting $key for $subjectId")
-      deleteRequest(url + s"api/thurloe/$subjectId/$key", None, thurloeHeaders)
+      deleteRequest(url + s"api/thurloe/$subjectId/$key", thurloeHeaders)
     }
 
     def deleteAll(subjectId: String)(implicit token: AuthToken): Unit = {
