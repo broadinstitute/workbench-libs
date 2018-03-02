@@ -4,12 +4,12 @@ This file documents changes to the `workbench-service-test` library, including n
 
 ## 0.5
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "0.5-3cd92b6"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "0.5-TRAVIS-REPLACE-ME"`
 
 ### Updated
 
 * `withCleanBillingProject` moved to `BillingFixtures` and de-cluttered now that we have a Rawls project unregister. 
-
+* Added `claimGPAllocProject` and `releaseGPAllocProject` 
 
 ## 0.4
 
