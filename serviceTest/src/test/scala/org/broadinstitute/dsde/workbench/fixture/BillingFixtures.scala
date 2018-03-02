@@ -12,6 +12,12 @@ import org.scalatest.TestSuite
 
 import scala.util.Random
 
+
+/**
+  * Mix in this trait to allow your test to access billing projects managed by the GPAlloc system, or create new
+  * billing projects of your own.  Using GPAlloc will generally be much faster, limit the creation of billing projects
+  * to those tests which truly require them.
+  */
 trait BillingFixtures extends CleanUp {
   self: TestSuite =>
 
@@ -42,22 +48,58 @@ trait BillingFixtures extends CleanUp {
     withBrandNewBillingProject(namePrefix, memberEmails)(testCode)(token)
   }
 
-  def withBrandNewBillingProject(namePrefix: String, memberEmails: List[String] = List())
-                                (testCode: (String) => Any)(implicit token: AuthToken): Unit = {
-    val billingProjectName = namePrefix + "-" + makeRandomId()
-    Orchestration.billing.createBillingProject(billingProjectName, Config.Projects.billingAccountId)
-    addMembersToBillingProject(billingProjectName, memberEmails)
-    try {
-      testCode(billingProjectName)
-    } finally {
-      removeMembersFromBillingProject(billingProjectName, memberEmails)
-      try {
-        Rawls.admin.deleteBillingProject(billingProjectName)(UserPool.chooseAdmin.makeAuthToken())
-      } catch nonFatalAndLog(s"Error deleting billing project in withBillingProject clean-up: $billingProjectName")
+  case class ClaimedProject(projectName: String, gpAlloced: Boolean) {
+    def cleanup(ownerCreds: Credentials, memberEmails: List[String]): Unit = {
+      if (gpAlloced)
+        releaseGPAllocProject(projectName, ownerCreds, memberEmails)
+      else {
+        deleteBillingProject(projectName, memberEmails)(ownerCreds.makeAuthToken())
+      }
     }
   }
 
-  def withCleanBillingProject(newOwnerCreds: Credentials, memberEmails: List[String] = List())(testCode: (String) => Any): Unit = {
+  private def createNewBillingProject(namePrefix: String, memberEmails: List[String] = List())(implicit token: AuthToken): String = {
+    val billingProjectName = namePrefix + "-" + makeRandomId()
+    Orchestration.billing.createBillingProject(billingProjectName, Config.Projects.billingAccountId)
+    addMembersToBillingProject(billingProjectName, memberEmails)
+    billingProjectName
+  }
+
+  private def deleteBillingProject(billingProjectName: String, memberEmails: List[String])(implicit token: AuthToken): Unit = {
+    removeMembersFromBillingProject(billingProjectName, memberEmails)
+    try {
+      Rawls.admin.deleteBillingProject(billingProjectName)(UserPool.chooseAdmin.makeAuthToken())
+    } catch nonFatalAndLog(s"Error deleting billing project in withBillingProject clean-up: $billingProjectName")
+  }
+
+  /**
+    * Create and use a new billing project.  Keep in mind that this is a slow an error-prone process, so you should only
+    * use this method if your test requires it.
+    *
+    * @param namePrefix a short String to use as a billing project name prefix for identifying your test.
+    * @param memberEmails a List of member emails (as Strings) to add as members of this project
+    * @param testCode your test
+    * @param token an AuthToken representing a billing project owner to pass to billing project endpoints
+    */
+  def withBrandNewBillingProject(namePrefix: String, memberEmails: List[String] = List())
+                                (testCode: (String) => Any)(implicit token: AuthToken): Unit = {
+    val billingProjectName = createNewBillingProject(namePrefix, memberEmails)
+    try {
+      testCode(billingProjectName)
+    } finally {
+      deleteBillingProject(billingProjectName, memberEmails)
+    }
+  }
+
+  /**
+    * Manually claim a project provisioned by GPAlloc and optionally add members.
+    * Consider using `withCleanBillingProject()` instead if you don't need to control the use of projects.
+    *
+    * @param newOwnerCreds Credentials representing a billing project owner to pass to billing project endpoints
+    * @param memberEmails a List of member emails (as Strings) to add as members of this project
+    * @return Some(GPAllocProject) if it succeeded, None if it did not
+    */
+  def claimGPAllocProject(newOwnerCreds: Credentials, memberEmails: List[String] = List()): ClaimedProject = {
     //request a GPAlloced project as the potential new owner
     val newOwnerToken = newOwnerCreds.makeAuthToken()
     GPAlloc.projects.requestProject(newOwnerToken) match {
@@ -70,23 +112,53 @@ trait BillingFixtures extends CleanUp {
 
         addMembersToBillingProject(project.projectName, memberEmails)(newOwnerToken)
 
-        try {
-          testCode(project.projectName)
-        } finally {
-          removeMembersFromBillingProject(project.projectName, memberEmails)(newOwnerToken)
+        ClaimedProject(project.projectName, gpAlloced = true)
+      case _ =>
+        logger.warn("claimGPAllocProject got no project back from GPAlloc. Falling back to making a brand new one...")
+        val billingProjectName = createNewBillingProject("billingproj", memberEmails)(newOwnerToken)
+        ClaimedProject(billingProjectName, gpAlloced = false)
+    }
+  }
 
-          try {
-            Rawls.admin.releaseProject(project.projectName, newOwnerUserInfo)(adminToken)
-          } catch nonFatalAndLog(s"Error releasing billing project from Rawls in withCleanBillingProject clean-up: ${project.projectName}")
+  /**
+    * Release a billing project back to GPAlloc when you are done with it.
+    * Consider using `withCleanBillingProject()` instead if you don't need to control the use of projects.
+    *
+    * @param projectName the GPAllocProject to release
+    * @param ownerCreds the Credentials of the current owner of the project
+    * @param memberEmails a List of member emails (as Strings) to remove as project members
+    */
+  def releaseGPAllocProject(projectName: String, ownerCreds: Credentials, memberEmails: List[String] = List()): Unit = {
+    val ownerToken = ownerCreds.makeAuthToken()
+    val adminToken = UserPool.chooseAdmin.makeAuthToken()
+    val newOwnerUserInfo = UserInfo(OAuth2BearerToken(ownerToken.value), WorkbenchUserId("0"), WorkbenchEmail(ownerCreds.email), 3600)
 
-          try {
-            GPAlloc.projects.releaseProject(project.projectName)(newOwnerToken)
-          } catch nonFatalAndLog(s"Error releasing billing project from GPAlloc in withCleanBillingProject clean-up: ${project.projectName}")
-        }
+    removeMembersFromBillingProject(projectName, memberEmails)(ownerToken)
 
-      case None =>
-        logger.warn("withCleanBillingProject got no project back from GPAlloc. Falling back to making a brand new one...")
-        withBrandNewBillingProject("billingproj")(testCode)(newOwnerToken)
+    try {
+      Rawls.admin.releaseProject(projectName, newOwnerUserInfo)(adminToken)
+    } catch nonFatalAndLog(s"Error releasing billing project from Rawls in withCleanBillingProject clean-up: $projectName")
+
+    try {
+      GPAlloc.projects.releaseProject(projectName)(ownerToken)
+    } catch nonFatalAndLog(s"Error releasing billing project from GPAlloc in withCleanBillingProject clean-up: $projectName")
+  }
+
+  /**
+    * Use a billing project provided by GPAlloc for the purpose of running tests against it.  This method will claim
+    * a project for the duration of the test and release it when the test is done.
+    *
+    * @param newOwnerCreds Credentials representing a billing project owner to pass to billing project endpoints
+    * @param memberEmails a List of member emails (as Strings) to add as members of this project
+    * @param testCode your test
+    */
+  def withCleanBillingProject(newOwnerCreds: Credentials, memberEmails: List[String] = List())(testCode: (String) => Any): Unit = {
+    val newOwnerToken = newOwnerCreds.makeAuthToken()
+    val project = claimGPAllocProject(newOwnerCreds, memberEmails)
+    try {
+      testCode(project.projectName)
+    } finally {
+      project.cleanup(newOwnerCreds, memberEmails)
     }
   }
 
