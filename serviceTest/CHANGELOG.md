@@ -9,7 +9,7 @@ SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test"
 ### Updated
 
 * `withCleanBillingProject` moved to `BillingFixtures` and de-cluttered now that we have a Rawls project unregister. 
-* Added `claimBillingProject` and `releaseBillingProject` 
+* Added `claimGPAllocProject` and `releaseGPAllocProject` 
 
 ## 0.4
 
