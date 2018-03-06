@@ -193,9 +193,9 @@ class HttpGoogleStorageDAO(appName: String,
     val objects = listObjectsRecursive(getter) map { pagesOption =>
       pagesOption.map { pages =>
         pages.flatMap { page =>
-          Option(page.getItems.asScala) match {
+          Option(page.getItems) match {
             case None => List.empty
-            case Some(objects) => objects.toList
+            case Some(objects) => objects.asScala.toList
           }
         }
       }.getOrElse(List.empty)
