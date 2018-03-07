@@ -20,9 +20,16 @@ trait AuthToken extends LazyLogging {
     val cred = buildCredential()
     try {
       cred.refreshToken()
-      throw new TokenResponseException
+      throw new Exception("blah!")
     } catch {
       case e: TokenResponseException =>
+        logger.error("Encountered 4xx error getting access token. Details: \n" +
+          s"Service Account: ${cred.getServiceAccountId} \n" +
+          s"User: ${cred.getServiceAccountUser} \n" +
+          s"Scopes: ${cred.getServiceAccountScopesAsString} \n" +
+          s"Access Token: ${cred.getAccessToken} \n" +
+          s"SA Private Key ID: ${cred.getServiceAccountPrivateKeyId}")
+      case e: Exception =>
         logger.error("Encountered 4xx error getting access token. Details: \n" +
           s"Service Account: ${cred.getServiceAccountId} \n" +
           s"User: ${cred.getServiceAccountUser} \n" +
