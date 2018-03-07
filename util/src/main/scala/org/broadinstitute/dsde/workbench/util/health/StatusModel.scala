@@ -14,8 +14,11 @@ case class StatusCheckResponse(
                               )
 
 object Subsystems {
-  sealed trait Subsystem extends ValueObject {
-    override val value: String = getClass.getSimpleName.stripSuffix("$")
+  sealed trait Subsystem extends ValueObject with Product with Serializable {
+    override val value: String = this match {
+      case Custom(name) => name
+      case _ => this.productPrefix
+    }
   }
 
   def withName(name: String): Subsystem = {
@@ -39,7 +42,7 @@ object Subsystems {
       case "Rawls" => Rawls
       case "Sam" => Sam
       case "Thurloe" => Thurloe
-      case _ => throw new WorkbenchException(s"invalid Subsystem [$name]")
+      case customName => Custom(customName)
     }
   }
 
@@ -62,6 +65,7 @@ object Subsystems {
   case object Rawls extends Subsystem
   case object Sam extends Subsystem
   case object Thurloe extends Subsystem
+  case class Custom(customName: String) extends Subsystem
 }
 
 object StatusJsonSupport {
