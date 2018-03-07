@@ -20,7 +20,7 @@ trait AuthToken extends LazyLogging {
     val cred = buildCredential()
     try {
       cred.refreshToken()
-      throw new TokenResponseException()
+      throw new TokenResponseException
     } catch {
       case e: TokenResponseException =>
         logger.error("Encountered 4xx error getting access token. Details: \n" +
