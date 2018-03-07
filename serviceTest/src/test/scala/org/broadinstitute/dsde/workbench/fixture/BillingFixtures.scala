@@ -110,6 +110,7 @@ trait BillingFixtures extends CleanUp {
         val newOwnerUserInfo = UserInfo(OAuth2BearerToken(newOwnerToken.value), WorkbenchUserId("0"), WorkbenchEmail(newOwnerCreds.email), 3600)
         Rawls.admin.claimProject(project.projectName, project.cromwellAuthBucketUrl, newOwnerUserInfo)(adminToken)
 
+        verifyProjectEmpty(project.projectName)
         addMembersToBillingProject(project.projectName, memberEmails)(newOwnerToken)
 
         ClaimedProject(project.projectName, gpAlloced = true)
@@ -166,6 +167,13 @@ trait BillingFixtures extends CleanUp {
                              (implicit token: AuthToken): Unit = {
     Orchestration.billing.addUserToBillingProject(billingProjectName, email, role)
     register cleanUp Orchestration.billing.removeUserFromBillingProject(billingProjectName, email, role)
+  }
+
+  def verifyProjectEmpty(billingProjectName: String): Unit = {
+    val existingCount = Orchestration.billing.getBillingProjectMembers(billingProjectName).size
+
+    if (existingCount > 0)
+      logger.warn(s"Allocating billing project $billingProjectName with $existingCount existing members")
   }
 }
 
