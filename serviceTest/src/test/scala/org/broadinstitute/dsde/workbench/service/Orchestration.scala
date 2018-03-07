@@ -1,6 +1,7 @@
 package org.broadinstitute.dsde.workbench.service
 
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
+import akka.http.scaladsl.model.HttpResponse
 import com.typesafe.scalalogging.LazyLogging
 import org.broadinstitute.dsde.workbench.service.WorkspaceAccessLevel.WorkspaceAccessLevel
 import org.broadinstitute.dsde.workbench.auth.AuthToken
@@ -48,6 +49,11 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
     import BillingProjectStatus._
 
     case class BillingProject(projectName: String, role: BillingProjectRole, creationStatus: BillingProjectStatus)
+    case class BillingProjectMember(email: String, role: BillingProjectRole)
+
+    def getBillingProjectMembers(projectName: String)(implicit token: AuthToken): List[BillingProjectMember] = {
+      parseResponseAs[List[BillingProjectMember]](getRequest(apiUrl(s"api/billing/$projectName/members")))
+    }
 
     def addUserToBillingProject(projectName: String, email: String, role: BillingProjectRole)(implicit token: AuthToken): Unit = {
       logger.info(s"Adding user to billing project: $projectName $email ${role.toString}")
