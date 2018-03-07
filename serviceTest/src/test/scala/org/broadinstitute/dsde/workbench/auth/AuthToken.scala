@@ -27,6 +27,7 @@ trait AuthToken extends LazyLogging {
           s"User: ${cred.getServiceAccountUser} \n" +
           s"Scopes: ${cred.getServiceAccountScopesAsString} \n" +
           s"Access Token: ${cred.getAccessToken} \n" +
+          s"Token Expires: in ${cred.getExpiresInSeconds} seconds \n" +
           s"SA Private Key ID: ${cred.getServiceAccountPrivateKeyId}")
         throw e
     }
