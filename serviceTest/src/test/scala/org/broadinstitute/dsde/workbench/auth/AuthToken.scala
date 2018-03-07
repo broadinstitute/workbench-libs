@@ -29,13 +29,6 @@ trait AuthToken extends LazyLogging {
           s"Scopes: ${cred.getServiceAccountScopesAsString} \n" +
           s"Access Token: ${cred.getAccessToken} \n" +
           s"SA Private Key ID: ${cred.getServiceAccountPrivateKeyId}")
-      case e: Exception =>
-        logger.error("Encountered 4xx error getting access token. Details: \n" +
-          s"Service Account: ${cred.getServiceAccountId} \n" +
-          s"User: ${cred.getServiceAccountUser} \n" +
-          s"Scopes: ${cred.getServiceAccountScopesAsString} \n" +
-          s"Access Token: ${cred.getAccessToken} \n" +
-          s"SA Private Key ID: ${cred.getServiceAccountPrivateKeyId}")
         throw e
     }
     cred.getAccessToken
