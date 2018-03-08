@@ -4,7 +4,7 @@ This file documents changes to the `workbench-util` library, including notes on 
 
 ## 0.3
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util" % "0.3-TRAVIS-REPLACE-ME" % "test" classifier "tests"``
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util" % "0.3-0e9d080" % "test" classifier "tests"``
 
 
 ### Added
