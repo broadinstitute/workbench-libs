@@ -4,12 +4,13 @@ This file documents changes to the `workbench-util` library, including notes on 
 
 ## 0.3
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util" % "0.3-f3ce961" % "test" classifier "tests"``
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util" % "0.3-TRAVIS-REPLACE-ME" % "test" classifier "tests"``
 
 
 ### Added
 
 - `NoopActor`, an actor that receives all messages and doesn't do anything with them. This is in the test package.
+- Custom subsustem
 
 ## 0.2
 
