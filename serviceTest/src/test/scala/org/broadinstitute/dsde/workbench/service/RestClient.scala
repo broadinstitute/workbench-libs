@@ -84,7 +84,11 @@ trait RestClient extends Retry with LazyLogging {
   }
 
   private def requestWithJsonContent(method: HttpMethod, uri: String, content: Any, httpHeaders: List[HttpHeader] = List())(implicit token: AuthToken): String = {
-    val req = HttpRequest(method, uri, List(makeAuthHeader(token)) ++ httpHeaders, HttpEntity(ContentTypes.`application/json`, mapper.writeValueAsString(content)))
+
+    val json = mapper.writeValueAsString(content)
+    println (s"content post json translation = $json")
+
+    val req = HttpRequest(method, uri, List(makeAuthHeader(token)) ++ httpHeaders, HttpEntity(ContentTypes.`application/json`, json))
     parseResponse(sendRequest(req))
   }
 
@@ -109,6 +113,7 @@ trait RestClient extends Retry with LazyLogging {
   }
 
   def putRequest(uri: String, content: Any = None, httpHeaders: List[HttpHeader] = List())(implicit token: AuthToken): String = {
+    println (s"content pre json translation = $content")
     requestWithJsonContent(PUT, uri, content, httpHeaders)
   }
 
