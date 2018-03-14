@@ -9,6 +9,7 @@ import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.{Sink, _}
 import akka.util.ByteString
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
 import com.typesafe.scalalogging.LazyLogging
 import org.broadinstitute.dsde.workbench.auth.AuthToken
@@ -17,13 +18,15 @@ import org.broadinstitute.dsde.workbench.util.Retry
 import scala.concurrent.duration._
 import scala.concurrent.{Await, ExecutionContextExecutor, Future}
 
-trait RestClient extends Retry with LazyLogging {
+trait RestClient extends Retry with LazyLogging with LeonardoJacksonProtocol {
   implicit val system = ActorSystem()
   implicit val materializer = ActorMaterializer()
   implicit val ec: ExecutionContextExecutor = system.dispatcher
 
-  val mapper = new ObjectMapper()
-  mapper.registerModule(DefaultScalaModule)
+  val mapper: ObjectMapper = new ObjectMapper()
+      .registerModule(DefaultScalaModule)
+      .registerModule(new JavaTimeModule) // for Instant
+      .registerModule(leonardoModelModule)
 
   implicit protected class JsonStringUtil(s: String) {
     def fromJsonMapAs[A](key: String): Option[A] = parseJsonAsMap.get(key)

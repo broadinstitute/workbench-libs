@@ -8,6 +8,7 @@ object Dependencies {
   val googleV       = "1.22.0"
   val scalaLoggingV = "3.7.2"
   val scalaTestV    = "3.0.1"
+  val leoModelV = "0.1-9671e70-SNAP"
 
   def excludeGuavaJDK5(m: ModuleID): ModuleID = m.exclude("com.google.guava", "guava-jdk5")
 
@@ -21,7 +22,8 @@ object Dependencies {
   val akkaTestkit: ModuleID =       "com.typesafe.akka" %% "akka-testkit"         % akkaV     % "test"
   val akkaHttpTestkit: ModuleID =   "com.typesafe.akka" %% "akka-http-testkit"    % akkaHttpV % "test"
 
-  val jacksonModule: ModuleID =   "com.fasterxml.jackson.module" %% "jackson-module-scala"   % jacksonV % "test"
+  val jacksonModule: ModuleID =           "com.fasterxml.jackson.module" %% "jackson-module-scala"      % jacksonV % "test"
+  val jacksonJavaTimeModule: ModuleID =   "com.fasterxml.jackson.datatype" % "jackson-datatype-jsr310"  % jacksonV % "test"
 
   val selenium: ModuleID = "org.seleniumhq.selenium" % "selenium-java" % "3.8.1" % "test"
 
@@ -45,6 +47,11 @@ object Dependencies {
   val googleIam: ModuleID =                  "com.google.apis"       % "google-api-services-iam"                  % s"v1-rev215-$googleV"
   val googleBigQuery: ModuleID =             "com.google.apis"       % "google-api-services-bigquery"             % s"v2-rev377-$googleV"
   val googleGuava: ModuleID = "com.google.guava"  % "guava" % "22.0"
+
+  val leoModel: ModuleID = "org.broadinstitute.dsde.workbench" %% "leonardo-model" % leoModelV excludeAll (
+    ExclusionRule(organization = "org.broadinstitute.dsde.workbench", name = "workbench-model_2.12"),
+    ExclusionRule(organization = "org.broadinstitute.dsde.workbench", name = "workbench-google_2.12")
+  )
 
   val commonDependencies = Seq(
     scalaLogging,
@@ -97,7 +104,9 @@ object Dependencies {
     akkaHttpSprayJson,
     akkaTestkit,
     jacksonModule,
-    selenium
+    jacksonJavaTimeModule,
+    selenium,
+    leoModel
   )
 
   val uiTestDependencies = commonDependencies ++ Seq(
