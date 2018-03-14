@@ -95,7 +95,11 @@ trait LeonardoJacksonProtocol {
     override def deserialize(parser: JsonParser, ctx: DeserializationContext): GcsPath = {
       val uri = parser.getValueAsString
       // TODO add these checks elsewhere
-      parseGcsPath(uri).getOrElse(throw DeserializationException(s"Could not parse bucket URI from: $uri"))
+      // can't use getOrElse because we cross-compile to Scala 2.11
+      parseGcsPath(uri) match {
+        case Right(path) => path
+        case Left(regret) => throw DeserializationException(regret.value)
+      }
     }
   }
 
