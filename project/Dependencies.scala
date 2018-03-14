@@ -8,7 +8,7 @@ object Dependencies {
   val googleV       = "1.22.0"
   val scalaLoggingV = "3.7.2"
   val scalaTestV    = "3.0.1"
-  val leoModelV = "0.1-9671e70-SNAP"
+  val leoModelV = "0.1-7c612f52-SNAP"
 
   def excludeGuavaJDK5(m: ModuleID): ModuleID = m.exclude("com.google.guava", "guava-jdk5")
 
@@ -48,7 +48,9 @@ object Dependencies {
   val googleBigQuery: ModuleID =             "com.google.apis"       % "google-api-services-bigquery"             % s"v2-rev377-$googleV"
   val googleGuava: ModuleID = "com.google.guava"  % "guava" % "22.0"
 
-  val leoModel: ModuleID = "org.broadinstitute.dsde.workbench" %% "leonardo-model" % leoModelV excludeAll (
+  val leoModel: ModuleID = "org.broadinstitute.dsde.workbench" %% "leonardo-model" % leoModelV % "test" excludeAll (
+    ExclusionRule(organization = "org.broadinstitute.dsde.workbench", name = "workbench-model_2.11"),
+    ExclusionRule(organization = "org.broadinstitute.dsde.workbench", name = "workbench-google_2.11"),
     ExclusionRule(organization = "org.broadinstitute.dsde.workbench", name = "workbench-model_2.12"),
     ExclusionRule(organization = "org.broadinstitute.dsde.workbench", name = "workbench-google_2.12")
   )
