@@ -69,15 +69,6 @@ object UserPool {
   }
 
   /**
-    * Chooses a notebooksWhitelisted user.
-    */
-  def chooseNotebooksWhitelisted: Credentials = chooseNotebooksWhitelisteds(1).head
-
-  def chooseNotebooksWhitelisteds(n: Int): Seq[Credentials] = {
-    Config.Users.NotebooksWhitelisted.getRandomCredentials(n)
-  }
-
-  /**
     *
     * Chooses a campaign manager
     */
