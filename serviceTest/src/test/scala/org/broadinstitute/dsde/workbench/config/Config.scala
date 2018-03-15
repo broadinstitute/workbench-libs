@@ -65,7 +65,6 @@ object Config extends Config {
     val Temps = UserSet(makeCredsMap(userDataJson("temps")))
     val AuthDomainUsers = UserSet(makeCredsMap(userDataJson("authdomains")))
     val Students = UserSet(makeCredsMap(userDataJson("students")))
-    val NotebooksWhitelisted = UserSet(makeCredsMap(userDataJson("notebookswhitelisted")))
     val CampaignManager = UserSet(makeCredsMap(userDataJson("campaignManagers")))
 
     // defaults
@@ -74,7 +73,6 @@ object Config extends Config {
     val admin = Admins.getUserCredential("dumbledore")
     val testUser = Students.getUserCredential("harry")
     val temp = Temps.getUserCredential("luna")
-    val notebooksWhitelisted = NotebooksWhitelisted.getUserCredential("hermione")
     val tempSubjectId = users.getString("tempSubjectId")
     val smoketestpassword = users.getString("smoketestpassword")
     val smoketestuser = Credentials(users.getString("smoketestuser"), smoketestpassword)
