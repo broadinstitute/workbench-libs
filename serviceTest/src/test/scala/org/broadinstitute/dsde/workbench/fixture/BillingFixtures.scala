@@ -1,6 +1,7 @@
 package org.broadinstitute.dsde.workbench.fixture
 
 import akka.http.scaladsl.model.headers.OAuth2BearerToken
+import com.typesafe.scalalogging.LazyLogging
 import org.broadinstitute.dsde.workbench.auth.AuthToken
 import org.broadinstitute.dsde.workbench.config.{Config, Credentials, UserPool}
 import org.broadinstitute.dsde.workbench.model.{UserInfo, WorkbenchEmail, WorkbenchUserId}
@@ -8,6 +9,7 @@ import org.broadinstitute.dsde.workbench.service.{GPAlloc, Orchestration, Rawls}
 import org.broadinstitute.dsde.workbench.service.Orchestration.billing.BillingProjectRole
 import org.broadinstitute.dsde.workbench.service.Orchestration.billing.BillingProjectRole.BillingProjectRole
 import org.broadinstitute.dsde.workbench.service.test.CleanUp
+import org.broadinstitute.dsde.workbench.service.util.ExceptionHandling
 import org.scalatest.TestSuite
 
 import scala.util.Random
@@ -18,7 +20,7 @@ import scala.util.Random
   * billing projects of your own.  Using GPAlloc will generally be much faster, limit the creation of billing projects
   * to those tests which truly require them.
   */
-trait BillingFixtures extends CleanUp {
+trait BillingFixtures extends ExceptionHandling with LazyLogging with CleanUp {
   self: TestSuite =>
 
   // copied from WebBrowserSpec so we don't have to self-type it

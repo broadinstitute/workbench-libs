@@ -11,10 +11,11 @@ SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test"
 * `org.broadinstitute.dsde.workbench.service.test.CleanUp` now throws exceptions if any cleanup function fails. Cleanup functions where failure is tollerable should be wrapped in a Try-recover.
 * rawls api deleteBillingProject requires ownerInfo
 * Added a case to retry when receiving 401 from Google after calling AuthToken.makeToken()
+* Fixtures no longer depend on WebBrowserSpec
 
 ## 0.5
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "0.5-56a360c"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "0.5-TRAVIS-REPLACE-ME"`
 
 ### Updated
 

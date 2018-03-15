@@ -2,15 +2,14 @@ package org.broadinstitute.dsde.workbench.fixture
 
 import org.broadinstitute.dsde.workbench.service._
 import org.broadinstitute.dsde.workbench.auth.AuthToken
-import org.broadinstitute.dsde.workbench.service.test.CleanUp
-import org.broadinstitute.dsde.workbench.service.test.WebBrowserSpec
+import org.broadinstitute.dsde.workbench.service.util.ExceptionHandling
 import org.broadinstitute.dsde.workbench.service.util.Util.{appendUnderscore, makeUuid}
 import org.scalatest.TestSuite
 
 /**WorkspaceFixtures
   * Fixtures for creating and cleaning up test workspaces.
   */
-trait WorkspaceFixtures { self: WebBrowserSpec with TestSuite =>
+trait WorkspaceFixtures extends ExceptionHandling { self: TestSuite =>
 
   /**
     * Loan method that creates a workspace that will be cleaned up after the
@@ -29,15 +28,15 @@ trait WorkspaceFixtures { self: WebBrowserSpec with TestSuite =>
                     cleanUp: Boolean = true)
                    (testCode: (String) => Any)(implicit token: AuthToken): Unit = {
     val workspaceName = appendUnderscore(namePrefix) + makeUuid
-    api.workspaces.create(namespace, workspaceName, authDomain)
-    api.workspaces.updateAcl(namespace, workspaceName, aclEntries)
+    Orchestration.workspaces.create(namespace, workspaceName, authDomain)
+    Orchestration.workspaces.updateAcl(namespace, workspaceName, aclEntries)
     if (attributes.isDefined)
-      api.workspaces.setAttributes(namespace, workspaceName, attributes.get)
+      Orchestration.workspaces.setAttributes(namespace, workspaceName, attributes.get)
     try {
       testCode(workspaceName)
     } finally {
       if (cleanUp) {
-        api.workspaces.delete(namespace, workspaceName)
+        Orchestration.workspaces.delete(namespace, workspaceName)
       }
     }
   }
