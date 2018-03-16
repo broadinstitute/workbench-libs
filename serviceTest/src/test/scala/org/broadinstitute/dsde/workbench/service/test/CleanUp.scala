@@ -2,9 +2,13 @@ package org.broadinstitute.dsde.workbench.service.test
 
 import com.typesafe.scalalogging.LazyLogging
 import java.util.concurrent.ConcurrentLinkedDeque
+
+import org.broadinstitute.dsde.workbench.model.{ErrorReport, ErrorReportSource}
 import org.broadinstitute.dsde.workbench.service.util.ExceptionHandling
 import org.scalatest.{Outcome, TestSuite, TestSuiteMixin}
+
 import collection.JavaConverters._
+import scala.util.{Failure, Try}
 
 /**
   * Mix-in for cleaning up data created during a test.
@@ -96,7 +100,18 @@ trait CleanUp extends TestSuiteMixin with ExceptionHandling with LazyLogging { s
   }
 
   private def runCleanUpFunctions() = {
-    cleanUpFunctions.asScala.foreach { _() }
+    import spray.json._
+    import org.broadinstitute.dsde.workbench.model.ErrorReportJsonSupport._
+    implicit val errorReportSource = ErrorReportSource(self.suiteName)
+
+    val cleanups = cleanUpFunctions.asScala.map { f => Try(f()) }
     cleanUpFunctions.clear()
+    val errorReports = cleanups.collect {
+      case Failure(t) => ErrorReport(t)
+    }
+
+    if (errorReports.nonEmpty) {
+      throw new Exception(ErrorReport("cleanup failed", errorReports.toSeq).toJson.prettyPrint)
+    }
   }
 }
