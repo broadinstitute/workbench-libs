@@ -9,9 +9,9 @@ trait Rawls extends RestClient with LazyLogging {
 
   val url = Config.FireCloud.rawlsApiUrl
   object admin {
-    def deleteBillingProject(projectName: String)(implicit token: AuthToken): Unit = {
+    def deleteBillingProject(projectName: String, projectOwner: UserInfo)(implicit token: AuthToken): Unit = {
       logger.info(s"Deleting billing project: $projectName")
-      deleteRequest(url + s"api/admin/billing/$projectName")
+      deleteRequestWithContent(url + s"api/admin/billing/$projectName", Map("newOwnerEmail" -> projectOwner.userEmail.value, "newOwnerToken" -> projectOwner.accessToken.token))
     }
 
     def claimProject(projectName: String, cromwellAuthBucket: String, newOwner: UserInfo)(implicit token: AuthToken): Unit = {

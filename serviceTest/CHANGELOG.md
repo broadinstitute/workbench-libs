@@ -9,6 +9,7 @@ SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test"
 ### Changed
 
 * `org.broadinstitute.dsde.workbench.service.test.CleanUp` now throws exceptions if any cleanup function fails. Cleanup functions where failure is tollerable should be wrapped in a Try-recover.
+* rawls api deleteBillingProject requires ownerInfo
 
 ## 0.5
 
