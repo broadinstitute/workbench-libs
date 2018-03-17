@@ -35,9 +35,7 @@ trait BillingFixtures extends CleanUp {
 
   protected def removeMembersFromBillingProject(projectName: String, memberEmails: List[String])(implicit token: AuthToken): Unit = {
     memberEmails foreach { email =>
-      try {
-        Orchestration.billing.removeUserFromBillingProject(projectName, email, BillingProjectRole.Owner)
-      } catch nonFatalAndLog(s"Error removing user $email from billing project $projectName in removeMembersFromBillingProject clean-up")
+      Orchestration.billing.removeUserFromBillingProject(projectName, email, BillingProjectRole.Owner)
     }
   }
 
@@ -66,10 +64,9 @@ trait BillingFixtures extends CleanUp {
   }
 
   private def deleteBillingProject(billingProjectName: String, memberEmails: List[String])(implicit token: AuthToken): Unit = {
+    val projectOwnerInfo = UserInfo(OAuth2BearerToken(token.value), WorkbenchUserId(""), WorkbenchEmail("doesnt@matter.com"), 100)
     removeMembersFromBillingProject(billingProjectName, memberEmails)
-    try {
-      Rawls.admin.deleteBillingProject(billingProjectName)(UserPool.chooseAdmin.makeAuthToken())
-    } catch nonFatalAndLog(s"Error deleting billing project in withBillingProject clean-up: $billingProjectName")
+    Rawls.admin.deleteBillingProject(billingProjectName, projectOwnerInfo)(UserPool.chooseAdmin.makeAuthToken())
   }
 
   /**
@@ -135,13 +132,9 @@ trait BillingFixtures extends CleanUp {
 
     removeMembersFromBillingProject(projectName, memberEmails)(ownerToken)
 
-    try {
-      Rawls.admin.releaseProject(projectName, newOwnerUserInfo)(adminToken)
-    } catch nonFatalAndLog(s"Error releasing billing project from Rawls in withCleanBillingProject clean-up: $projectName")
+    Rawls.admin.releaseProject(projectName, newOwnerUserInfo)(adminToken)
 
-    try {
-      GPAlloc.projects.releaseProject(projectName)(ownerToken)
-    } catch nonFatalAndLog(s"Error releasing billing project from GPAlloc in withCleanBillingProject clean-up: $projectName")
+    GPAlloc.projects.releaseProject(projectName)(ownerToken)
   }
 
   /**

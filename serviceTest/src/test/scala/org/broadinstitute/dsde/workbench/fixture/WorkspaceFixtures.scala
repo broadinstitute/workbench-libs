@@ -37,9 +37,7 @@ trait WorkspaceFixtures { self: WebBrowserSpec with TestSuite =>
       testCode(workspaceName)
     } finally {
       if (cleanUp) {
-        try {
-          api.workspaces.delete(namespace, workspaceName)
-        } catch nonFatalAndLog(s"Error deleting workspace in withWorkspace clean-up: $namespace/$workspaceName")
+        api.workspaces.delete(namespace, workspaceName)
       }
     }
   }
