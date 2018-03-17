@@ -64,8 +64,9 @@ trait BillingFixtures extends CleanUp {
   }
 
   private def deleteBillingProject(billingProjectName: String, memberEmails: List[String])(implicit token: AuthToken): Unit = {
+    val projectOwnerInfo = UserInfo(OAuth2BearerToken(token.value), WorkbenchUserId(""), WorkbenchEmail("doesnt@matter.com"), 100)
     removeMembersFromBillingProject(billingProjectName, memberEmails)
-    Rawls.admin.deleteBillingProject(billingProjectName)(UserPool.chooseAdmin.makeAuthToken())
+    Rawls.admin.deleteBillingProject(billingProjectName, projectOwnerInfo)(UserPool.chooseAdmin.makeAuthToken())
   }
 
   /**
