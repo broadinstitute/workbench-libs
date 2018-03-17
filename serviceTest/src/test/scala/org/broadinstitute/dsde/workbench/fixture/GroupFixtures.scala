@@ -31,9 +31,9 @@ trait GroupFixtures extends CleanUp with LazyLogging { self: WebBrowserSpec with
 
     } finally {
       memberEmails foreach { email =>
-        try api.groups.removeUserFromGroup(groupName, email, GroupRole.Member) catch nonFatalAndLog("Error removing user from group in withGroup clean-up")
+        api.groups.removeUserFromGroup(groupName, email, GroupRole.Member)
       }
-      try api.groups.delete(groupName) catch nonFatalAndLog("Error deleting group in withGroup clean-up")
+      api.groups.delete(groupName)
     }
   }
 }
