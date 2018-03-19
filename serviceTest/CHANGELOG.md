@@ -4,12 +4,13 @@ This file documents changes to the `workbench-service-test` library, including n
 
 ## 0.6
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "0.6-f79d946"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "0.6-TRAVIS-REPLACE-ME"`
 
 ### Changed
 
 * `org.broadinstitute.dsde.workbench.service.test.CleanUp` now throws exceptions if any cleanup function fails. Cleanup functions where failure is tollerable should be wrapped in a Try-recover.
 * rawls api deleteBillingProject requires ownerInfo
+* Added a case to retry when receiving 401 from Google after calling AuthToken.makeToken()
 
 ## 0.5
 
