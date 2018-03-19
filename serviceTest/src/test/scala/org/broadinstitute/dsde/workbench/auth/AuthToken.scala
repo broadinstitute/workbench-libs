@@ -1,5 +1,6 @@
 package org.broadinstitute.dsde.workbench.auth
 
+import akka.http.scaladsl.model.StatusCodes
 import com.google.api.client.auth.oauth2.TokenResponseException
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport
@@ -27,8 +28,8 @@ trait AuthToken extends LazyLogging {
         cred.refreshToken()
         Option(cred.getAccessToken)
       } catch {
-        case _: TokenResponseException =>
-          logger.error("Encountered 4xx error getting access token. Details: \n" +
+        case e: TokenResponseException if e.getStatusCode == StatusCodes.Forbidden.intValue =>
+          logger.error("Encountered 401 error getting access token. Details: \n" +
             s"Service Account: ${cred.getServiceAccountId} \n" +
             s"User: ${cred.getServiceAccountUser} \n" +
             s"Scopes: ${cred.getServiceAccountScopesAsString} \n" +
