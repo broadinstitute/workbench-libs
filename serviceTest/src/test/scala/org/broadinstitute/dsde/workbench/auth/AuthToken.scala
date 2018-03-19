@@ -28,7 +28,7 @@ trait AuthToken extends LazyLogging {
         cred.refreshToken()
         Option(cred.getAccessToken)
       } catch {
-        case e: TokenResponseException if e.getStatusCode == StatusCodes.Forbidden.intValue =>
+        case e: TokenResponseException if e.getStatusCode == StatusCodes.Unauthorized.intValue =>
           logger.error("Encountered 401 error getting access token. Details: \n" +
             s"Service Account: ${cred.getServiceAccountId} \n" +
             s"User: ${cred.getServiceAccountUser} \n" +
