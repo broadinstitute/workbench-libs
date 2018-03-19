@@ -25,7 +25,7 @@ trait AuthToken extends LazyLogging {
     Retry.retry(5.seconds, 1.minute)({
       try {
         cred.refreshToken()
-        Some(cred.getAccessToken)
+        Option(cred.getAccessToken)
       } catch {
         case _: TokenResponseException =>
           logger.error("Encountered 4xx error getting access token. Details: \n" +
