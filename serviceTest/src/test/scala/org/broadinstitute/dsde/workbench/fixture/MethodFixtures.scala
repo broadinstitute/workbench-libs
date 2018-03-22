@@ -1,11 +1,13 @@
 package org.broadinstitute.dsde.workbench.fixture
 
 import org.broadinstitute.dsde.workbench.auth.AuthToken
-import org.broadinstitute.dsde.workbench.service.test.{CleanUp, WebBrowserSpec}
+import org.broadinstitute.dsde.workbench.service.Orchestration
+import org.broadinstitute.dsde.workbench.service.test.RandomUtil
+import org.broadinstitute.dsde.workbench.service.util.ExceptionHandling
 import org.broadinstitute.dsde.workbench.service.util.Util.{appendUnderscore, makeUuid}
 import org.scalatest.TestSuite
 
-trait MethodFixtures extends CleanUp { self: WebBrowserSpec with TestSuite =>
+trait MethodFixtures extends ExceptionHandling with RandomUtil { self: TestSuite =>
 
   def withMethod(testName:String, method:Method, numSnapshots: Int = 1, cleanUp: Boolean = true)
                 (testCode: (String) => Any)
@@ -13,14 +15,14 @@ trait MethodFixtures extends CleanUp { self: WebBrowserSpec with TestSuite =>
     // create a method
     val methodName: String = appendUnderscore(testName) + makeUuid
     for (i <- 1 to numSnapshots)
-      api.methods.createMethod(method.creationAttributes + ("name"->methodName))
+      Orchestration.methods.createMethod(method.creationAttributes + ("name"->methodName))
     try {
       testCode(methodName)
     } finally {
       if (cleanUp) {
         try {
           for (i <- 1 to numSnapshots)
-          api.methods.redact(method.methodNamespace, methodName, i)
+            Orchestration.methods.redact(method.methodNamespace, methodName, i)
         } catch nonFatalAndLog(s"Error redacting method $method.methodName/$methodName")
       }
     }
@@ -33,7 +35,7 @@ trait MethodFixtures extends CleanUp { self: WebBrowserSpec with TestSuite =>
     val name = methodName + randomUuid
     val attributes = MethodData.SimpleMethod.creationAttributes + ("name" -> name)
     val namespace = attributes("namespace")
-    api.methods.createMethod(attributes)
+    Orchestration.methods.createMethod(attributes)
 
     try {
       testCode((name, namespace))
