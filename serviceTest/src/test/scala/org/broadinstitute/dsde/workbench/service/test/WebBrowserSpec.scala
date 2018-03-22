@@ -22,7 +22,7 @@ import scala.util.Random
 /**
   * Base spec for writing FireCloud web browser tests.
   */
-trait WebBrowserSpec extends WebBrowserUtil with ExceptionHandling with LazyLogging { self: Suite =>
+trait WebBrowserSpec extends WebBrowserUtil with ExceptionHandling with LazyLogging with RandomUtil { self: Suite =>
 
   val api = Orchestration
 
@@ -100,22 +100,6 @@ trait WebBrowserSpec extends WebBrowserUtil with ExceptionHandling with LazyLogg
     } finally {
       try driver.quit() catch nonFatalAndLog
     }
-  }
-
-
-  /**
-    * Make a random alpha-numeric (lowercase) string to be used as a semi-unique
-    * identifier.
-    *
-    * @param length the number of characters in the string
-    * @return a random string
-    */
-  def makeRandomId(length: Int = 7): String = {
-    Random.alphanumeric.take(length).mkString.toLowerCase
-  }
-
-  def randomUuid: String = {
-    UUID.randomUUID().toString
   }
 
   /**
