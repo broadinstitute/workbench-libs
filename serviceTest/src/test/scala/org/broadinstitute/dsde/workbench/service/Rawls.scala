@@ -1,13 +1,17 @@
 package org.broadinstitute.dsde.workbench.service
 
+import com.fasterxml.jackson.databind.JsonNode
 import com.typesafe.scalalogging.LazyLogging
 import org.broadinstitute.dsde.workbench.auth.AuthToken
 import org.broadinstitute.dsde.workbench.config.Config
 import org.broadinstitute.dsde.workbench.model.UserInfo
 
+import scala.util.Try
+
 trait Rawls extends RestClient with LazyLogging {
 
-  val url = Config.FireCloud.rawlsApiUrl
+  val url: String = Config.FireCloud.rawlsApiUrl
+
   object admin {
     def deleteBillingProject(projectName: String, projectOwner: UserInfo)(implicit token: AuthToken): Unit = {
       logger.info(s"Deleting billing project: $projectName")
@@ -50,6 +54,56 @@ trait Rawls extends RestClient with LazyLogging {
       parseResponse(getRequest(url + s"api/workspaces"))
     }
   }
+
+  object submissions {
+    def launchWorkflow(billingProject: String, workspaceName: String, methodConfigurationNamespace: String, methodConfigurationName: String, entityType: String, entityName: String, expression: String, useCallCache: Boolean, workflowFailureMode: String = "NoNewCalls")(implicit token: AuthToken): String = {
+      val body = Map("methodConfigurationNamespace" -> methodConfigurationNamespace, "methodConfigurationName" -> methodConfigurationName, "entityType" -> entityType, "entityName" -> entityName, "expression" -> expression, "useCallCache" -> useCallCache, "workflowFailureMode" -> workflowFailureMode)
+      logger.info(s"Creating a submission: $billingProject/$workspaceName config: $methodConfigurationNamespace/$methodConfigurationName with body $body")
+      val response = postRequest(url + s"api/workspaces/$billingProject/$workspaceName/submissions", body)
+
+      // TODO properly parse SubmissionReport response (GAWB-3319)
+      // Steps to do so:
+      // 1. Move from Rawls Core to Rawls Model or Workbench Model
+      // 2. Implement a Jackson de/serializer for SubmissionReport and all dependent case classes
+
+      response.fromJsonMapAs[String]("submissionId") getOrElse (throw RestException(s"Can't parse submissionId from SubmissionReport response $response"))
+    }
+
+    // returns a tuple of (submission status, workflow IDs if any)
+    def getSubmissionStatus(billingProject: String, workspaceName: String, submissionId: String)(implicit token: AuthToken): (String, List[String]) = {
+      logger.info(s"Get submission status: $billingProject/$workspaceName/$submissionId")
+      val response = parseResponse(getRequest(url + s"api/workspaces/$billingProject/$workspaceName/submissions/$submissionId"))
+
+      // TODO properly parse SubmissionStatusResponse (GAWB-3319)
+      // Steps to do so:
+      // 1. Move from Rawls Core to Rawls Model or Workbench Model
+      // 2. Implement a Jackson de/serializer for SubmissionStatusResponse and all dependent case classes
+
+      val status = response.fromJsonMapAs[String]("status") getOrElse (throw RestException(s"Can't parse status from SubmissionStatusResponse response $response"))
+
+      // workflows are JSON maps with (optional) workflowIds.  Collect the IDs that are defined
+
+      import scala.collection.JavaConverters._
+      val workflows: List[JsonNode] = mapper.readTree(response).get("workflows").elements().asScala.toList
+
+      val ids = workflows flatMap { wf =>
+        Try(wf.get("workflowId").textValue()).toOption
+      }
+
+      (status, ids)
+    }
+
+    def getWorkflowMetadata(billingProject: String, workspaceName: String, submissionId: String, workflowId: String)(implicit token: AuthToken): String = {
+      logger.info(s"Get workflow metadata: $billingProject/$workspaceName/$submissionId/$workflowId")
+      parseResponse(getRequest(url + s"api/workspaces/$billingProject/$workspaceName/submissions/$submissionId/workflows/$workflowId"))
+    }
+
+    def abortSubmission(billingProject: String, workspaceName: String, submissionId: String)(implicit token: AuthToken): String = {
+      logger.info(s"Abort submission: $billingProject/$workspaceName/$submissionId")
+      deleteRequest(url + s"api/workspaces/$billingProject/$workspaceName/submissions/$submissionId")
+    }
+  }
+
 }
 
 object Rawls extends Rawls

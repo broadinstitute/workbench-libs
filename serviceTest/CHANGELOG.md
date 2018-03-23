@@ -4,7 +4,7 @@ This file documents changes to the `workbench-service-test` library, including n
 
 ## 0.6
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "0.6-1781edd"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "0.6-TRAVIS-REPLACE-ME"`
 
 ### Changed
 
@@ -12,6 +12,7 @@ SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test"
 * rawls api deleteBillingProject requires ownerInfo
 * Added a case to retry when receiving 401 from Google after calling AuthToken.makeToken()
 * Fixtures no longer depend on WebBrowserSpec
+* Rawls: add launchWorkflow, getSubmissionStatus, getWorkflowMetadata, abortSubmission
 
 ## 0.5
 
