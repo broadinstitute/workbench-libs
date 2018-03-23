@@ -53,7 +53,7 @@ package object google {
     //if we're trimming the prefix, we make the prefix short enough to accommodate the UUID.
     //if we're trimming the UUID, we might still need to trim the prefix anyway if it's enormous.
     val trimmedPrefix = if(trimPrefix) sb.take(maxBucketNameLen - uuid.length) else sb.take(maxBucketNameLen)
-    val trimmedUUID = if(trimPrefix) uuid else sb.take(Math.min(maxBucketNameLen - trimmedPrefix.length, uuid.length))
+    val trimmedUUID = if(trimPrefix) uuid else uuid.take(Math.min(maxBucketNameLen - trimmedPrefix.length, uuid.length))
 
     // must not start with "goog" or contain the string "google"
     val processedName = trimmedPrefix.replaceAllLiterally("goog", "g00g")
