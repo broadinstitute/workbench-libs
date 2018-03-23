@@ -10,7 +10,8 @@ import scala.util.Try
 
 trait Rawls extends RestClient with LazyLogging {
 
-  val url = Config.FireCloud.rawlsApiUrl
+  val url: String = Config.FireCloud.rawlsApiUrl
+
   object admin {
     def deleteBillingProject(projectName: String, projectOwner: UserInfo)(implicit token: AuthToken): Unit = {
       logger.info(s"Deleting billing project: $projectName")
@@ -55,12 +56,10 @@ trait Rawls extends RestClient with LazyLogging {
   }
 
   object submissions {
-    // dear reader: "workspace namespace" is an archaic term for billing project which is still used in a few places
-
-    def launchWorkflow(wsNs: String, wsName: String, methodConfigurationNamespace: String, methodConfigurationName: String, entityType: String, entityName: String, expression: String, useCallCache: Boolean, workflowFailureMode: String = "NoNewCalls")(implicit token: AuthToken): String = {
+    def launchWorkflow(billingProject: String, workspaceName: String, methodConfigurationNamespace: String, methodConfigurationName: String, entityType: String, entityName: String, expression: String, useCallCache: Boolean, workflowFailureMode: String = "NoNewCalls")(implicit token: AuthToken): String = {
       val body = Map("methodConfigurationNamespace" -> methodConfigurationNamespace, "methodConfigurationName" -> methodConfigurationName, "entityType" -> entityType, "entityName" -> entityName, "expression" -> expression, "useCallCache" -> useCallCache, "workflowFailureMode" -> workflowFailureMode)
-      logger.info(s"Creating a submission: $wsNs/$wsName config: $methodConfigurationNamespace/$methodConfigurationName with body $body")
-      val response = postRequest(url + s"api/workspaces/$wsNs/$wsName/submissions", body)
+      logger.info(s"Creating a submission: $billingProject/$workspaceName config: $methodConfigurationNamespace/$methodConfigurationName with body $body")
+      val response = postRequest(url + s"api/workspaces/$billingProject/$workspaceName/submissions", body)
 
       // TODO properly parse SubmissionReport response (GAWB-3319)
       // Steps to do so:
@@ -71,9 +70,9 @@ trait Rawls extends RestClient with LazyLogging {
     }
 
     // returns a tuple of (submission status, workflow IDs if any)
-    def getSubmissionStatus(wsNs: String, wsName: String, submissionId: String)(implicit token: AuthToken): (String, List[String]) = {
-      logger.info(s"Get submission status: $wsNs/$wsName/$submissionId")
-      val response = parseResponse(getRequest(url + s"api/workspaces/$wsNs/$wsName/submissions/$submissionId"))
+    def getSubmissionStatus(billingProject: String, workspaceName: String, submissionId: String)(implicit token: AuthToken): (String, List[String]) = {
+      logger.info(s"Get submission status: $billingProject/$workspaceName/$submissionId")
+      val response = parseResponse(getRequest(url + s"api/workspaces/$billingProject/$workspaceName/submissions/$submissionId"))
 
       // TODO properly parse SubmissionStatusResponse (GAWB-3319)
       // Steps to do so:
@@ -94,14 +93,14 @@ trait Rawls extends RestClient with LazyLogging {
       (status, ids)
     }
 
-    def getWorkflowMetadata(wsNs: String, wsName: String, submissionId: String, workflowId: String)(implicit token: AuthToken): String = {
-      logger.info(s"Get workflow metadata: $wsNs/$wsName/$submissionId/$workflowId")
-      parseResponse(getRequest(url + s"api/workspaces/$wsNs/$wsName/submissions/$submissionId/workflows/$workflowId"))
+    def getWorkflowMetadata(billingProject: String, workspaceName: String, submissionId: String, workflowId: String)(implicit token: AuthToken): String = {
+      logger.info(s"Get workflow metadata: $billingProject/$workspaceName/$submissionId/$workflowId")
+      parseResponse(getRequest(url + s"api/workspaces/$billingProject/$workspaceName/submissions/$submissionId/workflows/$workflowId"))
     }
 
-    def abortSubmission(wsNs: String, wsName: String, submissionId: String)(implicit token: AuthToken): String = {
-      logger.info(s"Abort submission: $wsNs/$wsName/$submissionId")
-      deleteRequest(url + s"api/workspaces/$wsNs/$wsName/submissions/$submissionId")
+    def abortSubmission(billingProject: String, workspaceName: String, submissionId: String)(implicit token: AuthToken): String = {
+      logger.info(s"Abort submission: $billingProject/$workspaceName/$submissionId")
+      deleteRequest(url + s"api/workspaces/$billingProject/$workspaceName/submissions/$submissionId")
     }
   }
 
