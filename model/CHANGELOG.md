@@ -4,12 +4,16 @@ This file documents changes to the `workbench-model` library, including notes on
 
 ## 0.10
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-model" % "0.10-6800f3a"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-model" % "0.10-TRAVIS-REPLACE-ME"`
 
 ### Added
 
 - Model objects for Google Storage
 - `GcsPathParser` (functionality moved from `workbench-google`)
+
+### Changed
+
+- `generateUniqueBucketName` takes optional extra parameter to trim UUID instead of prefix
 
 ## 0.9
 
