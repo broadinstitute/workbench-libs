@@ -28,29 +28,36 @@ package object google {
     *
     * https://cloud.google.com/storage/docs/naming.
     *
-    * The resulting bucket name is guaranteed to be a valid bucket name.
+    * If trimPrefix is true, you're guaranteed the resulting bucket name will be unique.
+    * If trimPrefix is false, your bucket name may not be unique if your prefix is >=64 chars.
+    * but we'll keep as much of your prefix as possible.
     *
     * @param prefix bucket name prefix
     * @return generated bucket name
     */
-  def generateUniqueBucketName(prefix: String) = {
+  def generateUniqueBucketName(prefix: String, trimPrefix: Boolean = true) = {
     // may only contain lowercase letters, numbers, underscores, dashes, or dots
     val lowerCaseName = prefix.toLowerCase.filter { c =>
       Character.isLetterOrDigit(c) || c == '_' || c == '-' || c == '.'
     }
 
+    //maximum length is 63. Then we're going to shove a dash in between the prefix and the uuid, so 62.
+    val maxBucketNameLen = 62
+
     // must start with a letter or number
     val sb = new StringBuilder(lowerCaseName)
     if (!Character.isLetterOrDigit(sb.head)) sb.setCharAt(0, '0')
 
-    // max length of 63 chars, including the uuid
     val uuid = UUID.randomUUID.toString
-    val maxNameLength = 63 - uuid.length - 1
-    if (sb.length > maxNameLength) sb.setLength(maxNameLength)
+
+    //if we're trimming the prefix, we make the prefix short enough to accommodate the UUID.
+    //if we're trimming the UUID, we might still need to trim the prefix anyway if it's enormous.
+    val trimmedPrefix = if(trimPrefix) sb.take(maxBucketNameLen - uuid.length) else sb.take(maxBucketNameLen)
+    val trimmedUUID = if(trimPrefix) uuid else sb.take(Math.min(maxBucketNameLen - trimmedPrefix.length, uuid.length))
 
     // must not start with "goog" or contain the string "google"
-    val processedName = sb.replaceAllLiterally("goog", "g00g")
+    val processedName = trimmedPrefix.replaceAllLiterally("goog", "g00g")
 
-    GcsBucketName(s"$processedName-$uuid")
+    GcsBucketName(s"$processedName-$trimmedUUID")
   }
 }
