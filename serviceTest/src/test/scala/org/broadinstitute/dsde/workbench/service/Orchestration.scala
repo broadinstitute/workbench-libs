@@ -130,7 +130,7 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
     }
 
     def getGroup(groupName: String)(implicit token: AuthToken): ManagedGroupWithMembers = {
-      parseResponseAs[ManagedGroupWithMembers](getRequest(apiUrl(s"api/group/$groupName")))
+      parseResponseAs[ManagedGroupWithMembers](getRequest(apiUrl(s"api/groups/$groupName")))
     }
   }
 
