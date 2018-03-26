@@ -16,6 +16,7 @@ import spray.json.{DefaultJsonProtocol, _}
 
 import scala.concurrent.duration._
 import scala.util.{Failure, Success, Try}
+import Orchestration.Model._
 
 trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport with DefaultJsonProtocol {
 
@@ -95,12 +96,6 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
   }
 
   object groups {
-
-    case class RawlsGroupShort(groupName: String, groupEmail: String)
-    case class ManagedGroupWithMembers(membersGroup: RawlsGroupShort, adminsGroup: RawlsGroupShort, membersEmails: Seq[String], adminsEmails: Seq[String])
-
-    implicit val RawlsGroupShortFormat = jsonFormat2(RawlsGroupShort)
-    implicit val ManagedGroupWithMembersFormat = jsonFormat4(ManagedGroupWithMembers)
 
     object GroupRole extends Enumeration {
       type GroupRole = Value
@@ -475,7 +470,15 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
   }
 
 }
-object Orchestration extends Orchestration
+object Orchestration extends Orchestration {
+  object Model {
+    case class RawlsGroupShort(groupName: String, groupEmail: String)
+    case class ManagedGroupWithMembers(membersGroup: RawlsGroupShort, adminsGroup: RawlsGroupShort, membersEmails: Seq[String], adminsEmails: Seq[String])
+
+    implicit val RawlsGroupShortFormat = jsonFormat2(RawlsGroupShort)
+    implicit val ManagedGroupWithMembersFormat = jsonFormat4(ManagedGroupWithMembers)
+  }
+}
 
 /**
   * Dictionary of access level values expected by the web service API.
