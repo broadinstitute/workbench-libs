@@ -20,6 +20,15 @@ class GcsPathParserSpec extends FlatSpecLike with Matchers with EitherValues {
     generateUniqueBucketName("myClusterWhichHasAVeryLongNameBecauseIAmExtremelyVerboseInMyDescriptions").value.length shouldBe 63
   }
 
+  "gcs" should "generate valid bucket names when trimming the uuid" in {
+    //trim the uuid
+    generateUniqueBucketName("myClusterWhichHasAModeratelyLongName", false).value should startWith("myclusterwhichhasamoderatelylongname-")
+
+    //trim the uuid but the prefix is also too long so trim that too
+    generateUniqueBucketName("myClusterWhichHasAVeryLongNameBecauseIAmExtremelyVerboseInMyDescriptions", false).value should startWith ("myclusterwhichhasaverylongnamebecauseiamextremelyverboseinmyde-")
+    generateUniqueBucketName("myClusterWhichHasAVeryLongNameBecauseIAmExtremelyVerboseInMyDescriptions", false).value.length shouldBe 63
+  }
+
   "GcsPath" should "parse valid paths" in {
     parseGcsPath("gs://a-bucket/a/relative/path").right.value shouldBe GcsPath(GcsBucketName("a-bucket"), GcsObjectName("a/relative/path"))
     parseGcsPath("gs://a-123-bucket/foo/").right.value shouldBe GcsPath(GcsBucketName("a-123-bucket"), GcsObjectName("foo/"))
