@@ -7,9 +7,11 @@ import org.broadinstitute.dsde.workbench.auth.AuthToken
 import org.broadinstitute.dsde.workbench.config.Config
 import org.broadinstitute.dsde.workbench.fixture.Method
 import org.broadinstitute.dsde.workbench.fixture.MethodData.SimpleMethod
+import org.broadinstitute.dsde.workbench.model.WorkbenchGroup
 import org.broadinstitute.dsde.workbench.service.Sam.user.UserStatusDetails
 import org.broadinstitute.dsde.workbench.service.util.{Retry, Util}
 import org.broadinstitute.dsde.workbench.service.util.Util.appendUnderscore
+import spray.json.DefaultJsonProtocol.{jsonFormat2, jsonFormat4}
 import spray.json.{DefaultJsonProtocol, _}
 
 import scala.concurrent.duration._
@@ -94,6 +96,12 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
 
   object groups {
 
+    case class RawlsGroupShort(groupName: String, groupEmail: String)
+    case class ManagedGroupWithMembers(membersGroup: RawlsGroupShort, adminsGroup: RawlsGroupShort, membersEmails: Seq[String], adminsEmails: Seq[String])
+
+    implicit val RawlsGroupShortFormat = jsonFormat2(RawlsGroupShort)
+    implicit val ManagedGroupWithMembersFormat = jsonFormat4(ManagedGroupWithMembers)
+
     object GroupRole extends Enumeration {
       type GroupRole = Value
       val Member = Value("member")
@@ -119,6 +127,10 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
     def removeUserFromGroup(groupName: String, email: String, role: GroupRole)(implicit token: AuthToken): Unit = {
       logger.info(s"Removing user from group: $groupName $email ${role.toString}")
       deleteRequest(apiUrl(s"api/groups/$groupName/${role.toString}/$email"))
+    }
+
+    def getGroup(groupName: String)(implicit token: AuthToken): ManagedGroupWithMembers = {
+      parseResponseAs[ManagedGroupWithMembers](getRequest(apiUrl(s"api/group/$groupName")))
     }
   }
 
