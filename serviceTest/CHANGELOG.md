@@ -4,7 +4,7 @@ This file documents changes to the `workbench-service-test` library, including n
 
 ## 0.7
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "0.7-TRAVIS-REPLACE-ME"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "0.7-847c3ff"`
 
 ### Removed
 - petName from services.Sam
