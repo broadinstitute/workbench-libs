@@ -24,8 +24,6 @@ trait Sam extends RestClient with LazyLogging with ScalaFutures{
 
   implicit override val patienceConfig: PatienceConfig = PatienceConfig(timeout = scaled(Span(5, Seconds)))
 
-  def petName(userInfo: user.UserStatusDetails) = ServiceAccountName(s"pet-${userInfo.userSubjectId}")
-
   def removePet(project: String, userInfo: UserStatusDetails): Unit = {
     Sam.admin.deletePetServiceAccount(project, userInfo.userSubjectId)(UserPool.chooseAdmin.makeAuthToken())
   }
