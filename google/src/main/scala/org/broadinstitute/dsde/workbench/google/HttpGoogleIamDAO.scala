@@ -69,13 +69,16 @@ class HttpGoogleIamDAO(appName: String,
   }
 
   override def findServiceAccount(serviceAccountProject: GoogleProject, serviceAccountName: ServiceAccountName): Future[Option[google.ServiceAccount]] = {
-    val serviceAccountEmail = toServiceAccountEmail(serviceAccountProject, serviceAccountName)
+    findServiceAccount(serviceAccountProject, toServiceAccountEmail(serviceAccountProject, serviceAccountName))
+  }
+
+  override def findServiceAccount(serviceAccountProject: GoogleProject, serviceAccountEmail: WorkbenchEmail) = {
     val name = s"projects/${serviceAccountProject.value}/serviceAccounts/${serviceAccountEmail.value}"
     val getter = iam.projects().serviceAccounts().get(name)
 
     //Return a Future[Option[ServiceAccount]]. The future fails if we get a Google error we don't understand. The Option is None if we get a 404, i.e. the SA doesn't exist.
     val findOption = OptionT(retryWithRecoverWhen500orGoogleError { () =>
-        Option(executeGoogleRequest(getter))
+      Option(executeGoogleRequest(getter))
     } {
       case t: GoogleJsonResponseException if t.getStatusCode == 404 =>
         None
@@ -83,10 +86,10 @@ class HttpGoogleIamDAO(appName: String,
 
     //Turn it into a Workbench SA type.
     (findOption map { serviceAccount =>
-        google.ServiceAccount(
-          ServiceAccountSubjectId(serviceAccount.getUniqueId),
-          WorkbenchEmail(serviceAccount.getEmail),
-          ServiceAccountDisplayName(serviceAccount.getDisplayName))
+      google.ServiceAccount(
+        ServiceAccountSubjectId(serviceAccount.getUniqueId),
+        WorkbenchEmail(serviceAccount.getEmail),
+        ServiceAccountDisplayName(serviceAccount.getDisplayName))
     }).value
   }
 

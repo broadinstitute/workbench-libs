@@ -8,7 +8,7 @@ import org.broadinstitute.dsde.workbench.service.util.ExceptionHandling
 import org.scalatest.{Outcome, TestSuite, TestSuiteMixin}
 
 import collection.JavaConverters._
-import scala.util.{Failure, Try}
+import scala.util.{Failure, Success, Try}
 
 /**
   * Mix-in for cleaning up data created during a test.
@@ -83,19 +83,25 @@ trait CleanUp extends TestSuiteMixin with ExceptionHandling with LazyLogging { s
     * @param testCode the test code to run
     */
   def withCleanUp(testCode: => Any): Unit = {
-    try {
-      testCode
-    } finally {
-      runCleanUpFunctions()
+    val testTrial = Try { testCode }
+    val cleanupTrial = Try { runCleanUpFunctions() }
+
+    (testTrial, cleanupTrial) match {
+      case (Failure(t), _) => throw t
+      case (_, Failure(t)) => throw t
+      case (Success(_), Success(_)) =>
     }
   }
 
   abstract override def withFixture(test: NoArgTest): Outcome = {
     if (cleanUpFunctions.peek() != null) throw new Exception("cleanUpFunctions non empty at start of withFixture block")
-    try {
-      super.withFixture(test)
-    } finally {
-      runCleanUpFunctions()
+    val testTrial = Try { super.withFixture(test) }
+    val cleanupTrial = Try { runCleanUpFunctions() }
+
+    (testTrial, cleanupTrial) match {
+      case (Failure(t), _) => throw t
+      case (_, Failure(t)) => throw t
+      case (Success(outcome), Success(_)) => outcome
     }
   }
 

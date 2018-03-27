@@ -26,6 +26,14 @@ trait GoogleIamDAO {
   def findServiceAccount(serviceAccountProject: GoogleProject, serviceAccountName: ServiceAccountName): Future[Option[ServiceAccount]]
 
   /**
+    * Looks for a service account in the given project.
+    * @param serviceAccountProject the project in which to create the service account
+    * @param serviceAccountEmail the service account email
+    * @return An option representing either finding the SA, or not, wrapped in a Future, representing any other failures.
+    */
+  def findServiceAccount(serviceAccountProject: GoogleProject, serviceAccountEmail: WorkbenchEmail): Future[Option[ServiceAccount]]
+
+  /**
     * Creates a service account in the given project.
     * @param serviceAccountProject the project in which to create the service account
     * @param serviceAccountName the service account name, which Google will use to construct the SA's email

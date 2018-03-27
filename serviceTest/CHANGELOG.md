@@ -2,6 +2,19 @@
 
 This file documents changes to the `workbench-service-test` library, including notes on how to upgrade to new versions.
 
+## 0.7
+
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "0.7-TRAVIS-REPLACE-ME"`
+
+### Removed
+- petName from services.Sam
+
+### Changed
+- GroupFixtures.groupNameToEmail requires implicit auth token param
+
+### Added
+- Orchestration.groups.getGroup
+
 ## 0.6
 
 SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "0.6-52d614b"`

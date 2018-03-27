@@ -14,6 +14,7 @@ import spray.json.{DefaultJsonProtocol, _}
 
 import scala.concurrent.duration._
 import scala.util.{Failure, Success, Try}
+import OrchestrationModel._
 
 trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport with DefaultJsonProtocol {
 
@@ -119,6 +120,10 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
     def removeUserFromGroup(groupName: String, email: String, role: GroupRole)(implicit token: AuthToken): Unit = {
       logger.info(s"Removing user from group: $groupName $email ${role.toString}")
       deleteRequest(apiUrl(s"api/groups/$groupName/${role.toString}/$email"))
+    }
+
+    def getGroup(groupName: String)(implicit token: AuthToken): ManagedGroupWithMembers = {
+      parseResponseAs[ManagedGroupWithMembers](getRequest(apiUrl(s"api/groups/$groupName")))
     }
   }
 
@@ -489,4 +494,13 @@ case class AclEntry(email: String, accessLevel: WorkspaceAccessLevel, canShare: 
     }
     compute
   }
+}
+
+object OrchestrationModel {
+  import DefaultJsonProtocol._
+  case class RawlsGroupShort(groupName: String, groupEmail: String)
+  case class ManagedGroupWithMembers(membersGroup: RawlsGroupShort, adminsGroup: RawlsGroupShort, membersEmails: Seq[String], adminsEmails: Seq[String])
+
+  implicit val RawlsGroupShortFormat = jsonFormat2(RawlsGroupShort)
+  implicit val ManagedGroupWithMembersFormat = jsonFormat4(ManagedGroupWithMembers)
 }
