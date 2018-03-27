@@ -7,16 +7,14 @@ import org.broadinstitute.dsde.workbench.auth.AuthToken
 import org.broadinstitute.dsde.workbench.config.Config
 import org.broadinstitute.dsde.workbench.fixture.Method
 import org.broadinstitute.dsde.workbench.fixture.MethodData.SimpleMethod
-import org.broadinstitute.dsde.workbench.model.WorkbenchGroup
 import org.broadinstitute.dsde.workbench.service.Sam.user.UserStatusDetails
 import org.broadinstitute.dsde.workbench.service.util.{Retry, Util}
 import org.broadinstitute.dsde.workbench.service.util.Util.appendUnderscore
-import spray.json.DefaultJsonProtocol.{jsonFormat2, jsonFormat4}
 import spray.json.{DefaultJsonProtocol, _}
 
 import scala.concurrent.duration._
 import scala.util.{Failure, Success, Try}
-import Orchestration.Model._
+import OrchestrationModel._
 
 trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport with DefaultJsonProtocol {
 
@@ -470,15 +468,7 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
   }
 
 }
-object Orchestration extends Orchestration {
-  object Model {
-    case class RawlsGroupShort(groupName: String, groupEmail: String)
-    case class ManagedGroupWithMembers(membersGroup: RawlsGroupShort, adminsGroup: RawlsGroupShort, membersEmails: Seq[String], adminsEmails: Seq[String])
-
-    implicit val RawlsGroupShortFormat = jsonFormat2(RawlsGroupShort)
-    implicit val ManagedGroupWithMembersFormat = jsonFormat4(ManagedGroupWithMembers)
-  }
-}
+object Orchestration extends Orchestration
 
 /**
   * Dictionary of access level values expected by the web service API.
@@ -504,4 +494,13 @@ case class AclEntry(email: String, accessLevel: WorkspaceAccessLevel, canShare: 
     }
     compute
   }
+}
+
+object OrchestrationModel {
+  import DefaultJsonProtocol._
+  case class RawlsGroupShort(groupName: String, groupEmail: String)
+  case class ManagedGroupWithMembers(membersGroup: RawlsGroupShort, adminsGroup: RawlsGroupShort, membersEmails: Seq[String], adminsEmails: Seq[String])
+
+  implicit val RawlsGroupShortFormat = jsonFormat2(RawlsGroupShort)
+  implicit val ManagedGroupWithMembersFormat = jsonFormat4(ManagedGroupWithMembers)
 }
