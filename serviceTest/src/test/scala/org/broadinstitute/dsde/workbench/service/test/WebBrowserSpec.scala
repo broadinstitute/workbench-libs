@@ -63,6 +63,7 @@ trait WebBrowserSpec extends WebBrowserUtil with ExceptionHandling with LazyLogg
     logger.info(s"Chrome download path: $fullDownloadPath")
     val options = new ChromeOptions
     options.addArguments("--incognito")
+    options.addArguments("--proxy-server=http://127.0.0.1:8080")
     // Note that download.prompt_for_download will be ignored if download.default_directory is invalid or doesn't exist
     options.setExperimentalOption("prefs", Map(
       "download.default_directory" -> fullDownloadPath,
