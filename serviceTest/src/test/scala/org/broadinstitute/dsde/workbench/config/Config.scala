@@ -44,8 +44,6 @@ object Config extends Config {
   }
 
   object Projects {
-    val default = gcsConfig.getString("serviceProject")
-    val common = default
     val billingAccount = gcsConfig.getString("billingAccount")
     val billingAccountId = gcsConfig.getString("billingAccountId")
     val smoketestBillingProject = gcsConfig.getString("smoketestsProject")
