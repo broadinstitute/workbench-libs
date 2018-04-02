@@ -1,5 +1,6 @@
 package org.broadinstitute.dsde.workbench.google
 
+import java._
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream, File}
 import java.time.Instant
 
@@ -23,6 +24,7 @@ import org.broadinstitute.dsde.workbench.model.WorkbenchEmail
 import org.broadinstitute.dsde.workbench.model.google.GcsLifecycleTypes.{Delete, GcsLifecycleType}
 import org.broadinstitute.dsde.workbench.model.google.GcsRoles.GcsRole
 import org.broadinstitute.dsde.workbench.model.google._
+
 
 import scala.collection.JavaConverters._
 import scala.concurrent.{ExecutionContext, Future}
@@ -298,6 +300,25 @@ class HttpGoogleStorageDAO(appName: String,
     } {
       case e: HttpResponseException if e.getStatusCode == StatusCodes.NotFound.intValue => ()
     }
+  }
+
+  override def createBucket(billingProject: GoogleProject, bucketName: GcsBucketName, entity: GcsEntity, role: GcsRole, lifecycleAge: Int, lifecycleType: GcsLifecycleType): Future[GcsBucketName] = {
+    val acl = new BucketAccessControl().setEntity(entity.toString).setRole(role.value)
+    val defaultBucketObjectAcl = new ObjectAccessControl().setEntity(entity.toString).setRole(role.value)
+    val lifecycle = new Lifecycle.Rule().setAction(new Action().setType(lifecycleType.value)).setCondition(new Condition().setAge(lifecycleAge))
+    val bucket = new Bucket()
+      .setName(bucketName.value)
+      .setAcl(List(acl).asJava)
+      .setDefaultObjectAcl(List(defaultBucketObjectAcl).asJava)
+      .setLifecycle(new Lifecycle().setRule(List(lifecycle).asJava))
+
+    val inserter = storage.buckets().insert(billingProject.value, bucket)
+
+    retryWhen500orGoogleError(() => {
+      executeGoogleRequest(inserter)
+      bucketName
+    })
+
   }
 
 }

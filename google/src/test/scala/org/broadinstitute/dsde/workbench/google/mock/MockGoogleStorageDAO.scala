@@ -142,4 +142,9 @@ class MockGoogleStorageDAO(  implicit val executionContext: ExecutionContext ) e
   override def removeDefaultObjectAccessControl(bucketName: GcsBucketName, entity: GcsEntity): Future[Unit] = {
     Future.successful(())
   }
+
+  override def createBucket(billingProject: GoogleProject, bucketName: GcsBucketName, entity: GcsEntity, role: GcsRole,  lifecycleAge: Int, lifecycleType: GcsLifecycleType = Delete): Future[GcsBucketName] = {
+    buckets.putIfAbsent(bucketName, Set.empty)
+    Future.successful(bucketName)
+  }
 }

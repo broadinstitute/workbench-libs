@@ -11,6 +11,7 @@ import scala.concurrent.Future
 trait GoogleStorageDAO {
 
   def createBucket(billingProject: GoogleProject, bucketName: GcsBucketName): Future[GcsBucketName]
+  def createBucket(billingProject: GoogleProject, bucketName: GcsBucketName, entity: GcsEntity, role: GcsRole,  lifecycleAge: Int, lifecycleType: GcsLifecycleType = Delete): Future[GcsBucketName]
   def deleteBucket(bucketName: GcsBucketName, recurse: Boolean): Future[Unit]
   def bucketExists(bucketName: GcsBucketName): Future[Boolean]
 
