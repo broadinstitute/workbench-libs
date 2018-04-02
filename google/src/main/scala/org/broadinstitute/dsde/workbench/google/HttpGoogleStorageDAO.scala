@@ -22,9 +22,8 @@ import org.broadinstitute.dsde.workbench.google.GoogleCredentialModes._
 import org.broadinstitute.dsde.workbench.metrics.GoogleInstrumentedService
 import org.broadinstitute.dsde.workbench.model.WorkbenchEmail
 import org.broadinstitute.dsde.workbench.model.google.GcsLifecycleTypes.{Delete, GcsLifecycleType}
-import org.broadinstitute.dsde.workbench.model.google.GcsRoles.GcsRole
+import org.broadinstitute.dsde.workbench.model.google.GcsRoles.{GcsRole, Reader, Owner}
 import org.broadinstitute.dsde.workbench.model.google._
-
 
 import scala.collection.JavaConverters._
 import scala.concurrent.{ExecutionContext, Future}
@@ -302,15 +301,15 @@ class HttpGoogleStorageDAO(appName: String,
     }
   }
 
-  override def createBucket(billingProject: GoogleProject, bucketName: GcsBucketName, entity: GcsEntity, role: GcsRole, lifecycleAge: Int, lifecycleType: GcsLifecycleType): Future[GcsBucketName] = {
-    val acl = new BucketAccessControl().setEntity(entity.toString).setRole(role.value)
-    val defaultBucketObjectAcl = new ObjectAccessControl().setEntity(entity.toString).setRole(role.value)
-    val lifecycle = new Lifecycle.Rule().setAction(new Action().setType(lifecycleType.value)).setCondition(new Condition().setAge(lifecycleAge))
+  override def createBucket(billingProject: GoogleProject, bucketName: GcsBucketName, readerEntity: List[GcsEntity], ownerEntity: List[GcsEntity]): Future[GcsBucketName] = {
+    val readerAcl = readerEntity.map(entity => new BucketAccessControl().setEntity(entity.toString).setRole(Reader.value))
+    val ownerAcl = ownerEntity.map(entity => new BucketAccessControl().setEntity(entity.toString).setRole(Owner.value))
+    val defaultBucketObjectAcl = readerEntity.map(entity => new ObjectAccessControl().setEntity(entity.toString).setRole(Reader.value)) ++ ownerEntity.map(entity => new ObjectAccessControl().setEntity(entity.toString).setRole(Owner.value))
+
     val bucket = new Bucket()
       .setName(bucketName.value)
-      .setAcl(List(acl).asJava)
-      .setDefaultObjectAcl(List(defaultBucketObjectAcl).asJava)
-      .setLifecycle(new Lifecycle().setRule(List(lifecycle).asJava))
+      .setAcl((readerAcl ++ ownerAcl).asJava)
+      .setDefaultObjectAcl(defaultBucketObjectAcl.asJava)
 
     val inserter = storage.buckets().insert(billingProject.value, bucket)
 
