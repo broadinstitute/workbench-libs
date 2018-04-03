@@ -55,7 +55,7 @@ class HttpGoogleStorageDAO(appName: String,
   override def createBucket(billingProject: GoogleProject, bucketName: GcsBucketName): Future[GcsBucketName] = {
     val bucket = new Bucket().setName(bucketName.value)
     val inserter = storage.buckets().insert(billingProject.value, bucket)
-
+    logger.info(inserter.toString)
     retryWhen500orGoogleError(() => {
       executeGoogleRequest(inserter)
       bucketName
@@ -250,7 +250,7 @@ class HttpGoogleStorageDAO(appName: String,
   override def setBucketAccessControl(bucketName: GcsBucketName, entity: GcsEntity, role: GcsRole): Future[Unit] = {
     val acl = new BucketAccessControl().setEntity(entity.toString).setRole(role.value)
     val inserter = storage.bucketAccessControls().insert(bucketName.value, acl)
-
+    logger.info(inserter.toString)
     retryWhen500orGoogleError(() => executeGoogleRequest(inserter)).void
   }
 
@@ -286,7 +286,7 @@ class HttpGoogleStorageDAO(appName: String,
   override def setDefaultObjectAccessControl(bucketName: GcsBucketName, entity: GcsEntity, role: GcsRole): Future[Unit] = {
     val acl = new ObjectAccessControl().setEntity(entity.toString).setRole(role.value)
     val inserter = storage.defaultObjectAccessControls().insert(bucketName.value, acl)
-
+    logger.info(inserter.toString)
     retryWhen500orGoogleError(() => executeGoogleRequest(inserter)).void
   }
 
@@ -312,7 +312,7 @@ class HttpGoogleStorageDAO(appName: String,
       .setDefaultObjectAcl(defaultBucketObjectAcl.asJava)
 
     val inserter = storage.buckets().insert(billingProject.value, bucket)
-
+    logger.info(inserter.toString)
     retryWhen500orGoogleError(() => {
       executeGoogleRequest(inserter)
       bucketName
