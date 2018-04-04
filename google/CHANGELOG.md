@@ -4,10 +4,11 @@ This file documents changes to the `workbench-google` library, including notes o
 
 ## 0.16
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.16-847c3ff"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.16-TRAVIS-REPLACE-ME"`
 
 ### Added
 - org.broadinstitute.dsde.workbench.google.GoogleIamDAO#findServiceAccount(serviceAccountProject: GoogleProject, serviceAccountEmail: WorkbenchEmail)
+- Updated createBucket method in GoogleStorageDAO to accept reader and owner acls
 
 ## 0.15
 

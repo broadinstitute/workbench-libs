@@ -52,8 +52,14 @@ class HttpGoogleStorageDAO(appName: String,
     new Storage.Builder(httpTransport, jsonFactory, googleCredential).setApplicationName(appName).build()
   }
 
-  override def createBucket(billingProject: GoogleProject, bucketName: GcsBucketName): Future[GcsBucketName] = {
-    val bucket = new Bucket().setName(bucketName.value)
+  override def createBucket(billingProject: GoogleProject, bucketName: GcsBucketName, reader: List[GcsEntity] = List.empty, owner: List[GcsEntity] = List.empty): Future[GcsBucketName] = {
+    val bucketAcl = reader.map(entity => new BucketAccessControl().setEntity(entity.toString).setRole(Reader.value)) ++ owner.map(entity => new BucketAccessControl().setEntity(entity.toString).setRole(Owner.value))
+    val defaultBucketObjectAcl = reader.map(entity => new ObjectAccessControl().setEntity(entity.toString).setRole(Reader.value)) ++ owner.map(entity => new ObjectAccessControl().setEntity(entity.toString).setRole(Owner.value))
+    val bucket = new Bucket()
+      .setName(bucketName.value)
+      .setAcl(bucketAcl.asJava)
+      .setDefaultObjectAcl(defaultBucketObjectAcl.asJava)
+
     val inserter = storage.buckets().insert(billingProject.value, bucket)
 
     retryWhen500orGoogleError(() => {
@@ -300,23 +306,4 @@ class HttpGoogleStorageDAO(appName: String,
       case e: HttpResponseException if e.getStatusCode == StatusCodes.NotFound.intValue => ()
     }
   }
-
-  override def createBucket(billingProject: GoogleProject, bucketName: GcsBucketName, readerEntity: List[GcsEntity], ownerEntity: List[GcsEntity]): Future[GcsBucketName] = {
-    val bucketAcl = readerEntity.map(entity => new BucketAccessControl().setEntity(entity.toString).setRole(Reader.value)) ++ ownerEntity.map(entity => new BucketAccessControl().setEntity(entity.toString).setRole(Owner.value))
-    val defaultBucketObjectAcl = readerEntity.map(entity => new ObjectAccessControl().setEntity(entity.toString).setRole(Reader.value)) ++ ownerEntity.map(entity => new ObjectAccessControl().setEntity(entity.toString).setRole(Owner.value))
-
-    val bucket = new Bucket()
-      .setName(bucketName.value)
-      .setAcl(bucketAcl.asJava)
-      .setDefaultObjectAcl(defaultBucketObjectAcl.asJava)
-
-    val inserter = storage.buckets().insert(billingProject.value, bucket)
-
-    retryWhen500orGoogleError(() => {
-      executeGoogleRequest(inserter)
-      bucketName
-    })
-
-  }
-
 }
