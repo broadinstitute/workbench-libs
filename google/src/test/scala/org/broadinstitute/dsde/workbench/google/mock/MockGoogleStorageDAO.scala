@@ -18,8 +18,7 @@ import scala.concurrent.{ExecutionContext, Future}
 class MockGoogleStorageDAO(  implicit val executionContext: ExecutionContext ) extends GoogleStorageDAO {
   val buckets: TrieMap[GcsBucketName, Set[(GcsObjectName, ByteArrayInputStream)]] = TrieMap()
 
-  override def createBucket(billingProject: GoogleProject, bucketName: GcsBucketName): Future[GcsBucketName] = {
-    // Note: the mock doesn't keep track of the billing project - assumes buckets are global
+  override def createBucket(billingProject: GoogleProject, bucketName: GcsBucketName, reader: List[GcsEntity] = List.empty, owner: List[GcsEntity] = List.empty): Future[GcsBucketName] = {
     buckets.putIfAbsent(bucketName, Set.empty)
     Future.successful(bucketName)
   }
@@ -141,10 +140,5 @@ class MockGoogleStorageDAO(  implicit val executionContext: ExecutionContext ) e
 
   override def removeDefaultObjectAccessControl(bucketName: GcsBucketName, entity: GcsEntity): Future[Unit] = {
     Future.successful(())
-  }
-
-  override def createBucket(billingProject: GoogleProject, bucketName: GcsBucketName, readerEntity: List[GcsEntity], ownerEntity: List[GcsEntity]): Future[GcsBucketName] = {
-    buckets.putIfAbsent(bucketName, Set.empty)
-    Future.successful(bucketName)
   }
 }
