@@ -1,6 +1,5 @@
 package org.broadinstitute.dsde.workbench.google
 
-import java._
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream, File}
 import java.time.Instant
 
