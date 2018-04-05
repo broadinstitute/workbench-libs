@@ -51,9 +51,9 @@ class HttpGoogleStorageDAO(appName: String,
     new Storage.Builder(httpTransport, jsonFactory, googleCredential).setApplicationName(appName).build()
   }
 
-  override def createBucket(billingProject: GoogleProject, bucketName: GcsBucketName, reader: List[GcsEntity] = List.empty, owner: List[GcsEntity] = List.empty): Future[GcsBucketName] = {
-    val bucketAcl = reader.map(entity => new BucketAccessControl().setEntity(entity.toString).setRole(Reader.value)) ++ owner.map(entity => new BucketAccessControl().setEntity(entity.toString).setRole(Owner.value))
-    val defaultBucketObjectAcl = reader.map(entity => new ObjectAccessControl().setEntity(entity.toString).setRole(Reader.value)) ++ owner.map(entity => new ObjectAccessControl().setEntity(entity.toString).setRole(Owner.value))
+  override def createBucket(billingProject: GoogleProject, bucketName: GcsBucketName, readers: List[GcsEntity] = List.empty, owners: List[GcsEntity] = List.empty): Future[GcsBucketName] = {
+    val bucketAcl = readers.map(entity => new BucketAccessControl().setEntity(entity.toString).setRole(Reader.value)) ++ owners.map(entity => new BucketAccessControl().setEntity(entity.toString).setRole(Owner.value))
+    val defaultBucketObjectAcl = readers.map(entity => new ObjectAccessControl().setEntity(entity.toString).setRole(Reader.value)) ++ owners.map(entity => new ObjectAccessControl().setEntity(entity.toString).setRole(Owner.value))
     val bucket = new Bucket()
       .setName(bucketName.value)
       .setAcl(bucketAcl.asJava)
