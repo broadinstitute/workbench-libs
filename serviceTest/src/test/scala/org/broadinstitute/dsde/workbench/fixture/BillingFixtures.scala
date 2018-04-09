@@ -5,7 +5,7 @@ import com.typesafe.scalalogging.LazyLogging
 import org.broadinstitute.dsde.workbench.auth.AuthToken
 import org.broadinstitute.dsde.workbench.config.{Config, Credentials, UserPool}
 import org.broadinstitute.dsde.workbench.model.{UserInfo, WorkbenchEmail, WorkbenchUserId}
-import org.broadinstitute.dsde.workbench.service.{GPAlloc, Orchestration, Rawls}
+import org.broadinstitute.dsde.workbench.service.{GPAlloc, Google, Orchestration, Rawls}
 import org.broadinstitute.dsde.workbench.service.Orchestration.billing.BillingProjectRole
 import org.broadinstitute.dsde.workbench.service.Orchestration.billing.BillingProjectRole.BillingProjectRole
 import org.broadinstitute.dsde.workbench.service.test.{CleanUp, RandomUtil}
@@ -13,6 +13,9 @@ import org.broadinstitute.dsde.workbench.service.util.ExceptionHandling
 import org.scalatest.TestSuite
 
 import scala.util.Try
+import scala.util.Random
+
+case object CantCreateProjectsException extends RuntimeException
 
 /**
   * Mix in this trait to allow your test to access billing projects managed by the GPAlloc system, or create new
@@ -52,6 +55,11 @@ trait BillingFixtures extends ExceptionHandling with LazyLogging with CleanUp wi
   }
 
   private def createNewBillingProject(namePrefix: String, ownerEmails: List[String] = List(), userEmails: List[String] = List())(implicit token: AuthToken): String = {
+    //fail-fast if the user can't create a billing project
+    if( !Google.billing.canCreateBillingProjects(Config.Projects.billingAccountId) ) {
+      throw CantCreateProjectsException
+    }
+
     val billingProjectName = randomIdWithPrefix(namePrefix)
     Orchestration.billing.createBillingProject(billingProjectName, Config.Projects.billingAccountId)
     addMembersToBillingProject(billingProjectName, ownerEmails, BillingProjectRole.Owner)
@@ -98,8 +106,14 @@ trait BillingFixtures extends ExceptionHandling with LazyLogging with CleanUp wi
     * @return Some(GPAllocProject) if it succeeded, None if it did not
     */
   def claimGPAllocProject(newOwnerCreds: Credentials, ownerEmails: List[String] = List(), userEmails: List[String] = List()): ClaimedProject = {
-    //request a GPAlloced project as the potential new owner
     val newOwnerToken = newOwnerCreds.makeAuthToken()
+
+    //fail-fast if the user can't create a billing project
+    if( !Google.billing.canCreateBillingProjects(Config.Projects.billingAccountId)(newOwnerToken) ) {
+      throw CantCreateProjectsException
+    }
+
+    //request a GPAlloced project as the potential new owner
     GPAlloc.projects.requestProject(newOwnerToken) match {
       case Some(project) =>
         //the Rawls endpoint to register a precreated project needs to be called by a Rawls admin
