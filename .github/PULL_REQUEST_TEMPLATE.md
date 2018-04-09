@@ -7,10 +7,8 @@ If you're doing a **major** or **minor** version bump to any libraries:
 - [ ] I promise I used `@deprecated` instead of deleting code where possible
 
 In all cases:
+- [ ] Add `TRAVIS-REPLACE-ME` to `README.md` and the `CHANGELOG.md` for any libs you changed to auto-update the version string
 - [ ] Get two thumbsworth of PR review
 - [ ] Verify all tests go green (CI _and_ coverage tests)
 - [ ] Squash commits and **merge to develop**
 - [ ] Delete branch after merge
-
-After merging, _even if you haven't bumped the version_: 
-- [ ] Update `README.md` and the `CHANGELOG.md` for any libs you changed with the new dependency string. The git hash is the same short version you see in GitHub (i.e. seven characters). You can commit these changes straight to develop.
