@@ -7,7 +7,7 @@ If you're doing a **major** or **minor** version bump to any libraries:
 - [ ] I promise I used `@deprecated` instead of deleting code where possible
 
 In all cases:
-- [ ] Add `TRAVIS-REPLACE-ME` to `README.md` and the `CHANGELOG.md` for any libs you changed to auto-update the version string
+- [ ] Replace the appropriate version hashes in `README.md` and the `CHANGELOG.md` for any libs you changed with `TRAVIS-REPLACE-ME` to auto-update the version string
 - [ ] Get two thumbsworth of PR review
 - [ ] Verify all tests go green (CI _and_ coverage tests)
 - [ ] Squash commits and **merge to develop**
