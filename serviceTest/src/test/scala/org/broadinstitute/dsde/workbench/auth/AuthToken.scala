@@ -21,15 +21,14 @@ trait AuthToken extends LazyLogging {
   def buildCredential(): GoogleCredential
 
   private def makeToken(): String = {
-    val cred = buildCredential()
-
     Retry.retry(5.seconds, 1.minute)({
+      val cred = buildCredential()
       try {
         cred.refreshToken()
         Option(cred.getAccessToken)
       } catch {
-        case e: TokenResponseException if e.getStatusCode == StatusCodes.Unauthorized.intValue =>
-          logger.error("Encountered 401 error getting access token. Details: \n" +
+        case e: TokenResponseException if Set(StatusCodes.Unauthorized.intValue, StatusCodes.BadRequest.intValue) contains e.getStatusCode =>
+          logger.error(s"Encountered ${e.getStatusCode} error getting access token. Details: \n" +
             s"Service Account: ${cred.getServiceAccountId} \n" +
             s"User: ${cred.getServiceAccountUser} \n" +
             s"Scopes: ${cred.getServiceAccountScopesAsString} \n" +
