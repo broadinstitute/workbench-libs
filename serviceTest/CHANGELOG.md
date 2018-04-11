@@ -4,6 +4,8 @@ This file documents changes to the `workbench-service-test` library, including n
 
 ## 0.9
 
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "0.9-TRAVIS-REPLACE-ME"`
+
 ### Changed
 - Trait `AuthToken.value` will retry token refresh attempts that respond with 400 (used to only retry on 401)
 
