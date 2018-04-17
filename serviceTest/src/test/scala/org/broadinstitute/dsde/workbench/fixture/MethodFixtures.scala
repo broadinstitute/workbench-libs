@@ -18,6 +18,10 @@ trait MethodFixtures extends ExceptionHandling with RandomUtil { self: TestSuite
       Orchestration.methods.createMethod(method.creationAttributes + ("name"->methodName))
     try {
       testCode(methodName)
+    } catch {
+      case t: Exception =>
+        logger.error("MethodFixtures.withMethod Exception: ", t)
+        throw t // end test execution
     } finally {
       if (cleanUp) {
         try {
@@ -39,6 +43,10 @@ trait MethodFixtures extends ExceptionHandling with RandomUtil { self: TestSuite
 
     try {
       testCode((name, namespace))
+    } catch {
+      case t: Exception =>
+        logger.error("MethodFixtures.withMethod Exception: ", t)
+        throw t // end test execution
     } finally {
 
     }
