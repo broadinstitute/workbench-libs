@@ -85,6 +85,10 @@ trait BillingFixtures extends ExceptionHandling with LazyLogging with CleanUp {
     val billingProjectName = createNewBillingProject(namePrefix, memberEmails)
     try {
       testCode(billingProjectName)
+    } catch {
+      case t: Exception =>
+        logger.error("BillingFixtures.withBrandNewBillingProject Exception: ", t)
+        throw t // end test execution
     } finally {
       deleteBillingProject(billingProjectName, memberEmails)
     }

@@ -34,6 +34,10 @@ trait WorkspaceFixtures extends ExceptionHandling { self: TestSuite =>
       Orchestration.workspaces.setAttributes(namespace, workspaceName, attributes.get)
     try {
       testCode(workspaceName)
+    } catch {
+      case t: Exception =>
+        logger.error("WorkspaceFixtures.withWorkspace Exception: ", t)
+        throw t // end test execution
     } finally {
       if (cleanUp) {
         Orchestration.workspaces.delete(namespace, workspaceName)
