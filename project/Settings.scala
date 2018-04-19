@@ -82,6 +82,12 @@ object Settings {
     version := createVersion("0.8")
   ) ++ publishSettings
 
+  val notificationsSettings = commonSettings ++ List(
+    name := "workbench-notifications",
+    libraryDependencies ++= notificationsDependencies,
+    version := createVersion("0.1")
+  ) ++ publishSettings
+
   val rootSettings = commonSettings ++ noPublishSettings ++ noTestSettings
 
 }

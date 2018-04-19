@@ -100,6 +100,8 @@ object Dependencies {
     selenium
   )
 
+  val notificationsDependencies = commonDependencies
+
   val uiTestDependencies = commonDependencies ++ Seq(
   )
 }
