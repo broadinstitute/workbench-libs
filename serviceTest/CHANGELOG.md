@@ -4,10 +4,11 @@ This file documents changes to the `workbench-service-test` library, including n
 
 ## 0.8
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "0.8-2d77c12"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "0.8-TRAVIS-REPLACE-ME"`
 
 ### Removed
 - Config values Project.default and Project.common.  It's now necessary to use BillingFixtures to choose a project.
+- Added Sam endpoint to get pet access token
 
 ## 0.7
 
