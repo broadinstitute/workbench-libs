@@ -19,9 +19,9 @@ trait NotificationDAO extends LazyLogging {
 }
 
 class PubSubNotificationDAO(googlePubSubDAO: GooglePubSubDAO, topicName: String) extends NotificationDAO {
-  // attempt to create the topic, if it already exists this will fail but who cares
-  googlePubSubDAO.createTopic(topicName).map { result =>
-    if(!result) logger.info(s"The topic $topicName was not created because it already exists.")
+  // attempt to create the topic, if it already exists this will log a message and then move on
+  googlePubSubDAO.createTopic(topicName).map { created =>
+    if(!created) logger.info(s"The topic $topicName was not created because it already exists.")
   }
 
   protected def sendNotifications(notification: Traversable[String]): Future[Unit] = {
