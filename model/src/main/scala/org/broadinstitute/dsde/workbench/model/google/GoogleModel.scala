@@ -57,10 +57,12 @@ object GcsEntityTypes {
   sealed trait GcsEntityType extends ValueObject
   case object User extends GcsEntityType { val value = "user" }
   case object Group extends GcsEntityType { val value = "group" }
+  case object Project extends GcsEntityType { val value = "project" }
 
   def withName(name: String): GcsEntityType = name.toLowerCase() match {
     case "user" => User
     case "group" => Group
+    case "project" => Project
   }
 }
 
