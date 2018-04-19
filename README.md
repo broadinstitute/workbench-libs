@@ -50,3 +50,11 @@ Contains common classes and utilities for writing tests against Workbench REST w
 Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "0.8-dfa4d3a" % "test" classifier "tests"`
 
 [Changelog](serviceTest/CHANGELOG.md)
+
+## workbench-notifications
+
+Contains utilities for publishing email notifications to PubSub for delivery via SendGrid.
+
+Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-notifications" % "0.1-TRAVIS-REPLACE-ME"`
+
+[Changelog](notifications/CHANGELOG.md)
