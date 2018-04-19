@@ -6,9 +6,6 @@ import org.broadinstitute.dsde.workbench.model.Notifications.{Notification, Noti
 
 import scala.concurrent.{ExecutionContext, Future}
 
-/**
- * Created by dvoet on 3/3/17.
- */
 trait NotificationDAO extends LazyLogging {
   def fireAndForgetNotification(notification: Notification)(implicit executionContext: ExecutionContext): Unit = fireAndForgetNotifications(Seq(notification))
 
@@ -23,7 +20,9 @@ trait NotificationDAO extends LazyLogging {
 
 class PubSubNotificationDAO(googlePubSubDAO: GooglePubSubDAO, topicName: String) extends NotificationDAO {
   // attempt to create the topic, if it already exists this will fail but who cares
-  googlePubSubDAO.createTopic(topicName)
+  googlePubSubDAO.createTopic(topicName).map { result =>
+    if(!result) logger.info(s"The topic $topicName was not created because it already exists.")
+  }
 
   protected def sendNotifications(notification: Traversable[String]): Future[Unit] = {
     googlePubSubDAO.publishMessages(topicName, notification.toSeq)

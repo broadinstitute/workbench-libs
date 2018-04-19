@@ -7,7 +7,7 @@ import spray.json._
 import scala.reflect.runtime.universe._
 
 /**
-  * All notifications emitted by rawls are described here. To add a new notification type:
+  * All notifications emitted by workbench are described here. To add a new notification type:
   * - create a new case class with appropriate fields
   *   - extend WorkspaceNotification if it is a notification specific to a workspace
   *   - otherwise extend UserNotification if a user id is available
@@ -21,7 +21,6 @@ object Notifications {
 
   case class WorkspaceName(namespace: String, name: String)
   implicit val WorkspaceNameFormat = jsonFormat2(WorkspaceName)
-
 
   sealed abstract class NotificationType[T <: Notification: TypeTag] {
     def baseKey = Notifications.baseKey[T]
