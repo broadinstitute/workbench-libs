@@ -74,9 +74,9 @@ object Sam extends Sam {
       parseResponse(getRequest(url + s"api/google/user/petServiceAccount/$project/key"))
     }
 
-    def petServiceAccountToken(project: String)(implicit token: AuthToken): String = {
+    def petServiceAccountToken(project: String, scopes: Set[String])(implicit token: AuthToken): String = {
       logger.info(s"Getting pet service account token")
-      parseResponse(getRequest(url + s"api/google/user/petServiceAccount/$project/token"))
+      postRequest(url + s"api/google/user/petServiceAccount/$project/token", scopes)
     }
 
     def proxyGroup(userEmail: String)(implicit token: AuthToken): WorkbenchEmail = {
