@@ -4,12 +4,13 @@ import java.time.Instant
 import java.time.format.DateTimeFormatter
 
 import org.broadinstitute.dsde.workbench.model._
-import org.broadinstitute.dsde.workbench.model.google.GcsEntityTypes.GcsEntityType
-import org.broadinstitute.dsde.workbench.model.google.GcsRoles.GcsRole
+import org.broadinstitute.dsde.workbench.model.google.GcsEntityTypes.{GcsEntityType, Project}
+import org.broadinstitute.dsde.workbench.model.google.ProjectTeamTypes.ProjectTeamType
 import spray.json.{JsString, JsValue, RootJsonFormat}
 
 // Projects
 case class GoogleProject(value: String) extends ValueObject
+case class ProjectNumber(value: String) extends AnyVal
 
 // Service Accounts
 case class ServiceAccount(subjectId: ServiceAccountSubjectId, email: WorkbenchEmail, displayName: ServiceAccountDisplayName)
@@ -53,6 +54,19 @@ object GcsRoles {
   }
 }
 
+object ProjectTeamTypes {
+  sealed trait ProjectTeamType extends ValueObject
+  case object Viewers extends ProjectTeamType { val value = "viewers" }
+  case object Editors extends ProjectTeamType { val value = "editors" }
+  case object Owners extends ProjectTeamType { val value = "owners" }
+
+  def withName(name: String): ProjectTeamType = name.toLowerCase() match {
+    case "viewers" => Viewers
+    case "editors" => Editors
+    case "owners" => Owners
+  }
+}
+
 object GcsEntityTypes {
   sealed trait GcsEntityType extends ValueObject
   case object User extends GcsEntityType { val value = "user" }
@@ -66,8 +80,15 @@ object GcsEntityTypes {
   }
 }
 
-case class GcsEntity(email: WorkbenchEmail, entityType: GcsEntityType) {
+sealed trait GcsEntity {
+  val entityType: GcsEntityType
+}
+case class EmailGcsEntity(entityType: GcsEntityType, email: WorkbenchEmail) extends GcsEntity {
   override def toString: String = s"${entityType.value}-${email.value}"
+}
+case class ProjectGcsEntity(team: ProjectTeamType, projectNumber: ProjectNumber) extends GcsEntity {
+  val entityType: GcsEntityType = Project
+  override def toString: String = s"${entityType.value}-${team.value}-${projectNumber.value}"
 }
 
 object GoogleModelJsonSupport {
@@ -103,5 +124,4 @@ object GoogleModelJsonSupport {
   implicit val GcsLifecycleTypeFormat = ValueObjectFormat(GcsLifecycleTypes.withName)
   implicit val GcsRoleFormat = ValueObjectFormat(GcsRoles.withName)
   implicit val GcsEntityTypeFormat = ValueObjectFormat(GcsEntityTypes.withName)
-  implicit val GcsEntityFormat = jsonFormat2(GcsEntity)
 }
