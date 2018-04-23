@@ -8,6 +8,10 @@ import com.google.api.client.googleapis.json.GoogleJsonError.ErrorInfo
 import com.google.api.client.googleapis.json.{GoogleJsonError, GoogleJsonResponseException}
 import com.google.api.client.http._
 import org.broadinstitute.dsde.workbench.metrics.{StatsDTestUtils, WorkbenchInstrumented}
+import org.broadinstitute.dsde.workbench.model.WorkbenchEmail
+import org.broadinstitute.dsde.workbench.model.google.{EmailGcsEntity, ProjectGcsEntity, ProjectNumber}
+import org.broadinstitute.dsde.workbench.model.google.GcsEntityTypes.User
+import org.broadinstitute.dsde.workbench.model.google.ProjectTeamTypes.Viewers
 import org.broadinstitute.dsde.workbench.util.MockitoTestUtils
 import org.scalatest.{BeforeAndAfterAll, FlatSpecLike, Matchers}
 import org.scalatest.concurrent.{Eventually, ScalaFutures}
@@ -166,5 +170,19 @@ class GoogleJsonSpec extends FlatSpecLike with Matchers {
     val rqRead = rqJson.convertTo[GoogleRequest]
 
     rqRead shouldBe gooRq
+  }
+}
+
+class GcsEntitySpec extends FlatSpecLike with Matchers {
+  private val emailGcsEntity = EmailGcsEntity(User, WorkbenchEmail("foo@bar.com"))
+
+  "EmailGcsEntity stringification" should "work" in {
+    emailGcsEntity.toString shouldBe "user-foo@bar.com"
+  }
+
+  private val projectGcsEntity = ProjectGcsEntity(Viewers, ProjectNumber("398512454")).toString
+
+  "ProjectGcsEntity stringification" should "work" in {
+    projectGcsEntity.toString shouldBe "project-viewers-398512454"
   }
 }
