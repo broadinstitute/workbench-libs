@@ -19,6 +19,7 @@ trait NotificationDAO extends LazyLogging {
 }
 
 class PubSubNotificationDAO(googlePubSubDAO: GooglePubSubDAO, topicName: String) extends NotificationDAO {
+  import scala.concurrent.ExecutionContext.Implicits.global
   // attempt to create the topic, if it already exists this will log a message and then move on
   googlePubSubDAO.createTopic(topicName).map { created =>
     if(!created) logger.info(s"The topic $topicName was not created because it already exists.")
