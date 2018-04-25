@@ -17,7 +17,7 @@ Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util" 
 
 Contains generic, externally-facing model classes used across Workbench.
 
-Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-model" % "0.11-TRAVIS-REPLACE-ME"`
+Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-model" % "0.11-2ce3359"`
 
 [Changelog](model/CHANGELOG.md)
 
@@ -55,6 +55,6 @@ Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-servic
 
 Contains utilities for publishing email notifications to PubSub for delivery via SendGrid.
 
-Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-notifications" % "0.1-TRAVIS-REPLACE-ME"`
+Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-notifications" % "0.1-2ce3359"`
 
 [Changelog](notifications/CHANGELOG.md)
