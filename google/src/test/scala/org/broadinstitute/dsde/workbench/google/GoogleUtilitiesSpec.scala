@@ -172,17 +172,3 @@ class GoogleJsonSpec extends FlatSpecLike with Matchers {
     rqRead shouldBe gooRq
   }
 }
-
-class GcsEntitySpec extends FlatSpecLike with Matchers {
-  private val emailGcsEntity = EmailGcsEntity(User, WorkbenchEmail("foo@bar.com"))
-
-  "EmailGcsEntity stringification" should "work" in {
-    emailGcsEntity.toString shouldBe "user-foo@bar.com"
-  }
-
-  private val projectGcsEntity = ProjectGcsEntity(Viewers, ProjectNumber("398512454")).toString
-
-  "ProjectGcsEntity stringification" should "work" in {
-    projectGcsEntity.toString shouldBe "project-viewers-398512454"
-  }
-}

@@ -10,7 +10,7 @@ import spray.json.{JsString, JsValue, RootJsonFormat}
 
 // Projects
 case class GoogleProject(value: String) extends ValueObject
-case class ProjectNumber(value: String) extends AnyVal
+case class ProjectNumber(value: String) extends ValueObject
 
 // Service Accounts
 case class ServiceAccount(subjectId: ServiceAccountSubjectId, email: WorkbenchEmail, displayName: ServiceAccountDisplayName)
@@ -64,6 +64,7 @@ object ProjectTeamTypes {
     case "viewers" => Viewers
     case "editors" => Editors
     case "owners" => Owners
+    case _ => throw new WorkbenchException(s"Invalid project team type: $name")
   }
 }
 
@@ -82,6 +83,10 @@ object GcsEntityTypes {
 
 sealed trait GcsEntity {
   val entityType: GcsEntityType
+}
+object GcsEntity {
+  @deprecated("Please use EmailGcsEntity or ProjectGcsEntity instead.", "workbench-libs/workbench-model 0.11")
+  def apply(email: WorkbenchEmail, entityType: GcsEntityType): GcsEntity = EmailGcsEntity(entityType, email)
 }
 case class EmailGcsEntity(entityType: GcsEntityType, email: WorkbenchEmail) extends GcsEntity {
   override def toString: String = s"${entityType.value}-${email.value}"
