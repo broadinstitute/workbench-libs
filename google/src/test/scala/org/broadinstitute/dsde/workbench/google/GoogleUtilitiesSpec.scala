@@ -7,7 +7,7 @@ import akka.testkit.TestKit
 import com.google.api.client.googleapis.json.GoogleJsonError.ErrorInfo
 import com.google.api.client.googleapis.json.{GoogleJsonError, GoogleJsonResponseException}
 import com.google.api.client.http._
-import org.broadinstitute.dsde.workbench.metrics.{StatsDTestUtils, WorkbenchInstrumented}
+import org.broadinstitute.dsde.workbench.metrics.StatsDTestUtils
 import org.broadinstitute.dsde.workbench.util.MockitoTestUtils
 import org.scalatest.{BeforeAndAfterAll, FlatSpecLike, Matchers}
 import org.scalatest.concurrent.{Eventually, ScalaFutures}
