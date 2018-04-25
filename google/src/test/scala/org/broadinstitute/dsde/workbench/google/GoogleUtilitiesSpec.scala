@@ -7,11 +7,7 @@ import akka.testkit.TestKit
 import com.google.api.client.googleapis.json.GoogleJsonError.ErrorInfo
 import com.google.api.client.googleapis.json.{GoogleJsonError, GoogleJsonResponseException}
 import com.google.api.client.http._
-import org.broadinstitute.dsde.workbench.metrics.{StatsDTestUtils, WorkbenchInstrumented}
-import org.broadinstitute.dsde.workbench.model.WorkbenchEmail
-import org.broadinstitute.dsde.workbench.model.google.{EmailGcsEntity, ProjectGcsEntity, ProjectNumber}
-import org.broadinstitute.dsde.workbench.model.google.GcsEntityTypes.User
-import org.broadinstitute.dsde.workbench.model.google.ProjectTeamTypes.Viewers
+import org.broadinstitute.dsde.workbench.metrics.StatsDTestUtils
 import org.broadinstitute.dsde.workbench.util.MockitoTestUtils
 import org.scalatest.{BeforeAndAfterAll, FlatSpecLike, Matchers}
 import org.scalatest.concurrent.{Eventually, ScalaFutures}
