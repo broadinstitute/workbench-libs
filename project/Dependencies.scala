@@ -100,6 +100,10 @@ object Dependencies {
     selenium
   )
 
+  val notificationsDependencies = commonDependencies ++ Seq(
+    akkaHttpSprayJson
+  )
+
   val uiTestDependencies = commonDependencies ++ Seq(
   )
 }
