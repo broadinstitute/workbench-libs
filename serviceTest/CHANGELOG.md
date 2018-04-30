@@ -2,13 +2,26 @@
 
 This file documents changes to the `workbench-service-test` library, including notes on how to upgrade to new versions.
 
+## 0.9
+
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "0.9-TRAVIS-REPLACE-ME"`
+
+### Removed
+- Util makeRandomId() and makeUuid().  Use RandomUtil makeRandomId() and randomUuid() instead 
+
+### Added
+- RandomUtil uuidWithPrefix() and randomIdWithPrefix()
+- SubWorkflowFixtures for generating a tree of Methods
+
 ## 0.8
 
 SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "0.8-dfa4d3a"`
 
 ### Removed
 - Config values Project.default and Project.common.  It's now necessary to use BillingFixtures to choose a project.
-- Added Sam endpoint to get pet access token
+
+### Added
+- Sam endpoint to get pet access token
 
 ## 0.7
 
