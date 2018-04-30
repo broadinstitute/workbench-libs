@@ -2,11 +2,8 @@ package org.broadinstitute.dsde.workbench.service.util
 
 import java.io.File
 import java.nio.file.Files
-import java.util.UUID
 
 import com.typesafe.scalalogging.LazyLogging
-
-import scala.util.Random
 
 /**
   */
@@ -17,14 +14,6 @@ object Util extends LazyLogging {
       case "" => ""
       case s => s + "_"
     }
-  }
-
-  def makeRandomId(length: Int = 7): String = {
-    Random.alphanumeric.take(length).mkString
-  }
-
-  def makeUuid: String = {
-    UUID.randomUUID().toString
   }
 
   /**
