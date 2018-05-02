@@ -85,12 +85,17 @@ class HttpGoogleIamDAO(appName: String,
     })
 
     //Turn it into a Workbench SA type.
-    (findOption map { serviceAccount =>
-      google.ServiceAccount(
-        ServiceAccountSubjectId(serviceAccount.getUniqueId),
-        WorkbenchEmail(serviceAccount.getEmail),
-        ServiceAccountDisplayName(serviceAccount.getDisplayName))
-    }).value
+    (findOption map toWorkbenchServiceAccount).value
+  }
+
+  override def listServiceAccounts(serviceAccountProject: GoogleProject): Future[List[google.ServiceAccount]] = {
+    val request = iam.projects().serviceAccounts().list(s"projects/${serviceAccountProject.value}")
+
+    retryWhen500orGoogleError { () =>
+      executeGoogleRequest(request)
+    } map { response =>
+      response.getAccounts.asScala.toList.map(toWorkbenchServiceAccount)
+    }
   }
 
   override def createServiceAccount(serviceAccountProject: GoogleProject, serviceAccountName: ServiceAccountName, displayName: ServiceAccountDisplayName): Future[google.ServiceAccount] = {
@@ -268,6 +273,14 @@ class HttpGoogleIamDAO(appName: String,
     }.toList
 
     Policy(bindings, policy.etag)
+  }
+
+  // Turns a Google ServiceAccount into a Workbench ServiceAccount
+  private def toWorkbenchServiceAccount(googleServiceAccount: ServiceAccount): google.ServiceAccount = {
+    google.ServiceAccount(
+      ServiceAccountSubjectId(googleServiceAccount.getUniqueId),
+      WorkbenchEmail(googleServiceAccount.getEmail),
+      ServiceAccountDisplayName(googleServiceAccount.getDisplayName))
   }
 }
 
