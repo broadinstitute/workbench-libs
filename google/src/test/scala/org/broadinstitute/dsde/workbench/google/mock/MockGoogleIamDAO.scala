@@ -34,6 +34,10 @@ class MockGoogleIamDAO(implicit executionContext: ExecutionContext) extends Goog
     }
   }
 
+  override def listServiceAccounts(serviceAccountProject: GoogleProject): Future[List[google.ServiceAccount]] = {
+    Future.successful(serviceAccounts.values.toList)
+  }
+
   override def createServiceAccount(googleProject: GoogleProject, serviceAccountName: ServiceAccountName, displayName: ServiceAccountDisplayName): Future[ServiceAccount] = {
     val email = toServiceAccountEmail(googleProject, serviceAccountName)
     val uniqueId = ServiceAccountSubjectId(Random.nextLong.toString)
