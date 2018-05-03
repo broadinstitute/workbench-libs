@@ -152,7 +152,6 @@ trait WebBrowserUtil extends WebBrowser {
 
     private def withWaitForCondition(timeOutInSeconds: Long)(f: => Boolean)(implicit webDriver: WebDriver): Boolean = {
       val wait = new WebDriverWait(webDriver, timeOutInSeconds)
-      wait.withMessage(s"Expected condition failed: waiting for [${f}] (tried for ${timeOutInSeconds} second(s) with 500 milliseconds interval)")
       wait until new java.util.function.Function[WebDriver, Boolean] {
         override def apply(d: WebDriver): Boolean = {
           try {
