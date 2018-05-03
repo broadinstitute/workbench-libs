@@ -71,7 +71,6 @@ trait WebBrowserSpec extends WebBrowserUtil with ExceptionHandling with LazyLogg
     options.setExperimentalOption("prefs", Map(
       "download.default_directory" -> fullDownloadPath,
       "download.prompt_for_download" -> "false").asJava)
-    options.setExperimentalOption("excludeSwitches", List("enable-automation"))
     options
   }
 
