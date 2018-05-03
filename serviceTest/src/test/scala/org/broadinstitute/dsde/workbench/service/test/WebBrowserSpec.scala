@@ -58,7 +58,7 @@ trait WebBrowserSpec extends WebBrowserUtil with ExceptionHandling with LazyLogg
     }
   }
 
-  private def getChromeIncognitoOption(downloadPath: String, headless: Boolean): DesiredCapabilities = {
+  private def getChromeIncognitoOption(downloadPath: String, headless: Boolean): ChromeOptions = {
     val fullDownloadPath = if (headless) s"/app/$downloadPath" else new File(downloadPath).getAbsolutePath
     logger.info(s"Chrome download path: $fullDownloadPath")
     val options = new ChromeOptions
@@ -69,16 +69,15 @@ trait WebBrowserSpec extends WebBrowserUtil with ExceptionHandling with LazyLogg
     // Note that download.prompt_for_download will be ignored if download.default_directory is invalid or doesn't exist
     options.setExperimentalOption("prefs", Map(
       "download.default_directory" -> fullDownloadPath,
-      "download.prompt_for_download" -> "false").asJava)
-    val capabilities = DesiredCapabilities.chrome
-    capabilities.setCapability(ChromeOptions.CAPABILITY, options)
-    capabilities
+      "download.prompt_for_download" -> "false",
+      "excludeSwitches" -> List("enable-automation")).asJava)
+    options
   }
 
-  private def runLocalChrome(capabilities: DesiredCapabilities, testCode: (WebDriver) => Any): Unit = {
+  private def runLocalChrome(options: ChromeOptions, testCode: (WebDriver) => Any): Unit = {
     val service = new ChromeDriverService.Builder().usingDriverExecutable(new File(Config.ChromeSettings.chromeDriverPath)).usingAnyFreePort().build()
     service.start()
-    implicit val driver: RemoteWebDriver = new RemoteWebDriver(service.getUrl, capabilities)
+    implicit val driver: RemoteWebDriver = new RemoteWebDriver(service.getUrl, options)
     driver.manage.window.setSize(new org.openqa.selenium.Dimension(1600, 2400))
     driver.setFileDetector(new LocalFileDetector())
     try {
@@ -91,9 +90,9 @@ trait WebBrowserSpec extends WebBrowserUtil with ExceptionHandling with LazyLogg
     }
   }
 
-  private def runHeadless(capabilities: DesiredCapabilities, testCode: (WebDriver) => Any): Unit = {
+  private def runHeadless(options: ChromeOptions, testCode: (WebDriver) => Any): Unit = {
     val defaultChrome = Config.ChromeSettings.chromedriverHost
-    implicit val driver: RemoteWebDriver = new RemoteWebDriver(new URL(defaultChrome), capabilities)
+    implicit val driver: RemoteWebDriver = new RemoteWebDriver(new URL(defaultChrome), options)
     driver.manage.window.setSize(new org.openqa.selenium.Dimension(1600, 2400))
     driver.setFileDetector(new LocalFileDetector())
     try {

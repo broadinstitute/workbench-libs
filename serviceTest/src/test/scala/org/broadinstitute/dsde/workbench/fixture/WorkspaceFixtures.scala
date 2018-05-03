@@ -6,6 +6,8 @@ import org.broadinstitute.dsde.workbench.service.util.ExceptionHandling
 import org.broadinstitute.dsde.workbench.service.util.Util.{appendUnderscore, makeUuid}
 import org.scalatest.TestSuite
 
+import scala.util.{Failure, Success, Try}
+
 /**WorkspaceFixtures
   * Fixtures for creating and cleaning up test workspaces.
   */
@@ -28,20 +30,23 @@ trait WorkspaceFixtures extends ExceptionHandling { self: TestSuite =>
                     cleanUp: Boolean = true)
                    (testCode: (String) => Any)(implicit token: AuthToken): Unit = {
     val workspaceName = appendUnderscore(namePrefix) + makeUuid
-    Orchestration.workspaces.create(namespace, workspaceName, authDomain)
-    Orchestration.workspaces.updateAcl(namespace, workspaceName, aclEntries)
-    if (attributes.isDefined)
-      Orchestration.workspaces.setAttributes(namespace, workspaceName, attributes.get)
-    try {
-      testCode(workspaceName)
-    } catch {
-      case t: Exception =>
-        logger.error("WorkspaceFixtures.withWorkspace Exception: ", t)
-        throw t // end test execution
-    } finally {
-      if (cleanUp) {
-        Orchestration.workspaces.delete(namespace, workspaceName)
-      }
+
+    Try {
+      Orchestration.workspaces.create(namespace, workspaceName, authDomain)
+      Orchestration.workspaces.updateAcl(namespace, workspaceName, aclEntries)
+      if (attributes.isDefined)
+        Orchestration.workspaces.setAttributes(namespace, workspaceName, attributes.get)
+    } match {
+      case Success(s) =>
+        try {
+          testCode(workspaceName)
+        } finally {
+          if (cleanUp) {
+            Orchestration.workspaces.delete(namespace, workspaceName)
+          }
+        }
+      case Failure(f) =>
+        fail("withWorkspace() throws exception: ", f) // end test
     }
   }
 
