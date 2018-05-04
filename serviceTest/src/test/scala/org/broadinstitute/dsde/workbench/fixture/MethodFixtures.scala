@@ -33,6 +33,7 @@ trait MethodFixtures extends ExceptionHandling with RandomUtil { self: TestSuite
           }
         }
       case Failure(f) =>
+        logger.error("withMethod() throws exception: ", f)
         fail("withMethod() throws exception: ", f) // end test
     }
 

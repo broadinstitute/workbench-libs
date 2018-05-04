@@ -37,6 +37,7 @@ trait GroupFixtures extends ExceptionHandling with LazyLogging { self: TestSuite
           Orchestration.groups.delete(groupName)
         }
       case Failure(f) =>
+        logger.error("withGroup() throws exception: ", f)
         fail("withGroup() throws exception: ", f) // end test
     }
   }

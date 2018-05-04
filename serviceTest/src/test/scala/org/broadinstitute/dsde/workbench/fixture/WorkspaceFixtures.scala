@@ -46,6 +46,7 @@ trait WorkspaceFixtures extends ExceptionHandling { self: TestSuite =>
           }
         }
       case Failure(f) =>
+        logger.error("withWorkspace() throws exception: ", f)
         fail("withWorkspace() throws exception: ", f) // end test
     }
   }
