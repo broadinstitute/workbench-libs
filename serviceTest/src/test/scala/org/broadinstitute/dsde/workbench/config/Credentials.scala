@@ -3,11 +3,16 @@ package org.broadinstitute.dsde.workbench.config
 import java.util.concurrent.TimeUnit
 
 import com.google.common.cache.{CacheBuilder, CacheLoader}
+import com.typesafe.scalalogging.LazyLogging
 import org.broadinstitute.dsde.workbench.auth.{AuthToken, UserAuthToken}
 
 
-case class Credentials (val email: String, val password: String) {
-  def makeAuthToken(): AuthToken = Credentials.cache.get(this)
+case class Credentials (val email: String, val password: String) extends LazyLogging {
+  def makeAuthToken(): AuthToken = {
+    val auth = Credentials.cache.get(this)
+    logger.debug(s"AuthToken: ${auth}")
+    auth
+  }
 }
 
 object Credentials {
