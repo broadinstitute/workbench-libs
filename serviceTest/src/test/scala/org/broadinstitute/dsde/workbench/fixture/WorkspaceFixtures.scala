@@ -40,6 +40,10 @@ trait WorkspaceFixtures extends ExceptionHandling { self: TestSuite =>
       case Success(s) =>
         try {
           testCode(workspaceName)
+        } catch {
+          case ex: Exception =>
+            logger.error("", ex)
+            fail(ex)
         } finally {
           if (cleanUp) {
             Orchestration.workspaces.delete(namespace, workspaceName)

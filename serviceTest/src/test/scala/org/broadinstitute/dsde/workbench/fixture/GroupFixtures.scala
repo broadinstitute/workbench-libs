@@ -30,6 +30,10 @@ trait GroupFixtures extends ExceptionHandling with LazyLogging { self: TestSuite
       case Success(s) =>
         try {
           testCode(groupName)
+        } catch {
+          case ex: Exception =>
+            logger.error("", ex)
+            fail(ex)
         } finally {
           memberEmails foreach { email =>
             Orchestration.groups.removeUserFromGroup(groupName, email, GroupRole.Member)

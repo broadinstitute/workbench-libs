@@ -24,6 +24,10 @@ trait MethodFixtures extends ExceptionHandling with RandomUtil { self: TestSuite
       case Success(s) =>
         try {
           testCode(methodName)
+        } catch {
+          case ex: Exception =>
+            logger.error("", ex)
+            fail(ex)
         } finally {
           if (cleanUp) {
             try {

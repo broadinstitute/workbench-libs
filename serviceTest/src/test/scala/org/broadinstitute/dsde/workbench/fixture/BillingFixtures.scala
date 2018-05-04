@@ -88,6 +88,10 @@ trait BillingFixtures extends ExceptionHandling with LazyLogging with CleanUp {
       case Success(billingProject) =>
         try {
           testCode(billingProject)
+        } catch {
+          case ex: Exception =>
+            logger.error("", ex)
+            fail(ex)
         } finally {
           deleteBillingProject(billingProject, memberEmails)
         }
