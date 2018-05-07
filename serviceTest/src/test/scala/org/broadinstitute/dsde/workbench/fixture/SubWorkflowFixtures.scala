@@ -68,9 +68,9 @@ trait SubWorkflowFixtures extends RandomUtil {
 
   private def createPublicMethod(method: Method)(implicit token: AuthToken): Method = {
     Orchestration.methods.createMethod(method.creationAttributes)
+    register cleanUp Orchestration.methods.redact(method)
     // makes Method publicly readable so it can be referenced by other Methods
     Orchestration.methods.setMethodPermissions(method.methodNamespace, method.methodName, method.snapshotId, "public", "READER")
-    register cleanUp Orchestration.methods.redact(method)
     method
   }
 
