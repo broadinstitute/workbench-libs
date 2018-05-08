@@ -45,16 +45,6 @@ object MethodData {
     documentation = "",
     payload = "task hello {\n  String name\n\n  command {\n    echo 'hello ${name}!'\n  }\n  output {\n    File response = stdout()\n  }\n  runtime {\n    docker: \"ubuntu\"\n  }\n}\n\nworkflow test {\n  call hello\n}"
   )
-
-  val DataSpecMethod = Method(
-    methodName = "DO_NOT_CHANGE_DataSpec_test_method",
-    methodNamespace = "automationmethods",
-    snapshotId = 1,
-    rootEntityType = "test-participant",
-    synopsis = "testtestsynopsis",
-    documentation = "",
-    payload = "task hello world {\n  String? name\n\n  command {\n    echo 'hello, my name is ${name}!'\n  }\n  output {\n    File response = stdout()\n  }\n  runtime {\n    docker: \"ubuntu\"\n  }\n}\n\nworkflow test {\n  call hello\n}"
-  )
 }
 
 /* CONFIGS */
