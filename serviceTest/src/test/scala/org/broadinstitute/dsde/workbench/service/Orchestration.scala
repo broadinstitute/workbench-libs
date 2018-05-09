@@ -449,6 +449,7 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
     }
 
     def countTrialProjects()(implicit token: AuthToken): TrialProjects = {
+      logger.info(s"API post request: api/trial/manager/projects?operation=count")
       val response = postRequest(apiUrl(s"api/trial/manager/projects?operation=count"))
       implicit val impTrialProjectReport: RootJsonFormat[TrialProjects] = jsonFormat4(TrialProjects)
       val trialProjects: TrialProjects = response.parseJson.convertTo[TrialProjects]
@@ -457,6 +458,7 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
     }
 
     def reportTrialProjects()(implicit token: AuthToken): Seq[TrialProjectReport] = {
+      logger.info(s"API post request: api/trial/manager/projects?operation=report")
       val response = postRequest(apiUrl(s"api/trial/manager/projects?operation=report"))
       implicit val impUserStatusDetails: RootJsonFormat[UserStatusDetails] = jsonFormat2(UserStatusDetails)
       implicit val impTrialProjectReport: RootJsonFormat[TrialProjectReport] = jsonFormat4(TrialProjectReport)
