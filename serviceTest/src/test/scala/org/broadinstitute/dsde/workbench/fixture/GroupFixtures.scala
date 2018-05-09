@@ -3,22 +3,22 @@ package org.broadinstitute.dsde.workbench.fixture
 import com.typesafe.scalalogging.LazyLogging
 import org.broadinstitute.dsde.workbench.service.Orchestration.groups.GroupRole
 import org.broadinstitute.dsde.workbench.auth.AuthToken
-import org.broadinstitute.dsde.workbench.config._
 import org.broadinstitute.dsde.workbench.service.Orchestration
-import org.broadinstitute.dsde.workbench.service.util.{ExceptionHandling, Util}
+import org.broadinstitute.dsde.workbench.service.test.RandomUtil
+import org.broadinstitute.dsde.workbench.service.util.ExceptionHandling
 import org.scalatest.TestSuite
 
 /**
   * Fixtures for creating and cleaning up test groups.
   */
-trait GroupFixtures extends ExceptionHandling with LazyLogging { self: TestSuite =>
+trait GroupFixtures extends ExceptionHandling with LazyLogging with RandomUtil { self: TestSuite =>
 
   def groupNameToEmail(groupName: String)(implicit token: AuthToken): String = Orchestration.groups.getGroup(groupName).membersGroup.groupEmail
 
   def withGroup(namePrefix: String, memberEmails: List[String] = List())
                (testCode: (String) => Any)
                (implicit token: AuthToken): Unit = {
-    val groupName = Util.appendUnderscore(namePrefix) + Util.makeUuid
+    val groupName = uuidWithPrefix(namePrefix)
 
     try {
       Orchestration.groups.create(groupName)

@@ -8,26 +8,17 @@ import org.broadinstitute.dsde.workbench.model.{UserInfo, WorkbenchEmail, Workbe
 import org.broadinstitute.dsde.workbench.service.{GPAlloc, Orchestration, Rawls}
 import org.broadinstitute.dsde.workbench.service.Orchestration.billing.BillingProjectRole
 import org.broadinstitute.dsde.workbench.service.Orchestration.billing.BillingProjectRole.BillingProjectRole
-import org.broadinstitute.dsde.workbench.service.test.CleanUp
+import org.broadinstitute.dsde.workbench.service.test.{CleanUp, RandomUtil}
 import org.broadinstitute.dsde.workbench.service.util.ExceptionHandling
 import org.scalatest.TestSuite
-
-import scala.util.Random
-
 
 /**
   * Mix in this trait to allow your test to access billing projects managed by the GPAlloc system, or create new
   * billing projects of your own.  Using GPAlloc will generally be much faster, limit the creation of billing projects
   * to those tests which truly require them.
   */
-trait BillingFixtures extends ExceptionHandling with LazyLogging with CleanUp {
+trait BillingFixtures extends ExceptionHandling with LazyLogging with CleanUp with RandomUtil {
   self: TestSuite =>
-
-  // copied from WebBrowserSpec so we don't have to self-type it
-  // TODO make it common to API and browser tests
-  private def makeRandomId(length: Int = 7): String = {
-    Random.alphanumeric.take(length).mkString.toLowerCase
-  }
 
   protected def addMembersToBillingProject(projectName: String, memberEmails: List[String])(implicit token: AuthToken): Unit = {
     memberEmails foreach { email =>
@@ -59,7 +50,7 @@ trait BillingFixtures extends ExceptionHandling with LazyLogging with CleanUp {
   }
 
   private def createNewBillingProject(namePrefix: String, memberEmails: List[String] = List())(implicit token: AuthToken): String = {
-    val billingProjectName = namePrefix + "-" + makeRandomId()
+    val billingProjectName = randomIdWithPrefix(namePrefix)
     Orchestration.billing.createBillingProject(billingProjectName, Config.Projects.billingAccountId)
     addMembersToBillingProject(billingProjectName, memberEmails)
     billingProjectName

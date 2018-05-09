@@ -8,15 +8,15 @@ import org.broadinstitute.dsde.workbench.config.Config
 import org.broadinstitute.dsde.workbench.fixture.Method
 import org.broadinstitute.dsde.workbench.fixture.MethodData.SimpleMethod
 import org.broadinstitute.dsde.workbench.service.Sam.user.UserStatusDetails
-import org.broadinstitute.dsde.workbench.service.util.{Retry, Util}
-import org.broadinstitute.dsde.workbench.service.util.Util.appendUnderscore
+import org.broadinstitute.dsde.workbench.service.util.Retry
 import spray.json.{DefaultJsonProtocol, _}
 
 import scala.concurrent.duration._
 import scala.util.{Failure, Success, Try}
 import OrchestrationModel._
+import org.broadinstitute.dsde.workbench.service.test.RandomUtil
 
-trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport with DefaultJsonProtocol {
+trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport with DefaultJsonProtocol with RandomUtil {
 
   def responseAsList[T](response: String): List[Map[String, T]] = {
     mapper.readValue(response, classOf[List[Map[String, T]]])
@@ -291,7 +291,7 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
   object methods {
     def createMethod(testname:String, method:Method, numSnapshots: Int = 1)
                     (implicit token: AuthToken): String = {
-      val methodName = appendUnderscore(testname) + Util.makeUuid
+      val methodName = uuidWithPrefix(testname)
       for (_ <- 1 to numSnapshots)
         createMethod(SimpleMethod.creationAttributes + ("name"->methodName))
       methodName

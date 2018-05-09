@@ -5,12 +5,7 @@ import akka.http.scaladsl.model.StatusCodes
 import com.typesafe.scalalogging.LazyLogging
 import org.broadinstitute.dsde.workbench.auth.AuthToken
 import org.broadinstitute.dsde.workbench.config.Config
-import org.broadinstitute.dsde.workbench.fixture.Method
-import org.broadinstitute.dsde.workbench.fixture.MethodData.SimpleMethod
-import org.broadinstitute.dsde.workbench.service.Sam.user.UserStatusDetails
-import org.broadinstitute.dsde.workbench.service.util.{Retry, Util}
-import org.broadinstitute.dsde.workbench.service.util.Util.appendUnderscore
-import spray.json.{DefaultJsonProtocol, RootJsonFormat}
+import spray.json.DefaultJsonProtocol
 
 case class GPAllocProject(projectName: String, cromwellAuthBucketUrl: String)
 
