@@ -3,11 +3,10 @@ package org.broadinstitute.dsde.workbench.fixture
 import com.typesafe.scalalogging.LazyLogging
 import org.broadinstitute.dsde.workbench.service.Orchestration.groups.GroupRole
 import org.broadinstitute.dsde.workbench.auth.AuthToken
+import org.broadinstitute.dsde.workbench.config._
 import org.broadinstitute.dsde.workbench.service.Orchestration
 import org.broadinstitute.dsde.workbench.service.util.{ExceptionHandling, Util}
 import org.scalatest.TestSuite
-
-import scala.util.{Failure, Success, Try}
 
 /**
   * Fixtures for creating and cleaning up test groups.
@@ -21,28 +20,23 @@ trait GroupFixtures extends ExceptionHandling with LazyLogging { self: TestSuite
                (implicit token: AuthToken): Unit = {
     val groupName = Util.appendUnderscore(namePrefix) + Util.makeUuid
 
-    Try {
+    try {
       Orchestration.groups.create(groupName)
       memberEmails foreach { email =>
         Orchestration.groups.addUserToGroup(groupName, email, GroupRole.Member)
       }
-    } match {
-      case Success(s) =>
-        try {
-          testCode(groupName)
-        } catch {
-          case ex: Exception =>
-            logger.error("", ex)
-            fail(ex)
-        } finally {
-          memberEmails foreach { email =>
-            Orchestration.groups.removeUserFromGroup(groupName, email, GroupRole.Member)
-          }
-          Orchestration.groups.delete(groupName)
-        }
-      case Failure(f) =>
-        logger.error("withGroup() throws exception: ", f)
-        fail("withGroup() throws exception: ", f) // end test
+
+      testCode(groupName)
+
+    } catch {
+      case t: Exception =>
+        logger.error("GroupFixtures.withGroup Exception: ", t)
+        throw t // end test execution
+    } finally {
+      memberEmails foreach { email =>
+        Orchestration.groups.removeUserFromGroup(groupName, email, GroupRole.Member)
+      }
+      Orchestration.groups.delete(groupName)
     }
   }
 }

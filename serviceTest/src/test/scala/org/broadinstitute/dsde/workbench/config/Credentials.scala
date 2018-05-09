@@ -7,10 +7,10 @@ import com.typesafe.scalalogging.LazyLogging
 import org.broadinstitute.dsde.workbench.auth.{AuthToken, UserAuthToken}
 
 
-case class Credentials (val email: String, val password: String) extends LazyLogging {
+case class Credentials (email: String, password: String) extends LazyLogging {
   def makeAuthToken(): AuthToken = {
     val auth = Credentials.cache.get(this)
-    logger.debug(s"AuthToken: ${auth}, ${auth.value}")
+    // logger.debug(s"AuthToken: ${auth}, ${auth.value}")
     auth
   }
 }

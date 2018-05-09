@@ -12,7 +12,7 @@ import org.broadinstitute.dsde.workbench.service.test.CleanUp
 import org.broadinstitute.dsde.workbench.service.util.ExceptionHandling
 import org.scalatest.TestSuite
 
-import scala.util.{Failure, Random, Success, Try}
+import scala.util.Random
 
 
 /**
@@ -82,22 +82,15 @@ trait BillingFixtures extends ExceptionHandling with LazyLogging with CleanUp {
     */
   def withBrandNewBillingProject(namePrefix: String, memberEmails: List[String] = List())
                                 (testCode: (String) => Any)(implicit token: AuthToken): Unit = {
-    Try(
-      createNewBillingProject(namePrefix, memberEmails)
-    ) match {
-      case Success(billingProject) =>
-        try {
-          testCode(billingProject)
-        } catch {
-          case ex: Exception =>
-            logger.error("", ex)
-            fail(ex)
-        } finally {
-          deleteBillingProject(billingProject, memberEmails)
-        }
-      case Failure(e) =>
-        logger.error("withBrandNewBillingProject() throws exception: ", e)
-        fail("withBrandNewBillingProject() throws exception: ", e) // end test
+    val billingProjectName = createNewBillingProject(namePrefix, memberEmails)
+    try {
+      testCode(billingProjectName)
+    } catch {
+      case t: Exception =>
+        logger.error("BillingFixtures.withBrandNewBillingProject Exception: ", t)
+        throw t // end test execution
+    } finally {
+      deleteBillingProject(billingProjectName, memberEmails)
     }
   }
 
