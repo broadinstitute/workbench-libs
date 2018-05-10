@@ -2,6 +2,15 @@
 
 This file documents changes to the `workbench-google` library, including notes on how to upgrade to new versions.
 
+## 0.17
+
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.17-TRAVIS-REPLACE-ME"`
+
+## Added
+- Parameterized query support for `GoogleBigQueryDAO`
+    - `org.broadinstitute.dsde.workbench.google.GoogleBigQueryDAO#startParameterizedQuery(project: GoogleProject, querySql: String, queryParameters: java.util.List[QueryParameter], parameterMode: String)`
+    - Accepts a `java.util.List[QueryParameter]` to protect from SQL injection
+
 ## 0.16
 
 SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.16-f93ea51"`

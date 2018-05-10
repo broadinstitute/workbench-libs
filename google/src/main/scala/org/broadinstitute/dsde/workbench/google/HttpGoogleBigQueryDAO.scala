@@ -39,6 +39,23 @@ class HttpGoogleBigQueryDAO(appName: String,
     }
   }
 
+  override def startParameterizedQuery(project: GoogleProject, querySql: String, queryParameters: java.util.List[QueryParameter], parameterMode: String): Future[JobReference] = {
+    val job = new Job()
+      .setConfiguration(new JobConfiguration()
+        .setQuery(new JobConfigurationQuery()
+          .setParameterMode(parameterMode)
+          .setQueryParameters(queryParameters)
+          .setQuery(querySql)))
+
+    val queryRequest = bigquery.jobs.insert(project.value, job)
+
+    retryWhen500orGoogleError { () =>
+      executeGoogleRequest(queryRequest)
+    } map { job =>
+      job.getJobReference
+    }
+  }
+
   override def getQueryStatus(jobRef: JobReference): Future[Job] = {
     val statusRequest = bigquery.jobs.get(jobRef.getProjectId, jobRef.getJobId)
 
