@@ -1,7 +1,6 @@
 package org.broadinstitute.dsde.workbench.service.util
 
 import com.typesafe.scalalogging.LazyLogging
-
 import scala.concurrent.duration.{Deadline, DurationInt, FiniteDuration}
 
 /**
@@ -9,22 +8,20 @@ import scala.concurrent.duration.{Deadline, DurationInt, FiniteDuration}
 object Retry extends LazyLogging {
 
   /**
-    * Retry an operation periodically until it returns something or no more
-    * retries remain. Returns when the operation returns Some or all retries
-    * have been exhausted.
+    * Retry an operation periodically.
+    * Returns when the operation returns Some or all retries
+    * have been exhausted or reached end of maximum wait time.
     *
     * @param remainingBackOffIntervals wait intervals between retries
     * @param op operation to retry
     * @return the result of the operation
     */
-  def retry[T](remainingBackOffIntervals: Seq[FiniteDuration], maxTime: FiniteDuration)(op: => Option[T]): Option[T] = {
+  def retry[T](remainingBackOffIntervals: Seq[FiniteDuration], maxTime: FiniteDuration = 1.minute)(op: => Option[T]): Option[T] = {
     val deadline: Deadline = maxTime.fromNow
     op match {
       case Some(x) => Some(x)
       case None => remainingBackOffIntervals match {
-        case Nil =>
-          logger.info(s"Retrying: retries exhausted or reached max wait time $maxTime")
-          None
+        case Nil => None
         case h :: t =>
           logger.info(s"Retrying: ${remainingBackOffIntervals.size} retries remaining, retrying in $h")
           Thread sleep h.toMillis
