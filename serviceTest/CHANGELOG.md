@@ -8,7 +8,14 @@ SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test"
 
 ### Removed
 - Config values Project.default and Project.common.  It's now necessary to use BillingFixtures to choose a project.
-- Added Sam endpoint to get pet access token
+
+### Added
+- Sam endpoint to get pet access token
+- RandomUtil uuidWithPrefix() and randomIdWithPrefix()
+- SubWorkflowFixtures for generating a tree of Methods
+
+### Deprecated
+- Util makeRandomId() and makeUuid().  Use RandomUtil makeRandomId() and randomUuid() instead.
 
 ### Changed
 - `Credentials.makeAuthToken` user oAuth2 token are cached, expire automatically after 3600 seconds

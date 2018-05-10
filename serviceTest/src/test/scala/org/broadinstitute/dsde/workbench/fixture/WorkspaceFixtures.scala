@@ -2,14 +2,15 @@ package org.broadinstitute.dsde.workbench.fixture
 
 import org.broadinstitute.dsde.workbench.service._
 import org.broadinstitute.dsde.workbench.auth.AuthToken
+import org.broadinstitute.dsde.workbench.service.test.RandomUtil
 import org.broadinstitute.dsde.workbench.service.util.ExceptionHandling
-import org.broadinstitute.dsde.workbench.service.util.Util.{appendUnderscore, makeUuid}
+import org.broadinstitute.dsde.workbench.service.util.Util.appendUnderscore
 import org.scalatest.TestSuite
 
 /**WorkspaceFixtures
   * Fixtures for creating and cleaning up test workspaces.
   */
-trait WorkspaceFixtures extends ExceptionHandling { self: TestSuite =>
+trait WorkspaceFixtures extends ExceptionHandling with RandomUtil { self: TestSuite =>
 
   /**
     * Loan method that creates a workspace that will be cleaned up after the
@@ -27,7 +28,7 @@ trait WorkspaceFixtures extends ExceptionHandling { self: TestSuite =>
                     attributes: Option[Map[String, Any]] = None,
                     cleanUp: Boolean = true)
                    (testCode: (String) => Any)(implicit token: AuthToken): Unit = {
-    val workspaceName = appendUnderscore(namePrefix) + makeUuid
+    val workspaceName = uuidWithPrefix(namePrefix)
     Orchestration.workspaces.create(namespace, workspaceName, authDomain)
     Orchestration.workspaces.updateAcl(namespace, workspaceName, aclEntries)
     if (attributes.isDefined)
