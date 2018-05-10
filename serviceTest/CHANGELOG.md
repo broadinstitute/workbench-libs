@@ -10,6 +10,9 @@ SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test"
 - Config values Project.default and Project.common.  It's now necessary to use BillingFixtures to choose a project.
 - Added Sam endpoint to get pet access token
 
+### Changed
+- `Credentials.makeAuthToken` user oAuth2 token are cached, expire automatically after 3600 seconds
+
 ## 0.7
 
 SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "0.7-847c3ff"`

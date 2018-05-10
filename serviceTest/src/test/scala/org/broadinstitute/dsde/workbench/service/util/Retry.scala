@@ -26,6 +26,7 @@ object Retry extends LazyLogging {
           logger.info(s"Retrying: ${remainingBackOffIntervals.size} retries remaining, retrying in $h")
           Thread sleep h.toMillis
           if (deadline.isOverdue()) {
+            logger.info(s"Retrying: reached maximum wait time with ${remainingBackOffIntervals.size} retries remaining, retrying one last time")
             retry(Nil, 0.seconds)(op)
           } else {
             retry(t, deadline.timeLeft)(op)
