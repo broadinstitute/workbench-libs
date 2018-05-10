@@ -17,7 +17,9 @@ trait WebBrowserUtil extends WebBrowser {
     */
   abstract override def find(query: Query)(implicit driver: WebDriver): Option[Element] = {
     try {
-      super.find(query)
+      val elem: Option[Element] = super.find(query)
+      elem.exists(_.isDisplayed) // this checks for StaleElement exception
+      elem
     } catch {
       case _: StaleElementReferenceException => this.find(query)
     }
@@ -48,7 +50,7 @@ trait WebBrowserUtil extends WebBrowser {
       * @param timeOutInSeconds number of seconds to wait for the condition to be true
       * @param webDriver implicit WebDriver for the WebDriverWait
       */
-    def condition(condition: => Boolean, timeOutInSeconds: Long = defaultTimeOutInSeconds)(implicit webDriver: WebDriver): Unit = {
+    def condition(condition: => Boolean, timeOutInSeconds: Long = defaultTimeOutInSeconds)(implicit webDriver: WebDriver): Boolean = {
       withWaitForCondition(timeOutInSeconds) {
         condition
       }
@@ -96,7 +98,7 @@ trait WebBrowserUtil extends WebBrowser {
     }
 
     def notVisible(query: Query, timeOutInSeconds: Long = defaultTimeOutInSeconds)
-                  (implicit webDriver: WebDriver): Unit = {
+                  (implicit webDriver: WebDriver): Boolean = {
       withWaitForCondition(timeOutInSeconds) {
         !findAll(query).exists(_.isDisplayed)
       }
@@ -137,12 +139,12 @@ trait WebBrowserUtil extends WebBrowser {
       * @param timeOutInSeconds number of seconds to wait for the text
       * @param webDriver implicit WebDriver for the WebDriverWait
       */
-    def text(text: String, timeOutInSeconds: Long = defaultTimeOutInSeconds)(implicit webDriver: WebDriver): Unit = {
+    def text(text: String, timeOutInSeconds: Long = defaultTimeOutInSeconds)(implicit webDriver: WebDriver): Boolean = {
       await condition (find(withText(text)).isDefined, timeOutInSeconds)
     }
 
     def visible(query: Query, timeOutInSeconds: Long = defaultTimeOutInSeconds)
-               (implicit webDriver: WebDriver): Unit = {
+               (implicit webDriver: WebDriver): Boolean = {
       withWaitForCondition(timeOutInSeconds) {
         find(query).exists(_.isDisplayed)
       }

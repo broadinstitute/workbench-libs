@@ -11,8 +11,8 @@ object Dependencies {
 
   def excludeGuavaJDK5(m: ModuleID): ModuleID = m.exclude("com.google.guava", "guava-jdk5")
 
-  val scalaLogging: ModuleID = "com.typesafe.scala-logging"    %% "scala-logging" % "3.7.2"  % "provided"
-  val scalatest: ModuleID =    "org.scalatest"                 %% "scalatest"     % "3.0.1"  % "test"
+  val scalaLogging: ModuleID = "com.typesafe.scala-logging"    %% "scala-logging" % "3.8.0"  % "provided"
+  val scalatest: ModuleID =    "org.scalatest"                 %% "scalatest"     % "3.0.5"  % "test"
   val mockito: ModuleID =      "org.mockito"                   %  "mockito-core"  % "2.8.47" % "test"
 
   val akkaActor: ModuleID =         "com.typesafe.akka" %% "akka-actor"           % akkaV     % "provided"
@@ -23,7 +23,7 @@ object Dependencies {
 
   val jacksonModule: ModuleID =   "com.fasterxml.jackson.module" %% "jackson-module-scala"   % jacksonV % "test"
 
-  val selenium: ModuleID = "org.seleniumhq.selenium" % "selenium-java" % "3.8.1" % "test"
+  val selenium: ModuleID = "org.seleniumhq.selenium" % "selenium-java" % "3.11.0" % "test"
 
   val cats: ModuleID = "org.typelevel" %% "cats" % catsV
 
