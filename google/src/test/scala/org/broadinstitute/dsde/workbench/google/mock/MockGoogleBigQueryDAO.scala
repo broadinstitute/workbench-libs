@@ -32,7 +32,7 @@ class MockGoogleBigQueryDAO extends GoogleBigQueryDAO {
                                        querySql: String,
                                        queryParameters: util.List[QueryParameter],
                                        parameterMode: String): Future[JobReference] = {
-    if (project == testProject && querySql == testParamQuery && queryParameters == testParameters && parameterMode == testParameterMode)
+    if (project == testProject && querySql == testParamQuery && queryParameters.equals(queryParameters) && parameterMode == testParameterMode)
       Future.successful(testJobReference)
     else
       Future.failed(throw new Exception(unexpectedInputsError))

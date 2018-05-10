@@ -24,19 +24,23 @@ class HttpGoogleBigQueryDAO(appName: String,
     new Bigquery.Builder(httpTransport, jsonFactory, googleCredential).setApplicationName(appName).build()
   }
 
-  override def startQuery(project: GoogleProject, querySql: String): Future[JobReference] = {
-    val job = new Job()
-      .setConfiguration(new JobConfiguration()
-        .setQuery(new JobConfigurationQuery()
-          .setQuery(querySql)))
-
-    val queryRequest = bigquery.jobs.insert(project.value, job)
+  private def submitQuery(projectId: String, job: Job): Future[JobReference] = {
+    val queryRequest = bigquery.jobs.insert(projectId, job)
 
     retryWhen500orGoogleError { () =>
       executeGoogleRequest(queryRequest)
     } map { job =>
       job.getJobReference
     }
+  }
+
+  override def startQuery(project: GoogleProject, querySql: String): Future[JobReference] = {
+    val job = new Job()
+      .setConfiguration(new JobConfiguration()
+        .setQuery(new JobConfigurationQuery()
+          .setQuery(querySql)))
+
+    submitQuery(project.value, job)
   }
 
   override def startParameterizedQuery(project: GoogleProject, querySql: String, queryParameters: java.util.List[QueryParameter], parameterMode: String): Future[JobReference] = {
@@ -47,13 +51,7 @@ class HttpGoogleBigQueryDAO(appName: String,
           .setQueryParameters(queryParameters)
           .setQuery(querySql)))
 
-    val queryRequest = bigquery.jobs.insert(project.value, job)
-
-    retryWhen500orGoogleError { () =>
-      executeGoogleRequest(queryRequest)
-    } map { job =>
-      job.getJobReference
-    }
+    submitQuery(project.value, job)
   }
 
   override def getQueryStatus(jobRef: JobReference): Future[Job] = {
