@@ -191,13 +191,13 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
       * @param token
       */
     def waitForBucketReadAccess(workspaceNamespace: String, workspaceName: String)(implicit token: AuthToken): Unit = {
-      logger.info(s"checking bucket read access for workspace: $workspaceNamespace/$workspaceName")
+      logger.info(s"Bucket read access checking on workspace: $workspaceNamespace/$workspaceName")
       Retry.retry(10.seconds, 10.minutes)({
         val response = getRequest(apiUrl(s"api/workspaces/$workspaceNamespace/$workspaceName/checkBucketReadAccess"))
         if(response.status.isSuccess()) Some("done") else None
       }) match {
         case None => throw new Exception(s"workspace $workspaceNamespace/$workspaceName bucket did not become readable")
-        case Some(_) => logger.info(s"workspace $workspaceNamespace/$workspaceName bucket readable")
+        case Some(_) => logger.info(s"Bucket read access check passed: workspace $workspaceNamespace/$workspaceName bucket readable")
       }
     }
   }
@@ -431,7 +431,7 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
       val trialProjects: TrialProjects = countTrialProjects()
       if (trialProjects.available < count) {
         postRequest(apiUrl(s"api/trial/manager/projects?operation=create&count=${count - trialProjects.available}"))
-        Retry.retry(20.seconds, 10.minutes)({
+        Retry.retry(30.seconds, 20.minutes)({
           val report: TrialProjects = countTrialProjects()
           if (report.available >= count)
             Some(report)
@@ -449,6 +449,7 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
     }
 
     def countTrialProjects()(implicit token: AuthToken): TrialProjects = {
+      logger.info(s"API post request: api/trial/manager/projects?operation=count")
       val response = postRequest(apiUrl(s"api/trial/manager/projects?operation=count"))
       implicit val impTrialProjectReport: RootJsonFormat[TrialProjects] = jsonFormat4(TrialProjects)
       val trialProjects: TrialProjects = response.parseJson.convertTo[TrialProjects]
@@ -457,6 +458,7 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
     }
 
     def reportTrialProjects()(implicit token: AuthToken): Seq[TrialProjectReport] = {
+      logger.info(s"API post request: api/trial/manager/projects?operation=report")
       val response = postRequest(apiUrl(s"api/trial/manager/projects?operation=report"))
       implicit val impUserStatusDetails: RootJsonFormat[UserStatusDetails] = jsonFormat2(UserStatusDetails)
       implicit val impTrialProjectReport: RootJsonFormat[TrialProjectReport] = jsonFormat4(TrialProjectReport)

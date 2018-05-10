@@ -4,7 +4,7 @@ This file documents changes to the `workbench-service-test` library, including n
 
 ## 0.8
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "0.8-dfa4d3a"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "0.8-TRAVIS-REPLACE-ME"`
 
 ### Removed
 - Config values Project.default and Project.common.  It's now necessary to use BillingFixtures to choose a project.
@@ -16,6 +16,9 @@ SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test"
 
 ### Deprecated
 - Util makeRandomId() and makeUuid().  Use RandomUtil makeRandomId() and randomUuid() instead.
+
+### Changed
+- `Credentials.makeAuthToken` user oAuth2 token are cached, expire automatically after 3600 seconds
 
 ## 0.7
 

@@ -1,7 +1,28 @@
 package org.broadinstitute.dsde.workbench.config
 
+import java.util.concurrent.TimeUnit
+
+import com.google.common.cache.{CacheBuilder, CacheLoader}
+import com.typesafe.scalalogging.LazyLogging
 import org.broadinstitute.dsde.workbench.auth.{AuthToken, UserAuthToken}
 
-case class Credentials (email: String, password: String) {
-  def makeAuthToken(): AuthToken = UserAuthToken(this)
+
+case class Credentials (email: String, password: String) extends LazyLogging {
+  def makeAuthToken(): AuthToken = {
+    val auth = Credentials.cache.get(this)
+    // logger.debug(s"AuthToken: ${auth}, ${auth.value}")
+    auth
+  }
+}
+
+object Credentials {
+  val cache = CacheBuilder.newBuilder()
+    .expireAfterWrite(3600, TimeUnit.SECONDS)
+    .build(
+      new CacheLoader[Credentials, AuthToken] {
+        def load(credentials: Credentials): AuthToken = {
+          UserAuthToken(credentials)
+        }
+      }
+    )
 }
