@@ -1,12 +1,9 @@
 package org.broadinstitute.dsde.workbench.google.mock
 
-import java.util
-
 import com.google.api.services.bigquery.model.{GetQueryResultsResponse, Job, JobReference, QueryParameter}
 import org.broadinstitute.dsde.workbench.google.GoogleBigQueryDAO
 import org.broadinstitute.dsde.workbench.model.google.GoogleProject
 
-import scala.collection.JavaConverters._
 import scala.concurrent.Future
 
 class MockGoogleBigQueryDAO extends GoogleBigQueryDAO {
@@ -14,7 +11,7 @@ class MockGoogleBigQueryDAO extends GoogleBigQueryDAO {
   val testProject = GoogleProject("firecloud-project")
   val testQuery = "SELECT * FROM users"
   val testParamQuery = "SELECT * FROM @table"
-  val testParameters = List[QueryParameter](new QueryParameter().set("table", "users")).asJava
+  val testParameters = List[QueryParameter](new QueryParameter().set("table", "users"))
   val testParameterMode = "NAMED"
   val testJobReference: JobReference = new JobReference().setJobId("test job id")
   val testJob: Job = new Job().setJobReference(testJobReference)
@@ -30,7 +27,7 @@ class MockGoogleBigQueryDAO extends GoogleBigQueryDAO {
 
   override def startParameterizedQuery(project: GoogleProject,
                                        querySql: String,
-                                       queryParameters: util.List[QueryParameter],
+                                       queryParameters: List[QueryParameter],
                                        parameterMode: String): Future[JobReference] = {
     if (project == testProject && querySql == testParamQuery && queryParameters.equals(queryParameters) && parameterMode == testParameterMode)
       Future.successful(testJobReference)

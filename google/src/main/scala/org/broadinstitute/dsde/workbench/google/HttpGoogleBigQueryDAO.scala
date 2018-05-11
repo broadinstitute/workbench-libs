@@ -8,6 +8,7 @@ import org.broadinstitute.dsde.workbench.metrics.GoogleInstrumentedService
 import org.broadinstitute.dsde.workbench.model.WorkbenchException
 import org.broadinstitute.dsde.workbench.model.google.GoogleProject
 
+import scala.collection.JavaConverters._
 import scala.concurrent.{ExecutionContext, Future}
 
 class HttpGoogleBigQueryDAO(appName: String,
@@ -43,12 +44,12 @@ class HttpGoogleBigQueryDAO(appName: String,
     submitQuery(project.value, job)
   }
 
-  override def startParameterizedQuery(project: GoogleProject, querySql: String, queryParameters: java.util.List[QueryParameter], parameterMode: String): Future[JobReference] = {
+  override def startParameterizedQuery(project: GoogleProject, querySql: String, queryParameters: List[QueryParameter], parameterMode: String): Future[JobReference] = {
     val job = new Job()
       .setConfiguration(new JobConfiguration()
         .setQuery(new JobConfigurationQuery()
           .setParameterMode(parameterMode)
-          .setQueryParameters(queryParameters)
+          .setQueryParameters(queryParameters.asJava)
           .setQuery(querySql)))
 
     submitQuery(project.value, job)

@@ -8,7 +8,7 @@ import scala.concurrent.Future
 trait GoogleBigQueryDAO {
   def startQuery(project: GoogleProject, querySql: String): Future[JobReference]
 
-  def startParameterizedQuery(project: GoogleProject, querySql: String, queryParameters: java.util.List[QueryParameter], parameterMode: String): Future[JobReference]
+  def startParameterizedQuery(project: GoogleProject, querySql: String, queryParameters: List[QueryParameter], parameterMode: String): Future[JobReference]
 
   def getQueryStatus(jobRef: JobReference): Future[Job]
 
