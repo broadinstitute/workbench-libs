@@ -7,8 +7,10 @@ This file documents changes to the `workbench-google` library, including notes o
 SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.16-TRAVIS-REPLACE-ME"`
 
 ### Added
-- org.broadinstitute.dsde.workbench.google.GoogleIamDAO#findServiceAccount(serviceAccountProject: GoogleProject, serviceAccountEmail: WorkbenchEmail)
-- Updated createBucket method in GoogleStorageDAO to accept reader and owner acls
+- `org.broadinstitute.dsde.workbench.google.GoogleIamDAO#findServiceAccount(serviceAccountProject: GoogleProject, serviceAccountEmail: WorkbenchEmail)`
+- Updated createBucket method in `GoogleStorageDAO` to accept reader and owner acls
+- Parameterized query support for `GoogleBigQueryDAO`
+   - `org.broadinstitute.dsde.workbench.google.GoogleBigQueryDAO#startParameterizedQuery(project: GoogleProject, querySql: String, queryParameters: java.util.List[QueryParameter], parameterMode: String)`
 
 ## 0.15
 
