@@ -48,6 +48,7 @@ class HttpGoogleBigQueryDAO(appName: String,
     val job = new Job()
       .setConfiguration(new JobConfiguration()
         .setQuery(new JobConfigurationQuery()
+          // This defaults to true in current version. Standard SQL is required for query parameters.
           .setUseLegacySql(java.lang.Boolean.FALSE)
           .setParameterMode(parameterMode)
           .setQueryParameters(queryParameters.asJava)
