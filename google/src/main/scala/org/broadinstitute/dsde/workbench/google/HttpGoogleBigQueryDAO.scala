@@ -8,6 +8,7 @@ import org.broadinstitute.dsde.workbench.metrics.GoogleInstrumentedService
 import org.broadinstitute.dsde.workbench.model.WorkbenchException
 import org.broadinstitute.dsde.workbench.model.google.GoogleProject
 
+import scala.collection.JavaConverters._
 import scala.concurrent.{ExecutionContext, Future}
 
 class HttpGoogleBigQueryDAO(appName: String,
@@ -24,19 +25,34 @@ class HttpGoogleBigQueryDAO(appName: String,
     new Bigquery.Builder(httpTransport, jsonFactory, googleCredential).setApplicationName(appName).build()
   }
 
-  override def startQuery(project: GoogleProject, querySql: String): Future[JobReference] = {
-    val job = new Job()
-      .setConfiguration(new JobConfiguration()
-        .setQuery(new JobConfigurationQuery()
-          .setQuery(querySql)))
-
-    val queryRequest = bigquery.jobs.insert(project.value, job)
+  private def submitQuery(projectId: String, job: Job): Future[JobReference] = {
+    val queryRequest = bigquery.jobs.insert(projectId, job)
 
     retryWhen500orGoogleError { () =>
       executeGoogleRequest(queryRequest)
     } map { job =>
       job.getJobReference
     }
+  }
+
+  override def startQuery(project: GoogleProject, querySql: String): Future[JobReference] = {
+    val job = new Job()
+      .setConfiguration(new JobConfiguration()
+        .setQuery(new JobConfigurationQuery()
+          .setQuery(querySql)))
+
+    submitQuery(project.value, job)
+  }
+
+  override def startParameterizedQuery(project: GoogleProject, querySql: String, queryParameters: List[QueryParameter], parameterMode: String): Future[JobReference] = {
+    val job = new Job()
+      .setConfiguration(new JobConfiguration()
+        .setQuery(new JobConfigurationQuery()
+          .setParameterMode(parameterMode)
+          .setQueryParameters(queryParameters.asJava)
+          .setQuery(querySql)))
+
+    submitQuery(project.value, job)
   }
 
   override def getQueryStatus(jobRef: JobReference): Future[Job] = {
