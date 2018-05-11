@@ -48,6 +48,7 @@ class HttpGoogleBigQueryDAO(appName: String,
     val job = new Job()
       .setConfiguration(new JobConfiguration()
         .setQuery(new JobConfigurationQuery()
+          .setUseLegacySql(java.lang.Boolean.FALSE)
           .setParameterMode(parameterMode)
           .setQueryParameters(queryParameters.asJava)
           .setQuery(querySql)))
