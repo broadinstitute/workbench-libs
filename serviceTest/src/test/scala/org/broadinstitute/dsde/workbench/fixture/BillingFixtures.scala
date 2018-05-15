@@ -12,6 +12,8 @@ import org.broadinstitute.dsde.workbench.service.test.{CleanUp, RandomUtil}
 import org.broadinstitute.dsde.workbench.service.util.ExceptionHandling
 import org.scalatest.TestSuite
 
+import scala.util.Try
+
 /**
   * Mix in this trait to allow your test to access billing projects managed by the GPAlloc system, or create new
   * billing projects of your own.  Using GPAlloc will generally be much faster, limit the creation of billing projects
@@ -20,45 +22,45 @@ import org.scalatest.TestSuite
 trait BillingFixtures extends ExceptionHandling with LazyLogging with CleanUp with RandomUtil {
   self: TestSuite =>
 
-  protected def addMembersToBillingProject(projectName: String, memberEmails: List[String])(implicit token: AuthToken): Unit = {
+  protected def addMembersToBillingProject(projectName: String, memberEmails: List[String], role: BillingProjectRole)(implicit token: AuthToken): Unit = {
     memberEmails foreach { email =>
-      Orchestration.billing.addUserToBillingProject(projectName, email, BillingProjectRole.Owner)
+      Orchestration.billing.addUserToBillingProject(projectName, email, role)
     }
   }
 
-  protected def removeMembersFromBillingProject(projectName: String, memberEmails: List[String])(implicit token: AuthToken): Unit = {
+  protected def removeMembersFromBillingProject(projectName: String, memberEmails: List[String], role: BillingProjectRole)(implicit token: AuthToken): Unit = {
     memberEmails foreach { email =>
-      Orchestration.billing.removeUserFromBillingProject(projectName, email, BillingProjectRole.Owner)
+      Orchestration.billing.removeUserFromBillingProject(projectName, email, role)
     }
   }
 
   @deprecated(message = "withBillingProject is deprecated. Use withCleanBillingProject if you want a billing project to isolate your tests, or withBrandNewBillingProject if you want to create a brand new one",
               since="workbench-service-test-0.5")
-  def withBillingProject(namePrefix: String, memberEmails: List[String] = List())
+  def withBillingProject(namePrefix: String, ownerEmails: List[String] = List(), userEmails: List[String] = List())
                         (testCode: (String) => Any)(implicit token: AuthToken): Unit = {
-    withBrandNewBillingProject(namePrefix, memberEmails)(testCode)(token)
+    withBrandNewBillingProject(namePrefix, ownerEmails, userEmails)(testCode)(token)
   }
 
   case class ClaimedProject(projectName: String, gpAlloced: Boolean) {
-    def cleanup(ownerCreds: Credentials, memberEmails: List[String]): Unit = {
+    def cleanup(ownerCreds: Credentials): Unit = {
       if (gpAlloced)
-        releaseGPAllocProject(projectName, ownerCreds, memberEmails)
+        releaseGPAllocProject(projectName, ownerCreds)
       else {
-        deleteBillingProject(projectName, memberEmails)(ownerCreds.makeAuthToken())
+        deleteBillingProject(projectName)(ownerCreds.makeAuthToken())
       }
     }
   }
 
-  private def createNewBillingProject(namePrefix: String, memberEmails: List[String] = List())(implicit token: AuthToken): String = {
+  private def createNewBillingProject(namePrefix: String, ownerEmails: List[String] = List(), userEmails: List[String] = List())(implicit token: AuthToken): String = {
     val billingProjectName = randomIdWithPrefix(namePrefix)
     Orchestration.billing.createBillingProject(billingProjectName, Config.Projects.billingAccountId)
-    addMembersToBillingProject(billingProjectName, memberEmails)
+    addMembersToBillingProject(billingProjectName, ownerEmails, BillingProjectRole.Owner)
+    addMembersToBillingProject(billingProjectName, userEmails, BillingProjectRole.User)
     billingProjectName
   }
 
-  private def deleteBillingProject(billingProjectName: String, memberEmails: List[String])(implicit token: AuthToken): Unit = {
+  private def deleteBillingProject(billingProjectName: String)(implicit token: AuthToken): Unit = {
     val projectOwnerInfo = UserInfo(OAuth2BearerToken(token.value), WorkbenchUserId(""), WorkbenchEmail("doesnt@matter.com"), 100)
-    removeMembersFromBillingProject(billingProjectName, memberEmails)
     Rawls.admin.deleteBillingProject(billingProjectName, projectOwnerInfo)(UserPool.chooseAdmin.makeAuthToken())
   }
 
@@ -67,22 +69,23 @@ trait BillingFixtures extends ExceptionHandling with LazyLogging with CleanUp wi
     * use this method if your test requires it.
     *
     * @param namePrefix a short String to use as a billing project name prefix for identifying your test.
-    * @param memberEmails a List of member emails (as Strings) to add as members of this project
+    * @param ownerEmails a List of emails (as Strings) to add as owners of this project
+    * @param userEmails a List of emails (as Strings) to add as users of this project
     * @param testCode your test
     * @param token an AuthToken representing a billing project owner to pass to billing project endpoints
     */
-  def withBrandNewBillingProject(namePrefix: String, memberEmails: List[String] = List())
+  def withBrandNewBillingProject(namePrefix: String, ownerEmails: List[String] = List(), userEmails: List[String] = List())
                                 (testCode: (String) => Any)(implicit token: AuthToken): Unit = {
-    val billingProjectName = createNewBillingProject(namePrefix, memberEmails)
-    try {
+    val billingProjectName = createNewBillingProject(namePrefix, ownerEmails, userEmails)
+    val testTrial = Try {
       testCode(billingProjectName)
-    } catch {
-      case t: Exception =>
-        logger.error("BillingFixtures.withBrandNewBillingProject Exception: ", t)
-        throw t // end test execution
-    } finally {
-      deleteBillingProject(billingProjectName, memberEmails)
     }
+
+    val cleanupTrial = Try {
+      deleteBillingProject(billingProjectName)
+    }
+
+    CleanUp.runCodeWithCleanup(testTrial, cleanupTrial)
   }
 
   /**
@@ -90,10 +93,11 @@ trait BillingFixtures extends ExceptionHandling with LazyLogging with CleanUp wi
     * Consider using `withCleanBillingProject()` instead if you don't need to control the use of projects.
     *
     * @param newOwnerCreds Credentials representing a billing project owner to pass to billing project endpoints
-    * @param memberEmails a List of member emails (as Strings) to add as members of this project
+    * @param ownerEmails a List of emails (as Strings) to add as owners of this project
+    * @param userEmails a List of emails (as Strings) to add as users of this project
     * @return Some(GPAllocProject) if it succeeded, None if it did not
     */
-  def claimGPAllocProject(newOwnerCreds: Credentials, memberEmails: List[String] = List()): ClaimedProject = {
+  def claimGPAllocProject(newOwnerCreds: Credentials, ownerEmails: List[String] = List(), userEmails: List[String] = List()): ClaimedProject = {
     //request a GPAlloced project as the potential new owner
     val newOwnerToken = newOwnerCreds.makeAuthToken()
     GPAlloc.projects.requestProject(newOwnerToken) match {
@@ -104,12 +108,13 @@ trait BillingFixtures extends ExceptionHandling with LazyLogging with CleanUp wi
         val newOwnerUserInfo = UserInfo(OAuth2BearerToken(newOwnerToken.value), WorkbenchUserId("0"), WorkbenchEmail(newOwnerCreds.email), 3600)
         Rawls.admin.claimProject(project.projectName, project.cromwellAuthBucketUrl, newOwnerUserInfo)(adminToken)
 
-        addMembersToBillingProject(project.projectName, memberEmails)(newOwnerToken)
+        addMembersToBillingProject(project.projectName, ownerEmails, BillingProjectRole.Owner)(newOwnerToken)
+        addMembersToBillingProject(project.projectName, userEmails, BillingProjectRole.User)(newOwnerToken)
 
         ClaimedProject(project.projectName, gpAlloced = true)
       case _ =>
         logger.warn("claimGPAllocProject got no project back from GPAlloc. Falling back to making a brand new one...")
-        val billingProjectName = createNewBillingProject("billingproj", memberEmails)(newOwnerToken)
+        val billingProjectName = createNewBillingProject("billingproj", ownerEmails, userEmails)(newOwnerToken)
         ClaimedProject(billingProjectName, gpAlloced = false)
     }
   }
@@ -120,14 +125,11 @@ trait BillingFixtures extends ExceptionHandling with LazyLogging with CleanUp wi
     *
     * @param projectName the GPAllocProject to release
     * @param ownerCreds the Credentials of the current owner of the project
-    * @param memberEmails a List of member emails (as Strings) to remove as project members
     */
-  def releaseGPAllocProject(projectName: String, ownerCreds: Credentials, memberEmails: List[String] = List()): Unit = {
+  def releaseGPAllocProject(projectName: String, ownerCreds: Credentials): Unit = {
     val ownerToken = ownerCreds.makeAuthToken()
     val adminToken = UserPool.chooseAdmin.makeAuthToken()
     val newOwnerUserInfo = UserInfo(OAuth2BearerToken(ownerToken.value), WorkbenchUserId("0"), WorkbenchEmail(ownerCreds.email), 3600)
-
-    removeMembersFromBillingProject(projectName, memberEmails)(ownerToken)
 
     Rawls.admin.releaseProject(projectName, newOwnerUserInfo)(adminToken)
 
@@ -139,23 +141,25 @@ trait BillingFixtures extends ExceptionHandling with LazyLogging with CleanUp wi
     * a project for the duration of the test and release it when the test is done.
     *
     * @param newOwnerCreds Credentials representing a billing project owner to pass to billing project endpoints
-    * @param memberEmails a List of member emails (as Strings) to add as members of this project
+    * @param ownerEmails a List of emails (as Strings) to add as owners of this project
+    * @param userEmails a List of emails (as Strings) to add as users of this project
     * @param testCode your test
     */
-  def withCleanBillingProject(newOwnerCreds: Credentials, memberEmails: List[String] = List())(testCode: (String) => Any): Unit = {
-    val newOwnerToken = newOwnerCreds.makeAuthToken()
-    val project = claimGPAllocProject(newOwnerCreds, memberEmails)
-    try {
+  def withCleanBillingProject(newOwnerCreds: Credentials, ownerEmails: List[String] = List(), userEmails: List[String] = List())(testCode: (String) => Any): Unit = {
+    val project = claimGPAllocProject(newOwnerCreds, ownerEmails, userEmails)
+    val testTrial = Try {
       testCode(project.projectName)
-    } finally {
-      project.cleanup(newOwnerCreds, memberEmails)
     }
+    val cleanupTrial = Try {
+      project.cleanup(newOwnerCreds)
+    }
+
+    CleanUp.runCodeWithCleanup(testTrial, cleanupTrial)
   }
 
   def addUserInBillingProject(billingProjectName: String, email: String, role: BillingProjectRole)
                              (implicit token: AuthToken): Unit = {
     Orchestration.billing.addUserToBillingProject(billingProjectName, email, role)
-    register cleanUp Orchestration.billing.removeUserFromBillingProject(billingProjectName, email, role)
   }
 }
 

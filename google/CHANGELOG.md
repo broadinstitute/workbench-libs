@@ -4,13 +4,16 @@ This file documents changes to the `workbench-google` library, including notes o
 
 ## 0.16
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.16-0027221"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.16-TRAVIS-REPLACE-ME"`
 
 ### Added
 - `org.broadinstitute.dsde.workbench.google.GoogleIamDAO#findServiceAccount(serviceAccountProject: GoogleProject, serviceAccountEmail: WorkbenchEmail)`
 - Updated createBucket method in `GoogleStorageDAO` to accept reader and owner acls
 - Parameterized query support for `GoogleBigQueryDAO`
    - `org.broadinstitute.dsde.workbench.google.GoogleBigQueryDAO#startParameterizedQuery(project: GoogleProject, querySql: String, queryParameters: java.util.List[QueryParameter], parameterMode: String)`
+   
+### Changed
+- org.broadinstitute.dsde.workbench.google.mock.MockGoogleIamDAO supports multiple keys for a service account (like the real thing)
 
 ## 0.15
 

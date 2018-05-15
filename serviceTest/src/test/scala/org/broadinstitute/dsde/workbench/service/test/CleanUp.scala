@@ -98,11 +98,7 @@ trait CleanUp extends TestSuiteMixin with ExceptionHandling with LazyLogging { s
     val testTrial = Try { super.withFixture(test) }
     val cleanupTrial = Try { runCleanUpFunctions() }
 
-    (testTrial, cleanupTrial) match {
-      case (Failure(t), _) => throw t
-      case (_, Failure(t)) => throw t
-      case (Success(outcome), Success(_)) => outcome
-    }
+    CleanUp.runCodeWithCleanup(testTrial, cleanupTrial)
   }
 
   private def runCleanUpFunctions() = {
@@ -118,6 +114,16 @@ trait CleanUp extends TestSuiteMixin with ExceptionHandling with LazyLogging { s
 
     if (errorReports.nonEmpty) {
       throw new Exception(ErrorReport("cleanup failed", errorReports.toSeq).toJson.prettyPrint)
+    }
+  }
+}
+
+object CleanUp {
+  def runCodeWithCleanup[T, C](testTrial: Try[T], cleanupTrial: Try[C]): T = {
+    (testTrial, cleanupTrial) match {
+      case (Failure(t), _) => throw t
+      case (Success(_), Failure(t)) => throw t
+      case (Success(outcome), Success(_)) => outcome
     }
   }
 }

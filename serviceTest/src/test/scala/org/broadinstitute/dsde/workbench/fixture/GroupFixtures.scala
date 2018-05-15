@@ -6,7 +6,10 @@ import org.broadinstitute.dsde.workbench.auth.AuthToken
 import org.broadinstitute.dsde.workbench.service.Orchestration
 import org.broadinstitute.dsde.workbench.service.test.RandomUtil
 import org.broadinstitute.dsde.workbench.service.util.ExceptionHandling
+import org.broadinstitute.dsde.workbench.service.test.CleanUp
 import org.scalatest.TestSuite
+
+import scala.util.{Failure, Success, Try}
 
 /**
   * Fixtures for creating and cleaning up test groups.
@@ -20,23 +23,19 @@ trait GroupFixtures extends ExceptionHandling with LazyLogging with RandomUtil {
                (implicit token: AuthToken): Unit = {
     val groupName = uuidWithPrefix(namePrefix)
 
-    try {
+    val testTrial = Try {
       Orchestration.groups.create(groupName)
       memberEmails foreach { email =>
         Orchestration.groups.addUserToGroup(groupName, email, GroupRole.Member)
       }
 
       testCode(groupName)
+    }
 
-    } catch {
-      case t: Exception =>
-        logger.error("GroupFixtures.withGroup Exception: ", t)
-        throw t // end test execution
-    } finally {
-      memberEmails foreach { email =>
-        Orchestration.groups.removeUserFromGroup(groupName, email, GroupRole.Member)
-      }
+    val cleanupTrial = Try {
       Orchestration.groups.delete(groupName)
     }
+
+    CleanUp.runCodeWithCleanup(testTrial, cleanupTrial)
   }
 }
