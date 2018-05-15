@@ -20,6 +20,7 @@ SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test"
 ### Changed
 - `Credentials.makeAuthToken` user oAuth2 token are cached, expire automatically after 3600 seconds
 - with* fixtures preserve original exceptions when cleaning up
+- BillingFixures handles roles correctly
 
 ## 0.7
 
