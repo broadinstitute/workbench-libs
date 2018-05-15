@@ -2,7 +2,7 @@ package org.broadinstitute.dsde.workbench.google.mock
 
 import java.nio.charset.StandardCharsets
 import java.time.Instant
-import java.util.Base64
+import java.util.{Base64, UUID}
 
 import org.broadinstitute.dsde.workbench.google.GoogleIamDAO
 import org.broadinstitute.dsde.workbench.model._
@@ -19,10 +19,10 @@ import scala.util.Random
 class MockGoogleIamDAO(implicit executionContext: ExecutionContext) extends GoogleIamDAO {
 
   val serviceAccounts: mutable.Map[WorkbenchEmail, ServiceAccount] = new TrieMap()
-  val serviceAccountKeys: mutable.Map[WorkbenchEmail, ServiceAccountKey] = new TrieMap()
+  val serviceAccountKeys: mutable.Map[WorkbenchEmail, mutable.Map[ServiceAccountKeyId, ServiceAccountKey]] = new TrieMap()
 
   override def findServiceAccount(serviceAccountProject: GoogleProject, serviceAccountName: ServiceAccountName): Future[Option[ServiceAccount]] = {
-    val email = WorkbenchEmail(s"$serviceAccountName@$serviceAccountProject.iam.gserviceaccount.com")
+    val email = toServiceAccountEmail(serviceAccountProject, serviceAccountName)
     findServiceAccount(serviceAccountProject, email)
   }
 
@@ -39,11 +39,13 @@ class MockGoogleIamDAO(implicit executionContext: ExecutionContext) extends Goog
     val uniqueId = ServiceAccountSubjectId(Random.nextLong.toString)
     val sa = ServiceAccount(uniqueId, email, displayName)
     serviceAccounts += email -> sa
+    serviceAccountKeys += email -> new TrieMap()
     Future.successful(sa)
   }
 
   override def removeServiceAccount(googleProject: GoogleProject, serviceAccountName: ServiceAccountName): Future[Unit] = {
     serviceAccounts -= toServiceAccountEmail(googleProject, serviceAccountName)
+    serviceAccountKeys -= toServiceAccountEmail(googleProject, serviceAccountName)
     Future.successful(())
   }
 
@@ -64,8 +66,9 @@ class MockGoogleIamDAO(implicit executionContext: ExecutionContext) extends Goog
   }
 
   override def createServiceAccountKey(serviceAccountProject: GoogleProject, serviceAccountEmail: WorkbenchEmail): Future[ServiceAccountKey] = {
-    val key = ServiceAccountKey(ServiceAccountKeyId("123"), ServiceAccountPrivateKeyData(Base64.getEncoder.encodeToString(s"abcdefg:${System.currentTimeMillis}".getBytes(StandardCharsets.UTF_8))), Some(Instant.now), Some(Instant.now.plusSeconds(300)))
-    serviceAccountKeys += serviceAccountEmail -> key
+    val keyId = ServiceAccountKeyId(UUID.randomUUID().toString)
+    val key = ServiceAccountKey(keyId, ServiceAccountPrivateKeyData(Base64.getEncoder.encodeToString(s"abcdefg:${System.currentTimeMillis}${Random.nextLong()}".getBytes(StandardCharsets.UTF_8))), Some(Instant.now), Some(Instant.now.plusSeconds(300)))
+    serviceAccountKeys(serviceAccountEmail) += keyId -> key
     Future.successful(key)
   }
 
@@ -75,11 +78,11 @@ class MockGoogleIamDAO(implicit executionContext: ExecutionContext) extends Goog
   }
 
   override def listServiceAccountKeys(serviceAccountProject: GoogleProject, serviceAccountEmail: WorkbenchEmail): Future[Seq[ServiceAccountKey]] = {
-    Future.successful(serviceAccountKeys.values.toSeq)
+    Future.successful(serviceAccountKeys(serviceAccountEmail).values.toSeq)
   }
 
   override def listUserManagedServiceAccountKeys(serviceAccountProject: GoogleProject, serviceAccountEmail: WorkbenchEmail): Future[Seq[ServiceAccountKey]] = {
-    Future.successful(serviceAccountKeys.values.toSeq)
+    Future.successful(serviceAccountKeys(serviceAccountEmail).values.toSeq)
   }
 
 }

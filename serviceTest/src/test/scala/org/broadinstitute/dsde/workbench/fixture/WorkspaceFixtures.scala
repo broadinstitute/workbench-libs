@@ -3,9 +3,12 @@ package org.broadinstitute.dsde.workbench.fixture
 import org.broadinstitute.dsde.workbench.service._
 import org.broadinstitute.dsde.workbench.auth.AuthToken
 import org.broadinstitute.dsde.workbench.service.test.RandomUtil
+import org.broadinstitute.dsde.workbench.service.test.CleanUp
 import org.broadinstitute.dsde.workbench.service.util.ExceptionHandling
 import org.broadinstitute.dsde.workbench.service.util.Util.appendUnderscore
 import org.scalatest.TestSuite
+
+import scala.util.Try
 
 /**WorkspaceFixtures
   * Fixtures for creating and cleaning up test workspaces.
@@ -33,17 +36,17 @@ trait WorkspaceFixtures extends ExceptionHandling with RandomUtil { self: TestSu
     Orchestration.workspaces.updateAcl(namespace, workspaceName, aclEntries)
     if (attributes.isDefined)
       Orchestration.workspaces.setAttributes(namespace, workspaceName, attributes.get)
-    try {
+    val testTrial = Try {
       testCode(workspaceName)
-    } catch {
-      case t: Exception =>
-        logger.error("WorkspaceFixtures.withWorkspace Exception: ", t)
-        throw t // end test execution
-    } finally {
+    }
+
+    val cleanupTrial = Try {
       if (cleanUp) {
         Orchestration.workspaces.delete(namespace, workspaceName)
       }
     }
+
+    CleanUp.runCodeWithCleanup(testTrial, cleanupTrial)
   }
 
   def withClonedWorkspace(namespace: String, namePrefix: String, authDomain: Set[String] = Set.empty)
