@@ -2,9 +2,17 @@
 
 This file documents changes to the `workbench-service-test` library, including notes on how to upgrade to new versions.
 
+## 0.9
+
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "0.9-TRAVIS-REPLACE-ME"`
+
+### Changed
+- with* fixtures preserve original exceptions when cleaning up
+- BillingFixures handles roles correctly
+
 ## 0.8
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "0.8-c5b80d2"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "0.8-023db6d"`
 
 ### Removed
 - Config values Project.default and Project.common.  It's now necessary to use BillingFixtures to choose a project.
@@ -19,8 +27,6 @@ SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test"
 
 ### Changed
 - `Credentials.makeAuthToken` user oAuth2 token are cached, expire automatically after 3600 seconds
-- with* fixtures preserve original exceptions when cleaning up
-- BillingFixures handles roles correctly
 
 ## 0.7
 
