@@ -54,6 +54,8 @@ object Config extends Config {
     private val userDataJson = JSON.parseFull(scala.io.Source.fromFile(users.getString("userDataPath")).getLines.mkString).get.asInstanceOf[Map[String, Map[String,String]]]
     val tcgaJsonWebTokenKey = users.getString("tcgaJsonWebTokenKey")
     val targetJsonWebTokenKey = users.getString("targetJsonWebTokenKey")
+    val targetAndTcgaJsonWebTokenKey = users.getString("targetAndTcgaJsonWebTokenKey")
+    val genericJsonWebTokenKey = users.getString("genericJsonWebTokenKey")
     def makeCredsMap(jsonMap: Map[String, String]): Map[String, Credentials] = {
       for((k,v) <- jsonMap) yield (k, Credentials(v, notSoSecretPassword))
     }
