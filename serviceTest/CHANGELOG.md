@@ -8,6 +8,7 @@ SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test"
 
 ### Changed
 - Revamped NIH JWTs: there is now a valid key with access to TCGA only, TARGET only, both, and none
+- Added NIH endpoints for syncing the whitelist and getting user's NIH link status
 
 ## 0.9
 
