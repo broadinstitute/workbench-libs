@@ -14,6 +14,7 @@ import spray.json.{DefaultJsonProtocol, _}
 import scala.concurrent.duration._
 import scala.util.{Failure, Success, Try}
 import OrchestrationModel._
+import org.broadinstitute.dsde.workbench.model.WorkbenchGroupName
 import org.broadinstitute.dsde.workbench.service.test.RandomUtil
 
 trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport with DefaultJsonProtocol with RandomUtil {
@@ -322,18 +323,38 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
       postRequest(apiUrl(s"api/methods/$ns/$name/$snapshotId/permissions"), request)
     }
   }
+
   /*
-     *  NIH requests
-    */
-    object NIH {
-      def addUserInNIH(jwt: String)(implicit token: AuthToken): Unit = {
+   *  NIH requests
+   */
+  object NIH {
+
+    case class NihStatus(linkedNihUsername: Option[String] = None,
+                         datasetPermissions: Set[NihDatasetPermission],
+                         linkExpireTime: Option[Long] = None)
+
+    case class NihDatasetPermission(name: String, authorized: Boolean)
+
+    implicit val impNihDatasetPermission = jsonFormat2(NihDatasetPermission)
+    implicit val impNihStatus = jsonFormat3(NihStatus.apply)
+
+    def addUserInNIH(jwt: String)(implicit token: AuthToken): Unit = {
       logger.info(s"Adding user to NIH whitelist: $jwt")
       postRequest(apiUrl(s"/api/nih/callback"), Map("jwt" -> jwt))
     }
 
-      def refreshUserInNIH(jwt: String)(implicit token: AuthToken): Unit = {
-        logger.info(s"Refershing user's NIH status")
-        NIH.addUserInNIH(jwt)
+    def refreshUserInNIH(jwt: String)(implicit token: AuthToken): Unit = {
+      logger.info(s"Refreshing user's NIH status")
+      NIH.addUserInNIH(jwt)
+    }
+
+    def syncWhitelistFull()(implicit token: AuthToken): Unit = {
+      logger.info(s"Syncing whitelist (full)")
+      postRequest(apiUrl("/sync_whitelist"))
+    }
+
+    def getUserNihStatus()(implicit token: AuthToken): NihStatus = {
+      parseResponseAs[NihStatus](getRequest("/api/nih/status"))
     }
 
   }
