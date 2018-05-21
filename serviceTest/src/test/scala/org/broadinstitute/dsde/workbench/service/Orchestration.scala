@@ -354,7 +354,7 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
     }
 
     def getUserNihStatus()(implicit token: AuthToken): NihStatus = {
-      parseResponseAs[NihStatus](getRequest("/api/nih/status"))
+      parseResponseAs[NihStatus](getRequest(apiUrl("/api/nih/status")))
     }
 
   }
