@@ -100,7 +100,7 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
                              NAGR: Boolean = false,
                              POS: Boolean = false,
                              NCU: Boolean = false,
-                             prefix: String = ""): String = {
+                             prefix: String = "")(implicit token: AuthToken): String = {
       val request = Map(
         "DS" -> DS,
         "NMDS" -> NMDS,
