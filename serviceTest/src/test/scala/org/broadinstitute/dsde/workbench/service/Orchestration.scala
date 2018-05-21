@@ -14,7 +14,6 @@ import spray.json.{DefaultJsonProtocol, _}
 import scala.concurrent.duration._
 import scala.util.{Failure, Success, Try}
 import OrchestrationModel._
-import org.broadinstitute.dsde.workbench.model.WorkbenchGroupName
 import org.broadinstitute.dsde.workbench.service.test.RandomUtil
 
 trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport with DefaultJsonProtocol with RandomUtil {
