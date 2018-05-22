@@ -1,4 +1,4 @@
-# Local Development with workbench-libs
+# Getting Started with workbench-libs
 
 Many services rely on workbench-libs so it's important to be aware of breaking changes. See [CONTRIBUTING.md](CONTRIBUTING.md).
 
