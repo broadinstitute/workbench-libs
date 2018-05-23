@@ -93,6 +93,27 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
 
   }
 
+  object duos {
+    def researchPurposeQuery(DS: Seq[String] = Seq.empty,
+                             NMDS: Boolean = false,
+                             NCTRL: Boolean = false,
+                             NAGR: Boolean = false,
+                             POA: Boolean = false,
+                             NCU: Boolean = false,
+                             prefix: String = "")(implicit token: AuthToken): String = {
+      val request = Map(
+        "DS" -> DS,
+        "NMDS" -> NMDS,
+        "NCTRL" -> NCTRL,
+        "NAGR" -> NAGR,
+        "POA" -> POA,
+        "NCU" -> NCU,
+        "prefix" -> prefix
+      )
+      postRequest(apiUrl("duos/researchPurposeQuery"), request)
+    }
+  }
+
   object groups {
 
     object GroupRole extends Enumeration {
