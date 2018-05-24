@@ -16,6 +16,7 @@ import org.broadinstitute.dsde.workbench.util.Retry
 
 import scala.concurrent.duration._
 import scala.concurrent.{Await, ExecutionContextExecutor, Future}
+import scala.util.Try
 
 trait RestClient extends Retry with LazyLogging {
   implicit val system = ActorSystem()
@@ -32,6 +33,18 @@ trait RestClient extends Retry with LazyLogging {
 
   private def makeAuthHeader(token: AuthToken): Authorization = {
     headers.Authorization(OAuth2BearerToken(token.value))
+  }
+
+  def encodeUri(path: String): String = {
+    val pattern = """(https?)?:\/{2}+([\dA-z_.-]+)+(:[\d]+)??(\/[~0-9A-z\#\+\%@\.\/_ -]+)(\?[0-9A-z\+\%@\/&\[\];=_-]+)?""".r
+
+    def toUri(url: String) = url match {
+      case pattern(theScheme, theHost, thePort, thePath, theParams) =>
+        val p: Int = Try(thePort.replace(":","").toInt).toOption.getOrElse(0)
+        val qp: Option[String] = Try(theParams.replace("?","")).toOption
+        Uri.from(scheme = theScheme, port = p, host = theHost, path = thePath, queryString = qp)
+    }
+    toUri(path).toString
   }
 
   private def sendRequest(httpRequest: HttpRequest): HttpResponse = {
@@ -84,19 +97,19 @@ trait RestClient extends Retry with LazyLogging {
   }
 
   private def requestWithJsonContent(method: HttpMethod, uri: String, content: Any, httpHeaders: List[HttpHeader] = List())(implicit token: AuthToken): String = {
-    val req = HttpRequest(method, uri, List(makeAuthHeader(token)) ++ httpHeaders, HttpEntity(ContentTypes.`application/json`, mapper.writeValueAsString(content)))
+    val req = HttpRequest(method, encodeUri(uri), List(makeAuthHeader(token)) ++ httpHeaders, HttpEntity(ContentTypes.`application/json`, mapper.writeValueAsString(content)))
     parseResponse(sendRequest(req))
   }
 
   def postRequestWithMultipart(uri:String, name: String, content: String)(implicit token: AuthToken): String = {
     val part = Multipart.FormData.BodyPart(name, HttpEntity(ByteString(content)))
     val formData = Multipart.FormData(Source.single(part))
-    val req = HttpRequest(POST, uri, List(makeAuthHeader(token)), formData.toEntity())
+    val req = HttpRequest(POST, encodeUri(uri), List(makeAuthHeader(token)), formData.toEntity())
     parseResponse(sendRequest(req))
   }
 
   private def requestBasic(method: HttpMethod, uri: String, httpHeaders: List[HttpHeader] = List())(implicit token: AuthToken): HttpResponse = {
-    val req = HttpRequest(method, uri, List(makeAuthHeader(token)) ++ httpHeaders)
+    val req = HttpRequest(method, encodeUri(uri), List(makeAuthHeader(token)) ++ httpHeaders)
     sendRequest(req)
   }
 
