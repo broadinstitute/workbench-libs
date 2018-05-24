@@ -4,7 +4,7 @@ This file documents changes to the `workbench-service-test` library, including n
 
 ## 0.9
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "0.9-cbc35de"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "0.9-TRAVIS-REPLACE-ME"`
 
 ### Changed
 - with* fixtures preserve original exceptions when cleaning up
@@ -12,6 +12,7 @@ SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test"
 - Revamped NIH JWTs: there is now a valid key with access to TCGA only, TARGET only, both, and none
 - Added NIH endpoints for syncing the whitelist and getting user's NIH link status
 - Added function for Orchestration duos/researchPurposeQuery endpoint
+- Added URI encoding to RestClient
 
 ## 0.8
 
