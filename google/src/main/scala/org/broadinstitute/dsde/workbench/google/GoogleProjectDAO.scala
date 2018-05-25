@@ -6,6 +6,6 @@ trait GoogleProjectDAO {
 
   def createProject(projectName: String): Future[String]
 
-  def pollOperation(operationId: String): Future[Boolean]
+  def pollOperation(operationId: String): Future[Operation]
 
 }

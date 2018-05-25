@@ -2,7 +2,7 @@ package org.broadinstitute.dsde.workbench.google
 
 import akka.actor.ActorSystem
 import com.google.api.services.cloudresourcemanager.CloudResourceManager
-import com.google.api.services.cloudresourcemanager.model.Project
+import com.google.api.services.cloudresourcemanager.model.{Operation, Project}
 import com.google.api.services.compute.ComputeScopes
 import org.broadinstitute.dsde.workbench.google.GoogleCredentialModes._
 import org.broadinstitute.dsde.workbench.google.GoogleCredentialModes.GoogleCredentialMode
@@ -33,18 +33,10 @@ class HttpGoogleProjectDAO(appName: String,
     }
   }
 
-  override def pollOperation(operationId: String): Future[Boolean] = {
+  override def pollOperation(operationId: String): Future[Operation] = {
     retryWhen500orGoogleError(() => {
       executeGoogleRequest(cloudResManager.operations().get(operationId))
-    }).map { operation =>
-      if(operation.getDone) {
-        Option(operation.getError) match {
-          case Some(error) => throw new WorkbenchException(s"encountered error $error during operation $operationId")
-          case None => true
-        }
-      }
-      else false
-    }
+    })
   }
 
 }
