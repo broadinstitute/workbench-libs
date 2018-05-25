@@ -20,10 +20,7 @@ object Util extends LazyLogging {
   }
 
   def appendDelimiter(string: String, delimiter: String): String = {
-    string match {
-      case "" => ""
-      case s => s + delimiter
-    }
+    string + delimiter
   }
 
   @deprecated("Please use RandomUtil makeRandomId or randomIdWithPrefix instead.", "workbench-libs/workbench-service-tests 0.8")
