@@ -32,7 +32,7 @@ object Dependencies {
   val metricsStatsd: ModuleID =     "com.readytalk"         %  "metrics3-statsd"  % "4.2.0"
 
   val googleApiClient: ModuleID =            "com.google.api-client" % "google-api-client"                        % googleV
-  val googleCloudBilling: ModuleID =         "com.google.apis"       % "google-api-services-cloudbilling"         % s"v1-rev13-$googleV"
+  val googleCloudBilling: ModuleID =         "com.google.apis"       % "google-api-services-cloudbilling"         % s"v1-rev21-$googleV"
   val googleGenomics: ModuleID =             "com.google.apis"       % "google-api-services-genomics"             % s"v1-rev504-$googleV"
   val googleStorage: ModuleID =              "com.google.apis"       % "google-api-services-storage"              % s"v1-rev109-$googleV"
   val googleCloudResourceManager: ModuleID = "com.google.apis"       % "google-api-services-cloudresourcemanager" % s"v1-rev446-$googleV"
@@ -45,6 +45,7 @@ object Dependencies {
   val googleIam: ModuleID =                  "com.google.apis"       % "google-api-services-iam"                  % s"v1-rev215-$googleV"
   val googleBigQuery: ModuleID =             "com.google.apis"       % "google-api-services-bigquery"             % s"v2-rev377-$googleV"
   val googleGuava: ModuleID = "com.google.guava"  % "guava" % "22.0"
+  val googleRpc: ModuleID =               "io.grpc" % "grpc-core" % "1.5.0"
 
   val commonDependencies = Seq(
     scalaLogging,
@@ -87,6 +88,7 @@ object Dependencies {
     googleIam,
     googleBigQuery,
     googleGuava,
+    googleRpc,
     akkaHttpSprayJson,
     akkaTestkit
   ).map(excludeGuavaJDK5)

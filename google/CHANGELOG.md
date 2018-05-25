@@ -11,6 +11,7 @@ SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.
 - Updated createBucket method in `GoogleStorageDAO` to accept reader and owner acls
 - Parameterized query support for `GoogleBigQueryDAO`
    - `org.broadinstitute.dsde.workbench.google.GoogleBigQueryDAO#startParameterizedQuery(project: GoogleProject, querySql: String, queryParameters: java.util.List[QueryParameter], parameterMode: String)`
+- Added `GoogleProjectDAO`
    
 ### Changed
 - org.broadinstitute.dsde.workbench.google.mock.MockGoogleIamDAO supports multiple keys for a service account (like the real thing)
