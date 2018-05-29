@@ -3,6 +3,10 @@
 # workbench-libs
 Workbench utility libraries, built for Scala 2.11 and 2.12. You can find the full list of packages at [Artifactory](https://broadinstitute.jfrog.io/broadinstitute/webapp/#/artifacts/browse/tree/General/libs-release-local/org/broadinstitute/dsde/workbench/).
 
+See [GETTING_STARTED.md](GETTING_STARTED.md) for information about making changes to workbench-libs.
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for information about library versioning.
+
 In this repo:
 
 ## workbench-utils
