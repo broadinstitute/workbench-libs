@@ -34,7 +34,7 @@ trait WebBrowserSpec extends WebBrowserUtil with ExceptionHandling with LazyLogg
     * @param testCode the test code to run
     */
   def withWebDriver(testCode: (WebDriver) => Any): Unit = {
-    withWebDriver(System.getProperty("java.io.tmpdir"))(testCode)
+    withWebDriver(s"/app/${System.getProperty("java.io.tmpdir")}")(testCode)
   }
 
   /**
