@@ -4,7 +4,7 @@ This file documents changes to the `workbench-service-test` library, including n
 
 ## 0.9
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "0.9-2072b3e"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "TRAVIS-REPLACE-ME"`
 
 ### Changed
 - with* fixtures preserve original exceptions when cleaning up
@@ -13,6 +13,7 @@ SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test"
 - Added NIH endpoints for syncing the whitelist and getting user's NIH link status
 - Added function for Orchestration duos/researchPurposeQuery endpoint
 - Added URI encoding to RestClient
+- Added endpoint for getting individual billing project status
 
 ## 0.8
 
