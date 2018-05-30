@@ -3,7 +3,6 @@ package org.broadinstitute.dsde.workbench.service.test
 import java.io.{File, FileInputStream, FileOutputStream}
 import java.net.URL
 import java.text.SimpleDateFormat
-import java.util.UUID
 
 import com.typesafe.scalalogging.LazyLogging
 import org.broadinstitute.dsde.workbench.config.Config
@@ -11,13 +10,12 @@ import org.broadinstitute.dsde.workbench.service.Orchestration
 import org.broadinstitute.dsde.workbench.service.util.ExceptionHandling
 import org.openqa.selenium.chrome.{ChromeDriverService, ChromeOptions}
 import org.openqa.selenium.logging.LogType
-import org.openqa.selenium.remote.{Augmenter, DesiredCapabilities, LocalFileDetector, RemoteWebDriver}
+import org.openqa.selenium.remote.{Augmenter, LocalFileDetector, RemoteWebDriver}
 import org.openqa.selenium.{OutputType, TakesScreenshot, WebDriver}
 import org.scalatest.Suite
 
 import scala.collection.JavaConverters._
 import scala.sys.SystemProperties
-import scala.util.Random
 
 /**
   * Base spec for writing FireCloud web browser tests.
