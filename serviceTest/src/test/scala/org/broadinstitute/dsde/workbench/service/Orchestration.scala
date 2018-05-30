@@ -14,6 +14,8 @@ import spray.json.{DefaultJsonProtocol, _}
 import scala.concurrent.duration._
 import scala.util.{Failure, Success, Try}
 import OrchestrationModel._
+import akka.http.scaladsl.model.HttpResponse
+import akka.http.scaladsl.model.headers.Cookie
 import org.broadinstitute.dsde.workbench.service.test.RandomUtil
 
 trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport with DefaultJsonProtocol with RandomUtil {
@@ -513,6 +515,41 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
       trialProjectReports
     }
 
+  }
+
+  object storage {
+    case class ObjectMetadata(
+                 bucket: String,
+                 crc32c: String,
+                 etag: String,
+                 generation: String,
+                 id: String,
+                 md5Hash: Option[String],
+                 mediaLink: String,
+                 name: String,
+                 size: String,
+                 storageClass: String,
+                 timeCreated: String,
+                 updated: String,
+                 contentDisposition: Option[String],
+                 contentEncoding: Option[String],
+                 contentType: Option[String],
+                 estimatedCostUSD: Option[BigDecimal]
+               )
+
+    def getObjectMetadata(bucketName: String, objectKey: String)(implicit token: AuthToken): ObjectMetadata = {
+      logger.info(s"API getObjectMetadata request: api/storage/$bucketName/$objectKey")
+      implicit val impObjectMetadata: RootJsonFormat[ObjectMetadata] = jsonFormat16(ObjectMetadata)
+      val response = getRequest(apiUrl(s"api/storage/$bucketName/$objectKey"))
+      parseResponse(response).parseJson.convertTo[ObjectMetadata]
+    }
+
+    // returns an HttpResponse which may contain entity data, a redirect, or an http error
+    def getObjectDownload(bucketName: String, objectKey: String)(implicit token: AuthToken): HttpResponse = {
+      logger.info(s"API getObjectDownload request: cookie-authed/download/b/$bucketName/o/$objectKey")
+      val fctokenCookie = Cookie("FCtoken",token.value)
+      getRequest(apiUrl(s"cookie-authed/download/b/$bucketName/o/$objectKey"), List(fctokenCookie))
+    }
   }
 
 }
