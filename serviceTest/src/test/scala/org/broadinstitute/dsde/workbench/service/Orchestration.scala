@@ -425,6 +425,10 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
     def getUserBillingProjects()(implicit token: AuthToken): List[Map[String, String]] = {
       parseResponseAs[List[Map[String, String]]](getRequest(apiUrl(s"api/profile/billing")))
     }
+
+    def getUserBillingProjectStatus(projectName: String)(implicit token: AuthToken): Map[String, String] = {
+      parseResponseAs[Map[String, String]](getRequest(apiUrl(s"api/profile/billing/$projectName")))
+    }
   }
 
   def importMetaData(ns: String, wsName: String, fileName: String, fileContent: String)(implicit token: AuthToken): String = {
