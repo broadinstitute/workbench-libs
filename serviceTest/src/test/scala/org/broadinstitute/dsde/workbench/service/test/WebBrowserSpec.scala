@@ -62,8 +62,6 @@ trait WebBrowserSpec extends WebBrowserUtil with ExceptionHandling with LazyLogg
     val options = new ChromeOptions
     options.addArguments("--incognito")
     options.addArguments("--no-experiments")
-    options.addArguments("test-type=browser")
-    options.addArguments("test-type")
     if (java.lang.Boolean.parseBoolean(System.getProperty("burp.proxy"))) {
       options.addArguments("--proxy-server=http://127.0.0.1:8080")
     }
