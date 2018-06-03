@@ -148,8 +148,9 @@ trait WebBrowserSpec extends WebBrowserUtil with ExceptionHandling with LazyLogg
             val logString = logLines.map(_.toString).reduce(_ + "\n" + _)
             new FileOutputStream(new File(logFileName)).write(logString.getBytes)
           }
-          logger.error("withScreenshot exception. ", t)
+          logger.error(s"Screenshot ${date}_$suiteName.png Exception. ", t)
         } catch nonFatalAndLog(s"FAILED TO SAVE SCREENSHOT $fileName")
+
         throw t
     }
   }
