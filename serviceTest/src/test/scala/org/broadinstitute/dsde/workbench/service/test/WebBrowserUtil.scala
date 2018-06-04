@@ -10,7 +10,7 @@ import scala.collection.JavaConverters._
   */
 trait WebBrowserUtil extends WebBrowser {
 
-  val defaultTimeOutInSeconds: Long = 60
+  val defaultTimeOutInSeconds: Long = 40
 
   /**
     * Override of the base find() method to retry in the case of a

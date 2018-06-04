@@ -20,7 +20,7 @@ import scala.sys.SystemProperties
 /**
   * Base spec for writing FireCloud web browser tests.
   */
-trait WebBrowserSpec extends WebBrowserUtil with ExceptionHandling with LazyLogging with RandomUtil { self: Suite =>
+trait WebBrowserSpec extends WebBrowserUtil with ExceptionHandling with LazyLogging { self: Suite =>
 
   lazy val api = Orchestration
   lazy val headless = new SystemProperties().get("headless")
@@ -71,6 +71,8 @@ trait WebBrowserSpec extends WebBrowserUtil with ExceptionHandling with LazyLogg
     options.addArguments("--disable-client-side-phishing-detection")
     options.addArguments("--test-type")
     options.addArguments("--enable-automation")
+    options.addArguments("--no-sandbox")
+    options.addArguments("--disable-extensions")
     if (java.lang.Boolean.parseBoolean(System.getProperty("burp.proxy"))) {
       options.addArguments("--proxy-server=http://127.0.0.1:8080")
     }
@@ -128,9 +130,10 @@ trait WebBrowserSpec extends WebBrowserUtil with ExceptionHandling with LazyLogg
     } catch {
       case t: Throwable =>
         val date = new SimpleDateFormat("HH-mm-ss-SSS").format(new java.util.Date())
-        val fileName = s"failure_screenshots/${suiteName}_${date}.png"
-        val htmlSourceFileName = s"failure_screenshots/${date}_$suiteName.html"
-        val logFileName = s"failure_screenshots/${date}_${suiteName}_console.txt"
+        val name = s"${suiteName}_${date}"
+        val fileName = s"failure_screenshots/${name}.png"
+        val htmlSourceFileName = s"failure_screenshots/${name}.html"
+        val logFileName = s"failure_screenshots/${name}_console.txt"
         try {
           val directory = new File("failure_screenshots")
           if (!directory.exists()) {
@@ -149,7 +152,7 @@ trait WebBrowserSpec extends WebBrowserUtil with ExceptionHandling with LazyLogg
             val logString = logLines.map(_.toString).reduce(_ + "\n" + _)
             new FileOutputStream(new File(logFileName)).write(logString.getBytes)
           }
-          logger.error(s"Screenshot ${suiteName}_${date}.png Exception. ", t)
+          logger.error(s"Screenshot ${name}.png Exception. ", t)
         } catch nonFatalAndLog(s"FAILED TO SAVE SCREENSHOT $fileName")
 
         throw t
