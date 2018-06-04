@@ -41,6 +41,7 @@ object Config extends Config {
     val trialBillingPemFile = gcsConfig.getString("trialBillingPemFile")
     val trialBillingPemFileClientId = gcsConfig.getString("trialBillingPemFileClientId")
     val appsDomain = gcsConfig.getString("appsDomain")
+    val orchStorageSigningSA = gcsConfig.getString("orchStorageSigningSA")
   }
 
   object Projects {
