@@ -9,7 +9,8 @@ import scala.collection.JavaConverters._
   * Mix-in utilities for ScalaTest's WebBrowser.
   */
 trait WebBrowserUtil extends WebBrowser {
-  val defaultTimeOutInSeconds: Long = 30
+
+  val defaultTimeOutInSeconds: Long = 60
 
   /**
     * Override of the base find() method to retry in the case of a
@@ -50,7 +51,7 @@ trait WebBrowserUtil extends WebBrowser {
       * @param timeOutInSeconds number of seconds to wait for the condition to be true
       * @param webDriver implicit WebDriver for the WebDriverWait
       */
-    def condition(condition: => Boolean, timeOutInSeconds: Long = defaultTimeOutInSeconds)(implicit webDriver: WebDriver): Boolean = {
+    def condition(condition: => Boolean, timeOutInSeconds: Long = defaultTimeOutInSeconds)(implicit webDriver: WebDriver): Unit = {
       withWaitForCondition(timeOutInSeconds) {
         condition
       }
@@ -98,7 +99,7 @@ trait WebBrowserUtil extends WebBrowser {
     }
 
     def notVisible(query: Query, timeOutInSeconds: Long = defaultTimeOutInSeconds)
-                  (implicit webDriver: WebDriver): Boolean = {
+                  (implicit webDriver: WebDriver): Unit = {
       withWaitForCondition(timeOutInSeconds) {
         !findAll(query).exists(_.isDisplayed)
       }
@@ -139,12 +140,12 @@ trait WebBrowserUtil extends WebBrowser {
       * @param timeOutInSeconds number of seconds to wait for the text
       * @param webDriver implicit WebDriver for the WebDriverWait
       */
-    def text(text: String, timeOutInSeconds: Long = defaultTimeOutInSeconds)(implicit webDriver: WebDriver): Boolean = {
+    def text(text: String, timeOutInSeconds: Long = defaultTimeOutInSeconds)(implicit webDriver: WebDriver): Unit = {
       await condition (find(withText(text)).isDefined, timeOutInSeconds)
     }
 
     def visible(query: Query, timeOutInSeconds: Long = defaultTimeOutInSeconds)
-               (implicit webDriver: WebDriver): Boolean = {
+               (implicit webDriver: WebDriver): Unit = {
       withWaitForCondition(timeOutInSeconds) {
         find(query).exists(_.isDisplayed)
       }

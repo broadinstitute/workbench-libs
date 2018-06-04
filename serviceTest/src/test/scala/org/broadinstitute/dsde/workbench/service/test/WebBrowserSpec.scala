@@ -114,6 +114,7 @@ trait WebBrowserSpec extends WebBrowserUtil with ExceptionHandling with LazyLogg
     val driver = new RemoteWebDriver(url, options)
     driver.manage.window.setSize(new org.openqa.selenium.Dimension(1600, 2400))
     driver.setFileDetector(new LocalFileDetector())
+    // implicitlyWait(Span(2, Seconds))
     driver
   }
 
@@ -127,7 +128,7 @@ trait WebBrowserSpec extends WebBrowserUtil with ExceptionHandling with LazyLogg
     } catch {
       case t: Throwable =>
         val date = new SimpleDateFormat("HH-mm-ss-SSS").format(new java.util.Date())
-        val fileName = s"failure_screenshots/${date}_$suiteName.png"
+        val fileName = s"failure_screenshots/${suiteName}_${date}.png"
         val htmlSourceFileName = s"failure_screenshots/${date}_$suiteName.html"
         val logFileName = s"failure_screenshots/${date}_${suiteName}_console.txt"
         try {
@@ -148,7 +149,7 @@ trait WebBrowserSpec extends WebBrowserUtil with ExceptionHandling with LazyLogg
             val logString = logLines.map(_.toString).reduce(_ + "\n" + _)
             new FileOutputStream(new File(logFileName)).write(logString.getBytes)
           }
-          logger.error(s"Screenshot ${date}_$suiteName.png Exception. ", t)
+          logger.error(s"Screenshot ${suiteName}_${date}.png Exception. ", t)
         } catch nonFatalAndLog(s"FAILED TO SAVE SCREENSHOT $fileName")
 
         throw t
