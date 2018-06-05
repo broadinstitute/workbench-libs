@@ -70,7 +70,6 @@ trait WebBrowserSpec extends WebBrowserUtil with ExceptionHandling with LazyLogg
     options.addArguments("--disable-background-networking")
     options.addArguments("--disable-client-side-phishing-detection")
     options.addArguments("--test-type")
-    options.addArguments("--enable-automation")
     options.addArguments("--no-sandbox")
     options.addArguments("--disable-extensions")
     if (java.lang.Boolean.parseBoolean(System.getProperty("burp.proxy"))) {
