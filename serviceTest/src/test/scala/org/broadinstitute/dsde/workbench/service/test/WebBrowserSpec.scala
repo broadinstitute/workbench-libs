@@ -62,7 +62,7 @@ trait WebBrowserSpec extends WebBrowserUtil with ExceptionHandling with LazyLogg
 
   private def getChromeIncognitoOption(downloadPath: String): ChromeOptions = {
     val fullDownloadPath = new File(downloadPath).getAbsolutePath
-    logger.info(s"Chrome download path: $fullDownloadPath")
+    // logger.info(s"Chrome download path: $fullDownloadPath")
     val options = new ChromeOptions
     options.addArguments("--incognito")
     options.addArguments("--no-experiments")
@@ -111,7 +111,6 @@ trait WebBrowserSpec extends WebBrowserUtil with ExceptionHandling with LazyLogg
   }
 
   private def startRemoteWebdriver(url: URL, options: ChromeOptions): RemoteWebDriver = {
-    logger.info(s"Starting RemoteWebDriver on $url")
     val driver = new RemoteWebDriver(url, options)
     driver.manage.window.setSize(new org.openqa.selenium.Dimension(1600, 2400))
     driver.setFileDetector(new LocalFileDetector())
