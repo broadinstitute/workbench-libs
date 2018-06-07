@@ -14,5 +14,4 @@ class MockGoogleServiceManagerDAO extends GoogleServiceManagerDAO {
 
   override def pollOperation(operationId: String): Future[Operation] = Future.successful(new Operation)
 
-
 }
