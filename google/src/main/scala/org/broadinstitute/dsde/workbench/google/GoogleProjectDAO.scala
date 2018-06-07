@@ -8,6 +8,10 @@ trait GoogleProjectDAO {
 
   def createProject(projectName: String): Future[String]
 
-  def pollOperation(operationId: String): Future[Operation]
+  def pollOperation(operationId: String): Future[com.google.api.services.cloudresourcemanager.model.Operation]
+
+  def enableService(projectName: String, service: String): Future[String]
+
+  def pollServiceOperation(operationId: String): Future[com.google.api.services.servicemanagement.model.Operation]
 
 }
