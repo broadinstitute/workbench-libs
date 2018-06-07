@@ -1,10 +1,9 @@
 package org.broadinstitute.dsde.workbench.google
 
 import akka.actor.ActorSystem
-import com.google.api.services.cloudresourcemanager.CloudResourceManager
-import com.google.api.services.cloudresourcemanager.model.Project
 import com.google.api.services.compute.ComputeScopes
 import com.google.api.services.servicemanagement.ServiceManagement
+import com.google.api.services.servicemanagement.model.Operation
 import com.google.api.services.servicemanagement.model.EnableServiceRequest
 import org.broadinstitute.dsde.workbench.google.GoogleCredentialModes._
 import org.broadinstitute.dsde.workbench.google.GoogleCredentialModes.GoogleCredentialMode
@@ -12,35 +11,31 @@ import org.broadinstitute.dsde.workbench.metrics.GoogleInstrumentedService
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class HttpGoogleProjectDAO(appName: String,
+class HttpGoogleServiceManagerDAO(appName: String,
                            googleCredentialMode: GoogleCredentialMode,
                            workbenchMetricBaseName: String)
                           (implicit system: ActorSystem, executionContext: ExecutionContext)
-  extends AbstractHttpGoogleDAO(appName, googleCredentialMode, workbenchMetricBaseName) with GoogleProjectDAO {
+  extends AbstractHttpGoogleDAO(appName, googleCredentialMode, workbenchMetricBaseName) with GoogleServiceManagerDAO {
+
+  override implicit val service = GoogleInstrumentedService.ServiceManager
 
   override val scopes = Seq(ComputeScopes.CLOUD_PLATFORM)
-
-  override implicit val service = GoogleInstrumentedService.Projects
-
-  private lazy val cloudResManager = {
-    new CloudResourceManager.Builder(httpTransport, jsonFactory, googleCredential).setApplicationName(appName).build()
-  }
 
   private lazy val servicesManager = {
     new ServiceManagement.Builder(httpTransport, jsonFactory, googleCredential).setApplicationName(appName).build()
   }
 
-  override def createProject(projectName: String): Future[String] = {
+  override def enableService(projectName: String, serviceName: String): Future[String] = {
     retryWhen500orGoogleError(() => {
-      executeGoogleRequest(cloudResManager.projects().create(new Project().setName(projectName).setProjectId(projectName)))
+      executeGoogleRequest(servicesManager.services().enable(serviceName, new EnableServiceRequest().setConsumerId(s"project:$projectName")))
     }).map { operation =>
       operation.getName
     }
   }
 
-  override def pollOperation(operationId: String): Future[com.google.api.services.cloudresourcemanager.model.Operation] = {
+  override def pollOperation(operationId: String): Future[Operation] = {
     retryWhen500orGoogleError(() => {
-      executeGoogleRequest(cloudResManager.operations().get(operationId))
+      executeGoogleRequest(servicesManager.operations().get(operationId))
     })
   }
 
