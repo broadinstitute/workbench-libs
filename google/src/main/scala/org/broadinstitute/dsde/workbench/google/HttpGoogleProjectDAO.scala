@@ -2,13 +2,12 @@ package org.broadinstitute.dsde.workbench.google
 
 import akka.actor.ActorSystem
 import com.google.api.services.cloudresourcemanager.CloudResourceManager
-import com.google.api.services.cloudresourcemanager.model.Project
+import com.google.api.services.cloudresourcemanager.model.{Operation, Project}
 import com.google.api.services.compute.ComputeScopes
-import com.google.api.services.servicemanagement.ServiceManagement
-import com.google.api.services.servicemanagement.model.EnableServiceRequest
 import org.broadinstitute.dsde.workbench.google.GoogleCredentialModes._
 import org.broadinstitute.dsde.workbench.google.GoogleCredentialModes.GoogleCredentialMode
 import org.broadinstitute.dsde.workbench.metrics.GoogleInstrumentedService
+import org.broadinstitute.dsde.workbench.model.WorkbenchException
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -26,10 +25,6 @@ class HttpGoogleProjectDAO(appName: String,
     new CloudResourceManager.Builder(httpTransport, jsonFactory, googleCredential).setApplicationName(appName).build()
   }
 
-  private lazy val servicesManager = {
-    new ServiceManagement.Builder(httpTransport, jsonFactory, googleCredential).setApplicationName(appName).build()
-  }
-
   override def createProject(projectName: String): Future[String] = {
     retryWhen500orGoogleError(() => {
       executeGoogleRequest(cloudResManager.projects().create(new Project().setName(projectName).setProjectId(projectName)))
@@ -38,7 +33,7 @@ class HttpGoogleProjectDAO(appName: String,
     }
   }
 
-  override def pollOperation(operationId: String): Future[com.google.api.services.cloudresourcemanager.model.Operation] = {
+  override def pollOperation(operationId: String): Future[Operation] = {
     retryWhen500orGoogleError(() => {
       executeGoogleRequest(cloudResManager.operations().get(operationId))
     })
