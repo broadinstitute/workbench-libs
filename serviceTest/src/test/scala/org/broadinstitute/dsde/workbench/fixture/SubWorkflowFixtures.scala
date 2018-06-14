@@ -49,7 +49,8 @@ trait SubWorkflowFixtures extends RandomUtil {
 
     def inputs(method: Method) = Map(
       s"${method.methodName}.echo_input" -> "\"echo me!\"",
-      s"${method.methodName}.docker" -> "\"us.gcr.io/broad-gatk/gatk\""
+      // 4.0.5.0 is too big for our defaults.  Freeze at the previous version.
+      s"${method.methodName}.docker" -> "\"us.gcr.io/broad-gatk/gatk:4.0.4.0\""
     )
 
     def outputs(method: Method) = Map(
