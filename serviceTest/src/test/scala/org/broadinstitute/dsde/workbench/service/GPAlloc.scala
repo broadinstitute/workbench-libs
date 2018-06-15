@@ -4,7 +4,7 @@ import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
 import akka.http.scaladsl.model.StatusCodes
 import com.typesafe.scalalogging.LazyLogging
 import org.broadinstitute.dsde.workbench.auth.AuthToken
-import org.broadinstitute.dsde.workbench.config.Config
+import org.broadinstitute.dsde.workbench.config.ServiceTestConfig
 import spray.json.DefaultJsonProtocol
 
 case class GPAllocProject(projectName: String, cromwellAuthBucketUrl: String)
@@ -12,7 +12,7 @@ case class GPAllocProject(projectName: String, cromwellAuthBucketUrl: String)
 trait GPAlloc extends RestClient with LazyLogging with SprayJsonSupport with DefaultJsonProtocol {
 
   private def apiUrl(s: String) = {
-    Config.FireCloud.gpAllocApiUrl + s
+    ServiceTestConfig.FireCloud.gpAllocApiUrl + s
   }
 
   object projects {

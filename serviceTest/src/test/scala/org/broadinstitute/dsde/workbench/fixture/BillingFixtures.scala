@@ -3,7 +3,7 @@ package org.broadinstitute.dsde.workbench.fixture
 import akka.http.scaladsl.model.headers.OAuth2BearerToken
 import com.typesafe.scalalogging.LazyLogging
 import org.broadinstitute.dsde.workbench.auth.AuthToken
-import org.broadinstitute.dsde.workbench.config.{Config, Credentials, UserPool}
+import org.broadinstitute.dsde.workbench.config.{ServiceTestConfig, Credentials, UserPool}
 import org.broadinstitute.dsde.workbench.model.{UserInfo, WorkbenchEmail, WorkbenchUserId}
 import org.broadinstitute.dsde.workbench.service.{GPAlloc, Orchestration, Rawls}
 import org.broadinstitute.dsde.workbench.service.Orchestration.billing.BillingProjectRole
@@ -53,7 +53,7 @@ trait BillingFixtures extends ExceptionHandling with LazyLogging with CleanUp wi
 
   private def createNewBillingProject(namePrefix: String, ownerEmails: List[String] = List(), userEmails: List[String] = List())(implicit token: AuthToken): String = {
     val billingProjectName = randomIdWithPrefix(namePrefix)
-    Orchestration.billing.createBillingProject(billingProjectName, Config.Projects.billingAccountId)
+    Orchestration.billing.createBillingProject(billingProjectName, ServiceTestConfig.Projects.billingAccountId)
     addMembersToBillingProject(billingProjectName, ownerEmails, BillingProjectRole.Owner)
     addMembersToBillingProject(billingProjectName, userEmails, BillingProjectRole.User)
     billingProjectName

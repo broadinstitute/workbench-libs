@@ -1,8 +1,8 @@
 package org.broadinstitute.dsde.workbench.config
 
 object UserPool {
-
-  val allUsers: UserSet = UserSet(Config.Users.Owners.userMap ++ Config.Users.Students.userMap ++ Config.Users.Curators.userMap ++ Config.Users.AuthDomainUsers.userMap)
+  val userConfig = ServiceTestConfig.Users
+  val allUsers: UserSet = UserSet(userConfig.Owners.userMap ++ userConfig.Students.userMap ++ userConfig.Curators.userMap ++ userConfig.AuthDomainUsers.userMap)
 
   /**
     * Chooses a user suitable for a generic test.
@@ -20,7 +20,7 @@ object UserPool {
   def chooseAdmin: Credentials = chooseAdmins(1).head
 
   def chooseAdmins(n: Int): Seq[Credentials] = {
-    Config.Users.Admins.getRandomCredentials(n)
+    userConfig.Admins.getRandomCredentials(n)
   }
 
   /**
@@ -29,7 +29,7 @@ object UserPool {
   def chooseProjectOwner: Credentials = chooseProjectOwners(1).head
 
   def chooseProjectOwners(n: Int): Seq[Credentials] = {
-    Config.Users.Owners.getRandomCredentials(n)
+    userConfig.Owners.getRandomCredentials(n)
   }
 
   /**
@@ -38,7 +38,7 @@ object UserPool {
   def chooseCurator: Credentials = chooseCurators(1).head
 
   def chooseCurators(n: Int): Seq[Credentials] = {
-    Config.Users.Curators.getRandomCredentials(n)
+    userConfig.Curators.getRandomCredentials(n)
   }
 
   /**
@@ -47,7 +47,7 @@ object UserPool {
   def chooseStudent: Credentials = chooseStudents(1).head
 
   def chooseStudents(n: Int): Seq[Credentials] = {
-    Config.Users.Students.getRandomCredentials(n)
+    userConfig.Students.getRandomCredentials(n)
   }
 
   /**
@@ -56,7 +56,7 @@ object UserPool {
   def chooseAuthDomainUser: Credentials = chooseAuthDomainUsers(1).head
 
   def chooseAuthDomainUsers(n: Int): Seq[Credentials] = {
-    Config.Users.AuthDomainUsers.getRandomCredentials(n)
+    userConfig.AuthDomainUsers.getRandomCredentials(n)
   }
 
   /**
@@ -65,7 +65,7 @@ object UserPool {
   def chooseTemp: Credentials = chooseTemps(1).head
 
   def chooseTemps(n: Int): Seq[Credentials] = {
-    Config.Users.Temps.getRandomCredentials(n)
+    userConfig.Temps.getRandomCredentials(n)
   }
 
   /**
@@ -74,7 +74,7 @@ object UserPool {
   def chooseNotebooksWhitelisted: Credentials = chooseNotebooksWhitelisteds(1).head
 
   def chooseNotebooksWhitelisteds(n: Int): Seq[Credentials] = {
-    Config.Users.NotebooksWhitelisted.getRandomCredentials(n)
+    userConfig.NotebooksWhitelisted.getRandomCredentials(n)
   }
 
   /**
@@ -84,6 +84,6 @@ object UserPool {
   def chooseCampaignManager: Credentials = chooseCampaignManagers(1).head
 
   def chooseCampaignManagers(n: Int): Seq[Credentials] = {
-    Config.Users.CampaignManager.getRandomCredentials(n)
+    userConfig.CampaignManager.getRandomCredentials(n)
   }
 }
