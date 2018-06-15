@@ -3,14 +3,14 @@ package org.broadinstitute.dsde.workbench.service
 import com.fasterxml.jackson.databind.JsonNode
 import com.typesafe.scalalogging.LazyLogging
 import org.broadinstitute.dsde.workbench.auth.AuthToken
-import org.broadinstitute.dsde.workbench.config.Config
+import org.broadinstitute.dsde.workbench.config.ServiceTestConfig
 import org.broadinstitute.dsde.workbench.model.UserInfo
 
 import scala.util.Try
 
 trait Rawls extends RestClient with LazyLogging {
 
-  val url: String = Config.FireCloud.rawlsApiUrl
+  val url: String = ServiceTestConfig.FireCloud.rawlsApiUrl
 
   object admin {
     def deleteBillingProject(projectName: String, projectOwner: UserInfo)(implicit token: AuthToken): Unit = {

@@ -4,7 +4,7 @@ import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
 import com.typesafe.scalalogging.LazyLogging
 import org.broadinstitute.dsde.workbench.service.WorkspaceAccessLevel.WorkspaceAccessLevel
 import org.broadinstitute.dsde.workbench.auth.AuthToken
-import org.broadinstitute.dsde.workbench.config.Config
+import org.broadinstitute.dsde.workbench.config.ServiceTestConfig
 import org.broadinstitute.dsde.workbench.fixture.Method
 import org.broadinstitute.dsde.workbench.fixture.MethodData.SimpleMethod
 import org.broadinstitute.dsde.workbench.service.Sam.user.UserStatusDetails
@@ -25,7 +25,7 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
   }
 
   private def apiUrl(s: String) = {
-    Config.FireCloud.orchApiUrl + s
+    ServiceTestConfig.FireCloud.orchApiUrl + s
   }
 
   object billing {

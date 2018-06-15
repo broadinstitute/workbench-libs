@@ -1,7 +1,7 @@
 package org.broadinstitute.dsde.workbench.service
 
 import akka.http.scaladsl.model.headers.{ModeledCustomHeader, ModeledCustomHeaderCompanion}
-import org.broadinstitute.dsde.workbench.config.Config
+import org.broadinstitute.dsde.workbench.config.ServiceTestConfig
 import com.typesafe.scalalogging.LazyLogging
 import org.broadinstitute.dsde.workbench.auth.AuthToken
 
@@ -12,8 +12,8 @@ import scala.util.Try
 trait Thurloe extends RestClient with LazyLogging {
 
 
-  val url = Config.FireCloud.thurloeApiUrl
-  val fireCloudId = Config.FireCloud.fireCloudId
+  val url = ServiceTestConfig.FireCloud.thurloeApiUrl
+  val fireCloudId = ServiceTestConfig.FireCloud.fireCloudId
   private val thurloeHeaders = List(FireCloudIdHeader(fireCloudId))
 
   object FireCloudIdHeader extends ModeledCustomHeaderCompanion[FireCloudIdHeader] {

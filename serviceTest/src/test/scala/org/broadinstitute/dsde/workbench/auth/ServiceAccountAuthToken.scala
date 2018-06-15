@@ -4,7 +4,7 @@ import java.io.ByteArrayInputStream
 import java.util
 
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential
-import org.broadinstitute.dsde.workbench.config.Config
+import org.broadinstitute.dsde.workbench.config.ServiceTestConfig
 import org.broadinstitute.dsde.workbench.dao.Google.googleIamDAO
 import org.broadinstitute.dsde.workbench.model.WorkbenchEmail
 import org.broadinstitute.dsde.workbench.model.google.{GoogleProject, ServiceAccountKey}
@@ -36,4 +36,4 @@ class ServiceAccountAuthTokenFromPem(clientId: String, pemFilePath: String, scop
   }
 }
 
-case class TrialBillingAccountAuthToken() extends ServiceAccountAuthTokenFromPem(Config.GCS.trialBillingPemFileClientId, Config.GCS.trialBillingPemFile)
+case class TrialBillingAccountAuthToken() extends ServiceAccountAuthTokenFromPem(ServiceTestConfig.GCS.trialBillingPemFileClientId, ServiceTestConfig.GCS.trialBillingPemFile)
