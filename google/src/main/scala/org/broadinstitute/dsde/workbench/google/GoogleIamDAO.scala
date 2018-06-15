@@ -64,6 +64,21 @@ trait GoogleIamDAO {
   def removeServiceAccount(serviceAccountProject: GoogleProject, serviceAccountName: ServiceAccountName): Future[Unit]
 
   /**
+    * Find google projects visible to the current user or service account.
+    * @param filter: optional string, used to filter the projects based on project metadata fields.
+    * @return a list of google projects visible to the supplied credentials and meeting any filter criterion.
+    */
+  def listProjects(filter: Option[String]): Future[List[GoogleProject]]
+
+  /**
+    * Test that the caller has a specified permission on the project.
+    * @param project the project in which to test permissions.
+    * @param iamPermissions a list of IAM permissions (not IAM roles) to test.
+    * @return
+    */
+  def testIamPermission(project: GoogleProject, iamPermissions: List[IamPermission]): Future[List[IamPermission]]
+
+  /**
     * Adds project-level IAM roles for the given user.
     * @param iamProject the project in which to add the roles
     * @param email the user email address

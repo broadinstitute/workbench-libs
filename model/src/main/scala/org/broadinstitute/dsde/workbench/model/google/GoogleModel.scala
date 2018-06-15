@@ -22,6 +22,10 @@ case class ServiceAccountKeyId(value: String) extends ValueObject
 case class ServiceAccountPrivateKeyData(value: String) extends ValueObject with Base64Support
 case class ServiceAccountKey(id: ServiceAccountKeyId, privateKeyData: ServiceAccountPrivateKeyData, validAfter: Option[Instant], validBefore: Option[Instant])
 
+// Test IAM types.
+case class IamPermission(value: String) extends ValueObject
+case class IamTestResponse(permissions: Option[List[IamPermission]])
+
 // Storage
 case class GcsBucketName(value: String) extends ValueObject
 case class GcsObjectName(value: String, timeCreated: Instant = Instant.EPOCH)
