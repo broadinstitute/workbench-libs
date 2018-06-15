@@ -5,7 +5,7 @@ import java.net.URL
 import java.text.SimpleDateFormat
 
 import com.typesafe.scalalogging.LazyLogging
-import org.broadinstitute.dsde.workbench.config.Config
+import org.broadinstitute.dsde.workbench.config.ServiceTestConfig
 import org.broadinstitute.dsde.workbench.service.Orchestration
 import org.broadinstitute.dsde.workbench.service.util.ExceptionHandling
 import org.openqa.selenium.chrome.{ChromeDriverService, ChromeOptions}
@@ -82,8 +82,8 @@ trait WebBrowserSpec extends WebBrowserUtil with ExceptionHandling with LazyLogg
     options
   }
 
-  lazy val chromeDriverHost: String = Config.ChromeSettings.chromedriverHost
-  lazy val chromeDriverFile: File = new File(Config.ChromeSettings.chromeDriverPath)
+  lazy val chromeDriverHost: String = ServiceTestConfig.ChromeSettings.chromedriverHost
+  lazy val chromeDriverFile: File = new File(ServiceTestConfig.ChromeSettings.chromeDriverPath)
 
   private def runLocalChrome(options: ChromeOptions, testCode: WebDriver => Any): Unit = {
     val service = new ChromeDriverService.Builder().usingDriverExecutable(chromeDriverFile).usingAnyFreePort().build()

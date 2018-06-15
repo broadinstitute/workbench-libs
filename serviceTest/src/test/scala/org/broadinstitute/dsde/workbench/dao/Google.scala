@@ -4,7 +4,7 @@ import java.io.File
 
 import akka.actor.ActorSystem
 import org.broadinstitute.dsde.workbench.auth.AuthToken
-import org.broadinstitute.dsde.workbench.config.Config
+import org.broadinstitute.dsde.workbench.config.ServiceTestConfig
 import org.broadinstitute.dsde.workbench.google.{GoogleCredentialModes, HttpGoogleBigQueryDAO, HttpGoogleIamDAO, HttpGoogleStorageDAO}
 import org.broadinstitute.dsde.workbench.google.GoogleCredentialModes.RawGoogleCredential
 import org.broadinstitute.dsde.workbench.model.WorkbenchEmail
@@ -17,7 +17,7 @@ object Google {
   lazy val system = ActorSystem()
   val ec: ExecutionContextExecutor = ExecutionContext.global
 
-  val pemMode = GoogleCredentialModes.Pem(WorkbenchEmail(Config.GCS.qaEmail), new File(Config.GCS.pathToQAPem))
+  val pemMode = GoogleCredentialModes.Pem(WorkbenchEmail(ServiceTestConfig.GCS.qaEmail), new File(ServiceTestConfig.GCS.pathToQAPem))
 
   lazy val googleIamDAO = new HttpGoogleIamDAO(appName, pemMode, metricBaseName)(system, ec)
   def googleBigQueryDAO(authToken: AuthToken): HttpGoogleBigQueryDAO = {

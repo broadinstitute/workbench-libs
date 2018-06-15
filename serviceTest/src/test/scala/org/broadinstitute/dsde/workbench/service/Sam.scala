@@ -20,7 +20,7 @@ import spray.json.{JsObject, JsValue}
   */
 trait Sam extends RestClient with LazyLogging with ScalaFutures{
 
-  val url = Config.FireCloud.samApiUrl
+  val url = ServiceTestConfig.FireCloud.samApiUrl
 
   implicit override val patienceConfig: PatienceConfig = PatienceConfig(timeout = scaled(Span(5, Seconds)))
 

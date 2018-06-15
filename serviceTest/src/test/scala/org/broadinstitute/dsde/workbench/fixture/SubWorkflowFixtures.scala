@@ -1,7 +1,7 @@
 package org.broadinstitute.dsde.workbench.fixture
 
 import org.broadinstitute.dsde.workbench.auth.AuthToken
-import org.broadinstitute.dsde.workbench.config.Config
+import org.broadinstitute.dsde.workbench.config.ServiceTestConfig
 import org.broadinstitute.dsde.workbench.service.Orchestration
 import org.broadinstitute.dsde.workbench.service.test.{CleanUp, RandomUtil}
 
@@ -129,10 +129,10 @@ trait SubWorkflowFixtures extends RandomUtil {
     // Orchestration in real environments has a globally resolvable name like "firecloud-orchestration.dsde-dev.b.o"
     // but not in FIABs; instead they can use the docker network name
 
-    val orchUrl = if (Config.FireCloud.orchApiUrl.contains("fiab"))
+    val orchUrl = if (ServiceTestConfig.FireCloud.orchApiUrl.contains("fiab"))
       "http://orch-app:8080/"
     else
-      Config.FireCloud.orchApiUrl
+      ServiceTestConfig.FireCloud.orchApiUrl
 
     val childUrl = s"${orchUrl}ga4gh/v1/tools/${child.methodNamespace}:${child.methodName}/versions/1/plain-WDL/descriptor"
 

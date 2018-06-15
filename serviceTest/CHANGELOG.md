@@ -2,6 +2,14 @@
 
 This file documents changes to the `workbench-service-test` library, including notes on how to upgrade to new versions.
 
+## 0.10
+
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "0.10-TRAVIS-REPLACE-ME"`
+
+### Changed
+- split the Config object into the CommonConfig trait and the ServiceTestConfig object.
+automation-test repos which need to access Config values should extend CommonConfig.
+
 ## 0.9
 
 SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "0.9-b8d7804"`
