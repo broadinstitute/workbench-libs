@@ -66,8 +66,8 @@ trait GoogleIamDAO {
   /**
     * Test that the caller has a specified permission on the project.
     * @param project the project in which to test permissions.
-    * @param iamPermissions a list of IAM permissions (not IAM roles) to test.
-    * @return
+    * @param iamPermissions a set of IAM permissions (not IAM roles) to test.
+    * @return the set of iam permissions allowed to the caller overlapping with the supplied permission set.
     */
   def testIamPermission(project: GoogleProject, iamPermissions: Set[IamPermission]): Future[Set[IamPermission]]
 
