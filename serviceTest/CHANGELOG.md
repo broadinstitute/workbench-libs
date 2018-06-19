@@ -4,11 +4,13 @@ This file documents changes to the `workbench-service-test` library, including n
 
 ## 0.10
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "0.10-61981d5"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "0.10-TRAVIS-REPLACE-ME"`
 
 ### Changed
 - split the Config object into the CommonConfig trait and the ServiceTestConfig object.
 automation-test repos which need to access Config values should extend CommonConfig.
+- moved two fields in Orchestration's ObjectMetadata from String to Option[String], mirroring the same change in
+the orchestration codebase.
 
 ## 0.9
 
