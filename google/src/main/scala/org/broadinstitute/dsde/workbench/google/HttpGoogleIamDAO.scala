@@ -119,25 +119,13 @@ class HttpGoogleIamDAO(appName: String,
     }
   }
 
-  override def listProjects(filter: Option[String]): Future[List[GoogleProject]] = {
-    val listRequest = cloudResourceManager.projects().list()
-    filter.map(f => if (f.trim().nonEmpty) listRequest.setFilter(f))
-    retryWhen500orGoogleError { () =>
-      executeGoogleRequest(listRequest)
-    } map { response =>
-      Option(response.getProjects).getOrElse(Collections.emptyList()).asScala.toList
-    } map { projectList =>
-      projectList.map(project => GoogleProject(project.getProjectId()))
-    }
-  }
-
-  override def testIamPermission(project: GoogleProject, iamPermissions: List[IamPermission]): Future[List[IamPermission]] = {
-    val testRequest = new TestIamPermissionsRequest().setPermissions(iamPermissions.map(p => p.value).asJava)
+  override def testIamPermission(project: GoogleProject, iamPermissions: Set[IamPermission]): Future[Set[IamPermission]] = {
+    val testRequest = new TestIamPermissionsRequest().setPermissions(iamPermissions.map(p => p.value).toList.asJava)
     val request = cloudResourceManager.projects().testIamPermissions(s"/projects/${project.value}", testRequest)
     retryWhen500orGoogleError { () =>
       executeGoogleRequest(request)
     } map { response =>
-      Option(response.getPermissions).getOrElse(Collections.emptyList()).asScala.toList.map(IamPermission)
+      Option(response.getPermissions).getOrElse(Collections.emptyList()).asScala.toSet.map(IamPermission)
     }
   }
 
