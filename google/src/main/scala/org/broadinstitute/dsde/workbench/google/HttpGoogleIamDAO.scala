@@ -18,7 +18,7 @@ import com.google.api.client.googleapis.auth.oauth2.GoogleClientSecrets
 import com.google.api.client.googleapis.json.GoogleJsonResponseException
 import com.google.api.client.http.HttpResponseException
 import com.google.api.services.cloudresourcemanager.CloudResourceManager
-import com.google.api.services.cloudresourcemanager.model.{Binding => ProjectBinding, Policy => ProjectPolicy, SetIamPolicyRequest => ProjectSetIamPolicyRequest}
+import com.google.api.services.cloudresourcemanager.model.{Binding => ProjectBinding, Policy => ProjectPolicy, SetIamPolicyRequest => ProjectSetIamPolicyRequest, TestIamPermissionsRequest}
 import com.google.api.services.iam.v1.model.{CreateServiceAccountKeyRequest, CreateServiceAccountRequest, ServiceAccount, Binding => ServiceAccountBinding, Policy => ServiceAccountPolicy, ServiceAccountKey => GoogleServiceAccountKey, SetIamPolicyRequest => ServiceAccountSetIamPolicyRequest}
 import com.google.api.services.iam.v1.{Iam, IamScopes}
 import org.broadinstitute.dsde.workbench.google.GoogleCredentialModes._
@@ -116,6 +116,16 @@ class HttpGoogleIamDAO(appName: String,
     } {
       // if the service account is already gone, don't fail
       case e: HttpResponseException if e.getStatusCode == StatusCodes.NotFound.intValue => ()
+    }
+  }
+
+  override def testIamPermission(project: GoogleProject, iamPermissions: Set[IamPermission]): Future[Set[IamPermission]] = {
+    val testRequest = new TestIamPermissionsRequest().setPermissions(iamPermissions.map(p => p.value).toList.asJava)
+    val request = cloudResourceManager.projects().testIamPermissions(s"/projects/${project.value}", testRequest)
+    retryWhen500orGoogleError { () =>
+      executeGoogleRequest(request)
+    } map { response =>
+      Option(response.getPermissions).getOrElse(Collections.emptyList()).asScala.toSet.map(IamPermission)
     }
   }
 

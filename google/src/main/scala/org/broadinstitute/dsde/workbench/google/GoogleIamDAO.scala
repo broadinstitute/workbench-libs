@@ -64,6 +64,14 @@ trait GoogleIamDAO {
   def removeServiceAccount(serviceAccountProject: GoogleProject, serviceAccountName: ServiceAccountName): Future[Unit]
 
   /**
+    * Test that the caller has a specified permission on the project.
+    * @param project the project in which to test permissions.
+    * @param iamPermissions a set of IAM permissions (not IAM roles) to test.
+    * @return the set of iam permissions allowed to the caller overlapping with the supplied permission set.
+    */
+  def testIamPermission(project: GoogleProject, iamPermissions: Set[IamPermission]): Future[Set[IamPermission]]
+
+  /**
     * Adds project-level IAM roles for the given user.
     * @param iamProject the project in which to add the roles
     * @param email the user email address

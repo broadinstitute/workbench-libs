@@ -4,13 +4,14 @@ This file documents changes to the `workbench-model` library, including notes on
 
 ## 0.11
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-model" % "0.11-2ce3359"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-model" % "0.11-TRAVIS-REPLACE-ME"`
 
 ### Added
 
 - `EmailGcsEntity` and `ProjectGcsEntity` as implementations of `GcsEntity`, which is now a `trait`
 - `ProjectNumber` to model Google project numbers (distinct from project IDs)
 - `ProjectTeamType` ADT to correspond to `entity` in [Google bucket access control resource](https://cloud.google.com/storage/docs/json_api/v1/bucketAccessControls)  
+- `IamPermission` used by workbench-google `testIamPermission`
 
 ### Deprecated
 
