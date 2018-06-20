@@ -53,6 +53,10 @@ class MockGoogleIamDAO(implicit executionContext: ExecutionContext) extends Goog
     Future.successful(())
   }
 
+  override def testIamPermission(project: GoogleProject, iamPermissions: Set[IamPermission]): Future[Set[IamPermission]] = {
+    Future.successful(iamPermissions)
+  }
+
   override def removeIamRolesForUser(googleProject: GoogleProject, userEmail: WorkbenchEmail, rolesToRemove: Set[String]): Future[Unit] = {
     Future.successful(())
   }
