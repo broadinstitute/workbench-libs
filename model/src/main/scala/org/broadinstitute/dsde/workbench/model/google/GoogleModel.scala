@@ -24,7 +24,6 @@ case class ServiceAccountKey(id: ServiceAccountKeyId, privateKeyData: ServiceAcc
 
 // Test IAM types.
 case class IamPermission(value: String) extends ValueObject
-case class IamTestResponse(permissions: Option[List[IamPermission]])
 
 // Storage
 case class GcsBucketName(value: String) extends ValueObject
