@@ -475,6 +475,7 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
       checkUserStatusUpdate(userEmail, "terminate", terminateResponse)
     }
 
+    @deprecated(message = "This method of free trial project creation has been deprecated. Please use BillingFixtures.withCleanBillingProject and adoptTrialProject instead.", since = "0.11")
     def createTrialProjects(count: Int)(implicit token: AuthToken): Unit = {
       val trialProjects: TrialProjects = countTrialProjects()
       if (trialProjects.available < count) {
@@ -517,26 +518,22 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
 
     def adoptTrialProject(projectName: String)(implicit token: AuthToken): TrialProjectReport = {
       logger.info(s"API post request: api/trial/manager/projects?operation=adopt&projectName=$projectName")
-      Try(postRequest(apiUrl(s"api/trial/manager/projects?operation=adopt&projectName=$projectName"))) match {
-        case Success(response) =>
-          implicit val impTrialProjectReport: RootJsonFormat[TrialProjectReport] = jsonFormat4(TrialProjectReport)
-          val trialProjectReport: TrialProjectReport = response.parseJson.convertTo[TrialProjectReport]
-          logger.info(s"Adopted free tier project: ${trialProjectReport.name}")
-          trialProjectReport
-        case Failure(ex) => throw new Exception(s"Unable to adopt free tier project: $projectName", ex)
-      }
+      val response = postRequest(apiUrl(s"api/trial/manager/projects?operation=adopt&projectName=$projectName"))
+      implicit val impUserStatusDetails: RootJsonFormat[UserStatusDetails] = jsonFormat2(UserStatusDetails)
+      implicit val impTrialProjectReport: RootJsonFormat[TrialProjectReport] = jsonFormat4(TrialProjectReport)
+      val trialProjectReport: TrialProjectReport = response.parseJson.convertTo[TrialProjectReport]
+      logger.info(s"Adopted free tier project: ${trialProjectReport.name}")
+      trialProjectReport
     }
 
     def scratchTrialProject(projectName: String)(implicit token: AuthToken): TrialProjectReport = {
       logger.info(s"API post request: api/trial/manager/projects?operation=scratch&projectName=$projectName")
-      Try(postRequest(apiUrl(s"api/trial/manager/projects?operation=scratch&projectName=$projectName"))) match {
-        case Success(response) =>
-          implicit val impTrialProjectReport: RootJsonFormat[TrialProjectReport] = jsonFormat4(TrialProjectReport)
-          val trialProjectReport = response.parseJson.convertTo[TrialProjectReport]
-          logger.info(s"Scratched free tier project: ${trialProjectReport.name}")
-          trialProjectReport
-        case Failure(ex) => throw new Exception(s"Unable to scratch free tier project: $projectName", ex)
-      }
+      val response = postRequest(apiUrl(s"api/trial/manager/projects?operation=scratch&projectName=$projectName"))
+      implicit val impUserStatusDetails: RootJsonFormat[UserStatusDetails] = jsonFormat2(UserStatusDetails)
+      implicit val impTrialProjectReport: RootJsonFormat[TrialProjectReport] = jsonFormat4(TrialProjectReport)
+      val trialProjectReport = response.parseJson.convertTo[TrialProjectReport]
+      logger.info(s"Scratched free tier project: ${trialProjectReport.name}")
+      trialProjectReport
     }
 
   }

@@ -2,18 +2,27 @@
 
 This file documents changes to the `workbench-service-test` library, including notes on how to upgrade to new versions.
 
+## 0.11
+
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "0.11-TRAVIS-REPLACE-ME"`
+
+### Added
+- Orchestration.trial.adoptTrialProject
+- Orchestration.trial.scratchTrialProject
+
+### Deprecated
+- Orchestration.trial.createTrialProjects. Use BillingFixtures.withCleanBillingProject and 
+Orchestration.trial.adoptTrialProject instead.
+
 ## 0.10
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "TRAVIS-REPLACE-ME"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "0.10-35e4ee4"`
 
 ### Changed
 - split the Config object into the CommonConfig trait and the ServiceTestConfig object.
 automation-test repos which need to access Config values should extend CommonConfig.
 - moved two fields in Orchestration's ObjectMetadata from String to Option[String], mirroring the same change in
 the orchestration codebase.
-### Added
-- Orchestration.trial.adoptTrialProject
-- Orchestration.trial.scratchTrialProject
 
 ## 0.9
 
