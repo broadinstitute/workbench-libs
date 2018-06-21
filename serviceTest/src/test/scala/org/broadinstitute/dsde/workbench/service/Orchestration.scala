@@ -515,6 +515,30 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
       trialProjectReports
     }
 
+    def adoptTrialProject(projectName: String)(implicit token: AuthToken): TrialProjectReport = {
+      logger.info(s"API post request: api/trial/manager/projects?operation=adopt&projectName=$projectName")
+      Try(postRequest(apiUrl(s"api/trial/manager/projects?operation=adopt&projectName=$projectName"))) match {
+        case Success(response) =>
+          implicit val impTrialProjectReport: RootJsonFormat[TrialProjectReport] = jsonFormat4(TrialProjectReport)
+          val trialProjectReport: TrialProjectReport = response.parseJson.convertTo[TrialProjectReport]
+          logger.info(s"Adopted free tier project: ${trialProjectReport.name}")
+          trialProjectReport
+        case Failure(ex) => throw new Exception(s"Unable to adopt free tier project: $projectName", ex)
+      }
+    }
+
+    def scratchTrialProject(projectName: String)(implicit token: AuthToken): TrialProjectReport = {
+      logger.info(s"API post request: api/trial/manager/projects?operation=scratch&projectName=$projectName")
+      Try(postRequest(apiUrl(s"api/trial/manager/projects?operation=scratch&projectName=$projectName"))) match {
+        case Success(response) =>
+          implicit val impTrialProjectReport: RootJsonFormat[TrialProjectReport] = jsonFormat4(TrialProjectReport)
+          val trialProjectReport = response.parseJson.convertTo[TrialProjectReport]
+          logger.info(s"Scratched free tier project: ${trialProjectReport.name}")
+          trialProjectReport
+        case Failure(ex) => throw new Exception(s"Unable to scratch free tier project: $projectName", ex)
+      }
+    }
+
   }
 
   object storage {
