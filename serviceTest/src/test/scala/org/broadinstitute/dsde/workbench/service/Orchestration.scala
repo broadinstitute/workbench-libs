@@ -475,6 +475,7 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
       checkUserStatusUpdate(userEmail, "terminate", terminateResponse)
     }
 
+    @deprecated(message = "This method of free trial project creation has been deprecated. Please use BillingFixtures.withCleanBillingProject and adoptTrialProject instead.", since = "0.11")
     def createTrialProjects(count: Int)(implicit token: AuthToken): Unit = {
       val trialProjects: TrialProjects = countTrialProjects()
       if (trialProjects.available < count) {
@@ -513,6 +514,26 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
       val trialProjectReports: Seq[TrialProjectReport] = response.parseJson.convertTo[Seq[TrialProjectReport]]
       logger.info(s"Current Trial Project Reports: ${trialProjectReports.map(_.name).mkString(", ")}")
       trialProjectReports
+    }
+
+    def adoptTrialProject(projectName: String)(implicit token: AuthToken): TrialProjectReport = {
+      logger.info(s"API post request: api/trial/manager/projects?operation=adopt&projectName=$projectName")
+      val response = postRequest(apiUrl(s"api/trial/manager/projects?operation=adopt&projectName=$projectName"))
+      implicit val impUserStatusDetails: RootJsonFormat[UserStatusDetails] = jsonFormat2(UserStatusDetails)
+      implicit val impTrialProjectReport: RootJsonFormat[TrialProjectReport] = jsonFormat4(TrialProjectReport)
+      val trialProjectReport: TrialProjectReport = response.parseJson.convertTo[TrialProjectReport]
+      logger.info(s"Adopted free tier project: ${trialProjectReport.name}")
+      trialProjectReport
+    }
+
+    def scratchTrialProject(projectName: String)(implicit token: AuthToken): TrialProjectReport = {
+      logger.info(s"API post request: api/trial/manager/projects?operation=scratch&projectName=$projectName")
+      val response = postRequest(apiUrl(s"api/trial/manager/projects?operation=scratch&projectName=$projectName"))
+      implicit val impUserStatusDetails: RootJsonFormat[UserStatusDetails] = jsonFormat2(UserStatusDetails)
+      implicit val impTrialProjectReport: RootJsonFormat[TrialProjectReport] = jsonFormat4(TrialProjectReport)
+      val trialProjectReport = response.parseJson.convertTo[TrialProjectReport]
+      logger.info(s"Scratched free tier project: ${trialProjectReport.name}")
+      trialProjectReport
     }
 
   }

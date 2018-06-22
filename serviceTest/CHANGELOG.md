@@ -2,6 +2,18 @@
 
 This file documents changes to the `workbench-service-test` library, including notes on how to upgrade to new versions.
 
+## 0.11
+
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "0.11-TRAVIS-REPLACE-ME"`
+
+### Added
+- Orchestration.trial.adoptTrialProject
+- Orchestration.trial.scratchTrialProject
+
+### Deprecated
+- Orchestration.trial.createTrialProjects. Use BillingFixtures.withCleanBillingProject and 
+Orchestration.trial.adoptTrialProject instead.
+
 ## 0.10
 
 SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "0.10-35e4ee4"`
