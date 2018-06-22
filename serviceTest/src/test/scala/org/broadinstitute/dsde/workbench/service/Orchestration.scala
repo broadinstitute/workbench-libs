@@ -516,9 +516,9 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
       trialProjectReports
     }
 
-    def adoptTrialProject(projectName: String)(implicit token: AuthToken): TrialProjectReport = {
-      logger.info(s"API post request: api/trial/manager/projects?operation=adopt&projectName=$projectName")
-      val response = postRequest(apiUrl(s"api/trial/manager/projects?operation=adopt&projectName=$projectName"))
+    def adoptTrialProject(project: String)(implicit token: AuthToken): TrialProjectReport = {
+      logger.info(s"API post request: api/trial/manager/projects?operation=adopt&project=$project")
+      val response = postRequest(apiUrl(s"api/trial/manager/projects?operation=adopt&project=$project"))
       implicit val impUserStatusDetails: RootJsonFormat[UserStatusDetails] = jsonFormat2(UserStatusDetails)
       implicit val impTrialProjectReport: RootJsonFormat[TrialProjectReport] = jsonFormat4(TrialProjectReport)
       val trialProjectReport: TrialProjectReport = response.parseJson.convertTo[TrialProjectReport]
@@ -526,9 +526,9 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
       trialProjectReport
     }
 
-    def scratchTrialProject(projectName: String)(implicit token: AuthToken): TrialProjectReport = {
-      logger.info(s"API post request: api/trial/manager/projects?operation=scratch&projectName=$projectName")
-      val response = postRequest(apiUrl(s"api/trial/manager/projects?operation=scratch&projectName=$projectName"))
+    def scratchTrialProject(project: String)(implicit token: AuthToken): TrialProjectReport = {
+      logger.info(s"API post request: api/trial/manager/projects?operation=scratch&project=$project")
+      val response = postRequest(apiUrl(s"api/trial/manager/projects?operation=scratch&project=$project"))
       implicit val impUserStatusDetails: RootJsonFormat[UserStatusDetails] = jsonFormat2(UserStatusDetails)
       implicit val impTrialProjectReport: RootJsonFormat[TrialProjectReport] = jsonFormat4(TrialProjectReport)
       val trialProjectReport = response.parseJson.convertTo[TrialProjectReport]
