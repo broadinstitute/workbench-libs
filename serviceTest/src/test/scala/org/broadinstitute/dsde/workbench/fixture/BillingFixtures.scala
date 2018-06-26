@@ -119,8 +119,8 @@ trait BillingFixtures extends ExceptionHandling with LazyLogging with CleanUp wi
               Some(proj)
             case Failure(err) =>
               // GPAlloc project request sometimes fail with Cannot create error. e.g. "Cannot create billing project [gpalloc-qa-master-2z4jdey] in database because it already exists"
-              logger.warn(s"ERROR in claimGPAllocProject. Delete billing project ${project.projectName}. $err")
-              deleteBillingProject(project.projectName)(adminToken)
+              logger.warn(s"ERROR in claimGPAllocProject. Release GPAlloc billing project ${project.projectName}.")
+              releaseGPAllocProject(project.projectName, newOwnerCreds)
               None
           }
         case _ =>
