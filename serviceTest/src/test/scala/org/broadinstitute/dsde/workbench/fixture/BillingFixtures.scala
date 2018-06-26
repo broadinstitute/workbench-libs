@@ -43,15 +43,11 @@ trait BillingFixtures extends ExceptionHandling with LazyLogging with CleanUp wi
 
   case class ClaimedProject(projectName: String, gpAlloced: Boolean) {
     def cleanup(ownerCreds: Credentials): Unit = {
-      if (gpAlloced)
-        releaseGPAllocProject(projectName, ownerCreds.email)(ownerCreds.makeAuthToken _)
-      else {
-        deleteBillingProject(projectName)(ownerCreds.makeAuthToken())
-      }
+      cleanup(ownerCreds.email)(ownerCreds.makeAuthToken _)
     }
 
     def cleanup(ownerEmail: String)(ownerToken: () => AuthToken): Unit = {
-        if (gpAlloced)
+      if (gpAlloced)
         releaseGPAllocProject(projectName, ownerEmail)(ownerToken)
       else
         deleteBillingProject(projectName)(ownerToken())
