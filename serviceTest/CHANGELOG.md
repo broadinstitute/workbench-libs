@@ -2,32 +2,15 @@
 
 This file documents changes to the `workbench-service-test` library, including notes on how to upgrade to new versions.
 
-## 0.12
-
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "0.12-TRAVIS-REPLACE-ME"`
-
-### Changed
-- Updated `BillingFixtures` claim and release with functions that accept `AuthToken` and email address 
-as opposed to `Credentials`, so that a Service Account can claim a GPAlloc project.
-- Deprecated functions that accept `Credentials`
-
-### Added
-- `BillingFixtures.ClaimedProject.cleanup` with new owner `AuthToken` and email address
-- `BillingFixtures.claimGPAllocProject` with new owner `AuthToken` and email address
-- `BillingFixtures.releaseGPAllocProject` with new owner `AuthToken` and email address
-- `BillingFixutres.withCleanBillingProject` with new owner `AuthToken` and email address
-
-### Deprecated 
-- `BillingFixtures.ClaimedProject.cleanup` with `Credentials`, use `AuthToken` and email address instead
-- `BillingFixtures.claimGPAllocProject` with `Credentials`, use `AuthToken` and email address instead
-- `BillingFixtures.releaseGPAllocProject` with `Credentials`, use `AuthToken` and email address instead
-- `BillingFixutres.withCleanBillingProject` with `Credentials`, use `AuthToken` and email address instead
-
 ## 0.11
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "0.11-1b96f22"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "0.11-TRAVIS-REPLACE-ME"`
 
 ### Added
+- `BillingFixtures.ClaimedProject.cleanup` with new owner `AuthToken` function and email address
+- `BillingFixtures.claimGPAllocProject` with new owner `AuthToken` function and email address
+- `BillingFixtures.releaseGPAllocProject` with new owner `AuthToken` function and email address
+- `BillingFixutres.withCleanBillingProject` with new owner `AuthToken` function and email address
 - `Orchestration.trial.adoptTrialProject`
 - `Orchestration.trial.scratchTrialProject`
 
