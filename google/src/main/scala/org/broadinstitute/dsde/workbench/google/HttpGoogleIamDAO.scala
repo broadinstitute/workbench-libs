@@ -121,7 +121,7 @@ class HttpGoogleIamDAO(appName: String,
 
   override def testIamPermission(project: GoogleProject, iamPermissions: Set[IamPermission]): Future[Set[IamPermission]] = {
     val testRequest = new TestIamPermissionsRequest().setPermissions(iamPermissions.map(p => p.value).toList.asJava)
-    val request = cloudResourceManager.projects().testIamPermissions(s"/projects/${project.value}", testRequest)
+    val request = cloudResourceManager.projects().testIamPermissions(project.value, testRequest)
     retryWhen500orGoogleError { () =>
       executeGoogleRequest(request)
     } map { response =>
