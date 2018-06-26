@@ -4,15 +4,19 @@ This file documents changes to the `workbench-service-test` library, including n
 
 ## 0.11
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "0.11-1b96f22"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "0.11-TRAVIS-REPLACE-ME"`
 
 ### Added
-- Orchestration.trial.adoptTrialProject
-- Orchestration.trial.scratchTrialProject
+- `BillingFixtures.ClaimedProject.cleanup` with new owner `AuthToken` function and email address
+- `BillingFixtures.claimGPAllocProject` with new owner `AuthToken` function and email address
+- `BillingFixtures.releaseGPAllocProject` with new owner `AuthToken` function and email address
+- `BillingFixutres.withCleanBillingProject` with new owner `AuthToken` function and email address
+- `Orchestration.trial.adoptTrialProject`
+- `Orchestration.trial.scratchTrialProject`
 
 ### Deprecated
-- Orchestration.trial.createTrialProjects. Use BillingFixtures.withCleanBillingProject and 
-Orchestration.trial.adoptTrialProject instead.
+- `Orchestration.trial.createTrialProjects`. Use `BillingFixtures.withCleanBillingProject` and 
+`Orchestration.trial.adoptTrialProject` instead.
 
 ## 0.10
 
