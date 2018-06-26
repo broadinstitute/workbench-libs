@@ -3,16 +3,18 @@ package org.broadinstitute.dsde.workbench.fixture
 import akka.http.scaladsl.model.headers.OAuth2BearerToken
 import com.typesafe.scalalogging.LazyLogging
 import org.broadinstitute.dsde.workbench.auth.AuthToken
-import org.broadinstitute.dsde.workbench.config.{ServiceTestConfig, Credentials, UserPool}
+import org.broadinstitute.dsde.workbench.config.{Credentials, ServiceTestConfig, UserPool}
 import org.broadinstitute.dsde.workbench.model.{UserInfo, WorkbenchEmail, WorkbenchUserId}
 import org.broadinstitute.dsde.workbench.service.{GPAlloc, Orchestration, Rawls}
 import org.broadinstitute.dsde.workbench.service.Orchestration.billing.BillingProjectRole
 import org.broadinstitute.dsde.workbench.service.Orchestration.billing.BillingProjectRole.BillingProjectRole
 import org.broadinstitute.dsde.workbench.service.test.{CleanUp, RandomUtil}
 import org.broadinstitute.dsde.workbench.service.util.ExceptionHandling
+import org.broadinstitute.dsde.workbench.service.util.Retry.retry
 import org.scalatest.TestSuite
 
-import scala.util.Try
+import scala.concurrent.duration.DurationDouble
+import scala.util.{Failure, Success, Try}
 
 /**
   * Mix in this trait to allow your test to access billing projects managed by the GPAlloc system, or create new
@@ -100,23 +102,38 @@ trait BillingFixtures extends ExceptionHandling with LazyLogging with CleanUp wi
   def claimGPAllocProject(newOwnerCreds: Credentials, ownerEmails: List[String] = List(), userEmails: List[String] = List()): ClaimedProject = {
     //request a GPAlloced project as the potential new owner
     val newOwnerToken = newOwnerCreds.makeAuthToken()
-    GPAlloc.projects.requestProject(newOwnerToken) match {
-      case Some(project) =>
-        //the Rawls endpoint to register a precreated project needs to be called by a Rawls admin
-        //but it also takes the new owner's UserInfo in order to create the resource as them in Sam
-        val adminToken = UserPool.chooseAdmin.makeAuthToken()
-        val newOwnerUserInfo = UserInfo(OAuth2BearerToken(newOwnerToken.value), WorkbenchUserId("0"), WorkbenchEmail(newOwnerCreds.email), 3600)
-        Rawls.admin.claimProject(project.projectName, project.cromwellAuthBucketUrl, newOwnerUserInfo)(adminToken)
-
-        addMembersToBillingProject(project.projectName, ownerEmails, BillingProjectRole.Owner)(newOwnerToken)
-        addMembersToBillingProject(project.projectName, userEmails, BillingProjectRole.User)(newOwnerToken)
-
-        ClaimedProject(project.projectName, gpAlloced = true)
-      case _ =>
-        logger.warn("claimGPAllocProject got no project back from GPAlloc. Falling back to making a brand new one...")
-        val billingProjectName = createNewBillingProject("billingproj", ownerEmails, userEmails)(newOwnerToken)
-        ClaimedProject(billingProjectName, gpAlloced = false)
+    retry(Seq.fill(3)(5.seconds)) ({
+      GPAlloc.projects.requestProject(newOwnerToken) match {
+        case Some(project) =>
+          //the Rawls endpoint to register a precreated project needs to be called by a Rawls admin
+          //but it also takes the new owner's UserInfo in order to create the resource as them in Sam
+          val adminToken = UserPool.chooseAdmin.makeAuthToken()
+          val newOwnerUserInfo = UserInfo(OAuth2BearerToken(newOwnerToken.value), WorkbenchUserId("0"), WorkbenchEmail(newOwnerCreds.email), 3600)
+          Try {
+            Rawls.admin.claimProject(project.projectName, project.cromwellAuthBucketUrl, newOwnerUserInfo)(adminToken)
+          } match {
+            case Success(_) =>
+              addMembersToBillingProject(project.projectName, ownerEmails, BillingProjectRole.Owner)(newOwnerToken)
+              addMembersToBillingProject(project.projectName, userEmails, BillingProjectRole.User)(newOwnerToken)
+              val proj: ClaimedProject = ClaimedProject(project.projectName, gpAlloced = true)
+              Some(proj)
+            case Failure(err) =>
+              // GPAlloc project request sometimes fail with Cannot create error. e.g. "Cannot create billing project [gpalloc-qa-master-2z4jdey] in database because it already exists"
+              logger.warn(s"ERROR in claimGPAllocProject. Delete billing project ${project.projectName}. $err")
+              deleteBillingProject(project.projectName)(adminToken)
+              None
+          }
+        case _ =>
+          logger.warn("claimGPAllocProject got no project back from GPAlloc. Falling back to making a brand new one...")
+          val billingProjectName = createNewBillingProject("billingproj", ownerEmails, userEmails)(newOwnerToken)
+          val proj: ClaimedProject = ClaimedProject(billingProjectName, gpAlloced = false)
+          Some(proj)
+      }
+    }) match {
+      case Some(proj) => proj
+      case None => throw new Exception("GPAlloc billing project request failed.")
     }
+
   }
 
   /**
@@ -162,4 +179,3 @@ trait BillingFixtures extends ExceptionHandling with LazyLogging with CleanUp wi
     Orchestration.billing.addUserToBillingProject(billingProjectName, email, role)
   }
 }
-
