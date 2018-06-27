@@ -36,8 +36,8 @@ trait MethodFixtures extends ExceptionHandling with RandomUtil { self: TestSuite
                 (testCode: ((String, String)) => Any)
                 (implicit token: AuthToken): Unit = {
     val name = uuidWithPrefix(prefix)
-    val namespace = "namespace" + randomUuid
-    val attributes = MethodData.SimpleMethod.creationAttributes ++ Map ("name" -> name, "namespace" -> namespace)
+    val namespace = MethodData.SimpleMethod.creationAttributes.get("namespace").head + randomUuid
+    val attributes = MethodData.SimpleMethod.creationAttributes ++ Map("name" -> name, "namespace" -> namespace)
     Orchestration.methods.createMethod(attributes)
 
     try {
