@@ -4,9 +4,10 @@ This file documents changes to the `workbench-service-test` library, including n
 
 ## 0.11
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "0.11-5c15c42"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "0.11-TRAVIS-REPLACE-ME"`
 
 ### Added
+-  Added code to make MethodNameSpace unique
 - `BillingFixtures.ClaimedProject.cleanup` with new owner `AuthToken` function and email address
 - `BillingFixtures.claimGPAllocProject` with new owner `AuthToken` function and email address
 - `BillingFixtures.releaseGPAllocProject` with new owner `AuthToken` function and email address
