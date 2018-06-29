@@ -13,7 +13,14 @@ import scala.concurrent.duration._
 trait AuthToken extends LazyLogging {
   val httpTransport = GoogleNetHttpTransport.newTrustedTransport
   val jsonFactory = JacksonFactory.getDefaultInstance
-  val authScopes = Seq("profile", "email", "openid", "https://www.googleapis.com/auth/devstorage.full_control", "https://www.googleapis.com/auth/cloud-platform")
+
+  // the list of scopes we request from end users when they log in.
+  // this should always match exactly what the UI requests, so our tests represent actual user behavior:
+  val userLoginScopes = Seq("profile", "email", "openid")
+  // the list of scopes needed by service accounts to do their work:
+  val serviceAccountScopes = userLoginScopes ++ Seq("https://www.googleapis.com/auth/devstorage.full_control", "https://www.googleapis.com/auth/cloud-platform")
+  // additional scope(s) needed to work with billing. It is the responsibility of callers to concatenate billing scope(s)
+  // onto previous lists as necessary.
   val billingScope = Seq("https://www.googleapis.com/auth/cloud-billing")
 
   lazy val value: String = makeToken()

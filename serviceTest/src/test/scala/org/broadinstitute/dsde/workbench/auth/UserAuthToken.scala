@@ -15,7 +15,7 @@ case class UserAuthToken(user: Credentials) extends AuthToken {
       .setJsonFactory(jsonFactory)
       .setServiceAccountId(email)
       .setServiceAccountPrivateKeyFromPemFile(pemfile)
-      .setServiceAccountScopes(authScopes.asJava)
+      .setServiceAccountScopes(userLoginScopes.asJava)
       .setServiceAccountUser(user.email)
       .build()
   }
