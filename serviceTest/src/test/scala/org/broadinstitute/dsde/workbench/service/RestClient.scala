@@ -6,7 +6,7 @@ import akka.http.scaladsl.model.HttpMethods._
 import akka.http.scaladsl.model.headers.{Authorization, OAuth2BearerToken}
 import akka.http.scaladsl.model.{Multipart, _}
 import akka.stream.ActorMaterializer
-import akka.stream.scaladsl.{Sink, _}
+import akka.stream.scaladsl._
 import akka.util.ByteString
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
@@ -73,6 +73,7 @@ trait RestClient extends Retry with LazyLogging {
       case true =>
         extractResponseString(response)
       case _ =>
+        logger.error(extractResponseString(response)) // write to test log
         throwRestException(response)
     }
   }

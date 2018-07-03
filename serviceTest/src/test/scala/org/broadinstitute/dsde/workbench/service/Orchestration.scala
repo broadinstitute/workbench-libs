@@ -294,7 +294,7 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
     }
 
     def createMethodConfig(methodConfigData: Map[String,Any])(implicit token: AuthToken): String = {
-      logger.info(s"Adding a method config")
+      logger.info(s"Adding a method config: $methodConfigData")
       postRequest(apiUrl(s"api/configurations"), methodConfigData)
     }
 
@@ -321,7 +321,7 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
     }
 
     def createMethod(methodData: Map[String,Any])(implicit token: AuthToken): Unit = {
-      logger.info(s"Adding a method.")
+      logger.info(s"Adding a method: $methodData")
       postRequest(apiUrl(s"api/methods"), methodData)
     }
 
@@ -434,7 +434,7 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
   }
 
   def importMetaData(ns: String, wsName: String, fileName: String, fileContent: String)(implicit token: AuthToken): String = {
-    logger.info(s"Importing metadata: $ns/$wsName $fileName")
+    logger.info(s"Importing metadata: $ns/$wsName $fileName, $fileContent")
     postRequestWithMultipart(apiUrl(s"api/workspaces/$ns/$wsName/importEntities"), fileName, fileContent)
   }
 

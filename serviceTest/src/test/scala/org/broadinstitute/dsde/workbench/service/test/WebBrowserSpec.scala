@@ -72,6 +72,8 @@ trait WebBrowserSpec extends WebBrowserUtil with ExceptionHandling with LazyLogg
     options.addArguments("--test-type")
     options.addArguments("--no-sandbox")
     options.addArguments("--disable-extensions")
+    options.addArguments("--dns-prefetch-disable")
+    options.addArguments("--always-authorize-plugins")
     if (java.lang.Boolean.parseBoolean(System.getProperty("burp.proxy"))) {
       options.addArguments("--proxy-server=http://127.0.0.1:8080")
     }
@@ -128,12 +130,13 @@ trait WebBrowserSpec extends WebBrowserUtil with ExceptionHandling with LazyLogg
     } catch {
       case t: Throwable =>
         val date = new SimpleDateFormat("HH-mm-ss-SSS").format(new java.util.Date())
+        val path = "failure_screenshots"
         val name = s"${suiteName}_${date}"
-        val fileName = s"failure_screenshots/${name}.png"
-        val htmlSourceFileName = s"failure_screenshots/${name}.html"
-        val logFileName = s"failure_screenshots/${name}_console.txt"
+        val fileName = s"$path/${name}.png"
+        val htmlSourceFileName = s"$path/${name}.html"
+        val logFileName = s"$path/${name}_console.txt"
         try {
-          val directory = new File("failure_screenshots")
+          val directory = new File(s"$path")
           if (!directory.exists()) {
             directory.mkdir()
           }
