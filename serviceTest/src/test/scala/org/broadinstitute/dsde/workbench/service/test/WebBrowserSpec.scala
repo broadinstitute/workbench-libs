@@ -74,6 +74,8 @@ trait WebBrowserSpec extends WebBrowserUtil with ExceptionHandling with LazyLogg
     options.addArguments("--disable-extensions")
     options.addArguments("--dns-prefetch-disable")
     options.addArguments("--always-authorize-plugins")
+    options.addArguments("--disable-dev-shm-usage")
+    options.addArguments("--disable-extensions")
     if (java.lang.Boolean.parseBoolean(System.getProperty("burp.proxy"))) {
       options.addArguments("--proxy-server=http://127.0.0.1:8080")
     }
