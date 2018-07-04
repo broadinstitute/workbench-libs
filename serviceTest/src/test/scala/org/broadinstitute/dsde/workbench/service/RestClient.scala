@@ -103,10 +103,9 @@ trait RestClient extends Retry with LazyLogging {
   }
 
   def postRequestWithMultipart(uri:String, name: String, content: String)(implicit token: AuthToken): String = {
-    val part = Multipart.FormData.BodyPart(name, HttpEntity(ByteString(content)))
+    val part = Multipart.FormData.BodyPart.Strict(name, HttpEntity(ByteString(content)))
     val formData = Multipart.FormData(Source.single(part))
     val req = HttpRequest(POST, encodeUri(uri), List(makeAuthHeader(token)), formData.toEntity())
-    logger.debug(s"postRequestWithMultipart HttpRequest: $req")
     parseResponse(sendRequest(req))
   }
 
