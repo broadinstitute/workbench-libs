@@ -69,12 +69,7 @@ trait WebBrowserSpec extends WebBrowserUtil with ExceptionHandling with LazyLogg
     // https://github.com/GoogleChrome/chrome-launcher/blob/master/docs/chrome-flags-for-tools.md
     options.addArguments("--disable-background-networking")
     options.addArguments("--disable-client-side-phishing-detection")
-    options.addArguments("--test-type")
     options.addArguments("--no-sandbox")
-    options.addArguments("--disable-extensions")
-    options.addArguments("--dns-prefetch-disable")
-    options.addArguments("--always-authorize-plugins")
-    options.addArguments("--disable-dev-shm-usage")
     options.addArguments("--disable-extensions")
     if (java.lang.Boolean.parseBoolean(System.getProperty("burp.proxy"))) {
       options.addArguments("--proxy-server=http://127.0.0.1:8080")
