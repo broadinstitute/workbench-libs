@@ -9,7 +9,7 @@ import org.broadinstitute.dsde.workbench.service.util.ExceptionHandling
 import org.broadinstitute.dsde.workbench.service.test.CleanUp
 import org.scalatest.TestSuite
 
-import scala.util.{Failure, Success, Try}
+import scala.util.Try
 
 /**
   * Fixtures for creating and cleaning up test groups.
@@ -24,8 +24,10 @@ trait GroupFixtures extends ExceptionHandling with LazyLogging with RandomUtil {
     val groupName = uuidWithPrefix(namePrefix)
 
     val testTrial = Try {
+      logger.info(s"Creating new group $groupName")
       Orchestration.groups.create(groupName)
       memberEmails foreach { email =>
+        logger.info(s"Adding user $email with role of member to group $groupName")
         Orchestration.groups.addUserToGroup(groupName, email, GroupRole.Member)
       }
 
