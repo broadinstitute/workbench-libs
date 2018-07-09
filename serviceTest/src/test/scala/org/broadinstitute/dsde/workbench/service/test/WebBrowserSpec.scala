@@ -69,7 +69,6 @@ trait WebBrowserSpec extends WebBrowserUtil with ExceptionHandling with LazyLogg
     // https://github.com/GoogleChrome/chrome-launcher/blob/master/docs/chrome-flags-for-tools.md
     options.addArguments("--disable-background-networking")
     options.addArguments("--disable-client-side-phishing-detection")
-    options.addArguments("--test-type")
     options.addArguments("--no-sandbox")
     options.addArguments("--disable-extensions")
     if (java.lang.Boolean.parseBoolean(System.getProperty("burp.proxy"))) {
@@ -128,12 +127,13 @@ trait WebBrowserSpec extends WebBrowserUtil with ExceptionHandling with LazyLogg
     } catch {
       case t: Throwable =>
         val date = new SimpleDateFormat("HH-mm-ss-SSS").format(new java.util.Date())
+        val path = "failure_screenshots"
         val name = s"${suiteName}_${date}"
-        val fileName = s"failure_screenshots/${name}.png"
-        val htmlSourceFileName = s"failure_screenshots/${name}.html"
-        val logFileName = s"failure_screenshots/${name}_console.txt"
+        val fileName = s"$path/${name}.png"
+        val htmlSourceFileName = s"$path/${name}.html"
+        val logFileName = s"$path/${name}_console.txt"
         try {
-          val directory = new File("failure_screenshots")
+          val directory = new File(s"$path")
           if (!directory.exists()) {
             directory.mkdir()
           }
