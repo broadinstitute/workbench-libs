@@ -12,7 +12,7 @@ trait FailedTestRetryable extends TestSuiteMixin with Retries with LazyLogging {
           logger.warn(s"About to retry failed test -- " + test.name)
           withRetryOnFailure(super.withFixture(test))
         } else {
-          super.withFixture(test) // don't retry if not tagged with `taggedAs(Retryable)` even if test failed
+          failed // don't retry if not taggedAs Retryable
         }
       case other => other
     }
