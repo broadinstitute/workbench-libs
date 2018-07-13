@@ -16,7 +16,8 @@ trait AuthToken extends LazyLogging {
 
   // the list of scopes we request from end users when they log in.
   // this should always match exactly what the UI requests, so our tests represent actual user behavior:
-  val userLoginScopes = Seq("profile", "email", "openid")
+  // TODO: remove billing scope from here once billing tests are updated
+  val userLoginScopes = Seq("profile", "email", "openid") ++ billingScope
   // the list of scopes needed by service accounts to do their work:
   val serviceAccountScopes = userLoginScopes ++ Seq("https://www.googleapis.com/auth/devstorage.full_control", "https://www.googleapis.com/auth/cloud-platform")
   // additional scope(s) needed to work with billing. It is the responsibility of callers to concatenate billing scope(s)
