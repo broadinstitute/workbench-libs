@@ -5,7 +5,7 @@ import org.broadinstitute.dsde.workbench.config.{ServiceTestConfig, Credentials}
 
 import scala.collection.JavaConverters._
 
-case class UserAuthToken(user: Credentials) extends AuthToken {
+case class UserAuthToken(user: Credentials, scopes: Seq[String]) extends AuthToken {
   override def buildCredential(): GoogleCredential = {
     val pemfile = new java.io.File(ServiceTestConfig.GCS.pathToQAPem)
     val email = ServiceTestConfig.GCS.qaEmail
@@ -15,7 +15,7 @@ case class UserAuthToken(user: Credentials) extends AuthToken {
       .setJsonFactory(jsonFactory)
       .setServiceAccountId(email)
       .setServiceAccountPrivateKeyFromPemFile(pemfile)
-      .setServiceAccountScopes(userLoginScopes.asJava)
+      .setServiceAccountScopes(scopes.asJava)
       .setServiceAccountUser(user.email)
       .build()
   }

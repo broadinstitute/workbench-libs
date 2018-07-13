@@ -10,20 +10,20 @@ import org.broadinstitute.dsde.workbench.service.util.Retry
 
 import scala.concurrent.duration._
 
+object AuthTokenScopes {
+  // the list of scopes we request from end users when they log in.
+  // this should always match exactly what the UI requests, so our tests represent actual user behavior:
+  val userLoginScopes = Seq("profile", "email", "openid")
+  // the list of scopes needed by service accounts to do their work:
+  val serviceAccountScopes = userLoginScopes ++ Seq("https://www.googleapis.com/auth/devstorage.full_control", "https://www.googleapis.com/auth/cloud-platform")
+  // list of scopes needed to work with billing.
+  // TODO: change cloud-platform (very broad) to cloud-billing! This requires a change to the scopes that the service account is allowed to grant - right now, it can only grant cloud-platform, not cloud-billing.
+  val billingScopes = userLoginScopes ++ Seq("https://www.googleapis.com/auth/cloud-platform")
+}
+
 trait AuthToken extends LazyLogging {
   val httpTransport = GoogleNetHttpTransport.newTrustedTransport
   val jsonFactory = JacksonFactory.getDefaultInstance
-
-  // the list of scopes we request from end users when they log in.
-  // this should always match exactly what the UI requests, so our tests represent actual user behavior:
-  // TODO: remove cloud-platform scope from here once billing tests are updated to request the additional scope they need
-  val userLoginScopes = Seq("profile", "email", "openid", "https://www.googleapis.com/auth/cloud-platform")
-  // the list of scopes needed by service accounts to do their work:
-  val serviceAccountScopes = userLoginScopes ++ Seq("https://www.googleapis.com/auth/devstorage.full_control", "https://www.googleapis.com/auth/cloud-platform")
-  // additional scope(s) needed to work with billing. It is the responsibility of callers to concatenate billing scope(s)
-  // onto previous lists as necessary.
-  val billingScope = Seq("https://www.googleapis.com/auth/cloud-billing")
-
 
   lazy val value: String = makeToken()
 
