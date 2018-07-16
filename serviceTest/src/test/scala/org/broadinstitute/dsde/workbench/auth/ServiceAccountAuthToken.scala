@@ -15,7 +15,7 @@ import scala.collection.JavaConverters._
 
 case class ServiceAccountAuthTokenFromJson(privateKeyJsonString: String, scopes: Option[Seq[String]] = None) extends AuthToken {
   override def buildCredential(): GoogleCredential = {
-    GoogleCredential.fromStream(new ByteArrayInputStream(privateKeyJsonString.getBytes())).createScoped(scopes.getOrElse(authScopes).asJava)
+    GoogleCredential.fromStream(new ByteArrayInputStream(privateKeyJsonString.getBytes())).createScoped(scopes.getOrElse(AuthTokenScopes.serviceAccountScopes).asJava)
   }
 }
 
@@ -29,7 +29,7 @@ class ServiceAccountAuthTokenFromPem(clientId: String, pemFilePath: String, scop
       .setTransport(httpTransport)
       .setJsonFactory(jsonFactory)
       .setServiceAccountId(clientId)
-      .setServiceAccountScopes(scopes.getOrElse(authScopes).asJava)
+      .setServiceAccountScopes(scopes.getOrElse(AuthTokenScopes.serviceAccountScopes).asJava)
       .setServiceAccountPrivateKeyFromPemFile(new java.io.File(pemFilePath))
 
     builder.build()
