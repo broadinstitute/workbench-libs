@@ -2,7 +2,7 @@ package org.broadinstitute.dsde.workbench.service.test
 
 import java.io.{File, FileInputStream, FileOutputStream}
 import java.net.URL
-import java.nio.file.Files
+import java.nio.file.{Files, Path, Paths}
 import java.nio.file.attribute.PosixFilePermission
 import java.text.SimpleDateFormat
 import java.util.UUID
@@ -161,11 +161,8 @@ trait WebBrowserSpec extends WebBrowserUtil with ExceptionHandling with LazyLogg
   }
 
   def createDownloadDirectory(): String = {
-    val downloadPath = s"chrome/downloads/${UUID.randomUUID()}"
-    val dir = new File(downloadPath)
-    dir.deleteOnExit()
-    dir.mkdirs()
-    val path = dir.toPath
+    val basePath: Path = Paths.get(s"chrome/downloads")
+    val path: Path = Files.createTempDirectory(basePath, "temp")
     logger.info(s"mkdir: $path")
     val permissions = Set(
       PosixFilePermission.OWNER_WRITE, PosixFilePermission.OWNER_READ, PosixFilePermission.OWNER_EXECUTE,
