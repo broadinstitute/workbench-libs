@@ -2,7 +2,10 @@ package org.broadinstitute.dsde.workbench.service.test
 
 import java.io.{File, FileInputStream, FileOutputStream}
 import java.net.URL
+import java.nio.file.Files
+import java.nio.file.attribute.PosixFilePermission
 import java.text.SimpleDateFormat
+import java.util.UUID
 
 import com.typesafe.scalalogging.LazyLogging
 import org.broadinstitute.dsde.workbench.config.ServiceTestConfig
@@ -156,4 +159,21 @@ trait WebBrowserSpec extends WebBrowserUtil with ExceptionHandling with LazyLogg
         throw t
     }
   }
+
+  def createDownloadDirectory(): String = {
+    val downloadPath = s"chrome/downloads/${UUID.randomUUID()}"
+    val dir = new File(downloadPath)
+    dir.deleteOnExit()
+    dir.mkdirs()
+    val path = dir.toPath
+    logger.info(s"mkdir: $path")
+    val permissions = Set(
+      PosixFilePermission.OWNER_WRITE, PosixFilePermission.OWNER_READ, PosixFilePermission.OWNER_EXECUTE,
+      PosixFilePermission.GROUP_WRITE, PosixFilePermission.GROUP_READ, PosixFilePermission.GROUP_EXECUTE,
+      PosixFilePermission.OTHERS_WRITE, PosixFilePermission.OTHERS_READ, PosixFilePermission.OTHERS_EXECUTE)
+    import scala.collection.JavaConverters._
+    Files.setPosixFilePermissions(path, permissions.asJava)
+    path.toString
+  }
+
 }
