@@ -29,7 +29,12 @@ case class DockstoreMethod(
 //    source: String = "dockstore",
     methodPath: String,
     methodVersion: String
-    )
+    ) {
+  def methodRepoInfo = Map(
+    "methodPath" -> methodPath,
+    "methodVersion" -> methodVersion
+  )
+}
 
 object DockstoreMethodData {
   val dockstoreMethod = DockstoreMethod(

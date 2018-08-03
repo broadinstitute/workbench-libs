@@ -300,7 +300,7 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
         Map("deleted" -> false,
           "inputs" -> Map.empty,
           "methodConfigVersion" -> 1,
-          "methodRepoMethod" -> DockstoreMethodData.dockstoreMethod,
+          "methodRepoMethod" -> dockstoreMethod.methodRepoInfo,
           "namespace" -> configNamespace,
           "name" -> configName,
           "outputs" -> Map.empty,
