@@ -26,11 +26,12 @@ case class Method(
 }
 
 case class DockstoreMethod(
-//    source: String = "dockstore",
     methodPath: String,
     methodVersion: String
     ) {
+  val source = "dockstore"
   def methodRepoInfo = Map(
+    "sourceRepo" -> source,
     "methodPath" -> methodPath,
     "methodVersion" -> methodVersion
   )
