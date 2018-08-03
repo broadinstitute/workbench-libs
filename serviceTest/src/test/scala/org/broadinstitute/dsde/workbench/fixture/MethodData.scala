@@ -26,7 +26,7 @@ case class Method(
 }
 
 case class DockstoreMethod(
-    source: String = "dockstore",
+//    source: String = "dockstore",
     methodPath: String,
     methodVersion: String
     )
