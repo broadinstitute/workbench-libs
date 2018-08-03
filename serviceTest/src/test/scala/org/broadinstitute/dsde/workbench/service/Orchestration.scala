@@ -5,7 +5,7 @@ import com.typesafe.scalalogging.LazyLogging
 import org.broadinstitute.dsde.workbench.service.WorkspaceAccessLevel.WorkspaceAccessLevel
 import org.broadinstitute.dsde.workbench.auth.AuthToken
 import org.broadinstitute.dsde.workbench.config.ServiceTestConfig
-import org.broadinstitute.dsde.workbench.fixture.Method
+import org.broadinstitute.dsde.workbench.fixture.{DockstoreMethod, DockstoreMethodData, Method}
 import org.broadinstitute.dsde.workbench.fixture.MethodData.SimpleMethod
 import org.broadinstitute.dsde.workbench.service.Sam.user.UserStatusDetails
 import org.broadinstitute.dsde.workbench.service.util.Retry
@@ -290,6 +290,21 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
           "outputs" -> outputs,
           "prerequisites" -> Map(),
           "rootEntityType" -> rootEntityType)
+      )
+    }
+
+    def createDockstoreMethodConfigInWorkspace(wsNs: String, wsName: String, dockstoreMethod: DockstoreMethod,
+                                               configNamespace: String, configName: String)(implicit token: AuthToken): Unit = {
+      logger.info(s"Creating dockstore method config: $wsNs/$wsName method: ${dockstoreMethod.methodPath}${dockstoreMethod.methodVersion} config: $configNamespace/$configName")
+      postRequest(apiUrl(s"api/workspaces/$wsNs/$wsName/methodconfigs"),
+        Map("deleted" -> false,
+          "inputs" -> Map.empty,
+          "methodConfigVersion" -> 1,
+          "methodRepoMethod" -> DockstoreMethodData.dockstoreMethod,
+          "namespace" -> configNamespace,
+          "name" -> configName,
+          "outputs" -> Map.empty,
+          "prerequisites" -> Map.empty)
       )
     }
 
