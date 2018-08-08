@@ -22,8 +22,27 @@ case class Method(
     "methodName" -> methodName,
     "methodVersion" -> snapshotId
   )
+
 }
 
+case class DockstoreMethod(
+    methodPath: String,
+    methodVersion: String
+    ) {
+  val source = "dockstore"
+  def methodRepoInfo = Map(
+    "sourceRepo" -> source,
+    "methodPath" -> methodPath,
+    "methodVersion" -> methodVersion
+  )
+}
+
+object DockstoreMethodData {
+  val dockstoreMethod = DockstoreMethod(
+    methodPath ="github.com/DataBiosphere/topmed-workflows/u_of_Michigan_alignment_pipeline",
+    methodVersion = "1.13.0"
+  )
+}
 /* METHODS */
 object MethodData {
   val SimpleMethod = Method(
