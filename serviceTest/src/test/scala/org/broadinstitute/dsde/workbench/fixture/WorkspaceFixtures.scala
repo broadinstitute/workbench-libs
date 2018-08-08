@@ -33,7 +33,8 @@ trait WorkspaceFixtures extends ExceptionHandling with RandomUtil { self: TestSu
                    (testCode: (String) => Any)(implicit token: AuthToken): Unit = {
     val workspaceName = uuidWithPrefix(namePrefix, " ")
     Orchestration.workspaces.create(namespace, workspaceName, authDomain)
-    Orchestration.workspaces.updateAcl(namespace, workspaceName, aclEntries)
+    if (aclEntries.nonEmpty)
+      Orchestration.workspaces.updateAcl(namespace, workspaceName, aclEntries)
     if (attributes.isDefined)
       Orchestration.workspaces.setAttributes(namespace, workspaceName, attributes.get)
     val testTrial = Try {
