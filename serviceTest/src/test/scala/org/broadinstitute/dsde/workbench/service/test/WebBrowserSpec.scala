@@ -83,6 +83,8 @@ trait WebBrowserSpec extends WebBrowserUtil with ExceptionHandling with LazyLogg
     options.addArguments("--disable-hang-monitor")
     options.addArguments("--disable-popup-blocking")
     options.addArguments("--disable-sync")
+    options.addArguments("--disable-background-timer-throttling")
+    options.addArguments("--disable-renderer-backgrounding")
     if (java.lang.Boolean.parseBoolean(System.getProperty("burp.proxy"))) {
       options.addArguments("--proxy-server=http://127.0.0.1:8080")
     }
