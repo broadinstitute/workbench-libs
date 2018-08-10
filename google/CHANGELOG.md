@@ -4,7 +4,7 @@ This file documents changes to the `workbench-google` library, including notes o
 
 ## 0.16
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.16-7c48765"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.16-TRAVIS-REPLACE-ME"`
 
 ### Added
 - `org.broadinstitute.dsde.workbench.google.GoogleIamDAO#findServiceAccount(serviceAccountProject: GoogleProject, serviceAccountEmail: WorkbenchEmail)`
@@ -13,6 +13,7 @@ SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.
    - `org.broadinstitute.dsde.workbench.google.GoogleBigQueryDAO#startParameterizedQuery(project: GoogleProject, querySql: String, queryParameters: java.util.List[QueryParameter], parameterMode: String)`
 - Added `GoogleProjectDAO`
 - Added `testIamPermission` method to `GoogleIamDAO`
+- Added optional group settings when creating google groups 
    
 ### Changed
 - org.broadinstitute.dsde.workbench.google.mock.MockGoogleIamDAO supports multiple keys for a service account (like the real thing)
