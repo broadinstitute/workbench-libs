@@ -8,6 +8,8 @@ import com.google.api.client.googleapis.auth.oauth2.GoogleClientSecrets
 import com.google.api.client.http.HttpResponseException
 import com.google.api.services.admin.directory.model.{Group, Member, Members}
 import com.google.api.services.admin.directory.{Directory, DirectoryScopes}
+import com.google.api.services.groupssettings.{Groupssettings, GroupssettingsScopes}
+import com.google.api.services.groupssettings.model.{Groups => GroupSettings}
 import org.broadinstitute.dsde.workbench.google.GoogleCredentialModes._
 import org.broadinstitute.dsde.workbench.metrics.GoogleInstrumentedService
 import org.broadinstitute.dsde.workbench.model._
@@ -24,6 +26,24 @@ class HttpGoogleDirectoryDAO(appName: String,
                              maxPageSize: Int = 200)
                             (implicit system: ActorSystem, executionContext: ExecutionContext)
   extends AbstractHttpGoogleDAO(appName, googleCredentialMode, workbenchMetricBaseName) with GoogleDirectoryDAO {
+
+  /**
+    * This is a nested class because the scopes need to be different and having one credential with scopes for both
+    * DirectoryScopes.ADMIN_DIRECTORY_GROUP and GroupssettingsScopes.APPS_GROUPS_SETTINGS results in a 401 error
+    * getting a token. It does not feel right to expose this as a top level class. I don't know why google decided
+    * to split out this api but I feel like it should be bundled.
+    */
+  private class GroupSettingsDAO() extends AbstractHttpGoogleDAO(appName, googleCredentialMode, workbenchMetricBaseName) {
+    override implicit val service = GoogleInstrumentedService.Groups
+    override val scopes = Seq(GroupssettingsScopes.APPS_GROUPS_SETTINGS)
+    private lazy val settingsClient = new Groupssettings.Builder(httpTransport, jsonFactory, googleCredential).setApplicationName(appName).build()
+
+
+    def updateGroupSettings(groupEmail: WorkbenchEmail, settings: GroupSettings) = {
+      val updater = settingsClient.groups().update(groupEmail.value, settings)
+      retryWhen500orGoogleError (() => { executeGoogleRequest(updater) })
+    }
+  }
 
   @deprecated(message = "This way of instantiating HttpGoogleDirectoryDAO has been deprecated. Please update to use the primary constructor.", since = "0.15")
   def this (serviceAccountClientId: String,
@@ -59,12 +79,18 @@ class HttpGoogleDirectoryDAO(appName: String,
 
   override def createGroup(groupId: WorkbenchGroupName, groupEmail: WorkbenchEmail): Future[Unit] = createGroup(groupId.value, groupEmail)
 
-  override def createGroup(displayName: String, groupEmail: WorkbenchEmail): Future[Unit] = {
+  override def createGroup(displayName: String, groupEmail: WorkbenchEmail, groupSettings: Option[GroupSettings] = None): Future[Unit] = {
     val groups = directory.groups
     val group = new Group().setEmail(groupEmail.value).setName(displayName.take(60)) //max google group name length is 60 characters
     val inserter = groups.insert(group)
 
-    retryWhen500orGoogleError (() => { executeGoogleRequest(inserter) })
+    for {
+      _ <- retryWhen500orGoogleError (() => { executeGoogleRequest(inserter) })
+      _ <- groupSettings match {
+        case None => Future.successful(())
+        case Some(settings) => new GroupSettingsDAO().updateGroupSettings(groupEmail, settings)
+      }
+    } yield ()
   }
 
   override def deleteGroup(groupEmail: WorkbenchEmail): Future[Unit] = {

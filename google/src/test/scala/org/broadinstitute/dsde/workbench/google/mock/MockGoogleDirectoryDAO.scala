@@ -1,6 +1,7 @@
 package org.broadinstitute.dsde.workbench.google.mock
 
 import com.google.api.services.admin.directory.model.Group
+import com.google.api.services.groupssettings.model.{Groups => GroupSettings}
 import org.broadinstitute.dsde.workbench.google.GoogleDirectoryDAO
 import org.broadinstitute.dsde.workbench.model._
 
@@ -16,7 +17,7 @@ class MockGoogleDirectoryDAO( implicit val executionContext: ExecutionContext ) 
 
   override def createGroup(groupName: WorkbenchGroupName, groupEmail: WorkbenchEmail): Future[Unit] = createGroup(groupName.value, groupEmail)
 
-  override def createGroup(displayName: String, groupEmail: WorkbenchEmail): Future[Unit] = {
+  override def createGroup(displayName: String, groupEmail: WorkbenchEmail, groupSettings: Option[GroupSettings] = None): Future[Unit] = {
     Future.successful(groups.putIfAbsent(groupEmail, Set.empty))
   }
 
