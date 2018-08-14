@@ -98,6 +98,11 @@ trait Rawls extends RestClient with LazyLogging {
       parseResponse(getRequest(url + s"api/workspaces/$billingProject/$workspaceName/submissions/$submissionId/workflows/$workflowId"))
     }
 
+    def getWorkflowOutputs(billingProject: String, workspaceName: String, submissionId: String, workflowId: String)(implicit token: AuthToken): String = {
+      logger.info(s"Get workflow metadata: $billingProject/$workspaceName/$submissionId/$workflowId")
+      parseResponse(getRequest(url + s"api/workspaces/$billingProject/$workspaceName/submissions/$submissionId/workflows/$workflowId/outputs"))
+    }
+
     def abortSubmission(billingProject: String, workspaceName: String, submissionId: String)(implicit token: AuthToken): String = {
       logger.info(s"Abort submission: $billingProject/$workspaceName/$submissionId")
       deleteRequest(url + s"api/workspaces/$billingProject/$workspaceName/submissions/$submissionId")
