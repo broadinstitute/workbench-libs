@@ -5,6 +5,7 @@ import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.HttpMethods._
 import akka.http.scaladsl.model.headers.{Authorization, OAuth2BearerToken}
 import akka.http.scaladsl.model.{Multipart, _}
+import akka.http.scaladsl.settings.{ClientConnectionSettings, ConnectionPoolSettings}
 import akka.stream.ActorMaterializer
 import akka.stream.scaladsl._
 import akka.util.ByteString
@@ -22,6 +23,10 @@ trait RestClient extends Retry with LazyLogging {
   implicit val system = ActorSystem()
   implicit val materializer = ActorMaterializer()
   implicit val ec: ExecutionContextExecutor = system.dispatcher
+
+  val idleTimeout = 2.minutes
+  val connectionSettings = ClientConnectionSettings(system).withIdleTimeout(idleTimeout)
+  val connectionPoolSettings = ConnectionPoolSettings(system).withConnectionSettings(connectionSettings)
 
   val mapper = new ObjectMapper()
   mapper.registerModule(DefaultScalaModule)
@@ -49,7 +54,7 @@ trait RestClient extends Retry with LazyLogging {
 
   private def sendRequest(httpRequest: HttpRequest): HttpResponse = {
     val responseFuture = retryExponentially() {
-      () => Http().singleRequest(httpRequest).map { response =>
+      () => Http().singleRequest(request = httpRequest, settings = connectionPoolSettings).map { response =>
         // retry any 401 or 500 errors - this is because we have seen the proxy get backend errors
         // from google querying for token info which causes a 401 if it is at the level if the
         // service being directly called or a 500 if it happens at a lower level service
