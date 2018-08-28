@@ -63,7 +63,7 @@ trait BillingFixtures extends ExceptionHandling with LazyLogging with CleanUp wi
   }
 
   private def deleteBillingProject(billingProjectName: String)(implicit token: AuthToken): Unit = {
-    val projectOwnerInfo = UserInfo(OAuth2BearerToken(token.value), WorkbenchUserId(""), WorkbenchEmail("doesnt@matter.com"), 100)
+    val projectOwnerInfo = UserInfo(OAuth2BearerToken(token.value), WorkbenchUserId(""), None, WorkbenchEmail("doesnt@matter.com"), 100)
     Rawls.admin.deleteBillingProject(billingProjectName, projectOwnerInfo)(UserPool.chooseAdmin.makeAuthToken())
   }
 
@@ -122,7 +122,7 @@ trait BillingFixtures extends ExceptionHandling with LazyLogging with CleanUp wi
         //the Rawls endpoint to register a precreated project needs to be called by a Rawls admin
         //but it also takes the new owner's UserInfo in order to create the resource as them in Sam
         val adminToken = UserPool.chooseAdmin.makeAuthToken()
-        val newOwnerUserInfo = UserInfo(OAuth2BearerToken(newOwnerToken().value), WorkbenchUserId("0"), WorkbenchEmail(newOwnerEmail), 3600)
+        val newOwnerUserInfo = UserInfo(OAuth2BearerToken(newOwnerToken().value), WorkbenchUserId("0"), None, WorkbenchEmail(newOwnerEmail), 3600)
         Rawls.admin.claimProject(project.projectName, project.cromwellAuthBucketUrl, newOwnerUserInfo)(adminToken)
 
         addMembersToBillingProject(project.projectName, ownerEmails, BillingProjectRole.Owner)(newOwnerToken())
@@ -157,7 +157,7 @@ trait BillingFixtures extends ExceptionHandling with LazyLogging with CleanUp wi
     */
   def releaseGPAllocProject(projectName: String, ownerEmail: String)(ownerToken: () => AuthToken): Unit = {
     val adminToken = UserPool.chooseAdmin.makeAuthToken()
-    val newOwnerUserInfo = UserInfo(OAuth2BearerToken(ownerToken().value), WorkbenchUserId("0"), WorkbenchEmail(ownerEmail), 3600)
+    val newOwnerUserInfo = UserInfo(OAuth2BearerToken(ownerToken().value), WorkbenchUserId("0"), None, WorkbenchEmail(ownerEmail), 3600)
     Rawls.admin.releaseProject(projectName, newOwnerUserInfo)(adminToken)
     GPAlloc.projects.releaseProject(projectName)(ownerToken())
   }

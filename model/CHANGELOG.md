@@ -2,6 +2,9 @@
 
 This file documents changes to the `workbench-model` library, including notes on how to upgrade to new versions.
 
+## 0.12
+- Add `googleSubjectId` as a separate field to `WorkbenchUser`
+
 ## 0.11
 
 SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-model" % "0.11-2bddd5b"`
