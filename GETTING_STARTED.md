@@ -14,14 +14,14 @@ export ARTIFACTORY_PASSWORD=$(docker run -v $HOME:/root --rm broadinstitute/dsde
 ## Bootstrapping
 
 1. Check [CONTRIBUTING.md](CONTRIBUTING.md) to decide whether or not you need a major or minor version bump and update `Settings.scala` if so
-1. `sbt +publish-local -Dproject.isSnapshot=true` (Note: **`publish-local`**)
+1. `sbt +publish-local -Dproject.isSnapshot=true`, or `sbt "project <project_name>" +publish-local -Dproject.isSnapshot=true` (Note: **`publish-local`**)
 1. Search output for a line like `published workbench-service-test_2.12 to https://broadinstitute.jfrog.io/broadinstitute/libs-release-local;build.timestamp=1517520351/org/broadinstitute/dsde/workbench/workbench-service-test_2.12/0.1-99285a4-SNAP/workbench-service-test_2.12-0.1-99285a4-SNAP.jar` and copy the `0.1-99285a4-SNAP` part
 1. Update versions in dependent projects as needed
 
 ## Development
 
 1. Write code
-1. `sbt +publish-local -Dproject.isSnapshot=true` (Note: **`publish-local`**)
+1. `sbt +publish-local -Dproject.isSnapshot=true`, or `sbt "project <project_name>" +publish-local -Dproject.isSnapshot=true` if you want to publish a specific project (Note: **`publish-local`**)
 
 ## Making Intermediate Commits
 
@@ -30,9 +30,9 @@ export ARTIFACTORY_PASSWORD=$(docker run -v $HOME:/root --rm broadinstitute/dsde
 1. Redo Bootstrapping steps if making further changes
 
 ## Sharing Branch Artifacts via Artifactory
-
+1. Get artifactory username and password from a friend :)
 1. Commit changes to branch (push optional)
-1. `sbt +publish -Dproject.isSnapshot=true`
+1. `sbt +publish -Dproject.isSnapshot=true`, or `sbt "project <project_name>" +publish -Dproject.isSnapshot=true`
 1. Search output for a line like `published workbench-service-test_2.12 to https://broadinstitute.jfrog.io/broadinstitute/libs-release-local;build.timestamp=1517520351/org/broadinstitute/dsde/workbench/workbench-service-test_2.12/0.1-99285a4-SNAP/workbench-service-test_2.12-0.1-99285a4-SNAP.jar` and copy the `0.1-99285a4-SNAP` part
 1. Share version # with all your friends
 
