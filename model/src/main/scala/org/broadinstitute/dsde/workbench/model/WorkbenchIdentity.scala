@@ -1,6 +1,6 @@
 package org.broadinstitute.dsde.workbench.model
 
-import org.broadinstitute.dsde.workbench.model.google.{GoogleProject, ServiceAccount, ServiceAccountSubjectId}
+import org.broadinstitute.dsde.workbench.model.google.{GoogleProject, ServiceAccount}
 
 /**
   * Created by mbemis on 8/23/17.
@@ -11,17 +11,18 @@ object WorkbenchIdentityJsonSupport {
 
   implicit val WorkbenchEmailFormat = ValueObjectFormat(WorkbenchEmail)
   implicit val WorkbenchUserIdFormat = ValueObjectFormat(WorkbenchUserId)
-  implicit val WorkbenchUserFormat = jsonFormat2(WorkbenchUser)
+  implicit val googleSubjectIdFormat = ValueObjectFormat(GoogleSubjectId)
+  implicit val WorkbenchUserFormat = jsonFormat3(WorkbenchUser)
 
   implicit val WorkbenchGroupNameFormat = ValueObjectFormat(WorkbenchGroupName)
 }
 
 sealed trait WorkbenchSubject
 
-case class WorkbenchEmail(value: String) extends ValueObject
-
-case class WorkbenchUser(id: WorkbenchUserId, email: WorkbenchEmail)
-case class WorkbenchUserId(value: String) extends WorkbenchSubject with ValueObject
+final case class WorkbenchEmail(value: String) extends ValueObject
+final case class GoogleSubjectId(value: String) extends ValueObject
+final case class WorkbenchUser(id: WorkbenchUserId, googleSubjectId: Option[GoogleSubjectId], email: WorkbenchEmail)
+final case class WorkbenchUserId(value: String) extends WorkbenchSubject with ValueObject
 
 trait WorkbenchGroup { val id: WorkbenchGroupIdentity; val members: Set[WorkbenchSubject]; val email: WorkbenchEmail }
 trait WorkbenchGroupIdentity extends WorkbenchSubject
