@@ -19,14 +19,19 @@ import scala.concurrent.duration._
 import scala.concurrent.{Await, ExecutionContextExecutor, Future}
 import scala.util.Try
 
+
 trait RestClient extends Retry with LazyLogging {
   implicit val system = ActorSystem()
   implicit val materializer = ActorMaterializer()
   implicit val ec: ExecutionContextExecutor = system.dispatcher
 
+  // increase TCP idle-timeout
   val idleTimeout = 2.minutes
-  val connectionSettings = ClientConnectionSettings(system).withIdleTimeout(idleTimeout)
-  val connectionPoolSettings = ConnectionPoolSettings(system).withConnectionSettings(connectionSettings)
+  // val connectionSettings = ClientConnectionSettings(system).withIdleTimeout(idleTimeout)
+  // val connectionPoolSettings = ConnectionPoolSettings(system).withConnectionSettings(connectionSettings)
+  val orig = ConnectionPoolSettings(system.settings.config).copy(idleTimeout = idleTimeout)
+  val clientSettings = orig.connectionSettings.withIdleTimeout(idleTimeout)
+  val connectionPoolSettings = orig.copy(connectionSettings = clientSettings)
 
   val mapper = new ObjectMapper()
   mapper.registerModule(DefaultScalaModule)
