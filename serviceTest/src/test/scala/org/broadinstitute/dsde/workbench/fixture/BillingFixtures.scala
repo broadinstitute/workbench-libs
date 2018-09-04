@@ -132,26 +132,28 @@ trait BillingFixtures extends ExceptionHandling with LazyLogging with CleanUp wi
         case Some(project) =>
           //the Rawls endpoint to register a precreated project needs to be called by a Rawls admin
           //but it also takes the new owner's UserInfo in order to create the resource as them in Sam
-          val adminToken = UserPool.chooseAdmin.makeAuthToken()
+          val admin = UserPool.chooseAdmin
+          val adminToken = admin.makeAuthToken()
           val newOwnerUserInfo = UserInfo(OAuth2BearerToken(newOwnerToken().value), WorkbenchUserId("0"), WorkbenchEmail(newOwnerEmail), 3600)
           try {
             Rawls.admin.claimProject(project.projectName, project.cromwellAuthBucketUrl, newOwnerUserInfo)(adminToken)
-            if (ownerEmails.nonEmpty) {
-              addMembersToBillingProject(project.projectName, ownerEmails, BillingProjectRole.Owner)(newOwnerToken())
-            }
-            if (userEmails.nonEmpty) {
-              addMembersToBillingProject(project.projectName, userEmails, BillingProjectRole.User)(newOwnerToken())
-            }
-            ClaimedProject(project.projectName, gpAlloced = true)
           } catch {
             case e: Exception =>
               // Rawls claim project request sometimes fail
               // e.g. of error "Cannot create billing project [gpalloc-qa-master-2z4jdey] in database because it already exists"
-              logger.warn(s"ERROR occurred in claimGPAllocProject. Release unusable GPAlloc billing project ${project.projectName}.")
-              releaseGPAllocProject(project.projectName, newOwnerEmail)(newOwnerToken)
+              logger.warn(s"ERROR occurred in claimGPAllocProject. Release unusable billing project ${project.projectName}.")
+              Rawls.admin.releaseProject(project.projectName, newOwnerUserInfo)(adminToken)
+              GPAlloc.projects.releaseProject(project.projectName)(newOwnerToken())
               Thread sleep Random.nextInt(30000)
               throw e
           }
+          if (ownerEmails.nonEmpty) {
+            addMembersToBillingProject(project.projectName, ownerEmails, BillingProjectRole.Owner)(newOwnerToken())
+          }
+          if (userEmails.nonEmpty) {
+            addMembersToBillingProject(project.projectName, userEmails, BillingProjectRole.User)(newOwnerToken())
+          }
+          ClaimedProject(project.projectName, gpAlloced = true)
         case _ =>
           logger.warn("claimGPAllocProject got no project back from GPAlloc. Falling back to making a brand new one...")
           val billingProjectName = createNewBillingProject("billingproj", ownerEmails, userEmails)(newOwnerToken())
@@ -159,7 +161,7 @@ trait BillingFixtures extends ExceptionHandling with LazyLogging with CleanUp wi
       }
     }
 
-    Await.result(retryFuture, 5.minutes)
+    Await.result(retryFuture, 15.minutes)
   }
 
   /**
