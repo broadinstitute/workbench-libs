@@ -1,6 +1,7 @@
 package org.broadinstitute.dsde.workbench.service
 
 import akka.actor.ActorSystem
+import akka.dispatch.MessageDispatcher
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.HttpMethods._
 import akka.http.scaladsl.model.headers.{Authorization, OAuth2BearerToken}
@@ -23,7 +24,8 @@ import scala.util.Try
 trait RestClient extends Retry with LazyLogging {
   implicit val system = ActorSystem()
   implicit val materializer = ActorMaterializer()
-  implicit val ec: ExecutionContextExecutor = system.dispatcher
+  //implicit val ec: ExecutionContextExecutor = system.dispatcher
+  implicit val blockingDispatcher: MessageDispatcher = system.dispatchers.lookup("blocking-dispatcher")
 
   // increase TCP idle-timeout
   // val idleTimeout = 2.minutes
