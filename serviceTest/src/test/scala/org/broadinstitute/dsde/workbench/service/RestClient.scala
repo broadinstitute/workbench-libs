@@ -17,15 +17,22 @@ import org.broadinstitute.dsde.workbench.auth.AuthToken
 import org.broadinstitute.dsde.workbench.util.Retry
 
 import scala.concurrent.duration._
-import scala.concurrent.{Await, ExecutionContextExecutor, Future}
+import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.util.Try
 
 
 trait RestClient extends Retry with LazyLogging {
-  implicit val system = ActorSystem()
+
+  import com.typesafe.config._
+
+  // val config = ConfigFactory.parseResources("application.conf").withFallback(ConfigFactory.load())
+
+
+  implicit val system = ActorSystem("workbenchServiceTest")
   implicit val materializer = ActorMaterializer()
-  //implicit val ec: ExecutionContextExecutor = system.dispatcher
-  implicit val blockingDispatcher: MessageDispatcher = system.dispatchers.lookup("akka.actor.blocking-dispatcher")
+  // implicit val ec: ExecutionContext = system.dispatcher
+  implicit val ec: ExecutionContext = system.dispatchers.lookup("akka.actor.blocking-dispatcher")
+
 
   // increase TCP idle-timeout
   // val idleTimeout = 2.minutes
