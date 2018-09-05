@@ -26,12 +26,11 @@ trait RestClient extends Retry with LazyLogging {
   implicit val ec: ExecutionContextExecutor = system.dispatcher
 
   // increase TCP idle-timeout
-  val idleTimeout = 2.minutes
+  // val idleTimeout = 2.minutes
   // val connectionSettings = ClientConnectionSettings(system).withIdleTimeout(idleTimeout)
   // val connectionPoolSettings = ConnectionPoolSettings(system).withConnectionSettings(connectionSettings)
-  val orig = ConnectionPoolSettings(system.settings.config).copy(idleTimeout = idleTimeout)
-  val clientSettings = orig.connectionSettings.withIdleTimeout(idleTimeout)
-  val connectionPoolSettings = orig.copy(connectionSettings = clientSettings)
+  // val connectionSettings: ClientConnectionSettings = ClientConnectionSettings(system).withIdleTimeout(idleTimeout)
+  // val connectionPoolSettings = ConnectionPoolSettings(system).withConnectionSettings(connectionSettings)
 
   val mapper = new ObjectMapper()
   mapper.registerModule(DefaultScalaModule)
@@ -59,7 +58,7 @@ trait RestClient extends Retry with LazyLogging {
 
   private def sendRequest(httpRequest: HttpRequest): HttpResponse = {
     val responseFuture = retryExponentially() {
-      () => Http().singleRequest(request = httpRequest, settings = connectionPoolSettings).map { response =>
+      () => Http().singleRequest(request = httpRequest).map { response =>
         // retry any 401 or 500 errors - this is because we have seen the proxy get backend errors
         // from google querying for token info which causes a 401 if it is at the level if the
         // service being directly called or a 500 if it happens at a lower level service
