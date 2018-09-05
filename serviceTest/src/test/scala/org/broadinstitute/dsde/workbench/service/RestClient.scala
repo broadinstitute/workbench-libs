@@ -1,12 +1,10 @@
 package org.broadinstitute.dsde.workbench.service
 
 import akka.actor.ActorSystem
-import akka.dispatch.MessageDispatcher
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.HttpMethods._
 import akka.http.scaladsl.model.headers.{Authorization, OAuth2BearerToken}
 import akka.http.scaladsl.model.{Multipart, _}
-import akka.http.scaladsl.settings.{ClientConnectionSettings, ConnectionPoolSettings}
 import akka.stream.ActorMaterializer
 import akka.stream.scaladsl._
 import akka.util.ByteString
@@ -23,23 +21,9 @@ import scala.util.Try
 
 trait RestClient extends Retry with LazyLogging {
 
-  import com.typesafe.config._
-
-  // val config = ConfigFactory.parseResources("application.conf").withFallback(ConfigFactory.load())
-
-
-  implicit val system = ActorSystem("workbenchServiceTest")
+  implicit val system = ActorSystem("WorkbenchLibService")
   implicit val materializer = ActorMaterializer()
-  // implicit val ec: ExecutionContext = system.dispatcher
   implicit val ec: ExecutionContext = system.dispatchers.lookup("akka.actor.blocking-dispatcher")
-
-
-  // increase TCP idle-timeout
-  // val idleTimeout = 2.minutes
-  // val connectionSettings = ClientConnectionSettings(system).withIdleTimeout(idleTimeout)
-  // val connectionPoolSettings = ConnectionPoolSettings(system).withConnectionSettings(connectionSettings)
-  // val connectionSettings: ClientConnectionSettings = ClientConnectionSettings(system).withIdleTimeout(idleTimeout)
-  // val connectionPoolSettings = ConnectionPoolSettings(system).withConnectionSettings(connectionSettings)
 
   val mapper = new ObjectMapper()
   mapper.registerModule(DefaultScalaModule)
