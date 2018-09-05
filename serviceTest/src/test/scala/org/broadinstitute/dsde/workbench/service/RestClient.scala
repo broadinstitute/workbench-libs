@@ -25,7 +25,7 @@ trait RestClient extends Retry with LazyLogging {
   implicit val system = ActorSystem()
   implicit val materializer = ActorMaterializer()
   //implicit val ec: ExecutionContextExecutor = system.dispatcher
-  implicit val blockingDispatcher: MessageDispatcher = system.dispatchers.lookup("blocking-dispatcher")
+  implicit val blockingDispatcher: MessageDispatcher = system.dispatchers.lookup("akka.actor.blocking-dispatcher")
 
   // increase TCP idle-timeout
   // val idleTimeout = 2.minutes
