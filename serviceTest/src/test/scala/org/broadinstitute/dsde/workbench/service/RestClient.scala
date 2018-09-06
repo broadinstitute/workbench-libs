@@ -15,13 +15,15 @@ import org.broadinstitute.dsde.workbench.auth.AuthToken
 import org.broadinstitute.dsde.workbench.util.Retry
 
 import scala.concurrent.duration._
-import scala.concurrent.{Await, ExecutionContextExecutor, Future}
+import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.util.Try
 
+
 trait RestClient extends Retry with LazyLogging {
-  implicit val system = ActorSystem()
+
+  implicit val system = ActorSystem("WorkbenchLibService")
   implicit val materializer = ActorMaterializer()
-  implicit val ec: ExecutionContextExecutor = system.dispatcher
+  implicit val ec: ExecutionContext = system.dispatchers.lookup("akka.actor.blocking-dispatcher")
 
   val mapper = new ObjectMapper()
   mapper.registerModule(DefaultScalaModule)
@@ -49,7 +51,7 @@ trait RestClient extends Retry with LazyLogging {
 
   private def sendRequest(httpRequest: HttpRequest): HttpResponse = {
     val responseFuture = retryExponentially() {
-      () => Http().singleRequest(httpRequest).map { response =>
+      () => Http().singleRequest(request = httpRequest).map { response =>
         // retry any 401 or 500 errors - this is because we have seen the proxy get backend errors
         // from google querying for token info which causes a 401 if it is at the level if the
         // service being directly called or a 500 if it happens at a lower level service
