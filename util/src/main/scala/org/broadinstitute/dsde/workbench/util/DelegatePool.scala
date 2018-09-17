@@ -2,6 +2,8 @@ package org.broadinstitute.dsde.workbench.util
 
 import java.lang.reflect.{InvocationHandler, Method, Proxy}
 
+import cats.data.NonEmptyList
+
 import scala.reflect.ClassTag
 import scala.util.Random
 
@@ -21,18 +23,19 @@ object DelegatePool {
     * @tparam T the trait that all the delegates implement, must be a trait
     * @return
     */
-  def apply[T : ClassTag](delegates: Seq[T]): T = {
-    if(delegates.isEmpty) {
-      throw new IllegalArgumentException("must specify at least 1 delegate")
-    }
+  def apply[T : ClassTag](delegates: NonEmptyList[T]): T = {
     Proxy.newProxyInstance(getClass.getClassLoader, Array(implicitly[ClassTag[T]].runtimeClass), new DelegatePoolInvocationHandler[T](delegates)).asInstanceOf[T]
   }
 }
 
-private class DelegatePoolInvocationHandler[T](delegates: Seq[T]) extends InvocationHandler {
+private class DelegatePoolInvocationHandler[T](delegatesNEL: NonEmptyList[T]) extends InvocationHandler {
+  private val delegates = delegatesNEL.toList
+
   override def invoke(proxy: scala.Any, method: Method, args: Array[AnyRef]): AnyRef = {
     method.invoke(chooseDelegate(), args:_*)
   }
 
-  private def chooseDelegate(): T = delegates(Random.nextInt(delegates.size))
+  private def chooseDelegate(): T = {
+    delegates(Random.nextInt(delegates.size))
+  }
 }

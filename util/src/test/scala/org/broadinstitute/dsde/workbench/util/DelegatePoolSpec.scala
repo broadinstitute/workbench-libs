@@ -2,6 +2,7 @@ package org.broadinstitute.dsde.workbench.util
 
 import java.util.UUID
 
+import cats.data.NonEmptyList
 import org.scalatest.{BeforeAndAfterAll, FlatSpec, Matchers}
 
 class DelegatePoolSpec extends FlatSpec with BeforeAndAfterAll with Matchers {
@@ -10,7 +11,7 @@ class DelegatePoolSpec extends FlatSpec with BeforeAndAfterAll with Matchers {
     val trials = 1000
 
     val delegates = for(_ <- 1 to poolSize) yield new PoolClass(UUID.randomUUID().toString)
-    val delegatePool = DelegatePool[PoolTrait](delegates)
+    val delegatePool = DelegatePool[PoolTrait](NonEmptyList.fromListUnsafe(delegates.toList))
 
     val delegatesHit = for(i <- 1 to trials) yield {
       val (probe, id) = delegatePool.test(i)
@@ -18,7 +19,7 @@ class DelegatePoolSpec extends FlatSpec with BeforeAndAfterAll with Matchers {
       id
     }
 
-    val delegatesHitGrouped = delegatesHit.groupBy(x=>x)
+    val delegatesHitGrouped = delegatesHit.groupBy(identity)
 
     // every delegate in the pool should have been hit
     delegatesHitGrouped.size should equal(poolSize)
