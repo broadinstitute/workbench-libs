@@ -43,9 +43,23 @@ object GoogleCredentialModes {
   /**
     * Gets a GoogleCredential from a JSON key.
     */
-  case class Json(json: String) extends GoogleCredentialMode {
+  case class Json(json: String, serviceAccountUser: Option[WorkbenchEmail] = None) extends GoogleCredentialMode {
     def toGoogleCredential(scopes: Seq[String]) = {
-      GoogleCredential.fromStream(new ByteArrayInputStream(json.getBytes(Charsets.UTF_8))).createScoped(scopes.asJava)
+      val creds = GoogleCredential.fromStream(new ByteArrayInputStream(json.getBytes(Charsets.UTF_8)))
+
+      // unfortunately there is no built in way to set the service account user once creds are built from stream
+      // so rebuild them (this used to call creds.createScoped which does the same thing under the hood)
+      new GoogleCredential.Builder()
+        .setServiceAccountPrivateKey(creds.getServiceAccountPrivateKey)
+        .setServiceAccountPrivateKeyId(creds.getServiceAccountPrivateKeyId)
+        .setServiceAccountId(creds.getServiceAccountId)
+        .setServiceAccountUser(serviceAccountUser.map(_.value).orNull)
+        .setServiceAccountScopes(scopes.asJava)
+        .setTokenServerEncodedUrl(creds.getTokenServerEncodedUrl)
+        .setTransport(creds.getTransport)
+        .setJsonFactory(creds.getJsonFactory)
+        .setClock(creds.getClock)
+        .build()
     }
   }
 
