@@ -1,13 +1,14 @@
 package org.broadinstitute.dsde.workbench.google
 
 import akka.actor.ActorSystem
+import akka.http.scaladsl.model.StatusCodes
+import com.google.api.client.http.HttpResponseException
 import com.google.api.services.cloudresourcemanager.CloudResourceManager
 import com.google.api.services.cloudresourcemanager.model.{Operation, Project}
 import com.google.api.services.compute.ComputeScopes
 import org.broadinstitute.dsde.workbench.google.GoogleCredentialModes._
 import org.broadinstitute.dsde.workbench.google.GoogleCredentialModes.GoogleCredentialMode
 import org.broadinstitute.dsde.workbench.metrics.GoogleInstrumentedService
-import org.broadinstitute.dsde.workbench.model.WorkbenchException
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -37,6 +38,21 @@ class HttpGoogleProjectDAO(appName: String,
     retryWhen500orGoogleError(() => {
       executeGoogleRequest(cloudResManager.operations().get(operationId))
     })
+  }
+
+  def isProjectActive(projectName: String): Future[Boolean] = {
+    retryWithRecoverWhen500orGoogleError { () =>
+      // get the project
+      Option(executeGoogleRequest(cloudResManager.projects().get(projectName)))
+    } {
+      // if the project doesn't exist, don't fail
+      case e: HttpResponseException if e.getStatusCode == StatusCodes.NotFound.intValue => None
+    } map {
+      // return true if the project is active, false otherwise
+      // see https://cloud.google.com/resource-manager/reference/rest/v1/projects#LifecycleState
+      case Some(project) => project.getLifecycleState == "ACTIVE"
+      case None => false
+    }
   }
 
 }
