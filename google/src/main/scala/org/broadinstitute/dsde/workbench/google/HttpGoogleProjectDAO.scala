@@ -62,7 +62,7 @@ class HttpGoogleProjectDAO(appName: String,
 
   override def isBillingActive(projectName: String): Future[Boolean] = {
     retryWithRecoverWhen500orGoogleError { () =>
-      Option(executeGoogleRequest(billing.projects().getBillingInfo(projectName)))
+      Option(executeGoogleRequest(billing.projects().getBillingInfo(s"projects/$projectName")))
     } {
       // if the project doesn't exist, don't fail
       case e: HttpResponseException if e.getStatusCode == StatusCodes.NotFound.intValue => None
