@@ -15,7 +15,7 @@ SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.
 - Added `testIamPermission` method to `GoogleIamDAO`
 - Added optional group settings when creating google groups 
 - Added a way to set service account user when constructing credentials via json
-- Added `GoogleProjectDAO.isProjectActive`
+- Added `isProjectActive` and `isBillingActive` to `GoogleProjectDAO`
    
 ### Changed
 - org.broadinstitute.dsde.workbench.google.mock.MockGoogleIamDAO supports multiple keys for a service account (like the real thing)

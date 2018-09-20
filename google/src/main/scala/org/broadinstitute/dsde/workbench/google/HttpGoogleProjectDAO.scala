@@ -3,6 +3,7 @@ package org.broadinstitute.dsde.workbench.google
 import akka.actor.ActorSystem
 import akka.http.scaladsl.model.StatusCodes
 import com.google.api.client.http.HttpResponseException
+import com.google.api.services.cloudbilling.Cloudbilling
 import com.google.api.services.cloudresourcemanager.CloudResourceManager
 import com.google.api.services.cloudresourcemanager.model.{Operation, Project}
 import com.google.api.services.compute.ComputeScopes
@@ -22,8 +23,12 @@ class HttpGoogleProjectDAO(appName: String,
 
   override implicit val service = GoogleInstrumentedService.Projects
 
-  private lazy val cloudResManager = {
+  private def cloudResManager = {
     new CloudResourceManager.Builder(httpTransport, jsonFactory, googleCredential).setApplicationName(appName).build()
+  }
+
+  private def billing: Cloudbilling = {
+    new Cloudbilling.Builder(httpTransport, jsonFactory, googleCredential).setApplicationName(appName).build()
   }
 
   override def createProject(projectName: String): Future[String] = {
@@ -40,7 +45,7 @@ class HttpGoogleProjectDAO(appName: String,
     })
   }
 
-  def isProjectActive(projectName: String): Future[Boolean] = {
+  override def isProjectActive(projectName: String): Future[Boolean] = {
     retryWithRecoverWhen500orGoogleError { () =>
       // get the project
       Option(executeGoogleRequest(cloudResManager.projects().get(projectName)))
@@ -51,6 +56,19 @@ class HttpGoogleProjectDAO(appName: String,
       // return true if the project is active, false otherwise
       // see https://cloud.google.com/resource-manager/reference/rest/v1/projects#LifecycleState
       case Some(project) => project.getLifecycleState == "ACTIVE"
+      case None => false
+    }
+  }
+
+  override def isBillingActive(projectName: String): Future[Boolean] = {
+    retryWithRecoverWhen500orGoogleError { () =>
+      Option(executeGoogleRequest(billing.projects().getBillingInfo(projectName)))
+    } {
+      // if the project doesn't exist, don't fail
+      case e: HttpResponseException if e.getStatusCode == StatusCodes.NotFound.intValue => None
+    } map {
+      // return true if billing is enabled for the project, false otherwise
+      case Some(billingInfo) => billingInfo.getBillingEnabled
       case None => false
     }
   }
