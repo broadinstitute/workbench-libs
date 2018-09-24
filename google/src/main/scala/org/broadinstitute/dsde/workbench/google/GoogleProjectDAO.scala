@@ -10,4 +10,8 @@ trait GoogleProjectDAO {
 
   def pollOperation(operationId: String): Future[Operation]
 
+  def isProjectActive(projectName: String): Future[Boolean]
+
+  def isBillingActive(projectName: String): Future[Boolean]
+
 }
