@@ -4,6 +4,7 @@ import java.io.{ByteArrayInputStream, ByteArrayOutputStream, File}
 import java.nio.file.Files
 
 import com.google.api.client.util.IOUtils
+import com.google.api.services.storage.model.Bucket
 import org.broadinstitute.dsde.workbench.google.GoogleStorageDAO
 import org.broadinstitute.dsde.workbench.model.google.GcsLifecycleTypes.{Delete, GcsLifecycleType}
 import org.broadinstitute.dsde.workbench.model.google.GcsRoles.GcsRole
@@ -21,6 +22,10 @@ class MockGoogleStorageDAO(  implicit val executionContext: ExecutionContext ) e
   override def createBucket(billingProject: GoogleProject, bucketName: GcsBucketName, readers: List[GcsEntity] = List.empty, owners: List[GcsEntity] = List.empty): Future[GcsBucketName] = {
     buckets.putIfAbsent(bucketName, Set.empty)
     Future.successful(bucketName)
+  }
+
+  override def getBucket(bucketName: GcsBucketName): Future[Bucket] = {
+    Future.successful(new Bucket().setName(bucketName.value))
   }
 
   override def deleteBucket(bucketName: GcsBucketName, recurse: Boolean): Future[Unit] = {
