@@ -49,6 +49,11 @@ trait Rawls extends RestClient with LazyLogging {
       deleteRequest(url + s"api/workspaces/$namespace/$name")
     }
 
+    def getBucketName(namespace: String, name: String)(implicit token: AuthToken): Unit = {
+      val response = parseResponse(getRequest(url + s"api/workspaces/$namespace/$name"))
+      mapper.readTree(response).at("/workspace/bucketName").asText()
+    }
+
     def list()(implicit token: AuthToken):String  = {
       logger.info(s"Listing workspaces")
       parseResponse(getRequest(url + s"api/workspaces"))

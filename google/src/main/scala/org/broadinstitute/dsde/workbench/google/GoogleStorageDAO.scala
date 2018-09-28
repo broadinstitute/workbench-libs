@@ -2,6 +2,7 @@ package org.broadinstitute.dsde.workbench.google
 
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream, File}
 
+import com.google.api.services.storage.model.Bucket
 import org.broadinstitute.dsde.workbench.model.google.GcsLifecycleTypes.{Delete, GcsLifecycleType}
 import org.broadinstitute.dsde.workbench.model.google.GcsRoles.GcsRole
 import org.broadinstitute.dsde.workbench.model.google.{GcsBucketName, GcsEntity, GcsObjectName, GoogleProject}
@@ -11,6 +12,7 @@ import scala.concurrent.Future
 trait GoogleStorageDAO {
 
   def createBucket(billingProject: GoogleProject, bucketName: GcsBucketName, readers: List[GcsEntity] = List.empty, owners: List[GcsEntity] = List.empty): Future[GcsBucketName]
+  def getBucket(bucketName: GcsBucketName): Future[Bucket]
   def deleteBucket(bucketName: GcsBucketName, recurse: Boolean): Future[Unit]
   def bucketExists(bucketName: GcsBucketName): Future[Boolean]
 
