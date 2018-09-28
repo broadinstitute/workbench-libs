@@ -67,6 +67,12 @@ class HttpGoogleStorageDAO(appName: String,
     })
   }
 
+  override def getBucket(bucketName: GcsBucketName): Future[Bucket] = {
+    retryWhen500orGoogleError(() => {
+      executeGoogleRequest(storage.buckets().get(bucketName.value))
+    })
+  }
+
   override def deleteBucket(bucketName: GcsBucketName, recurse: Boolean): Future[Unit] = {
     // If `recurse` is true, first delete all objects in the bucket
     val deleteObjectsFuture = if (recurse) {

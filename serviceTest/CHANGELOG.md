@@ -4,11 +4,12 @@ This file documents changes to the `workbench-service-test` library, including n
 
 ## 0.12
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "0.12-7b3f0d6"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "0.12-TRAVIS-REPLACE-ME"`
 
 ### Added
 - `Orchestration.methodConfigurations.createDockstoreMethodConfigInWorkspace` to create a method config that references a dockstore method
-- `Rawls.getWorkflowOutputs`
+- `Rawls.submissions.getWorkflowOutputs`
+- `Rawls.workspace.getBucketName`
 
 ### Changed
 - `UserAuthToken` now creates access tokens with a reduced set of OAuth scopes. This behavior now accurately mimics the
