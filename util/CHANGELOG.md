@@ -2,6 +2,10 @@
 
 This file documents changes to the `workbench-util` library, including notes on how to upgrade to new versions.
 
+## 0.4
+- bump cats-core to 1.4.0
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util" % "0.4-TRAVIS-REPLACE-ME"`
+
 ## 0.3
 
 SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util" % "0.3-2771e2d" % "test" classifier "tests"``
