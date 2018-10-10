@@ -134,7 +134,7 @@ object Sam extends Sam {
 //      parseResponseAs[Set[String]](getRequest(url + s"api/groups/v1/$group/$policy")).map(WorkbenchEmail)
 //    }
 
-    def setPolicyMembers(group: String, policy: String, emails: Set[WorkbenchEmail])(implicit token: AuthToken): Unit = {
+    def setPolicyMembers(group: String, policy: String, emails: Set[String])(implicit token: AuthToken): Unit = {
       logger.info(s"Overwriting members in policy $policy of $group")
       putRequest(url + s"api/groups/v1/$group/$policy", emails)
     }
