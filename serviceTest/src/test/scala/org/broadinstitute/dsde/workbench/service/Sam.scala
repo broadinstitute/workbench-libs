@@ -105,6 +105,11 @@ object Sam extends Sam {
       postRequest(url + s"api/groups/v1/$group")
     }
 
+    def deleteGroup(group:String)(implicit token: AuthToken): Unit = {
+      logger.info(s"Deleting managed group with id: $group")
+      deleteRequest(url + s"api/groups/v1/$group")
+    }
+
     def syncPolicy(resourceType: String, resourceId: String, policy: String)(implicit token: AuthToken): Unit = {
       logger.info(s"Syncing $policy in $resourceId of type $resourceType")
       postRequest(url + s"api/google/v1/resource/$resourceType/$resourceId/$policy/sync")
