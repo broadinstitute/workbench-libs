@@ -5,7 +5,7 @@ import java.io.File
 import akka.actor.ActorSystem
 import org.broadinstitute.dsde.workbench.auth.AuthToken
 import org.broadinstitute.dsde.workbench.config.ServiceTestConfig
-import org.broadinstitute.dsde.workbench.google.{GoogleCredentialModes, HttpGoogleBigQueryDAO, HttpGoogleIamDAO, HttpGoogleStorageDAO}
+import org.broadinstitute.dsde.workbench.google._
 import org.broadinstitute.dsde.workbench.google.GoogleCredentialModes.RawGoogleCredential
 import org.broadinstitute.dsde.workbench.model.WorkbenchEmail
 
@@ -24,4 +24,5 @@ object Google {
     new HttpGoogleBigQueryDAO(appName, RawGoogleCredential(authToken.buildCredential()), metricBaseName)(system, ec)
   }
   lazy val googleStorageDAO = new HttpGoogleStorageDAO(appName, pemMode, metricBaseName)(system, ec)
+  lazy val googleDirectoryDAO = new HttpGoogleDirectoryDAO(appName, pemMode, metricBaseName)(system, ec)
 }

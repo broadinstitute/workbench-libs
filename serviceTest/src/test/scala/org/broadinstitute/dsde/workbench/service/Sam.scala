@@ -4,7 +4,7 @@ import akka.http.scaladsl.model.StatusCodes
 import com.typesafe.scalalogging.LazyLogging
 import org.broadinstitute.dsde.workbench.auth.AuthToken
 import org.broadinstitute.dsde.workbench.config.{UserPool, _}
-import org.broadinstitute.dsde.workbench.dao.Google.googleIamDAO
+import org.broadinstitute.dsde.workbench.dao.Google.googleDirectoryDAO
 import org.broadinstitute.dsde.workbench.model.{WorkbenchEmail, WorkbenchUserId}
 import org.broadinstitute.dsde.workbench.model.google.{GoogleProject, ServiceAccountKey, ServiceAccountName}
 import org.broadinstitute.dsde.workbench.service.Sam.user
@@ -98,6 +98,40 @@ object Sam extends Sam {
     def deletePetServiceAccountKey(project: String, keyId: String)(implicit token: AuthToken): Unit = {
       logger.info(s"Deleting pet service account key $keyId in project $project")
       deleteRequest(url + s"api/google/user/petServiceAccount/$project/key/$keyId")
+    }
+
+    def createGroup(group: String)(implicit token: AuthToken): Unit = {
+      logger.info(s"Creating managed group with id: $group")
+      postRequest(url + s"api/groups/v1/$group")
+    }
+
+    def syncPolicy(resourceType: String, resourceId: String, policy: String)(implicit token: AuthToken): Unit = {
+      logger.info(s"Syncing $policy in $resourceId of type $resourceType")
+      postRequest(url + s"api/google/v1/resource/$resourceType/$resourceId/$policy/sync")
+    }
+
+    def addUser(group: String, policy: String, email: String)(implicit token: AuthToken): Unit = {
+      logger.info(s"Adding $email to $policy in $group")
+      putRequest(url + s"api/groups/v1/$group/$policy/$email")
+    }
+
+    def deleteUser(group: String, policy: String, email: String)(implicit token: AuthToken): Unit = {
+      logger.info(s"Removing $email from $policy in $group")
+      deleteRequest(url + s"api/groups/v1/$group/$policy/$email")
+    }
+
+    def getSyncState(resourceType: String, resourceId: String, policy: String)(implicit token: AuthToken): String = {
+      logger.info(s"Getting sync state for $policy in $resourceId of type $resourceType")
+      parseResponseAs[String](getRequest(url + s"api/google/v1/resource/$resourceType/$resourceId/$policy/sync"))
+    }
+//    def getPolicyMembers(group: String, policy: String)(implicit token: AuthToken): Set[WorkbenchEmail] = {
+//      logger.info(s"Getting members of policy $policy in $group")
+//      parseResponseAs[Set[String]](getRequest(url + s"api/groups/v1/$group/$policy")).map(WorkbenchEmail)
+//    }
+
+    def setPolicyMembers(group: String, policy: String, emails: Set[WorkbenchEmail])(implicit token: AuthToken): Unit = {
+      logger.info(s"Overwriting members in policy $policy of $group")
+      putRequest(url + s"api/groups/v1/$group/$policy", emails)
     }
   }
 
