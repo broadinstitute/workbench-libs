@@ -17,7 +17,7 @@ object Google {
   lazy val system = ActorSystem()
   val ec: ExecutionContextExecutor = ExecutionContext.global
 
-  val pemMode = GoogleCredentialModes.Pem(WorkbenchEmail("109949113883754608360"), new File(ServiceTestConfig.GCS.pathToQAPem), Option(WorkbenchEmail("google@dev.test.firecloud.org")))
+  val pemMode = GoogleCredentialModes.Pem(WorkbenchEmail("109949113883754608360"), new File(ServiceTestConfig.GCS.pathToQAPem), Option(WorkbenchEmail("google@test.firecloud.org")))
 
   lazy val googleIamDAO = new HttpGoogleIamDAO(appName, pemMode, metricBaseName)(system, ec)
   def googleBigQueryDAO(authToken: AuthToken): HttpGoogleBigQueryDAO = {
