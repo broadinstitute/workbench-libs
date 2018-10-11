@@ -66,26 +66,26 @@ object Settings {
   val metricsSettings = commonSettings ++ List(
     name := "workbench-metrics",
     libraryDependencies ++= metricsDependencies,
-    version := createVersion("0.3")
+    version := createVersion("0.4")
   ) ++ publishSettings
 
   val googleSettings = commonSettings ++ List(
     name := "workbench-google",
     libraryDependencies ++= googleDependencies,
-    version := createVersion("0.16"),
+    version := createVersion("0.17"),
     coverageExcludedPackages := ".*HttpGoogle.*DAO.*"
   ) ++ publishSettings
 
   val serviceTestSettings = commonSettings ++ List(
     name := "workbench-service-test",
     libraryDependencies ++= serviceTestDependencies,
-    version := createVersion("0.12")
+    version := createVersion("0.13")
   ) ++ publishSettings
 
   val notificationsSettings = commonSettings ++ List(
     name := "workbench-notifications",
     libraryDependencies ++= notificationsDependencies,
-    version := createVersion("0.1")
+    version := createVersion("0.2")
   ) ++ publishSettings
 
   val rootSettings = commonSettings ++ noPublishSettings ++ noTestSettings
