@@ -2,6 +2,11 @@
 
 This file documents changes to the `workbench-google` library, including notes on how to upgrade to new versions.
 
+## 0.17
+- upgrade cats to 1.4.0 and scala to 2.12.7
+
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.17-TRAVIS-REPLACE-ME"`
+
 ## 0.16
 
 SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.16-eb6af64"`
