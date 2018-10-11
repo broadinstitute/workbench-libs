@@ -125,14 +125,10 @@ object Sam extends Sam {
       deleteRequest(url + s"api/groups/v1/$group/$policy/$email")
     }
 
-    def getSyncState(resourceType: String, resourceId: String, policy: String)(implicit token: AuthToken): String = {
-      logger.info(s"Getting sync state for $policy in $resourceId of type $resourceType")
-      parseResponseAs[String](getRequest(url + s"api/google/v1/resource/$resourceType/$resourceId/$policy/sync"))
+    def listResourcePolicies(resourceType: String, resourceId: String)(implicit token: AuthToken): String = {
+      logger.info(s"Listing policies for $resourceId")
+      parseResponseAs[String](getRequest(url + s"api/resources/v1/$resourceType/$resourceId/policies"))
     }
-//    def getPolicyMembers(group: String, policy: String)(implicit token: AuthToken): Set[WorkbenchEmail] = {
-//      logger.info(s"Getting members of policy $policy in $group")
-//      parseResponseAs[Set[String]](getRequest(url + s"api/groups/v1/$group/$policy")).map(WorkbenchEmail)
-//    }
 
     def setPolicyMembers(group: String, policy: String, emails: Set[String])(implicit token: AuthToken): Unit = {
       logger.info(s"Overwriting members in policy $policy of $group")
