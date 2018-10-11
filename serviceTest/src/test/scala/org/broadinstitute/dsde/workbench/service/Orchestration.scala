@@ -1,22 +1,22 @@
 package org.broadinstitute.dsde.workbench.service
 
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
+import akka.http.scaladsl.model.HttpResponse
+import akka.http.scaladsl.model.headers.Cookie
 import com.typesafe.scalalogging.LazyLogging
-import org.broadinstitute.dsde.workbench.service.WorkspaceAccessLevel.WorkspaceAccessLevel
 import org.broadinstitute.dsde.workbench.auth.AuthToken
 import org.broadinstitute.dsde.workbench.config.ServiceTestConfig
-import org.broadinstitute.dsde.workbench.fixture.{DockstoreMethod, DockstoreMethodData, Method}
 import org.broadinstitute.dsde.workbench.fixture.MethodData.SimpleMethod
+import org.broadinstitute.dsde.workbench.fixture.{DockstoreMethod, Method}
+import org.broadinstitute.dsde.workbench.service.OrchestrationModel._
 import org.broadinstitute.dsde.workbench.service.Sam.user.UserStatusDetails
+import org.broadinstitute.dsde.workbench.service.WorkspaceAccessLevel.WorkspaceAccessLevel
+import org.broadinstitute.dsde.workbench.service.test.RandomUtil
 import org.broadinstitute.dsde.workbench.service.util.Retry
 import spray.json.{DefaultJsonProtocol, _}
 
 import scala.concurrent.duration._
 import scala.util.{Failure, Success, Try}
-import OrchestrationModel._
-import akka.http.scaladsl.model.HttpResponse
-import akka.http.scaladsl.model.headers.Cookie
-import org.broadinstitute.dsde.workbench.service.test.RandomUtil
 
 trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport with DefaultJsonProtocol with RandomUtil {
 

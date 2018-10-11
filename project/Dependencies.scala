@@ -26,6 +26,7 @@ object Dependencies {
   val selenium: ModuleID = "org.seleniumhq.selenium" % "selenium-java" % "3.11.0" % "test"
 
   val cats: ModuleID = "org.typelevel" %% "cats-core" % catsV
+  val catsEffect: ModuleID = "org.typelevel" %% "cats-effect" % "1.0.0"
 
   // metrics-scala transitively pulls in io.dropwizard.metrics:metrics-core
   val metricsScala: ModuleID =      "nl.grons"              %% "metrics-scala"    % "3.5.6"
@@ -47,6 +48,7 @@ object Dependencies {
   val googleBigQuery: ModuleID =             "com.google.apis"       % "google-api-services-bigquery"             % s"v2-rev377-$googleV"
   val googleGuava: ModuleID = "com.google.guava"  % "guava" % "22.0"
   val googleRpc: ModuleID =               "io.grpc" % "grpc-core" % "1.5.0"
+  val googleFirestore: ModuleID = "com.google.cloud" % "google-cloud-firestore" % "0.67.0-beta"
 
   val commonDependencies = Seq(
     scalaLogging,
@@ -91,6 +93,8 @@ object Dependencies {
     googleBigQuery,
     googleGuava,
     googleRpc,
+    googleFirestore,
+    catsEffect,
     akkaHttpSprayJson,
     akkaTestkit
   ).map(excludeGuavaJDK5)
