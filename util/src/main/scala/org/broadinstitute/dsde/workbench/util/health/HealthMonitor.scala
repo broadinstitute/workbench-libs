@@ -1,7 +1,5 @@
 package org.broadinstitute.dsde.workbench.util.health
 
-import java.util.concurrent.TimeoutException
-
 import akka.actor.{Actor, Props}
 import akka.pattern.pipe
 import com.typesafe.scalalogging.LazyLogging

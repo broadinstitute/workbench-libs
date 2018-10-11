@@ -6,6 +6,7 @@ import nl.grons.metrics.scala.{DefaultInstrumented, MetricName}
 import nl.grons.metrics.scala.{Gauge => GronsGauge}
 import org.broadinstitute.dsde.workbench.metrics.Expansion._
 import scala.collection.JavaConverters._
+import scala.language.implicitConversions
 
 /**
   * Mixin trait for instrumentation.
