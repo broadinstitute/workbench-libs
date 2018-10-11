@@ -7,7 +7,7 @@ import akka.testkit.TestKit
 import com.google.api.client.googleapis.json.GoogleJsonError.ErrorInfo
 import com.google.api.client.googleapis.json.{GoogleJsonError, GoogleJsonResponseException}
 import com.google.api.client.http._
-import org.broadinstitute.dsde.workbench.metrics.StatsDTestUtils
+import org.broadinstitute.dsde.workbench.metrics.{Histogram, StatsDTestUtils}
 import org.broadinstitute.dsde.workbench.util.MockitoTestUtils
 import org.scalatest.{BeforeAndAfterAll, FlatSpecLike, Matchers}
 import org.scalatest.concurrent.{Eventually, ScalaFutures}
@@ -19,9 +19,9 @@ import scala.concurrent.duration._
 
 class GoogleUtilitiesSpec extends TestKit(ActorSystem("MySpec")) with GoogleUtilities with FlatSpecLike with BeforeAndAfterAll with Matchers with ScalaFutures with Eventually with MockitoTestUtils with StatsDTestUtils {
   implicit val executionContext = ExecutionContext.global
-  implicit def histo = ExpandedMetricBuilder.empty.asHistogram("histo")
+  implicit def histo: Histogram = ExpandedMetricBuilder.empty.asHistogram("histo")
 
-  override def afterAll {
+  override def afterAll: Unit = {
     TestKit.shutdownActorSystem(system)
   }
 
