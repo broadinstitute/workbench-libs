@@ -4,7 +4,6 @@ import akka.http.scaladsl.model.StatusCodes
 import com.typesafe.scalalogging.LazyLogging
 import org.broadinstitute.dsde.workbench.auth.AuthToken
 import org.broadinstitute.dsde.workbench.config.{UserPool, _}
-import org.broadinstitute.dsde.workbench.dao.Google.googleDirectoryDAO
 import org.broadinstitute.dsde.workbench.model.{WorkbenchEmail, WorkbenchUserId}
 import org.broadinstitute.dsde.workbench.model.google.{GoogleProject, ServiceAccountKey, ServiceAccountName}
 import org.broadinstitute.dsde.workbench.service.Sam.user
@@ -100,39 +99,39 @@ object Sam extends Sam {
       deleteRequest(url + s"api/google/user/petServiceAccount/$project/key/$keyId")
     }
 
-    def createGroup(group: String)(implicit token: AuthToken): Unit = {
-      logger.info(s"Creating managed group with id: $group")
-      postRequest(url + s"api/groups/v1/$group")
+    def createGroup(groupName: String)(implicit token: AuthToken): Unit = {
+      logger.info(s"Creating managed group with id: $groupName")
+      postRequest(url + s"api/groups/v1/$groupName")
     }
 
-    def deleteGroup(group:String)(implicit token: AuthToken): Unit = {
-      logger.info(s"Deleting managed group with id: $group")
-      deleteRequest(url + s"api/groups/v1/$group")
+    def deleteGroup(groupName: String)(implicit token: AuthToken): Unit = {
+      logger.info(s"Deleting managed group with id: $groupName")
+      deleteRequest(url + s"api/groups/v1/$groupName")
     }
 
-    def syncPolicy(resourceType: String, resourceId: String, policy: String)(implicit token: AuthToken): Unit = {
-      logger.info(s"Syncing $policy in $resourceId of type $resourceType")
-      postRequest(url + s"api/google/v1/resource/$resourceType/$resourceId/$policy/sync")
+    def syncPolicy(resourceTypeName: String, resourceId: String, policyName: String)(implicit token: AuthToken): Unit = {
+      logger.info(s"Syncing $policyName in $resourceId of type $resourceTypeName")
+      postRequest(url + s"api/google/v1/resource/$resourceTypeName/$resourceId/$policyName/sync")
     }
 
-    def addUser(group: String, policy: String, email: String)(implicit token: AuthToken): Unit = {
-      logger.info(s"Adding $email to $policy in $group")
-      putRequest(url + s"api/groups/v1/$group/$policy/$email")
+    def addUserToPolicy(groupName: String, policyName: String, memberEmail: String)(implicit token: AuthToken): Unit = {
+      logger.info(s"Adding $memberEmail to $policyName in $groupName")
+      putRequest(url + s"api/groups/v1/$groupName/$policyName/$memberEmail")
     }
 
-    def deleteUser(group: String, policy: String, email: String)(implicit token: AuthToken): Unit = {
-      logger.info(s"Removing $email from $policy in $group")
-      deleteRequest(url + s"api/groups/v1/$group/$policy/$email")
+    def removeUserFromPolicy(groupName: String, policyName: String, memberEmail: String)(implicit token: AuthToken): Unit = {
+      logger.info(s"Removing $memberEmail from $policyName in $groupName")
+      deleteRequest(url + s"api/groups/v1/$groupName/$policyName/$memberEmail")
     }
 
-    def listResourcePolicies(resourceType: String, resourceId: String)(implicit token: AuthToken): Set[String] = {
+    def listResourcePolicies(resourceTypeName: String, resourceId: String)(implicit token: AuthToken): Set[String] = {
       logger.info(s"Listing policies for $resourceId")
-      parseResponseAs[Set[String]](getRequest(url + s"api/resources/v1/$resourceType/$resourceId/policies"))
+      parseResponseAs[Set[String]](getRequest(url + s"api/resources/v1/$resourceTypeName/$resourceId/policies"))
     }
 
-    def setPolicyMembers(group: String, policy: String, emails: Set[String])(implicit token: AuthToken): Unit = {
-      logger.info(s"Overwriting members in policy $policy of $group")
-      putRequest(url + s"api/groups/v1/$group/$policy", emails)
+    def setPolicyMembers(groupName: String, policyName: String, memberEmails: Set[String])(implicit token: AuthToken): Unit = {
+      logger.info(s"Overwriting members in policy $policyName of $groupName")
+      putRequest(url + s"api/groups/v1/$groupName/$policyName", memberEmails)
     }
   }
 
