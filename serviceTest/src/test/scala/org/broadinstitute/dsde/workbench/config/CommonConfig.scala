@@ -32,6 +32,7 @@ trait CommonConfig {
     val qaEmail = gcsConfig.getString("qaEmail")
     val trialBillingPemFile = gcsConfig.getString("trialBillingPemFile")
     val trialBillingPemFileClientId = gcsConfig.getString("trialBillingPemFileClientId")
+    val subEmail = gcsConfig.getString("subEmail")
   }
 
   // note: no separate "projects" config stanza
