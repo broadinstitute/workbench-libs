@@ -17,12 +17,13 @@ object Google {
   lazy val system = ActorSystem()
   val ec: ExecutionContextExecutor = ExecutionContext.global
 
-  val pemMode = GoogleCredentialModes.Pem(WorkbenchEmail(ServiceTestConfig.GCS.qaEmail), new File(ServiceTestConfig.GCS.pathToQAPem), Option(WorkbenchEmail("google@dev.test.firecloud.org")))
+  val pemMode = GoogleCredentialModes.Pem(WorkbenchEmail(ServiceTestConfig.GCS.qaEmail), new File(ServiceTestConfig.GCS.pathToQAPem))
+  val pemModeWithServiceAccount = GoogleCredentialModes.Pem(WorkbenchEmail(ServiceTestConfig.GCS.qaEmail), new File(ServiceTestConfig.GCS.pathToQAPem), Option(WorkbenchEmail("google@dev.test.firecloud.org")))
 
   lazy val googleIamDAO = new HttpGoogleIamDAO(appName, pemMode, metricBaseName)(system, ec)
   def googleBigQueryDAO(authToken: AuthToken): HttpGoogleBigQueryDAO = {
     new HttpGoogleBigQueryDAO(appName, RawGoogleCredential(authToken.buildCredential()), metricBaseName)(system, ec)
   }
   lazy val googleStorageDAO = new HttpGoogleStorageDAO(appName, pemMode, metricBaseName)(system, ec)
-  lazy val googleDirectoryDAO = new HttpGoogleDirectoryDAO(appName, pemMode, metricBaseName)(system, ec)
+  lazy val googleDirectoryDAO = new HttpGoogleDirectoryDAO(appName, pemModeWithServiceAccount, metricBaseName)(system, ec)
 }
