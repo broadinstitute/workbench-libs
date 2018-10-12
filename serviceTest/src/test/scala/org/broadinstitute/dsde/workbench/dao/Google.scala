@@ -25,5 +25,5 @@ object Google {
     new HttpGoogleBigQueryDAO(appName, RawGoogleCredential(authToken.buildCredential()), metricBaseName)(system, ec)
   }
   lazy val googleStorageDAO = new HttpGoogleStorageDAO(appName, pemMode, metricBaseName)(system, ec)
-  lazy val googleDirectoryDAO = new HttpGoogleDirectoryDAO(appName, pemModeWithServiceAccount, metricBaseName)(system, ec)
+  lazy val googleDirectoryDAO = new HttpGoogleDirectoryDAO(appName, pemModeWithServiceAccountUser, metricBaseName)(system, ec)
 }
