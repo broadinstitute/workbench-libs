@@ -11,5 +11,5 @@ object SamJsonSupport {
   implicit val AccessPolicyResponseEntryFormat = jsonFormat3(AccessPolicyResponseEntry.apply)
 }
 
-case class AccessPolicyMembership(memberEmails: Set[WorkbenchEmail], actions: Set[String], roles: Set[String])
-case class AccessPolicyResponseEntry(policyName: String, policy: AccessPolicyMembership, email: WorkbenchEmail)
+final case class AccessPolicyMembership(memberEmails: Set[WorkbenchEmail], actions: Set[String], roles: Set[String])
+final case class AccessPolicyResponseEntry(policyName: String, policy: AccessPolicyMembership, email: WorkbenchEmail)
