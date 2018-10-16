@@ -4,7 +4,10 @@ import akka.http.scaladsl.model.StatusCodes
 import com.typesafe.scalalogging.LazyLogging
 import org.broadinstitute.dsde.workbench.auth.AuthToken
 import org.broadinstitute.dsde.workbench.config.{UserPool, _}
-import org.broadinstitute.dsde.workbench.model.WorkbenchEmail
+import org.broadinstitute.dsde.workbench.model._
+import org.broadinstitute.dsde.workbench.model.SamJsonSupport._
+import org.broadinstitute.dsde.workbench.model.google.{GoogleProject, ServiceAccountKey, ServiceAccountName}
+import org.broadinstitute.dsde.workbench.service.Sam.user
 import org.broadinstitute.dsde.workbench.service.Sam.user.UserStatusDetails
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.time.{Seconds, Span}
@@ -121,9 +124,9 @@ object Sam extends Sam {
       deleteRequest(url + s"api/groups/v1/$groupName/$policyName/$memberEmail")
     }
 
-    def listResourcePolicies(resourceTypeName: String, resourceId: String)(implicit token: AuthToken): Set[String] = {
+    def listResourcePolicies(resourceTypeName: String, resourceId: String)(implicit token: AuthToken): AccessPolicyResponseEntry = {
       logger.info(s"Listing policies for $resourceId")
-      parseResponseAs[Set[String]](getRequest(url + s"api/resources/v1/$resourceTypeName/$resourceId/policies"))
+      parseResponseAs[AccessPolicyResponseEntry](getRequest(url + s"api/resources/v1/$resourceTypeName/$resourceId/policies"))
     }
 
     def setPolicyMembers(groupName: String, policyName: String, memberEmails: Set[String])(implicit token: AuthToken): Unit = {
