@@ -124,9 +124,9 @@ object Sam extends Sam {
       deleteRequest(url + s"api/groups/v1/$groupName/$policyName/$memberEmail")
     }
 
-    def listResourcePolicies(resourceTypeName: String, resourceId: String)(implicit token: AuthToken): AccessPolicyResponseEntry = {
+    def listResourcePolicies(resourceTypeName: String, resourceId: String)(implicit token: AuthToken): Set[AccessPolicyResponseEntry] = {
       logger.info(s"Listing policies for $resourceId")
-      parseResponseAs[AccessPolicyResponseEntry](getRequest(url + s"api/resources/v1/$resourceTypeName/$resourceId/policies"))
+      parseResponseAs[Set[AccessPolicyResponseEntry]](getRequest(url + s"api/resources/v1/$resourceTypeName/$resourceId/policies"))
     }
 
     def setPolicyMembers(groupName: String, policyName: String, memberEmails: Set[String])(implicit token: AuthToken): Unit = {
