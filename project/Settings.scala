@@ -50,7 +50,6 @@ object Settings {
     "-Xlint:stars-align", // Pattern sequence wildcard must align with sequence component.
     "-Xlint:type-parameter-shadow", // A local type parameter shadows a type already in scope.
     "-Xlint:unsound-match", // Pattern match may not be typesafe.
-    "-Ypartial-unification", // Enable partial unification in type constructor inference
 //    "-Ywarn-dead-code", // Warn when dead code is identified.
     "-Ywarn-extra-implicit", // Warn when more than one implicit parameter section is defined.
     "-Ywarn-inaccessible", // Warn about inaccessible types in method signatures.
@@ -61,10 +60,14 @@ object Settings {
 //    "-Ywarn-value-discard", // Warn when non-Unit expression results are unused.
     "-language:higherKinds",
     "-language:postfixOps"
-  )
+  ) ++ (if (scalaBinaryVersion.value.startsWith("2.12"))
+    List(
+      "-Ypartial-unification", // Enable partial unification in type constructor inference
+    )
+  else Nil)
 
   val commonCrossCompileSettings = Seq(
-    crossScalaVersions := List("2.11.8", "2.12.7")
+    crossScalaVersions := List("2.11.8", "2.12.7") //use 2.11.12 so that "-Ypartial-unification" is available
   )
 
   //sbt assembly settings
