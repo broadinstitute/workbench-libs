@@ -27,6 +27,7 @@ object Dependencies {
 
   val cats: ModuleID = "org.typelevel" %% "cats-core" % catsV
   val catsEffect: ModuleID = "org.typelevel" %% "cats-effect" % "1.0.0"
+  val catsTagless: ModuleID = "org.typelevel" %% "cats-tagless-macros" % "0.1.0"
 
   // metrics-scala transitively pulls in io.dropwizard.metrics:metrics-core
   val metricsScala: ModuleID =      "nl.grons"              %% "metrics-scala"    % "3.5.6"
@@ -96,7 +97,8 @@ object Dependencies {
     googleFirestore,
     catsEffect,
     akkaHttpSprayJson,
-    akkaTestkit
+    akkaTestkit,
+    catsTagless
   ).map(excludeGuavaJDK5)
 
   val serviceTestDependencies = commonDependencies ++ Seq(
