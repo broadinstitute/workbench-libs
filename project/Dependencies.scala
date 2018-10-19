@@ -47,6 +47,7 @@ object Dependencies {
   val googleBigQuery: ModuleID =             "com.google.apis"       % "google-api-services-bigquery"             % s"v2-rev377-$googleV"
   val googleGuava: ModuleID = "com.google.guava"  % "guava" % "22.0"
   val googleRpc: ModuleID =               "io.grpc" % "grpc-core" % "1.5.0"
+  val googleFirestore: ModuleID = "com.google.cloud" % "google-cloud-firestore" % "0.68.0-beta"
 
   val commonDependencies = Seq(
     scalaLogging,
@@ -91,6 +92,8 @@ object Dependencies {
     googleBigQuery,
     googleGuava,
     googleRpc,
+    googleFirestore,
+    catsEffect,
     akkaHttpSprayJson,
     akkaTestkit
   ).map(excludeGuavaJDK5)
