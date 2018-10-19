@@ -4,13 +4,10 @@ import akka.http.scaladsl.model.StatusCodes
 import com.typesafe.scalalogging.LazyLogging
 import org.broadinstitute.dsde.workbench.auth.AuthToken
 import org.broadinstitute.dsde.workbench.config.{UserPool, _}
-import org.broadinstitute.dsde.workbench.model.{WorkbenchEmail, WorkbenchUserId}
-import org.broadinstitute.dsde.workbench.model.google.{GoogleProject, ServiceAccountKey, ServiceAccountName}
-import org.broadinstitute.dsde.workbench.service.Sam.user
+import org.broadinstitute.dsde.workbench.model.WorkbenchEmail
 import org.broadinstitute.dsde.workbench.service.Sam.user.UserStatusDetails
-import org.scalatest.time.{Seconds, Span}
 import org.scalatest.concurrent.ScalaFutures
-import spray.json.{JsObject, JsValue}
+import org.scalatest.time.{Seconds, Span}
 
 /**
   * Sam API service client. This should only be used when Orchestration does

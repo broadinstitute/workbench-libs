@@ -64,3 +64,5 @@ Revolver.enableDebugging(port = 5051, suspend = false)
 sys.env.getOrElse("JAVA_OPTS", "").split(" ").toSeq.map { opt =>
   javaOptions in reStart += opt
 }
+
+bloopAggregateSourceDependencies in Global := true

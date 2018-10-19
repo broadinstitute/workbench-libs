@@ -1,15 +1,9 @@
 package org.broadinstitute.dsde.workbench.auth
 
 import java.io.ByteArrayInputStream
-import java.util
 
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential
 import org.broadinstitute.dsde.workbench.config.ServiceTestConfig
-import org.broadinstitute.dsde.workbench.dao.Google.googleIamDAO
-import org.broadinstitute.dsde.workbench.model.WorkbenchEmail
-import org.broadinstitute.dsde.workbench.model.google.{GoogleProject, ServiceAccountKey}
-import org.scalatest.concurrent.ScalaFutures
-import org.scalatest.time.{Seconds, Span}
 
 import scala.collection.JavaConverters._
 

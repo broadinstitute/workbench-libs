@@ -2,7 +2,7 @@ package org.broadinstitute.dsde.workbench.util
 
 import java.util.concurrent.TimeoutException
 
-import akka.actor.{ActorContext, Scheduler}
+import akka.actor.Scheduler
 import akka.pattern.after
 
 import scala.concurrent.duration.FiniteDuration
@@ -30,7 +30,7 @@ trait FutureSupport {
   /**
    * Returns a failed future if any of the input tries have failed, otherwise returns the input with tries unwrapped in a successful Future
    */
-  def assertSuccessfulTries[K, T](tries: Map[K, Try[T]])(implicit executionContext: ExecutionContext): Future[Map[K, T]] = {
+  def assertSuccessfulTries[K, T](tries: Map[K, Try[T]]): Future[Map[K, T]] = {
     val failures = tries.values.collect{ case Failure(t) => t }
     if (failures.isEmpty) {
       Future.successful(tries.mapValues(_.get))
