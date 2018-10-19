@@ -3,12 +3,16 @@ package org.broadinstitute.dsde.workbench.google
 import java.time.Instant
 import java.util.concurrent.Executor
 
+//import cats.~>
+//
+//import scala.concurrent.Future
+
 //import cats.data.State
 import cats.effect.{IO, Resource}
 import com.google.api.core.{ApiFutureCallback, ApiFutures}
 import com.google.cloud.firestore._
 import org.broadinstitute.dsde.workbench.model.google.GoogleProject
-
+//import cats.tagless.implicits._
 import scala.collection.JavaConverters._
 import scala.concurrent.ExecutionContext
 
@@ -54,7 +58,16 @@ object GoogleFirestoreOpsInterpreters{
       override def execute(command: Runnable): Unit = ec.execute(command)
     }
   }
+
+//  def futureFirestore(db: Firestore)(implicit ec: ExecutionContext): GoogleFirestoreOps[Future] = ioFirestore(db).mapK{
+//    new ~>[IO, Future]{
+//      override def apply[A](
+//        fa: IO[A]
+//      ): Future[A] = fa.unsafeToFuture()
+//    }
+//  }
 //
+//  //
 //  def futureFirestore(db: Firestore)(implicit ec: ExecutionContext): GoogleFirestoreOps[Future] = new GoogleFirestoreOps[Future] {
 //    val dao = ioFirestore(db)
 //    override def set(collectionName: CollectionName,

@@ -105,6 +105,9 @@ object Settings {
     libraryDependencies ++= googleDependencies,
     version := createVersion("0.18"),
     coverageExcludedPackages := ".*HttpGoogle.*DAO.*"
+//    ,
+//    addCompilerPlugin(
+//      ("org.scalameta" % "paradise" % "3.0.0-M11").cross(CrossVersion.full))
   ) ++ publishSettings
 
   val serviceTestSettings = commonSettings ++ List(
