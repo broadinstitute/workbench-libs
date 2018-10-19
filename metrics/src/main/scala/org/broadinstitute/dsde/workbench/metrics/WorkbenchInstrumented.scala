@@ -10,7 +10,7 @@ import scala.language.implicitConversions
 
 /**
   * Mixin trait for instrumentation.
-  * Extends metrics-scala [[DefaultInstrumented]] and provides additional utilties for generating
+  * Extends metrics-scala DefaultInstrumented and provides additional utilties for generating
   * metric names for Workbench.
   */
 trait WorkbenchInstrumented extends DefaultInstrumented {

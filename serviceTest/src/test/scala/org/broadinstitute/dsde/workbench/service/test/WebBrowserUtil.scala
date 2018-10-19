@@ -86,7 +86,7 @@ trait WebBrowserUtil extends WebBrowser {
       }
     }
 
-    def ready[A <: Awaiter](element: A, timeOutInSeconds: Long = defaultTimeOutInSeconds)(implicit webDriver: WebDriver): A = {
+    def ready[A <: Awaiter](element: A, timeOutInSeconds: Long = defaultTimeOutInSeconds): A = {
       element.awaitReady()
       element
     }
@@ -207,18 +207,17 @@ trait WebBrowserUtil extends WebBrowser {
     * Creates a Query for an element with a data-test-id attribute.
     *
     * @param id the expected data-test-id
-    * @param webDriver implicit WebDriver for the WebDriverWait
     * @return a Query for the data-test-id
     */
-  def testId(id: String)(implicit webDriver: WebDriver): CssSelectorQuery = {
+  def testId(id: String): CssSelectorQuery = {
     cssSelector(s"[data-test-id='$id']")
   }
 
-  def testState(state: String)(implicit webDriver: WebDriver): CssSelectorQuery = {
+  def testState(state: String): CssSelectorQuery = {
     cssSelector(s"[data-test-state='$state']")
   }
 
-  def typeSelector(selector: String)(implicit webDriver: WebDriver): CssSelectorQuery = {
+  def typeSelector(selector: String): CssSelectorQuery = {
     cssSelector(s"[type='$selector']")
   }
 
@@ -228,7 +227,7 @@ trait WebBrowserUtil extends WebBrowser {
     }
   }
 
-  def withText(text: String)(implicit webDriver: WebDriver): Query = {
+  def withText(text: String): Query = {
     xpath(s"//*[contains(text(),'$text')]")
   }
 
@@ -240,7 +239,7 @@ trait WebBrowserUtil extends WebBrowser {
     * @param webDriver implicit WebDriver for the WebDriverWait
     * @return a Query for the text
     */
-  def text(text: String)(implicit webDriver: WebDriver): Query = {
+  def text(text: String): Query = {
     xpath(s"//*[contains(text(),'$text')]")
   }
 
@@ -251,7 +250,7 @@ trait WebBrowserUtil extends WebBrowser {
     * @param webDriver implicit WebDriver for the WebDriverWait
     * @return a Query for the title
     */
-  def title(title: String)(implicit webDriver: WebDriver): Query = {
+  def title(title: String): Query = {
     cssSelector(s"[title='$title']")
   }
 
