@@ -10,13 +10,13 @@ import org.broadinstitute.dsde.workbench.model.google._
 
 import scala.collection.concurrent.TrieMap
 import scala.collection.mutable
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.Future
 import scala.util.Random
 
 /**
   * Created by rtitle on 10/2/17.
   */
-class MockGoogleIamDAO(implicit executionContext: ExecutionContext) extends GoogleIamDAO {
+class MockGoogleIamDAO extends GoogleIamDAO {
 
   val serviceAccounts: mutable.Map[WorkbenchEmail, ServiceAccount] = new TrieMap()
   val serviceAccountKeys: mutable.Map[WorkbenchEmail, mutable.Map[ServiceAccountKeyId, ServiceAccountKey]] = new TrieMap()

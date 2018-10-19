@@ -3,8 +3,6 @@ package org.broadinstitute.dsde.workbench.model.google
 import com.google.common.net.UrlEscapers
 import java.net.URI
 
-import org.broadinstitute.dsde.workbench.model.google.GcsPathParser._
-
 import scala.util.{Failure, Success, Try}
 
 private[model] object GcsPathParser {

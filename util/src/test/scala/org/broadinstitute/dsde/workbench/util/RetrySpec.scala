@@ -3,11 +3,9 @@ package org.broadinstitute.dsde.workbench.util
 import akka.actor.ActorSystem
 import akka.testkit.TestKit
 import com.typesafe.scalalogging.{LazyLogging, Logger}
-import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers._
 import org.mockito.Mockito._
 import org.scalatest.concurrent.ScalaFutures
-import org.scalatest.mockito.MockitoSugar
 import org.scalatest.time.{Minutes, Seconds, Span}
 import org.scalatest.{BeforeAndAfterAll, FlatSpecLike, Matchers}
 import org.slf4j.{Logger => SLF4JLogger}
@@ -15,7 +13,6 @@ import org.slf4j.{Logger => SLF4JLogger}
 import scala.collection.JavaConverters._
 import scala.concurrent.Future
 import scala.concurrent.duration._
-import scala.reflect._
 
 /**
   * Created by rtitle on 5/16/17.
@@ -28,7 +25,7 @@ class RetrySpec extends TestKit(ActorSystem("MySpec")) with FlatSpecLike with Be
   // See: http://doc.scalatest.org/2.2.4/index.html#org.scalatest.concurrent.Futures
   implicit override val patienceConfig = PatienceConfig(timeout = scaled(Span(10, Seconds)))
 
-  override def afterAll {
+  override def afterAll: Unit = {
     TestKit.shutdownActorSystem(system)
   }
 
@@ -180,16 +177,16 @@ class TestRetry(val system: ActorSystem, val slf4jLogger: SLF4JLogger) extends R
   override lazy val logger: Logger = Logger(slf4jLogger)
   var invocationCount: Int = _
 
-  def increment { invocationCount = invocationCount + 1 }
-  def success = {
+  def increment: Unit = { invocationCount = invocationCount + 1 }
+  def success: Future[Int] = {
     increment
     Future.successful(42)
   }
-  def failure = {
+  def failure: Future[Int] = {
     increment
     Future.failed[Int](new Exception("test exception"))
   }
-  def failureNTimes(n: Int) = {
+  def failureNTimes(n: Int): Future[Int] = {
     if (invocationCount < n) failure
     else success
   }
