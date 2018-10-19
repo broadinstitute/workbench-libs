@@ -14,7 +14,7 @@ import scala.concurrent.{Await, Future}
 import scala.concurrent.duration._
 
 class HealthMonitorSpec extends TestKit(ActorSystem("HealthMonitorSpec")) with FlatSpecLike with BeforeAndAfterAll with Matchers {
-  override def afterAll {
+  override def afterAll: Unit =  {
     TestKit.shutdownActorSystem(system)
   }
 

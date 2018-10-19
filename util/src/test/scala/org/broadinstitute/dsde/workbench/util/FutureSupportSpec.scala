@@ -15,7 +15,7 @@ class FutureSupportSpec extends TestKit(ActorSystem("FutureSupportSpec")) with F
   import system.dispatcher
   implicit val scheduler: Scheduler = system.scheduler
 
-  override def afterAll {
+  override def afterAll: Unit = {
     TestKit.shutdownActorSystem(system)
   }
 

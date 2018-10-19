@@ -3,7 +3,7 @@ import sbt._
 object Dependencies {
   val akkaV         = "2.5.3"
   val akkaHttpV     = "10.0.6"
-  val catsV         = "0.9.0"
+  val catsV         = "1.4.0"
   val jacksonV      = "2.9.0"
   val googleV       = "1.22.0"
   val scalaLoggingV = "3.7.2"
@@ -25,7 +25,7 @@ object Dependencies {
 
   val selenium: ModuleID = "org.seleniumhq.selenium" % "selenium-java" % "3.11.0" % "test"
 
-  val cats: ModuleID = "org.typelevel" %% "cats" % catsV
+  val cats: ModuleID = "org.typelevel" %% "cats-core" % catsV
 
   // metrics-scala transitively pulls in io.dropwizard.metrics:metrics-core
   val metricsScala: ModuleID =      "nl.grons"              %% "metrics-scala"    % "3.5.6"

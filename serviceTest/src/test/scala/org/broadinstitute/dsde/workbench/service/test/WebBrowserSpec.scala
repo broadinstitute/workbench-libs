@@ -2,10 +2,9 @@ package org.broadinstitute.dsde.workbench.service.test
 
 import java.io.{File, FileInputStream, FileOutputStream}
 import java.net.URL
-import java.nio.file.{Files, Path, Paths}
 import java.nio.file.attribute.PosixFilePermission
+import java.nio.file.{Files, Path, Paths}
 import java.text.SimpleDateFormat
-import java.util.UUID
 
 import com.typesafe.scalalogging.LazyLogging
 import org.broadinstitute.dsde.workbench.config.ServiceTestConfig
