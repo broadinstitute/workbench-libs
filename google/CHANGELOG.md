@@ -12,6 +12,7 @@ SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util" % "0.18
 ## 0.17
 - upgrade cats to 1.4.0 and scala to 2.12.7
 - turn on more scalac options. upgrade scala to 2.12.11
+- add googleFirestore support
 
 SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.17-8d718f2"`
 
