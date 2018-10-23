@@ -13,7 +13,7 @@ In this repo:
 
 Contains utility functions and classes.
 
-Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util" % "0.4-TRAVIS-REPLACE-ME"`
+Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util" % "0.4-3510877"`
 
 [Changelog](util/CHANGELOG.md)
 
@@ -21,7 +21,7 @@ Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util" 
 
 Contains generic, externally-facing model classes used across Workbench.
 
-Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-model" % "0.12-TRAVIS-REPLACE-ME`
+Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-model" % "0.12-3510877`
 
 [Changelog](model/CHANGELOG.md)
 
@@ -31,7 +31,7 @@ NOTE: This library uses akka-http's implementation of spray-json and is therefor
 
 Contains utilities for instrumenting Scala code and reporting to StatsD using [metrics-scala](https://github.com/erikvanoosten/metrics-scala) and [metrics-statsd](https://github.com/ReadyTalk/metrics-statsd).
 
-Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-metrics" % "0.4-TRAVIS-REPLACE-ME"`
+Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-metrics" % "0.4-3510877"`
 
 [Changelog](metrics/CHANGELOG.md)
 
@@ -39,7 +39,7 @@ Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-metric
 
 Contains utility functions for talking to Google APIs and DAOs for Google PubSub, Google Directory, Google IAM, and Google BigQuery. 
 
-Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.17-TRAVIS-REPLACE-ME"`
+Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.17-3510877"`
 
 To depend on the `MockGoogle*` classes, additionally depend on:
 
@@ -51,7 +51,7 @@ To depend on the `MockGoogle*` classes, additionally depend on:
 
 Contains common classes and utilities for writing tests against Workbench REST web services.
 
-Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "0.13-TRAVIS-REPLACE-ME" % "test" classifier "tests"`
+Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "0.13-3510877" % "test" classifier "tests"`
 
 [Changelog](serviceTest/CHANGELOG.md)
 
@@ -59,6 +59,6 @@ Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-servic
 
 Contains utilities for publishing email notifications to PubSub for delivery via SendGrid.
 
-Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-notifications" % "0.2-TRAVIS-REPLACE-ME"`
+Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-notifications" % "0.2-3510877"`
 
 [Changelog](notifications/CHANGELOG.md)
