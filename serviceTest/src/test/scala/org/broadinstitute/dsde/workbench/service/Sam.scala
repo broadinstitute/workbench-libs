@@ -4,10 +4,12 @@ import akka.http.scaladsl.model.StatusCodes
 import com.typesafe.scalalogging.LazyLogging
 import org.broadinstitute.dsde.workbench.auth.AuthToken
 import org.broadinstitute.dsde.workbench.config.{UserPool, _}
-import org.broadinstitute.dsde.workbench.model.WorkbenchEmail
+import org.broadinstitute.dsde.workbench.model._
+import org.broadinstitute.dsde.workbench.model.SamJsonSupport._
 import org.broadinstitute.dsde.workbench.service.Sam.user.UserStatusDetails
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.time.{Seconds, Span}
+import spray.json._
 
 /**
   * Sam API service client. This should only be used when Orchestration does
@@ -106,28 +108,26 @@ object Sam extends Sam {
       deleteRequest(url + s"api/groups/v1/$groupName")
     }
 
-    def syncPolicy(resourceTypeName: String, resourceId: String, policyName: String)(implicit token: AuthToken): Unit = {
-      logger.info(s"Syncing $policyName in $resourceId of type $resourceTypeName")
-      postRequest(url + s"api/google/v1/resource/$resourceTypeName/$resourceId/$policyName/sync")
-    }
-
     def addUserToPolicy(groupName: String, policyName: String, memberEmail: String)(implicit token: AuthToken): Unit = {
-      logger.info(s"Adding $memberEmail to $policyName in $groupName")
+      logger.info(s"Adding $memberEmail to $policyName policy in $groupName")
       putRequest(url + s"api/groups/v1/$groupName/$policyName/$memberEmail")
     }
 
     def removeUserFromPolicy(groupName: String, policyName: String, memberEmail: String)(implicit token: AuthToken): Unit = {
-      logger.info(s"Removing $memberEmail from $policyName in $groupName")
+      logger.info(s"Removing $memberEmail from $policyName policy in $groupName")
       deleteRequest(url + s"api/groups/v1/$groupName/$policyName/$memberEmail")
     }
 
-    def listResourcePolicies(resourceTypeName: String, resourceId: String)(implicit token: AuthToken): Set[String] = {
+    def listResourcePolicies(resourceTypeName: String, resourceId: String)(implicit token: AuthToken): Set[AccessPolicyResponseEntry] = {
       logger.info(s"Listing policies for $resourceId")
-      parseResponseAs[Set[String]](getRequest(url + s"api/resources/v1/$resourceTypeName/$resourceId/policies"))
+      val response = parseResponse(getRequest(url + s"api/resources/v1/$resourceTypeName/$resourceId/policies"))
+
+      import spray.json.DefaultJsonProtocol._
+      response.parseJson.convertTo[Set[AccessPolicyResponseEntry]]
     }
 
     def setPolicyMembers(groupName: String, policyName: String, memberEmails: Set[String])(implicit token: AuthToken): Unit = {
-      logger.info(s"Overwriting members in policy $policyName of $groupName")
+      logger.info(s"Overwriting members in $policyName policy of $groupName")
       putRequest(url + s"api/groups/v1/$groupName/$policyName", memberEmails)
     }
   }
