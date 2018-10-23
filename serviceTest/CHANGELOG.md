@@ -5,7 +5,7 @@ This file documents changes to the `workbench-service-test` library, including n
 ## 0.13
 - upgrade cats to 1.4.0 and scala to 2.12.7
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "0.13-TRAVIS-REPLACE-ME"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "0.13-3510877"`
 
 ## 0.12
 
