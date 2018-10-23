@@ -5,7 +5,7 @@ This file documents changes to the `workbench-notifications` library, including 
 ## 0.2
 - upgrade cats to 1.4.0 and scala to 2.12.7
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-notifications" % "0.2-TRAVIS-REPLACE-ME"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-notifications" % "0.2-3510877"`
 
 ## 0.1
 
