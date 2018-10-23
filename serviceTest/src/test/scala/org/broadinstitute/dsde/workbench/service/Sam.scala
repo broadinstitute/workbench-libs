@@ -6,8 +6,6 @@ import org.broadinstitute.dsde.workbench.auth.AuthToken
 import org.broadinstitute.dsde.workbench.config.{UserPool, _}
 import org.broadinstitute.dsde.workbench.model._
 import org.broadinstitute.dsde.workbench.model.SamJsonSupport._
-import org.broadinstitute.dsde.workbench.model.google.{GoogleProject, ServiceAccountKey, ServiceAccountName}
-import org.broadinstitute.dsde.workbench.service.Sam.user
 import org.broadinstitute.dsde.workbench.service.Sam.user.UserStatusDetails
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.time.{Seconds, Span}
