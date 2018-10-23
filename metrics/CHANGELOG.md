@@ -5,7 +5,7 @@ This file documents changes to the `workbench-metrics` library, including notes 
 ## 0.4
 - upgrade cats to 1.4.0 and scala to 2.12.7
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-metrics" % "0.4-TRAVIS-REPLACE-ME"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-metrics" % "0.4-3510877"`
 
 ## 0.3
 
