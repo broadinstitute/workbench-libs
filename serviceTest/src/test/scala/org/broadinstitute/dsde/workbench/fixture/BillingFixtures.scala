@@ -2,8 +2,8 @@ package org.broadinstitute.dsde.workbench.fixture
 
 import akka.http.scaladsl.model.headers.OAuth2BearerToken
 import com.typesafe.scalalogging.LazyLogging
-import org.broadinstitute.dsde.workbench.auth.AuthToken
-import org.broadinstitute.dsde.workbench.config.{ServiceTestConfig, Credentials, UserPool}
+import org.broadinstitute.dsde.workbench.auth.{AuthToken, AuthTokenScopes}
+import org.broadinstitute.dsde.workbench.config.{Credentials, ServiceTestConfig, UserPool}
 import org.broadinstitute.dsde.workbench.model.{UserInfo, WorkbenchEmail, WorkbenchUserId}
 import org.broadinstitute.dsde.workbench.service.{GPAlloc, Orchestration, Rawls}
 import org.broadinstitute.dsde.workbench.service.Orchestration.billing.BillingProjectRole
@@ -131,7 +131,12 @@ trait BillingFixtures extends ExceptionHandling with LazyLogging with CleanUp wi
         ClaimedProject(project.projectName, gpAlloced = true)
       case _ =>
         logger.warn("claimGPAllocProject got no project back from GPAlloc. Falling back to making a brand new one...")
-        val billingProjectName = createNewBillingProject("billingproj", ownerEmails, userEmails)(newOwnerToken())
+
+        // get an auth token with billing scope for the project owner.
+        // We can't expect that newOwnerToken() will have billing scope, and we need that scope to create the project.
+        val ownerTokenWithBilling = Credentials(newOwnerEmail, "this-password-is-unused").makeAuthToken(AuthTokenScopes.billingScopes)
+
+        val billingProjectName = createNewBillingProject("billingproj", ownerEmails, userEmails)(ownerTokenWithBilling)
         ClaimedProject(billingProjectName, gpAlloced = false)
     }
   }

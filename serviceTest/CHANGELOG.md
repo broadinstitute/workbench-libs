@@ -4,8 +4,10 @@ This file documents changes to the `workbench-service-test` library, including n
 
 ## 0.13
 - upgrade cats to 1.4.0 and scala to 2.12.7
+- bugfix: `BillingFixtures.claimGPAllocProject` now uses the proper OAuth scopes in the case where GPAlloc did not return
+a project and therefore the calling test needs to create one on the fly.
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "0.13-3510877"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "0.13-TRAVIS-REPLACE-ME"`
 
 ## 0.12
 
