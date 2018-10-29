@@ -5,7 +5,7 @@ This file documents changes to the `workbench-util` library, including notes on 
 ## 0.4
 - bump cats-core to 1.4.0
 - fixed scaladoc compilation errors
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util" % "0.4-TRAVIS-REPLACE-ME"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util" % "0.4-dc0998e"`
 
 ## 0.3
 
