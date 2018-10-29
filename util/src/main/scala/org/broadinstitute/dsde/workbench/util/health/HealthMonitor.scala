@@ -41,17 +41,17 @@ object HealthMonitor {
   * This actor periodically checks the health of each subsystem and reports on the results.
   * It is used for system monitoring.
   *
-  * For a list of the subsystems, see the [[Subsystem]] enum.
+  * For a list of the subsystems, see the [[Subsystems.Subsystem]] enum.
   *
   * The actor lifecyle is as follows:
-  * 1. Periodically receives a [[CheckAll]] message from the Akka scheduler. Receipt of this message
+  * 1. Periodically receives a [[HealthMonitor.CheckAll]] message from the Akka scheduler. Receipt of this message
   * triggers independent, asynchronous checks of each subsystem. The results of these futures
   * are piped to self via...
   *
-  * 2. the [[Store]] message. This updates the actor state for the given subsystem status. Note the current
+  * 2. the [[HealthMonitor.Store]] message. This updates the actor state for the given subsystem status. Note the current
   * timestamp is also stored to ensure the returned statuses are current (see staleThreshold param).
   *
-  * 3. [[GetCurrentStatus]] looks up the current actor state and sends it back to the caller wrapped in
+  * 3. [[HealthMonitor.GetCurrentStatus]] looks up the current actor state and sends it back to the caller wrapped in
   * a [[StatusCheckResponse]] case class. This message is purely for retrieving state; it does not
   * trigger any asynchronous operations.
   *
