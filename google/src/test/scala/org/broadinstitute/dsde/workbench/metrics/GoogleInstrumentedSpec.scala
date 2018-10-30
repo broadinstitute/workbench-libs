@@ -54,8 +54,8 @@ class GoogleInstrumentedSpec extends GoogleInstrumented with FlatSpecLike with M
         timer.count shouldBe 1
         timer.max shouldBe 5
       } { capturedMetrics =>
-        capturedMetrics should contain (s"test.googleService.$service.httpRequestMethod.get.httpResponseStatusCode.200.request", "1")
-        capturedMetrics should contain (s"test.googleService.$service.httpRequestMethod.get.httpResponseStatusCode.200.latency.samples", "1")
+        capturedMetrics should contain (s"test.googleService.$service.httpRequestMethod.get.httpResponseStatusCode.200.request" -> "1")
+        capturedMetrics should contain (s"test.googleService.$service.httpRequestMethod.get.httpResponseStatusCode.200.latency.samples" -> "1")
       }
     }
   }
@@ -71,8 +71,8 @@ class GoogleInstrumentedSpec extends GoogleInstrumented with FlatSpecLike with M
         timer.count shouldBe 1
         timer.max shouldBe 5
       } { capturedMetrics =>
-        capturedMetrics should contain (s"test.googleService.$service.httpRequestMethod.get.httpResponseStatusCode.400.request", "1")
-        capturedMetrics should contain (s"test.googleService.$service.httpRequestMethod.get.httpResponseStatusCode.400.latency.samples", "1")
+        capturedMetrics should contain (s"test.googleService.$service.httpRequestMethod.get.httpResponseStatusCode.400.request" -> "1")
+        capturedMetrics should contain (s"test.googleService.$service.httpRequestMethod.get.httpResponseStatusCode.400.latency.samples" -> "1")
       }
     }
   }
@@ -89,8 +89,8 @@ class GoogleInstrumentedSpec extends GoogleInstrumented with FlatSpecLike with M
         timer.max shouldBe 5
       } { capturedMetrics =>
         // no status code
-        capturedMetrics should contain (s"test.googleService.$service.httpRequestMethod.get.request", "1")
-        capturedMetrics should contain (s"test.googleService.$service.httpRequestMethod.get.latency.samples", "1")
+        capturedMetrics should contain (s"test.googleService.$service.httpRequestMethod.get.request" -> "1")
+        capturedMetrics should contain (s"test.googleService.$service.httpRequestMethod.get.latency.samples" -> "1")
       }
     }
   }

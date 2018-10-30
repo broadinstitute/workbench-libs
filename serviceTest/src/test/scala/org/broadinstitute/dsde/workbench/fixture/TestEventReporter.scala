@@ -13,7 +13,7 @@ case class TestEventReporter(aggregateReporter: Reporter) extends Reporter with 
       case evt: TestSucceeded => logger.info("Test Succeeded:: " + evt.suiteName + " -- " + evt.testName)
       case evt: TestCanceled => logger.info("Test Canceled:: " + evt.suiteName + " -- " + evt.testName)
       case evt: TestIgnored => logger.info("Test Ignored:: " + evt.suiteName + " -- " + evt.testName)
-      case evt => // ignore other events
+      case _ => ()// ignore other events
     }
   }
 }
