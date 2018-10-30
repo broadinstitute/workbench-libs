@@ -33,7 +33,7 @@ trait GoogleUtilities extends LazyLogging with InstrumentedRetry with GoogleInst
           t.getStatusCode/100 == 5
       }
       case t: GoogleHttpResponseException => t.getStatusCode/100 == 5
-      case ioe: IOException => true
+      case _: IOException => true
       case _ => false
     }
   }

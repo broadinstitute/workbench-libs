@@ -103,7 +103,7 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
                              POA: Boolean = false,
                              NCU: Boolean = false,
                              prefix: String = "")(implicit token: AuthToken): String = {
-      val request = Map(
+      val request: Map[String, Any] = Map(
         "DS" -> DS,
         "NMDS" -> NMDS,
         "NCTRL" -> NCTRL,
@@ -168,7 +168,7 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
       postRequest(apiUrl(s"api/workspaces"), request)
     }
 
-    def clone(originNamespace: String, originName: String, cloneNamespace: String, cloneName: String, authDomain: Set[String] = Set.empty, membersGroupName: String, attributes: Map[String, String])
+    def clone(originNamespace: String, originName: String, cloneNamespace: String, cloneName: String, authDomain: Set[String] = Set.empty)
              (implicit token: AuthToken): Unit = {
       logger.info(s"Copying workspace: $originNamespace/$originName authDomain: $authDomain")
 
@@ -469,10 +469,10 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
       val successfulResponseKeys = Seq("Success", "NoChangeRequired")
 
       response.parseJson.asJsObject.fields.map {
-        case f@x if successfulResponseKeys.contains(f._1) =>
+        case f@_ if successfulResponseKeys.contains(f._1) =>
           logger.info(s"${f._1}: ${f._2.toString()}")
           return
-        case f@y =>
+        case f@_ =>
           logger.error(s"${f._1}: ${f._2.toString()}")
           throw new Exception(s"Unable to $update trial user: $userEmail. Error message: $response")
       }

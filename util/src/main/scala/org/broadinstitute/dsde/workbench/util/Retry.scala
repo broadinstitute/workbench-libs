@@ -64,7 +64,7 @@ trait Retry {
                               (implicit executionContext: ExecutionContext): RetryableFuture[T] = {
 
     def loop(remainingBackoffIntervals: Seq[FiniteDuration], errors: => List[Throwable]): RetryableFuture[T] = {
-      op().map(Right(errors, _)).recoverWith {
+      op().map(x => Right((errors, x))).recoverWith {
         case t if pred(t) && !remainingBackoffIntervals.isEmpty =>
           logger.info(s"$failureLogMessage: ${remainingBackoffIntervals.size} retries remaining, retrying in ${remainingBackoffIntervals.head}", t)
           after(remainingBackoffIntervals.head, system.scheduler) {

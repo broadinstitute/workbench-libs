@@ -62,7 +62,7 @@ trait Rawls extends RestClient with LazyLogging {
 
   object submissions {
     def launchWorkflow(billingProject: String, workspaceName: String, methodConfigurationNamespace: String, methodConfigurationName: String, entityType: String, entityName: String, expression: String, useCallCache: Boolean, workflowFailureMode: String = "NoNewCalls")(implicit token: AuthToken): String = {
-      val body = Map("methodConfigurationNamespace" -> methodConfigurationNamespace, "methodConfigurationName" -> methodConfigurationName, "entityType" -> entityType, "entityName" -> entityName, "expression" -> expression, "useCallCache" -> useCallCache, "workflowFailureMode" -> workflowFailureMode)
+      val body: Map[String, Any] = Map("methodConfigurationNamespace" -> methodConfigurationNamespace, "methodConfigurationName" -> methodConfigurationName, "entityType" -> entityType, "entityName" -> entityName, "expression" -> expression, "useCallCache" -> useCallCache, "workflowFailureMode" -> workflowFailureMode)
       logger.info(s"Creating a submission: $billingProject/$workspaceName config: $methodConfigurationNamespace/$methodConfigurationName with body $body")
       val response = postRequest(url + s"api/workspaces/$billingProject/$workspaceName/submissions", body)
 

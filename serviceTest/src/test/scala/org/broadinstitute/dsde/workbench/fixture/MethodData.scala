@@ -17,7 +17,7 @@ case class Method(
     "payload" -> payload,
     "entityType" -> "Workflow")
 
-  def methodRepoInfo = Map(
+  def methodRepoInfo: Map[String, Any] = Map(
     "methodNamespace" -> methodNamespace,
     "methodName" -> methodName,
     "methodVersion" -> snapshotId
