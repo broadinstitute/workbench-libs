@@ -57,14 +57,14 @@ object GoogleFirestoreOpsInterpreters{
   }
 
   def futureFirestore(db: Firestore)(implicit ec: ExecutionContext): GoogleFirestoreOps[Future] = new GoogleFirestoreOps[Future] {
-    val dao = ioFirestore(db)
+    val iofs = ioFirestore(db)
     override def set(collectionName: CollectionName,
                      document: Document,
-                     dataMap: Map[String, Any]): Future[Instant] = dao.set(collectionName, document, dataMap).unsafeToFuture()
+                     dataMap: Map[String, Any]): Future[Instant] = iofs.set(collectionName, document, dataMap).unsafeToFuture()
     override def get(collectionName: CollectionName,
-                     document: Document): Future[DocumentSnapshot] = dao.get(collectionName, document).unsafeToFuture()
+                     document: Document): Future[DocumentSnapshot] = iofs.get(collectionName, document).unsafeToFuture()
     override def transaction[A](ops: (Firestore, Transaction) => A): Future[A] = {
-      dao.transaction(ops).unsafeToFuture()
+      iofs.transaction(ops).unsafeToFuture()
     }
   }
 
