@@ -101,6 +101,7 @@ trait RestClient extends Retry with LazyLogging {
 
   private def requestWithJsonContent(method: HttpMethod, uri: String, content: Any, httpHeaders: List[HttpHeader] = List())(implicit token: AuthToken): String = {
     val req = HttpRequest(method, encodeUri(uri), List(makeAuthHeader(token)) ++ httpHeaders, HttpEntity(ContentTypes.`application/json`, mapper.writeValueAsString(content)))
+    logger.info(s"HTTP Request: $req")
     parseResponse(sendRequest(req))
   }
 

@@ -130,6 +130,26 @@ object Sam extends Sam {
       logger.info(s"Overwriting members in $policyName policy of $groupName")
       putRequest(url + s"api/groups/v1/$groupName/$policyName", memberEmails)
     }
+
+    def createResource(resourceTypeName: String, resourceRequest: CreateResourceRequest)(implicit token: AuthToken): Unit = {
+      logger.info(s"Creating new resource $resourceRequest of type $resourceTypeName")
+      postRequest(url + s"api/resources/v1/$resourceTypeName", resourceRequest)
+    }
+
+    def syncPolicy(resourceTypeName: String, resourceId: String, policyName: String)(implicit token: AuthToken): Unit = {
+      logger.info(s"Synchronizing $policyName for $resourceId of type $resourceTypeName")
+      postRequest(url + s"api/google/v1/resource/$resourceTypeName/$resourceId/$policyName/sync")
+    }
+
+    def makePolicyPublic(resourceTypeName: String, resourceId: String, policyName: String)(implicit token: AuthToken): Unit = {
+      logger.info(s"Making $policyName for $resourceId of type $resourceTypeName public")
+      putRequest(url + s"api/resources/v1/$resourceTypeName/$resourceId/policies/$policyName/public")
+    }
+
+    def deleteResource(resourceTypeName: String, resourceId: String)(implicit token: AuthToken): Unit = {
+      logger.info(s"Deleting $resourceId")
+      deleteRequest(url + s"api/resources/v1/$resourceTypeName/$resourceId")
+    }
   }
 
 }
