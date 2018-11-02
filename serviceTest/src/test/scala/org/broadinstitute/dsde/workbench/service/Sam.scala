@@ -108,12 +108,12 @@ object Sam extends Sam {
       deleteRequest(url + s"api/groups/v1/$groupName")
     }
 
-    def addUserToPolicy(groupName: String, policyName: String, memberEmail: String)(implicit token: AuthToken): Unit = {
+    def addUserToManagedGroupPolicy(groupName: String, policyName: String, memberEmail: String)(implicit token: AuthToken): Unit = {
       logger.info(s"Adding $memberEmail to $policyName policy in $groupName")
       putRequest(url + s"api/groups/v1/$groupName/$policyName/$memberEmail")
     }
 
-    def removeUserFromPolicy(groupName: String, policyName: String, memberEmail: String)(implicit token: AuthToken): Unit = {
+    def removeUserFromManagedGroupPolicy(groupName: String, policyName: String, memberEmail: String)(implicit token: AuthToken): Unit = {
       logger.info(s"Removing $memberEmail from $policyName policy in $groupName")
       deleteRequest(url + s"api/groups/v1/$groupName/$policyName/$memberEmail")
     }
@@ -126,7 +126,7 @@ object Sam extends Sam {
       response.parseJson.convertTo[Set[AccessPolicyResponseEntry]]
     }
 
-    def setPolicyMembers(groupName: String, policyName: String, memberEmails: Set[String])(implicit token: AuthToken): Unit = {
+    def setManagedGroupPolicyMembers(groupName: String, policyName: String, memberEmails: Set[String])(implicit token: AuthToken): Unit = {
       logger.info(s"Overwriting members in $policyName policy of $groupName")
       putRequest(url + s"api/groups/v1/$groupName/$policyName", memberEmails)
     }
@@ -136,19 +136,30 @@ object Sam extends Sam {
       postRequest(url + s"api/resources/v1/$resourceTypeName", resourceRequest)
     }
 
-    def syncPolicy(resourceTypeName: String, resourceId: String, policyName: String)(implicit token: AuthToken): Unit = {
+    def syncResourcePolicy(resourceTypeName: String, resourceId: String, policyName: String)(implicit token: AuthToken): Unit = {
       logger.info(s"Synchronizing $policyName for $resourceId of type $resourceTypeName")
       postRequest(url + s"api/google/v1/resource/$resourceTypeName/$resourceId/$policyName/sync")
     }
 
-    def makePolicyPublic(resourceTypeName: String, resourceId: String, policyName: String)(implicit token: AuthToken): Unit = {
+    def makeResourcePolicyPublic(resourceTypeName: String, resourceId: String, policyName: String, isPublic: Boolean)(implicit token: AuthToken): Unit = {
       logger.info(s"Making $policyName for $resourceId of type $resourceTypeName public")
-      putRequest(url + s"api/resources/v1/$resourceTypeName/$resourceId/policies/$policyName/public")
+      putRequest(url + s"api/resources/v1/$resourceTypeName/$resourceId/policies/$policyName/public", isPublic)
     }
 
     def deleteResource(resourceTypeName: String, resourceId: String)(implicit token: AuthToken): Unit = {
       logger.info(s"Deleting $resourceId")
       deleteRequest(url + s"api/resources/v1/$resourceTypeName/$resourceId")
+    }
+
+    def addUserToResourcePolicy(resourceTypeName: String, resourceId: String, policyName: String, email: String)(implicit token: AuthToken): Unit = {
+      logger.info(s"Adding $email to $policyName for resource $resourceId")
+      putRequest(url + s"api/resources/v1/$resourceTypeName/$resourceId/policies/$policyName/memberEmails/$email")
+    }
+
+    def getGroupEmail(groupName: String)(implicit token: AuthToken): WorkbenchEmail = {
+      logger.info(s"Getting email for $groupName")
+      val proxyGroupEmailStr = parseResponseAs[String](getRequest(url + s"api/groups/v1/$groupName"))
+      WorkbenchEmail(proxyGroupEmailStr)
     }
   }
 
