@@ -35,7 +35,7 @@ Examples where no version bump is necessary include:
 
 ### Minor version bump
 
-Users can drop-in replace the updated version of this library without making any code changes. However, they may encounter deprecation warnings or minor changes to behavior. They may also have to update their imports.
+Users can drop-in replace the updated version of this library with zero or very minimal code changes. If changes are required, no thinking should be required to make them: "remove an argument" is fine, but "pass in some new information" is not. Users may encounter deprecation warnings or minor changes to behavior. They may also have to update their imports.
 
 Examples where a minor version bump is necessary include:
 
