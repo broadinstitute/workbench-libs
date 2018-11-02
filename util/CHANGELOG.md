@@ -7,7 +7,7 @@ This file documents changes to the `workbench-util` library, including notes on 
 - fixed scaladoc compilation errors
 - turn on more scalac options. upgrade scala to 2.11.12
 - add `cats.effect.Resource` for readFile and ExecutionContext
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util" % "0.4-TRAVIS-REPLACE-ME"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util" % "0.4-8d718f2"`
 
 ## 0.3
 
