@@ -7,7 +7,7 @@ This file documents changes to the `workbench-service-test` library, including n
 - bugfix: `BillingFixtures.claimGPAllocProject` now uses the proper OAuth scopes in the case where GPAlloc did not return
 a project and therefore the calling test needs to create one on the fly.
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "0.13-TRAVIS-REPLACE-ME"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "0.13-7a663ed"`
 
 ## 0.12
 
