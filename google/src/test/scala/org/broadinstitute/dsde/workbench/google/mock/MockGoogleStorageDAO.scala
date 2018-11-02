@@ -79,12 +79,12 @@ class MockGoogleStorageDAO(  implicit val executionContext: ExecutionContext ) e
           val objects = objs.filter(_._1 == objectName).toList
 
           objects match {
+            case Nil => None
             case obj :: Nil => {
               IOUtils.copy(obj._2, response)
               Option(response)
             }
-            case obj :: more => throw new Exception("too many results")
-            case _ => None
+            case _ => throw new Exception("too many results")
           }
         }
         case None => None

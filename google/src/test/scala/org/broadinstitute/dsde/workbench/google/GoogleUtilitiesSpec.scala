@@ -102,8 +102,8 @@ class GoogleUtilitiesSpec extends TestKit(ActorSystem("MySpec")) with GoogleUtil
         counter.counter shouldBe 4 //extra one for the first attempt
       }
     } { capturedMetrics =>
-      capturedMetrics should contain ("test.histo.samples", "1")
-      capturedMetrics should contain ("test.histo.max", "4")  // 4 exceptions
+      capturedMetrics should contain ("test.histo.samples" -> "1")
+      capturedMetrics should contain ("test.histo.max" -> "4")  // 4 exceptions
     }
   }
 
@@ -115,8 +115,8 @@ class GoogleUtilitiesSpec extends TestKit(ActorSystem("MySpec")) with GoogleUtil
         counter.counter shouldBe 2
       }
     } { capturedMetrics =>
-      capturedMetrics should contain ("test.histo.samples", "1")
-      capturedMetrics should contain ("test.histo.max", "1")  // 1 exception
+      capturedMetrics should contain ("test.histo.samples" -> "1")
+      capturedMetrics should contain ("test.histo.max" -> "1")  // 1 exception
     }
   }
 
@@ -133,8 +133,8 @@ class GoogleUtilitiesSpec extends TestKit(ActorSystem("MySpec")) with GoogleUtil
         counter.counter shouldBe 1
       }
     } { capturedMetrics =>
-      capturedMetrics should contain ("test.histo.samples", "1")
-      capturedMetrics should contain ("test.histo.max", "0")  // 0 exceptions
+      capturedMetrics should contain ("test.histo.samples" -> "1")
+      capturedMetrics should contain ("test.histo.max" -> "0")  // 0 exceptions
     }
   }
 
@@ -151,8 +151,8 @@ class GoogleUtilitiesSpec extends TestKit(ActorSystem("MySpec")) with GoogleUtil
         counter.counter shouldBe 4 //extra one for the first attempt
       }
     } { capturedMetrics =>
-      capturedMetrics should contain ("test.histo.samples", "1")
-      capturedMetrics should contain ("test.histo.max", "4")  // 4 exceptions
+      capturedMetrics should contain ("test.histo.samples" -> "1")
+      capturedMetrics should contain ("test.histo.max" -> "4")  // 4 exceptions
     }
   }
 }

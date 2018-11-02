@@ -86,7 +86,7 @@ trait WebBrowserUtil extends WebBrowser {
       }
     }
 
-    def ready[A <: Awaiter](element: A, timeOutInSeconds: Long = defaultTimeOutInSeconds): A = {
+    def ready[A <: Awaiter](element: A): A = {
       element.awaitReady()
       element
     }
@@ -113,7 +113,7 @@ trait WebBrowserUtil extends WebBrowser {
       element
     }
 
-    def spinner(text: String, timeOutInSeconds: Long = defaultTimeOutInSeconds)
+    def spinner(text: String)
                (implicit webDriver: WebDriver): Unit = {
       // Micro-sleep to make sure the spinner has had a chance to appear before waiting for it to disappear.
       Thread sleep 100
@@ -127,7 +127,7 @@ trait WebBrowserUtil extends WebBrowser {
       * @param timeOutInSeconds number of seconds to wait for the enabled element
       * @param webDriver implicit WebDriver for the WebDriverWait
       */
-    def thenClick(query: Query, timeOutInSeconds: Long = defaultTimeOutInSeconds)(implicit webDriver: WebDriver): Unit = {
+    def thenClick(query: Query)(implicit webDriver: WebDriver): Unit = {
       val element = await enabled query
       click on element
     }

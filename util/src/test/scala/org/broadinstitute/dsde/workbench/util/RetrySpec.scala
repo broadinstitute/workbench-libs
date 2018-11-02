@@ -177,7 +177,7 @@ class TestRetry(val system: ActorSystem, val slf4jLogger: SLF4JLogger) extends R
   override lazy val logger: Logger = Logger(slf4jLogger)
   var invocationCount: Int = _
 
-  def increment: Unit = { invocationCount = invocationCount + 1 }
+  def increment(): Unit = { invocationCount = invocationCount + 1 }
   def success: Future[Int] = {
     increment
     Future.successful(42)
