@@ -2,11 +2,11 @@
 
 This file documents changes to the `workbench-service-test` library, including notes on how to upgrade to new versions.
 
-## 1.0
+## 0.14
 - turn on more scalac options. upgrade scala to 2.11.12
 - remove unused parameters
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "1.0-TRAVIS-REPLACE-ME"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "0.14-TRAVIS-REPLACE-ME"`
 
 ## 0.13
 - upgrade cats to 1.4.0 and scala to 2.12.7
