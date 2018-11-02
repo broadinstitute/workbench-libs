@@ -87,7 +87,7 @@ class HealthMonitor private (val subsystems: Set[Subsystem], val futureTimeout: 
     */
   private var data: Map[Subsystem, (SubsystemStatus, Long)] = {
     val now = System.currentTimeMillis
-    subsystems.map(_ -> (UnknownStatus, now)).toMap
+    subsystems.map(_ -> (UnknownStatus -> now)).toMap
   }
 
   override def receive: Receive = {
@@ -96,7 +96,7 @@ class HealthMonitor private (val subsystems: Set[Subsystem], val futureTimeout: 
     case GetCurrentStatus => sender ! getCurrentStatus
   }
 
-  private def checkAll: Unit = {
+  private def checkAll(): Unit = {
     checkHealth().foreach(processSubsystemResult)
   }
 
@@ -112,7 +112,7 @@ class HealthMonitor private (val subsystems: Set[Subsystem], val futureTimeout: 
   }
 
   private def store(subsystem: Subsystem, status: SubsystemStatus): Unit = {
-    data = data + (subsystem -> (status, System.currentTimeMillis))
+    data = data + (subsystem -> (status -> System.currentTimeMillis))
     logger.debug(s"New health monitor state: $data")
   }
 

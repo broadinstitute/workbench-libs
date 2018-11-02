@@ -221,7 +221,7 @@ class HttpGoogleStorageDAO(appName: String,
       }.flatMap(firstPage => listObjectsRecursive(fetcher, firstPage.map(List(_))))
 
       // the head is the Objects object of the prior request which contains next page token
-      case Some(head :: xs) if head.getNextPageToken != null => retryWhen500orGoogleError(() => {
+      case Some(head :: _) if head.getNextPageToken != null => retryWhen500orGoogleError(() => {
         executeGoogleRequest(fetcher.setPageToken(head.getNextPageToken))
       }).flatMap(nextPage => listObjectsRecursive(fetcher, accumulated.map(pages => nextPage :: pages)))
 

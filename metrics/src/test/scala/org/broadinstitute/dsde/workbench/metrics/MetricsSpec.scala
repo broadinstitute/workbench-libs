@@ -245,7 +245,7 @@ class MetricsSpec extends FlatSpec with Matchers with BeforeAndAfter with Eventu
     order.verify(statsD, atLeastOnce).send(argEq(s"$prefix.mean_rate"), argThat(nonZeroString))
   }
 
-  private def nonZeroString: ArgumentMatcher[String] = new ArgumentMatcher[String] {
+  private def nonZeroString(): ArgumentMatcher[String] = new ArgumentMatcher[String] {
     override def matches(argument: String): Boolean =
       Try(argument.toDouble).toOption.exists(_ != 0)
   }
@@ -275,7 +275,7 @@ object MetricsSpec {
     // Non-instrumented methods:
     def set(v: Int): Unit = n = v
     def get: Int = n
-    private def slowResetInternal: Unit = {
+    private def slowResetInternal(): Unit = {
       Thread.sleep(100)
       n = 0
     }
@@ -292,7 +292,7 @@ object MetricsSpec {
     metrics.cachedGauge("cachedGauge", 2 seconds)(get)
 
     // Increments the value of n; updates the counter, histogram, and meter
-    def increment: Unit = {
+    def increment(): Unit = {
       n = n + 1
       counter += 1
       aTransientCounter += 1
@@ -301,7 +301,7 @@ object MetricsSpec {
     }
 
     // Updates a timer
-    def slowReset: Unit = {
+    def slowReset(): Unit = {
       timer.time {
         slowResetInternal
       }

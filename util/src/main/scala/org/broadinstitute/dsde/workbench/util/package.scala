@@ -1,5 +1,8 @@
 package org.broadinstitute.dsde.workbench
 
+import java.io.FileInputStream
+
+import cats.effect.{Resource, Sync}
 import scala.concurrent.duration._
 
 /**
@@ -26,4 +29,7 @@ package object util {
   implicit class JavaEntrySupport[A, B](entry: java.util.Map.Entry[A, B]) {
     def toTuple: (A, B) = (entry.getKey, entry.getValue)
   }
+
+  def readFile[F[_]](path: String)(implicit sf: Sync[F]): Resource[F, FileInputStream] =
+    Resource.make(sf.delay(new FileInputStream(path)))(f => sf.delay(f.close()))
 }

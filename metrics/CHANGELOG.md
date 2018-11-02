@@ -4,8 +4,9 @@ This file documents changes to the `workbench-metrics` library, including notes 
 
 ## 0.4
 - upgrade cats to 1.4.0 and scala to 2.12.7
+- turn on more scalac options. upgrade scala to 2.11.12
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-metrics" % "0.4-3510877"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-metrics" % "0.4-TRAVIS-REPLACE-ME"`
 
 ## 0.3
 
