@@ -6,7 +6,7 @@ This file documents changes to the `workbench-notifications` library, including 
 - upgrade cats to 1.4.0 and scala to 2.12.7
 - turn on more scalac options. upgrade scala to 2.12.11
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-notifications" % "0.2-TRAVIS-REPLACE-ME"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-notifications" % "0.2-8d718f2"`
 
 ## 0.1
 
