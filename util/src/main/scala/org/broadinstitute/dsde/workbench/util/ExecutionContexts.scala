@@ -7,6 +7,8 @@ import scala.concurrent.ExecutionContext
 
 
 object ExecutionContexts {
+  private def free[F[_]](implicit sf: Sync[F]): Function1[ExecutorService, F[Unit]] = (es: ExecutorService) => sf.delay(es.shutdown())
+
   /**
     * Resource yielding an `ExecutionContext` backed by a fixed-size pool.
     * For more info: https://gist.github.com/djspiewak/46b543800958cf61af6efa8e072bfd5c
@@ -15,7 +17,6 @@ object ExecutionContexts {
     implicit sf: Sync[F]
   ): Resource[F, ExecutionContext] = {
     val alloc = sf.delay(Executors.newFixedThreadPool(size))
-    val free  = (es: ExecutorService) => sf.delay(es.shutdown())
     Resource.make(alloc)(free).map(ExecutionContext.fromExecutor)
   }
 
@@ -27,7 +28,6 @@ object ExecutionContexts {
                               implicit sf: Sync[F]
                             ): Resource[F, ExecutionContext] = {
     val alloc = sf.delay(Executors.newCachedThreadPool)
-    val free  = (es: ExecutorService) => sf.delay(es.shutdown())
     Resource.make(alloc)(free).map(ExecutionContext.fromExecutor)
   }
 }
