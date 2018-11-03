@@ -92,6 +92,8 @@ trait WebBrowserSpec extends WebBrowserUtil with ExceptionHandling with LazyLogg
         testCode(driver)
       }
     } finally {
+      try driver.close() catch nonFatalAndLog
+      Thread.sleep(5000)
       try driver.quit() catch nonFatalAndLog
       try service.stop() catch nonFatalAndLog
     }
@@ -104,6 +106,8 @@ trait WebBrowserSpec extends WebBrowserUtil with ExceptionHandling with LazyLogg
         testCode(driver)
       }
     } finally {
+      try driver.close() catch nonFatalAndLog
+      Thread.sleep(5000)
       try driver.quit() catch nonFatalAndLog
     }
   }
