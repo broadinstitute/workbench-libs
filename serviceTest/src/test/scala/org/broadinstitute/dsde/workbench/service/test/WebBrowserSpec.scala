@@ -13,7 +13,7 @@ import org.broadinstitute.dsde.workbench.service.util.ExceptionHandling
 import org.openqa.selenium.chrome.{ChromeDriverService, ChromeOptions}
 import org.openqa.selenium.logging.LogType
 import org.openqa.selenium.remote.{Augmenter, LocalFileDetector, RemoteWebDriver}
-import org.openqa.selenium.{OutputType, TakesScreenshot, WebDriver}
+import org.openqa.selenium.{OutputType, PageLoadStrategy, TakesScreenshot, WebDriver}
 import org.scalatest.Suite
 
 import scala.collection.JavaConverters._
@@ -68,7 +68,8 @@ trait WebBrowserSpec extends WebBrowserUtil with ExceptionHandling with LazyLogg
     val options = new ChromeOptions
     options.addArguments("--incognito")
     options.addArguments("--no-experiments")
-
+    // https://www.skptricks.com/2018/08/timed-out-receiving-message-from-renderer-selenium.html
+    options.setPageLoadStrategy(PageLoadStrategy.NONE)
     if (java.lang.Boolean.parseBoolean(System.getProperty("burp.proxy"))) {
       options.addArguments("--proxy-server=http://127.0.0.1:8080")
     }
