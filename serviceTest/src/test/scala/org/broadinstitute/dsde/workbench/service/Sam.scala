@@ -5,8 +5,9 @@ import com.typesafe.scalalogging.LazyLogging
 import org.broadinstitute.dsde.workbench.auth.AuthToken
 import org.broadinstitute.dsde.workbench.config.{UserPool, _}
 import org.broadinstitute.dsde.workbench.model._
-import org.broadinstitute.dsde.workbench.model.SamJsonSupport._
 import org.broadinstitute.dsde.workbench.service.Sam.user.UserStatusDetails
+import org.broadinstitute.dsde.workbench.service.SamModel._
+import org.broadinstitute.dsde.workbench.service.SamModel.SamJsonSupport._
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.time.{Seconds, Span}
 import spray.json._
@@ -108,12 +109,12 @@ object Sam extends Sam {
       deleteRequest(url + s"api/groups/v1/$groupName")
     }
 
-    def addUserToManagedGroupPolicy(groupName: String, policyName: String, memberEmail: String)(implicit token: AuthToken): Unit = {
+    def addUserToPolicy(groupName: String, policyName: String, memberEmail: String)(implicit token: AuthToken): Unit = {
       logger.info(s"Adding $memberEmail to $policyName policy in $groupName")
       putRequest(url + s"api/groups/v1/$groupName/$policyName/$memberEmail")
     }
 
-    def removeUserFromManagedGroupPolicy(groupName: String, policyName: String, memberEmail: String)(implicit token: AuthToken): Unit = {
+    def removeUserFromPolicy(groupName: String, policyName: String, memberEmail: String)(implicit token: AuthToken): Unit = {
       logger.info(s"Removing $memberEmail from $policyName policy in $groupName")
       deleteRequest(url + s"api/groups/v1/$groupName/$policyName/$memberEmail")
     }
@@ -123,10 +124,10 @@ object Sam extends Sam {
       val response = parseResponse(getRequest(url + s"api/resources/v1/$resourceTypeName/$resourceId/policies"))
 
       import spray.json.DefaultJsonProtocol._
-      response.parseJson.convertTo[Set[AccessPolicyResponseEntry]]
+      response.parseJson.convertTo[Set[AccessPolicyResponseEntry]](immSetFormat(AccessPolicyResponseEntryFormat))
     }
 
-    def setManagedGroupPolicyMembers(groupName: String, policyName: String, memberEmails: Set[String])(implicit token: AuthToken): Unit = {
+    def setPolicyMembers(groupName: String, policyName: String, memberEmails: Set[String])(implicit token: AuthToken): Unit = {
       logger.info(s"Overwriting members in $policyName policy of $groupName")
       putRequest(url + s"api/groups/v1/$groupName/$policyName", memberEmails)
     }
@@ -147,7 +148,7 @@ object Sam extends Sam {
     }
 
     def deleteResource(resourceTypeName: String, resourceId: String)(implicit token: AuthToken): Unit = {
-      logger.info(s"Deleting $resourceId")
+      logger.info(s"Deleting resource $resourceId")
       deleteRequest(url + s"api/resources/v1/$resourceTypeName/$resourceId")
     }
 
@@ -163,4 +164,25 @@ object Sam extends Sam {
     }
   }
 
+}
+
+object SamModel {
+  import spray.json.DefaultJsonProtocol
+
+  object SamJsonSupport {
+    import DefaultJsonProtocol._
+    import org.broadinstitute.dsde.workbench.model.WorkbenchIdentityJsonSupport._
+
+    implicit val AccessPolicyMembershipFormat = jsonFormat3(AccessPolicyMembership.apply)
+
+    implicit val AccessPolicyResponseEntryFormat = jsonFormat3(AccessPolicyResponseEntry.apply)
+
+    implicit val CreateResourceRequestFormat = jsonFormat3(CreateResourceRequest.apply)
+  }
+
+  final case class AccessPolicyMembership(memberEmails: Set[String], actions: Set[String], roles: Set[String])
+
+  final case class AccessPolicyResponseEntry(policyName: String, policy: AccessPolicyMembership, email: WorkbenchEmail)
+
+  final case class CreateResourceRequest(resourceId: String, policies: Map[String, AccessPolicyMembership], authDomain: Set[String])
 }
