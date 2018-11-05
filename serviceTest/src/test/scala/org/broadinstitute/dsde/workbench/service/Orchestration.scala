@@ -619,9 +619,7 @@ case class AclEntry(email: String, accessLevel: WorkspaceAccessLevel, canShare: 
 
 object OrchestrationModel {
   import DefaultJsonProtocol._
-  case class RawlsGroupShort(groupName: String, groupEmail: String)
-  case class ManagedGroupWithMembers(membersGroup: RawlsGroupShort, adminsGroup: RawlsGroupShort, membersEmails: Seq[String], adminsEmails: Seq[String])
+  case class ManagedGroupWithMembers(membersEmails: Seq[String], adminsEmails: Seq[String], groupEmail: String)
 
-  implicit val RawlsGroupShortFormat = jsonFormat2(RawlsGroupShort)
-  implicit val ManagedGroupWithMembersFormat = jsonFormat4(ManagedGroupWithMembers)
+  implicit val ManagedGroupWithMembersFormat = jsonFormat3(ManagedGroupWithMembers)
 }

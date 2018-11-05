@@ -4,10 +4,11 @@ This file documents changes to the `workbench-service-test` library, including n
 
 ## 0.15
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "0.15-6942040"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "0.15-TRAVIS-REPLACE-ME"`
 
 ### Added
 - `SamModel` object to `Sam`
+- update for group api changes due to sam phase 4
 
 ## 0.14
 - turn on more scalac options. upgrade scala to 2.11.12
