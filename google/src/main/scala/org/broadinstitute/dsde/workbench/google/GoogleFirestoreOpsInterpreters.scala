@@ -1,10 +1,9 @@
 package org.broadinstitute.dsde.workbench.google
 
-import java.io.InputStream
 import java.time.Instant
 import java.util.concurrent.Executor
-
-import cats.effect.{IO, Resource}
+import cats.implicits._
+import cats.effect.{IO, Resource, Sync}
 import com.google.api.core.{ApiFutureCallback, ApiFutures}
 import com.google.auth.oauth2.ServiceAccountCredentials
 import com.google.cloud.firestore._
@@ -38,12 +37,12 @@ object GoogleFirestoreOpsInterpreters{
       }
     }
 
-    def transaction[A](ops: (Firestore, Transaction) => A): IO[A] = {
+    def transaction[A](ops: (Firestore, Transaction) => IO[A]): IO[A] = {
       IO.async[A]{
         cb =>
           ApiFutures.addCallback(
             db.runTransaction(new Transaction.Function[A]{
-              override def updateCallback(transaction: Transaction): A = ops(db, transaction)
+              override def updateCallback(transaction: Transaction): A = ops(db, transaction).unsafeRunSync()
             }),
             callBack(cb),
             executor
@@ -63,18 +62,21 @@ object GoogleFirestoreOpsInterpreters{
                      dataMap: Map[String, Any]): Future[Instant] = iofs.set(collectionName, document, dataMap).unsafeToFuture()
     override def get(collectionName: CollectionName,
                      document: Document): Future[DocumentSnapshot] = iofs.get(collectionName, document).unsafeToFuture()
-    override def transaction[A](ops: (Firestore, Transaction) => A): Future[A] = {
-      iofs.transaction(ops).unsafeToFuture()
+    override def transaction[A](ops: (Firestore, Transaction) => Future[A]): Future[A] = {
+      iofs.transaction((fs, tx) => IO.fromFuture(IO(ops(fs, tx)))).unsafeToFuture()
     }
   }
 
-  def firestore(credential: InputStream): Resource[IO, Firestore] = Resource.make[IO, Firestore](IO(FirestoreOptions
-    .newBuilder()
-    .setTimestampsInSnapshotsEnabled(true)
-    .setCredentials(ServiceAccountCredentials.fromStream(credential))
-    .build()
-    .getService
-  ))(db => IO(db.close()))
+  def firestore[F[_]](pathToJson: String)(implicit sf: Sync[F]): Resource[F, Firestore] = for{
+    credential <- org.broadinstitute.dsde.workbench.util.readFile(pathToJson)
+    db <- Resource.make[F, Firestore](sf.delay(FirestoreOptions
+      .newBuilder()
+      .setTimestampsInSnapshotsEnabled(true)
+      .setCredentials(ServiceAccountCredentials.fromStream(credential))
+      .build()
+      .getService
+    ))(db => sf.delay(db.close()))
+  } yield db
 
   def callBack[A](cb: Either[Throwable, A] => Unit): ApiFutureCallback[A] = new ApiFutureCallback[A]{
     @Override def onFailure(t: Throwable): Unit = cb(Left(t))
