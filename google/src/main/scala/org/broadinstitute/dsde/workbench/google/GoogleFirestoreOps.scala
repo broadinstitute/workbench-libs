@@ -8,7 +8,7 @@ import scala.language.higherKinds
 trait GoogleFirestoreOps[F[_]] {
   def set(collectionName: CollectionName, document: Document, dataMap: Map[String, Any]): F[Instant]
   def get(collectionName: CollectionName, document: Document): F[DocumentSnapshot]
-  def transaction[A](ops: (Firestore, Transaction) => A): F[A]
+  def transaction[A](ops: (Firestore, Transaction) => F[A]): F[A]
 }
 
 final case class CollectionName(asString: String) extends AnyVal
