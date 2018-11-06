@@ -2,6 +2,13 @@
 
 This file documents changes to the `workbench-google` library, including notes on how to upgrade to new versions.
 
+## 0.18
+
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util" % "0.18-TRAVIS-REPLACE-ME"`
+
+### Changed
+- Moved `SamModel`
+
 ## 0.17
 - upgrade cats to 1.4.0 and scala to 2.12.7
 - turn on more scalac options. upgrade scala to 2.12.11
