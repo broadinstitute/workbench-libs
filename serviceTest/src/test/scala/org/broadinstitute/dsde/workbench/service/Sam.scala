@@ -5,8 +5,9 @@ import com.typesafe.scalalogging.LazyLogging
 import org.broadinstitute.dsde.workbench.auth.AuthToken
 import org.broadinstitute.dsde.workbench.config.{UserPool, _}
 import org.broadinstitute.dsde.workbench.model._
-import org.broadinstitute.dsde.workbench.model.SamJsonSupport._
 import org.broadinstitute.dsde.workbench.service.Sam.user.UserStatusDetails
+import org.broadinstitute.dsde.workbench.service.SamModel._
+import org.broadinstitute.dsde.workbench.service.SamModel.SamJsonSupport._
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.time.{Seconds, Span}
 import spray.json._
@@ -123,13 +124,65 @@ object Sam extends Sam {
       val response = parseResponse(getRequest(url + s"api/resources/v1/$resourceTypeName/$resourceId/policies"))
 
       import spray.json.DefaultJsonProtocol._
-      response.parseJson.convertTo[Set[AccessPolicyResponseEntry]]
+      response.parseJson.convertTo[Set[AccessPolicyResponseEntry]](immSetFormat(AccessPolicyResponseEntryFormat))
     }
 
     def setPolicyMembers(groupName: String, policyName: String, memberEmails: Set[String])(implicit token: AuthToken): Unit = {
       logger.info(s"Overwriting members in $policyName policy of $groupName")
       putRequest(url + s"api/groups/v1/$groupName/$policyName", memberEmails)
     }
+
+    def createResource(resourceTypeName: String, resourceRequest: CreateResourceRequest)(implicit token: AuthToken): Unit = {
+      logger.info(s"Creating new resource $resourceRequest of type $resourceTypeName")
+      postRequest(url + s"api/resources/v1/$resourceTypeName", resourceRequest)
+    }
+
+    def syncResourcePolicy(resourceTypeName: String, resourceId: String, policyName: String)(implicit token: AuthToken): Unit = {
+      logger.info(s"Synchronizing $policyName for $resourceId of type $resourceTypeName")
+      postRequest(url + s"api/google/v1/resource/$resourceTypeName/$resourceId/$policyName/sync")
+    }
+
+    def makeResourcePolicyPublic(resourceTypeName: String, resourceId: String, policyName: String, isPublic: Boolean)(implicit token: AuthToken): Unit = {
+      logger.info(s"Making $policyName for $resourceId of type $resourceTypeName public")
+      putRequest(url + s"api/resources/v1/$resourceTypeName/$resourceId/policies/$policyName/public", isPublic)
+    }
+
+    def deleteResource(resourceTypeName: String, resourceId: String)(implicit token: AuthToken): Unit = {
+      logger.info(s"Deleting resource $resourceId")
+      deleteRequest(url + s"api/resources/v1/$resourceTypeName/$resourceId")
+    }
+
+    def addUserToResourcePolicy(resourceTypeName: String, resourceId: String, policyName: String, email: String)(implicit token: AuthToken): Unit = {
+      logger.info(s"Adding $email to $policyName for resource $resourceId")
+      putRequest(url + s"api/resources/v1/$resourceTypeName/$resourceId/policies/$policyName/memberEmails/$email")
+    }
+
+    def getGroupEmail(groupName: String)(implicit token: AuthToken): WorkbenchEmail = {
+      logger.info(s"Getting email for $groupName")
+      val proxyGroupEmailStr = parseResponseAs[String](getRequest(url + s"api/groups/v1/$groupName"))
+      WorkbenchEmail(proxyGroupEmailStr)
+    }
   }
 
+}
+
+object SamModel {
+  import spray.json.DefaultJsonProtocol
+
+  object SamJsonSupport {
+    import DefaultJsonProtocol._
+    import org.broadinstitute.dsde.workbench.model.WorkbenchIdentityJsonSupport._
+
+    implicit val AccessPolicyMembershipFormat = jsonFormat3(AccessPolicyMembership.apply)
+
+    implicit val AccessPolicyResponseEntryFormat = jsonFormat3(AccessPolicyResponseEntry.apply)
+
+    implicit val CreateResourceRequestFormat = jsonFormat3(CreateResourceRequest.apply)
+  }
+
+  final case class AccessPolicyMembership(memberEmails: Set[String], actions: Set[String], roles: Set[String])
+
+  final case class AccessPolicyResponseEntry(policyName: String, policy: AccessPolicyMembership, email: WorkbenchEmail)
+
+  final case class CreateResourceRequest(resourceId: String, policies: Map[String, AccessPolicyMembership], authDomain: Set[String])
 }
