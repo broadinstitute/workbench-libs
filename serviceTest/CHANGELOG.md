@@ -2,6 +2,13 @@
 
 This file documents changes to the `workbench-service-test` library, including notes on how to upgrade to new versions.
 
+## 0.15
+
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "0.15-TRAVIS-REPLACE-ME"`
+
+### Added
+- `SamModel` object to `Sam`
+
 ## 0.14
 - turn on more scalac options. upgrade scala to 2.11.12
 - remove unused parameters

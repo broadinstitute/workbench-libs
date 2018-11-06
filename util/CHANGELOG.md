@@ -2,16 +2,24 @@
 
 This file documents changes to the `workbench-util` library, including notes on how to upgrade to new versions.
 
+## 0.5
+
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util" % "0.5-TRAVIS-REPLACE-ME"`
+
+### Changed
+- Moved `SamModel`
+
 ## 0.4
 - bump cats-core to 1.4.0
 - fixed scaladoc compilation errors
 - turn on more scalac options. upgrade scala to 2.11.12
 - add `cats.effect.Resource` for readFile and ExecutionContext
+
 SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util" % "0.4-8d718f2"`
 
 ## 0.3
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util" % "0.3-2771e2d" % "test" classifier "tests"``
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util" % "0.3-2771e2d" % "test" classifier "tests"`
 
 
 ### Added
