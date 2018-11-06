@@ -4,7 +4,7 @@ This file documents changes to the `workbench-util` library, including notes on 
 
 ## 0.5
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util" % "0.5-TRAVIS-REPLACE-ME"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util" % "0.5-7e86fba"`
 
 ### Changed
 - Moved `SamModel`
