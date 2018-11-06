@@ -2,9 +2,17 @@
 
 This file documents changes to the `workbench-model` library, including notes on how to upgrade to new versions.
 
+## 0.13
+
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-model" % "0.13-TRAVIS-REPLACE-ME"`
+
+### Changed
+
+- Remove duplicated `SamModel`
+
 ## 0.12
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-model" % "0.12-TRAVIS-REPLACE-ME"
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-model" % "0.12-3510877"`
 
 ### Changed
 
