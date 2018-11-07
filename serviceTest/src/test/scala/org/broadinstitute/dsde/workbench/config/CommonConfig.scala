@@ -29,7 +29,6 @@ trait CommonConfig {
     protected val gcsConfig = config.getConfig("gcs")
 
     val pathToQAPem = gcsConfig.getString("qaPemFile")
-    val pathToSamTestFirestoreAccountPath = gcsConfig.getString("firestoreAccountPath")
     val qaEmail = gcsConfig.getString("qaEmail")
     val trialBillingPemFile = gcsConfig.getString("trialBillingPemFile")
     val trialBillingPemFileClientId = gcsConfig.getString("trialBillingPemFileClientId")
