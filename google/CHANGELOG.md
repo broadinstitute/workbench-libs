@@ -9,6 +9,7 @@ SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util" % "0.18
 ### Changed
 - Moved `SamModel`
 - add googleFirestore support
+- add DistributedLock backed by google firestore
 
 ## 0.17
 - upgrade cats to 1.4.0 and scala to 2.12.7
