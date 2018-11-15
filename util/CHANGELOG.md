@@ -3,8 +3,9 @@
 This file documents changes to the `workbench-util` library, including notes on how to upgrade to new versions.
 
 ## 0.5
+- add retry for IO
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util" % "0.5-7e86fba"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util" % "0.5-TRAVIS-REPLACE-ME"`
 
 ### Changed
 - Moved `SamModel`

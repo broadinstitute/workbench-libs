@@ -3,7 +3,10 @@ package org.broadinstitute.dsde.workbench.util
 import akka.actor.ActorSystem
 import akka.pattern._
 import cats.data.NonEmptyList
+import cats.effect.{Sync, Timer}
+import cats.implicits._
 import com.typesafe.scalalogging.LazyLogging
+import org.broadinstitute.dsde.workbench.model.WorkbenchException
 
 import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
@@ -104,4 +107,17 @@ trait Retry {
     }
   }
 
+}
+
+object Retry{
+  def retry[F[_], A](fa: F[A], interval: FiniteDuration, maxRetries: Int)
+                    (implicit sf: Sync[F], timer: Timer[F]): F[A] = {
+    fa.handleErrorWith {
+      case e =>
+        if (maxRetries > 0)
+          timer.sleep(interval) *> retry(fa, interval, maxRetries - 1)
+        else
+          sf.raiseError(new WorkbenchException(s"timeout waiting for lock: ${e}"))
+    }
+  }
 }
