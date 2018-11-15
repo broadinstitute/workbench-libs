@@ -21,7 +21,7 @@ import org.broadinstitute.dsde.workbench.google.GoogleCredentialModes._
 import org.broadinstitute.dsde.workbench.metrics.GoogleInstrumentedService
 import org.broadinstitute.dsde.workbench.model.WorkbenchEmail
 import org.broadinstitute.dsde.workbench.model.google.GcsLifecycleTypes.{Delete, GcsLifecycleType}
-import org.broadinstitute.dsde.workbench.model.google.GcsRoles.{GcsRole, Reader, Owner}
+import org.broadinstitute.dsde.workbench.model.google.GcsRoles.{GcsRole, Owner, Reader}
 import org.broadinstitute.dsde.workbench.model.google._
 
 import scala.collection.JavaConverters._
@@ -310,5 +310,17 @@ class HttpGoogleStorageDAO(appName: String,
     } {
       case e: HttpResponseException if e.getStatusCode == StatusCodes.NotFound.intValue => ()
     }
+  }
+
+  override def getBucketAccessControls(bucketName: GcsBucketName): Future[BucketAccessControls] = {
+    retryWhen500orGoogleError(() => {
+      executeGoogleRequest(storage.bucketAccessControls().list(bucketName.value))
+    })
+  }
+
+  override def getDefaultObjectAccessControls(bucketName: GcsBucketName): Future[ObjectAccessControls] = {
+    retryWhen500orGoogleError(() => {
+      executeGoogleRequest(storage.defaultObjectAccessControls().list(bucketName.value))
+    })
   }
 }
