@@ -6,6 +6,7 @@ import java.util.concurrent.{Executor, TimeUnit}
 import cats.data.OptionT
 import cats.effect._
 import cats.implicits._
+import org.broadinstitute.dsde.workbench.util.Retry.retry
 import com.google.api.core.ApiFutures
 import com.google.cloud.firestore.{DocumentReference, DocumentSnapshot, Transaction}
 import org.broadinstitute.dsde.workbench.google.GoogleFirestoreOpsInterpreters.callBack
@@ -16,18 +17,18 @@ import scala.collection.JavaConverters._
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.FiniteDuration
 
-class DistributedLock[F[_]](lockPathPrefix: String, config: DistributedLockConfig, val googleFirestoreOps: GoogleFirestoreOps[F])(implicit ec: ExecutionContext, timer: Timer[F]){
+class DistributedLock[F[_]](lockPathPrefix: String, config: DistributedLockConfig, val googleFirestoreOps: GoogleFirestoreOps[F])(implicit ec: ExecutionContext, timer: Timer[F], af: Async[F]){
 
   // This is executor for java client's call back to return to. Hence it should be main implicit execution context
   val executor = new Executor {
     override def execute(command: Runnable): Unit = ec.execute(command)
   }
 
-  def withLock(lock: LockPath)(implicit af: Async[F]): Resource[F, Unit] = Resource.make{
+  def withLock(lock: LockPath): Resource[F, Unit] = Resource.make{
     retry(acquireLock(lock), config.retryInterval, config.maxRetry)
   }(_ => releaseLock(lock))
 
-  private[dsde] def acquireLock[A](lock: LockPath)(implicit af: Async[F]): F[Unit] =
+  private[dsde] def acquireLock[A](lock: LockPath): F[Unit] =
     googleFirestoreOps.transaction { (db, tx) =>
       val docRef = db.collection(s"$lockPathPrefix-${lock.collectionName.asString}").document(lock.document.asString)
       for {
@@ -39,7 +40,7 @@ class DistributedLock[F[_]](lockPathPrefix: String, config: DistributedLockConfi
       } yield ()
     }
 
-  private[dsde] def getLockStatus(tx: Transaction, documentReference: DocumentReference)(implicit af: Async[F]): F[LockStatus] = {
+  private[dsde] def getLockStatus(tx: Transaction, documentReference: DocumentReference): F[LockStatus] = {
     val res = for {
       documentSnapshot <- OptionT(af.async[DocumentSnapshot] { cb =>
         ApiFutures.addCallback(
@@ -64,6 +65,15 @@ class DistributedLock[F[_]](lockPathPrefix: String, config: DistributedLockConfi
     res.fold[LockStatus](Available)(identity)
   }
 
+  private[dsde] def setLock(tx: Transaction, documentReference: DocumentReference, expiresIn: FiniteDuration): F[Unit] =
+    for {
+      currentTime <- timer.clock.realTime(EXPIRESINTIMEUNIT)
+      data = Map(
+        EXPIRESAT -> (currentTime + expiresIn.toMillis)
+      )
+      _ <- af.delay(tx.set(documentReference, data.asJava))
+    } yield ()
+
   private[dsde] def releaseLock(lockPath: LockPath)(implicit sf: Sync[F]): F[Unit] = {
     googleFirestoreOps.transaction{
       (db, tx) =>
@@ -77,27 +87,7 @@ object DistributedLock {
   private[dsde] val EXPIRESAT = "expiresAt"
   private[dsde] val EXPIRESINTIMEUNIT = TimeUnit.MILLISECONDS
 
-  def apply[F[_]](lockPathPrefix: String, config: DistributedLockConfig, googleFirestoreOps: GoogleFirestoreOps[F])(implicit ec: ExecutionContext, timer: Timer[F]): DistributedLock[F] = new DistributedLock(lockPathPrefix: String, config, googleFirestoreOps)
-
-  private[dsde] def setLock[F[_]](tx: Transaction, documentReference: DocumentReference, expiresIn: FiniteDuration)(implicit sf: Sync[F], timer: Timer[F]): F[Unit] =
-    for {
-      currentTime <- timer.clock.realTime(EXPIRESINTIMEUNIT)
-      data = Map(
-        EXPIRESAT -> (currentTime + expiresIn.toMillis)
-      )
-      _ <- sf.delay(tx.set(documentReference, data.asJava))
-    } yield ()
-
-  def retry[F[_], A](fa: F[A], interval: FiniteDuration, maxRetries: Int)
-                         (implicit sf: Sync[F], timer: Timer[F]): F[A] = {
-    fa.handleErrorWith {
-      case e =>
-        if (maxRetries > 0)
-          timer.sleep(interval) *> retry(fa, interval, maxRetries - 1)
-        else
-          sf.raiseError(new WorkbenchException(s"timeout waiting for lock: ${e}"))
-    }
-  }
+  def apply[F[_]](lockPathPrefix: String, config: DistributedLockConfig, googleFirestoreOps: GoogleFirestoreOps[F])(implicit ec: ExecutionContext, timer: Timer[F], af: Async[F]): DistributedLock[F] = new DistributedLock(lockPathPrefix: String, config, googleFirestoreOps)
 }
 
 final case class LockPath(collectionName: CollectionName, document: Document, expiresIn: FiniteDuration)
