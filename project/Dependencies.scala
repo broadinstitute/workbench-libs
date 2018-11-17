@@ -46,8 +46,8 @@ object Dependencies {
   val googleIam: ModuleID =                  "com.google.apis"       % "google-api-services-iam"                  % s"v1-rev215-$googleV"
   val googleBigQuery: ModuleID =             "com.google.apis"       % "google-api-services-bigquery"             % s"v2-rev377-$googleV"
   val googleGuava: ModuleID = "com.google.guava"  % "guava" % "22.0"
-  val googleRpc: ModuleID =               "io.grpc" % "grpc-core" % "1.15.0"
-  val googleFirestore: ModuleID = "com.google.cloud" % "google-cloud-firestore" % "0.70.0-beta"
+  val googleRpc: ModuleID =               "io.grpc" % "grpc-core" % "1.16.1"
+  val googleFirestore: ModuleID = "com.google.cloud" % "google-cloud-firestore" % "0.71.0-beta"
 
   val commonDependencies = Seq(
     scalaLogging,
