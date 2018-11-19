@@ -2,7 +2,7 @@ package org.broadinstitute.dsde.workbench.google
 
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream, File}
 
-import com.google.api.services.storage.model.Bucket
+import com.google.api.services.storage.model.{Bucket, BucketAccessControls, ObjectAccessControls}
 import org.broadinstitute.dsde.workbench.model.google.GcsLifecycleTypes.{Delete, GcsLifecycleType}
 import org.broadinstitute.dsde.workbench.model.google.GcsRoles.GcsRole
 import org.broadinstitute.dsde.workbench.model.google.{GcsBucketName, GcsEntity, GcsObjectName, GoogleProject}
@@ -39,4 +39,6 @@ trait GoogleStorageDAO {
   def setDefaultObjectAccessControl(bucketName: GcsBucketName, entity: GcsEntity, role: GcsRole): Future[Unit]
   def removeDefaultObjectAccessControl(bucketName: GcsBucketName, entity: GcsEntity): Future[Unit]
 
+  def getBucketAccessControls(bucketName: GcsBucketName): Future[BucketAccessControls]
+  def getDefaultObjectAccessControls(bucketName: GcsBucketName): Future[ObjectAccessControls]
 }
