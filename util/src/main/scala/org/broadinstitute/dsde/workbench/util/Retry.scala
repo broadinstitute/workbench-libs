@@ -117,7 +117,7 @@ object Retry{
         if (maxRetries > 0)
           timer.sleep(interval) *> retry(fa, interval, maxRetries - 1)
         else
-          sf.raiseError(new WorkbenchException(s"timeout waiting for lock: ${e}"))
+          sf.raiseError(new WorkbenchException(s"Reached max retry: ${e}"))
     }
   }
 }
