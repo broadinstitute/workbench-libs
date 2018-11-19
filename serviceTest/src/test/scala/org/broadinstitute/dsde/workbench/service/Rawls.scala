@@ -58,6 +58,11 @@ trait Rawls extends RestClient with LazyLogging {
       logger.info(s"Listing workspaces")
       parseResponse(getRequest(url + s"api/workspaces"))
     }
+
+    def getWorkspaceDetails(namespace: String, name: String)(implicit token: AuthToken): String = {
+      logger.info(s"Getting workspace $name in $namespace")
+      parseResponse(getRequest(url + s"api/workspaces/$namespace/$name"))
+    }
   }
 
   object submissions {
