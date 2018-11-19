@@ -5,7 +5,7 @@ This file documents changes to the `workbench-util` library, including notes on 
 ## 0.5
 - add retry for IO
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util" % "0.5-TRAVIS-REPLACE-ME"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util" % "0.5-6942040"`
 
 ### Changed
 - Moved `SamModel`
