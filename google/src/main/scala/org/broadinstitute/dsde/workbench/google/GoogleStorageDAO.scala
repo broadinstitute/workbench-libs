@@ -9,6 +9,7 @@ import org.broadinstitute.dsde.workbench.model.google.{GcsBucketName, GcsEntity,
 
 import scala.concurrent.Future
 
+//This is deprecated in favor of GoogleFirestoreAlg
 trait GoogleStorageDAO {
 
   def createBucket(billingProject: GoogleProject, bucketName: GcsBucketName, readers: List[GcsEntity] = List.empty, owners: List[GcsEntity] = List.empty): Future[GcsBucketName]

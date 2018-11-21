@@ -5,7 +5,7 @@ import com.google.cloud.firestore.{DocumentSnapshot, Firestore, Transaction}
 
 import scala.language.higherKinds
 
-trait GoogleFirestoreOps[F[_]] {
+trait GoogleFirestoreAlg[F[_]] {
   def set(collectionName: CollectionName, document: Document, dataMap: Map[String, Any]): F[Instant]
   def get(collectionName: CollectionName, document: Document): F[DocumentSnapshot]
   def transaction[A](ops: (Firestore, Transaction) => F[A]): F[A]

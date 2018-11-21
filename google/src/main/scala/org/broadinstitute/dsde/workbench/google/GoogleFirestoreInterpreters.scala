@@ -11,10 +11,10 @@ import com.google.cloud.firestore._
 import scala.collection.JavaConverters._
 import scala.concurrent.{ExecutionContext, Future}
 
-object GoogleFirestoreOpsInterpreters {
+object GoogleFirestoreInterpreters {
   def ioFirestore(db: Firestore)(
       implicit ec: ExecutionContext
-  ): GoogleFirestoreOps[IO] = new GoogleFirestoreOps[IO] {
+  ): GoogleFirestoreAlg[IO] = new GoogleFirestoreAlg[IO] {
     override def set(
         collectionName: CollectionName,
         document: Document,
@@ -58,7 +58,7 @@ object GoogleFirestoreOpsInterpreters {
 
   def futureFirestore(db: Firestore)(
       implicit ec: ExecutionContext
-  ): GoogleFirestoreOps[Future] = new GoogleFirestoreOps[Future] {
+  ): GoogleFirestoreAlg[Future] = new GoogleFirestoreAlg[Future] {
     val iofs = ioFirestore(db)
     override def set(
         collectionName: CollectionName,

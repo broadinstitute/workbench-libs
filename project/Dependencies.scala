@@ -20,12 +20,14 @@ object Dependencies {
   val akkaHttpSprayJson: ModuleID = "com.typesafe.akka" %% "akka-http-spray-json" % akkaHttpV % "provided"
   val akkaTestkit: ModuleID =       "com.typesafe.akka" %% "akka-testkit"         % akkaV     % "test"
   val akkaHttpTestkit: ModuleID =   "com.typesafe.akka" %% "akka-http-testkit"    % akkaHttpV % "test"
+  val scalaCheck: ModuleID =        "org.scalacheck"      %%  "scalacheck"        % "1.14.0"  % "test"
 
   val jacksonModule: ModuleID =   "com.fasterxml.jackson.module" %% "jackson-module-scala"   % jacksonV % "test"
 
   val selenium: ModuleID = "org.seleniumhq.selenium" % "selenium-java" % "3.11.0" % "test"
 
   val catsEffect: ModuleID = "org.typelevel" %% "cats-effect" % catsEffectV
+  val fs2: ModuleID = "co.fs2" %% "fs2-core" % "1.0.0"
 
   // metrics-scala transitively pulls in io.dropwizard.metrics:metrics-core
   val metricsScala: ModuleID =      "nl.grons"              %% "metrics-scala"    % "3.5.6"
@@ -48,6 +50,8 @@ object Dependencies {
   val googleGuava: ModuleID = "com.google.guava"  % "guava" % "22.0"
   val googleRpc: ModuleID =               "io.grpc" % "grpc-core" % "1.16.1"
   val googleFirestore: ModuleID = "com.google.cloud" % "google-cloud-firestore" % "0.71.0-beta"
+  val googleStorageNew: ModuleID = "com.google.cloud" % "google-cloud-storage" % "1.53.0"
+  val googleStorageLocal: ModuleID = "com.google.cloud" % "google-cloud-nio" % "0.71.0-alpha" % "test"
 
   val commonDependencies = Seq(
     scalaLogging,
@@ -93,9 +97,12 @@ object Dependencies {
     googleGuava,
     googleRpc,
     googleFirestore,
-    catsEffect,
+    googleStorageNew,
+    googleStorageLocal,
     akkaHttpSprayJson,
-    akkaTestkit
+    fs2,
+    akkaTestkit,
+    scalaCheck
   ).map(excludeGuavaJDK5)
 
   val serviceTestDependencies = commonDependencies ++ Seq(
