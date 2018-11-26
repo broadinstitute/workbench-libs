@@ -96,20 +96,20 @@ object Settings {
 
   //common settings for all sbt subprojects
   val commonSettings =
-    commonBuildSettings ++ commonAssemblySettings ++ commonTestSettings ++ commonCrossCompileSettings ++ List(
+    commonBuildSettings ++ commonAssemblySettings ++ commonTestSettings ++ List(
     organization  := "org.broadinstitute.dsde.workbench",
     scalaVersion  := "2.12.7",
     resolvers ++= commonResolvers,
     commonCompilerSettings
   )
 
-  val utilSettings = commonSettings ++ List(
+  val utilSettings = commonCrossCompileSettings ++ commonSettings ++ List(
     name := "workbench-util",
     libraryDependencies ++= utilDependencies,
     version := createVersion("0.5")
   ) ++ publishSettings
 
-  val modelSettings = commonSettings ++ List(
+  val modelSettings = commonCrossCompileSettings ++ commonSettings ++ List(
     name := "workbench-model",
     libraryDependencies ++= modelDependencies,
     version := createVersion("0.13")
