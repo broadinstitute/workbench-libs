@@ -18,7 +18,6 @@ import scala.concurrent.duration._
 
 private[google] class GoogleStorageIO(db: Storage,
                                       blockingEc: ExecutionContext,
-                                      maxPageSize: Long,
                                       retryConfig: RetryConfig
                                      )(
   implicit cs: ContextShift[IO],
@@ -26,17 +25,20 @@ private[google] class GoogleStorageIO(db: Storage,
 ) extends GoogleStorageAlg[IO] {
   private def retryStorageIO[A](ioa: IO[A]): Stream[IO, A] = Stream.retry(ioa, retryConfig.retryInitialDelay, retryConfig.retryNextDelay, retryConfig.maxAttempts, retryConfig.retryable)
 
-  override def listObjectsWithPrefix(bucketName: GcsBucketName, objectNamePrefix: String): Stream[IO, GcsObjectName] = {
-    val retrievePages = cs.evalOn(blockingEc)(IO(db.list(bucketName.value, BlobListOption.prefix(objectNamePrefix), BlobListOption.pageSize(maxPageSize), BlobListOption.currentDirectory())))
+  override def listObjectsWithPrefix(bucketName: GcsBucketName, objectNamePrefix: String, maxPageSize: Long = 1000): Stream[IO, GcsObjectName] = {
     for {
-      pages <- retryStorageIO(retrievePages)
-      objects <- Stream.fromIterator[IO, Blob](pages.iterateAll().iterator().asScala).map{
+      firstPage <- retryStorageIO(cs.evalOn(blockingEc)(IO(db.list(bucketName.value, BlobListOption.prefix(objectNamePrefix), BlobListOption.pageSize(maxPageSize), BlobListOption.currentDirectory()))))
+      page <- Stream.unfold(firstPage){
+        currentPage =>
+          Option(currentPage).map(p => (p, p.getNextPage))
+      }
+      objects <- Stream.fromIterator[IO, Blob](page.iterateAll().iterator().asScala).map{
         blob => GcsObjectName(blob.getName, Instant.ofEpochMilli(blob.getCreateTime))
       }
     } yield objects
   }
 
-  override def unsafeListObjectsWithPrefix(bucketName: GcsBucketName, objectNamePrefix: String): IO[List[GcsObjectName]] = listObjectsWithPrefix(bucketName, objectNamePrefix).map(List(_)).compile.foldMonoid
+  override def unsafeListObjectsWithPrefix(bucketName: GcsBucketName, objectNamePrefix: String, maxPageSize: Long = 1000): IO[List[GcsObjectName]] = listObjectsWithPrefix(bucketName, objectNamePrefix).map(List(_)).compile.foldMonoid
 
   override def unsafeGetObject(bucketName: GcsBucketName, blobName: GcsBlobName): IO[Option[String]] = {
     val getBlobs = cs.evalOn(blockingEc)(IO(db.get(BlobId.of(bucketName.value, blobName.value)))).map(Option(_))
@@ -97,10 +99,10 @@ object GoogleStorageInterpreters {
     }
   )
 
-  def ioStorage(db: Storage, blockingEc: ExecutionContext, maxPageSize: Long = 1000, retryConfig: RetryConfig = defaultRetryConfig)(
+  def ioStorage(db: Storage, blockingEc: ExecutionContext, retryConfig: RetryConfig = defaultRetryConfig)(
     implicit cs: ContextShift[IO],
     timer: Timer[IO]
-  ): GoogleStorageAlg[IO] = new GoogleStorageIO(db, blockingEc, maxPageSize, retryConfig)
+  ): GoogleStorageAlg[IO] = new GoogleStorageIO(db, blockingEc, retryConfig)
 
   def storage[F[_]](
       pathToJson: String

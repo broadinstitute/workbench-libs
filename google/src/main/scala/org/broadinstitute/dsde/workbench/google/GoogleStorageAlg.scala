@@ -8,12 +8,12 @@ import org.broadinstitute.dsde.workbench.model.google.{GcsBucketName, GcsObjectN
 import scala.language.higherKinds
 
 trait GoogleStorageAlg[F[_]] {
-  def listObjectsWithPrefix(bucketName: GcsBucketName, objectNamePrefix: String): Stream[F, GcsObjectName]
+  def listObjectsWithPrefix(bucketName: GcsBucketName, objectNamePrefix: String, maxPageSize: Long = 1000): Stream[F, GcsObjectName]
 
   /**
     * not memory safe. Use listObjectsWithPrefix if you're worried about OOM
     */
-  def unsafeListObjectsWithPrefix(bucketName: GcsBucketName, objectNamePrefix: String): F[List[GcsObjectName]]
+  def unsafeListObjectsWithPrefix(bucketName: GcsBucketName, objectNamePrefix: String, maxPageSize: Long = 1000): F[List[GcsObjectName]]
 
   def storeObject(bucketName: GcsBucketName, objectName: GcsBlobName, objectContents: Array[Byte], objectType: String): F[Unit]
 

@@ -84,6 +84,19 @@ class GoogleStorageInterpreterSpec extends AsyncFlatSpec with Matchers {
       allObjectsWithPrefix.map(_.value) should contain theSameElementsAs List("pet-254290011538078c723da@testproject.iam.gserviceaccount.com/806ad9bb-a9b7-4706-a29b-0d06a1a3519")
     }
   }
+
+  it should "retrieve multiple pages" in ioAssertion {
+    val bucketName = genGcsBucketName.sample.get
+    val prefix = "anotherPrefix"
+    val blobNameWithPrefix = Gen.listOfN(4, genGcsBlobName).sample.get.map(x => GcsBlobName(s"$prefix${x.value}"))
+    val objectBody = genGcsObjectBody.sample.get
+    for {
+      _ <- blobNameWithPrefix.parTraverse(obj => localStorage.storeObject(bucketName, obj, objectBody, objectType))
+      allObjectsWithPrefix <- localStorage.unsafeListObjectsWithPrefix(bucketName, prefix, 1)
+    } yield {
+      allObjectsWithPrefix.map(_.value) should contain theSameElementsAs (blobNameWithPrefix.map(_.value))
+    }
+  }
 }
 
 object GoogleStorageInterpreterSpec {
