@@ -1,4 +1,4 @@
-package org.broadinstitute.dsde.workbench.google
+package org.broadinstitute.dsde.workbench.google2
 import java.time.Instant
 
 import com.google.cloud.firestore.{DocumentSnapshot, Firestore, Transaction}

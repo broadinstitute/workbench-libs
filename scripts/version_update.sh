@@ -19,7 +19,7 @@ git config --global user.email "travis@travis-ci.org"
 git config --global user.name "Travis CI"
 
 # Don't run twice: prevent Scala 2.11 runs
-if [[ "$TRAVIS_PULL_REQUEST" == "false" && "$TRAVIS_BRANCH" == "develop" && "$TRAVIS_SCALA_VERSION" == "2.12.7" ]]; then
+if [[ "$TRAVIS_PULL_REQUEST" == "false" && "$TRAVIS_BRANCH" == "develop" ]]; then
   echo "Auto-updating version hashes..."
 
   # ignore failure if the remote does not exist

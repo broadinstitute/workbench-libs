@@ -85,11 +85,11 @@ object Settings {
   })
 
   val commonCrossCompileSettings = Seq(
-    crossScalaVersions := List("2.11.12", "2.12.7")
+    crossScalaVersions := List("2.11.12", "2.12.8")
   )
 
   val only212 = Seq(
-    crossScalaVersions := List("2.12.7")
+    crossScalaVersions := List("2.12.8")
   )
 
   //sbt assembly settings
@@ -101,7 +101,7 @@ object Settings {
   //common settings for all sbt subprojects
   val commonSettings = commonBuildSettings ++ commonAssemblySettings ++ commonTestSettings ++ List(
     organization  := "org.broadinstitute.dsde.workbench",
-    scalaVersion  := "2.12.7",
+    scalaVersion  := "2.12.8",
     resolvers ++= commonResolvers,
     commonCompilerSettings
   )
@@ -129,6 +129,12 @@ object Settings {
     libraryDependencies ++= googleDependencies,
     version := createVersion("0.18"),
     coverageExcludedPackages := ".*HttpGoogle.*DAO.*"
+  ) ++ publishSettings
+
+  val google2Settings = only212 ++ commonSettings ++ List(
+    name := "workbench-google2",
+    libraryDependencies ++= google2Dependencies,
+    version := createVersion("0.1")
   ) ++ publishSettings
 
   val serviceTestSettings = only212 ++ commonSettings ++ List(

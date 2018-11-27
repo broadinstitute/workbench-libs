@@ -8,8 +8,6 @@ SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util" % "0.18
 
 ### Changed
 - Moved `SamModel`
-- add googleFirestore support
-- add DistributedLock backed by google firestore
 - add functions to access `DefaultObjectAccessControls` and `BucketAccesscontrols`
 - when getting service account treat 403 from google when error message is "Unable to extract resource containers." as service account does not exist see https://console.cloud.google.com/support/cases/detail/17978989?project=broad-dsde-prod
 

@@ -1,12 +1,12 @@
-package org.broadinstitute.dsde.workbench.google
+package org.broadinstitute.dsde.workbench.google2
 
 import org.broadinstitute.dsde.workbench.util.TestUtil.ioAssertion
 import cats.effect.IO
 import cats.implicits._
+import fs2.Stream
 import com.google.cloud.storage.contrib.nio.testing.LocalStorageHelper
-import org.broadinstitute.dsde.workbench.google.Generators._
-import org.broadinstitute.dsde.workbench.google.GoogleStorageInterpreterSpec._
-import org.broadinstitute.dsde.workbench.google.GoogleStorageInterpreters._
+import org.broadinstitute.dsde.workbench.google2.Generators._
+import org.broadinstitute.dsde.workbench.google2.GoogleStorageInterpreterSpec._
 import org.scalacheck.Gen
 import org.scalatest.{AsyncFlatSpec, Matchers}
 
@@ -87,7 +87,7 @@ class GoogleStorageInterpreterSpec extends AsyncFlatSpec with Matchers {
 
   it should "retrieve multiple pages" in ioAssertion {
     val bucketName = genGcsBucketName.sample.get
-    val prefix = "anotherPrefix"
+    val prefix = Gen.uuid.sample.get.toString
     val blobNameWithPrefix = Gen.listOfN(4, genGcsBlobName).sample.get.map(x => GcsBlobName(s"$prefix${x.value}"))
     val objectBody = genGcsObjectBody.sample.get
     for {
@@ -97,12 +97,26 @@ class GoogleStorageInterpreterSpec extends AsyncFlatSpec with Matchers {
       allObjectsWithPrefix.map(_.value) should contain theSameElementsAs (blobNameWithPrefix.map(_.value))
     }
   }
+
+  it should "do not list duplicate entries" in ioAssertion {
+    val bucketName = genGcsBucketName.sample.get
+    val prefix = "yetAnotherPrefix"
+    val blobNameWithPrefix = genGcsBlobName.map(x => GcsBlobName(s"$prefix$x")).sample.get
+    val duplicateBlobs = Stream(blobNameWithPrefix).repeat.take(3).toList
+    val objectBody = genGcsObjectBody.sample.get
+    for {
+      _ <- duplicateBlobs.parTraverse(obj => localStorage.storeObject(bucketName, obj, objectBody, objectType))
+      allObjectsWithPrefix <- localStorage.listObjectsWithPrefix(bucketName, prefix, 1).compile.toList
+    } yield {
+      allObjectsWithPrefix.map(_.value) should contain theSameElementsAs List(blobNameWithPrefix.value)
+    }
+  }
 }
 
 object GoogleStorageInterpreterSpec {
   implicit val cs = IO.contextShift(ExecutionContext.global)
   implicit val timer = IO.timer(ExecutionContext.global)
   val db = LocalStorageHelper.getOptions().getService()
-  val localStorage = ioStorage(db, ExecutionContext.global)
+  val localStorage = GoogleStorageInterpreter[IO](db, ExecutionContext.global)
   val objectType = "text/plain"
 }
