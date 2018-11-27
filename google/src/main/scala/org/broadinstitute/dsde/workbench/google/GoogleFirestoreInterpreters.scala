@@ -14,7 +14,7 @@ import scala.concurrent.{ExecutionContext, Future}
 object GoogleFirestoreInterpreters {
   def ioFirestore(db: Firestore)(
       implicit ec: ExecutionContext
-  ): GoogleFirestoreAlg[IO] = new GoogleFirestoreAlg[IO] {
+  ): GoogleFirestoreService[IO] = new GoogleFirestoreService[IO] {
     override def set(
         collectionName: CollectionName,
         document: Document,
@@ -58,7 +58,7 @@ object GoogleFirestoreInterpreters {
 
   def futureFirestore(db: Firestore)(
       implicit ec: ExecutionContext
-  ): GoogleFirestoreAlg[Future] = new GoogleFirestoreAlg[Future] {
+  ): GoogleFirestoreService[Future] = new GoogleFirestoreService[Future] {
     val iofs = ioFirestore(db)
     override def set(
         collectionName: CollectionName,

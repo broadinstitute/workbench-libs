@@ -7,7 +7,12 @@ import org.broadinstitute.dsde.workbench.model.google.{GcsBucketName, GcsObjectN
 
 import scala.language.higherKinds
 
-trait GoogleStorageAlg[F[_]] {
+/**
+  * Algebra for Google storage access
+  *
+  * We follow tagless final pattern similar to https://typelevel.org/cats-tagless/
+  */
+trait GoogleStorageService[F[_]] {
   def listObjectsWithPrefix(bucketName: GcsBucketName, objectNamePrefix: String, maxPageSize: Long = 1000): Stream[F, GcsObjectName]
 
   /**

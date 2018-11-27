@@ -17,7 +17,7 @@ import scala.collection.JavaConverters._
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.FiniteDuration
 
-class DistributedLock[F[_]](lockPathPrefix: String, config: DistributedLockConfig, val googleFirestoreOps: GoogleFirestoreAlg[F])(implicit ec: ExecutionContext, timer: Timer[F], af: Async[F]){
+class DistributedLock[F[_]](lockPathPrefix: String, config: DistributedLockConfig, val googleFirestoreOps: GoogleFirestoreService[F])(implicit ec: ExecutionContext, timer: Timer[F], af: Async[F]){
 
   // This is executor for java client's call back to return to. Hence it should be main implicit execution context
   val executor = new Executor {
@@ -88,7 +88,7 @@ object DistributedLock {
   private[dsde] val EXPIRESAT = "expiresAt"
   private[dsde] val EXPIRESATTIMEUNIT = TimeUnit.MILLISECONDS
 
-  def apply[F[_]](lockPathPrefix: String, config: DistributedLockConfig, googleFirestoreOps: GoogleFirestoreAlg[F])(implicit ec: ExecutionContext, timer: Timer[F], af: Async[F]): DistributedLock[F] = new DistributedLock(lockPathPrefix: String, config, googleFirestoreOps)
+  def apply[F[_]](lockPathPrefix: String, config: DistributedLockConfig, googleFirestoreOps: GoogleFirestoreService[F])(implicit ec: ExecutionContext, timer: Timer[F], af: Async[F]): DistributedLock[F] = new DistributedLock(lockPathPrefix: String, config, googleFirestoreOps)
 }
 
 final case class LockPath(collectionName: CollectionName, document: Document, expiresIn: FiniteDuration)
