@@ -22,7 +22,7 @@ private[google] class GoogleStorageIO(db: Storage,
                                      )(
   implicit cs: ContextShift[IO],
   timer: Timer[IO]
-) extends GoogleStorageAlg[IO] {
+) extends GoogleStorageService[IO] {
   private def retryStorageIO[A](ioa: IO[A]): Stream[IO, A] = Stream.retry(ioa, retryConfig.retryInitialDelay, retryConfig.retryNextDelay, retryConfig.maxAttempts, retryConfig.retryable)
 
   override def listObjectsWithPrefix(bucketName: GcsBucketName, objectNamePrefix: String, maxPageSize: Long = 1000): Stream[IO, GcsObjectName] = {
@@ -102,7 +102,7 @@ object GoogleStorageInterpreters {
   def ioStorage(db: Storage, blockingEc: ExecutionContext, retryConfig: RetryConfig = defaultRetryConfig)(
     implicit cs: ContextShift[IO],
     timer: Timer[IO]
-  ): GoogleStorageAlg[IO] = new GoogleStorageIO(db, blockingEc, retryConfig)
+  ): GoogleStorageService[IO] = new GoogleStorageIO(db, blockingEc, retryConfig)
 
   def storage[F[_]](
       pathToJson: String
