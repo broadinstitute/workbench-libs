@@ -24,6 +24,12 @@ lazy val workbenchGoogle = project.in(file("google"))
   .dependsOn(workbenchMetrics % testAndCompile)
   .withTestSettings
 
+lazy val workbenchGoogle2 = project.in(file("google2"))
+  .settings(google2Settings:_*)
+  .dependsOn(workbenchUtil % testAndCompile)
+  .dependsOn(workbenchModel)
+  .withTestSettings
+
 lazy val workbenchServiceTest = project.in(file("serviceTest"))
   .settings(serviceTestSettings:_*)
   .dependsOn(workbenchModel % testAndCompile)
@@ -48,6 +54,7 @@ lazy val workbenchLibs = project.in(file("."))
   .aggregate(workbenchModel)
   .aggregate(workbenchMetrics)
   .aggregate(workbenchGoogle)
+  .aggregate(workbenchGoogle2)
   .aggregate(workbenchServiceTest)
   .aggregate(workbenchNotifications)
   .settings(crossScalaVersions := List())
