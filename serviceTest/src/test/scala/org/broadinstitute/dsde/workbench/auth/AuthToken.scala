@@ -1,7 +1,6 @@
 package org.broadinstitute.dsde.workbench.auth
 
 import java.io.IOException
-import java.net.SocketTimeoutException
 
 import akka.http.scaladsl.model.StatusCodes
 import com.google.api.client.auth.oauth2.TokenResponseException
@@ -36,7 +35,7 @@ trait AuthToken extends LazyLogging {
     Retry.retry(5.seconds, 1.minute)({
 
       val cred = buildCredential()
-      val baseLogMessage =
+      val baseLogMessage = "Details: \n" +
         s"Service Account: ${cred.getServiceAccountId} \n" +
         s"User: ${cred.getServiceAccountUser} \n" +
         s"Scopes: ${cred.getServiceAccountScopesAsString} \n" +
@@ -49,10 +48,10 @@ trait AuthToken extends LazyLogging {
         Option(cred.getAccessToken)
       } catch {
         case e: TokenResponseException if Set(StatusCodes.Unauthorized.intValue, StatusCodes.BadRequest.intValue) contains e.getStatusCode =>
-          logger.error(s"Encountered ${e.getStatusCode} error getting access token. Details: \n" + baseLogMessage)
+          logger.error(s"Encountered ${e.getStatusCode} error getting access token." + baseLogMessage)
           None
         case f: IOException => {
-          logger.error(s"Error getting access token. Details: \n" + s"Error Message: ${f.getMessage} \n" + baseLogMessage)
+          logger.error(s"Error getting access token with error message: ${f.getMessage} \n" + baseLogMessage)
           None
         }
       }
