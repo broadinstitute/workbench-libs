@@ -8,9 +8,9 @@ import org.broadinstitute.dsde.workbench.model.google.{GcsBucketName, GcsObjectN
 import GoogleStorageInterpreterSpec._
 
 object FakeGoogleStorageInterpreter extends GoogleStorageAlg[IO] {
-  override def listObjectsWithPrefix(bucketName: GcsBucketName, objectNamePrefix: String): fs2.Stream[IO, GcsObjectName] = localStorage.listObjectsWithPrefix(bucketName, objectNamePrefix)
+  override def listObjectsWithPrefix(bucketName: GcsBucketName, objectNamePrefix: String, maxPageSize: Long = 1000): fs2.Stream[IO, GcsObjectName] = localStorage.listObjectsWithPrefix(bucketName, objectNamePrefix)
 
-  override def unsafeListObjectsWithPrefix(bucketName: GcsBucketName, objectNamePrefix: String): IO[List[GcsObjectName]] = listObjectsWithPrefix(bucketName, objectNamePrefix).map(List(_)).compile.foldMonoid
+  override def unsafeListObjectsWithPrefix(bucketName: GcsBucketName, objectNamePrefix: String, maxPageSize: Long = 1000): IO[List[GcsObjectName]] = listObjectsWithPrefix(bucketName, objectNamePrefix).map(List(_)).compile.foldMonoid
 
   override def storeObject(bucketName: GcsBucketName, objectName: GcsBlobName, objectContents: Array[Byte], objectType: String): IO[Unit] = localStorage.storeObject(bucketName, objectName, objectContents, objectType)
 
