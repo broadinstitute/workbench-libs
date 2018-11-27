@@ -1,5 +1,8 @@
 package org.broadinstitute.dsde.workbench.auth
 
+import java.io.IOException
+import java.net.SocketTimeoutException
+
 import akka.http.scaladsl.model.StatusCodes
 import com.google.api.client.auth.oauth2.TokenResponseException
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential
@@ -31,20 +34,27 @@ trait AuthToken extends LazyLogging {
 
   private def makeToken(): String = {
     Retry.retry(5.seconds, 1.minute)({
+
       val cred = buildCredential()
+      val baseLogMessage =
+        s"Service Account: ${cred.getServiceAccountId} \n" +
+        s"User: ${cred.getServiceAccountUser} \n" +
+        s"Scopes: ${cred.getServiceAccountScopesAsString} \n" +
+        s"Access Token: ${cred.getAccessToken} \n" +
+        s"Token Expires: in ${cred.getExpiresInSeconds} seconds \n" +
+        s"SA Private Key ID: ${cred.getServiceAccountPrivateKeyId}"
+
       try {
         cred.refreshToken()
         Option(cred.getAccessToken)
       } catch {
         case e: TokenResponseException if Set(StatusCodes.Unauthorized.intValue, StatusCodes.BadRequest.intValue) contains e.getStatusCode =>
-          logger.error(s"Encountered ${e.getStatusCode} error getting access token. Details: \n" +
-            s"Service Account: ${cred.getServiceAccountId} \n" +
-            s"User: ${cred.getServiceAccountUser} \n" +
-            s"Scopes: ${cred.getServiceAccountScopesAsString} \n" +
-            s"Access Token: ${cred.getAccessToken} \n" +
-            s"Token Expires: in ${cred.getExpiresInSeconds} seconds \n" +
-            s"SA Private Key ID: ${cred.getServiceAccountPrivateKeyId}")
+          logger.error(s"Encountered ${e.getStatusCode} error getting access token. Details: \n" + baseLogMessage)
           None
+        case f: IOException => {
+          logger.error(s"Error getting access token. Details: \n" + s"Error Message: ${f.getMessage} \n" + baseLogMessage)
+          None
+        }
       }
     })
   }.getOrElse(throw new Exception("Unable to get access token"))
