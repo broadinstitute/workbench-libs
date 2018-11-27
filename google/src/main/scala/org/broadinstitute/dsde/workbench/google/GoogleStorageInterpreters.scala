@@ -27,7 +27,7 @@ private[google] class GoogleStorageIO(db: Storage,
 
   override def listObjectsWithPrefix(bucketName: GcsBucketName, objectNamePrefix: String, maxPageSize: Long = 1000): Stream[IO, GcsObjectName] = {
     for {
-      firstPage <- retryStorageIO(cs.evalOn(blockingEc)(IO(db.list(bucketName.value, BlobListOption.prefix(objectNamePrefix), BlobListOption.pageSize(maxPageSize), BlobListOption.currentDirectory()))))
+      firstPage <- retryStorageIO(cs.evalOn(blockingEc)(IO(db.list(bucketName.value, BlobListOption.prefix(objectNamePrefix), BlobListOption.pageSize(maxPageSize.longValue()), BlobListOption.currentDirectory()))))
       page <- Stream.unfold(firstPage){
         currentPage =>
           Option(currentPage).map(p => (p, p.getNextPage))
