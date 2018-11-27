@@ -50,6 +50,7 @@ lazy val workbenchLibs = project.in(file("."))
   .aggregate(workbenchGoogle)
   .aggregate(workbenchServiceTest)
   .aggregate(workbenchNotifications)
+  .settings(crossScalaVersions := List())
 
 Revolver.settings
 

@@ -88,6 +88,10 @@ object Settings {
     crossScalaVersions := List("2.11.12", "2.12.7")
   )
 
+  val only212 = Seq(
+    crossScalaVersions := List("2.12.7")
+  )
+
   //sbt assembly settings
   val commonAssemblySettings = Seq(
     assemblyMergeStrategy in assembly := customMergeStrategy((assemblyMergeStrategy in assembly).value),
@@ -95,45 +99,45 @@ object Settings {
   )
 
   //common settings for all sbt subprojects
-  val commonSettings = commonCrossCompileSettings ++ commonBuildSettings ++ commonAssemblySettings ++ commonTestSettings ++ List(
+  val commonSettings = commonBuildSettings ++ commonAssemblySettings ++ commonTestSettings ++ List(
     organization  := "org.broadinstitute.dsde.workbench",
     scalaVersion  := "2.12.7",
     resolvers ++= commonResolvers,
     commonCompilerSettings
   )
 
-  val utilSettings = commonSettings ++ List(
+  val utilSettings = commonCrossCompileSettings ++ commonSettings ++ List(
     name := "workbench-util",
     libraryDependencies ++= utilDependencies,
     version := createVersion("0.5")
   ) ++ publishSettings
 
-  val modelSettings = commonSettings ++ List(
+  val modelSettings = commonCrossCompileSettings ++ commonSettings ++ List(
     name := "workbench-model",
     libraryDependencies ++= modelDependencies,
     version := createVersion("0.13")
   ) ++ publishSettings
 
-  val metricsSettings = commonSettings ++ List(
+  val metricsSettings = only212 ++ commonSettings ++ List(
     name := "workbench-metrics",
     libraryDependencies ++= metricsDependencies,
     version := createVersion("0.5")
   ) ++ publishSettings
 
-  val googleSettings = commonSettings ++ List(
+  val googleSettings = only212 ++ commonSettings ++ List(
     name := "workbench-google",
     libraryDependencies ++= googleDependencies,
     version := createVersion("0.18"),
     coverageExcludedPackages := ".*HttpGoogle.*DAO.*"
   ) ++ publishSettings
 
-  val serviceTestSettings = commonSettings ++ List(
+  val serviceTestSettings = only212 ++ commonSettings ++ List(
     name := "workbench-service-test",
     libraryDependencies ++= serviceTestDependencies,
     version := createVersion("0.16")
   ) ++ publishSettings
 
-  val notificationsSettings = commonSettings ++ List(
+  val notificationsSettings = only212 ++ commonSettings ++ List(
     name := "workbench-notifications",
     libraryDependencies ++= notificationsDependencies,
     version := createVersion("0.3")
