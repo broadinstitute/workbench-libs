@@ -35,7 +35,7 @@ trait AuthToken extends LazyLogging {
     Retry.retry(5.seconds, 1.minute)({
 
       val cred = buildCredential()
-      val baseLogMessage = "Details: \n" +
+      def baseLogMessage = "Details: \n" +
         s"Service Account: ${cred.getServiceAccountId} \n" +
         s"User: ${cred.getServiceAccountUser} \n" +
         s"Scopes: ${cred.getServiceAccountScopesAsString} \n" +
@@ -51,7 +51,7 @@ trait AuthToken extends LazyLogging {
           logger.error(s"Encountered ${e.getStatusCode} error getting access token." + baseLogMessage)
           None
         case f: IOException => {
-          logger.error(s"Error getting access token with error message: ${f.getMessage} \n" + baseLogMessage)
+          logger.error(s"Error getting access token with error message. " + baseLogMessage, f)
           None
         }
       }
