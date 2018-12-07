@@ -16,7 +16,7 @@ import scala.util.Try
   */
 trait GroupFixtures extends ExceptionHandling with LazyLogging with RandomUtil { self: TestSuite =>
 
-  def groupNameToEmail(groupName: String)(implicit token: AuthToken): String = Orchestration.groups.getGroup(groupName).membersGroup.groupEmail
+  def groupNameToEmail(groupName: String)(implicit token: AuthToken): String = Orchestration.groups.getGroup(groupName).groupEmail
 
   def withGroup(namePrefix: String, memberEmails: List[String] = List())
                (testCode: (String) => Any)

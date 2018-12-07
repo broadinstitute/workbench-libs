@@ -4,12 +4,13 @@ This file documents changes to the `workbench-google` library, including notes o
 
 ## 0.18
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util" % "0.18-6942040"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util" % "0.18-TRAVIS-REPLACE-ME"`
 
 ### Changed
 - Moved `SamModel`
 - add googleFirestore support
 - add DistributedLock backed by google firestore
+- add functions to access `DefaultObjectAccessControls` and `BucketAccesscontrols`
 
 ## 0.17
 - upgrade cats to 1.4.0 and scala to 2.12.7
