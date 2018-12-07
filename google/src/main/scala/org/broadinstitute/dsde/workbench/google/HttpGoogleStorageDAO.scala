@@ -311,4 +311,16 @@ class HttpGoogleStorageDAO(appName: String,
       case e: HttpResponseException if e.getStatusCode == StatusCodes.NotFound.intValue => ()
     }
   }
+
+  override def getBucketAccessControls(bucketName: GcsBucketName): Future[BucketAccessControls] = {
+    retryWhen500orGoogleError(() => {
+      executeGoogleRequest(storage.bucketAccessControls().list(bucketName.value))
+    })
+  }
+
+  override def getDefaultObjectAccessControls(bucketName: GcsBucketName): Future[ObjectAccessControls] = {
+    retryWhen500orGoogleError(() => {
+      executeGoogleRequest(storage.defaultObjectAccessControls().list(bucketName.value))
+    })
+  }
 }

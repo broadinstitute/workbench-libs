@@ -4,7 +4,7 @@ import java.io.{ByteArrayInputStream, ByteArrayOutputStream, File}
 import java.nio.file.Files
 
 import com.google.api.client.util.IOUtils
-import com.google.api.services.storage.model.Bucket
+import com.google.api.services.storage.model.{Bucket, BucketAccessControls, ObjectAccessControls}
 import org.broadinstitute.dsde.workbench.google.GoogleStorageDAO
 import org.broadinstitute.dsde.workbench.model.google.GcsLifecycleTypes.{Delete, GcsLifecycleType}
 import org.broadinstitute.dsde.workbench.model.google.GcsRoles.GcsRole
@@ -145,5 +145,12 @@ class MockGoogleStorageDAO(  implicit val executionContext: ExecutionContext ) e
 
   override def removeDefaultObjectAccessControl(bucketName: GcsBucketName, entity: GcsEntity): Future[Unit] = {
     Future.successful(())
+  }
+
+  override def getBucketAccessControls(bucketName: GcsBucketName): Future[BucketAccessControls] = {
+    Future.successful(new BucketAccessControls())
+  }
+  override def getDefaultObjectAccessControls(bucketName: GcsBucketName): Future[ObjectAccessControls] = {
+    Future.successful(new ObjectAccessControls())
   }
 }
