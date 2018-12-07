@@ -4,7 +4,9 @@ This file documents changes to the `workbench-service-test` library, including n
 
 ## 0.15
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "0.15-c7a8999"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "0.15-TRAVIS-REPLACE-ME"`
+
+- automation tests will now fail if gpalloc does not have billing projects
 
 ### Added
 - `SamModel` object to `Sam`
