@@ -179,7 +179,7 @@ trait WebBrowserSpec extends WebBrowserUtil with ExceptionHandling with LazyLogg
     path.toString
   }
 
-  def saveLog(logtype: String, filePrefix: String)(implicit driver: WebDriver) {
+  def saveLog(logtype: String, filePrefix: String)(implicit driver: WebDriver): Unit = {
     val logLines = driver.manage().logs().get(logtype).getAll.iterator().asScala.toList
     if (logLines.nonEmpty) {
       val logString = logLines.map(_.toString).reduce(_ + "\n" + _)
