@@ -5,14 +5,15 @@ import java.net.URL
 import java.nio.file.attribute.PosixFilePermission
 import java.nio.file.{Files, Path, Paths}
 import java.text.SimpleDateFormat
+import java.util.logging.Level
 
 import com.typesafe.scalalogging.LazyLogging
 import org.broadinstitute.dsde.workbench.config.ServiceTestConfig
 import org.broadinstitute.dsde.workbench.service.Orchestration
 import org.broadinstitute.dsde.workbench.service.util.ExceptionHandling
 import org.openqa.selenium.chrome.{ChromeDriverService, ChromeOptions}
-import org.openqa.selenium.logging.LogType
-import org.openqa.selenium.remote.{Augmenter, LocalFileDetector, RemoteWebDriver}
+import org.openqa.selenium.logging.{LogEntry, LogType, LoggingPreferences}
+import org.openqa.selenium.remote._
 import org.openqa.selenium.{OutputType, TakesScreenshot, WebDriver}
 import org.scalatest.Suite
 
@@ -68,6 +69,11 @@ trait WebBrowserSpec extends WebBrowserUtil with ExceptionHandling with LazyLogg
     val options = new ChromeOptions
     options.addArguments("--incognito")
     options.addArguments("--no-experiments")
+    options.addArguments("--no-sandbox")
+    options.addArguments("--dns-prefetch-disable")
+    options.addArguments("--lang=en-US")
+    options.addArguments("--disable-setuid-sandbox")
+    options.addArguments("--disable-extensions")
 
     if (java.lang.Boolean.parseBoolean(System.getProperty("burp.proxy"))) {
       options.addArguments("--proxy-server=http://127.0.0.1:8080")
@@ -76,6 +82,13 @@ trait WebBrowserSpec extends WebBrowserUtil with ExceptionHandling with LazyLogg
     options.setExperimentalOption("prefs", Map(
       "download.default_directory" -> fullDownloadPath,
       "download.prompt_for_download" -> "false").asJava)
+
+    val logPref = new LoggingPreferences()
+    logPref.enable(LogType.BROWSER, Level.ALL)
+    logPref.enable(LogType.CLIENT, Level.ALL)
+    logPref.enable(LogType.DRIVER, Level.ALL)
+    options.setCapability(CapabilityType.LOGGING_PREFS, logPref)
+
     options
   }
 
@@ -129,7 +142,7 @@ trait WebBrowserSpec extends WebBrowserUtil with ExceptionHandling with LazyLogg
         val name = s"${suiteName}_${date}"
         val fileName = s"$path/${name}.png"
         val htmlSourceFileName = s"$path/${name}.html"
-        val logFileName = s"$path/${name}_console.txt"
+        val logFileNamePrefix = s"$path/${name}"
         try {
           val directory = new File(s"$path")
           if (!directory.exists()) {
@@ -143,15 +156,13 @@ trait WebBrowserSpec extends WebBrowserUtil with ExceptionHandling with LazyLogg
           val html = tagName("html").element.underlying.getAttribute("outerHTML")
           new FileOutputStream(new File(htmlSourceFileName)).write(html.getBytes)
 
-          val logLines = driver.manage().logs().get(LogType.BROWSER).iterator().asScala.toList
-          if (logLines.nonEmpty) {
-            val logString = logLines.map(_.toString).reduce(_ + "\n" + _)
-            new FileOutputStream(new File(logFileName)).write(logString.getBytes)
-          }
+          saveLog(LogType.BROWSER, s"${logFileNamePrefix}")
+          saveLog(LogType.CLIENT, s"${logFileNamePrefix}")
+          saveLog(LogType.DRIVER, s"${logFileNamePrefix}")
+
           logger.error(s"Screenshot ${name}.png Exception. ", t)
         } catch nonFatalAndLog(s"FAILED TO SAVE SCREENSHOT $fileName")
-
-        throw t
+          throw t
     }
   }
 
@@ -166,6 +177,14 @@ trait WebBrowserSpec extends WebBrowserUtil with ExceptionHandling with LazyLogg
     import scala.collection.JavaConverters._
     Files.setPosixFilePermissions(path, permissions.asJava)
     path.toString
+  }
+
+  def saveLog(logtype: String, filePrefix: String)(implicit driver: WebDriver) {
+    val logLines = driver.manage().logs().get(logtype).getAll.iterator().asScala.toList
+    if (logLines.nonEmpty) {
+      val logString = logLines.map(_.toString).reduce(_ + "\n" + _)
+      new FileOutputStream(new File(s"$filePrefix-$logtype.txt")).write(logString.getBytes)
+    }
   }
 
 }
