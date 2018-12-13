@@ -12,7 +12,7 @@ import org.broadinstitute.dsde.workbench.config.ServiceTestConfig
 import org.broadinstitute.dsde.workbench.service.Orchestration
 import org.broadinstitute.dsde.workbench.service.util.ExceptionHandling
 import org.openqa.selenium.chrome.{ChromeDriverService, ChromeOptions}
-import org.openqa.selenium.logging.{LogEntry, LogType, LoggingPreferences}
+import org.openqa.selenium.logging.{LogType, LoggingPreferences}
 import org.openqa.selenium.remote._
 import org.openqa.selenium.{OutputType, TakesScreenshot, WebDriver}
 import org.scalatest.Suite
