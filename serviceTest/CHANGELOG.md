@@ -12,6 +12,7 @@ SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test"
 ### Added
 - `SamModel` object to `Sam`
 - update for group api changes due to sam phase 4
+- Rawls.workspaces.getWorkflowCollectionName
 
 ## 0.14
 - turn on more scalac options. upgrade scala to 2.11.12
