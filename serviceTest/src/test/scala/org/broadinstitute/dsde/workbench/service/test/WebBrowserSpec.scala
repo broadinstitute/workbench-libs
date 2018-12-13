@@ -74,6 +74,8 @@ trait WebBrowserSpec extends WebBrowserUtil with ExceptionHandling with LazyLogg
     options.addArguments("--lang=en-US")
     options.addArguments("--disable-setuid-sandbox")
     options.addArguments("--disable-extensions")
+    options.addArguments("--disable-dev-shm-usage")
+
 
     if (java.lang.Boolean.parseBoolean(System.getProperty("burp.proxy"))) {
       options.addArguments("--proxy-server=http://127.0.0.1:8080")
