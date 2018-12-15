@@ -57,7 +57,7 @@ trait RestClient extends Retry with LazyLogging {
         // service being directly called or a 500 if it happens at a lower level service
         if (response.status == StatusCodes.Unauthorized
           || response.status == StatusCodes.InternalServerError
-          || response.status == 504) {
+          || response.status == StatusCodes.GatewayTimeout) {
           logger.info(s"RestClient:sendRequest status code: ${response.status}")
           throwRestException(response)
         } else {
