@@ -55,7 +55,10 @@ trait RestClient extends Retry with LazyLogging {
         // retry any 401 or 500 errors - this is because we have seen the proxy get backend errors
         // from google querying for token info which causes a 401 if it is at the level if the
         // service being directly called or a 500 if it happens at a lower level service
-        if (response.status == StatusCodes.Unauthorized || response.status == StatusCodes.InternalServerError) {
+        if (response.status == StatusCodes.Unauthorized
+          || response.status == StatusCodes.InternalServerError
+          || response.status == 504) {
+          logger.info(s"RestClient:sendRequest status code: ${response.status}")
           throwRestException(response)
         } else {
           response
