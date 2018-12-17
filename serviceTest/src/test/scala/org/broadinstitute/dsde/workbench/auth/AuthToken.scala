@@ -19,8 +19,7 @@ object AuthTokenScopes {
   // the list of scopes needed by service accounts to do their work:
   val serviceAccountScopes = userLoginScopes ++ Seq("https://www.googleapis.com/auth/devstorage.full_control", "https://www.googleapis.com/auth/cloud-platform")
   // list of scopes needed to work with billing.
-  // TODO: change cloud-platform (very broad) to cloud-billing! This requires a change to the scopes that the service account is allowed to grant - right now, it can only grant cloud-platform, not cloud-billing.
-  val billingScopes = userLoginScopes ++ Seq("https://www.googleapis.com/auth/cloud-platform")
+  val billingScopes = userLoginScopes ++ Seq("https://www.googleapis.com/auth/cloud-billing")
 }
 
 trait AuthToken extends LazyLogging {
