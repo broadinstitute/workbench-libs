@@ -2,6 +2,13 @@
 
 This file documents changes to the `workbench-service-test` library, including notes on how to upgrade to new versions.
 
+## 0.16
+
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "0.16-TRAVIS-REPLACE-ME"`
+
+- automation tests now request the `cloud-billing` scope instead of the `cloud-platform` scope in the `AuthTokenScopes.billingScopes`
+variable. This better reflects end-user behavior.
+
 ## 0.15
 
 SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "0.15-eb721ee"`
