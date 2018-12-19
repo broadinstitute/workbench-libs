@@ -75,6 +75,10 @@ trait WebBrowserSpec extends WebBrowserUtil with ExceptionHandling with LazyLogg
     options.addArguments("--disable-setuid-sandbox")
     options.addArguments("--disable-extensions")
     options.addArguments("--disable-dev-shm-usage")
+    options.addArguments("--window-size=2880,1800")
+    // options.addArguments("--enable-logging")
+    // options.addArguments("--v=1")
+    // options.addArguments("log-path=logs/chromedriver.log")
     options.setExperimentalOption("useAutomationExtension", false)
 
     if (java.lang.Boolean.parseBoolean(System.getProperty("burp.proxy"))) {
@@ -98,7 +102,11 @@ trait WebBrowserSpec extends WebBrowserUtil with ExceptionHandling with LazyLogg
   lazy val chromeDriverFile: File = new File(ServiceTestConfig.ChromeSettings.chromeDriverPath)
 
   private def runLocalChrome(options: ChromeOptions, testCode: WebDriver => Any): Unit = {
-    val service = new ChromeDriverService.Builder().usingDriverExecutable(chromeDriverFile).usingAnyFreePort().build()
+    // comment out this line to disable chromedriver verbose log
+    val service = new ChromeDriverService.Builder().usingDriverExecutable(chromeDriverFile).usingAnyFreePort().withVerbose(true).withLogFile(new File("logs/chromedriver.log")).build()
+    // comment out this line to enable chromedriver verbose log
+    // val service = new ChromeDriverService.Builder().usingDriverExecutable(chromeDriverFile).usingAnyFreePort().build()
+
     service.start()
     implicit val driver: RemoteWebDriver = startRemoteWebdriver(service.getUrl, options)
     try {
@@ -106,6 +114,8 @@ trait WebBrowserSpec extends WebBrowserUtil with ExceptionHandling with LazyLogg
         testCode(driver)
       }
     } finally {
+      try driver.close() catch nonFatalAndLog
+      Thread.sleep(3000)
       try driver.quit() catch nonFatalAndLog
       try service.stop() catch nonFatalAndLog
     }
@@ -118,13 +128,15 @@ trait WebBrowserSpec extends WebBrowserUtil with ExceptionHandling with LazyLogg
         testCode(driver)
       }
     } finally {
+      try driver.close() catch nonFatalAndLog
+      Thread.sleep(3000)
       try driver.quit() catch nonFatalAndLog
     }
   }
 
   private def startRemoteWebdriver(url: URL, options: ChromeOptions): RemoteWebDriver = {
     val driver = new RemoteWebDriver(url, options)
-    driver.manage.window.setSize(new org.openqa.selenium.Dimension(1600, 2400))
+    driver.manage.window.setSize(new org.openqa.selenium.Dimension(2880, 1800))
     driver.setFileDetector(new LocalFileDetector())
     // implicitlyWait(Span(2, Seconds))
     driver
