@@ -449,7 +449,7 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
   }
 
   def importMetaData(ns: String, wsName: String, fileName: String, fileContent: String)(implicit token: AuthToken): String = {
-    logger.info(s"Importing metadata: $ns/$wsName $fileName, $fileContent")
+    // logger.info(s"Importing metadata: $ns/$wsName $fileName, $fileContent")
     postRequestWithMultipart(apiUrl(s"api/workspaces/$ns/$wsName/importEntities"), fileName, fileContent)
   }
 

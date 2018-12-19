@@ -24,7 +24,7 @@ trait GroupFixtures extends ExceptionHandling with LazyLogging with RandomUtil {
     val groupName = uuidWithPrefix(namePrefix)
 
     val testTrial = Try {
-      logger.info(s"Creating new group $groupName")
+      // logger.info(s"Creating new group $groupName")
       Orchestration.groups.create(groupName)
       memberEmails foreach { email =>
         logger.info(s"Adding user $email with role of member to group $groupName")
