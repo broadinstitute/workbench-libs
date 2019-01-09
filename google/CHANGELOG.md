@@ -4,13 +4,14 @@ This file documents changes to the `workbench-google` library, including notes o
 
 ## 0.18
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util" % "0.18-c7a8999"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util" % "0.18-TRAVIS-REPLACE-ME"`
 
 ### Changed
 - Moved `SamModel`
 - add googleFirestore support
 - add DistributedLock backed by google firestore
 - add functions to access `DefaultObjectAccessControls` and `BucketAccesscontrols`
+- added retry for 403 from google when error message is "Unable to extract resource containers." see https://console.cloud.google.com/support/cases/detail/17978989?project=broad-dsde-prod
 
 ## 0.17
 - upgrade cats to 1.4.0 and scala to 2.12.7
