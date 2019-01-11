@@ -28,8 +28,6 @@ trait GoogleUtilities extends LazyLogging with InstrumentedRetry with GoogleInst
     throwable match {
       case t: GoogleJsonResponseException => {
         ((t.getStatusCode == 403 || t.getStatusCode == 429) && t.getDetails.getErrors.asScala.head.getDomain.equalsIgnoreCase("usageLimits")) ||
-          // added to catch fix a google issue that popped up https://console.cloud.google.com/support/cases/detail/17978989?project=broad-dsde-prod
-          (t.getStatusCode == 403 && t.getDetails.getErrors.asScala.head.getMessage.equalsIgnoreCase("Unable to extract resource containers.")) ||
           (t.getStatusCode == 400 && t.getDetails.getErrors.asScala.head.getReason.equalsIgnoreCase("invalid")) ||
           t.getStatusCode == 404 ||
           t.getStatusCode/100 == 5

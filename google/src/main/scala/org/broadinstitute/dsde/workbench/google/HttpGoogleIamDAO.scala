@@ -82,6 +82,9 @@ class HttpGoogleIamDAO(appName: String,
     } {
       case t: GoogleJsonResponseException if t.getStatusCode == 404 =>
         None
+      case t: GoogleJsonResponseException if t.getStatusCode == 403 && t.getDetails.getErrors.asScala.head.getMessage.equalsIgnoreCase("Unable to extract resource containers.") =>
+        // added to catch and fix a google issue that popped up https://console.cloud.google.com/support/cases/detail/17978989?project=broad-dsde-prod
+        None
     })
 
     //Turn it into a Workbench SA type.
