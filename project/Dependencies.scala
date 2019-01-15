@@ -8,6 +8,7 @@ object Dependencies {
   val googleV       = "1.22.0"
   val scalaLoggingV = "3.7.2"
   val scalaTestV    = "3.0.1"
+  val circeVersion = "0.11.1"
 
   def excludeGuavaJDK5(m: ModuleID): ModuleID = m.exclude("com.google.guava", "guava-jdk5")
 
@@ -54,12 +55,18 @@ object Dependencies {
   val googleStorageLocal: ModuleID = "com.google.cloud" % "google-cloud-nio" % "0.74.0-alpha" % "test"
   val googlePubsubNew: ModuleID = "com.google.cloud" % "google-cloud-pubsub" % "1.59.0"
 
+  val circeCore: ModuleID = "io.circe" %% "circe-core" % circeVersion
+  val circeParser: ModuleID = "io.circe" %% "circe-parser" % circeVersion
+  val circeGeneric: ModuleID = "io.circe" %% "circe-generic" % circeVersion % "test"
+  //  val scodecCore: ModuleID = "org.scodec" %% "scodec-core" % "1.10.3"
+  val log4cats = "io.chrisdavenport" %% "log4cats-slf4j"   % "0.2.0"
+
   val commonDependencies = Seq(
-    scalaLogging,
     scalatest
   )
 
   val utilDependencies = commonDependencies ++ Seq(
+    scalaLogging,
     akkaActor,
     akkaHttpSprayJson,
     catsEffect,
@@ -68,11 +75,13 @@ object Dependencies {
   )
 
   val modelDependencies = commonDependencies ++ Seq(
+    scalaLogging,
     akkaHttpSprayJson,
     googleGuava
   )
 
   val metricsDependencies = commonDependencies ++ Seq(
+    scalaLogging,
     metricsScala,
     metricsStatsd,
     akkaHttp,
@@ -82,6 +91,7 @@ object Dependencies {
   )
 
   val googleDependencies = commonDependencies ++ Seq(
+    scalaLogging,
     googleCloudBilling,
     googleGenomics,
     googleStorage,
@@ -111,10 +121,16 @@ object Dependencies {
     scalaCheck,
     googlePubsubNew,
     scalaCheck,
+    circeCore,
+    circeParser,
+    log4cats,
+    circeGeneric,
+//    scodecCore,
     fs2
   )
 
   val serviceTestDependencies = commonDependencies ++ Seq(
+    scalaLogging,
     akkaActor,
     akkaHttp,
     akkaHttpSprayJson,
@@ -124,6 +140,7 @@ object Dependencies {
   )
 
   val notificationsDependencies = commonDependencies ++ Seq(
+    scalaLogging,
     akkaHttpSprayJson
   )
 

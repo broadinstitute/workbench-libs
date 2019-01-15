@@ -3,13 +3,12 @@ package org.broadinstitute.dsde.workbench.google2
 import java.time.Instant
 import java.util.concurrent.Executor
 
-import cats.implicits._
 import cats.effect._
 import cats.effect.implicits._
-import com.google.api.core.{ApiFutureCallback, ApiFutures}
+import cats.implicits._
+import com.google.api.core.ApiFutures
 import com.google.auth.oauth2.ServiceAccountCredentials
 import com.google.cloud.firestore._
-import org.broadinstitute.dsde.workbench.google2.GoogleFirestoreInterpreter.callBack
 
 import scala.collection.JavaConverters._
 import scala.concurrent.ExecutionContext
@@ -76,10 +75,4 @@ object GoogleFirestoreInterpreter {
         )
       )(db => sf.delay(db.close()))
     } yield db
-
-  def callBack[A](cb: Either[Throwable, A] => Unit): ApiFutureCallback[A] =
-    new ApiFutureCallback[A] {
-      @Override def onFailure(t: Throwable): Unit = cb(Left(t))
-      @Override def onSuccess(result: A): Unit = cb(Right(result))
-    }
 }
