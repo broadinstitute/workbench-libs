@@ -77,21 +77,11 @@ trait WebBrowserSpec extends WebBrowserUtil with ExceptionHandling with LazyLogg
     options.addArguments("--disable-extensions")
     options.addArguments("--disable-dev-shm-usage")
     options.addArguments("--window-size=2880,1800")
-    //options.addArguments("--enable-logging")
-    //options.addArguments("--v=0")
-    //options.addArguments("--log-level=0")
-    //options.addArguments("--enable-logging=stderr")
     options.setExperimentalOption("useAutomationExtension", false)
 
     if (java.lang.Boolean.parseBoolean(System.getProperty("burp.proxy"))) {
       options.addArguments("--proxy-server=http://127.0.0.1:8080")
-    } /* else {
-      val proxy: Proxy = new Proxy()
-      proxy.setAutodetect(false)
-      proxy.setNoProxy("")
-      proxy.setProxyType(ProxyType.MANUAL)
-      options.setProxy(proxy)
-    } */
+    }
 
     // Note that download.prompt_for_download will be ignored if download.default_directory is invalid or doesn't exist
     options.setExperimentalOption("prefs", Map(
@@ -148,7 +138,7 @@ trait WebBrowserSpec extends WebBrowserUtil with ExceptionHandling with LazyLogg
         Thread.sleep(10000)
         startRemoteWebdriver(url, options, trials-1)
       case Failure(e) =>
-        logger.error(s"Failed to start a new Chrome RemoteWebDriver after $trials tries.",e)
+        logger.error(s"Failed to start a new Chrome RemoteWebDriver.",e)
         throw e
       case Success(driver) =>
         driver.manage.window.setSize(new org.openqa.selenium.Dimension(2880, 1800))
