@@ -1,11 +1,16 @@
-package org.broadinstitute.dsde.workbench.google
+package org.broadinstitute.dsde.workbench.google2
 import java.time.Instant
 
 import com.google.cloud.firestore.{DocumentSnapshot, Firestore, Transaction}
 
 import scala.language.higherKinds
 
-trait GoogleFirestoreOps[F[_]] {
+/**
+  * Algebra for Google firestore access
+  *
+  * We follow tagless final pattern similar to https://typelevel.org/cats-tagless/
+  */
+trait GoogleFirestoreService[F[_]] {
   def set(collectionName: CollectionName, document: Document, dataMap: Map[String, Any]): F[Instant]
   def get(collectionName: CollectionName, document: Document): F[DocumentSnapshot]
   def transaction[A](ops: (Firestore, Transaction) => F[A]): F[A]

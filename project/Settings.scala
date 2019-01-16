@@ -85,7 +85,11 @@ object Settings {
   })
 
   val commonCrossCompileSettings = Seq(
-    crossScalaVersions := List("2.11.12", "2.12.7")
+    crossScalaVersions := List("2.11.12", "2.12.8")
+  )
+
+  val only212 = Seq(
+    crossScalaVersions := List("2.12.8")
   )
 
   //sbt assembly settings
@@ -95,46 +99,51 @@ object Settings {
   )
 
   //common settings for all sbt subprojects
-  val commonSettings =
-    commonBuildSettings ++ commonAssemblySettings ++ commonTestSettings ++ commonCrossCompileSettings ++ List(
+  val commonSettings = commonBuildSettings ++ commonAssemblySettings ++ commonTestSettings ++ List(
     organization  := "org.broadinstitute.dsde.workbench",
-    scalaVersion  := "2.12.7",
+    scalaVersion  := "2.12.8",
     resolvers ++= commonResolvers,
     commonCompilerSettings
   )
 
-  val utilSettings = commonSettings ++ List(
+  val utilSettings = commonCrossCompileSettings ++ commonSettings ++ List(
     name := "workbench-util",
     libraryDependencies ++= utilDependencies,
     version := createVersion("0.5")
   ) ++ publishSettings
 
-  val modelSettings = commonSettings ++ List(
+  val modelSettings = commonCrossCompileSettings ++ commonSettings ++ List(
     name := "workbench-model",
     libraryDependencies ++= modelDependencies,
     version := createVersion("0.13")
   ) ++ publishSettings
 
-  val metricsSettings = commonSettings ++ List(
+  val metricsSettings = only212 ++ commonSettings ++ List(
     name := "workbench-metrics",
     libraryDependencies ++= metricsDependencies,
     version := createVersion("0.5")
   ) ++ publishSettings
 
-  val googleSettings = commonSettings ++ List(
+  val googleSettings = only212 ++ commonSettings ++ List(
     name := "workbench-google",
     libraryDependencies ++= googleDependencies,
     version := createVersion("0.18"),
     coverageExcludedPackages := ".*HttpGoogle.*DAO.*"
   ) ++ publishSettings
 
-  val serviceTestSettings = commonSettings ++ List(
+  val google2Settings = only212 ++ commonSettings ++ List(
+    name := "workbench-google2",
+    libraryDependencies ++= google2Dependencies,
+    version := createVersion("0.1")
+  ) ++ publishSettings
+
+  val serviceTestSettings = only212 ++ commonSettings ++ List(
     name := "workbench-service-test",
     libraryDependencies ++= serviceTestDependencies,
     version := createVersion("0.16")
   ) ++ publishSettings
 
-  val notificationsSettings = commonSettings ++ List(
+  val notificationsSettings = only212 ++ commonSettings ++ List(
     name := "workbench-notifications",
     libraryDependencies ++= notificationsDependencies,
     version := createVersion("0.3")
