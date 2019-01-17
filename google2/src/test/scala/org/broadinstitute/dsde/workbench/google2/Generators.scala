@@ -21,6 +21,7 @@ object Generators {
     name <- Gen.alphaStr.map(s => s"name$s")
     email <- Gen.alphaStr.map(s => s"email$s")
   } yield Person(name, email)
+  val genListPerson = Gen.nonEmptyListOf(genPerson)
   val genProjectTopicName: Gen[ProjectTopicName] = for{
     project <- genGoogleProject
     topic <- Gen.alphaStr.map(x => s"topic$x")

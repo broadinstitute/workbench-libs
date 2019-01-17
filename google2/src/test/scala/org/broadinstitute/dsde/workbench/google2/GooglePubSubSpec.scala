@@ -7,9 +7,11 @@ import com.google.api.gax.core.NoCredentialsProvider
 import com.google.api.gax.grpc.GrpcTransportChannel
 import com.google.api.gax.rpc.FixedTransportChannelProvider
 import com.google.cloud.pubsub.v1._
-import com.google.pubsub.v1.{ProjectSubscriptionName, ProjectTopicName, PubsubMessage, PushConfig}
+import com.google.pubsub.v1.{ProjectSubscriptionName, ProjectTopicName, PushConfig}
 import fs2.Stream
 import fs2.concurrent.SignallingRef
+import io.chrisdavenport.log4cats.Logger
+import io.chrisdavenport.log4cats.slf4j.Slf4jLogger
 import io.circe.Decoder
 import io.circe.generic.auto._
 import io.grpc.ManagedChannelBuilder
@@ -17,42 +19,56 @@ import io.grpc.Status.Code
 import org.broadinstitute.dsde.workbench.google2.GooglePubSubSpec._
 import org.broadinstitute.dsde.workbench.util.WorkbenchTest
 import org.scalatest.{FlatSpec, Matchers}
-import io.circe.parser._
 
 import scala.concurrent.duration._
 import scala.util.Try
 
 class GooglePubSubSpec extends FlatSpec with Matchers with WorkbenchTest {
-  "GooglePublisherInterpreter" should "be able to publish message successfully" in ioAssertion {
-    val person = Generators.genPerson.sample.get
-    val projectTopicName = Generators.genProjectTopicName.sample.get
+  implicit val logger = Slf4jLogger.unsafeCreate[IO]
 
-    val handler: Person => IO[Unit] = _ => IO.unit //dummy handler for subscriber since we don't care about subscriber in this test
-    localPubsub(projectTopicName, handler).use{
-      case (pub, _) =>
-        val source = Stream(person)
-
-        val res = source to pub.publish[Person]
-
-        res.compile.drain.as(succeed)
-    }
-  }
-
-  "GoogleSubscriberInterpreter" should "be able to subscribe messages successfully" in {
-    val person = Generators.genPerson.sample.get
+  "GooglePublisherInterpreter" should "be able to publish message successfully" in {
+    val people = Generators.genListPerson.sample.get
     val projectTopicName = Generators.genProjectTopicName.sample.get
 
     val res = for {
+      queue <- fs2.concurrent.Queue.bounded[IO, Event[Person]](10000)
+      _ <- localPubsub[Person](projectTopicName, queue).use{
+        case (pub, _) =>
+          val res = Stream.emits(people) to pub.publish
+
+          res.compile.drain
+      }
+    } yield succeed
+
+    res.unsafeRunSync()
+  }
+
+  "GoogleSubscriberInterpreter" should "be able to subscribe messages successfully" in {
+    val people = Generators.genListPerson.sample.get
+    val projectTopicName = Generators.genProjectTopicName.sample.get
+
+    var expectedPeople = people
+    val res = for {
+      queue <- fs2.concurrent.Queue.bounded[IO, Event[Person]](10000)
       terminateSubscriber <- SignallingRef[IO, Boolean](false) //signal for terminating subscriber
       terminateStopStream <- SignallingRef[IO, Boolean](false) //signal for terminating stopStream
-      messageHandler = {
-        p: Person =>
-          IO((p shouldBe person)) >> terminateSubscriber.set(true)
-      }
-      _ <- localPubsub(projectTopicName, messageHandler).use {
+      _ <- localPubsub(projectTopicName, queue).use {
         case (pub, sub) =>
-          val source = Stream(person)
-          val subScribeStream = (source to pub.publish[Person]) ++ Stream.eval(sub.start)
+          val subScribeStream = (Stream.emits(people) to pub.publish[Person]) ++ Stream.eval(sub.start)
+
+          val processEvents: Stream[IO, Unit] = sub.messages.zipWithIndex.evalMap[IO, Unit]{
+            case (event, index)=>
+              if(expectedPeople.contains(event.msg)) {
+                expectedPeople = expectedPeople.filterNot(_ == event.msg)
+                if(index.toInt == people.length - 1)
+                  IO(event.consumer.ack()).void >> terminateSubscriber.set(true)
+                else
+                  IO(event.consumer.ack()).void
+              }
+              else
+                IO.raiseError(new Exception(s"${event.msg} doesn't equal ${people(index.toInt)}")) >> terminateSubscriber.set(true)
+          }.interruptWhen(terminateStopStream)
+
           // stopStream will check every 1 seconds to see if SignallingRef is set to false, if so terminate subscriber
           val stopStream: Stream[IO, Unit] = (Stream.sleep(1 seconds) ++ Stream.eval_{
             for {
@@ -63,7 +79,7 @@ class GooglePubSubSpec extends FlatSpec with Matchers with WorkbenchTest {
             } yield ()
           }).repeat.interruptWhen(terminateStopStream)
 
-          val finalStream = Stream(subScribeStream, stopStream).parJoinUnbounded
+          val finalStream = Stream(subScribeStream, stopStream, processEvents).parJoinUnbounded
           finalStream.compile.drain
       }
     } yield succeed
@@ -73,7 +89,7 @@ class GooglePubSubSpec extends FlatSpec with Matchers with WorkbenchTest {
 }
 
 object GooglePubSubSpec {
-  def localPubsub[A: Decoder](projectTopicName: ProjectTopicName, handler: A => IO[Unit])(implicit timer: Timer[IO], cs: ContextShift[IO]): Resource[IO, (GooglePublisherInterpreter[IO], GoogleSubscriberInterpreter[IO])] = {
+  def localPubsub[A: Decoder](projectTopicName: ProjectTopicName, queue: fs2.concurrent.Queue[IO, Event[A]])(implicit timer: Timer[IO], cs: ContextShift[IO], logger: Logger[IO]): Resource[IO, (GooglePublisherInterpreter[IO], GoogleSubscriberInterpreter[IO, A])] = {
     for{
       channel <- Resource.make(IO(ManagedChannelBuilder.forTarget("localhost:8085").usePlaintext().build()))(c => IO(c.shutdown()))
       channelProvider = FixedTransportChannelProvider.create(GrpcTransportChannel.create(channel))
@@ -91,33 +107,19 @@ object GooglePubSubSpec {
       pub <- Resource.make(IO(Publisher.newBuilder(projectTopicName)
         .setChannelProvider(channelProvider)
         .setCredentialsProvider(credentialsProvider)
-        .build()))(p => IO(p.shutdown()))
+        .build()))(p => /*IO(p.shutdown()) >>*/ IO.unit) //TODO: shutdown properly. Somehow this hangs the publisher unit test
       subscription = ProjectSubscriptionName.of(projectTopicName.getProject, projectTopicName.getTopic)
-      receiver = new MessageReceiver() {
-        override def receiveMessage(message: PubsubMessage, consumer: AckReplyConsumer): Unit = {
-          val result = for {
-            json <- parse(message.getData.toStringUtf8)
-            a <- json.as[A]
-            _ <- handler(a).attempt.unsafeRunSync()
-          } yield {
-            consumer.ack()
-          }
-
-          result.leftMap(throw _)
-        }
-      }
-      sub <- Resource.make(
+      receiver = GoogleSubscriberInterpreter.receiver(queue)
+      sub <- Resource.liftF(
         IO(Subscriber
           .newBuilder(subscription, receiver) //TODO: set credentials correctly
           .setChannelProvider(channelProvider)
           .setCredentialsProvider(credentialsProvider)
           .build())
-      )(s => IO(s.stopAsync()))
-      publisher = GooglePublisherInterpreter[IO](pub, topicClient)
-      _ <- Resource.liftF(publisher.createTopic(projectTopicName))
+      )
     } yield {
-      // create subscription
-      Try(subscriptionAdminClient.createSubscription(subscription, projectTopicName, PushConfig.getDefaultInstance, 10)).as(()).recover[Unit]{
+      // create topic
+      Try(topicClient.createTopic(projectTopicName)).void.recover[Unit]{
         case e: io.grpc.StatusRuntimeException =>
           if(e.getStatus.getCode == Code.ALREADY_EXISTS)
             ()
@@ -125,7 +127,16 @@ object GooglePubSubSpec {
             throw e
       }
 
-      (publisher, GoogleSubscriberInterpreter[IO](sub))
+      // create subscription
+      Try(subscriptionAdminClient.createSubscription(subscription, projectTopicName, PushConfig.getDefaultInstance, 10)).void.recover[Unit]{
+        case e: io.grpc.StatusRuntimeException =>
+          if(e.getStatus.getCode == Code.ALREADY_EXISTS)
+            ()
+          else
+            throw e
+      }
+
+      (GooglePublisherInterpreter[IO](pub, topicClient), GoogleSubscriberInterpreter[IO, A](sub, queue))
     }
   }
 }
