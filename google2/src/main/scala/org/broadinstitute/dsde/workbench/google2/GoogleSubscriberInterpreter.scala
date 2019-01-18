@@ -80,11 +80,11 @@ object GoogleSubscriberInterpreter {
     }
   }
 
-  def subscriber[F[_]: Effect: Logger, A: Decoder](pathToJson: String, subsriberConfig: SubsriberConfig, queue: fs2.concurrent.Queue[F, Event[A]]): Resource[F, Subscriber] = {
+  def subscriber[F[_]: Effect: Logger, A: Decoder](subsriberConfig: SubsriberConfig, queue: fs2.concurrent.Queue[F, Event[A]]): Resource[F, Subscriber] = {
     val subscription = ProjectSubscriptionName.of(subsriberConfig.projectTopicName.getProject, subsriberConfig.projectTopicName.getTopic)
 
     for {
-      credentialFile <- org.broadinstitute.dsde.workbench.util.readFile(pathToJson)
+      credentialFile <- org.broadinstitute.dsde.workbench.util.readFile(subsriberConfig.pathToCredentialJson)
       credential = ServiceAccountCredentials.fromStream(credentialFile)
       subscriptionAdminClient <- Resource.make[F, SubscriptionAdminClient](Async[F].delay(
         SubscriptionAdminClient.create(
@@ -108,5 +108,5 @@ object GoogleSubscriberInterpreter {
   }
 }
 
-final case class SubsriberConfig(projectTopicName: ProjectTopicName, achDeadLine: FiniteDuration)
+final case class SubsriberConfig(pathToCredentialJson: String, projectTopicName: ProjectTopicName, achDeadLine: FiniteDuration)
 final case class Event[A](msg: A, consumer: AckReplyConsumer)
