@@ -19,14 +19,15 @@ import org.scalatest.Suite
 
 import scala.collection.JavaConverters._
 import scala.sys.SystemProperties
+import scala.util.{Failure, Success, Try}
 
 /**
   * Base spec for writing FireCloud web browser tests.
   */
 trait WebBrowserSpec extends WebBrowserUtil with ExceptionHandling with LazyLogging { self: Suite =>
 
-  lazy val api = Orchestration
-  lazy val headless = new SystemProperties().get("headless")
+  lazy val api: Orchestration.type = Orchestration
+  lazy val headless: Option[String] = new SystemProperties().get("headless")
 
   val isHeadless: Boolean = {
     headless match {
@@ -57,7 +58,7 @@ trait WebBrowserSpec extends WebBrowserUtil with ExceptionHandling with LazyLogg
   def withWebDriver(downloadPath: String)(testCode: WebDriver => Any): Unit = {
     val options = getChromeIncognitoOption(downloadPath)
     if (isHeadless) {
-      runHeadless(options, testCode)
+      runDockerChrome(options, testCode)
     } else {
       runLocalChrome(options, testCode)
     }
@@ -65,7 +66,7 @@ trait WebBrowserSpec extends WebBrowserUtil with ExceptionHandling with LazyLogg
 
   private def getChromeIncognitoOption(downloadPath: String): ChromeOptions = {
     val fullDownloadPath = new File(downloadPath).getAbsolutePath
-    // logger.info(s"Chrome download path: $fullDownloadPath")
+
     val options = new ChromeOptions
     options.addArguments("--incognito")
     options.addArguments("--no-experiments")
@@ -75,22 +76,26 @@ trait WebBrowserSpec extends WebBrowserUtil with ExceptionHandling with LazyLogg
     options.addArguments("--disable-setuid-sandbox")
     options.addArguments("--disable-extensions")
     options.addArguments("--disable-dev-shm-usage")
+    options.addArguments("--window-size=2880,1800")
     options.setExperimentalOption("useAutomationExtension", false)
 
     if (java.lang.Boolean.parseBoolean(System.getProperty("burp.proxy"))) {
       options.addArguments("--proxy-server=http://127.0.0.1:8080")
     }
+
     // Note that download.prompt_for_download will be ignored if download.default_directory is invalid or doesn't exist
     options.setExperimentalOption("prefs", Map(
       "download.default_directory" -> fullDownloadPath,
       "download.prompt_for_download" -> "false").asJava)
 
+    // ChromeDriver log
     val logPref = new LoggingPreferences()
     logPref.enable(LogType.BROWSER, Level.ALL)
     logPref.enable(LogType.CLIENT, Level.ALL)
     logPref.enable(LogType.DRIVER, Level.ALL)
-    options.setCapability(CapabilityType.LOGGING_PREFS, logPref)
+    logPref.enable(LogType.SERVER, Level.ALL)
 
+    options.setCapability(CapabilityType.LOGGING_PREFS, logPref)
     options
   }
 
@@ -106,28 +111,46 @@ trait WebBrowserSpec extends WebBrowserUtil with ExceptionHandling with LazyLogg
         testCode(driver)
       }
     } finally {
+      try driver.close() catch nonFatalAndLog
       try driver.quit() catch nonFatalAndLog
       try service.stop() catch nonFatalAndLog
     }
   }
 
-  private def runHeadless(options: ChromeOptions, testCode: WebDriver => Any): Unit = {
+  private def runDockerChrome(options: ChromeOptions, testCode: WebDriver => Any): Unit = {
     implicit val driver: RemoteWebDriver = startRemoteWebdriver(new URL(chromeDriverHost), options)
     try {
       withScreenshot {
         testCode(driver)
       }
     } finally {
+      try driver.close() catch nonFatalAndLog
       try driver.quit() catch nonFatalAndLog
     }
   }
 
-  private def startRemoteWebdriver(url: URL, options: ChromeOptions): RemoteWebDriver = {
-    val driver = new RemoteWebDriver(url, options)
-    driver.manage.window.setSize(new org.openqa.selenium.Dimension(1600, 2400))
-    driver.setFileDetector(new LocalFileDetector())
-    // implicitlyWait(Span(2, Seconds))
-    driver
+  private def startRemoteWebdriver(url: URL, options: ChromeOptions, trials: Int = 5): RemoteWebDriver = {
+    logger.info("Starting a new Chrome RemoteWebDriver...")
+    val result = tryStart(url, options)
+    result match {
+      case Failure(_) if trials > 0 =>
+        logger.error(s"Retry start a new Chrome RemoteWebDriver. ${trials-1} more times.")
+        Thread.sleep(10000)
+        startRemoteWebdriver(url, options, trials-1)
+      case Failure(e) =>
+        logger.error(s"Failed to start a new Chrome RemoteWebDriver.",e)
+        throw e
+      case Success(driver) =>
+        driver.manage.window.setSize(new org.openqa.selenium.Dimension(2880, 1800))
+        driver.setFileDetector(new LocalFileDetector())
+        driver
+    }
+  }
+
+  private def tryStart(url: URL, options: ChromeOptions): Try[RemoteWebDriver] = {
+    for {
+      e <- Try(new RemoteWebDriver(url, options))
+    } yield e
   }
 
   /**
@@ -161,6 +184,7 @@ trait WebBrowserSpec extends WebBrowserUtil with ExceptionHandling with LazyLogg
           saveLog(LogType.BROWSER, s"${logFileNamePrefix}")
           saveLog(LogType.CLIENT, s"${logFileNamePrefix}")
           saveLog(LogType.DRIVER, s"${logFileNamePrefix}")
+          saveLog(LogType.SERVER, s"${logFileNamePrefix}")
 
           logger.error(s"Screenshot ${name}.png Exception. ", t)
         } catch nonFatalAndLog(s"FAILED TO SAVE SCREENSHOT $fileName")
@@ -169,19 +193,25 @@ trait WebBrowserSpec extends WebBrowserUtil with ExceptionHandling with LazyLogg
   }
 
   def createDownloadDirectory(): String = {
-    val basePath: Path = Paths.get(s"chrome/downloads")
+    val downloadDir = "chrome/downloads"
+    createTempDirectory(downloadDir)
+  }
+
+  def createTempDirectory(dir: String): String = {
+    val basePath: Path = Paths.get(dir)
     val path: Path = Files.createTempDirectory(basePath, "temp")
-    logger.info(s"mkdir: $path")
+
     val permissions = Set(
       PosixFilePermission.OWNER_WRITE, PosixFilePermission.OWNER_READ, PosixFilePermission.OWNER_EXECUTE,
       PosixFilePermission.GROUP_WRITE, PosixFilePermission.GROUP_READ, PosixFilePermission.GROUP_EXECUTE,
       PosixFilePermission.OTHERS_WRITE, PosixFilePermission.OTHERS_READ, PosixFilePermission.OTHERS_EXECUTE)
+
     import scala.collection.JavaConverters._
     Files.setPosixFilePermissions(path, permissions.asJava)
     path.toString
   }
 
-  def saveLog(logtype: String, filePrefix: String)(implicit driver: WebDriver): Unit = {
+  private def saveLog(logtype: String, filePrefix: String)(implicit driver: WebDriver): Unit = {
     val logLines = driver.manage().logs().get(logtype).getAll.iterator().asScala.toList
     if (logLines.nonEmpty) {
       val logString = logLines.map(_.toString).mkString("\n")
