@@ -1,7 +1,7 @@
 package org.broadinstitute.dsde.workbench.google
 
 import cats.implicits._
-import cats.effect.{ContextShift, Sync}
+import cats.effect.{ContextShift, Resource, Sync}
 import com.google.cloud.kms.v1.CryptoKey.CryptoKeyPurpose
 import com.google.cloud.kms.v1._
 import com.google.iam.v1.{Binding, Policy}
@@ -97,4 +97,8 @@ private[google] class GoogleKmsInterpreter[F[_]: Sync: ContextShift](client: Key
   }
 
   private def blockingF[A](fa: F[A]): F[A] = ContextShift[F].evalOn(blockingEc)(fa)
+}
+
+object GoogleKmsInterpreter {
+  def apply[F[_]: Sync: ContextShift](client: KeyManagementServiceClient, blockingEc: ExecutionContext): GoogleKmsInterpreter[F] = new GoogleKmsInterpreter[F](client, blockingEc)
 }
