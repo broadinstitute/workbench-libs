@@ -1,7 +1,7 @@
 package org.broadinstitute.dsde.workbench.google
 
 import cats.implicits._
-import cats.effect.{ContextShift, Resource, Sync}
+import cats.effect.{ContextShift, Sync}
 import com.google.cloud.kms.v1.CryptoKey.CryptoKeyPurpose
 import com.google.cloud.kms.v1._
 import com.google.iam.v1.{Binding, Policy}
