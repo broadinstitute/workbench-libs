@@ -1,9 +1,12 @@
 package org.broadinstitute.dsde.workbench.google
 
 import cats.implicits._
-import cats.effect.{ContextShift, Sync}
+import cats.effect.{ContextShift, Resource, Sync}
+import com.google.api.gax.core.FixedCredentialsProvider
+import com.google.auth.oauth2.ServiceAccountCredentials
 import com.google.cloud.kms.v1.CryptoKey.CryptoKeyPurpose
 import com.google.cloud.kms.v1._
+import com.google.cloud.kms.v1.stub.KeyManagementServiceStubSettings
 import com.google.iam.v1.{Binding, Policy}
 
 import scala.collection.JavaConverters._
@@ -101,4 +104,18 @@ private[google] class GoogleKmsInterpreter[F[_]: Sync: ContextShift](client: Key
 
 object GoogleKmsInterpreter {
   def apply[F[_]: Sync: ContextShift](client: KeyManagementServiceClient, blockingEc: ExecutionContext): GoogleKmsInterpreter[F] = new GoogleKmsInterpreter[F](client, blockingEc)
+
+  def client[F[_]: Sync](pathToJson: String): Resource[F, KeyManagementServiceClient] =
+    for {
+      credentials <- org.broadinstitute.dsde.workbench.util.readFile(pathToJson)
+      client <- Resource.make[F, KeyManagementServiceClient](
+        Sync[F].delay(
+          KeyManagementServiceClient.create(
+            KeyManagementServiceSettings.newBuilder()
+                .setCredentialsProvider(FixedCredentialsProvider.create(
+                  ServiceAccountCredentials.fromStream(credentials)))
+                .build())
+        )
+      )(client => Sync[F].delay(client.close()))
+    } yield client
 }
