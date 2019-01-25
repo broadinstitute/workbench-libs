@@ -80,7 +80,7 @@ object GoogleSubscriberInterpreter {
     }
   }
 
-  def subscriber[F[_]: Effect: Logger, A: Decoder](subsriberConfig: SubsriberConfig, queue: fs2.concurrent.Queue[F, Event[A]]): Resource[F, Subscriber] = {
+  def subscriber[F[_]: Effect: Logger, A: Decoder](subsriberConfig: SubscriberConfig, queue: fs2.concurrent.Queue[F, Event[A]]): Resource[F, Subscriber] = {
     val subscription = ProjectSubscriptionName.of(subsriberConfig.projectTopicName.getProject, subsriberConfig.projectTopicName.getTopic)
 
     for {
@@ -108,5 +108,5 @@ object GoogleSubscriberInterpreter {
   }
 }
 
-final case class SubsriberConfig(pathToCredentialJson: String, projectTopicName: ProjectTopicName, achDeadLine: FiniteDuration)
+final case class SubscriberConfig(pathToCredentialJson: String, projectTopicName: ProjectTopicName, achDeadLine: FiniteDuration)
 final case class Event[A](msg: A, consumer: AckReplyConsumer)
