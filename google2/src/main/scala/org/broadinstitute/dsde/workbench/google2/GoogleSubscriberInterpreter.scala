@@ -62,6 +62,7 @@ object GoogleSubscriberInterpreter {
                                                subscriber: Subscriber,
                                                queue: fs2.concurrent.Queue[F, Event[A]]
                                              ): GoogleSubscriberInterpreter[F, A] = new GoogleSubscriberInterpreter[F, A](subscriber, queue)
+
   def receiver[F[_]: Effect: Logger, A:Decoder](queue: fs2.concurrent.Queue[F, Event[A]]): MessageReceiver = new MessageReceiver() {
     override def receiveMessage(message: PubsubMessage, consumer: AckReplyConsumer): Unit = {
       val result = for {
