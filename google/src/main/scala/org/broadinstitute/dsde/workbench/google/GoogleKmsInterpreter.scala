@@ -6,7 +6,6 @@ import com.google.api.gax.core.FixedCredentialsProvider
 import com.google.auth.oauth2.ServiceAccountCredentials
 import com.google.cloud.kms.v1.CryptoKey.CryptoKeyPurpose
 import com.google.cloud.kms.v1._
-import com.google.cloud.kms.v1.stub.KeyManagementServiceStubSettings
 import com.google.iam.v1.{Binding, Policy}
 
 import scala.collection.JavaConverters._
