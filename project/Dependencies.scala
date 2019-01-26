@@ -59,7 +59,7 @@ object Dependencies {
   val circeParser: ModuleID = "io.circe" %% "circe-parser" % circeVersion
   val circeGeneric: ModuleID = "io.circe" %% "circe-generic" % circeVersion % "test"
   //  val scodecCore: ModuleID = "org.scodec" %% "scodec-core" % "1.10.3"
-  val log4cats = "io.chrisdavenport" %% "log4cats-slf4j"   % "0.2.0"
+  val log4cats = "io.chrisdavenport" %% "log4cats-slf4j"   % "0.3.0-M2"
 
   val commonDependencies = Seq(
     scalatest

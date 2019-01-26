@@ -16,6 +16,7 @@ import io.circe.Decoder
 import io.circe.generic.auto._
 import io.grpc.ManagedChannelBuilder
 import io.grpc.Status.Code
+import org.broadinstitute.dsde.workbench.RetryConfig
 import org.broadinstitute.dsde.workbench.google2.GooglePubSubSpec._
 import org.broadinstitute.dsde.workbench.util.WorkbenchTest
 import org.scalatest.{FlatSpec, Matchers}
@@ -136,7 +137,7 @@ object GooglePubSubSpec {
             throw e
       }
 
-      (GooglePublisherInterpreter[IO](pub, topicClient), GoogleSubscriberInterpreter[IO, A](sub, queue))
+      (GooglePublisherInterpreter[IO](pub, RetryConfig(1 seconds, identity, 3, _ => true)), GoogleSubscriberInterpreter[IO, A](sub, queue))
     }
   }
 }
