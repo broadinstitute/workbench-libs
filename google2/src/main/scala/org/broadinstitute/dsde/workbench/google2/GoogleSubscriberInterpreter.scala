@@ -13,8 +13,6 @@ import fs2.Stream
 import io.chrisdavenport.log4cats.Logger
 import io.circe.Decoder
 import io.circe.parser._
-import io.grpc.Status.Code
-
 import scala.concurrent.duration.FiniteDuration
 
 private[google2] class GoogleSubscriberInterpreter[F[_]: Async: Timer: ContextShift, A](
@@ -96,7 +94,7 @@ object GoogleSubscriberInterpreter {
       _ <- Resource.liftF(Async[F].delay(
         subscriptionAdminClient.createSubscription(subscription, subsriberConfig.projectTopicName, PushConfig.getDefaultInstance, subsriberConfig.achDeadLine.toSeconds.toInt)
       ).void.recover{
-        case e: io.grpc.StatusRuntimeException if(e.getStatus.getCode == Code.ALREADY_EXISTS) => ()
+        case _: com.google.api.gax.rpc.AlreadyExistsException => ()
       })
       sub <- Resource.make(
         Sync[F].delay(

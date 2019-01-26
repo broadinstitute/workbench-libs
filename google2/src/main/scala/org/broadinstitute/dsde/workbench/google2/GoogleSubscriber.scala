@@ -1,6 +1,5 @@
 package org.broadinstitute.dsde.workbench.google2
 
-import cats.implicits._
 import cats.effect._
 import fs2.Stream
 import io.chrisdavenport.log4cats.Logger
