@@ -21,7 +21,6 @@ import scala.language.higherKinds
 private[google] class GoogleKmsInterpreter[F[_]: Sync: ContextShift](client: KeyManagementServiceClient, blockingEc: ExecutionContext) extends GoogleKmsService[F] {
   override def createKeyRing(project: String, location: String, keyRingId: String): F[KeyRing] = {
     val locationName = LocationName.format(project, location)
-    println(s"creating $keyRingId at $locationName")
     blockingF(Sync[F].delay[KeyRing] {
       client.createKeyRing(locationName, keyRingId, KeyRing.newBuilder().build())
     })
