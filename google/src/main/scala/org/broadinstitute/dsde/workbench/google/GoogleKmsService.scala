@@ -16,8 +16,6 @@ trait GoogleKmsService[F[_]] {
   def getKeyRing(project: String, location: String, keyRingId: String): F[Option[KeyRing]]
   def createKey(project: String, location: String, keyRingId: String, keyId: String): F[CryptoKey]
   def getKey(project: String, location: String, keyRingId: String, keyId: String): F[Option[CryptoKey]]
-  def getIamPolicy(project: String, location: String, keyRingId: String, keyId: String): F[Option[Policy]]
-  def setIamPolicy(project: String, location: String, keyRingId: String, keyId: String, newPolicy: Policy): F[Policy]
   def addMemberToKeyPolicy(project: String, location: String, keyRingId: String, keyId: String, member: String, role: String): F[Policy]
   def removeMemberFromKeyPolicy(project: String, location: String, keyRingId: String, keyId: String, member: String, role: String): F[Policy]
 }
