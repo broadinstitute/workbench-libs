@@ -4,6 +4,7 @@ import cats.effect._
 import cats.effect.implicits._
 import cats.implicits._
 import com.google.api.core.ApiService
+import com.google.api.gax.batching.FlowControlSettings
 import com.google.api.gax.core.FixedCredentialsProvider
 import com.google.auth.oauth2.ServiceAccountCredentials
 import com.google.cloud.pubsub.v1._
@@ -13,6 +14,7 @@ import fs2.Stream
 import io.chrisdavenport.log4cats.Logger
 import io.circe.Decoder
 import io.circe.parser._
+
 import scala.concurrent.duration.FiniteDuration
 
 private[google2] class GoogleSubscriberInterpreter[F[_]: Async: Timer: ContextShift, A](
@@ -96,16 +98,23 @@ object GoogleSubscriberInterpreter {
       ).void.recover{
         case _: com.google.api.gax.rpc.AlreadyExistsException => ()
       })
+      flowControlSettings = FlowControlSettings
+        .newBuilder
+        .setMaxOutstandingElementCount(subsriberConfig.flowControlSettingsConfig.maxOutstandingElementCount)
+        .setMaxOutstandingRequestBytes(subsriberConfig.flowControlSettingsConfig.maxOutstandingRequestBytes)
+        .build
       sub <- Resource.make(
         Sync[F].delay(
           Subscriber
           .newBuilder(subscription, receiver(queue)) //TODO: set credentials correctly
             .setCredentialsProvider(FixedCredentialsProvider.create(credential))
+            .setFlowControlSettings(flowControlSettings)
             .build())
       )(s => Sync[F].delay(s.stopAsync()))
     } yield sub
   }
 }
 
-final case class SubscriberConfig(pathToCredentialJson: String, projectTopicName: ProjectTopicName, achDeadLine: FiniteDuration)
+final case class FlowControlSettingsConfig(maxOutstandingElementCount: Long, maxOutstandingRequestBytes: Long)
+final case class SubscriberConfig(pathToCredentialJson: String, projectTopicName: ProjectTopicName, achDeadLine: FiniteDuration, flowControlSettingsConfig: FlowControlSettingsConfig)
 final case class Event[A](msg: A, consumer: AckReplyConsumer)
