@@ -7,6 +7,7 @@ import com.google.auth.oauth2.ServiceAccountCredentials
 import com.google.cloud.kms.v1.CryptoKey.CryptoKeyPurpose
 import com.google.cloud.kms.v1._
 import com.google.iam.v1.{Binding, Policy}
+import org.broadinstitute.dsde.workbench.model.google.GoogleProject
 
 import scala.collection.JavaConverters._
 import scala.concurrent.ExecutionContext
@@ -19,37 +20,44 @@ import scala.language.higherKinds
   */
 
 private[google] class GoogleKmsInterpreter[F[_]: Sync: ContextShift](client: KeyManagementServiceClient, blockingEc: ExecutionContext) extends GoogleKmsService[F] {
-  override def createKeyRing(project: String, location: String, keyRingId: String): F[KeyRing] = {
-    val locationName = LocationName.format(project, location)
+  override def createKeyRing(project: GoogleProject, location: Location, keyRingId: KeyRingId): F[KeyRing] = {
+    val locationName = LocationName.format(project.value, location.value)
     blockingF(Sync[F].delay[KeyRing] {
-      client.createKeyRing(locationName, keyRingId, KeyRing.newBuilder().build())
+      client.createKeyRing(locationName, keyRingId.value, KeyRing.newBuilder().build())
     })
   }
 
-  override def getKeyRing(project: String, location: String, keyRingId: String): F[Option[KeyRing]] = {
-    val keyRingName = KeyRingName.format(project, location, keyRingId)
+  override def getKeyRing(project: GoogleProject, location: Location, keyRingId: KeyRingId): F[Option[KeyRing]] = {
+    val keyRingName = KeyRingName.format(project.value, location.value, keyRingId.value)
     blockingF(Sync[F].delay[Option[KeyRing]] {
       Option(client.getKeyRing(keyRingName))
     })
   }
 
-  override def createKey(project: String, location: String, keyRingId: String, keyId: String): F[CryptoKey] = {
-    val keyRingName = KeyRingName.format(project, location, keyRingId)
+  override def createKey(project: GoogleProject, location: Location, keyRingId: KeyRingId, keyId: KeyId): F[CryptoKey] = {
+    val keyRingName = KeyRingName.format(project.value, location.value, keyRingId.value)
     blockingF(Sync[F].delay[CryptoKey] {
-      client.createCryptoKey(keyRingName, keyId, CryptoKey.newBuilder()
+      client.createCryptoKey(keyRingName, keyId.value, CryptoKey.newBuilder()
         .setPurpose(CryptoKeyPurpose.ENCRYPT_DECRYPT)
         .build())
     })
   }
 
-  override def getKey(project: String, location: String, keyRingId: String, keyId: String): F[Option[CryptoKey]] = {
-    val keyName = CryptoKeyName.format(project, location, keyRingId, keyId)
+  override def getKey(project: GoogleProject, location: Location, keyRingId: KeyRingId, keyId: KeyId): F[Option[CryptoKey]] = {
+    val keyName = CryptoKeyName.format(project.value, location.value, keyRingId.value, keyId.value)
     blockingF(Sync[F].delay[Option[CryptoKey]] {
       Option(client.getCryptoKey(keyName))
     })
   }
 
-  override def addMemberToKeyPolicy(project: String, location: String, keyRingId: String, keyId: String, member: String, role: String): F[Policy] = {
+  override def getIamPolicy(project: GoogleProject, location: Location, keyRingId: KeyRingId, keyId: KeyId): F[Option[Policy]] = {
+    val keyName = CryptoKeyName.format(project.value, location.value, keyRingId.value, keyId.value)
+    blockingF(Sync[F].delay[Option[Policy]] {
+      Option(client.getIamPolicy(keyName))
+    })
+  }
+
+  override def addMemberToKeyPolicy(project: GoogleProject, location: Location, keyRingId: KeyRingId, keyId: KeyId, member: String, role: String): F[Policy] = {
     for {
       currentIamPolicyOpt <- getIamPolicy(project, location, keyRingId, keyId)
 
@@ -65,16 +73,16 @@ private[google] class GoogleKmsInterpreter[F[_]: Sync: ContextShift](client: Key
     } yield newPolicy
   }
 
-  override def removeMemberFromKeyPolicy(project: String, location: String, keyRingId: String, keyId: String, member: String, role: String): F[Policy] = {
+  override def removeMemberFromKeyPolicy(project: GoogleProject, location: Location, keyRingId: KeyRingId, keyId: KeyId, member: String, role: String): F[Policy] = {
     for {
       currentIamPolicyOpt <- getIamPolicy(project, location, keyRingId, keyId)
 
-      otherBindings = currentIamPolicyOpt.get.getBindingsList.asScala.toList.filter(binding => !binding.getRole.equals(role))
-      newBindings = currentIamPolicyOpt.get.getBindingsList.asScala.toList.filter(binding => binding.getRole.equals(role)).map { binding =>
+      otherBindings = currentIamPolicyOpt.map(policy => policy.getBindingsList.asScala.toList.filter(binding => !binding.getRole.equals(role))).getOrElse(List.empty)
+      newBindings = currentIamPolicyOpt.map(policy => policy.getBindingsList.asScala.toList.filter(binding => binding.getRole.equals(role)).map { binding =>
         Binding.newBuilder().setRole(binding.getRole)
           .addAllMembers(binding.getMembersList.asScala.filter(!_.equals(member)).asJava)
           .build()
-      }
+      }).getOrElse(List.empty)
 
       newPolicy = Policy.newBuilder()
         .addAllBindings((otherBindings ++ newBindings).asJava)
@@ -84,15 +92,8 @@ private[google] class GoogleKmsInterpreter[F[_]: Sync: ContextShift](client: Key
     } yield newPolicy
   }
 
-  private def getIamPolicy(project: String, location: String, keyRingId: String, keyId: String): F[Option[Policy]] = {
-    val keyName = CryptoKeyName.format(project, location, keyRingId, keyId)
-    blockingF(Sync[F].delay[Option[Policy]] {
-      Option(client.getIamPolicy(keyName))
-    })
-  }
-
-  private def setIamPolicy(project: String, location: String, keyRingId: String, keyId: String, newPolicy: Policy): F[Policy] = {
-    val keyName = CryptoKeyName.format(project, location, keyRingId, keyId)
+  private def setIamPolicy(project: GoogleProject, location: Location, keyRingId: KeyRingId, keyId: KeyId, newPolicy: Policy): F[Policy] = {
+    val keyName = CryptoKeyName.format(project.value, location.value, keyRingId.value, keyId.value)
     blockingF(Sync[F].delay[Policy] {
       client.setIamPolicy(keyName, newPolicy)
     })
