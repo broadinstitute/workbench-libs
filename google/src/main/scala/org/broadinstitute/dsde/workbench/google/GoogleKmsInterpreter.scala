@@ -50,22 +50,22 @@ private[google] class GoogleKmsInterpreter[F[_]: Sync: ContextShift](client: Key
     })
   }
 
-  override def getIamPolicy(project: GoogleProject, location: Location, keyRingId: KeyRingId, keyId: KeyId): F[Option[Policy]] = {
+  override def getIamPolicy(project: GoogleProject, location: Location, keyRingId: KeyRingId, keyId: KeyId): F[Policy] = {
     val keyName = CryptoKeyName.format(project.value, location.value, keyRingId.value, keyId.value)
-    blockingF(Sync[F].delay[Option[Policy]] {
-      Option(client.getIamPolicy(keyName))
+    blockingF(Sync[F].delay[Policy] {
+      client.getIamPolicy(keyName)
     })
   }
 
   override def addMemberToKeyPolicy(project: GoogleProject, location: Location, keyRingId: KeyRingId, keyId: KeyId, member: String, role: String): F[Policy] = {
     for {
-      currentIamPolicyOpt <- getIamPolicy(project, location, keyRingId, keyId)
+      currentIamPolicy <- getIamPolicy(project, location, keyRingId, keyId)
 
       newBinding = Binding.newBuilder()
         .setRole(role)
         .addMembers(member)
         .build()
-      newPolicy = Policy.newBuilder(currentIamPolicyOpt.get)
+      newPolicy = Policy.newBuilder(currentIamPolicy)
         .addBindings(newBinding)
         .build()
 
@@ -75,14 +75,14 @@ private[google] class GoogleKmsInterpreter[F[_]: Sync: ContextShift](client: Key
 
   override def removeMemberFromKeyPolicy(project: GoogleProject, location: Location, keyRingId: KeyRingId, keyId: KeyId, member: String, role: String): F[Policy] = {
     for {
-      currentIamPolicyOpt <- getIamPolicy(project, location, keyRingId, keyId)
+      currentIamPolicy <- getIamPolicy(project, location, keyRingId, keyId)
 
-      otherBindings = currentIamPolicyOpt.map(policy => policy.getBindingsList.asScala.toList.filter(binding => !binding.getRole.equals(role))).getOrElse(List.empty)
-      newBindings = currentIamPolicyOpt.map(policy => policy.getBindingsList.asScala.toList.filter(binding => binding.getRole.equals(role)).map { binding =>
+      otherBindings = currentIamPolicy.getBindingsList.asScala.toList.filter(binding => !binding.getRole.equals(role))
+      newBindings = currentIamPolicy.getBindingsList.asScala.toList.filter(binding => binding.getRole.equals(role)).map { binding =>
         Binding.newBuilder().setRole(binding.getRole)
           .addAllMembers(binding.getMembersList.asScala.filter(!_.equals(member)).asJava)
           .build()
-      }).getOrElse(List.empty)
+      }
 
       newPolicy = Policy.newBuilder()
         .addAllBindings((otherBindings ++ newBindings).asJava)
