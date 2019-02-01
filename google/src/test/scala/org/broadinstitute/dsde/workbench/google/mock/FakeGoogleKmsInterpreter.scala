@@ -17,7 +17,6 @@ object FakeGoogleKmsInterpreter extends GoogleKmsService[IO] {
   override def getKeyRing(project: GoogleProject, location: Location, keyRingId: KeyRingId): IO[Option[KeyRing]] = ???
   override def createKey(project: GoogleProject, location: Location, keyRingId: KeyRingId, keyId: KeyId): IO[CryptoKey] = IO.pure(CryptoKey.newBuilder().build())
   override def getKey(project: GoogleProject, location: Location, keyRingId: KeyRingId, keyId: KeyId): IO[Option[CryptoKey]] = ???
-  override def getIamPolicy(project: GoogleProject, location: Location, keyRingId: KeyRingId, keyId: KeyId): IO[Option[Policy]] = ???
   override def addMemberToKeyPolicy(project: GoogleProject, location: Location, keyRingId: KeyRingId, keyId: KeyId, member: String, role: String): IO[Policy] = IO.pure(Policy.newBuilder().build())
   override def removeMemberFromKeyPolicy(project: GoogleProject, location: Location, keyRingId: KeyRingId, keyId: KeyId, member: String, role: String): IO[Policy] = ???
 }

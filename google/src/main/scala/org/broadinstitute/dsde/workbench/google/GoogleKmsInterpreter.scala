@@ -50,13 +50,6 @@ private[google] class GoogleKmsInterpreter[F[_]: Sync: ContextShift](client: Key
     })
   }
 
-  override def getIamPolicy(project: GoogleProject, location: Location, keyRingId: KeyRingId, keyId: KeyId): F[Policy] = {
-    val keyName = CryptoKeyName.format(project.value, location.value, keyRingId.value, keyId.value)
-    blockingF(Sync[F].delay[Policy] {
-      client.getIamPolicy(keyName)
-    })
-  }
-
   override def addMemberToKeyPolicy(project: GoogleProject, location: Location, keyRingId: KeyRingId, keyId: KeyId, member: String, role: String): F[Policy] = {
     for {
       currentIamPolicy <- getIamPolicy(project, location, keyRingId, keyId)
@@ -90,6 +83,13 @@ private[google] class GoogleKmsInterpreter[F[_]: Sync: ContextShift](client: Key
 
       _ <- setIamPolicy(project, location, keyRingId, keyId, newPolicy)
     } yield newPolicy
+  }
+
+  private def getIamPolicy(project: GoogleProject, location: Location, keyRingId: KeyRingId, keyId: KeyId): F[Policy] = {
+    val keyName = CryptoKeyName.format(project.value, location.value, keyRingId.value, keyId.value)
+    blockingF(Sync[F].delay[Policy] {
+      client.getIamPolicy(keyName)
+    })
   }
 
   private def setIamPolicy(project: GoogleProject, location: Location, keyRingId: KeyRingId, keyId: KeyId, newPolicy: Policy): F[Policy] = {
