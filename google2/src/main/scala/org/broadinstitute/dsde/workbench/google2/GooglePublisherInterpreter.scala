@@ -19,28 +19,28 @@ private[google2] class GooglePublisherInterpreter[F[_]: Async: Timer](
                                                          publisher: Publisher,
                                                          retryConfig: RetryConfig
                                      ) extends GooglePublisher[F] {
-  def publish[A: Encoder]: Sink[F, A] = in => {
-    in.flatMap{
-      a =>
-        val byteString = ByteString.copyFromUtf8(a.asJson.noSpaces) //This will turn a case class into raw json string
-        retryGoogleF(retryConfig)(asyncPublishMessage(byteString))
+  def publish[MessageType: Encoder]: Sink[F, MessageType] = in => {
+    in.flatMap {
+      message =>
+        publishMessage(message.asJson.noSpaces) //This will turn message case class into raw json string
     }
   }
 
   def publishString: Sink[F, String] = in => {
-    in.flatMap{
-      str =>
-        val byteString = ByteString.copyFromUtf8(str)
-        retryGoogleF(retryConfig)(asyncPublishMessage(byteString))
-    }
+    in.flatMap(publishMessage)
+  }
+
+  private def publishMessage(message: String) = {
+    val byteString = ByteString.copyFromUtf8(message)
+    retryGoogleF(retryConfig)(asyncPublishMessage(byteString))
   }
 
   private def asyncPublishMessage(byteString: ByteString): F[Unit] = Async[F].async[String]{
-    cb =>
+    callback =>
       val message = PubsubMessage.newBuilder().setData(byteString).build()
       ApiFutures.addCallback(
         publisher.publish(message),
-        callBack(cb),
+        callBack(callback),
         MoreExecutors.directExecutor()
       )
   }.void
