@@ -4,6 +4,7 @@ import cats.effect._
 import cats.implicits._
 import com.google.api.core.ApiFutures
 import com.google.api.gax.core.FixedCredentialsProvider
+import com.google.api.gax.rpc.AlreadyExistsException
 import com.google.auth.oauth2.ServiceAccountCredentials
 import com.google.cloud.pubsub.v1.{Publisher, TopicAdminClient, TopicAdminSettings}
 import com.google.common.util.concurrent.MoreExecutors
@@ -52,29 +53,41 @@ object GooglePublisherInterpreter {
            ): GooglePublisherInterpreter[F] = new GooglePublisherInterpreter(publisher, retryConfig)
 
   def publisher[F[_]: Sync](config: PublisherConfig): Resource[F, Publisher] =
-    for{
-      credentialFile <- org.broadinstitute.dsde.workbench.util.readFile(config.pathToCrentialJson)
+    for {
+      credentialFile <- org.broadinstitute.dsde.workbench.util.readFile(config.pathToCredentialJson)
       credential = ServiceAccountCredentials.fromStream(credentialFile)
-      pub <- Resource.make(
-        Sync[F].delay(Publisher
-          .newBuilder(config.projectTopicName)
-          .setCredentialsProvider(FixedCredentialsProvider.create(credential))
-          .build()))(p => Sync[F].delay(p.shutdown()))
-      topicAdminClient <- Resource.make(
-        Sync[F].delay(TopicAdminClient.create(
-          TopicAdminSettings
-            .newBuilder()
-            .setCredentialsProvider(FixedCredentialsProvider.create(credential))
-            .build()))
-      )(client => Sync[F].delay(client.shutdown()))
-      _ <- Resource.liftF(
-        Sync[F]
-        .delay(topicAdminClient.createTopic(config.projectTopicName))
+      publisher <- publisherResource(config.projectTopicName, credential)
+      topicAdminClient <- topicAdminClientResource(credential)
+      _ <- createTopic(config.projectTopicName, topicAdminClient)
+    } yield publisher
+
+  private def createTopic[F[_] : Sync](topicName: ProjectTopicName, topicAdminClient: TopicAdminClient) = {
+    Resource.liftF(
+      Sync[F]
+        .delay(topicAdminClient.createTopic(topicName))
         .void
         .recover {
-          case _: com.google.api.gax.rpc.AlreadyExistsException => ()
+          case _: AlreadyExistsException => ()
         })
-    } yield pub
+  }
+
+  private def topicAdminClientResource[F[_] : Sync](credential: ServiceAccountCredentials) = {
+    Resource.make(
+      Sync[F].delay(TopicAdminClient.create(
+        TopicAdminSettings
+          .newBuilder()
+          .setCredentialsProvider(FixedCredentialsProvider.create(credential))
+          .build()))
+    )(client => Sync[F].delay(client.shutdown()))
+  }
+
+  private def publisherResource[F[_] : Sync](topicName: ProjectTopicName, credential: ServiceAccountCredentials) = {
+    Resource.make(
+      Sync[F].delay(Publisher
+        .newBuilder(topicName)
+        .setCredentialsProvider(FixedCredentialsProvider.create(credential))
+        .build()))(p => Sync[F].delay(p.shutdown()))
+  }
 }
 
-final case class PublisherConfig(pathToCrentialJson: String, projectTopicName: ProjectTopicName, retryConfig: RetryConfig)
+final case class PublisherConfig(pathToCredentialJson: String, projectTopicName: ProjectTopicName, retryConfig: RetryConfig)
