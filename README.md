@@ -45,7 +45,16 @@ To depend on the `MockGoogle*` classes, additionally depend on:
 
 `"org.broadinstitute.dsde.workbench" %% "workbench-google"  % "0.18-6942040" % "test" classifier "tests"`
 
-[Changelog](google/CHANGELOG.md)
+## workbench-google2
+
+Contains utility functions for talking to Google APIs via com.google.cloud client library (more recent) via gRPC. 
+
+Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.1-TRAVIS-REPLACE-ME"`
+
+To start the Google PubSub emulator for unit testing:
+`docker run --name pubsub-emulator -d -p 8085:8085 -ti google/cloud-sdk:229.0.0 gcloud beta emulators pubsub start --host-port 0.0.0.0:8085`
+
+[Changelog](google2/CHANGELOG.md)
 
 ## workbench-service-test
 
