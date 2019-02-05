@@ -45,6 +45,8 @@ To depend on the `MockGoogle*` classes, additionally depend on:
 
 `"org.broadinstitute.dsde.workbench" %% "workbench-google"  % "0.18-6942040" % "test" classifier "tests"`
 
+[Changelog](google/CHANGELOG.md)
+
 ## workbench-google2
 
 Contains utility functions for talking to Google APIs via com.google.cloud client library (more recent) via gRPC. 
