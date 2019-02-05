@@ -19,11 +19,11 @@ import io.circe.parser._
 
 import scala.concurrent.duration.FiniteDuration
 
-private[google2] class GoogleSubscriberInterpreter[F[_]: Async: Timer: ContextShift, A](
+private[google2] class GoogleSubscriberInterpreter[F[_]: Async: Timer: ContextShift, MessageType](
                                                                                          subscriber: Subscriber,
-                                                                                         queue: fs2.concurrent.Queue[F, Event[A]]
-                                                                                       ) extends GoogleSubscriber[F, A] {
-  val messages: Stream[F, Event[A]] = queue.dequeue
+                                                                                         queue: fs2.concurrent.Queue[F, Event[MessageType]]
+                                                                                       ) extends GoogleSubscriber[F, MessageType] {
+  val messages: Stream[F, Event[MessageType]] = queue.dequeue
 
   def start: F[Unit] = Async[F].async[Unit]{
     callback =>
@@ -60,17 +60,17 @@ private[google2] class GoogleSubscriberInterpreter[F[_]: Async: Timer: ContextSh
 }
 
 object GoogleSubscriberInterpreter {
-  def apply[F[_]: Async: Timer: ContextShift, A](
+  def apply[F[_]: Async: Timer: ContextShift, MessageType](
                                                   subscriber: Subscriber,
-                                                  queue: fs2.concurrent.Queue[F, Event[A]]
-                                                ): GoogleSubscriberInterpreter[F, A] = new GoogleSubscriberInterpreter[F, A](subscriber, queue)
+                                                  queue: fs2.concurrent.Queue[F, Event[MessageType]]
+                                                ): GoogleSubscriberInterpreter[F, MessageType] = new GoogleSubscriberInterpreter[F, MessageType](subscriber, queue)
 
-  def receiver[F[_]: Effect: Logger, A:Decoder](queue: fs2.concurrent.Queue[F, Event[A]]): MessageReceiver = new MessageReceiver() {
+  def receiver[F[_]: Effect: Logger, MessageType: Decoder](queue: fs2.concurrent.Queue[F, Event[MessageType]]): MessageReceiver = new MessageReceiver() {
     override def receiveMessage(message: PubsubMessage, consumer: AckReplyConsumer): Unit = {
       val result = for {
         json <- parse(message.getData.toStringUtf8)
-        a <- json.as[A]
-        _ <- queue.enqueue1(Event(a, consumer)).attempt.toIO.unsafeRunSync()
+        message <- json.as[MessageType]
+        _ <- queue.enqueue1(Event(message, consumer)).attempt.toIO.unsafeRunSync()
       } yield ()
 
       result match {
@@ -83,7 +83,7 @@ object GoogleSubscriberInterpreter {
     }
   }
 
-  def subscriber[F[_]: Effect: Logger, A: Decoder](subsriberConfig: SubscriberConfig, queue: fs2.concurrent.Queue[F, Event[A]]): Resource[F, Subscriber] = {
+  def subscriber[F[_]: Effect: Logger, MessageType: Decoder](subsriberConfig: SubscriberConfig, queue: fs2.concurrent.Queue[F, Event[MessageType]]): Resource[F, Subscriber] = {
     val subscription = ProjectSubscriptionName.of(subsriberConfig.projectTopicName.getProject, subsriberConfig.projectTopicName.getTopic)
 
     for {
@@ -100,7 +100,7 @@ object GoogleSubscriberInterpreter {
     } yield sub
   }
 
-  private def subscriberResource[A: Decoder, F[_] : Effect : Logger](queue: Queue[F, Event[A]], subscription: ProjectSubscriptionName, credential: ServiceAccountCredentials, flowControlSettings: FlowControlSettings) = {
+  private def subscriberResource[MessageType: Decoder, F[_] : Effect : Logger](queue: Queue[F, Event[MessageType]], subscription: ProjectSubscriptionName, credential: ServiceAccountCredentials, flowControlSettings: FlowControlSettings) = {
     Resource.make(
       Sync[F].delay(
         Subscriber
@@ -111,7 +111,7 @@ object GoogleSubscriberInterpreter {
     )(s => Sync[F].delay(s.stopAsync()))
   }
 
-  private def createSubscription[A: Decoder, F[_] : Effect : Logger](subsriberConfig: SubscriberConfig, subscription: ProjectSubscriptionName, subscriptionAdminClient: SubscriptionAdminClient) = {
+  private def createSubscription[MessageType: Decoder, F[_] : Effect : Logger](subsriberConfig: SubscriberConfig, subscription: ProjectSubscriptionName, subscriptionAdminClient: SubscriptionAdminClient) = {
     Resource.liftF(Async[F].delay(
       subscriptionAdminClient.createSubscription(subscription, subsriberConfig.projectTopicName, PushConfig.getDefaultInstance, subsriberConfig.ackDeadLine.toSeconds.toInt)
     ).void.recover {
@@ -119,7 +119,7 @@ object GoogleSubscriberInterpreter {
     })
   }
 
-  private def subscriptionAdminClientResource[A: Decoder, F[_] : Effect : Logger](credential: ServiceAccountCredentials) = {
+  private def subscriptionAdminClientResource[MessageType: Decoder, F[_] : Effect : Logger](credential: ServiceAccountCredentials) = {
     Resource.make[F, SubscriptionAdminClient](Async[F].delay(
       SubscriptionAdminClient.create(
         SubscriptionAdminSettings.newBuilder()

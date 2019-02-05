@@ -12,10 +12,10 @@ trait GoogleSubscriber[F[_], A] {
 }
 
 object GoogleSubscriber{
-  def resource[F[_]: Effect: Timer: ContextShift: Logger, A: Decoder](
+  def resource[F[_]: Effect: Timer: ContextShift: Logger, MessageType: Decoder](
                                                   subscriberConfig: SubscriberConfig,
-                                                  queue: fs2.concurrent.Queue[F, Event[A]]
-                                                ): Resource[F, GoogleSubscriber[F, A]] = for {
+                                                  queue: fs2.concurrent.Queue[F, Event[MessageType]]
+                                                ): Resource[F, GoogleSubscriber[F, MessageType]] = for {
     subscriberClient <- GoogleSubscriberInterpreter.subscriber(subscriberConfig, queue)
   } yield GoogleSubscriberInterpreter(subscriberClient, queue)
 }
