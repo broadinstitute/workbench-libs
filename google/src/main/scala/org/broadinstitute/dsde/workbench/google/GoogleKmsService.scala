@@ -2,6 +2,7 @@ package org.broadinstitute.dsde.workbench.google
 
 import com.google.cloud.kms.v1._
 import com.google.iam.v1.Policy
+import com.google.protobuf.{Duration, Timestamp}
 import org.broadinstitute.dsde.workbench.model.google.GoogleProject
 
 import scala.language.higherKinds
@@ -15,7 +16,7 @@ import scala.language.higherKinds
 trait GoogleKmsService[F[_]] {
   def createKeyRing(project: GoogleProject, location: Location, keyRingId: KeyRingId): F[KeyRing]
   def getKeyRing(project: GoogleProject, location: Location, keyRingId: KeyRingId): F[Option[KeyRing]]
-  def createKey(project: GoogleProject, location: Location, keyRingId: KeyRingId, keyId: KeyId): F[CryptoKey]
+  def createKey(project: GoogleProject, location: Location, keyRingId: KeyRingId, keyId: KeyId, nextRotationTimeOpt: Option[Timestamp], rotationPeriodOpt: Option[Duration]): F[CryptoKey]
   def getKey(project: GoogleProject, location: Location, keyRingId: KeyRingId, keyId: KeyId): F[Option[CryptoKey]]
   def addMemberToKeyPolicy(project: GoogleProject, location: Location, keyRingId: KeyRingId, keyId: KeyId, member: String, role: String): F[Policy]
   def removeMemberFromKeyPolicy(project: GoogleProject, location: Location, keyRingId: KeyRingId, keyId: KeyId, member: String, role: String): F[Policy]

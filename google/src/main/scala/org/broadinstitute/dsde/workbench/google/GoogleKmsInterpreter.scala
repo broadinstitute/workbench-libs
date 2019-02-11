@@ -7,6 +7,7 @@ import com.google.auth.oauth2.ServiceAccountCredentials
 import com.google.cloud.kms.v1.CryptoKey.CryptoKeyPurpose
 import com.google.cloud.kms.v1._
 import com.google.iam.v1.{Binding, Policy}
+import com.google.protobuf.{Timestamp, Duration}
 import org.broadinstitute.dsde.workbench.model.google.GoogleProject
 
 import scala.collection.JavaConverters._
@@ -34,13 +35,22 @@ private[google] class GoogleKmsInterpreter[F[_]: Sync: ContextShift](client: Key
     })
   }
 
-  override def createKey(project: GoogleProject, location: Location, keyRingId: KeyRingId, keyId: KeyId): F[CryptoKey] = {
+  override def createKey(project: GoogleProject, location: Location, keyRingId: KeyRingId, keyId: KeyId, nextRotationTimeOpt: Option[Timestamp] = None, rotationPeriodOpt: Option[Duration] = None): F[CryptoKey] = {
     val keyRingName = KeyRingName.format(project.value, location.value, keyRingId.value)
-    blockingF(Sync[F].delay[CryptoKey] {
-      client.createCryptoKey(keyRingName, keyId.value, CryptoKey.newBuilder()
-        .setPurpose(CryptoKeyPurpose.ENCRYPT_DECRYPT)
-        .build())
-    })
+    (nextRotationTimeOpt, rotationPeriodOpt) match {
+      case (Some(nextRotationTime), Some(rotationPeriod)) => blockingF(Sync[F].delay[CryptoKey] {
+        client.createCryptoKey(keyRingName, keyId.value, CryptoKey.newBuilder()
+          .setPurpose(CryptoKeyPurpose.ENCRYPT_DECRYPT)
+          .setNextRotationTime(nextRotationTime)
+          .setRotationPeriod(rotationPeriod)
+          .build())
+      })
+      case (_, _) => blockingF(Sync[F].delay[CryptoKey] {
+        client.createCryptoKey(keyRingName, keyId.value, CryptoKey.newBuilder()
+          .setPurpose(CryptoKeyPurpose.ENCRYPT_DECRYPT)
+          .build())
+      })
+    }
   }
 
   override def getKey(project: GoogleProject, location: Location, keyRingId: KeyRingId, keyId: KeyId): F[Option[CryptoKey]] = {
