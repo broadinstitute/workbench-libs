@@ -83,18 +83,18 @@ object GoogleSubscriberInterpreter {
     }
   }
 
-  def subscriber[F[_]: Effect: Logger, MessageType: Decoder](subsriberConfig: SubscriberConfig, queue: fs2.concurrent.Queue[F, Event[MessageType]]): Resource[F, Subscriber] = {
-    val subscription = ProjectSubscriptionName.of(subsriberConfig.projectTopicName.getProject, subsriberConfig.projectTopicName.getTopic)
+  def subscriber[F[_]: Effect: Logger, MessageType: Decoder](subscriberConfig: SubscriberConfig, queue: fs2.concurrent.Queue[F, Event[MessageType]]): Resource[F, Subscriber] = {
+    val subscription = ProjectSubscriptionName.of(subscriberConfig.projectTopicName.getProject, subscriberConfig.projectTopicName.getTopic)
 
     for {
-      credentialFile <- org.broadinstitute.dsde.workbench.util.readFile(subsriberConfig.pathToCredentialJson)
+      credentialFile <- org.broadinstitute.dsde.workbench.util.readFile(subscriberConfig.pathToCredentialJson)
       credential = ServiceAccountCredentials.fromStream(credentialFile)
       subscriptionAdminClient <- subscriptionAdminClientResource(credential)
-      _ <- createSubscription(subsriberConfig, subscription, subscriptionAdminClient)
+      _ <- createSubscription(subscriberConfig, subscription, subscriptionAdminClient)
       flowControlSettings = FlowControlSettings
         .newBuilder
-        .setMaxOutstandingElementCount(subsriberConfig.flowControlSettingsConfig.maxOutstandingElementCount)
-        .setMaxOutstandingRequestBytes(subsriberConfig.flowControlSettingsConfig.maxOutstandingRequestBytes)
+        .setMaxOutstandingElementCount(subscriberConfig.flowControlSettingsConfig.maxOutstandingElementCount)
+        .setMaxOutstandingRequestBytes(subscriberConfig.flowControlSettingsConfig.maxOutstandingRequestBytes)
         .build
       sub <- subscriberResource(queue, subscription, credential, flowControlSettings)
     } yield sub
