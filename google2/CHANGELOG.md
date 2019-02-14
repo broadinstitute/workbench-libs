@@ -8,5 +8,6 @@ This file documents changes to the `workbench-google2` library, including notes 
 
 - Add `GoogleFirestoreService`
 - Add `GoogleStorageService`
+- Add `GooglePubSub`
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google-new" % "8328aae"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.1-TRAVIS-REPLACE-ME"`

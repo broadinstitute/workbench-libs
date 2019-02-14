@@ -1,19 +1,19 @@
 package org.broadinstitute.dsde.workbench.google2
 
-import org.broadinstitute.dsde.workbench.util.TestUtil.ioAssertion
 import cats.effect.IO
 import cats.implicits._
 import fs2.Stream
 import com.google.cloud.storage.contrib.nio.testing.LocalStorageHelper
 import org.broadinstitute.dsde.workbench.google2.Generators._
 import org.broadinstitute.dsde.workbench.google2.GoogleStorageInterpreterSpec._
+import org.broadinstitute.dsde.workbench.util.WorkbenchTest
 import org.scalacheck.Gen
 import org.scalatest.{AsyncFlatSpec, Matchers}
 
 import scala.concurrent.ExecutionContext
 
 // AsyncFlatSpec currently doesn't work with scalacheck's forAll. It'll be supported in scalatest 3
-class GoogleStorageInterpreterSpec extends AsyncFlatSpec with Matchers {
+class GoogleStorageInterpreterSpec extends AsyncFlatSpec with Matchers with WorkbenchTest{
   "ioStorage storeObject" should "be able to upload an object" in ioAssertion {
     val bucketName = genGcsBucketName.sample.get
     val objectName = genGcsBlobName.sample.get
