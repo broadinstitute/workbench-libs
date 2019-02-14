@@ -9,7 +9,6 @@ import cats.implicits._
 import fs2.Stream
 import com.google.api.core.ApiFutures
 import com.google.cloud.firestore.{DocumentReference, DocumentSnapshot, Transaction}
-import org.broadinstitute.dsde.workbench.google2.GoogleFirestoreInterpreter.callBack
 import org.broadinstitute.dsde.workbench.google2.util.DistributedLock._
 import org.broadinstitute.dsde.workbench.model.WorkbenchException
 
