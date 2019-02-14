@@ -10,4 +10,4 @@ This file documents changes to the `workbench-google2` library, including notes 
 - Add `GoogleStorageService`
 - Add `GooglePubSub`
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.1-TRAVIS-REPLACE-ME"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.1-a1e37dc"`
