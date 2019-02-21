@@ -9,5 +9,6 @@ This file documents changes to the `workbench-google2` library, including notes 
 - Add `GoogleFirestoreService`
 - Add `GoogleStorageService`
 - Add `GooglePubSub`
+- Expose `topicAdminClientResource`
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.1-a1e37dc"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.1-TRAVIS-REPLACE-ME"`
