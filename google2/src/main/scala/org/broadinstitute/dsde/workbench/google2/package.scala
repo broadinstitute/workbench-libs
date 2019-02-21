@@ -1,7 +1,8 @@
 package org.broadinstitute.dsde.workbench
 
-import cats.effect.Timer
+import cats.effect.{IO, Resource, Sync, Timer}
 import com.google.api.core.ApiFutureCallback
+import com.google.auth.oauth2.ServiceAccountCredentials
 import fs2.{RaiseThrowable, Stream}
 import org.broadinstitute.dsde.workbench.model.ErrorReportSource
 
@@ -17,6 +18,11 @@ package object google2 {
       @Override def onFailure(t: Throwable): Unit = cb(Left(t))
       @Override def onSuccess(result: A): Unit = cb(Right(result))
     }
+
+  def credentialResource[F[_]: Sync](pathToCredential: String): Resource[F, ServiceAccountCredentials] = for {
+    credentialFile <- org.broadinstitute.dsde.workbench.util.readFile(pathToCredential)
+    credential <- Sync[F].delay(ServiceAccountCredentials.fromStream(credentialFile))
+  } yield credential
 }
 
 final case class RetryConfig(retryInitialDelay: FiniteDuration, retryNextDelay: FiniteDuration => FiniteDuration, maxAttempts: Int, retryable: Throwable => Boolean)

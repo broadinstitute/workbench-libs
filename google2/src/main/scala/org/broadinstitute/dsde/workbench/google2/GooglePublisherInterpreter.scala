@@ -54,14 +54,13 @@ object GooglePublisherInterpreter {
 
   def publisher[F[_]: Sync](config: PublisherConfig): Resource[F, Publisher] =
     for {
-      credentialFile <- org.broadinstitute.dsde.workbench.util.readFile(config.pathToCredentialJson)
-      credential = ServiceAccountCredentials.fromStream(credentialFile)
+      credential <- credentialResource(config.pathToCredentialJson)
       publisher <- publisherResource(config.projectTopicName, credential)
       topicAdminClient <- topicAdminClientResource(credential)
       _ <- createTopic(config.projectTopicName, topicAdminClient)
     } yield publisher
 
-  private def createTopic[F[_] : Sync](topicName: ProjectTopicName, topicAdminClient: TopicAdminClient) = {
+  private def createTopic[F[_] : Sync](topicName: ProjectTopicName, topicAdminClient: TopicAdminClient): Resource[F, Unit] = {
     Resource.liftF(
       Sync[F]
         .delay(topicAdminClient.createTopic(topicName))
@@ -71,7 +70,7 @@ object GooglePublisherInterpreter {
         })
   }
 
-  private def topicAdminClientResource[F[_] : Sync](credential: ServiceAccountCredentials) = {
+  def topicAdminClientResource[F[_] : Sync](credential: ServiceAccountCredentials): Resource[F, TopicAdminClient] = {
     Resource.make(
       Sync[F].delay(TopicAdminClient.create(
         TopicAdminSettings
@@ -81,7 +80,7 @@ object GooglePublisherInterpreter {
     )(client => Sync[F].delay(client.shutdown()))
   }
 
-  private def publisherResource[F[_] : Sync](topicName: ProjectTopicName, credential: ServiceAccountCredentials) = {
+  private def publisherResource[F[_] : Sync](topicName: ProjectTopicName, credential: ServiceAccountCredentials): Resource[F, Publisher] = {
     Resource.make(
       Sync[F].delay(Publisher
         .newBuilder(topicName)
