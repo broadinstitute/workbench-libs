@@ -90,24 +90,29 @@ object GoogleSubscriberInterpreter {
       credential <- credentialResource(subscriberConfig.pathToCredentialJson)
       subscriptionAdminClient <- subscriptionAdminClientResource(credential)
       _ <- createSubscription(subscriberConfig, subscription, subscriptionAdminClient)
-      flowControlSettings = FlowControlSettings
-        .newBuilder
-        .setMaxOutstandingElementCount(subscriberConfig.flowControlSettingsConfig.maxOutstandingElementCount)
-        .setMaxOutstandingRequestBytes(subscriberConfig.flowControlSettingsConfig.maxOutstandingRequestBytes)
-        .build
+      flowControlSettings = subscriberConfig.flowControlSettingsConfig.map(config =>
+        FlowControlSettings
+          .newBuilder
+          .setMaxOutstandingElementCount(config.maxOutstandingElementCount)
+          .setMaxOutstandingRequestBytes(config.maxOutstandingRequestBytes)
+          .build
+      )
       sub <- subscriberResource(queue, subscription, credential, flowControlSettings)
     } yield sub
   }
 
-  private def subscriberResource[MessageType: Decoder, F[_] : Effect : Logger](queue: Queue[F, Event[MessageType]], subscription: ProjectSubscriptionName, credential: ServiceAccountCredentials, flowControlSettings: FlowControlSettings) = {
-    Resource.make(
-      Sync[F].delay(
-        Subscriber
-          .newBuilder(subscription, receiver(queue))
-          .setCredentialsProvider(FixedCredentialsProvider.create(credential))
-          .setFlowControlSettings(flowControlSettings)
-          .build())
-    )(s => Sync[F].delay(s.stopAsync()))
+  private def subscriberResource[MessageType: Decoder, F[_] : Effect : Logger](queue: Queue[F, Event[MessageType]], subscription: ProjectSubscriptionName, credential: ServiceAccountCredentials, flowControlSettings: Option[FlowControlSettings]): Resource[F, Subscriber] = {
+    val subscriber = for {
+      builder <- Sync[F].delay(Subscriber
+        .newBuilder(subscription, receiver(queue))
+        .setCredentialsProvider(FixedCredentialsProvider.create(credential)))
+      builderWithFlowControlSetting <- flowControlSettings.traverse{
+        fcs =>
+          Sync[F].delay(builder.setFlowControlSettings(fcs))
+      }
+    } yield builderWithFlowControlSetting.getOrElse(builder).build()
+
+    Resource.make(subscriber)(s => Sync[F].delay(s.stopAsync()))
   }
 
   private def createSubscription[MessageType: Decoder, F[_] : Effect : Logger](subsriberConfig: SubscriberConfig, subscription: ProjectSubscriptionName, subscriptionAdminClient: SubscriptionAdminClient) = {
@@ -129,5 +134,5 @@ object GoogleSubscriberInterpreter {
 }
 
 final case class FlowControlSettingsConfig(maxOutstandingElementCount: Long, maxOutstandingRequestBytes: Long)
-final case class SubscriberConfig(pathToCredentialJson: String, projectTopicName: ProjectTopicName, ackDeadLine: FiniteDuration, flowControlSettingsConfig: FlowControlSettingsConfig)
+final case class SubscriberConfig(pathToCredentialJson: String, projectTopicName: ProjectTopicName, ackDeadLine: FiniteDuration, flowControlSettingsConfig: Option[FlowControlSettingsConfig])
 final case class Event[A](msg: A, consumer: AckReplyConsumer)
