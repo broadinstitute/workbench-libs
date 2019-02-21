@@ -87,8 +87,7 @@ object GoogleSubscriberInterpreter {
     val subscription = ProjectSubscriptionName.of(subscriberConfig.projectTopicName.getProject, subscriberConfig.projectTopicName.getTopic)
 
     for {
-      credentialFile <- org.broadinstitute.dsde.workbench.util.readFile(subscriberConfig.pathToCredentialJson)
-      credential = ServiceAccountCredentials.fromStream(credentialFile)
+      credential <- credentialResource(subscriberConfig.pathToCredentialJson)
       subscriptionAdminClient <- subscriptionAdminClientResource(credential)
       _ <- createSubscription(subscriberConfig, subscription, subscriptionAdminClient)
       flowControlSettings = FlowControlSettings
@@ -104,7 +103,7 @@ object GoogleSubscriberInterpreter {
     Resource.make(
       Sync[F].delay(
         Subscriber
-          .newBuilder(subscription, receiver(queue)) //TODO: set credentials correctly
+          .newBuilder(subscription, receiver(queue))
           .setCredentialsProvider(FixedCredentialsProvider.create(credential))
           .setFlowControlSettings(flowControlSettings)
           .build())
