@@ -1,3 +1,4 @@
+
 /.idea/
 /project/boot/
 /project/plugins/project
@@ -17,3 +18,5 @@ test-output/
 .bloop
 
 *.pid
+
+.metals
