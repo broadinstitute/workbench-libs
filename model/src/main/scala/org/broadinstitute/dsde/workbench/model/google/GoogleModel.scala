@@ -26,7 +26,9 @@ case class ServiceAccountKey(id: ServiceAccountKeyId, privateKeyData: ServiceAcc
 case class IamPermission(value: String) extends ValueObject
 
 // Storage
-final case class GcsBucketName(value: String) extends ValueObject
+final case class GcsBucketName(value: String) extends ValueObject {
+  require(value.length <= 63)
+}
 case class GcsObjectName(value: String, timeCreated: Instant = Instant.EPOCH)
 case class GcsPath(bucketName: GcsBucketName, objectName: GcsObjectName)
 case class GcsParseError(value: String) extends ValueObject
