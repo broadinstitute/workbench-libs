@@ -22,7 +22,7 @@ class MockGoogleBigQueryDAO extends GoogleBigQueryDAO {
     if (project == testProject && querySql == testQuery)
       Future.successful(testJobReference)
     else
-      Future.failed(throw new Exception(unexpectedInputsError))
+      Future.failed(new Exception(unexpectedInputsError))
   }
 
   override def startParameterizedQuery(project: GoogleProject,
@@ -32,20 +32,20 @@ class MockGoogleBigQueryDAO extends GoogleBigQueryDAO {
     if (project == testProject && querySql == testParamQuery && queryParameters.equals(queryParameters) && parameterMode == testParameterMode)
       Future.successful(testJobReference)
     else
-      Future.failed(throw new Exception(unexpectedInputsError))
+      Future.failed(new Exception(unexpectedInputsError))
   }
 
   override def getQueryStatus(jobRef: JobReference): Future[Job] =  {
     if (jobRef == testJobReference)
       Future.successful(testJob)
     else
-      Future.failed(throw new Exception(unexpectedInputsError))
+      Future.failed(new Exception(unexpectedInputsError))
   }
 
   override def getQueryResult(job: Job): Future[GetQueryResultsResponse] =  {
     if (job == testJob)
       Future.successful(testResponse)
     else
-      Future.failed(throw new Exception(unexpectedInputsError))
+      Future.failed(new Exception(unexpectedInputsError))
   }
 }
