@@ -11,4 +11,4 @@ This file documents changes to the `workbench-google2` library, including notes 
 - Add `GooglePubSub`
 - Expose `topicAdminClientResource`
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.1-TRAVIS-REPLACE-ME"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.1-326ebf4"`
