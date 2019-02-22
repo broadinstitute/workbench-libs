@@ -77,7 +77,7 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
       postRequest(apiUrl("api/billing"), Map("projectName" -> projectName, "billingAccount" -> billingAccount))
 
       Retry.retry(10.seconds, 20.minutes)({
-        Try(responseAsList(parseResponse(getRequest(apiUrl("api/profile/billing"))))) match {
+        Try(responseAsList[String](parseResponse(getRequest(apiUrl("api/profile/billing"))))) match {
           case Success(response) => response.map { p =>
             BillingProject(p("projectName"), BillingProjectRole.withName(p("role")), BillingProjectStatus.withName(p("creationStatus")))
           }.find(p => p.projectName == projectName && BillingProjectStatus.isTerminal(p.creationStatus))
