@@ -1,23 +1,24 @@
 package org.broadinstitute.dsde.workbench.google2
 
 import cats.effect.{Async, ContextShift, Resource, Timer}
-import fs2.Sink
+import fs2.Pipe
+import io.chrisdavenport.log4cats.Logger
 import io.circe.Encoder
 
 trait GooglePublisher[F[_]] {
   /**
     * Watch out message size quota and limitations https://cloud.google.com/pubsub/quotas
     */
-  def publish[MessageType: Encoder]: Sink[F, MessageType]
+  def publish[MessageType: Encoder]: Pipe[F, MessageType, Unit]
 
   /**
     * Watch out message size quota and limitations https://cloud.google.com/pubsub/quotas
     */
-  def publishString: Sink[F, String]
+  def publishString: Pipe[F, String, Unit]
 }
 
 object GooglePublisher {
-  def resource[F[_]: Async: Timer: ContextShift, MessageType: Encoder](config: PublisherConfig): Resource[F, GooglePublisher[F]] = for {
+  def resource[F[_]: Async: Timer: ContextShift: Logger, MessageType: Encoder](config: PublisherConfig): Resource[F, GooglePublisher[F]] = for {
     publisher <- GooglePublisherInterpreter.publisher(config)
   } yield GooglePublisherInterpreter(publisher, config.retryConfig)
 }
