@@ -3,12 +3,13 @@ import sbt._
 object Dependencies {
   val akkaV         = "2.5.3"
   val akkaHttpV     = "10.0.6"
-  val catsEffectV         = "1.1.0"
+  val catsEffectV         = "1.2.0"
   val jacksonV      = "2.9.0"
   val googleV       = "1.22.0"
   val scalaLoggingV = "3.7.2"
   val scalaTestV    = "3.0.1"
   val circeVersion = "0.11.1"
+  val http4sVersion = "0.20.0-M6" //This isn't ideal, but 0.20.+ has breaking changes from 0.18.0, so I think it's probably not worth using 0.18.22(stable version)
 
   def excludeGuavaJDK5(m: ModuleID): ModuleID = m.exclude("com.google.guava", "guava-jdk5")
 
@@ -28,7 +29,6 @@ object Dependencies {
   val selenium: ModuleID = "org.seleniumhq.selenium" % "selenium-java" % "3.11.0" % "test"
 
   val catsEffect: ModuleID = "org.typelevel" %% "cats-effect" % catsEffectV
-  val fs2: ModuleID = "co.fs2" %% "fs2-core" % "1.0.2"
 
   // metrics-scala transitively pulls in io.dropwizard.metrics:metrics-core
   val metricsScala: ModuleID =      "nl.grons"              %% "metrics-scala"    % "3.5.6"
@@ -60,8 +60,11 @@ object Dependencies {
   val circeCore: ModuleID = "io.circe" %% "circe-core" % circeVersion
   val circeParser: ModuleID = "io.circe" %% "circe-parser" % circeVersion
   val circeGeneric: ModuleID = "io.circe" %% "circe-generic" % circeVersion % "test"
-  //  val scodecCore: ModuleID = "org.scodec" %% "scodec-core" % "1.10.3"
   val log4cats = "io.chrisdavenport" %% "log4cats-slf4j"   % "0.3.0-M2"
+
+  val http4sCirce = "org.http4s" %% "http4s-circe" % http4sVersion
+  val http4sBlazeClient = "org.http4s" %% "http4s-blaze-client" % http4sVersion
+  val http4sDsl = "org.http4s"      %% "http4s-dsl"          % http4sVersion
 
   val commonDependencies = Seq(
     scalatest
@@ -73,7 +76,12 @@ object Dependencies {
     akkaHttpSprayJson,
     catsEffect,
     akkaTestkit,
-    mockito
+    mockito,
+    scalaCheck,
+    log4cats,
+    circeCore,
+    circeParser,
+    circeGeneric
   )
 
   val modelDependencies = commonDependencies ++ Seq(
@@ -111,9 +119,7 @@ object Dependencies {
     googleRpc,
     googleKms,
     akkaHttpSprayJson,
-    fs2,
     akkaTestkit,
-    scalaCheck
   ).map(excludeGuavaJDK5)
 
   val google2Dependencies = commonDependencies ++ Seq(
@@ -121,15 +127,10 @@ object Dependencies {
     googleFirestore,
     googleStorageNew,
     googleStorageLocal,
-    scalaCheck,
     googlePubsubNew,
-    scalaCheck,
-    circeCore,
-    circeParser,
-    log4cats,
-    circeGeneric,
-//    scodecCore,
-    fs2
+    http4sCirce,
+    http4sBlazeClient,
+    http4sDsl
   )
 
   val serviceTestDependencies = commonDependencies ++ Seq(
@@ -147,6 +148,5 @@ object Dependencies {
     akkaHttpSprayJson
   )
 
-  val uiTestDependencies = commonDependencies ++ Seq(
-  )
+  val uiTestDependencies = commonDependencies
 }
