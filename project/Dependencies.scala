@@ -55,6 +55,7 @@ object Dependencies {
   val googleStorageNew: ModuleID = "com.google.cloud" % "google-cloud-storage" % "1.59.0"
   val googleStorageLocal: ModuleID = "com.google.cloud" % "google-cloud-nio" % "0.74.0-alpha" % "test"
   val googlePubsubNew: ModuleID = "com.google.cloud" % "google-cloud-pubsub" % "1.62.0"
+  val googleKms: ModuleID = "com.google.cloud" % "google-cloud-kms" % "0.77.0-beta"
 
   val circeCore: ModuleID = "io.circe" %% "circe-core" % circeVersion
   val circeParser: ModuleID = "io.circe" %% "circe-parser" % circeVersion
@@ -108,6 +109,7 @@ object Dependencies {
     googleBigQuery,
     googleGuava,
     googleRpc,
+    googleKms,
     akkaHttpSprayJson,
     fs2,
     akkaTestkit,
