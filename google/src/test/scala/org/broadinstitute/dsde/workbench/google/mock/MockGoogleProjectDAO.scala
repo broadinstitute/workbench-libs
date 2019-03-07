@@ -15,4 +15,6 @@ class MockGoogleProjectDAO extends GoogleProjectDAO {
   override def isProjectActive(projectName: String): Future[Boolean] = Future.successful(true)
 
   override def isBillingActive(projectName: String): Future[Boolean] = Future.successful(true)
+
+  override def enableService(projectName: String, serviceName: String): Future[String] = Future.successful(UUID.randomUUID().toString)
 }
