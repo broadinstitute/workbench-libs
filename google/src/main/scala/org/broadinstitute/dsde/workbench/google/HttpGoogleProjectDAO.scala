@@ -7,6 +7,8 @@ import com.google.api.services.cloudbilling.Cloudbilling
 import com.google.api.services.cloudresourcemanager.CloudResourceManager
 import com.google.api.services.cloudresourcemanager.model.{Operation, Project}
 import com.google.api.services.compute.ComputeScopes
+import com.google.api.services.servicemanagement.ServiceManagement
+import com.google.api.services.servicemanagement.model.EnableServiceRequest
 import org.broadinstitute.dsde.workbench.google.GoogleCredentialModes._
 import org.broadinstitute.dsde.workbench.google.GoogleCredentialModes.GoogleCredentialMode
 import org.broadinstitute.dsde.workbench.metrics.GoogleInstrumentedService
@@ -25,6 +27,10 @@ class HttpGoogleProjectDAO(appName: String,
 
   private def cloudResManager = {
     new CloudResourceManager.Builder(httpTransport, jsonFactory, googleCredential).setApplicationName(appName).build()
+  }
+
+  private def serviceManagement = {
+    new ServiceManagement.Builder(httpTransport, jsonFactory, googleCredential).setApplicationName(appName).build()
   }
 
   private def billing: Cloudbilling = {
@@ -73,4 +79,11 @@ class HttpGoogleProjectDAO(appName: String,
     }
   }
 
+  override def enableService(projectName: String, serviceName: String): Future[String] = {
+    retryWhen500orGoogleError(() => {
+      executeGoogleRequest(serviceManagement.services().enable(serviceName, new EnableServiceRequest().setConsumerId(s"project:$projectName")))
+    }).map { operation =>
+      operation.getName
+    }
+  }
 }
