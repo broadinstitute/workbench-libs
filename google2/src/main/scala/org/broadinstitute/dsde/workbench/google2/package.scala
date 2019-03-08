@@ -36,7 +36,7 @@ package object google2 {
       _ <- attempted match {
         case Left(e) =>
           val loggableGoogleCall = LoggableGoogleCall(traceId, action, (endTime - startTime).milliseconds, None, "Failed")
-          Logger[F].error(e)(loggableGoogleCall.asJson.noSpaces) //google library logs error response as well. Revisit if this is too noise
+          Logger[F].info(e)(loggableGoogleCall.asJson.noSpaces) //google library logs error response as well. Revisit if this is too noise
         case Right(r) =>
           val response = if(r == null) "null" else r.toString.take(1024)
           val loggableGoogleCall = LoggableGoogleCall(traceId, action, (endTime - startTime).milliseconds, Some(response), "Succeeded")
