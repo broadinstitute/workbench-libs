@@ -23,13 +23,20 @@ class GoogleTopicAdminInterpreter[F[_]: Logger: Sync: Timer](topicAdminClient: T
 
   def create(projectTopicName: ProjectTopicName, traceId: Option[TraceId] = None): Stream[F, Unit] = {
     val loggingCtx = Map("topic" -> projectTopicName.asJson, "traceId" -> traceId.asJson)
-    val createTopic = Sync[F].delay(topicAdminClient.createTopic(projectTopicName)).void
+    val createTopic = Sync[F].delay(topicAdminClient.createTopic(projectTopicName)).void.handleErrorWith {
+        case _: com.google.api.gax.rpc.AlreadyExistsException =>
+          Logger[F].debug(s"$projectTopicName already exists")
+      }
+
     retryHelper[Unit](createTopic, traceId, s"com.google.cloud.pubsub.v1.TopicAdminClient.createTopic($projectTopicName)")
   }
 
   def createWithPublisherMembers(projectTopicName: ProjectTopicName, members: List[Identity], traceId: Option[TraceId] = None): Stream[F, Unit] = {
     val loggingCtx = Map("topic" -> projectTopicName.asJson, "traceId" -> traceId.asJson)
-    val createTopic = Sync[F].delay(topicAdminClient.createTopic(projectTopicName)).void
+    val createTopic = Sync[F].delay(topicAdminClient.createTopic(projectTopicName)).void.handleErrorWith {
+      case _: com.google.api.gax.rpc.AlreadyExistsException =>
+        Logger[F].debug(s"$projectTopicName topic already exists")
+    }
 
     for {
       _ <- retryHelper[Unit](createTopic, traceId,  s"com.google.cloud.pubsub.v1.TopicAdminClient.createTopic($projectTopicName)")
@@ -54,11 +61,7 @@ object GoogleTopicAdminInterpreter {
   val defaultRetryConfig = RetryConfig(
     org.broadinstitute.dsde.workbench.util.addJitter(1 seconds, 1 seconds),
     x => x * 2,
-    5,
-    {
-      case _: com.google.api.gax.rpc.AlreadyExistsException => false
-      case other => scala.util.control.NonFatal.apply(other)
-    }
+    5
   )
 
   private[google2] def topicAdminClientResource[F[_] : Sync](credential: ServiceAccountCredentials): Resource[F, TopicAdminClient] = {
