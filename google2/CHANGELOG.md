@@ -14,4 +14,4 @@ This file documents changes to the `workbench-google2` library, including notes 
 - Add `GoogleStorageService.resource` helper for constructing `GoogleStorageService`
 - Add `GoogleStorageService.getObject`
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.1-TRAVIS-REPLACE-ME"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.1-09ee655"`
