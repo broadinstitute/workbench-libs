@@ -2,7 +2,7 @@ package org.broadinstitute.dsde.workbench.util
 import java.util.concurrent.{ExecutorService, Executors}
 
 import cats.effect.{Resource, Sync}
-import cats.implicits._
+
 import scala.concurrent.ExecutionContext
 
 

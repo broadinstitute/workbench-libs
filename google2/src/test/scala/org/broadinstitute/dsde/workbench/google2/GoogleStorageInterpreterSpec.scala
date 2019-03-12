@@ -5,10 +5,12 @@ import cats.implicits._
 import fs2.Stream
 import com.google.cloud.storage.contrib.nio.testing.LocalStorageHelper
 import org.broadinstitute.dsde.workbench.google2.Generators._
+import org.broadinstitute.dsde.workbench.google2.GoogleStorageInterpreter._
 import org.broadinstitute.dsde.workbench.google2.GoogleStorageInterpreterSpec._
 import org.broadinstitute.dsde.workbench.util.WorkbenchTest
 import org.scalacheck.Gen
 import org.scalatest.{AsyncFlatSpec, Matchers}
+import io.chrisdavenport.log4cats.slf4j.Slf4jLogger
 
 import scala.concurrent.ExecutionContext
 
@@ -21,7 +23,7 @@ class GoogleStorageInterpreterSpec extends AsyncFlatSpec with Matchers with Work
     localStorage.storeObject(bucketName, objectName, objectBody, objectType).attempt.map(x => x.isRight shouldBe(true))
   }
 
-  "ioStorage getObject" should "be able to retrieve an object" in ioAssertion {
+  "ioStorage unsafeGetObject" should "be able to retrieve an object" in ioAssertion {
     val bucketName = genGcsBucketName.sample.get
     val blobName = genGcsBlobName.sample.get
     val objectBody = genGcsObjectBody.sample.get
@@ -116,7 +118,9 @@ class GoogleStorageInterpreterSpec extends AsyncFlatSpec with Matchers with Work
 object GoogleStorageInterpreterSpec {
   implicit val cs = IO.contextShift(ExecutionContext.global)
   implicit val timer = IO.timer(ExecutionContext.global)
+  implicit val logger = Slf4jLogger.getLogger[IO]
+
   val db = LocalStorageHelper.getOptions().getService()
-  val localStorage = GoogleStorageInterpreter[IO](db, ExecutionContext.global)
+  val localStorage = GoogleStorageInterpreter[IO](db, ExecutionContext.global, defaultRetryConfig)
   val objectType = "text/plain"
 }

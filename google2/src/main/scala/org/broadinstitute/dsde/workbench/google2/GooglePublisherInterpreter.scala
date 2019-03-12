@@ -6,33 +6,34 @@ import com.google.api.core.ApiFutures
 import com.google.api.gax.core.FixedCredentialsProvider
 import com.google.api.gax.rpc.AlreadyExistsException
 import com.google.auth.oauth2.ServiceAccountCredentials
-import com.google.cloud.pubsub.v1.{Publisher, TopicAdminClient, TopicAdminSettings}
+import com.google.cloud.pubsub.v1.{Publisher, TopicAdminClient}
 import com.google.common.util.concurrent.MoreExecutors
 import com.google.protobuf.ByteString
 import com.google.pubsub.v1.{ProjectTopicName, PubsubMessage}
-import fs2.Sink
+import fs2.Pipe
+import io.chrisdavenport.log4cats.Logger
 import io.circe.Encoder
 import io.circe.syntax._
 import org.broadinstitute.dsde.workbench.RetryConfig
 
-private[google2] class GooglePublisherInterpreter[F[_]: Async: Timer](
+private[google2] class GooglePublisherInterpreter[F[_]: Async: Timer: Logger](
                                                          publisher: Publisher,
                                                          retryConfig: RetryConfig
                                      ) extends GooglePublisher[F] {
-  def publish[MessageType: Encoder]: Sink[F, MessageType] = in => {
+  def publish[MessageType: Encoder]: Pipe[F, MessageType, Unit] = in => {
     in.flatMap {
       message =>
         publishMessage(message.asJson.noSpaces) //This will turn message case class into raw json string
     }
   }
 
-  def publishString: Sink[F, String] = in => {
+  def publishString: Pipe[F, String, Unit] = in => {
     in.flatMap(publishMessage)
   }
 
   private def publishMessage(message: String) = {
     val byteString = ByteString.copyFromUtf8(message)
-    retryGoogleF(retryConfig)(asyncPublishMessage(byteString))
+    retryGoogleF(retryConfig)(asyncPublishMessage(byteString), None, s"Publishing $message")
   }
 
   private def asyncPublishMessage(byteString: ByteString): F[Unit] = Async[F].async[String]{
@@ -47,7 +48,7 @@ private[google2] class GooglePublisherInterpreter[F[_]: Async: Timer](
 }
 
 object GooglePublisherInterpreter {
-  def apply[F[_]: Async: Timer: ContextShift](
+  def apply[F[_]: Async: Timer: ContextShift: Logger](
              publisher: Publisher,
              retryConfig: RetryConfig
            ): GooglePublisherInterpreter[F] = new GooglePublisherInterpreter(publisher, retryConfig)
@@ -56,7 +57,7 @@ object GooglePublisherInterpreter {
     for {
       credential <- credentialResource(config.pathToCredentialJson)
       publisher <- publisherResource(config.projectTopicName, credential)
-      topicAdminClient <- topicAdminClientResource(credential)
+      topicAdminClient <- GoogleTopicAdminInterpreter.topicAdminClientResource(credential)
       _ <- createTopic(config.projectTopicName, topicAdminClient)
     } yield publisher
 
@@ -68,16 +69,6 @@ object GooglePublisherInterpreter {
         .recover {
           case _: AlreadyExistsException => ()
         })
-  }
-
-  def topicAdminClientResource[F[_] : Sync](credential: ServiceAccountCredentials): Resource[F, TopicAdminClient] = {
-    Resource.make(
-      Sync[F].delay(TopicAdminClient.create(
-        TopicAdminSettings
-          .newBuilder()
-          .setCredentialsProvider(FixedCredentialsProvider.create(credential))
-          .build()))
-    )(client => Sync[F].delay(client.shutdown()))
   }
 
   private def publisherResource[F[_] : Sync](topicName: ProjectTopicName, credential: ServiceAccountCredentials): Resource[F, Publisher] = {

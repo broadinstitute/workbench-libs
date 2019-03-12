@@ -4,11 +4,14 @@ This file documents changes to the `workbench-model` library, including notes on
 
 ## 0.13
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-model" % "0.13-7e86fba"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-model" % "0.13-TRAVIS-REPLACE-ME"`
 
 ### Changed
 
 - Remove duplicated `SamModel`
+
+### Added
+- TraceId
 
 ## 0.12
 
