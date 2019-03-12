@@ -11,7 +11,6 @@ import com.google.pubsub.v1.{ProjectSubscriptionName, ProjectTopicName, PushConf
 import fs2.Stream
 import fs2.concurrent.SignallingRef
 import io.chrisdavenport.log4cats.Logger
-import io.chrisdavenport.log4cats.slf4j.Slf4jLogger
 import io.circe.Decoder
 import io.circe.generic.auto._
 import io.grpc.ManagedChannelBuilder
@@ -25,8 +24,6 @@ import scala.concurrent.duration._
 import scala.util.Try
 
 class GooglePubSubSpec extends FlatSpec with Matchers with WorkbenchTest {
-  implicit val logger = Slf4jLogger.unsafeCreate[IO]
-
   "GooglePublisherInterpreter" should "be able to publish message successfully" in {
     val people = Generators.genListPerson.sample.get
     val projectTopicName = Generators.genProjectTopicName.sample.get
@@ -35,7 +32,7 @@ class GooglePubSubSpec extends FlatSpec with Matchers with WorkbenchTest {
       queue <- fs2.concurrent.Queue.bounded[IO, Event[Person]](10000)
       _ <- localPubsub[Person](projectTopicName, queue).use{
         case (pub, _) =>
-          val res = Stream.emits(people) to pub.publish
+          val res = Stream.emits(people) through pub.publish
 
           res.compile.drain
       }
@@ -55,7 +52,7 @@ class GooglePubSubSpec extends FlatSpec with Matchers with WorkbenchTest {
       terminateStopStream <- SignallingRef[IO, Boolean](false) //signal for terminating stopStream
       _ <- localPubsub(projectTopicName, queue).use {
         case (pub, sub) =>
-          val subScribeStream = (Stream.emits(people) to pub.publish[Person]) ++ Stream.eval(sub.start)
+          val subScribeStream = (Stream.emits(people) through pub.publish[Person]) ++ Stream.eval(sub.start)
 
           val processEvents: Stream[IO, Unit] = sub.messages.zipWithIndex.evalMap[IO, Unit]{
             case (event, index)=>
