@@ -61,11 +61,14 @@ object Dependencies {
   val circeCore: ModuleID = "io.circe" %% "circe-core" % circeVersion
   val circeParser: ModuleID = "io.circe" %% "circe-parser" % circeVersion
   val circeGeneric: ModuleID = "io.circe" %% "circe-generic" % circeVersion % "test"
+  val circeFs2: ModuleID = "io.circe" %% "circe-fs2" % "0.11.0"
   val log4cats = "io.chrisdavenport" %% "log4cats-slf4j"   % "0.3.0"
 
   val http4sCirce = "org.http4s" %% "http4s-circe" % http4sVersion
   val http4sBlazeClient = "org.http4s" %% "http4s-blaze-client" % http4sVersion
   val http4sDsl = "org.http4s"      %% "http4s-dsl"          % http4sVersion
+
+  val fs2Io: ModuleID = "co.fs2" %% "fs2-io" % "1.0.4"
 
   val commonDependencies = Seq(
     scalatest,
@@ -121,7 +124,7 @@ object Dependencies {
     googleRpc,
     googleKms,
     akkaHttpSprayJson,
-    akkaTestkit,
+    akkaTestkit
   ).map(excludeGuavaJDK5)
 
   val google2Dependencies = commonDependencies ++ Seq(
@@ -132,7 +135,9 @@ object Dependencies {
     googlePubsubNew,
     http4sCirce,
     http4sBlazeClient,
-    http4sDsl
+    http4sDsl,
+    fs2Io,
+    circeFs2
   )
 
   val serviceTestDependencies = commonDependencies ++ Seq(

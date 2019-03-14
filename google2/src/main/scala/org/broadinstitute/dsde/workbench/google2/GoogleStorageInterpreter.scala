@@ -1,6 +1,8 @@
 package org.broadinstitute.dsde.workbench
 package google2
 
+import java.io.FileInputStream
+import java.nio.file.Paths
 import java.time.Instant
 
 import cats.effect._
@@ -12,12 +14,14 @@ import com.google.cloud.storage.Storage.{BlobListOption, BucketTargetOption}
 import com.google.cloud.storage.{Acl, Blob, BlobId, BlobInfo, BucketInfo, Storage, StorageException, StorageOptions}
 import fs2.{Stream, text}
 import io.chrisdavenport.log4cats.Logger
+import io.circe.Decoder
 import org.broadinstitute.dsde.workbench.model.TraceId
 import org.broadinstitute.dsde.workbench.model.google.{GcsBucketName, GcsObjectName, GoogleProject}
 
 import scala.collection.JavaConverters._
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
+import io.circe.fs2._
 
 private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer: Async: Logger](db: Storage,
                                       blockingEc: ExecutionContext,
@@ -91,7 +95,7 @@ private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer: Async
 
     retryStorageF(
       blockingF(Async[F].delay(db.create(bucketInfo, BucketTargetOption.userProject(billingProject.value)))),
-      None,
+      traceId,
       s"com.google.cloud.storage.Storage.create($bucketInfo, ${billingProject})"
     ).compile.drain
   }
@@ -103,18 +107,18 @@ private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer: Async
     for {
       _ <- retryStorageF(
         blockingF(Async[F].delay(db.create(bucketInfo, BucketTargetOption.userProject(googleProject.value)))),
-        None,
+        traceId,
         s"com.google.cloud.storage.Storage.create($bucketInfo, ${googleProject})"
       )
       policy <- retryStorageF(
         blockingF(Async[F].delay(db.getIamPolicy(bucketName.value))),
-        None,
+        traceId,
         s"com.google.cloud.storage.Storage.getIamPolicy(${bucketName})"
       )
       updatedPolicy = policy.toBuilder().addIdentity(com.google.cloud.Role.of("roles/storage.admin"), adminIdentity).build()
       _ <- retryStorageF(
         blockingF(Async[F].delay(db.setIamPolicy(bucketName.value, updatedPolicy))),
-        None,
+        traceId,
         s"com.google.cloud.storage.Storage.setIamPolicy(${bucketName}, $updatedPolicy)"
       )
     } yield ()
@@ -152,15 +156,26 @@ object GoogleStorageInterpreter {
       pathToJson: String
   )(implicit sf: Sync[F]): Resource[F, Storage] =
     for {
+      project <- Resource.liftF(parseProject(pathToJson).compile.lastOrError)//parseProject(pathToJson).res
       credential <- org.broadinstitute.dsde.workbench.util.readFile(pathToJson)
       db <- Resource.liftF(
         sf.delay(
           StorageOptions
             .newBuilder()
             .setCredentials(ServiceAccountCredentials.fromStream(credential))
+            .setProjectId(project.value) //this is only needed for createBucket API. For uploading object, sdk seems to set project properly from credential file
             .build()
             .getService
         )
       )
     } yield db
+
+  implicit val googleProjectDecoder: Decoder[GoogleProject] = Decoder.forProduct1(
+    "project_id"
+  )(GoogleProject.apply)
+
+  def parseProject[F[_]: ContextShift: Sync](pathToJson: String): Stream[F, GoogleProject] =
+     fs2.io.file.readAll[F](Paths.get(pathToJson), ExecutionContext.global, 4096)
+          .through(byteStreamParser)
+          .through(decoder[F, GoogleProject])
 }
