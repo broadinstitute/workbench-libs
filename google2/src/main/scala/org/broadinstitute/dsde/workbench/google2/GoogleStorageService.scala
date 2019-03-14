@@ -1,6 +1,7 @@
 package org.broadinstitute.dsde.workbench.google2
 
 import cats.effect._
+import com.google.cloud.Identity
 import com.google.cloud.storage.Acl
 import com.google.cloud.storage.BucketInfo.LifecycleRule
 import fs2.Stream
@@ -38,7 +39,7 @@ trait GoogleStorageService[F[_]] {
   /**
     * @param traceId uuid for tracing a unique call flow in logging
     */
-  def setBucketLifecycle(bucketName: GcsBucketName, lifecycleRules: List[LifecycleRule], traceId: Option[TraceId] = None): F[Unit]
+  def setBucketLifecycle(bucketName: GcsBucketName, lifecycleRules: List[LifecycleRule], traceId: Option[TraceId] = None): Stream[F, Unit]
 
   /**
     * not memory safe. Use getObject if you're worried about OOM
@@ -60,6 +61,11 @@ trait GoogleStorageService[F[_]] {
     * @param traceId uuid for tracing a unique call flow in logging
     */
   def createBucket(billingProject: GoogleProject, bucketName: GcsBucketName, acl: List[Acl], traceId: Option[TraceId] = None): F[Unit]
+
+  /**
+    * @param traceId uuid for tracing a unique call flow in logging
+    */
+  def createBucketWithAdminRole(googleProject: GoogleProject, bucketName: GcsBucketName, adminIdentity: Identity, traceId: Option[TraceId] = None): Stream[F, Unit]
 }
 
 object GoogleStorageService {

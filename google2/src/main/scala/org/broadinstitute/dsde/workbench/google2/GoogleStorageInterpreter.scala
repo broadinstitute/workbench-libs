@@ -6,6 +6,7 @@ import java.time.Instant
 import cats.effect._
 import cats.implicits._
 import com.google.auth.oauth2.ServiceAccountCredentials
+import com.google.cloud.Identity
 import com.google.cloud.storage.BucketInfo.LifecycleRule
 import com.google.cloud.storage.Storage.{BlobListOption, BucketTargetOption}
 import com.google.cloud.storage.{Acl, Blob, BlobId, BlobInfo, BucketInfo, Storage, StorageException, StorageOptions}
@@ -95,12 +96,37 @@ private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer: Async
     ).compile.drain
   }
 
-  override def setBucketLifecycle(bucketName: GcsBucketName, lifecycleRules: List[LifecycleRule], traceId: Option[TraceId] = None): F[Unit] = {
+  def createBucketWithAdminRole(googleProject: GoogleProject, bucketName: GcsBucketName, adminIdentity: Identity, traceId: Option[TraceId] = None): Stream[F, Unit] = {
+    val bucketInfo = BucketInfo.of(bucketName.value)
+      .toBuilder
+      .build()
+    for {
+      _ <- retryStorageF(
+        blockingF(Async[F].delay(db.create(bucketInfo, BucketTargetOption.userProject(googleProject.value)))),
+        None,
+        s"com.google.cloud.storage.Storage.create($bucketInfo, ${googleProject})"
+      )
+      policy <- retryStorageF(
+        blockingF(Async[F].delay(db.getIamPolicy(bucketName.value))),
+        None,
+        s"com.google.cloud.storage.Storage.getIamPolicy(${bucketName})"
+      )
+      updatedPolicy = policy.toBuilder().addIdentity(com.google.cloud.Role.of("roles/storage.admin"), adminIdentity).build()
+      _ <- retryStorageF(
+        blockingF(Async[F].delay(db.setIamPolicy(bucketName.value, updatedPolicy))),
+        None,
+        s"com.google.cloud.storage.Storage.setIamPolicy(${bucketName}, $updatedPolicy)"
+      )
+    } yield ()
+  }
+
+
+  override def setBucketLifecycle(bucketName: GcsBucketName, lifecycleRules: List[LifecycleRule], traceId: Option[TraceId] = None): Stream[F, Unit] = {
     val bucketInfo = BucketInfo.of(bucketName.value)
       .toBuilder
       .setLifecycleRules(lifecycleRules.asJava)
       .build()
-    retryStorageF(blockingF(Async[F].delay(db.update(bucketInfo))), traceId, s"com.google.cloud.storage.Storage.update($bucketInfo)").compile.drain
+    retryStorageF(blockingF(Async[F].delay(db.update(bucketInfo))), traceId, s"com.google.cloud.storage.Storage.update($bucketInfo)").void
   }
 
   private def blockingF[A](fa: F[A]): F[A] = ContextShift[F].evalOn(blockingEc)(fa)
