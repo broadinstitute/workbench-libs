@@ -1,7 +1,6 @@
 package org.broadinstitute.dsde.workbench
 package google2
 
-import java.io.FileInputStream
 import java.nio.file.Paths
 import java.time.Instant
 
@@ -93,8 +92,13 @@ private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer: Async
       .setDefaultAcl(acl.asJava)
       .build()
 
+    val createBucket = blockingF(Async[F].delay(db.create(bucketInfo, BucketTargetOption.userProject(billingProject.value)))).void.handleErrorWith {
+      case e: com.google.cloud.storage.StorageException if(e.getCode == 409) =>
+        Logger[F].info(s"$bucketName already exists")
+    }
+
     retryStorageF(
-      blockingF(Async[F].delay(db.create(bucketInfo, BucketTargetOption.userProject(billingProject.value)))),
+      createBucket,
       traceId,
       s"com.google.cloud.storage.Storage.create($bucketInfo, ${billingProject})"
     ).compile.drain
@@ -104,9 +108,15 @@ private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer: Async
     val bucketInfo = BucketInfo.of(bucketName.value)
       .toBuilder
       .build()
+
+    val createBucket = blockingF(Async[F].delay(db.create(bucketInfo, BucketTargetOption.userProject(googleProject.value)))).void.handleErrorWith {
+      case e: com.google.cloud.storage.StorageException if(e.getCode == 409) =>
+        Logger[F].info(s"$bucketName already exists")
+    }
+
     for {
       _ <- retryStorageF(
-        blockingF(Async[F].delay(db.create(bucketInfo, BucketTargetOption.userProject(googleProject.value)))),
+        createBucket,
         traceId,
         s"com.google.cloud.storage.Storage.create($bucketInfo, ${googleProject})"
       )
@@ -152,14 +162,19 @@ object GoogleStorageInterpreter {
   def apply[F[_]: Timer: Async: ContextShift: Logger](db: Storage, blockingEc: ExecutionContext, retryConfig: RetryConfig): GoogleStorageInterpreter[F] =
     new GoogleStorageInterpreter(db, blockingEc, retryConfig)
 
-  def storage[F[_]](
-      pathToJson: String
-  )(implicit sf: Sync[F]): Resource[F, Storage] =
+  def storage[F[_]: Sync: ContextShift](
+      pathToJson: String,
+      blockingExecutionContext: ExecutionContext,
+      project: Option[GoogleProject] = None // legacy credential file doesn't have `project_id` field. Hence we need to pass in explicitly
+  ): Resource[F, Storage] =
     for {
-      project <- Resource.liftF(parseProject(pathToJson).compile.lastOrError)//parseProject(pathToJson).res
       credential <- org.broadinstitute.dsde.workbench.util.readFile(pathToJson)
+      project <- project match { //Use explicitly passed in project if it's defined; else use `project_id` in json credential; if neither has project defined, raise error
+        case Some(p) => Resource.pure[F, GoogleProject](p)
+        case None => Resource.liftF(parseProject(pathToJson, blockingExecutionContext).compile.lastOrError)
+      }
       db <- Resource.liftF(
-        sf.delay(
+        Sync[F].delay(
           StorageOptions
             .newBuilder()
             .setCredentials(ServiceAccountCredentials.fromStream(credential))
@@ -174,8 +189,8 @@ object GoogleStorageInterpreter {
     "project_id"
   )(GoogleProject.apply)
 
-  def parseProject[F[_]: ContextShift: Sync](pathToJson: String): Stream[F, GoogleProject] =
-     fs2.io.file.readAll[F](Paths.get(pathToJson), ExecutionContext.global, 4096)
+  def parseProject[F[_]: ContextShift: Sync](pathToJson: String, blockingExecutionContext: ExecutionContext): Stream[F, GoogleProject] =
+     fs2.io.file.readAll[F](Paths.get(pathToJson), blockingExecutionContext, 4096)
           .through(byteStreamParser)
           .through(decoder[F, GoogleProject])
 }
