@@ -105,6 +105,11 @@ object Sam extends Sam {
       postRequest(url + s"api/groups/v1/$groupName")
     }
 
+    def createWorkspace(workspaceName: String)(implicit token: AuthToken): Unit = {
+      logger.info(s"Creating managed group with id: $workspaceName")
+      postRequest(url + s"api/resources/v1/workspace/$workspaceName")
+    }
+
     def deleteGroup(groupName: String)(implicit token: AuthToken): Unit = {
       logger.info(s"Deleting managed group with id: $groupName")
       deleteRequest(url + s"api/groups/v1/$groupName")
