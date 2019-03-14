@@ -178,7 +178,7 @@ object GoogleStorageInterpreter {
           StorageOptions
             .newBuilder()
             .setCredentials(ServiceAccountCredentials.fromStream(credential))
-            .setProjectId(project.value) //this is only needed for createBucket API. For uploading object, sdk seems to set project properly from credential file
+            .setProjectId(project.value)
             .build()
             .getService
         )

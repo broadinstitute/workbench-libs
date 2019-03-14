@@ -6,6 +6,7 @@ import cats.effect.{Resource, Sync}
 import cats.implicits._
 import com.google.api.services.storage.StorageScopes
 import com.google.auth.oauth2.{GoogleCredentials, ServiceAccountCredentials}
+import com.google.cloud.Identity
 import com.google.pubsub.v1.ProjectTopicName
 import io.chrisdavenport.log4cats.Logger
 import io.circe.syntax._
@@ -13,7 +14,7 @@ import io.circe.{Decoder, Encoder}
 import org.broadinstitute.dsde.workbench.google2.GoogleStorageNotificationCreatorInterpreter._
 import org.broadinstitute.dsde.workbench.google2.JsonCodec._
 import org.broadinstitute.dsde.workbench.model.TraceId
-import org.broadinstitute.dsde.workbench.model.google.GcsBucketName
+import org.broadinstitute.dsde.workbench.model.google.{GcsBucketName, GoogleProject}
 import org.http4s.circe.CirceEntityDecoder._
 import org.http4s.circe.CirceEntityEncoder._
 import org.http4s.client.Client
@@ -22,28 +23,41 @@ import org.http4s.headers.Authorization
 import org.http4s.{AuthScheme, Credentials, Headers, Method, Request, Response, Status, Uri}
 
 // Google api doc https://cloud.google.com/storage/docs/json_api/v1/notifications
-class GoogleStorageNotificationCreatorInterpreter[F[_]: Sync: Logger](httpClient: Client[F], config: NotificationCreaterConfig) extends GoogleStorageNotificationCreater[F] with Http4sClientDsl[F] {
-  def createNotification(topic: ProjectTopicName, bucketName: GcsBucketName, filters: Filters, traceId: Option[TraceId]): F[Unit] = credentialResourceWithScope(config.pathToCredentialJson).use {
-    serviceAccountCredentials =>
-      val notificationUri = config.googleUrl.withPath(s"/storage/v1/b/${bucketName.value}/notificationConfigs")
-      val notificationBody = NotificationRequest(topic, "JSON_API_V1", filters.eventTypes, filters.objectNamePrefix)
-      val headers = Headers(Authorization(Credentials.Token(AuthScheme.Bearer, serviceAccountCredentials.refreshAccessToken().getTokenValue)))
-      for {
-        notifications <- httpClient.expect[NotificationResponse](Request[F](
-          method = Method.GET,
-          uri = notificationUri,
-          headers = headers
-        ))
-        // POST request will create multiple notifications for same bucket and topic with different ID; Hence we check if
-        // a notification for the given bucket and topic already exists. If yes, we do nothing; if no, we create it
+class GoogleStorageNotificationCreatorInterpreter[F[_]: Sync: Logger](httpClient: Client[F], config: NotificationCreaterConfig, googleCredentials: GoogleCredentials) extends GoogleStorageNotificationCreater[F] with Http4sClientDsl[F] {
+  val authHeader = Authorization(Credentials.Token(AuthScheme.Bearer, googleCredentials.refreshAccessToken().getTokenValue))
+
+  def createNotification(topic: ProjectTopicName, bucketName: GcsBucketName, filters: Filters, traceId: Option[TraceId]): F[Unit] = {
+    val notificationUri = config.googleUrl.withPath(s"/storage/v1/b/${bucketName.value}/notificationConfigs")
+    val notificationBody = NotificationRequest(topic, "JSON_API_V1", filters.eventTypes, filters.objectNamePrefix)
+    val headers = Headers(authHeader)
+
+    for {
+      notifications <- httpClient.expect[NotificationResponse](Request[F](
+        method = Method.GET,
+        uri = notificationUri,
+        headers = headers
+      ))
+      // POST request will create multiple notifications for same bucket and topic with different ID; Hence we check if
+      // a notification for the given bucket and topic already exists. If yes, we do nothing; if no, we create it
       _ <- if(notifications.items.exists(nel => nel.toList.exists(x => x.topic === topic)))
-          Sync[F].pure(())
-        else httpClient.expectOr[Notification](Request[F](
-          method = Method.POST,
-          uri = notificationUri,
-          headers = headers
-        ).withEntity(notificationBody))(onError(traceId))
-      } yield ()
+        Sync[F].pure(())
+      else httpClient.expectOr[Notification](Request[F](
+        method = Method.POST,
+        uri = notificationUri,
+        headers = headers
+      ).withEntity(notificationBody))(onError(traceId))
+    } yield ()
+  }
+
+  def getStorageServer(project: GoogleProject, traceId: Option[TraceId]): F[Identity] = {
+    val uri = config.googleUrl.withPath(s"v1/projects/${project.value}/serviceAccount")
+    val headers = Headers(Authorization(Credentials.Token(AuthScheme.Bearer, googleCredentials.refreshAccessToken().getTokenValue)))
+
+    httpClient.expectOr[Identity](Request[F](
+      method = Method.GET,
+      uri = uri,
+      headers = Headers(authHeader)
+    ))(onError(traceId))
   }
 
   private def onError(traceId: Option[TraceId]): Response[F] => F[Throwable] = resp => {
@@ -80,13 +94,15 @@ object GoogleStorageNotificationCreatorInterpreter {
 
   implicit val statusEncoder: Encoder[Status] = Encoder.encodeInt.contramap(_.code)
 
-  implicit def entityBodyEncoder[F[_]]: Encoder[LoggableErrorResponse] = Encoder.forProduct3(
+  implicit def entityBodyEncoder: Encoder[LoggableErrorResponse] = Encoder.forProduct3(
     "traceId",
     "status",
     "error"
   ){ x =>
     (x.traceId, x.status, x.body)
   }
+
+  implicit def identityDeocder: Decoder[Identity] = Decoder.decodeString.map(s => Identity.serviceAccount(s))
 
   implicit val eqProjectTopicName: Eq[ProjectTopicName] = Eq.instance((t1, t2) => t1.getProject == t2.getProject && t1.getTopic == t2.getTopic)
 
