@@ -69,8 +69,8 @@ trait GoogleStorageService[F[_]] {
 }
 
 object GoogleStorageService {
-  def resource[F[_]: ContextShift: Timer: Async: Logger](pathToCredentialJson: String, blockingEc: ExecutionContext, retryConfig: RetryConfig = defaultRetryConfig): Resource[F, GoogleStorageService[F]] = for {
-    db <- GoogleStorageInterpreter.storage[F](pathToCredentialJson)
+  def resource[F[_]: ContextShift: Timer: Async: Logger](pathToCredentialJson: String, blockingEc: ExecutionContext, project: Option[GoogleProject] = None, retryConfig: RetryConfig = defaultRetryConfig): Resource[F, GoogleStorageService[F]] = for {
+    db <- GoogleStorageInterpreter.storage[F](pathToCredentialJson, blockingEc, project)
   } yield GoogleStorageInterpreter[F](db, blockingEc, retryConfig)
 }
 

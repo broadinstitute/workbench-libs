@@ -7,20 +7,23 @@ import cats.implicits._
 import com.google.api.services.storage.StorageScopes
 import com.google.auth.oauth2.{GoogleCredentials, ServiceAccountCredentials}
 import com.google.pubsub.v1.ProjectTopicName
+import io.chrisdavenport.log4cats.Logger
+import io.circe.syntax._
 import io.circe.{Decoder, Encoder}
 import org.broadinstitute.dsde.workbench.google2.GoogleStorageNotificationCreatorInterpreter._
+import org.broadinstitute.dsde.workbench.google2.JsonCodec._
+import org.broadinstitute.dsde.workbench.model.TraceId
 import org.broadinstitute.dsde.workbench.model.google.GcsBucketName
 import org.http4s.circe.CirceEntityDecoder._
 import org.http4s.circe.CirceEntityEncoder._
 import org.http4s.client.Client
 import org.http4s.client.dsl.Http4sClientDsl
 import org.http4s.headers.Authorization
-import org.http4s.{AuthScheme, Credentials, Headers, Method, Request, Uri}
-import JsonCodec._
+import org.http4s.{AuthScheme, Credentials, Headers, Method, Request, Response, Status, Uri}
 
 // Google api doc https://cloud.google.com/storage/docs/json_api/v1/notifications
-class GoogleStorageNotificationCreatorInterpreter[F[_]: Sync](httpClient: Client[F], config: NotificationCreaterConfig) extends GoogleStorageNotificationCreater[F] with Http4sClientDsl[F] {
-  def createNotification(topic: ProjectTopicName, bucketName: GcsBucketName, filters: Filters): F[Unit] = credentialResourceWithScope(config.pathToCredentialJson).use {
+class GoogleStorageNotificationCreatorInterpreter[F[_]: Sync: Logger](httpClient: Client[F], config: NotificationCreaterConfig) extends GoogleStorageNotificationCreater[F] with Http4sClientDsl[F] {
+  def createNotification(topic: ProjectTopicName, bucketName: GcsBucketName, filters: Filters, traceId: Option[TraceId]): F[Unit] = credentialResourceWithScope(config.pathToCredentialJson).use {
     serviceAccountCredentials =>
       val notificationUri = config.googleUrl.withPath(s"/storage/v1/b/${bucketName.value}/notificationConfigs")
       val notificationBody = NotificationRequest(topic, "JSON_API_V1", filters.eventTypes, filters.objectNamePrefix)
@@ -35,12 +38,20 @@ class GoogleStorageNotificationCreatorInterpreter[F[_]: Sync](httpClient: Client
         // a notification for the given bucket and topic already exists. If yes, we do nothing; if no, we create it
       _ <- if(notifications.items.exists(nel => nel.toList.exists(x => x.topic === topic)))
           Sync[F].pure(())
-        else httpClient.expect[Notification](Request[F](
+        else httpClient.expectOr[Notification](Request[F](
           method = Method.POST,
           uri = notificationUri,
           headers = headers
-        ).withEntity(notificationBody))
+        ).withEntity(notificationBody))(onError(traceId))
       } yield ()
+  }
+
+  private def onError(traceId: Option[TraceId]): Response[F] => F[Throwable] = resp => {
+    for {
+      body <- (resp.body through fs2.text.utf8Decode).compile.foldMonoid
+      errorResponse = LoggableErrorResponse(traceId, resp.status, body)
+      _ <- Logger[F].warn(errorResponse.asJson.noSpaces)
+    } yield new RuntimeException(errorResponse.asJson.noSpaces)
   }
 }
 
@@ -66,6 +77,16 @@ object GoogleStorageNotificationCreatorInterpreter {
   implicit val notificationResponseDecoder: Decoder[NotificationResponse] = Decoder.forProduct1(
     "items"
   )(NotificationResponse.apply)
+
+  implicit val statusEncoder: Encoder[Status] = Encoder.encodeInt.contramap(_.code)
+
+  implicit def entityBodyEncoder[F[_]]: Encoder[LoggableErrorResponse] = Encoder.forProduct3(
+    "traceId",
+    "status",
+    "error"
+  ){ x =>
+    (x.traceId, x.status, x.body)
+  }
 
   implicit val eqProjectTopicName: Eq[ProjectTopicName] = Eq.instance((t1, t2) => t1.getProject == t2.getProject && t1.getTopic == t2.getTopic)
 
@@ -98,3 +119,4 @@ private[google2] final case class NotificationRequest(topic: ProjectTopicName, p
 private[google2] final case class NotificationResponse(items: Option[NonEmptyList[Notification]])
 final case class Notification(topic: ProjectTopicName)
 final case class NotificationCreaterConfig(pathToCredentialJson: String, googleUrl: Uri)
+final case class LoggableErrorResponse(traceId: Option[TraceId], status: Status, body: String)
