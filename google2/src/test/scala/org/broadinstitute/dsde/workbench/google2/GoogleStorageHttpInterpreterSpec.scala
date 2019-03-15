@@ -2,7 +2,7 @@ package org.broadinstitute.dsde.workbench.google2
 
 import io.circe.parser._
 import org.broadinstitute.dsde.workbench.google2.Generators._
-import org.broadinstitute.dsde.workbench.google2.GoogleStorageNotificationCreatorInterpreter._
+import org.broadinstitute.dsde.workbench.google2.GoogleServiceHttpInterpreter._
 import org.broadinstitute.dsde.workbench.util.{PropertyBasedTesting, WorkbenchTest}
 import org.scalatest.{FlatSpec, Matchers}
 import io.circe.syntax._
