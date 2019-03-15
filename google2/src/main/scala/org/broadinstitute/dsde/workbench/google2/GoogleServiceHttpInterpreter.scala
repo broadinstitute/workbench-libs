@@ -11,7 +11,7 @@ import com.google.pubsub.v1.ProjectTopicName
 import io.chrisdavenport.log4cats.Logger
 import io.circe.syntax._
 import io.circe.{Decoder, Encoder}
-import org.broadinstitute.dsde.workbench.google2.GoogleStorageNotificationCreatorInterpreter._
+import org.broadinstitute.dsde.workbench.google2.GoogleServiceHttpInterpreter._
 import org.broadinstitute.dsde.workbench.google2.JsonCodec._
 import org.broadinstitute.dsde.workbench.model.TraceId
 import org.broadinstitute.dsde.workbench.model.google.{GcsBucketName, GoogleProject}
@@ -22,10 +22,10 @@ import org.http4s.client.dsl.Http4sClientDsl
 import org.http4s.headers.Authorization
 import org.http4s.{AuthScheme, Credentials, Headers, Method, Request, Response, Status, Uri}
 
-// Google api doc https://cloud.google.com/storage/docs/json_api/v1/notifications
-class GoogleStorageNotificationCreatorInterpreter[F[_]: Sync: Logger](httpClient: Client[F], config: NotificationCreaterConfig, googleCredentials: GoogleCredentials) extends GoogleStorageNotificationCreater[F] with Http4sClientDsl[F] {
+class GoogleServiceHttpInterpreter[F[_]: Sync: Logger](httpClient: Client[F], config: NotificationCreaterConfig, googleCredentials: GoogleCredentials) extends GoogleServiceHttp[F] with Http4sClientDsl[F] {
   val authHeader = Authorization(Credentials.Token(AuthScheme.Bearer, googleCredentials.refreshAccessToken().getTokenValue))
 
+  // Google api doc https://cloud.google.com/storage/docs/json_api/v1/notifications
   def createNotification(topic: ProjectTopicName, bucketName: GcsBucketName, filters: Filters, traceId: Option[TraceId]): F[Unit] = {
     val notificationUri = config.googleUrl.withPath(s"/storage/v1/b/${bucketName.value}/notificationConfigs")
     val notificationBody = NotificationRequest(topic, "JSON_API_V1", filters.eventTypes, filters.objectNamePrefix)
@@ -49,15 +49,16 @@ class GoogleStorageNotificationCreatorInterpreter[F[_]: Sync: Logger](httpClient
     } yield ()
   }
 
-  def getStorageServer(project: GoogleProject, traceId: Option[TraceId]): F[Identity] = {
-    val uri = config.googleUrl.withPath(s"v1/projects/${project.value}/serviceAccount")
+  // https://cloud.google.com/storage/docs/getting-service-account
+  def getProjectServiceAccount(project: GoogleProject, traceId: Option[TraceId]): F[Identity] = {
+    val uri = config.googleUrl.withPath(s"/storage/v1/projects/${project.value}/serviceAccount")
     val headers = Headers(Authorization(Credentials.Token(AuthScheme.Bearer, googleCredentials.refreshAccessToken().getTokenValue)))
 
-    httpClient.expectOr[Identity](Request[F](
+    httpClient.expectOr[GetProjectServiceAccountResponse](Request[F](
       method = Method.GET,
       uri = uri,
       headers = Headers(authHeader)
-    ))(onError(traceId))
+    ))(onError(traceId)).map(_.serviceAccount)
   }
 
   private def onError(traceId: Option[TraceId]): Response[F] => F[Throwable] = resp => {
@@ -69,7 +70,7 @@ class GoogleStorageNotificationCreatorInterpreter[F[_]: Sync: Logger](httpClient
   }
 }
 
-object GoogleStorageNotificationCreatorInterpreter {
+object GoogleServiceHttpInterpreter {
   implicit val notificationEventTypesEncoder: Encoder[NotificationEventTypes] = Encoder.encodeString.contramap(eventType => eventType.asString)
 
   implicit val notificationRequestEncoder: Encoder[NotificationRequest] = Encoder.forProduct4(
@@ -104,6 +105,10 @@ object GoogleStorageNotificationCreatorInterpreter {
 
   implicit def identityDeocder: Decoder[Identity] = Decoder.decodeString.map(s => Identity.serviceAccount(s))
 
+  implicit def getProjectServiceAccountResponse: Decoder[GetProjectServiceAccountResponse] = Decoder.forProduct1(
+    "email_address"
+  )(GetProjectServiceAccountResponse)
+
   implicit val eqProjectTopicName: Eq[ProjectTopicName] = Eq.instance((t1, t2) => t1.getProject == t2.getProject && t1.getTopic == t2.getTopic)
 
   def credentialResourceWithScope[F[_]: Sync](pathToCredential: String): Resource[F, GoogleCredentials] = for {
@@ -136,3 +141,4 @@ private[google2] final case class NotificationResponse(items: Option[NonEmptyLis
 final case class Notification(topic: ProjectTopicName)
 final case class NotificationCreaterConfig(pathToCredentialJson: String, googleUrl: Uri)
 final case class LoggableErrorResponse(traceId: Option[TraceId], status: Status, body: String)
+final case class GetProjectServiceAccountResponse(serviceAccount: Identity)
