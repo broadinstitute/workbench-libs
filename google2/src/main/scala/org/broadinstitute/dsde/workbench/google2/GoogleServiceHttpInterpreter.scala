@@ -38,7 +38,7 @@ class GoogleServiceHttpInterpreter[F[_]: Sync: Logger](httpClient: Client[F], co
         headers = headers
       ))
       // POST request will create multiple notifications for same bucket and topic with different ID; Hence we check if
-      // a notification for the given bucket and topic already exists. If yes, we do nothing; if no, we create it
+      // a notification for the given bucket and topic already exists. If yes, we do nothing; else, we create it
       _ <- if(notifications.items.exists(nel => nel.toList.exists(x => x.topic === topic)))
         Sync[F].pure(())
       else httpClient.expectOr[Notification](Request[F](

@@ -5,12 +5,14 @@ import java.nio.file.Paths
 import java.time.Instant
 
 import cats.effect._
+import cats.data.{Kleisli, NonEmptyList}
 import cats.implicits._
 import com.google.auth.oauth2.ServiceAccountCredentials
 import com.google.cloud.Identity
 import com.google.cloud.storage.BucketInfo.LifecycleRule
 import com.google.cloud.storage.Storage.{BlobListOption, BucketTargetOption}
 import com.google.cloud.storage.{Acl, Blob, BlobId, BlobInfo, BucketInfo, Storage, StorageException, StorageOptions}
+import com.google.cloud.Role
 import fs2.{Stream, text}
 import io.chrisdavenport.log4cats.Logger
 import io.circe.Decoder
@@ -104,8 +106,10 @@ private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer: Async
     ).compile.drain
   }
 
-  def createBucketWithAdminRole(googleProject: GoogleProject, bucketName: GcsBucketName, adminIdentity: Identity, traceId: Option[TraceId] = None): Stream[F, Unit] = {
-    val bucketInfo = BucketInfo.of(bucketName.value)
+  def createBucketWithRoles(googleProject: GoogleProject, bucketName: GcsBucketName, roles: Map[StorageRole, NonEmptyList[Identity]], traceId: Option[TraceId] = None): Stream[F, Unit] = {
+    def retry[A]: (F[A], String) => Kleisli[Stream[F, ?], Option[TraceId], A] = (fa, str) => Kleisli(traceId => retryGoogleF(retryConfig)(fa, traceId, str))
+
+      val bucketInfo = BucketInfo.of(bucketName.value)
       .toBuilder
       .build()
 
@@ -114,24 +118,24 @@ private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer: Async
         Logger[F].info(s"$bucketName already exists")
     }
 
-    for {
-      _ <- retryStorageF(
+    val result = for {
+      _ <- retry(
         createBucket,
-        traceId,
         s"com.google.cloud.storage.Storage.create($bucketInfo, ${googleProject})"
       )
-      policy <- retryStorageF(
+      policy <- retry(
         blockingF(Async[F].delay(db.getIamPolicy(bucketName.value))),
-        traceId,
         s"com.google.cloud.storage.Storage.getIamPolicy(${bucketName})"
       )
-      updatedPolicy = policy.toBuilder().addIdentity(com.google.cloud.Role.of("roles/storage.admin"), adminIdentity).build()
-      _ <- retryStorageF(
+      policyBuilder = policy.toBuilder()
+      updatedPolicy = roles.foldLeft(policyBuilder)((curBuilder, item) => curBuilder.addIdentity(Role.of(item._1.name), item._2.head, item._2.tail: _*)).build()
+      _ <- retry(
         blockingF(Async[F].delay(db.setIamPolicy(bucketName.value, updatedPolicy))),
-        traceId,
         s"com.google.cloud.storage.Storage.setIamPolicy(${bucketName}, $updatedPolicy)"
       )
     } yield ()
+
+    result.run(traceId)
   }
 
 

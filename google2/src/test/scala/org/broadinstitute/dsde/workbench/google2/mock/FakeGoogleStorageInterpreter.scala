@@ -6,6 +6,7 @@ import cats.effect.IO
 import com.google.cloud.storage.{Acl, BucketInfo}
 import org.broadinstitute.dsde.workbench.model.google.{GcsBucketName, GcsObjectName, GoogleProject}
 import GoogleStorageInterpreterSpec._
+import cats.data.NonEmptyList
 import com.google.cloud.Identity
 import fs2.Stream
 import org.broadinstitute.dsde.workbench.model.TraceId
@@ -25,5 +26,5 @@ object FakeGoogleStorageInterpreter extends GoogleStorageService[IO] {
 
   override def createBucket(billingProject: GoogleProject, bucketName: GcsBucketName, acl: List[Acl], traceId: Option[TraceId] = None): IO[Unit] = IO.unit //this is fine for now since we don't have a getBucket method yet
 
-  override def createBucketWithAdminRole(googleProject: GoogleProject, bucketName: GcsBucketName, adminIdentity: Identity, traceId: Option[TraceId] = None): Stream[IO, Unit] = Stream.empty
+  override def createBucketWithRoles(googleProject: GoogleProject, bucketName: GcsBucketName, roles: Map[StorageRole, NonEmptyList[Identity]], traceId: Option[TraceId] = None): Stream[IO, Unit] = Stream.empty
 }

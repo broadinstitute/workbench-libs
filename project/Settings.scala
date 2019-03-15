@@ -14,7 +14,8 @@ object Settings {
 
   val commonResolvers = List(
     "artifactory-releases" at artifactory + "libs-release",
-    "artifactory-snapshots" at artifactory + "libs-snapshot"
+    "artifactory-snapshots" at artifactory + "libs-snapshot",
+    Resolver.sonatypeRepo("releases")
   )
 
   //coreDefaultSettings + defaultConfigs = the now deprecated defaultSettings
@@ -22,7 +23,8 @@ object Settings {
     javaOptions += "-Xmx2G",
     javacOptions ++= Seq("-source", "1.8", "-target", "1.8"),
     scalacOptions in (Compile, console) --= Seq("-Ywarn-unused:imports", "-Xfatal-warnings"),
-    scalacOptions in Test -= "-Ywarn-dead-code" // due to https://github.com/mockito/mockito-scala#notes
+    scalacOptions in Test -= "-Ywarn-dead-code", // due to https://github.com/mockito/mockito-scala#notes
+    addCompilerPlugin("org.spire-math" %% "kind-projector" % "0.9.9")
   )
 
   lazy val commonCompilerSettings = scalacOptions ++= (CrossVersion.partialVersion(scalaVersion.value) match {

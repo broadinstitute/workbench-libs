@@ -12,17 +12,13 @@ import org.http4s.client.middleware.{Retry, RetryPolicy, Logger => Http4sLogger}
 
 import scala.concurrent.duration._
 
-// This class provides functions only exposed
+// This class provides functions only exposed via rest APIs
 trait GoogleServiceHttp[F[_]] {
   def createNotification(topic: ProjectTopicName, bucketName: GcsBucketName, filters: Filters, traceId: Option[TraceId]): F[Unit]
   def getProjectServiceAccount(project: GoogleProject, traceId: Option[TraceId]): F[Identity]
 }
 
 object GoogleServiceHttp {
-  /**
-    * This constructor makes assumption that caller wants to enable retry and logging for all http calls.
-    * Use `withoutRetryAndLogging` if that's not what you want
-    */
   def withRetryAndLogging[F[_]: Concurrent: Timer: Logger](httpClient: Client[F], config: NotificationCreaterConfig): Resource[F, GoogleServiceHttp[F]] = {
     val retryPolicy = RetryPolicy[F](RetryPolicy.exponentialBackoff(30 seconds, 5))
     val clientWithRetry = Retry(retryPolicy)(httpClient)
