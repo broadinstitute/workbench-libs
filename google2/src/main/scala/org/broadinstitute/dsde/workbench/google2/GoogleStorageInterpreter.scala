@@ -5,7 +5,7 @@ import java.nio.file.Paths
 import java.time.Instant
 
 import cats.effect._
-import cats.data.{Kleisli, NonEmptyList}
+import cats.data.NonEmptyList
 import cats.implicits._
 import com.google.auth.oauth2.ServiceAccountCredentials
 import com.google.cloud.Identity
@@ -29,6 +29,7 @@ private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer: Async
                                       retryConfig: RetryConfig
                                      )extends GoogleStorageService[F] {
   private def retryStorageF[A]: (F[A], Option[TraceId], String) => Stream[F, A] = retryGoogleF(retryConfig)
+  private def retryStorageKleisli[A] = retryGoogleKleisli[F, A](retryConfig)
 
   override def listObjectsWithPrefix(bucketName: GcsBucketName, objectNamePrefix: String, maxPageSize: Long = 1000, traceId: Option[TraceId] = None): Stream[F, GcsObjectName] = {
     for {
@@ -87,12 +88,16 @@ private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer: Async
     } yield RemoveObjectResult(deleted)
   }
 
-  override def createBucket(billingProject: GoogleProject, bucketName: GcsBucketName, acl: List[Acl], traceId: Option[TraceId] = None): F[Unit] = {
-    val bucketInfo = BucketInfo.of(bucketName.value)
-      .toBuilder
-      .setAcl(acl.asJava)
-      .setDefaultAcl(acl.asJava)
-      .build()
+  override def createBucket(billingProject: GoogleProject, bucketName: GcsBucketName, acl: Option[NonEmptyList[Acl]] = None, traceId: Option[TraceId] = None): Stream[F, Unit] = {
+    val bucketInfoBuilder = BucketInfo.of(bucketName.value).toBuilder
+    val bucketInfo = acl.map{
+      aclList =>
+        val acls = aclList.toList.asJava
+        bucketInfoBuilder
+          .setAcl(acls)
+          .setDefaultAcl(acls)
+          .build()
+    }.getOrElse(bucketInfoBuilder.build())
 
     val createBucket = blockingF(Async[F].delay(db.create(bucketInfo, BucketTargetOption.userProject(billingProject.value)))).void.handleErrorWith {
       case e: com.google.cloud.storage.StorageException if(e.getCode == 409) =>
@@ -103,33 +108,18 @@ private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer: Async
       createBucket,
       traceId,
       s"com.google.cloud.storage.Storage.create($bucketInfo, ${billingProject})"
-    ).compile.drain
+    )
   }
 
-  def createBucketWithRoles(googleProject: GoogleProject, bucketName: GcsBucketName, roles: Map[StorageRole, NonEmptyList[Identity]], traceId: Option[TraceId] = None): Stream[F, Unit] = {
-    def retry[A]: (F[A], String) => Kleisli[Stream[F, ?], Option[TraceId], A] = (fa, str) => Kleisli(traceId => retryGoogleF(retryConfig)(fa, traceId, str))
-
-      val bucketInfo = BucketInfo.of(bucketName.value)
-      .toBuilder
-      .build()
-
-    val createBucket = blockingF(Async[F].delay(db.create(bucketInfo, BucketTargetOption.userProject(googleProject.value)))).void.handleErrorWith {
-      case e: com.google.cloud.storage.StorageException if(e.getCode == 409) =>
-        Logger[F].info(s"$bucketName already exists")
-    }
-
+  override def setIamPolicy(bucketName: GcsBucketName, roles: Map[StorageRole, NonEmptyList[Identity]], traceId: Option[TraceId] = None): Stream[F, Unit] = {
     val result = for {
-      _ <- retry(
-        createBucket,
-        s"com.google.cloud.storage.Storage.create($bucketInfo, ${googleProject})"
-      )
-      policy <- retry(
+      policy <- retryStorageKleisli(
         blockingF(Async[F].delay(db.getIamPolicy(bucketName.value))),
         s"com.google.cloud.storage.Storage.getIamPolicy(${bucketName})"
       )
       policyBuilder = policy.toBuilder()
-      updatedPolicy = roles.foldLeft(policyBuilder)((curBuilder, item) => curBuilder.addIdentity(Role.of(item._1.name), item._2.head, item._2.tail: _*)).build()
-      _ <- retry(
+      updatedPolicy = roles.foldLeft(policyBuilder)((currentBuilder, item) => currentBuilder.addIdentity(Role.of(item._1.name), item._2.head, item._2.tail: _*)).build()
+      _ <- retryStorageKleisli(
         blockingF(Async[F].delay(db.setIamPolicy(bucketName.value, updatedPolicy))),
         s"com.google.cloud.storage.Storage.setIamPolicy(${bucketName}, $updatedPolicy)"
       )
@@ -137,7 +127,6 @@ private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer: Async
 
     result.run(traceId)
   }
-
 
   override def setBucketLifecycle(bucketName: GcsBucketName, lifecycleRules: List[LifecycleRule], traceId: Option[TraceId] = None): Stream[F, Unit] = {
     val bucketInfo = BucketInfo.of(bucketName.value)
