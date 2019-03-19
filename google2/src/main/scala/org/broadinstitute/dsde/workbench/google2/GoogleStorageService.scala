@@ -60,14 +60,14 @@ trait GoogleStorageService[F[_]] {
 
   /**
     * @param traceId uuid for tracing a unique call flow in logging
-    * Acl is deprecated. Use createBucketWithAdminRole if preferred
+    * Acl is deprecated. Use setIamPolicy if possible
     */
-  def createBucket(billingProject: GoogleProject, bucketName: GcsBucketName, acl: List[Acl], traceId: Option[TraceId] = None): F[Unit]
+  def createBucket(googleProject: GoogleProject, bucketName: GcsBucketName, acl: Option[NonEmptyList[Acl]] = None, traceId: Option[TraceId] = None): Stream[F, Unit]
 
   /**
     * @param traceId uuid for tracing a unique call flow in logging
     */
-  def createBucketWithRoles(googleProject: GoogleProject, bucketName: GcsBucketName, roles: Map[StorageRole, NonEmptyList[Identity]], traceId: Option[TraceId] = None): Stream[F, Unit]
+  def setIamPolicy(bucketName: GcsBucketName, roles: Map[StorageRole, NonEmptyList[Identity]], traceId: Option[TraceId] = None): Stream[F, Unit]
 }
 
 object GoogleStorageService {
