@@ -112,20 +112,18 @@ private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer: Async
   }
 
   override def setIamPolicy(bucketName: GcsBucketName, roles: Map[StorageRole, NonEmptyList[Identity]], traceId: Option[TraceId] = None): Stream[F, Unit] = {
-    val result = for {
-      policy <- retryStorageKleisli(
-        blockingF(Async[F].delay(db.getIamPolicy(bucketName.value))),
-        s"com.google.cloud.storage.Storage.getIamPolicy(${bucketName})"
-      )
+    val getAndSetIamPolicy = for {
+      policy <- blockingF(Async[F].delay(db.getIamPolicy(bucketName.value)))
       policyBuilder = policy.toBuilder()
       updatedPolicy = roles.foldLeft(policyBuilder)((currentBuilder, item) => currentBuilder.addIdentity(Role.of(item._1.name), item._2.head, item._2.tail: _*)).build()
-      _ <- retryStorageKleisli(
-        blockingF(Async[F].delay(db.setIamPolicy(bucketName.value, updatedPolicy))),
-        s"com.google.cloud.storage.Storage.setIamPolicy(${bucketName}, $updatedPolicy)"
-      )
+      _ <- blockingF(Async[F].delay(db.setIamPolicy(bucketName.value, updatedPolicy)))
     } yield ()
 
-    result.run(traceId)
+    retryStorageF(
+      getAndSetIamPolicy,
+      traceId,
+      s"com.google.cloud.storage.Storage.getIamPolicy(${bucketName}), com.google.cloud.storage.Storage.setIamPolicy(${bucketName}, ???)"
+    )
   }
 
   override def setBucketLifecycle(bucketName: GcsBucketName, lifecycleRules: List[LifecycleRule], traceId: Option[TraceId] = None): Stream[F, Unit] = {
