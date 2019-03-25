@@ -49,8 +49,6 @@ package object google2 {
     Stream.retry[F, A](faWithLogging, retryConfig.retryInitialDelay, retryConfig.retryNextDelay, retryConfig.maxAttempts, retryConfig.retryable)
   }
 
-  def retryGoogleKleisli[F[_]: Sync: Timer: RaiseThrowable: Logger, A](retryConfig: RetryConfig): (F[A], String) => Kleisli[Stream[F, ?], Option[TraceId], A] = (fa, str) => Kleisli(traceId => retryGoogleF(retryConfig)(fa, traceId, str))
-
   def callBack[A](cb: Either[Throwable, A] => Unit): ApiFutureCallback[A] =
     new ApiFutureCallback[A] {
       @Override def onFailure(t: Throwable): Unit = cb(Left(t))
