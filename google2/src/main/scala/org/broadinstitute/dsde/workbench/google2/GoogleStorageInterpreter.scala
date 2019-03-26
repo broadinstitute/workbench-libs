@@ -29,7 +29,6 @@ private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer: Async
                                       retryConfig: RetryConfig
                                      )extends GoogleStorageService[F] {
   private def retryStorageF[A]: (F[A], Option[TraceId], String) => Stream[F, A] = retryGoogleF(retryConfig)
-  private def retryStorageKleisli[A] = retryGoogleKleisli[F, A](retryConfig)
 
   override def listObjectsWithPrefix(bucketName: GcsBucketName, objectNamePrefix: String, maxPageSize: Long = 1000, traceId: Option[TraceId] = None): Stream[F, GcsObjectName] = {
     for {

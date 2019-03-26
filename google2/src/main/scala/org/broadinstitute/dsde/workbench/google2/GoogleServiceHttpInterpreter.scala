@@ -52,8 +52,6 @@ class GoogleServiceHttpInterpreter[F[_]: Sync: Logger](httpClient: Client[F], co
   // https://cloud.google.com/storage/docs/getting-service-account
   def getProjectServiceAccount(project: GoogleProject, traceId: Option[TraceId]): F[Identity] = {
     val uri = config.googleUrl.withPath(s"/storage/v1/projects/${project.value}/serviceAccount")
-    val headers = Headers(Authorization(Credentials.Token(AuthScheme.Bearer, googleCredentials.refreshAccessToken().getTokenValue)))
-
     httpClient.expectOr[GetProjectServiceAccountResponse](Request[F](
       method = Method.GET,
       uri = uri,

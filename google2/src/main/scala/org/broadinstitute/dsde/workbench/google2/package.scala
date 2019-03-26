@@ -3,7 +3,6 @@ package org.broadinstitute.dsde.workbench
 import java.util.concurrent.TimeUnit
 
 import cats.implicits._
-import cats.data.Kleisli
 import cats.effect.{Resource, Sync, Timer}
 import com.google.api.core.ApiFutureCallback
 import com.google.auth.oauth2.ServiceAccountCredentials
