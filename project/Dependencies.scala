@@ -23,6 +23,7 @@ object Dependencies {
   val akkaTestkit: ModuleID =       "com.typesafe.akka" %% "akka-testkit"         % akkaV     % "test"
   val akkaHttpTestkit: ModuleID =   "com.typesafe.akka" %% "akka-http-testkit"    % akkaHttpV % "test"
   val scalaCheck: ModuleID =        "org.scalacheck"      %%  "scalacheck"        % "1.14.0"  % "test"
+  val commonsCodec: ModuleID = "commons-codec" % "commons-codec" % "1.12" % "test"
 
   val jacksonModule: ModuleID =   "com.fasterxml.jackson.module" %% "jackson-module-scala"   % jacksonV % "test"
 
@@ -60,14 +61,18 @@ object Dependencies {
   val circeCore: ModuleID = "io.circe" %% "circe-core" % circeVersion
   val circeParser: ModuleID = "io.circe" %% "circe-parser" % circeVersion
   val circeGeneric: ModuleID = "io.circe" %% "circe-generic" % circeVersion % "test"
-  val log4cats = "io.chrisdavenport" %% "log4cats-slf4j"   % "0.3.0-M2"
+  val circeFs2: ModuleID = "io.circe" %% "circe-fs2" % "0.11.0"
+  val log4cats = "io.chrisdavenport" %% "log4cats-slf4j"   % "0.3.0"
 
   val http4sCirce = "org.http4s" %% "http4s-circe" % http4sVersion
   val http4sBlazeClient = "org.http4s" %% "http4s-blaze-client" % http4sVersion
   val http4sDsl = "org.http4s"      %% "http4s-dsl"          % http4sVersion
 
+  val fs2Io: ModuleID = "co.fs2" %% "fs2-io" % "1.0.4"
+
   val commonDependencies = Seq(
-    scalatest
+    scalatest,
+    scalaCheck
   )
 
   val utilDependencies = commonDependencies ++ Seq(
@@ -77,7 +82,6 @@ object Dependencies {
     catsEffect,
     akkaTestkit,
     mockito,
-    scalaCheck,
     log4cats,
     circeCore,
     circeParser,
@@ -87,7 +91,8 @@ object Dependencies {
   val modelDependencies = commonDependencies ++ Seq(
     scalaLogging,
     akkaHttpSprayJson,
-    googleGuava
+    googleGuava,
+    commonsCodec
   )
 
   val metricsDependencies = commonDependencies ++ Seq(
@@ -119,7 +124,7 @@ object Dependencies {
     googleRpc,
     googleKms,
     akkaHttpSprayJson,
-    akkaTestkit,
+    akkaTestkit
   ).map(excludeGuavaJDK5)
 
   val google2Dependencies = commonDependencies ++ Seq(
@@ -130,7 +135,9 @@ object Dependencies {
     googlePubsubNew,
     http4sCirce,
     http4sBlazeClient,
-    http4sDsl
+    http4sDsl,
+    fs2Io,
+    circeFs2
   )
 
   val serviceTestDependencies = commonDependencies ++ Seq(
