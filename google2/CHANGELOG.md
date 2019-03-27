@@ -2,6 +2,18 @@
 
 This file documents changes to the `workbench-google2` library, including notes on how to upgrade to new versions.
 
+## 0.2
+
+Added
+- Add `GoogleStorageNotificationCreatorInterpreter.getStorageServer`
+- Add `GoogleStorageService.createBucketWithAdminRole`
+
+Changed
+- Updated a few return type in `GoogleStorageService` to Stream[F, A] since it's easier to convert from Stream to F, but a bit detour if we go the other direction at caller
+- Rename `GoogleServiceNotificationCreator` to `GoogleServiceHttp`
+
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.2-TRAVIS-REPLACE-ME"`
+
 ## 0.1
 
 ### Added

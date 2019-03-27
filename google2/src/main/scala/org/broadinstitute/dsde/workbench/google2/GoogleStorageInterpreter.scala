@@ -1,22 +1,28 @@
 package org.broadinstitute.dsde.workbench
 package google2
 
+import java.nio.file.Paths
 import java.time.Instant
 
 import cats.effect._
+import cats.data.NonEmptyList
 import cats.implicits._
 import com.google.auth.oauth2.ServiceAccountCredentials
+import com.google.cloud.Identity
 import com.google.cloud.storage.BucketInfo.LifecycleRule
 import com.google.cloud.storage.Storage.{BlobListOption, BucketTargetOption}
 import com.google.cloud.storage.{Acl, Blob, BlobId, BlobInfo, BucketInfo, Storage, StorageException, StorageOptions}
+import com.google.cloud.Role
 import fs2.{Stream, text}
 import io.chrisdavenport.log4cats.Logger
+import io.circe.Decoder
 import org.broadinstitute.dsde.workbench.model.TraceId
 import org.broadinstitute.dsde.workbench.model.google.{GcsBucketName, GcsObjectName, GoogleProject}
 
 import scala.collection.JavaConverters._
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
+import io.circe.fs2._
 
 private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer: Async: Logger](db: Storage,
                                       blockingEc: ExecutionContext,
@@ -81,26 +87,50 @@ private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer: Async
     } yield RemoveObjectResult(deleted)
   }
 
-  override def createBucket(billingProject: GoogleProject, bucketName: GcsBucketName, acl: List[Acl], traceId: Option[TraceId] = None): F[Unit] = {
-    val bucketInfo = BucketInfo.of(bucketName.value)
-      .toBuilder
-      .setAcl(acl.asJava)
-      .setDefaultAcl(acl.asJava)
-      .build()
+  override def createBucket(billingProject: GoogleProject, bucketName: GcsBucketName, acl: Option[NonEmptyList[Acl]] = None, traceId: Option[TraceId] = None): Stream[F, Unit] = {
+    val bucketInfoBuilder = BucketInfo.of(bucketName.value).toBuilder
+    val bucketInfo = acl.map{
+      aclList =>
+        val acls = aclList.toList.asJava
+        bucketInfoBuilder
+          .setAcl(acls)
+          .setDefaultAcl(acls)
+          .build()
+    }.getOrElse(bucketInfoBuilder.build())
+
+    val createBucket = blockingF(Async[F].delay(db.create(bucketInfo, BucketTargetOption.userProject(billingProject.value)))).void.handleErrorWith {
+      case e: com.google.cloud.storage.StorageException if(e.getCode == 409) =>
+        Logger[F].info(s"$bucketName already exists")
+    }
 
     retryStorageF(
-      blockingF(Async[F].delay(db.create(bucketInfo, BucketTargetOption.userProject(billingProject.value)))),
-      None,
+      createBucket,
+      traceId,
       s"com.google.cloud.storage.Storage.create($bucketInfo, ${billingProject})"
-    ).compile.drain
+    )
   }
 
-  override def setBucketLifecycle(bucketName: GcsBucketName, lifecycleRules: List[LifecycleRule], traceId: Option[TraceId] = None): F[Unit] = {
+  override def setIamPolicy(bucketName: GcsBucketName, roles: Map[StorageRole, NonEmptyList[Identity]], traceId: Option[TraceId] = None): Stream[F, Unit] = {
+    val getAndSetIamPolicy = for {
+      policy <- blockingF(Async[F].delay(db.getIamPolicy(bucketName.value)))
+      policyBuilder = policy.toBuilder()
+      updatedPolicy = roles.foldLeft(policyBuilder)((currentBuilder, item) => currentBuilder.addIdentity(Role.of(item._1.name), item._2.head, item._2.tail: _*)).build()
+      _ <- blockingF(Async[F].delay(db.setIamPolicy(bucketName.value, updatedPolicy)))
+    } yield ()
+
+    retryStorageF(
+      getAndSetIamPolicy,
+      traceId,
+      s"com.google.cloud.storage.Storage.getIamPolicy(${bucketName}), com.google.cloud.storage.Storage.setIamPolicy(${bucketName}, ???)"
+    )
+  }
+
+  override def setBucketLifecycle(bucketName: GcsBucketName, lifecycleRules: List[LifecycleRule], traceId: Option[TraceId] = None): Stream[F, Unit] = {
     val bucketInfo = BucketInfo.of(bucketName.value)
       .toBuilder
       .setLifecycleRules(lifecycleRules.asJava)
       .build()
-    retryStorageF(blockingF(Async[F].delay(db.update(bucketInfo))), traceId, s"com.google.cloud.storage.Storage.update($bucketInfo)").compile.drain
+    retryStorageF(blockingF(Async[F].delay(db.update(bucketInfo))), traceId, s"com.google.cloud.storage.Storage.update($bucketInfo)").void
   }
 
   private def blockingF[A](fa: F[A]): F[A] = ContextShift[F].evalOn(blockingEc)(fa)
@@ -122,19 +152,35 @@ object GoogleStorageInterpreter {
   def apply[F[_]: Timer: Async: ContextShift: Logger](db: Storage, blockingEc: ExecutionContext, retryConfig: RetryConfig): GoogleStorageInterpreter[F] =
     new GoogleStorageInterpreter(db, blockingEc, retryConfig)
 
-  def storage[F[_]](
-      pathToJson: String
-  )(implicit sf: Sync[F]): Resource[F, Storage] =
+  def storage[F[_]: Sync: ContextShift](
+      pathToJson: String,
+      blockingExecutionContext: ExecutionContext,
+      project: Option[GoogleProject] = None // legacy credential file doesn't have `project_id` field. Hence we need to pass in explicitly
+  ): Resource[F, Storage] =
     for {
       credential <- org.broadinstitute.dsde.workbench.util.readFile(pathToJson)
+      project <- project match { //Use explicitly passed in project if it's defined; else use `project_id` in json credential; if neither has project defined, raise error
+        case Some(p) => Resource.pure[F, GoogleProject](p)
+        case None => Resource.liftF(parseProject(pathToJson, blockingExecutionContext).compile.lastOrError)
+      }
       db <- Resource.liftF(
-        sf.delay(
+        Sync[F].delay(
           StorageOptions
             .newBuilder()
             .setCredentials(ServiceAccountCredentials.fromStream(credential))
+            .setProjectId(project.value)
             .build()
             .getService
         )
       )
     } yield db
+
+  implicit val googleProjectDecoder: Decoder[GoogleProject] = Decoder.forProduct1(
+    "project_id"
+  )(GoogleProject.apply)
+
+  def parseProject[F[_]: ContextShift: Sync](pathToJson: String, blockingExecutionContext: ExecutionContext): Stream[F, GoogleProject] =
+     fs2.io.file.readAll[F](Paths.get(pathToJson), blockingExecutionContext, 4096)
+          .through(byteStreamParser)
+          .through(decoder[F, GoogleProject])
 }

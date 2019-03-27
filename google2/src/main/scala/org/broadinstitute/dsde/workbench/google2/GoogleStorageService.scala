@@ -1,6 +1,8 @@
 package org.broadinstitute.dsde.workbench.google2
 
+import cats.data.NonEmptyList
 import cats.effect._
+import com.google.cloud.Identity
 import com.google.cloud.storage.Acl
 import com.google.cloud.storage.BucketInfo.LifecycleRule
 import fs2.Stream
@@ -38,7 +40,7 @@ trait GoogleStorageService[F[_]] {
   /**
     * @param traceId uuid for tracing a unique call flow in logging
     */
-  def setBucketLifecycle(bucketName: GcsBucketName, lifecycleRules: List[LifecycleRule], traceId: Option[TraceId] = None): F[Unit]
+  def setBucketLifecycle(bucketName: GcsBucketName, lifecycleRules: List[LifecycleRule], traceId: Option[TraceId] = None): Stream[F, Unit]
 
   /**
     * not memory safe. Use getObject if you're worried about OOM
@@ -58,22 +60,46 @@ trait GoogleStorageService[F[_]] {
 
   /**
     * @param traceId uuid for tracing a unique call flow in logging
+    * Acl is deprecated. Use setIamPolicy if possible
     */
-  def createBucket(billingProject: GoogleProject, bucketName: GcsBucketName, acl: List[Acl], traceId: Option[TraceId] = None): F[Unit]
+  def createBucket(googleProject: GoogleProject, bucketName: GcsBucketName, acl: Option[NonEmptyList[Acl]] = None, traceId: Option[TraceId] = None): Stream[F, Unit]
+
+  /**
+    * @param traceId uuid for tracing a unique call flow in logging
+    */
+  def setIamPolicy(bucketName: GcsBucketName, roles: Map[StorageRole, NonEmptyList[Identity]], traceId: Option[TraceId] = None): Stream[F, Unit]
 }
 
 object GoogleStorageService {
-  def resource[F[_]: ContextShift: Timer: Async: Logger](pathToCredentialJson: String, blockingEc: ExecutionContext, retryConfig: RetryConfig = defaultRetryConfig): Resource[F, GoogleStorageService[F]] = for {
-    db <- GoogleStorageInterpreter.storage[F](pathToCredentialJson)
+  def resource[F[_]: ContextShift: Timer: Async: Logger](pathToCredentialJson: String, blockingEc: ExecutionContext, project: Option[GoogleProject] = None, retryConfig: RetryConfig = defaultRetryConfig): Resource[F, GoogleStorageService[F]] = for {
+    db <- GoogleStorageInterpreter.storage[F](pathToCredentialJson, blockingEc, project)
   } yield GoogleStorageInterpreter[F](db, blockingEc, retryConfig)
 }
 
 final case class GcsBlobName(value: String) extends AnyVal
 
-sealed trait RemoveObjectResult
+sealed trait RemoveObjectResult extends Product with Serializable
 object RemoveObjectResult {
   def apply(res: Boolean): RemoveObjectResult = if(res) Removed else NotFound
 
   final case object Removed extends RemoveObjectResult
   final case object NotFound extends RemoveObjectResult
+}
+
+sealed abstract class StorageRole extends Product with Serializable {
+  def name: String
+}
+object StorageRole {
+  final case object ObjectCreator extends StorageRole {
+    def name: String = "roles/storage.objectCreator"
+  }
+  final case object ObjectViewer extends StorageRole {
+    def name: String = "roles/storage.objectViewer"
+  }
+  final case object ObjectAdmin extends StorageRole {
+    def name: String = "roles/storage.objectAdmin"
+  }
+  final case object StorageAdmin extends StorageRole {
+    def name: String = "roles/storage.admin"
+  }
 }

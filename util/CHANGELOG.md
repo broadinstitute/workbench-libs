@@ -7,7 +7,7 @@ This file documents changes to the `workbench-util` library, including notes on 
 - upgrade cats-effect
 - add `org.broadinstitute.dsde.workbench.util.PropertyBasedTesting`
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util" % "0.5-09ee655"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util" % "0.5-TRAVIS-REPLACE-ME"`
 
 ### Changed
 - Moved `SamModel`

@@ -47,7 +47,7 @@ class GoogleTopicAdminInterpreter[F[_]: Logger: Sync: Timer](topicAdminClient: T
       policy <- retryHelper[Policy](getPolicy, traceId, s"com.google.cloud.pubsub.v1.TopicAdminClient.getIamPolicy($topicName)")
       binding = Binding.newBuilder()
         .setRole("roles/pubsub.publisher")
-        .addAllMembers(members.map(_.getValue).asJava)
+        .addAllMembers(members.map(_.strValue()).asJava) //strValue has right format binding expects
         .build()
       updatedPolicy = Policy.newBuilder(policy).addBindings(binding).build()
 
