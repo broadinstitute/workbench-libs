@@ -5,6 +5,7 @@ import java.io.File
 import akka.actor.ActorSystem
 import akka.http.scaladsl.model.StatusCodes
 import com.google.api.client.googleapis.auth.oauth2.GoogleClientSecrets
+import com.google.api.client.googleapis.json.GoogleJsonResponseException
 import com.google.api.client.http.HttpResponseException
 import com.google.api.services.admin.directory.model.{Group, Member, Members}
 import com.google.api.services.admin.directory.{Directory, DirectoryScopes}
@@ -127,6 +128,7 @@ class HttpGoogleDirectoryDAO(appName: String,
       ()
     }) {
       case e: HttpResponseException if e.getStatusCode == StatusCodes.NotFound.intValue => () //if the member is already absent, then don't keep trying to delete them
+      case e: GoogleJsonResponseException if e.getStatusCode == StatusCodes.BadRequest.intValue && e.getDetails.getMessage.equals("Missing required field: memberKey") => () //this means the member does not exist
     }
   }
 
@@ -146,6 +148,7 @@ class HttpGoogleDirectoryDAO(appName: String,
       true
     }) {
       case e: HttpResponseException if e.getStatusCode == StatusCodes.NotFound.intValue => false
+      case e: GoogleJsonResponseException if e.getStatusCode == StatusCodes.BadRequest.intValue && e.getDetails.getMessage.equals("Missing required field: memberKey") => false //this means the member does not exist
     }
   }
 

@@ -4,7 +4,7 @@ This file documents changes to the `workbench-google` library, including notes o
 
 ## 0.18
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util" % "0.18-4c7acd5"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util" % "0.18-TRAVIS-REPLACE-ME"`
 
 ### Changed
 - Moved `SamModel`
@@ -12,6 +12,7 @@ SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util" % "0.18
 - when getting service account treat 403 from google when error message is "Unable to extract resource containers." as service account does not exist see https://console.cloud.google.com/support/cases/detail/17978989?project=broad-dsde-prod
 - Add `GoogleKms` service and interpreter
 - Add `enableService` function to `GoogleProjectDAO`
+- removing member from google group handles 400 error when user does not exist
 
 ## 0.17
 - upgrade cats to 1.4.0 and scala to 2.12.7
