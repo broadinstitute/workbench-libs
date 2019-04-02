@@ -127,15 +127,7 @@ class HttpGoogleDirectoryDAO(appName: String,
       ()
     }) {
       case e: HttpResponseException if e.getStatusCode == StatusCodes.NotFound.intValue => () //if the member is already absent, then don't keep trying to delete them
-    }.recoverWith {
-      case e: HttpResponseException if e.getStatusCode == StatusCodes.BadRequest.intValue => {
-        // removing a user that does not exist sometimes returns a 400 error, in that case check google to see
-        // if the user exists in the group and if it does not, ignore the error, if so, throw it
-        isGroupMember(groupEmail, memberEmail).flatMap {
-          case true => Future.failed(e)
-          case false => Future.unit
-        }
-      }
+      case e: HttpResponseException if e.getStatusCode == StatusCodes.BadRequest.intValue && e.getStatusMessage.equals("Missing required field: memberKey") => () //this means the member does not exist
     }
   }
 
@@ -155,6 +147,7 @@ class HttpGoogleDirectoryDAO(appName: String,
       true
     }) {
       case e: HttpResponseException if e.getStatusCode == StatusCodes.NotFound.intValue => false
+      case e: HttpResponseException if e.getStatusCode == StatusCodes.BadRequest.intValue && e.getStatusMessage.equals("Missing required field: memberKey") => false //this means the member does not exist
     }
   }
 
