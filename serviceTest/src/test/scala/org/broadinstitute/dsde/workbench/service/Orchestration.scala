@@ -8,8 +8,8 @@ import org.broadinstitute.dsde.workbench.auth.AuthToken
 import org.broadinstitute.dsde.workbench.config.ServiceTestConfig
 import org.broadinstitute.dsde.workbench.fixture.MethodData.SimpleMethod
 import org.broadinstitute.dsde.workbench.fixture.{DockstoreMethod, Method}
-import org.broadinstitute.dsde.workbench.service.BillingProject.{Role, Status}
-import org.broadinstitute.dsde.workbench.service.BillingProject.Role._
+import org.broadinstitute.dsde.workbench.service.BillingProject.{BillingProjectRole, BillingProjectStatus}
+import org.broadinstitute.dsde.workbench.service.BillingProject.BillingProjectRole._
 import org.broadinstitute.dsde.workbench.service.OrchestrationModel._
 import org.broadinstitute.dsde.workbench.service.Sam.user.UserStatusDetails
 import org.broadinstitute.dsde.workbench.service.WorkspaceAccessLevel.WorkspaceAccessLevel
@@ -32,14 +32,14 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
 
   object billing {
 
-    def addUserToBillingProject(projectName: String, email: String, role: Role)(implicit token: AuthToken): Unit = {
-      logger.info(s"Adding user to billing project: $projectName $email ${role.toString}")
-      putRequest(apiUrl(s"api/billing/$projectName/${role.toString}/$email"))
+    def addUserToBillingProject(projectName: String, email: String, billingProjectRole: BillingProjectRole)(implicit token: AuthToken): Unit = {
+      logger.info(s"Adding user to billing project: $projectName $email ${billingProjectRole.toString}")
+      putRequest(apiUrl(s"api/billing/$projectName/${billingProjectRole.toString}/$email"))
     }
 
-    def removeUserFromBillingProject(projectName: String, email: String, role: Role)(implicit token: AuthToken): Unit = {
-      logger.info(s"Removing user from billing project: $projectName $email ${role.toString}")
-      deleteRequest(apiUrl(s"api/billing/$projectName/${role.toString}/$email"))
+    def removeUserFromBillingProject(projectName: String, email: String, billingProjectRole: BillingProjectRole)(implicit token: AuthToken): Unit = {
+      logger.info(s"Removing user from billing project: $projectName $email ${billingProjectRole.toString}")
+      deleteRequest(apiUrl(s"api/billing/$projectName/${billingProjectRole.toString}/$email"))
     }
 
     def addGoogleRoleToBillingProjectUser(projectName: String, email: String, googleRole: String)(implicit token: AuthToken): Unit = {
@@ -59,12 +59,12 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
       Retry.retry(10.seconds, 20.minutes)({
         Try(responseAsList[String](parseResponse(getRequest(apiUrl("api/profile/billing"))))) match {
           case Success(response) => response.map { p =>
-            BillingProject(p("projectName"), Role.withName(p("role")), Status.withName(p("creationStatus")))
-          }.find(p => p.projectName == projectName && Status.isTerminal(p.creationStatus))
+            BillingProject(p("projectName"), BillingProjectRole.withName(p("role")), BillingProjectStatus.withName(p("creationStatus")))
+          }.find(p => p.projectName == projectName && BillingProjectStatus.isTerminal(p.creationStatus))
           case Failure(t) => logger.info(s"Billing project creation encountered an error: ${t.getStackTrace}"); None
         }
       }) match {
-        case Some(BillingProject(name, _, Status.Ready)) =>
+        case Some(BillingProject(name, _, BillingProjectStatus.Ready)) =>
           logger.info(s"Finished creating billing project: $name $billingAccount, with completion time of ${System.currentTimeMillis}")
         case Some(BillingProject(name, _, _)) =>
           logger.info(s"Encountered an error creating billing project: $name $billingAccount, with final attempt at ${System.currentTimeMillis}")
