@@ -52,7 +52,7 @@ trait RestClient extends Retry with LazyLogging {
   private def sendRequest(httpRequest: HttpRequest): HttpResponse = {
     val responseFuture = retryExponentially() {
       () => Http().singleRequest(request = httpRequest).map { response =>
-        logger.info(s"API request: ${httpRequest}\nAPI response: ${response}")
+        // logger.info(s"API request: ${httpRequest}\nAPI response: ${response}")
         // retry any 401 or 500 errors - this is because we have seen the proxy get backend errors
         // from google querying for token info which causes a 401 if it is at the level if the
         // service being directly called or a 500 if it happens at a lower level service

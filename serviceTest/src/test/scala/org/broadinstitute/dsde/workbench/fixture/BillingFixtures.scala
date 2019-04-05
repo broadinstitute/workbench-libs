@@ -5,9 +5,9 @@ import com.typesafe.scalalogging.LazyLogging
 import org.broadinstitute.dsde.workbench.auth.AuthToken
 import org.broadinstitute.dsde.workbench.config.{Credentials, ServiceTestConfig, UserPool}
 import org.broadinstitute.dsde.workbench.model.{UserInfo, WorkbenchEmail, WorkbenchUserId}
+import org.broadinstitute.dsde.workbench.service.BillingProject.Role
+import org.broadinstitute.dsde.workbench.service.BillingProject.Role.Role
 import org.broadinstitute.dsde.workbench.service.{GPAlloc, Orchestration, Rawls}
-import org.broadinstitute.dsde.workbench.service.Orchestration.billing.BillingProjectRole
-import org.broadinstitute.dsde.workbench.service.Orchestration.billing.BillingProjectRole.BillingProjectRole
 import org.broadinstitute.dsde.workbench.service.test.{CleanUp, RandomUtil}
 import org.broadinstitute.dsde.workbench.service.util.ExceptionHandling
 import org.scalatest.TestSuite
@@ -22,13 +22,13 @@ import scala.util.Try
 trait BillingFixtures extends ExceptionHandling with LazyLogging with CleanUp with RandomUtil {
   self: TestSuite =>
 
-  protected def addMembersToBillingProject(projectName: String, memberEmails: List[String], role: BillingProjectRole)(implicit token: AuthToken): Unit = {
+  protected def addMembersToBillingProject(projectName: String, memberEmails: List[String], role: Role)(implicit token: AuthToken): Unit = {
     memberEmails foreach { email =>
       Orchestration.billing.addUserToBillingProject(projectName, email, role)
     }
   }
 
-  protected def removeMembersFromBillingProject(projectName: String, memberEmails: List[String], role: BillingProjectRole)(implicit token: AuthToken): Unit = {
+  protected def removeMembersFromBillingProject(projectName: String, memberEmails: List[String], role: Role)(implicit token: AuthToken): Unit = {
     memberEmails foreach { email =>
       Orchestration.billing.removeUserFromBillingProject(projectName, email, role)
     }
@@ -55,8 +55,8 @@ trait BillingFixtures extends ExceptionHandling with LazyLogging with CleanUp wi
   private def createNewBillingProject(namePrefix: String, ownerEmails: List[String] = List(), userEmails: List[String] = List())(implicit token: AuthToken): String = {
     val billingProjectName = randomIdWithPrefix(namePrefix)
     Orchestration.billing.createBillingProject(billingProjectName, ServiceTestConfig.Projects.billingAccountId)
-    addMembersToBillingProject(billingProjectName, ownerEmails, BillingProjectRole.Owner)
-    addMembersToBillingProject(billingProjectName, userEmails, BillingProjectRole.User)
+    addMembersToBillingProject(billingProjectName, ownerEmails, Role.Owner)
+    addMembersToBillingProject(billingProjectName, userEmails, Role.User)
     billingProjectName
   }
 
@@ -123,8 +123,8 @@ trait BillingFixtures extends ExceptionHandling with LazyLogging with CleanUp wi
         val newOwnerUserInfo = UserInfo(OAuth2BearerToken(newOwnerToken().value), WorkbenchUserId("0"), WorkbenchEmail(newOwnerEmail), 3600)
         Rawls.admin.claimProject(project.projectName, project.cromwellAuthBucketUrl, newOwnerUserInfo)(adminToken)
 
-        addMembersToBillingProject(project.projectName, ownerEmails, BillingProjectRole.Owner)(newOwnerToken())
-        addMembersToBillingProject(project.projectName, userEmails, BillingProjectRole.User)(newOwnerToken())
+        addMembersToBillingProject(project.projectName, ownerEmails, Role.Owner)(newOwnerToken())
+        addMembersToBillingProject(project.projectName, userEmails, Role.User)(newOwnerToken())
 
         ClaimedProject(project.projectName, gpAlloced = true)
       case _ =>
@@ -193,7 +193,7 @@ trait BillingFixtures extends ExceptionHandling with LazyLogging with CleanUp wi
     CleanUp.runCodeWithCleanup(testTrial, cleanupTrial)
   }
 
-  def addUserInBillingProject(billingProjectName: String, email: String, role: BillingProjectRole)
+  def addUserInBillingProject(billingProjectName: String, email: String, role: Role)
                              (implicit token: AuthToken): Unit = {
     Orchestration.billing.addUserToBillingProject(billingProjectName, email, role)
   }
