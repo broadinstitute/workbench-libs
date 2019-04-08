@@ -98,6 +98,16 @@ class HttpGoogleProjectDAO(appName: String,
     }
   }
 
+  override def getLabels(projectName: String): Future[Map[String, String]] = {
+    import scala.collection.JavaConverters._
+    retryWhen500orGoogleError { () =>
+      // get the project
+      executeGoogleRequest(cloudResManager.projects().get(projectName))
+    } map { project =>
+      project.getLabels.asScala.toMap
+    }
+  }
+
   override def getAncestry(projectName: String): Future[Seq[Ancestor]] = {
     retryWhen500orGoogleError(() => {
       executeGoogleRequest(cloudResManager.projects().getAncestry(projectName, new GetAncestryRequest()))

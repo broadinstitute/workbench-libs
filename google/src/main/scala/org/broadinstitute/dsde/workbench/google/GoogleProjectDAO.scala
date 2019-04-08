@@ -19,5 +19,7 @@ trait GoogleProjectDAO {
 
   def enableService(projectName: String, serviceName: String): Future[String]
 
+  def getLabels(projectName: String): Future[Map[String, String]]
+
   def getAncestry(projectName: String): Future[Seq[Ancestor]]
 }

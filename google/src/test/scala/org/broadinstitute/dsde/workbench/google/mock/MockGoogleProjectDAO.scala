@@ -21,5 +21,7 @@ class MockGoogleProjectDAO extends GoogleProjectDAO {
 
   override def enableService(projectName: String, serviceName: String): Future[String] = Future.successful(UUID.randomUUID().toString)
 
+  override def getLabels(projectName: String): Future[Map[String, String]] = Future.successful(Map.empty)
+
   override def getAncestry(projectName: String): Future[Seq[Ancestor]] = Future.successful(Seq(new Ancestor().setResourceId(new ResourceId().setId("mock-org-number").setType("organization"))))
 }
