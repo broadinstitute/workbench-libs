@@ -13,7 +13,7 @@ In this repo:
 
 Contains utility functions and classes.
 
-Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util" % "0.5-4084715"`
+Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util" % "0.5-4c7acd5"`
 
 [Changelog](util/CHANGELOG.md)
 
@@ -63,7 +63,7 @@ To start the Google PubSub emulator for unit testing:
 
 Contains common classes and utilities for writing tests against Workbench REST web services.
 
-Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "0.16-4c7acd5" % "test" classifier "tests"`
+Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "0.16-4084715" % "test" classifier "tests"`
 
 [Changelog](serviceTest/CHANGELOG.md)
 
