@@ -92,7 +92,6 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
         case None => throw new Exception("Billing project creation did not complete")
       }
     }
-
   }
 
   object duos {
@@ -433,6 +432,10 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
       }
 
       postRequest(apiUrl(s"register/profile"), profile)
+    }
+
+    def getRegisteredUser()(implicit token: AuthToken): Map[String, String] = {
+      parseResponseAs[Map[String, String]](getRequest(apiUrl(s"register/profile")))
     }
 
     def getUser()(implicit token: AuthToken): Map[String, String] = {
