@@ -1,9 +1,11 @@
 package org.broadinstitute.dsde.workbench.service
 
+import akka.http.scaladsl.model.HttpResponse
 import com.fasterxml.jackson.databind.JsonNode
 import com.typesafe.scalalogging.LazyLogging
 import org.broadinstitute.dsde.workbench.auth.AuthToken
 import org.broadinstitute.dsde.workbench.config.ServiceTestConfig
+import org.broadinstitute.dsde.workbench.fixture.Method
 import org.broadinstitute.dsde.workbench.model.UserInfo
 import org.broadinstitute.dsde.workbench.service.BillingProject.BillingProjectRole.BillingProjectRole
 import org.broadinstitute.dsde.workbench.service.BillingProject.{BillingProjectRole, BillingProjectStatus}
@@ -36,22 +38,22 @@ trait Rawls extends RestClient with LazyLogging {
       parseResponseAs[List[Map[String, String]]](getRequest(s"${url}api/billing/$projectName/members"))
     }
 
-    def addUserToBillingProject(projectName: String, email: String, billingProjectRole: BillingProjectRole)(implicit token: AuthToken): Unit = {
+    def addUserToBillingProject(projectName: String, email: String, billingProjectRole: BillingProjectRole)(implicit token: AuthToken): String = {
       logger.info(s"Adding user to billing project: $projectName $email ${billingProjectRole.toString}")
       putRequest(s"${url}api/billing/$projectName/${billingProjectRole.toString}/$email")
     }
 
-    def removeUserFromBillingProject(projectName: String, email: String, billingProjectRole: BillingProjectRole)(implicit token: AuthToken): Unit = {
+    def removeUserFromBillingProject(projectName: String, email: String, billingProjectRole: BillingProjectRole)(implicit token: AuthToken): String = {
       logger.info(s"Removing user from billing project: $projectName $email ${billingProjectRole.toString}")
       deleteRequest(s"${url}api/billing/$projectName/${billingProjectRole.toString}/$email")
     }
 
-    def addGoogleRoleToBillingProjectUser(projectName: String, email: String, googleRole: String)(implicit token: AuthToken): Unit = {
+    def addGoogleRoleToBillingProjectUser(projectName: String, email: String, googleRole: String)(implicit token: AuthToken): String = {
       logger.info(s"Adding google role $googleRole to user $email in billing project $projectName")
       putRequest(s"${url}api/billing/$projectName/googleRole/$googleRole/$email")
     }
 
-    def removeGoogleRoleFromBillingProjectUser(projectName: String, email: String, googleRole: String)(implicit token: AuthToken): Unit = {
+    def removeGoogleRoleFromBillingProjectUser(projectName: String, email: String, googleRole: String)(implicit token: AuthToken): String = {
       logger.info(s"Removing google role $googleRole from user $email in billing project $projectName")
       deleteRequest(s"${url}api/billing/$projectName/googleRole/$googleRole/$email")
     }
@@ -74,6 +76,49 @@ trait Rawls extends RestClient with LazyLogging {
           throw new Exception("Billing project creation encountered an error")
         case None => throw new Exception("Billing project creation did not complete successfully")
       }
+    }
+  }
+
+  object methodconfigs {
+    def copyMethodConfigFromWorkspace(sourceMethodConfig: Map[String,Any], destinationMethodConfigName: Map[String,Any])(implicit token: AuthToken): String = {
+      logger.info(s"Copying method configuration from workspace: ${sourceMethodConfig} ")
+
+      val request = Map(
+        "source" -> sourceMethodConfig,
+        "destination" -> destinationMethodConfigName)
+
+      postRequest(url + "api/methodconfigs/copy", request)
+    }
+
+    def getMethodConfigInWorkspace(workspaceNamespace: String, workspaceName: String, configNamespace: String, configName: String)(implicit token: AuthToken): HttpResponse = {
+      logger.info(s"Getting method configuration $configNamespace/$configName for workspace ${workspaceNamespace}/${workspaceName}")
+      getRequest(url + s"api/workspaces/${workspaceNamespace}/${workspaceName}/methodconfigs/${configNamespace}/${configName}")
+    }
+
+    def copyMethodConfigFromMethodRepo(request: Map[String, Any])(implicit token: AuthToken): String = {
+      logger.info(s"Copying method configuration from method repo: $request")
+      postRequest((url + "api/methodconfigs/copyFromMethodRepo"), request)
+    }
+
+    def getMethodConfigSyntaxValidationInWorkspace(workspaceNamespace: String, workspaceName: String, configNamespace: String, configName: String)(implicit token: AuthToken): HttpResponse = {
+      logger.info("Getting syntax validation for method configuration in workspace")
+      getRequest(url + s"api/workspaces/${workspaceNamespace}/${workspaceName}/methodconfigs/${configNamespace}/${configName}/validate")
+    }
+
+    def createMethodConfigInWorkspace(wsNs: String, wsName: String, method:Method, configNamespace: String, configName: String, methodConfigVersion: Int,
+                                      inputs: Map[String, String], outputs: Map[String, String], rootEntityType: String)(implicit token: AuthToken): String = {
+      logger.info(s"Creating method config: $wsNs/$wsName $methodConfigVersion method: ${method.methodNamespace}/${method.methodName} config: $configNamespace/$configName")
+      postRequest(url + s"api/workspaces/$wsNs/$wsName/methodconfigs",
+        Map("deleted" -> false,
+          "inputs" -> inputs,
+          "methodConfigVersion" -> methodConfigVersion,
+          "methodRepoMethod" -> method.methodRepoInfo,
+          "namespace" -> configNamespace,
+          "name" -> configName,
+          "outputs" -> outputs,
+          "prerequisites" -> Map(),
+          "rootEntityType" -> rootEntityType)
+      )
     }
   }
 
