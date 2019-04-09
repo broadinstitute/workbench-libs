@@ -1,14 +1,13 @@
 package org.broadinstitute.dsde.workbench.service
 
-import akka.http.scaladsl.model.HttpResponse
 import com.fasterxml.jackson.databind.JsonNode
 import com.typesafe.scalalogging.LazyLogging
 import org.broadinstitute.dsde.workbench.auth.AuthToken
 import org.broadinstitute.dsde.workbench.config.ServiceTestConfig
 import org.broadinstitute.dsde.workbench.fixture.Method
 import org.broadinstitute.dsde.workbench.model.UserInfo
-import org.broadinstitute.dsde.workbench.service.BillingProject.BillingProjectRole.BillingProjectRole
-import org.broadinstitute.dsde.workbench.service.BillingProject.{BillingProjectRole, BillingProjectStatus}
+import org.broadinstitute.dsde.workbench.service.BillingProject.BillingProjectRole._
+import org.broadinstitute.dsde.workbench.service.BillingProject._
 import org.broadinstitute.dsde.workbench.service.util.Retry
 
 import scala.util.{Failure, Success, Try}
@@ -79,7 +78,7 @@ trait Rawls extends RestClient with LazyLogging {
     }
   }
 
-  object methodconfigs {
+  object methodConfigs {
     def copyMethodConfigFromWorkspace(sourceMethodConfig: Map[String,Any], destinationMethodConfigName: Map[String,Any])(implicit token: AuthToken): String = {
       logger.info(s"Copying method configuration from workspace: ${sourceMethodConfig} ")
 
@@ -90,9 +89,9 @@ trait Rawls extends RestClient with LazyLogging {
       postRequest(url + "api/methodconfigs/copy", request)
     }
 
-    def getMethodConfigInWorkspace(workspaceNamespace: String, workspaceName: String, configNamespace: String, configName: String)(implicit token: AuthToken): HttpResponse = {
+    def getMethodConfigInWorkspace(workspaceNamespace: String, workspaceName: String, configNamespace: String, configName: String)(implicit token: AuthToken): String = {
       logger.info(s"Getting method configuration $configNamespace/$configName for workspace ${workspaceNamespace}/${workspaceName}")
-      getRequest(url + s"api/workspaces/${workspaceNamespace}/${workspaceName}/methodconfigs/${configNamespace}/${configName}")
+      parseResponse(getRequest(url + s"api/workspaces/${workspaceNamespace}/${workspaceName}/methodconfigs/${configNamespace}/${configName}"))
     }
 
     def copyMethodConfigFromMethodRepo(request: Map[String, Any])(implicit token: AuthToken): String = {
@@ -100,15 +99,15 @@ trait Rawls extends RestClient with LazyLogging {
       postRequest((url + "api/methodconfigs/copyFromMethodRepo"), request)
     }
 
-    def getMethodConfigSyntaxValidationInWorkspace(workspaceNamespace: String, workspaceName: String, configNamespace: String, configName: String)(implicit token: AuthToken): HttpResponse = {
+    def getMethodConfigSyntaxValidationInWorkspace(workspaceNamespace: String, workspaceName: String, configNamespace: String, configName: String)(implicit token: AuthToken): String = {
       logger.info("Getting syntax validation for method configuration in workspace")
-      getRequest(url + s"api/workspaces/${workspaceNamespace}/${workspaceName}/methodconfigs/${configNamespace}/${configName}/validate")
+      parseResponse(getRequest(url + s"api/workspaces/${workspaceNamespace}/${workspaceName}/methodconfigs/${configNamespace}/${configName}/validate"))
     }
 
-    def createMethodConfigInWorkspace(wsNs: String, wsName: String, method:Method, configNamespace: String, configName: String, methodConfigVersion: Int,
+    def createMethodConfigInWorkspace(workspaceNamespace: String, workspaceName: String, method:Method, configNamespace: String, configName: String, methodConfigVersion: Int,
                                       inputs: Map[String, String], outputs: Map[String, String], rootEntityType: String)(implicit token: AuthToken): String = {
-      logger.info(s"Creating method config: $wsNs/$wsName $methodConfigVersion method: ${method.methodNamespace}/${method.methodName} config: $configNamespace/$configName")
-      postRequest(url + s"api/workspaces/$wsNs/$wsName/methodconfigs",
+      logger.info(s"Creating method config: $workspaceNamespace/$workspaceName $methodConfigVersion method: ${method.methodNamespace}/${method.methodName} config: $configNamespace/$configName")
+      postRequest(url + s"api/workspaces/$workspaceNamespace/$workspaceName/methodconfigs",
         Map("deleted" -> false,
           "inputs" -> inputs,
           "methodConfigVersion" -> methodConfigVersion,
@@ -116,7 +115,7 @@ trait Rawls extends RestClient with LazyLogging {
           "namespace" -> configNamespace,
           "name" -> configName,
           "outputs" -> outputs,
-          "prerequisites" -> Map(),
+          "prerequisites" -> Map.empty,
           "rootEntityType" -> rootEntityType)
       )
     }
