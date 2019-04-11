@@ -189,6 +189,11 @@ trait Rawls extends RestClient with LazyLogging {
       logger.info(s"Getting workspace $name in $namespace")
       parseResponse(getRequest(url + s"api/workspaces/$namespace/$name"))
     }
+
+    def updateAcl(namespace: String, name: String, aclUpdates: Set[AclEntry], inviteUsersNotFound: Boolean = false)(implicit token: AuthToken): String = {
+      logger.info(s"Updating acl for workspace $name in $namespace")
+      patchRequest(url + s"api/workspaces/$namespace/$name/acl?inviteUsersNotFound=$inviteUsersNotFound", aclUpdates.map(e => e.toMap))
+    }
   }
 
   object submissions {
