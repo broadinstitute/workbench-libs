@@ -48,7 +48,36 @@ trait Sam extends RestClient with LazyLogging with ScalaFutures{
     }
   }
 
+  object group {
+
+    def getGroups()(implicit token: AuthToken): Map[String, String] = {
+      logger.info(s"Getting all groups the requesting user belongs")
+      parseResponseAs[Map[String, String]](getRequest(url + "api/groups/v1"))
+    }
+
+    def getGroup(groupName: String)(implicit token: AuthToken): String = {
+      logger.info(s"Getting all groups the requesting user belongs")
+      parseResponse(getRequest(url + s"api/groups/v1/$groupName"))
+    }
+
+    def deleteGroup(groupName: String)(implicit token: AuthToken): String = {
+      logger.info(s"Deleting group $groupName")
+      deleteRequest(url + s"api/groups/v1/$groupName")
+    }
+
+    def createGroup(groupName: String)(implicit token: AuthToken): String = {
+      logger.info(s"Creating group $groupName")
+      postRequest(url + s"api/groups/v1/$groupName")
+    }
+
+    def requestAccessToGroup(groupName: String)(implicit token: AuthToken): String = {
+      logger.info(s"Requesting access to group $groupName")
+      postRequest(url + s"api/groups/v1/${groupName}/requestAccess")
+    }
+
+  }
 }
+
 object Sam extends Sam {
 
   object user {
