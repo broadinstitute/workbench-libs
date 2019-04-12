@@ -9,6 +9,7 @@ import org.broadinstitute.dsde.workbench.model.UserInfo
 import org.broadinstitute.dsde.workbench.service.BillingProject.BillingProjectRole._
 import org.broadinstitute.dsde.workbench.service.BillingProject._
 import org.broadinstitute.dsde.workbench.service.util.Retry
+import org.broadinstitute.dsde.rawls.model.AttributeUpdateOperations._
 
 import scala.util.{Failure, Success, Try}
 import scala.concurrent.duration._
@@ -205,6 +206,11 @@ trait Rawls extends RestClient with LazyLogging {
       import scala.collection.JavaConverters._
       val response = list()
       mapper.readTree(response).findValuesAsText("name").asScala.toList
+    }
+
+    def updateAttributes(namespace: String, name: String, attributes: List[AttributeUpdateOperation])(implicit token: AuthToken): Unit = {
+      logger.info(s"Setting attributes for workspace: $namespace/$name $attributes")
+      patchRequest(url + s"api/workspaces/$namespace/$name", attributes)
     }
   }
 
