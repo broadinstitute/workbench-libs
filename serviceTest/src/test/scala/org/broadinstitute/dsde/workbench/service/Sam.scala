@@ -57,10 +57,9 @@ object Sam extends Sam {
 
     case class UserStatus(userInfo: UserStatusDetails, enabled: Map[String, Boolean])
 
-    // register/user/v2/self/diagnostics
-    case class UserStatusDiagnostics(enabled: Map[String, Boolean])
-    // register/user/v2/self/info
-    case class UserSelfInfo(userInfo: UserStatusDetails)
+    case class UserStatusDiagnostics(enabled: Boolean, inAllUserGroup: Boolean, inGoogleProxyGroup: Boolean)
+
+    case class UserStatusInfo(userSubjectId: String, userEmail: String, enabled: Boolean)
 
     def status()(implicit token: AuthToken): Option[UserStatus] = {
       logger.info(s"Getting user registration status")
@@ -105,14 +104,14 @@ object Sam extends Sam {
       deleteRequest(url + s"api/google/user/petServiceAccount/$project/key/$keyId")
     }
 
-    def getUserStatDiagnostics()(implicit token: AuthToken): Option [UserStatusDiagnostics] = {
+    def getUserStatusDiagnostics()(implicit token: AuthToken): Option [UserStatusDiagnostics] = {
       logger.info(s"Getting user diagnostics")
       parseResponseOption[UserStatusDiagnostics](getRequest(url + s"register/user/v2/self/diagnostics"))
     }
 
-    def getUserInfo()(implicit token: AuthToken): Option [UserSelfInfo] = {
+    def getUserStatusInfo()(implicit token: AuthToken): Option [UserStatusInfo] = {
       logger.info(s"Getting user info")
-      parseResponseOption[UserSelfInfo](getRequest(url + s"register/user/v2/self/info"))
+      parseResponseOption[UserStatusInfo](getRequest(url + s"register/user/v2/self/info"))
     }
 
     def createGroup(groupName: String)(implicit token: AuthToken): Unit = {
