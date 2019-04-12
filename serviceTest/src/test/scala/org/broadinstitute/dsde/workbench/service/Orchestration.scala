@@ -1,5 +1,6 @@
 package org.broadinstitute.dsde.workbench.service
 
+
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
 import akka.http.scaladsl.model.HttpResponse
 import akka.http.scaladsl.model.headers.Cookie
@@ -19,6 +20,7 @@ import spray.json.{DefaultJsonProtocol, _}
 
 import scala.concurrent.duration._
 import scala.util.{Failure, Success, Try}
+
 
 trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport with DefaultJsonProtocol with RandomUtil {
 
@@ -202,6 +204,23 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
         case Some(_) => logger.info(s"Bucket read access check passed: workspace $workspaceNamespace/$workspaceName bucket readable")
       }
     }
+
+    def getWorkspace(workspaceNamespace: String, workspaceName: String)(implicit token: AuthToken): HttpResponse = {
+      logger.info(s"Getting workspace: $workspaceNamespace/$workspaceName")
+      getRequest(apiUrl(s"api/workspaces/${workspaceNamespace}/${workspaceName}"))
+    }
+
+    def getAuthorizationDomainInWorkspace(workspaceNamespace: String, workspaceName: String)(implicit token: AuthToken): List[String] = {
+      logger.info(s"Getting authorization domains in workspace: $workspaceNamespace/$workspaceName")
+      val response = parseResponse(getWorkspace(workspaceNamespace, workspaceName))
+
+      import scala.collection.JavaConverters._
+
+      val groupNames = mapper.readTree(response).at("/workspace/authorizationDomain").findValuesAsText("membersGroupName").asScala.toList
+      println(s"groupNames: $groupNames")
+      groupNames
+    }
+
   }
 
 
