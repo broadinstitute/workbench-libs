@@ -5,6 +5,7 @@ import com.typesafe.scalalogging.LazyLogging
 import org.broadinstitute.dsde.workbench.auth.AuthToken
 import org.broadinstitute.dsde.workbench.config.{UserPool, _}
 import org.broadinstitute.dsde.workbench.model._
+import org.broadinstitute.dsde.workbench.service.OrchestrationModel.ManagedGroupWithMembers
 import org.broadinstitute.dsde.workbench.service.Sam.user.UserStatusDetails
 import org.broadinstitute.dsde.workbench.service.SamModel._
 import org.broadinstitute.dsde.workbench.service.SamModel.SamJsonSupport._
@@ -58,6 +59,10 @@ trait Sam extends RestClient with LazyLogging with ScalaFutures{
     def getGroup(groupName: String)(implicit token: AuthToken): String = {
       logger.info(s"Getting all groups the requesting user belongs")
       parseResponse(getRequest(url + s"api/groups/v1/$groupName"))
+    }
+
+    def getGroupName(groupName: String)(implicit token: AuthToken): ManagedGroupWithMembers = {
+      parseResponseAs[ManagedGroupWithMembers](getRequest(url + s"api/groups/v1/$groupName"))
     }
 
     def deleteGroup(groupName: String)(implicit token: AuthToken): String = {
