@@ -57,6 +57,11 @@ object Sam extends Sam {
 
     case class UserStatus(userInfo: UserStatusDetails, enabled: Map[String, Boolean])
 
+    // register/user/v2/self/diagnostics
+    case class UserStatusDiagnostics(enabled: Map[String, Boolean])
+    // register/user/v2/self/info
+    case class UserSelfInfo(userInfo: UserStatusDetails)
+
     def status()(implicit token: AuthToken): Option[UserStatus] = {
       logger.info(s"Getting user registration status")
       parseResponseOption[UserStatus](getRequest(url + "register/user"))
@@ -98,6 +103,16 @@ object Sam extends Sam {
     def deletePetServiceAccountKey(project: String, keyId: String)(implicit token: AuthToken): Unit = {
       logger.info(s"Deleting pet service account key $keyId in project $project")
       deleteRequest(url + s"api/google/user/petServiceAccount/$project/key/$keyId")
+    }
+
+    def getUserStatDiagnostics()(implicit token: AuthToken): Option [UserStatusDiagnostics] = {
+      logger.info(s"Getting user diagnostics")
+      parseResponseOption[UserStatusDiagnostics](getRequest(url + s"register/user/v2/self/diagnostics"))
+    }
+
+    def getUserInfo()(implicit token: AuthToken): Option [UserSelfInfo] = {
+      logger.info(s"Getting user info")
+      parseResponseOption[UserSelfInfo](getRequest(url + s"register/user/v2/self/info"))
     }
 
     def createGroup(groupName: String)(implicit token: AuthToken): Unit = {
