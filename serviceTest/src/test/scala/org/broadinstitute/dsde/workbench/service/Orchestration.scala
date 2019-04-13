@@ -205,20 +205,48 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
       }
     }
 
-    def getWorkspace(workspaceNamespace: String, workspaceName: String)(implicit token: AuthToken): HttpResponse = {
+    def getWorkspaces()(implicit token: AuthToken): HttpResponse = {
+      logger.info(s"Getting all workspaces for user")
+      getRequest(apiUrl(s"api/workspaces"))
+    }
+
+    def getWorkspaceDetail(workspaceNamespace: String, workspaceName: String)(implicit token: AuthToken): HttpResponse = {
       logger.info(s"Getting workspace: $workspaceNamespace/$workspaceName")
       getRequest(apiUrl(s"api/workspaces/${workspaceNamespace}/${workspaceName}"))
     }
 
     def getAuthorizationDomainInWorkspace(workspaceNamespace: String, workspaceName: String)(implicit token: AuthToken): List[String] = {
-      logger.info(s"Getting authorization domains in workspace: $workspaceNamespace/$workspaceName")
-      val response = parseResponse(getWorkspace(workspaceNamespace, workspaceName))
+      logger.info(s"Getting all authorization domains in workspace: $workspaceNamespace/$workspaceName")
+      val response = parseResponse(getWorkspaceDetail(workspaceNamespace, workspaceName))
 
       import scala.collection.JavaConverters._
+      mapper.readTree(response).at("/workspace/authorizationDomain").findValuesAsText("membersGroupName").asScala.toList
+    }
 
-      val groupNames = mapper.readTree(response).at("/workspace/authorizationDomain").findValuesAsText("membersGroupName").asScala.toList
-      println(s"groupNames: $groupNames")
-      groupNames
+    def getAllWorkspaceNames()(implicit token: AuthToken) = {
+      logger.info("Getting all workspacenames in workspace for user")
+      val response = parseResponse(getWorkspaces())
+
+      //import scala.collection.JavaConverters._
+      mapper.readTree(response).findValuesAsText("name")
+
+      /*
+      def extractTupleFromWorkspaceMap(m: Map[String, String]): Option[(String, Option[String])] =
+        (m.get("name")) match {
+          case (Some(k)) => Some(k -> m.get("name"))
+          case _ => None
+        }
+
+      response.fromJsonMapAs[List[Map[String, String]]]("workspace") match {
+        case Some(maps) =>
+          println(s"********fromJsonMapsAs: ${maps}")
+          val m = maps.flatMap(m => extractTupleFromWorkspaceMap(m)).toMap
+          println(s"********what's m: ${m}")
+          m
+        case None => Map()
+      }
+
+       */
     }
 
   }
