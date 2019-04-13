@@ -6,7 +6,7 @@ import akka.http.scaladsl.model.HttpResponse
 import akka.http.scaladsl.model.headers.Cookie
 import com.typesafe.scalalogging.LazyLogging
 import org.broadinstitute.dsde.workbench.auth.AuthToken
-import org.broadinstitute.dsde.workbench.config.ServiceTestConfig
+import org.broadinstitute.dsde.workbench.config.{Credentials, ServiceTestConfig}
 import org.broadinstitute.dsde.workbench.fixture.MethodData.SimpleMethod
 import org.broadinstitute.dsde.workbench.fixture.{DockstoreMethod, Method}
 import org.broadinstitute.dsde.workbench.service.BillingProject.{BillingProjectRole, BillingProjectStatus}
@@ -205,8 +205,8 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
       }
     }
 
-    def getWorkspaces()(implicit token: AuthToken): HttpResponse = {
-      logger.info(s"Getting all workspaces for user")
+    def getWorkspaces(user: Credentials)(implicit token: AuthToken): HttpResponse = {
+      logger.info(s"Getting user ${user.email} workspaces")
       getRequest(apiUrl(s"api/workspaces"))
     }
 
@@ -223,30 +223,11 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
       mapper.readTree(response).at("/workspace/authorizationDomain").findValuesAsText("membersGroupName").asScala.toList
     }
 
-    def getAllWorkspaceNames()(implicit token: AuthToken) = {
-      logger.info("Getting all workspacenames in workspace for user")
-      val response = parseResponse(getWorkspaces())
+    def getWorkspaceNames(user: Credentials)(implicit token: AuthToken): List[String] = {
+      val response = parseResponse(getWorkspaces(user))
 
-      //import scala.collection.JavaConverters._
-      mapper.readTree(response).findValuesAsText("name")
-
-      /*
-      def extractTupleFromWorkspaceMap(m: Map[String, String]): Option[(String, Option[String])] =
-        (m.get("name")) match {
-          case (Some(k)) => Some(k -> m.get("name"))
-          case _ => None
-        }
-
-      response.fromJsonMapAs[List[Map[String, String]]]("workspace") match {
-        case Some(maps) =>
-          println(s"********fromJsonMapsAs: ${maps}")
-          val m = maps.flatMap(m => extractTupleFromWorkspaceMap(m)).toMap
-          println(s"********what's m: ${m}")
-          m
-        case None => Map()
-      }
-
-       */
+      import scala.collection.JavaConverters._
+      mapper.readTree(response).findValuesAsText("name").asScala.toList
     }
 
   }
