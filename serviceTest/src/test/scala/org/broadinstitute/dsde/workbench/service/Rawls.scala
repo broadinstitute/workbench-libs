@@ -4,13 +4,122 @@ import com.fasterxml.jackson.databind.JsonNode
 import com.typesafe.scalalogging.LazyLogging
 import org.broadinstitute.dsde.workbench.auth.AuthToken
 import org.broadinstitute.dsde.workbench.config.ServiceTestConfig
+import org.broadinstitute.dsde.workbench.fixture.Method
 import org.broadinstitute.dsde.workbench.model.UserInfo
+import org.broadinstitute.dsde.workbench.service.BillingProject.BillingProjectRole._
+import org.broadinstitute.dsde.workbench.service.BillingProject._
+import org.broadinstitute.dsde.workbench.service.util.Retry
 
-import scala.util.Try
+import scala.util.{Failure, Success, Try}
+import scala.concurrent.duration._
 
 trait Rawls extends RestClient with LazyLogging {
 
   val url: String = ServiceTestConfig.FireCloud.rawlsApiUrl
+
+  def responseAsList[T](response: String): List[Map[String, T]] = {
+    mapper.readValue(response, classOf[List[Map[String, T]]])
+  }
+
+  object billing {
+
+    def createBillingProject(projectName: String, billingAccount: String)(implicit token: AuthToken): Unit = {
+      logger.info(s"Creating billing project: $projectName in billing account $billingAccount")
+
+      postRequest(url +"api/billing", Map("projectName" -> projectName, "billingAccount" -> billingAccount))
+
+      // wait for done
+      waitUntilBillingProjectIsReady(projectName, billingAccount)
+    }
+
+    def listMembersInBillingProject(projectName: String)(implicit token: AuthToken): List[Map[String, String]] = {
+      logger.info(s"list members of billing project $projectName the caller owns")
+      parseResponseAs[List[Map[String, String]]](getRequest(s"${url}api/billing/$projectName/members"))
+    }
+
+    def addUserToBillingProject(projectName: String, email: String, billingProjectRole: BillingProjectRole)(implicit token: AuthToken): String = {
+      logger.info(s"Adding user to billing project: $projectName $email ${billingProjectRole.toString}")
+      putRequest(s"${url}api/billing/$projectName/${billingProjectRole.toString}/$email")
+    }
+
+    def removeUserFromBillingProject(projectName: String, email: String, billingProjectRole: BillingProjectRole)(implicit token: AuthToken): String = {
+      logger.info(s"Removing user from billing project: $projectName $email ${billingProjectRole.toString}")
+      deleteRequest(s"${url}api/billing/$projectName/${billingProjectRole.toString}/$email")
+    }
+
+    def addGoogleRoleToBillingProjectUser(projectName: String, email: String, googleRole: String)(implicit token: AuthToken): String = {
+      logger.info(s"Adding google role $googleRole to user $email in billing project $projectName")
+      putRequest(s"${url}api/billing/$projectName/googleRole/$googleRole/$email")
+    }
+
+    def removeGoogleRoleFromBillingProjectUser(projectName: String, email: String, googleRole: String)(implicit token: AuthToken): String = {
+      logger.info(s"Removing google role $googleRole from user $email in billing project $projectName")
+      deleteRequest(s"${url}api/billing/$projectName/googleRole/$googleRole/$email")
+    }
+
+    private def waitUntilBillingProjectIsReady(projectName: String, billingAccount: String)(implicit token: AuthToken): Unit = {
+      // wait for done
+      Retry.retry(30.seconds, 20.minutes)({
+        Try(responseAsList[String](parseResponse(getRequest(s"${ServiceTestConfig.FireCloud.orchApiUrl}api/profile/billing")))) match {
+          case Success(response) => response.map { p =>
+            BillingProject(p("projectName"), BillingProjectRole.withName(p("role")), BillingProjectStatus.withName(p("creationStatus")))
+          }.find(p => p.projectName == projectName && BillingProjectStatus.isTerminal(p.creationStatus))
+          case Failure(t) => logger.error(s"Billing project creation encountered an error: ${t.getStackTrace}");
+            None
+        }
+      }) match {
+        case Some(BillingProject(name, _, BillingProjectStatus.Ready)) =>
+          logger.info(s"Finished creating billing project: $name in billing account $billingAccount")
+        case Some(BillingProject(name, _, _)) =>
+          logger.info(s"Encountered an error creating billing project: $name in billing account $billingAccount")
+          throw new Exception("Billing project creation encountered an error")
+        case None => throw new Exception("Billing project creation did not complete successfully")
+      }
+    }
+  }
+
+  object methodConfigs {
+    def copyMethodConfigFromWorkspace(sourceMethodConfig: Map[String,Any], destinationMethodConfigName: Map[String,Any])(implicit token: AuthToken): String = {
+      logger.info(s"Copying method configuration from workspace: ${sourceMethodConfig} ")
+
+      val request = Map(
+        "source" -> sourceMethodConfig,
+        "destination" -> destinationMethodConfigName)
+
+      postRequest(url + "api/methodconfigs/copy", request)
+    }
+
+    def getMethodConfigInWorkspace(workspaceNamespace: String, workspaceName: String, configNamespace: String, configName: String)(implicit token: AuthToken): String = {
+      logger.info(s"Getting method configuration $configNamespace/$configName for workspace ${workspaceNamespace}/${workspaceName}")
+      parseResponse(getRequest(url + s"api/workspaces/${workspaceNamespace}/${workspaceName}/methodconfigs/${configNamespace}/${configName}"))
+    }
+
+    def copyMethodConfigFromMethodRepo(request: Map[String, Any])(implicit token: AuthToken): String = {
+      logger.info(s"Copying method configuration from method repo: $request")
+      postRequest((url + "api/methodconfigs/copyFromMethodRepo"), request)
+    }
+
+    def getMethodConfigSyntaxValidationInWorkspace(workspaceNamespace: String, workspaceName: String, configNamespace: String, configName: String)(implicit token: AuthToken): String = {
+      logger.info("Getting syntax validation for method configuration in workspace")
+      parseResponse(getRequest(url + s"api/workspaces/${workspaceNamespace}/${workspaceName}/methodconfigs/${configNamespace}/${configName}/validate"))
+    }
+
+    def createMethodConfigInWorkspace(workspaceNamespace: String, workspaceName: String, method:Method, configNamespace: String, configName: String, methodConfigVersion: Int,
+                                      inputs: Map[String, String], outputs: Map[String, String], rootEntityType: String)(implicit token: AuthToken): String = {
+      logger.info(s"Creating method config: $workspaceNamespace/$workspaceName $methodConfigVersion method: ${method.methodNamespace}/${method.methodName} config: $configNamespace/$configName")
+      postRequest(url + s"api/workspaces/$workspaceNamespace/$workspaceName/methodconfigs",
+        Map("deleted" -> false,
+          "inputs" -> inputs,
+          "methodConfigVersion" -> methodConfigVersion,
+          "methodRepoMethod" -> method.methodRepoInfo,
+          "namespace" -> configNamespace,
+          "name" -> configName,
+          "outputs" -> outputs,
+          "prerequisites" -> Map.empty,
+          "rootEntityType" -> rootEntityType)
+      )
+    }
+  }
 
   object admin {
     def deleteBillingProject(projectName: String, projectOwner: UserInfo)(implicit token: AuthToken): Unit = {
@@ -79,6 +188,11 @@ trait Rawls extends RestClient with LazyLogging {
     def getWorkspaceDetails(namespace: String, name: String)(implicit token: AuthToken): String = {
       logger.info(s"Getting workspace $name in $namespace")
       parseResponse(getRequest(url + s"api/workspaces/$namespace/$name"))
+    }
+
+    def updateAcl(namespace: String, name: String, aclUpdates: Set[AclEntry], inviteUsersNotFound: Boolean = false)(implicit token: AuthToken): String = {
+      logger.info(s"Updating acl for workspace $name in $namespace")
+      patchRequest(url + s"api/workspaces/$namespace/$name/acl?inviteUsersNotFound=$inviteUsersNotFound", aclUpdates.map(e => e.toMap))
     }
   }
 

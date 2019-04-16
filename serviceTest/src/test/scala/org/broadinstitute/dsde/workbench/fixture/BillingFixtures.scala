@@ -5,9 +5,9 @@ import com.typesafe.scalalogging.LazyLogging
 import org.broadinstitute.dsde.workbench.auth.AuthToken
 import org.broadinstitute.dsde.workbench.config.{Credentials, ServiceTestConfig, UserPool}
 import org.broadinstitute.dsde.workbench.model.{UserInfo, WorkbenchEmail, WorkbenchUserId}
+import org.broadinstitute.dsde.workbench.service.BillingProject.BillingProjectRole
+import org.broadinstitute.dsde.workbench.service.BillingProject.BillingProjectRole.BillingProjectRole
 import org.broadinstitute.dsde.workbench.service.{GPAlloc, Orchestration, Rawls}
-import org.broadinstitute.dsde.workbench.service.Orchestration.billing.BillingProjectRole
-import org.broadinstitute.dsde.workbench.service.Orchestration.billing.BillingProjectRole.BillingProjectRole
 import org.broadinstitute.dsde.workbench.service.test.{CleanUp, RandomUtil}
 import org.broadinstitute.dsde.workbench.service.util.ExceptionHandling
 import org.scalatest.TestSuite

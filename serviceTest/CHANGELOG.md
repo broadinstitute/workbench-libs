@@ -4,10 +4,17 @@ This file documents changes to the `workbench-service-test` library, including n
 
 ## 0.16
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "0.16-TRAVIS-REPLACE-ME"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "0.16-e73039a"`
 
+
+### Added
+- add Rawls billing API functions
+- move BillingProject out of Orchestration
+
+### Changed
 - automation tests now request the `cloud-billing` scope instead of the `cloud-platform` scope in the `AuthTokenScopes.billingScopes`
 variable. This better reflects end-user behavior.
+- add `updateAcl` endpoint to Rawls.workspaces
 
 ## 0.15
 
