@@ -104,12 +104,12 @@ object Sam extends Sam {
       deleteRequest(url + s"api/google/user/petServiceAccount/$project/key/$keyId")
     }
 
-    def getUserStatusDiagnostics()(implicit token: AuthToken): Option [UserStatusDiagnostics] = {
+    def getUserStatusDiagnostics()(implicit token: AuthToken): Option[UserStatusDiagnostics] = {
       logger.info(s"Getting user diagnostics")
       parseResponseOption[UserStatusDiagnostics](getRequest(url + s"register/user/v2/self/diagnostics"))
     }
 
-    def getUserStatusInfo()(implicit token: AuthToken): Option [UserStatusInfo] = {
+    def getUserStatusInfo()(implicit token: AuthToken): Option[UserStatusInfo] = {
       logger.info(s"Getting user info")
       parseResponseOption[UserStatusInfo](getRequest(url + s"register/user/v2/self/info"))
     }
