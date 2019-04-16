@@ -414,8 +414,8 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
       postRequest(apiUrl(s"register/profile"), profile)
     }
 
-    def getRegisteredUser()(implicit token: AuthToken): Map[String, String] = {
-      parseResponseAs[Map[String, String]](getRequest(apiUrl(s"register/profile")))
+    def getRegisteredUser()(implicit token: AuthToken): String = {
+      parseResponse(getRequest(apiUrl(s"register/profile")))
     }
 
     def getUser()(implicit token: AuthToken): Map[String, String] = {
