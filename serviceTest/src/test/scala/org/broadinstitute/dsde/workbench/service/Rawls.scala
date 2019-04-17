@@ -209,7 +209,7 @@ trait Rawls extends RestClient with LazyLogging {
       mapper.readTree(response).findValuesAsText("name").asScala.toList
     }
 
-    def updateAttributes(namespace: String, name: String, attributeUpdates: List[AttributeUpdateOperation])(implicit token: AuthToken): Unit = {
+    def updateAttributes(namespace: String, name: String, attributeUpdates: List[AttributeUpdateOperation])(implicit token: AuthToken): String = {
       logger.info(s"Setting attributes for workspace: $namespace/$name $attributeUpdates")
 
       // This puts the operations into a List[Map[String, String]] which gets parsed and sent along just how Rawls likes it
