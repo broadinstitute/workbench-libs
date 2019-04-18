@@ -194,6 +194,18 @@ trait Rawls extends RestClient with LazyLogging {
       logger.info(s"Updating acl for workspace $name in $namespace")
       patchRequest(url + s"api/workspaces/$namespace/$name/acl?inviteUsersNotFound=$inviteUsersNotFound", aclUpdates.map(e => e.toMap))
     }
+
+    def getAuthDomainsInWorkspace(namespace: String, name: String)(implicit token: AuthToken): List[String] = {
+      import scala.collection.JavaConverters._
+      val response = getWorkspaceDetails(namespace, name)
+      mapper.readTree(response).at("/workspace/authorizationDomain").findValuesAsText("membersGroupName").asScala.toList
+    }
+
+    def getWorkspaceNames()(implicit token: AuthToken): List[String] = {
+      import scala.collection.JavaConverters._
+      val response = list()
+      mapper.readTree(response).findValuesAsText("name").asScala.toList
+    }
   }
 
   object submissions {

@@ -18,6 +18,8 @@ trait GroupFixtures extends ExceptionHandling with LazyLogging with RandomUtil {
 
   def groupNameToEmail(groupName: String)(implicit token: AuthToken): String = Orchestration.groups.getGroup(groupName).groupEmail
 
+  def groupNameToMembersEmails(groupName: String)(implicit token: AuthToken): Seq[String] = Orchestration.groups.getGroup(groupName).membersEmails
+
   def withGroup(namePrefix: String, memberEmails: List[String] = List())
                (testCode: (String) => Any)
                (implicit token: AuthToken): Unit = {
