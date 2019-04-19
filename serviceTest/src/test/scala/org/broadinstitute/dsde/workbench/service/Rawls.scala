@@ -143,7 +143,7 @@ trait Rawls extends RestClient with LazyLogging {
 
   object entities {
 
-    def importMetaData(namespace: String, workspaceName: String, upsertJson: String)(implicit token: AuthToken): String = {
+    def importMetaData(namespace: String, workspaceName: String, upsertJson: Array[Map[String, Any]])(implicit token: AuthToken): String = {
       logger.info(s"Importing metadata: $namespace/$workspaceName $upsertJson")
       postRequest(url + s"api/workspaces/$namespace/$workspaceName/entities/batchUpsert", upsertJson)
     }
