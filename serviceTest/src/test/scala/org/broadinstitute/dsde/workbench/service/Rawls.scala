@@ -2,6 +2,7 @@ package org.broadinstitute.dsde.workbench.service
 
 import com.fasterxml.jackson.databind.JsonNode
 import com.typesafe.scalalogging.LazyLogging
+import org.broadinstitute.dsde.rawls.model.AttributeUpdateOperations.{AttributeUpdateOperation, AttributeUpdateOperationFormat}
 import org.broadinstitute.dsde.workbench.auth.AuthToken
 import org.broadinstitute.dsde.workbench.config.ServiceTestConfig
 import org.broadinstitute.dsde.workbench.fixture.Method
@@ -9,6 +10,7 @@ import org.broadinstitute.dsde.workbench.model.UserInfo
 import org.broadinstitute.dsde.workbench.service.BillingProject.BillingProjectRole._
 import org.broadinstitute.dsde.workbench.service.BillingProject._
 import org.broadinstitute.dsde.workbench.service.util.Retry
+import spray.json.JsString
 
 import scala.util.{Failure, Success, Try}
 import scala.concurrent.duration._
@@ -205,6 +207,16 @@ trait Rawls extends RestClient with LazyLogging {
       import scala.collection.JavaConverters._
       val response = list()
       mapper.readTree(response).findValuesAsText("name").asScala.toList
+    }
+
+    def updateAttributes(namespace: String, name: String, attributeUpdates: List[AttributeUpdateOperation])(implicit token: AuthToken): String = {
+      logger.info(s"Setting attributes for workspace: $namespace/$name $attributeUpdates")
+
+      // This puts the operations into a List[Map[String, String]] which gets parsed and sent along just how Rawls likes it
+      val formattedOperations = attributeUpdates.map { attributeUpdate =>
+        AttributeUpdateOperationFormat.write(attributeUpdate).asJsObject.fields.mapValues(attrVal => attrVal.asInstanceOf[JsString].value)
+      }
+      patchRequest(url + s"api/workspaces/$namespace/$name", formattedOperations)
     }
   }
 

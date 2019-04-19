@@ -1,7 +1,8 @@
 package org.broadinstitute.dsde.workbench.config
 
 import com.typesafe.config.ConfigFactory
-import scala.util.parsing.json.JSON
+import spray.json._
+import DefaultJsonProtocol._
 
 trait CommonConfig {
   protected val config = ConfigFactory.load()
@@ -10,7 +11,7 @@ trait CommonConfig {
     protected val usersConfig = config.getConfig("users")
 
     private val notSoSecretPassword = usersConfig.getString("notSoSecretPassword")
-    private val userDataJson = JSON.parseFull(scala.io.Source.fromFile(usersConfig.getString("userDataPath")).getLines.mkString).get.asInstanceOf[Map[String, Map[String,String]]]
+    private val userDataJson = scala.io.Source.fromFile(usersConfig.getString("userDataPath")).getLines().mkString.parseJson.convertTo[Map[String, Map[String, String]]]
     private def makeCredsMap(jsonMap: Map[String, String]): Map[String, Credentials] = {
       for((k,v) <- jsonMap) yield (k, Credentials(v, notSoSecretPassword))
     }
