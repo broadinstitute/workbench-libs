@@ -70,6 +70,8 @@ object Dependencies {
 
   val fs2Io: ModuleID = "co.fs2" %% "fs2-io" % "1.0.4"
 
+  val rawlsModel: ModuleID = "org.broadinstitute.dsde" %% "rawls-model" % "0.1-0d02c8ce-SNAP" exclude("com.typesafe.scala-logging", "scala-logging_2.11") exclude("com.typesafe.akka", "akka-stream_2.11")
+
   val commonDependencies = Seq(
     scalatest,
     scalaCheck
@@ -147,6 +149,7 @@ object Dependencies {
     akkaHttpSprayJson,
     akkaTestkit,
     jacksonModule,
+    rawlsModel,
     selenium
   )
 
