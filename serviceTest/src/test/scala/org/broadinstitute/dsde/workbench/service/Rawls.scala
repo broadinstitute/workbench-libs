@@ -8,12 +8,10 @@ import org.broadinstitute.dsde.workbench.config.ServiceTestConfig
 import org.broadinstitute.dsde.workbench.fixture.Method
 import org.broadinstitute.dsde.workbench.model.UserInfo
 import org.broadinstitute.dsde.workbench.service.BillingProject.BillingProjectRole._
-import org.broadinstitute.dsde.workbench.service.BillingProject._
-import org.broadinstitute.dsde.workbench.service.util.Retry
 import spray.json.JsString
 
-import scala.util.{Failure, Success, Try}
-import scala.concurrent.duration._
+import scala.util.Try
+
 
 trait Rawls extends RestClient with LazyLogging {
 
@@ -25,13 +23,13 @@ trait Rawls extends RestClient with LazyLogging {
 
   object billing {
 
-    def createBillingProject(projectName: String, billingAccount: String)(implicit token: AuthToken): Unit = {
-      logger.info(s"Creating billing project: $projectName in billing account $billingAccount")
-
+    def createBillingProject(projectName: String, billingAccount: String)(implicit token: AuthToken): String = {
+      logger.info(s"Creating billing project $projectName in billing account $billingAccount")
       postRequest(url +"api/billing", Map("projectName" -> projectName, "billingAccount" -> billingAccount))
+    }
 
-      // wait for done
-      waitUntilBillingProjectIsReady(projectName, billingAccount)
+    def getBillingProjectStatus(projectName: String)(implicit token: AuthToken): Map[String, String] = {
+      parseResponseAs[Map[String, String]](getRequest(s"${url}api/user/billing/${projectName}"))
     }
 
     def listMembersInBillingProject(projectName: String)(implicit token: AuthToken): List[Map[String, String]] = {
@@ -59,25 +57,6 @@ trait Rawls extends RestClient with LazyLogging {
       deleteRequest(s"${url}api/billing/$projectName/googleRole/$googleRole/$email")
     }
 
-    private def waitUntilBillingProjectIsReady(projectName: String, billingAccount: String)(implicit token: AuthToken): Unit = {
-      // wait for done
-      Retry.retry(30.seconds, 20.minutes)({
-        Try(responseAsList[String](parseResponse(getRequest(s"${ServiceTestConfig.FireCloud.orchApiUrl}api/profile/billing")))) match {
-          case Success(response) => response.map { p =>
-            BillingProject(p("projectName"), BillingProjectRole.withName(p("role")), BillingProjectStatus.withName(p("creationStatus")))
-          }.find(p => p.projectName == projectName && BillingProjectStatus.isTerminal(p.creationStatus))
-          case Failure(t) => logger.error(s"Billing project creation encountered an error: ${t.getStackTrace}");
-            None
-        }
-      }) match {
-        case Some(BillingProject(name, _, BillingProjectStatus.Ready)) =>
-          logger.info(s"Finished creating billing project: $name in billing account $billingAccount")
-        case Some(BillingProject(name, _, _)) =>
-          logger.info(s"Encountered an error creating billing project: $name in billing account $billingAccount")
-          throw new Exception("Billing project creation encountered an error")
-        case None => throw new Exception("Billing project creation did not complete successfully")
-      }
-    }
   }
 
   object methodConfigs {
