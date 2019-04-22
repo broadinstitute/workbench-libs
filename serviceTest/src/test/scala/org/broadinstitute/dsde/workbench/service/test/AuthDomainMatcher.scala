@@ -1,7 +1,7 @@
 package org.broadinstitute.dsde.test.util
 
 import akka.http.scaladsl.model.StatusCodes
-import org.broadinstitute.dsde.workbench.config.Credentials
+import org.broadinstitute.dsde.workbench.auth.AuthToken
 import org.broadinstitute.dsde.workbench.service.{Rawls, RestException}
 import org.scalatest.Matchers
 
@@ -18,12 +18,12 @@ object AuthDomainMatcher extends Matchers {
     * user can see the workspace in workspaces list and
     *  can see workspace detail and see expected auth-domains
     */
-  def checkVisibleAndAccessible(user: Credentials, projectName: String, workspaceName: String, authDomains: List[String]): Unit = {
+  def checkVisibleAndAccessible(projectName: String, workspaceName: String, authDomains: List[String])(implicit token: AuthToken): Unit = {
 
-    val allWorkspacenames: Seq[String] = Rawls.workspaces.getWorkspaceNames()(user.makeAuthToken())
-    allWorkspacenames should contain(workspaceName)
+    val allWorkspaceNames: Seq[String] = Rawls.workspaces.getWorkspaceNames()
+    allWorkspaceNames should contain(workspaceName)
 
-    val groups = Rawls.workspaces.getAuthDomainsInWorkspace(projectName, workspaceName)(user.makeAuthToken())
+    val groups = Rawls.workspaces.getAuthDomainsInWorkspace(projectName, workspaceName)
     groups should contain theSameElementsAs authDomains
   }
 
@@ -31,13 +31,13 @@ object AuthDomainMatcher extends Matchers {
     * user can see the workspace in workspaces list BUT
     *  cannot see workspace detail
     */
-  def checkVisibleNotAccessible(user: Credentials, projectName: String, workspaceName: String): Unit = {
+  def checkVisibleNotAccessible(projectName: String, workspaceName: String)(implicit token: AuthToken): Unit = {
 
-    val workspacenames: Seq[String] = Rawls.workspaces.getWorkspaceNames()(user.makeAuthToken())
-    workspacenames should contain(workspaceName)
+    val workspaceNames: Seq[String] = Rawls.workspaces.getWorkspaceNames()
+    workspaceNames should contain(workspaceName)
 
     val exceptionMessage = intercept[RestException] {
-      Rawls.workspaces.getWorkspaceDetails(projectName, workspaceName)(user.makeAuthToken())
+      Rawls.workspaces.getWorkspaceDetails(projectName, workspaceName)
     }
     exceptionMessage.message should include(StatusCodes.NotFound.intValue.toString)
     exceptionMessage.message should include(rawlsErrorMsg)
@@ -47,13 +47,13 @@ object AuthDomainMatcher extends Matchers {
     * user cannot see the workspace in workspaces list and
     *  cannot see workspace detail
     */
-  def checkNotVisibleNotAccessible(user: Credentials, projectName: String, workspaceName: String): Unit = {
+  def checkNotVisibleNotAccessible(projectName: String, workspaceName: String)(implicit token: AuthToken): Unit = {
 
-    val workspacenames = Rawls.workspaces.getWorkspaceNames()(user.makeAuthToken())
-    workspacenames should not contain (workspaceName)
+    val workspaceNames = Rawls.workspaces.getWorkspaceNames()
+    workspaceNames should not contain (workspaceName)
 
     val exceptionMessage = intercept[RestException] {
-      Rawls.workspaces.getWorkspaceDetails(projectName, workspaceName)(user.makeAuthToken())
+      Rawls.workspaces.getWorkspaceDetails(projectName, workspaceName)
     }
     exceptionMessage.message should include(StatusCodes.NotFound.intValue.toString)
     exceptionMessage.message should include(rawlsErrorMsg)
