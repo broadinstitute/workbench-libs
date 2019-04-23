@@ -15,7 +15,7 @@ import org.broadinstitute.dsde.workbench.service.Sam.user.UserStatusDetails
 import org.broadinstitute.dsde.workbench.service.WorkspaceAccessLevel.WorkspaceAccessLevel
 import org.broadinstitute.dsde.workbench.service.test.RandomUtil
 import org.broadinstitute.dsde.workbench.service.util.Retry
-import spray.json.{DefaultJsonProtocol, _}
+import spray.json._
 
 import scala.concurrent.duration._
 import scala.util.{Failure, Success, Try}
@@ -244,6 +244,19 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
       logger.info(s"Getting discoverable groups for workspace: $ns/$wName")
       parseResponseAs[Seq[String]](getRequest(apiUrl(s"api/library/$ns/$wName/discoverableGroups")))
     }
+
+    def getMetadata(namespace: String, workspaceName: String)(implicit token: AuthToken): String = {
+      logger.info(s"Getting library metadata for workspace: $namespace/$workspaceName")
+      parseResponse(getRequest(apiUrl(s"api/library/$namespace/$workspaceName/metadata")))
+    }
+
+    def searchPublishedLibraryDataset(namespace: String, workspaceName: String, fieldAggregations: Map[String, Any] = Map.empty,
+                                       filters: Map[String, Any] = Map.empty, researchPurpose: Map[String, Any] = Map.empty)(implicit token: AuthToken): String = {
+      logger.info(s"Searching published library dataset for workspace: $namespace/$workspaceName")
+      val request = Map("searchString" -> workspaceName, "fieldAggregations" -> fieldAggregations, "filters" -> filters, "researchPurpose" -> researchPurpose)
+      postRequest(apiUrl("api/library/search"), request)
+    }
+
   }
 
   /*
