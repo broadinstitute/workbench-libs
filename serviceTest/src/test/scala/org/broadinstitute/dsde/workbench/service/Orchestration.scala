@@ -183,6 +183,11 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
       patchRequest(apiUrl(s"api/workspaces/$namespace/$name/setAttributes"), attributes)
     }
 
+    def getStorageCostEstimate(namespace: String, name: String)(implicit token: AuthToken): String = {
+      logger.info(s"Getting storage cost estimate for workspace $namespace/$name")
+      parseResponse(getRequest(apiUrl(s"api/workspaces/$namespace/$name/storageCostEstimate")))
+    }
+
     /**
       * Sometimes access control takes a little while to propagate in google land, use this function to wait
       * for anything where bucket access is required. Specifically the launch workflow button is disabled
@@ -604,5 +609,9 @@ object OrchestrationModel {
   import DefaultJsonProtocol._
   case class ManagedGroupWithMembers(membersEmails: Seq[String], adminsEmails: Seq[String], groupEmail: String)
 
+  final case class StorageCostEstimate(estimate: String)
+
   implicit val ManagedGroupWithMembersFormat = jsonFormat3(ManagedGroupWithMembers)
+
+  implicit val StorageCostEstimateFormat = jsonFormat1(StorageCostEstimate)
 }
