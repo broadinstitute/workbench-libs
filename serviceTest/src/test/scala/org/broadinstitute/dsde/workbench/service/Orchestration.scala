@@ -609,5 +609,9 @@ object OrchestrationModel {
   import DefaultJsonProtocol._
   case class ManagedGroupWithMembers(membersEmails: Seq[String], adminsEmails: Seq[String], groupEmail: String)
 
+  final case class StorageCostEstimate(estimate: String)
+
   implicit val ManagedGroupWithMembersFormat = jsonFormat3(ManagedGroupWithMembers)
+
+  implicit val StorageCostEstimateFormat = jsonFormat1(StorageCostEstimate)
 }
