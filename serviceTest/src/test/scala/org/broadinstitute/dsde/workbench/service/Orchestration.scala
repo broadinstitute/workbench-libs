@@ -250,10 +250,20 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
       parseResponse(getRequest(apiUrl(s"api/library/$namespace/$workspaceName/metadata")))
     }
 
-    def searchPublishedLibraryDataset(namespace: String, workspaceName: String, fieldAggregations: Map[String, Any] = Map.empty,
+    def searchPublishedLibraryDataset(searchString: String, from: Int = 0, size: Int = 10, sortField: String = "",
+                                      sortDirection: String = "", fieldAggregations: Map[String, Any] = Map.empty,
                                        filters: Map[String, Any] = Map.empty, researchPurpose: Map[String, Any] = Map.empty)(implicit token: AuthToken): String = {
-      logger.info(s"Searching published library dataset for workspace: $namespace/$workspaceName")
-      val request = Map("searchString" -> workspaceName, "fieldAggregations" -> fieldAggregations, "filters" -> filters, "researchPurpose" -> researchPurpose)
+      logger.info(s"Searching published library dataset")
+      val request = Map("searchString" -> searchString,
+        "filters" -> filters,
+        "researchPurpose" -> researchPurpose,
+        "fieldAggregations" -> fieldAggregations,
+        "from" -> from,
+        "size" -> size,
+        "sortField" -> sortField,
+        "sortDirection" -> sortDirection
+      )
+
       postRequest(apiUrl("api/library/search"), request)
     }
 
