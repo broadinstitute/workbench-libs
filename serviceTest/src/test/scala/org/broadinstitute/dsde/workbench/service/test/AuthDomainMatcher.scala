@@ -4,9 +4,12 @@ import akka.http.scaladsl.model.StatusCodes
 import org.broadinstitute.dsde.workbench.auth.AuthToken
 import org.broadinstitute.dsde.workbench.service.{Rawls, RestException}
 import org.scalatest.Matchers
+import org.scalatest.concurrent.Eventually
+import org.scalatest.time.{Seconds, Span}
 
-object AuthDomainMatcher extends Matchers {
+object AuthDomainMatcher extends Matchers with Eventually {
 
+  implicit override val patienceConfig: PatienceConfig = PatienceConfig(timeout = scaled(Span(60, Seconds)), interval = scaled(Span(5, Seconds)))
 
   // NOTE:
   //  NotVisible -> Not found in workspace list
@@ -20,11 +23,15 @@ object AuthDomainMatcher extends Matchers {
     */
   def checkVisibleAndAccessible(projectName: String, workspaceName: String, authDomains: List[String])(implicit token: AuthToken): Unit = {
 
-    val allWorkspaceNames: Seq[String] = Rawls.workspaces.getWorkspaceNames()
-    allWorkspaceNames should contain(workspaceName)
+    eventually {
+      val allWorkspaceNames: Seq[String] = Rawls.workspaces.getWorkspaceNames()
+      allWorkspaceNames should contain(workspaceName)
+    }
 
-    val groups = Rawls.workspaces.getAuthDomainsInWorkspace(projectName, workspaceName)
-    groups should contain theSameElementsAs authDomains
+    eventually {
+      val groups = Rawls.workspaces.getAuthDomainsInWorkspace(projectName, workspaceName)
+      groups should contain theSameElementsAs authDomains
+    }
   }
 
   /**
@@ -33,14 +40,18 @@ object AuthDomainMatcher extends Matchers {
     */
   def checkVisibleNotAccessible(projectName: String, workspaceName: String)(implicit token: AuthToken): Unit = {
 
-    val workspaceNames: Seq[String] = Rawls.workspaces.getWorkspaceNames()
-    workspaceNames should contain(workspaceName)
-
-    val exceptionMessage = intercept[RestException] {
-      Rawls.workspaces.getWorkspaceDetails(projectName, workspaceName)
+    eventually {
+      val workspaceNames: Seq[String] = Rawls.workspaces.getWorkspaceNames()
+      workspaceNames should contain(workspaceName)
     }
-    exceptionMessage.message should include(StatusCodes.NotFound.intValue.toString)
-    exceptionMessage.message should include(rawlsErrorMsg)
+
+    eventually {
+      val exceptionMessage = intercept[RestException] {
+        Rawls.workspaces.getWorkspaceDetails(projectName, workspaceName)
+      }
+      exceptionMessage.message should include(StatusCodes.NotFound.intValue.toString)
+      exceptionMessage.message should include(rawlsErrorMsg)
+    }
   }
 
   /**
@@ -49,13 +60,18 @@ object AuthDomainMatcher extends Matchers {
     */
   def checkNotVisibleNotAccessible(projectName: String, workspaceName: String)(implicit token: AuthToken): Unit = {
 
-    val workspaceNames = Rawls.workspaces.getWorkspaceNames()
-    workspaceNames should not contain (workspaceName)
-
-    val exceptionMessage = intercept[RestException] {
-      Rawls.workspaces.getWorkspaceDetails(projectName, workspaceName)
+    eventually {
+      val workspaceNames = Rawls.workspaces.getWorkspaceNames()
+      workspaceNames should not contain (workspaceName)
     }
-    exceptionMessage.message should include(StatusCodes.NotFound.intValue.toString)
-    exceptionMessage.message should include(rawlsErrorMsg)
+
+    eventually {
+      val exceptionMessage = intercept[RestException] {
+        Rawls.workspaces.getWorkspaceDetails(projectName, workspaceName)
+      }
+      exceptionMessage.message should include(StatusCodes.NotFound.intValue.toString)
+      exceptionMessage.message should include(rawlsErrorMsg)
+    }
   }
+
 }
