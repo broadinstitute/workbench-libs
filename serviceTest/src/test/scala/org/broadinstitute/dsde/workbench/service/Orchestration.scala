@@ -16,7 +16,6 @@ import org.broadinstitute.dsde.workbench.service.WorkspaceAccessLevel.WorkspaceA
 import org.broadinstitute.dsde.workbench.service.test.RandomUtil
 import org.broadinstitute.dsde.workbench.service.util.Retry
 import spray.json._
-
 import scala.concurrent.duration._
 import scala.util.{Failure, Success, Try}
 
@@ -254,9 +253,21 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
                                       sortDirection: String = "", fieldAggregations: Map[String, Any] = Map.empty,
                                        filters: Map[String, Any] = Map.empty, researchPurpose: Map[String, Any] = Map.empty)(implicit token: AuthToken): String = {
       logger.info(s"Searching published library dataset")
+
+      // when researchPurpose is present in json body, it cannot be empty. below fields are required
+      val researchPurposeDefault = Map[String,Any](
+          "NMDS" -> false,
+          "NCTRL" -> false,
+          "NAGR" -> false,
+          "POA" -> false,
+          "NCU" -> false,
+          "DS" -> List.empty
+        )
+
+
       val request = Map("searchString" -> searchString,
         "filters" -> filters,
-        "researchPurpose" -> researchPurpose,
+        "researchPurpose" -> (if (researchPurpose.isEmpty) researchPurposeDefault else researchPurpose),
         "fieldAggregations" -> fieldAggregations,
         "from" -> from,
         "size" -> size,
