@@ -302,6 +302,11 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
       postRequest(apiUrl(s"/api/workspaces/$workspaceNamespace/$workspaceName/method_configs/$methodConfigNamespace/$methodConfigName"), methodConfigData)
     }
 
+    def deleteMethodConfig(workspaceNamespace: String, workspaceName: String, methodConfigNamespace: String, methodConfigName: String)(implicit token: AuthToken): String = {
+      logger.info(s"Deleting method config $methodConfigNamespace/$methodConfigName in workspace $workspaceNamespace/$workspaceName")
+      deleteRequest(apiUrl(s"/api/workspaces/$workspaceNamespace/$workspaceName/method_configs/$methodConfigNamespace/$methodConfigName"))
+    }
+
     def getMethodConfigPermission(configNamespace: String)(implicit token: AuthToken): String = {
       logger.info(s"Getting permissions for method config: $configNamespace")
       parseResponse(getRequest(apiUrl(s"api/configurations/$configNamespace/permissions")))
