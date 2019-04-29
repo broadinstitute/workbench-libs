@@ -297,6 +297,11 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
       postRequest(apiUrl(s"api/configurations"), methodConfigData)
     }
 
+    def editMethodConfig(workspaceNamespace: String, workspaceName: String, methodConfigNamespace: String, methodConfigName: String, methodConfigData: Map[String,Any])(implicit token: AuthToken): String = {
+      logger.info(s"Editing method config $methodConfigNamespace/$methodConfigName in workspace $workspaceNamespace/$workspaceName")
+      postRequest(apiUrl(s"/api/workspaces/$workspaceNamespace/$workspaceName/method_configs/$methodConfigNamespace/$methodConfigName"), methodConfigData)
+    }
+
     def getMethodConfigPermission(configNamespace: String)(implicit token: AuthToken): String = {
       logger.info(s"Getting permissions for method config: $configNamespace")
       parseResponse(getRequest(apiUrl(s"api/configurations/$configNamespace/permissions")))
