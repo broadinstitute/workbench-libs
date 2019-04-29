@@ -249,25 +249,24 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
       parseResponse(getRequest(apiUrl(s"api/library/$namespace/$workspaceName/metadata")))
     }
 
+    // default researchPurpose in json body.
+    private val researchPurposeDefault = Map[String,Any](
+      "NMDS" -> false,
+      "NCTRL" -> false,
+      "NAGR" -> false,
+      "POA" -> false,
+      "NCU" -> false,
+      "DS" -> List.empty
+    )
+
     def searchPublishedLibraryDataset(searchString: String, from: Int = 0, size: Int = 10, sortField: String = "",
                                       sortDirection: String = "", fieldAggregations: Map[String, Any] = Map.empty,
-                                       filters: Map[String, Any] = Map.empty, researchPurpose: Map[String, Any] = Map.empty)(implicit token: AuthToken): String = {
+                                       filters: Map[String, Any] = Map.empty, researchPurpose: Map[String, Any] = researchPurposeDefault)(implicit token: AuthToken): String = {
       logger.info(s"Searching published library dataset")
-
-      // when researchPurpose is present in json body, it cannot be empty. below fields are required
-      val researchPurposeDefault = Map[String,Any](
-          "NMDS" -> false,
-          "NCTRL" -> false,
-          "NAGR" -> false,
-          "POA" -> false,
-          "NCU" -> false,
-          "DS" -> List.empty
-        )
-
 
       val request = Map("searchString" -> searchString,
         "filters" -> filters,
-        "researchPurpose" -> (if (researchPurpose.isEmpty) researchPurposeDefault else researchPurpose),
+        "researchPurpose" -> researchPurpose,
         "fieldAggregations" -> fieldAggregations,
         "from" -> from,
         "size" -> size,
