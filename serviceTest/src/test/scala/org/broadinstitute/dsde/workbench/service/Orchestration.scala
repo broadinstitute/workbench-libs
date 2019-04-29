@@ -324,6 +324,11 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
       postRequest(apiUrl(s"api/methods"), methodData)
     }
 
+    def getMethod(namespace: String, name: String, snapshotId: Int)(implicit token: AuthToken): String = {
+      logger.info(s"Getting method $namespace/$name, snapshot $snapshotId")
+      parseResponse(getRequest(apiUrl(s"api/configurations/$namespace/$name/$snapshotId")))
+    }
+
     def redact(method: Method)(implicit token: AuthToken): Unit = {
       redact(method.methodNamespace, method.methodName, method.snapshotId)
     }
