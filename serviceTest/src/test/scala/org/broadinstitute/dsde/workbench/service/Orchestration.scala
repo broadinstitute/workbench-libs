@@ -15,8 +15,7 @@ import org.broadinstitute.dsde.workbench.service.Sam.user.UserStatusDetails
 import org.broadinstitute.dsde.workbench.service.WorkspaceAccessLevel.WorkspaceAccessLevel
 import org.broadinstitute.dsde.workbench.service.test.RandomUtil
 import org.broadinstitute.dsde.workbench.service.util.Retry
-import spray.json.{DefaultJsonProtocol, _}
-
+import spray.json._
 import scala.concurrent.duration._
 import scala.util.{Failure, Success, Try}
 
@@ -244,6 +243,40 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
       logger.info(s"Getting discoverable groups for workspace: $ns/$wName")
       parseResponseAs[Seq[String]](getRequest(apiUrl(s"api/library/$ns/$wName/discoverableGroups")))
     }
+
+    def getMetadata(namespace: String, workspaceName: String)(implicit token: AuthToken): String = {
+      logger.info(s"Getting library metadata for workspace: $namespace/$workspaceName")
+      parseResponse(getRequest(apiUrl(s"api/library/$namespace/$workspaceName/metadata")))
+    }
+
+    // default researchPurpose in json body.
+    private val researchPurposeDefault = Map[String,Any](
+      "NMDS" -> false,
+      "NCTRL" -> false,
+      "NAGR" -> false,
+      "POA" -> false,
+      "NCU" -> false,
+      "DS" -> List.empty
+    )
+
+    def searchPublishedLibraryDataset(searchString: String, from: Int = 0, size: Int = 10, sortField: String = "",
+                                      sortDirection: String = "", fieldAggregations: Map[String, Any] = Map.empty,
+                                       filters: Map[String, Any] = Map.empty, researchPurpose: Map[String, Any] = researchPurposeDefault)(implicit token: AuthToken): String = {
+      logger.info(s"Searching published library dataset")
+
+      val request = Map("searchString" -> searchString,
+        "filters" -> filters,
+        "researchPurpose" -> researchPurpose,
+        "fieldAggregations" -> fieldAggregations,
+        "from" -> from,
+        "size" -> size,
+        "sortField" -> sortField,
+        "sortDirection" -> sortDirection
+      )
+
+      postRequest(apiUrl("api/library/search"), request)
+    }
+
   }
 
   /*
