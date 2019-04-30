@@ -330,6 +330,16 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
       postRequest(apiUrl(s"api/configurations"), methodConfigData)
     }
 
+    def editMethodConfig(workspaceNamespace: String, workspaceName: String, methodConfigNamespace: String, methodConfigName: String, methodConfigData: Map[String,Any])(implicit token: AuthToken): String = {
+      logger.info(s"Editing method config $methodConfigNamespace/$methodConfigName in workspace $workspaceNamespace/$workspaceName")
+      postRequest(apiUrl(s"/api/workspaces/$workspaceNamespace/$workspaceName/method_configs/$methodConfigNamespace/$methodConfigName"), methodConfigData)
+    }
+
+    def deleteMethodConfig(workspaceNamespace: String, workspaceName: String, methodConfigNamespace: String, methodConfigName: String)(implicit token: AuthToken): String = {
+      logger.info(s"Deleting method config $methodConfigNamespace/$methodConfigName in workspace $workspaceNamespace/$workspaceName")
+      deleteRequest(apiUrl(s"/api/workspaces/$workspaceNamespace/$workspaceName/method_configs/$methodConfigNamespace/$methodConfigName"))
+    }
+
     def getMethodConfigPermission(configNamespace: String)(implicit token: AuthToken): String = {
       logger.info(s"Getting permissions for method config: $configNamespace")
       parseResponse(getRequest(apiUrl(s"api/configurations/$configNamespace/permissions")))
@@ -355,6 +365,11 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
     def createMethod(methodData: Map[String,Any])(implicit token: AuthToken): Unit = {
       logger.info(s"Adding a method: $methodData")
       postRequest(apiUrl(s"api/methods"), methodData)
+    }
+
+    def getMethod(namespace: String, name: String, snapshotId: Int)(implicit token: AuthToken): String = {
+      logger.info(s"Getting method $namespace/$name, snapshot $snapshotId")
+      parseResponse(getRequest(apiUrl(s"api/configurations/$namespace/$name/$snapshotId")))
     }
 
     def redact(method: Method)(implicit token: AuthToken): Unit = {
