@@ -10,7 +10,7 @@ import org.scalatest.time.{Seconds, Span}
 
 object AuthDomainMatcher extends Matchers with Eventually {
 
-  implicit override val patienceConfig: PatienceConfig = PatienceConfig(timeout = scaled(Span(120, Seconds)), interval = scaled(Span(5, Seconds)))
+  implicit override val patienceConfig: PatienceConfig = PatienceConfig(timeout = scaled(Span(300, Seconds)), interval = scaled(Span(5, Seconds)))
 
   // NOTE:
   //  NotVisible -> Not found in workspace list
