@@ -4,12 +4,13 @@ import akka.http.scaladsl.model.StatusCodes
 import org.broadinstitute.dsde.workbench.auth.AuthToken
 import org.broadinstitute.dsde.workbench.service.{Rawls, RestException}
 import org.scalatest.Matchers
+import org.scalatest.MustMatchers.convertToAnyMustWrapper
 import org.scalatest.concurrent.Eventually
 import org.scalatest.time.{Seconds, Span}
 
 object AuthDomainMatcher extends Matchers with Eventually {
 
-  implicit override val patienceConfig: PatienceConfig = PatienceConfig(timeout = scaled(Span(60, Seconds)), interval = scaled(Span(5, Seconds)))
+  implicit override val patienceConfig: PatienceConfig = PatienceConfig(timeout = scaled(Span(150, Seconds)), interval = scaled(Span(5, Seconds)))
 
   // NOTE:
   //  NotVisible -> Not found in workspace list
@@ -25,12 +26,12 @@ object AuthDomainMatcher extends Matchers with Eventually {
 
     eventually {
       val allWorkspaceNames: Seq[String] = Rawls.workspaces.getWorkspaceNames()
-      allWorkspaceNames should contain(workspaceName)
+      allWorkspaceNames must contain(workspaceName)
     }
 
     eventually {
       val groups = Rawls.workspaces.getAuthDomainsInWorkspace(projectName, workspaceName)
-      groups should contain theSameElementsAs authDomains
+      groups must contain theSameElementsAs authDomains
     }
   }
 
@@ -42,15 +43,15 @@ object AuthDomainMatcher extends Matchers with Eventually {
 
     eventually {
       val workspaceNames: Seq[String] = Rawls.workspaces.getWorkspaceNames()
-      workspaceNames should contain(workspaceName)
+      workspaceNames must contain(workspaceName)
     }
 
     eventually {
       val exceptionMessage = intercept[RestException] {
         Rawls.workspaces.getWorkspaceDetails(projectName, workspaceName)
       }
-      exceptionMessage.message should include(StatusCodes.NotFound.intValue.toString)
-      exceptionMessage.message should include(rawlsErrorMsg)
+      exceptionMessage.message must include(StatusCodes.NotFound.intValue.toString)
+      exceptionMessage.message must include(rawlsErrorMsg)
     }
   }
 
@@ -62,15 +63,15 @@ object AuthDomainMatcher extends Matchers with Eventually {
 
     eventually {
       val workspaceNames = Rawls.workspaces.getWorkspaceNames()
-      workspaceNames should not contain (workspaceName)
+      workspaceNames must not contain (workspaceName)
     }
 
     eventually {
       val exceptionMessage = intercept[RestException] {
         Rawls.workspaces.getWorkspaceDetails(projectName, workspaceName)
       }
-      exceptionMessage.message should include(StatusCodes.NotFound.intValue.toString)
-      exceptionMessage.message should include(rawlsErrorMsg)
+      exceptionMessage.message must include(StatusCodes.NotFound.intValue.toString)
+      exceptionMessage.message must include(rawlsErrorMsg)
     }
   }
 
