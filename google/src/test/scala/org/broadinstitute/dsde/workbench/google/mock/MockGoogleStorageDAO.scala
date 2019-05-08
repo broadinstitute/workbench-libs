@@ -18,6 +18,7 @@ import scala.concurrent.{ExecutionContext, Future}
   */
 class MockGoogleStorageDAO(  implicit val executionContext: ExecutionContext ) extends GoogleStorageDAO {
   val buckets: TrieMap[GcsBucketName, Set[(GcsObjectName, ByteArrayInputStream)]] = TrieMap()
+  val bucketRPs: TrieMap[GcsBucketName, Boolean] = TrieMap()
 
   override def createBucket(billingProject: GoogleProject, bucketName: GcsBucketName, readers: List[GcsEntity] = List.empty, owners: List[GcsEntity] = List.empty): Future[GcsBucketName] = {
     buckets.putIfAbsent(bucketName, Set.empty)
@@ -31,6 +32,14 @@ class MockGoogleStorageDAO(  implicit val executionContext: ExecutionContext ) e
   override def deleteBucket(bucketName: GcsBucketName, recurse: Boolean): Future[Unit] = {
     buckets.remove(bucketName)
     Future.successful(())
+  }
+
+  override def getRequesterPays(bucketName: GcsBucketName): Future[Boolean] = {
+    Future.successful(bucketRPs.getOrElseUpdate(bucketName, false))
+  }
+
+  override def setRequesterPays(bucketName: GcsBucketName, requesterPays: Boolean): Future[Unit] = {
+    Future.successful(bucketRPs.update(bucketName, requesterPays))
   }
 
   override def bucketExists(bucketName: GcsBucketName): Future[Boolean] = {
