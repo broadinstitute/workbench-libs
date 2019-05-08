@@ -129,7 +129,7 @@ object Settings {
   val googleSettings = only212 ++ commonSettings ++ List(
     name := "workbench-google",
     libraryDependencies ++= googleDependencies,
-    version := createVersion("0.18"),
+    version := createVersion("0.19"),
     coverageExcludedPackages := ".*HttpGoogle.*DAO.*"
   ) ++ publishSettings
 
@@ -142,7 +142,7 @@ object Settings {
   val serviceTestSettings = only212 ++ commonSettings ++ List(
     name := "workbench-service-test",
     libraryDependencies ++= serviceTestDependencies,
-    version := createVersion("0.16")
+    version := createVersion("0.17")
   ) ++ publishSettings
 
   val notificationsSettings = only212 ++ commonSettings ++ List(
