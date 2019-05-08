@@ -111,6 +111,25 @@ class HttpGoogleStorageDAO(appName: String,
     }
   }
 
+  override def getRequesterPays(bucketName: GcsBucketName): Future[Boolean] = {
+    retryWhen500orGoogleError(() => {
+      executeGoogleRequest(storage.buckets().get(bucketName.value))
+    }) map { bucketDetails =>
+      //getRequesterPays may also return Java null, and simply using map here returns Some(null) because lol
+      //also without explicitly specifying Option[java.lang.Boolean] scala will both forget the type of getRequesterPays
+      //and then attempt to cast a Java null to a scala Boolean and get an NPE as a result.
+      //exists at the end here is syntactic sugar for .map(_.booleanValue).getOrElse(false)
+      Option(bucketDetails.getBilling).flatMap(billing => Option[java.lang.Boolean](billing.getRequesterPays)).exists(_.booleanValue)
+    }
+  }
+
+  override def setRequesterPays(bucketName: GcsBucketName, requesterPays: Boolean): Future[Unit] = {
+    val bucket = new Bucket().setBilling(new Bucket.Billing().setRequesterPays(requesterPays))
+    retryWhen500orGoogleError(() => {
+        executeGoogleRequest(storage.buckets().patch(bucketName.value, bucket))
+    })
+  }
+
   override def storeObject(bucketName: GcsBucketName, objectName: GcsObjectName, objectContents: ByteArrayInputStream, objectType: String): Future[Unit] = {
     storeObject(bucketName, objectName, new InputStreamContent(objectType, objectContents))
   }

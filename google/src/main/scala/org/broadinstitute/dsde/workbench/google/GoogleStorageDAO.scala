@@ -17,6 +17,9 @@ trait GoogleStorageDAO {
   def deleteBucket(bucketName: GcsBucketName, recurse: Boolean): Future[Unit]
   def bucketExists(bucketName: GcsBucketName): Future[Boolean]
 
+  def getRequesterPays(bucketName: GcsBucketName): Future[Boolean]
+  def setRequesterPays(bucketName: GcsBucketName, requesterPays: Boolean): Future[Unit]
+
   def storeObject(bucketName: GcsBucketName, objectName: GcsObjectName, objectContents: ByteArrayInputStream, objectType: String): Future[Unit]
   def storeObject(bucketName: GcsBucketName, objectName: GcsObjectName, objectContents: String, objectType: String): Future[Unit] = {
     storeObject(bucketName, objectName, new ByteArrayInputStream(objectContents.getBytes("UTF-8")), objectType)
