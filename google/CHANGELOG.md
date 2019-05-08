@@ -2,9 +2,16 @@
 
 This file documents changes to the `workbench-google` library, including notes on how to upgrade to new versions.
 
+## 0.19
+
+SBT dependency: SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.19-TRAVIS-REPLACE-ME"`
+
+### Added
+- Get/set bucket requester pays functionality to `GoogleStorageDAO`
+
 ## 0.18
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util" % "0.18-5941525"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.18-5941525"`
 
 ### Changed
 - Moved `SamModel`
