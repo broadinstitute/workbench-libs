@@ -2,6 +2,13 @@
 
 This file documents changes to the `workbench-service-test` library, including notes on how to upgrade to new versions.
 
+## 0.17
+
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "0.17-TRAVIS-REPLACE-ME"`
+
+### Added
+- add Rawls get/set requester pays on workspace buckets
+
 ## 0.16
 
 SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "0.16-56c9393"`

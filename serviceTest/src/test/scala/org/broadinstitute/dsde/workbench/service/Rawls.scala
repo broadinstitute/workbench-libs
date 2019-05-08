@@ -166,6 +166,16 @@ trait Rawls extends RestClient with LazyLogging {
       mapper.readTree(response).at("/workspace/bucketName").asText()
     }
 
+    def getBucketRequesterPays(namespace: String, name: String)(implicit token: AuthToken): Boolean = {
+      val response = parseResponse(getRequest(url + s"api/workspaces/$namespace/$name/requesterPays"))
+      mapper.readTree(response).at("requesterPays").asBoolean()
+    }
+
+    def setBucketRequesterPays(namespace: String, name: String, rqPays: Boolean)(implicit token: AuthToken): Unit = {
+      val request = Map("requesterPays" -> rqPays)
+      patchRequest(url + s"api/workspaces/$namespace/$name/requesterPays", request)
+    }
+
     def getWorkflowCollectionName(namespace: String, name: String)(implicit token: AuthToken): String = {
       val response = parseResponse(getRequest(url + s"api/workspaces/$namespace/$name"))
       mapper.readTree(response).at("/workspace/workflowCollectionName").asText()
