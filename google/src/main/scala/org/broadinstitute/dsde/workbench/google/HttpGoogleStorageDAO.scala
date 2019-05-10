@@ -10,6 +10,7 @@ import akka.http.scaladsl.model.headers.OAuth2BearerToken
 import akka.http.scaladsl.model.{StatusCodes, _}
 import akka.stream.ActorMaterializer
 import cats.implicits._
+import com.google.api.client.googleapis.json.GoogleJsonResponseException
 import com.google.api.client.http.{AbstractInputStreamContent, FileContent, HttpResponseException, InputStreamContent}
 import com.google.api.services.compute.ComputeScopes
 import com.google.api.services.plus.PlusScopes
@@ -21,7 +22,7 @@ import org.broadinstitute.dsde.workbench.google.GoogleCredentialModes._
 import org.broadinstitute.dsde.workbench.metrics.GoogleInstrumentedService
 import org.broadinstitute.dsde.workbench.model.WorkbenchEmail
 import org.broadinstitute.dsde.workbench.model.google.GcsLifecycleTypes.{Delete, GcsLifecycleType}
-import org.broadinstitute.dsde.workbench.model.google.GcsRoles.{GcsRole, Reader, Owner}
+import org.broadinstitute.dsde.workbench.model.google.GcsRoles.{GcsRole, Owner, Reader}
 import org.broadinstitute.dsde.workbench.model.google._
 
 import scala.collection.JavaConverters._
@@ -112,9 +113,15 @@ class HttpGoogleStorageDAO(appName: String,
   }
 
   override def getRequesterPays(bucketName: GcsBucketName): Future[Boolean] = {
-    retryWhen500orGoogleError(() => {
+    val bucketF = retryWithRecoverWhen500orGoogleError {() => {
       executeGoogleRequest(storage.buckets().get(bucketName.value))
-    }) map { bucketDetails =>
+      }
+    } {
+      case e: GoogleJsonResponseException if e.getDetails.getMessage.startsWith("Bucket is requester pays") =>
+        executeGoogleRequest(storage.buckets().get(bucketName.value).setUserProject("whats-this-variable")) //FIXME
+    }
+
+    bucketF map { bucketDetails =>
       //getRequesterPays may also return Java null, and simply using map here returns Some(null) because lol
       //also without explicitly specifying Option[java.lang.Boolean] scala will both forget the type of getRequesterPays
       //and then attempt to cast a Java null to a scala Boolean and get an NPE as a result.
