@@ -139,6 +139,12 @@ object Settings {
     version := createVersion("0.2")
   ) ++ publishSettings
 
+  val newrelicSettings = only212 ++ commonSettings ++ List(
+    name := "workbench-newrelic",
+    libraryDependencies ++= newrelicDependencies,
+    version := createVersion("0.1")
+  ) ++ publishSettings
+
   val serviceTestSettings = only212 ++ commonSettings ++ List(
     name := "workbench-service-test",
     libraryDependencies ++= serviceTestDependencies,

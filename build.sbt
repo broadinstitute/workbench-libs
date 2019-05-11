@@ -31,6 +31,10 @@ lazy val workbenchGoogle2 = project.in(file("google2"))
   .dependsOn(workbenchModel)
   .withTestSettings
 
+lazy val workbenchNewrelic = project.in(file("newrelic"))
+  .settings(newrelicSettings:_*)
+  .withTestSettings
+
 lazy val workbenchServiceTest = project.in(file("serviceTest"))
   .settings(serviceTestSettings:_*)
   .dependsOn(workbenchModel % testAndCompile)
