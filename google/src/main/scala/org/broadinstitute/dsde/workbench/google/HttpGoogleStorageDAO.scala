@@ -11,27 +11,29 @@ import akka.http.scaladsl.model.{StatusCodes, _}
 import akka.stream.ActorMaterializer
 import cats.implicits._
 import com.google.api.client.googleapis.json.GoogleJsonResponseException
+import com.google.api.client.googleapis.services.AbstractGoogleClientRequest
 import com.google.api.client.http.{AbstractInputStreamContent, FileContent, HttpResponseException, InputStreamContent}
 import com.google.api.services.compute.ComputeScopes
 import com.google.api.services.plus.PlusScopes
 import com.google.api.services.storage.model.Bucket.Lifecycle
 import com.google.api.services.storage.model.Bucket.Lifecycle.Rule.{Action, Condition}
 import com.google.api.services.storage.model._
-import com.google.api.services.storage.{Storage, StorageScopes}
+import com.google.api.services.storage.{Storage, StorageRequest, StorageScopes}
 import org.broadinstitute.dsde.workbench.google.GoogleCredentialModes._
-import org.broadinstitute.dsde.workbench.metrics.GoogleInstrumentedService
+import org.broadinstitute.dsde.workbench.metrics.{GoogleInstrumentedService, Histogram}
 import org.broadinstitute.dsde.workbench.model.WorkbenchEmail
 import org.broadinstitute.dsde.workbench.model.google.GcsLifecycleTypes.{Delete, GcsLifecycleType}
 import org.broadinstitute.dsde.workbench.model.google.GcsRoles.{GcsRole, Owner, Reader}
 import org.broadinstitute.dsde.workbench.model.google._
 
 import scala.collection.JavaConverters._
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{ExecutionContext, Future, blocking}
 
 class HttpGoogleStorageDAO(appName: String,
                            googleCredentialMode: GoogleCredentialMode,
                            workbenchMetricBaseName: String,
-                           maxPageSize: Long = 1000)
+                           maxPageSize: Long = 1000,
+                           gcsRequesterPaysProject: Option[GoogleProject] = None)
                           (implicit system: ActorSystem, executionContext: ExecutionContext)
   extends AbstractHttpGoogleDAO(appName, googleCredentialMode, workbenchMetricBaseName) with GoogleStorageDAO {
 
@@ -52,6 +54,10 @@ class HttpGoogleStorageDAO(appName: String,
     new Storage.Builder(httpTransport, jsonFactory, googleCredential).setApplicationName(appName).build()
   }
 
+  def shouldRetryWithRequesterPays(exc: GoogleJsonResponseException): Boolean = {
+    exc.getDetails.getMessage.startsWith("Bucket is requester pays") && gcsRequesterPaysProject.isDefined
+  }
+
   override def createBucket(billingProject: GoogleProject, bucketName: GcsBucketName, readers: List[GcsEntity] = List.empty, owners: List[GcsEntity] = List.empty): Future[GcsBucketName] = {
     val bucketAcl = readers.map(entity => new BucketAccessControl().setEntity(entity.toString).setRole(Reader.value)) ++ owners.map(entity => new BucketAccessControl().setEntity(entity.toString).setRole(Owner.value))
     val defaultBucketObjectAcl = readers.map(entity => new ObjectAccessControl().setEntity(entity.toString).setRole(Reader.value)) ++ owners.map(entity => new ObjectAccessControl().setEntity(entity.toString).setRole(Owner.value))
@@ -69,9 +75,13 @@ class HttpGoogleStorageDAO(appName: String,
   }
 
   override def getBucket(bucketName: GcsBucketName): Future[Bucket] = {
-    retryWhen500orGoogleError(() => {
-      executeGoogleRequest(storage.buckets().get(bucketName.value))
-    })
+    val getter = storage.buckets().get(bucketName.value)
+    retryWithRecoverWhen500orGoogleError(() => {
+      executeGoogleRequest(getter)
+    }) {
+      case e: GoogleJsonResponseException if shouldRetryWithRequesterPays(e) =>
+        executeGoogleRequest(getter.setUserProject(gcsRequesterPaysProject.get.value))
+    }
   }
 
   override def deleteBucket(bucketName: GcsBucketName, recurse: Boolean): Future[Unit] = {
@@ -82,6 +92,8 @@ class HttpGoogleStorageDAO(appName: String,
         Option(executeGoogleRequest(listObjectsRequest))
       } {
         case e: HttpResponseException if e.getStatusCode == StatusCodes.NotFound.intValue => None
+        case e: GoogleJsonResponseException if shouldRetryWithRequesterPays(e) =>
+          Option(executeGoogleRequest(listObjectsRequest.setUserProject(gcsRequesterPaysProject.get.value)))
       }.flatMap { objects =>
         // Handle null responses from Google
         val items = objects.flatMap(objs => Option(objs.getItems)).map(_.asScala).getOrElse(Seq.empty)
@@ -98,6 +110,8 @@ class HttpGoogleStorageDAO(appName: String,
         ()
       } {
         case e: HttpResponseException if e.getStatusCode == StatusCodes.NotFound.intValue => ()
+        case e: GoogleJsonResponseException if shouldRetryWithRequesterPays(e) =>
+          executeGoogleRequest(deleteBucketRequest.setUserProject(gcsRequesterPaysProject.get.value))
       }
     }
   }
@@ -109,16 +123,20 @@ class HttpGoogleStorageDAO(appName: String,
       true
     } {
       case e: HttpResponseException if e.getStatusCode == StatusCodes.NotFound.intValue => false
+      case e: GoogleJsonResponseException if shouldRetryWithRequesterPays(e) =>
+        executeGoogleRequest(getter.setUserProject(gcsRequesterPaysProject.get.value))
+        true
     }
   }
 
   override def getRequesterPays(bucketName: GcsBucketName): Future[Boolean] = {
+    val getter = storage.buckets().get(bucketName.value)
     val bucketF = retryWithRecoverWhen500orGoogleError {() => {
-      executeGoogleRequest(storage.buckets().get(bucketName.value))
+      executeGoogleRequest(getter)
       }
     } {
-      case e: GoogleJsonResponseException if e.getDetails.getMessage.startsWith("Bucket is requester pays") =>
-        executeGoogleRequest(storage.buckets().get(bucketName.value).setUserProject("whats-this-variable")) //FIXME
+      case e: GoogleJsonResponseException if shouldRetryWithRequesterPays(e) =>
+        executeGoogleRequest(getter.setUserProject(gcsRequesterPaysProject.get.value))
     }
 
     bucketF map { bucketDetails =>
@@ -132,9 +150,13 @@ class HttpGoogleStorageDAO(appName: String,
 
   override def setRequesterPays(bucketName: GcsBucketName, requesterPays: Boolean): Future[Unit] = {
     val bucket = new Bucket().setBilling(new Bucket.Billing().setRequesterPays(requesterPays))
-    retryWhen500orGoogleError(() => {
-        executeGoogleRequest(storage.buckets().patch(bucketName.value, bucket))
-    })
+    val patcher = storage.buckets().patch(bucketName.value, bucket)
+    retryWithRecoverWhen500orGoogleError(() => {
+      executeGoogleRequest(patcher)
+    }) {
+      case e: GoogleJsonResponseException if shouldRetryWithRequesterPays(e) =>
+        executeGoogleRequest(patcher.setUserProject(gcsRequesterPaysProject.get.value))
+    }.void
   }
 
   override def storeObject(bucketName: GcsBucketName, objectName: GcsObjectName, objectContents: ByteArrayInputStream, objectType: String): Future[Unit] = {
@@ -150,25 +172,38 @@ class HttpGoogleStorageDAO(appName: String,
     val inserter = storage.objects().insert(bucketName.value, storageObject, content)
     inserter.getMediaHttpUploader.setDirectUploadEnabled(true)
 
-    retryWhen500orGoogleError(() => {
+    retryWithRecoverWhen500orGoogleError(() => {
       executeGoogleRequest(inserter)
-    })
+    }) {
+      case e: GoogleJsonResponseException if shouldRetryWithRequesterPays(e) =>
+        executeGoogleRequest(inserter.setUserProject(gcsRequesterPaysProject.get.value))
+    }.void
+  }
+
+  private def generateGetObjectGetter(bucketName: GcsBucketName, objectName: GcsObjectName) = {
+    val getter = storage.objects().get(bucketName.value, objectName.value)
+    getter.getMediaHttpDownloader.setDirectDownloadEnabled(true)
+    val objectBytes = new ByteArrayOutputStream()
+    getter.executeMediaAndDownloadTo(objectBytes)
+    (getter, objectBytes)
   }
 
   override def getObject(bucketName: GcsBucketName, objectName: GcsObjectName): Future[Option[ByteArrayOutputStream]] = {
-    val getter = storage.objects().get(bucketName.value, objectName.value)
-    getter.getMediaHttpDownloader.setDirectDownloadEnabled(true)
-
-    retryWhen500orGoogleError(() => {
+    retryWithRecoverWhen500orGoogleError(() => {
       try {
-        val objectBytes = new ByteArrayOutputStream()
-        getter.executeMediaAndDownloadTo(objectBytes)
+        val (getter, objectBytes) = generateGetObjectGetter(bucketName, objectName)
         executeGoogleRequest(getter)
         Option(objectBytes)
       } catch {
         case t: HttpResponseException if t.getStatusCode == StatusCodes.NotFound.intValue => None
       }
-    })
+    }) {
+      case e: GoogleJsonResponseException if shouldRetryWithRequesterPays(e) =>
+        val (getter, objectBytes) = generateGetObjectGetter(bucketName, objectName)
+        getter.setUserProject(gcsRequesterPaysProject.get.value)
+        executeGoogleRequest(getter)
+        Option(objectBytes)
+    }
   }
 
   override def objectExists(bucketName: GcsBucketName, objectName: GcsObjectName): Future[Boolean] = {
@@ -178,6 +213,9 @@ class HttpGoogleStorageDAO(appName: String,
       true
     } {
       case t: HttpResponseException if t.getStatusCode == StatusCodes.NotFound.intValue => false
+      case e: GoogleJsonResponseException if shouldRetryWithRequesterPays(e) =>
+        executeGoogleRequest(getter.setUserProject(gcsRequesterPaysProject.get.value))
+        true
     }
   }
 
@@ -244,12 +282,17 @@ class HttpGoogleStorageDAO(appName: String,
         Option(executeGoogleRequest(fetcher))
       }) {
         case e: HttpResponseException if e.getStatusCode == StatusCodes.NotFound.intValue => None
+        case e: GoogleJsonResponseException if shouldRetryWithRequesterPays(e) =>
+          Option(executeGoogleRequest(fetcher.setUserProject(gcsRequesterPaysProject.get.value)))
       }.flatMap(firstPage => listObjectsRecursive(fetcher, firstPage.map(List(_))))
 
       // the head is the Objects object of the prior request which contains next page token
-      case Some(head :: _) if head.getNextPageToken != null => retryWhen500orGoogleError(() => {
+      case Some(head :: _) if head.getNextPageToken != null => retryWithRecoverWhen500orGoogleError(() => {
         executeGoogleRequest(fetcher.setPageToken(head.getNextPageToken))
-      }).flatMap(nextPage => listObjectsRecursive(fetcher, accumulated.map(pages => nextPage :: pages)))
+      }) {
+        case e: GoogleJsonResponseException if shouldRetryWithRequesterPays(e) =>
+          executeGoogleRequest(fetcher.setPageToken(head.getNextPageToken).setUserProject(gcsRequesterPaysProject.get.value))
+      }.flatMap(nextPage => listObjectsRecursive(fetcher, accumulated.map(pages => nextPage :: pages)))
 
       // when accumulated is None (bucket does not exist) or next page token is null
       case _ => Future.successful(accumulated)
@@ -264,6 +307,9 @@ class HttpGoogleStorageDAO(appName: String,
       ()
     } {
       case e: HttpResponseException if e.getStatusCode == StatusCodes.NotFound.intValue => ()
+      case e: GoogleJsonResponseException if shouldRetryWithRequesterPays(e) =>
+        executeGoogleRequest(remover.setUserProject(gcsRequesterPaysProject.get.value))
+        ()
     }
   }
 
@@ -272,23 +318,34 @@ class HttpGoogleStorageDAO(appName: String,
     val bucket = new Bucket().setName(bucketName.value).setLifecycle(new Lifecycle().setRule(List(lifecycle).asJava))
     val updater = storage.buckets().update(bucketName.value, bucket)
 
-    retryWhen500orGoogleError(() => {
+    retryWithRecoverWhen500orGoogleError(() => {
       executeGoogleRequest(updater)
-    })
-  }
+    }) {
+      case e: GoogleJsonResponseException if shouldRetryWithRequesterPays(e) =>
+        executeGoogleRequest(updater.setUserProject(gcsRequesterPaysProject.get.value))
+    }
+  }.void
 
   override def copyObject(srcBucketName: GcsBucketName, srcObjectName: GcsObjectName, destBucketName: GcsBucketName, destObjectName: GcsObjectName): Future[Unit] = {
     val copier = storage.objects().copy(srcBucketName.value, srcObjectName.value, destBucketName.value, destObjectName.value, new StorageObject())
-    retryWhen500orGoogleError(() => {
+    retryWithRecoverWhen500orGoogleError(() => {
       executeGoogleRequest(copier)
-    })
+    }) {
+      case e: GoogleJsonResponseException if shouldRetryWithRequesterPays(e) =>
+        executeGoogleRequest(copier.setUserProject(gcsRequesterPaysProject.get.value))
+    }.void
   }
 
   override def setBucketAccessControl(bucketName: GcsBucketName, entity: GcsEntity, role: GcsRole): Future[Unit] = {
     val acl = new BucketAccessControl().setEntity(entity.toString).setRole(role.value)
     val inserter = storage.bucketAccessControls().insert(bucketName.value, acl)
 
-    retryWhen500orGoogleError(() => executeGoogleRequest(inserter)).void
+    retryWithRecoverWhen500orGoogleError(
+      () => executeGoogleRequest(inserter)
+    ){
+      case e: GoogleJsonResponseException if shouldRetryWithRequesterPays(e) =>
+        executeGoogleRequest(inserter.setUserProject(gcsRequesterPaysProject.get.value))
+    }.void
   }
 
   override def removeBucketAccessControl(bucketName: GcsBucketName, entity: GcsEntity): Future[Unit] = {
@@ -299,6 +356,9 @@ class HttpGoogleStorageDAO(appName: String,
       ()
     } {
       case e: HttpResponseException if e.getStatusCode == StatusCodes.NotFound.intValue => ()
+      case e: GoogleJsonResponseException if shouldRetryWithRequesterPays(e) =>
+        executeGoogleRequest(deleter.setUserProject(gcsRequesterPaysProject.get.value))
+        ()
     }
   }
 
@@ -306,7 +366,12 @@ class HttpGoogleStorageDAO(appName: String,
     val acl = new ObjectAccessControl().setEntity(entity.toString).setRole(role.value)
     val inserter = storage.objectAccessControls().insert(bucketName.value, objectName.value, acl)
 
-    retryWhen500orGoogleError(() => executeGoogleRequest(inserter)).void
+    retryWithRecoverWhen500orGoogleError(() =>
+      executeGoogleRequest(inserter)
+    ) {
+      case e: GoogleJsonResponseException if shouldRetryWithRequesterPays(e) =>
+        executeGoogleRequest(inserter.setUserProject(gcsRequesterPaysProject.get.value))
+    }.void
   }
 
   override def removeObjectAccessControl(bucketName: GcsBucketName, objectName: GcsObjectName, entity: GcsEntity): Future[Unit] = {
@@ -317,6 +382,8 @@ class HttpGoogleStorageDAO(appName: String,
       ()
     } {
       case e: HttpResponseException if e.getStatusCode == StatusCodes.NotFound.intValue => ()
+      case e: GoogleJsonResponseException if shouldRetryWithRequesterPays(e) =>
+        executeGoogleRequest(deleter.setUserProject(gcsRequesterPaysProject.get.value))
     }
   }
 
@@ -324,7 +391,12 @@ class HttpGoogleStorageDAO(appName: String,
     val acl = new ObjectAccessControl().setEntity(entity.toString).setRole(role.value)
     val inserter = storage.defaultObjectAccessControls().insert(bucketName.value, acl)
 
-    retryWhen500orGoogleError(() => executeGoogleRequest(inserter)).void
+    retryWithRecoverWhen500orGoogleError(() =>
+      executeGoogleRequest(inserter)
+    ) {
+      case e: GoogleJsonResponseException if shouldRetryWithRequesterPays(e) =>
+        executeGoogleRequest(inserter.setUserProject(gcsRequesterPaysProject.get.value))
+    }.void
   }
 
   override def removeDefaultObjectAccessControl(bucketName: GcsBucketName, entity: GcsEntity): Future[Unit] = {
@@ -335,18 +407,28 @@ class HttpGoogleStorageDAO(appName: String,
       ()
     } {
       case e: HttpResponseException if e.getStatusCode == StatusCodes.NotFound.intValue => ()
+      case e: GoogleJsonResponseException if shouldRetryWithRequesterPays(e) =>
+        executeGoogleRequest(deleter.setUserProject(gcsRequesterPaysProject.get.value))
     }
   }
 
   override def getBucketAccessControls(bucketName: GcsBucketName): Future[BucketAccessControls] = {
-    retryWhen500orGoogleError(() => {
-      executeGoogleRequest(storage.bucketAccessControls().list(bucketName.value))
-    })
+    val lister = storage.bucketAccessControls().list(bucketName.value)
+    retryWithRecoverWhen500orGoogleError(() => {
+      executeGoogleRequest(lister)
+    }) {
+      case e: GoogleJsonResponseException if shouldRetryWithRequesterPays(e) =>
+        executeGoogleRequest(lister.setUserProject(gcsRequesterPaysProject.get.value))
+    }
   }
 
   override def getDefaultObjectAccessControls(bucketName: GcsBucketName): Future[ObjectAccessControls] = {
+    val lister = storage.defaultObjectAccessControls().list(bucketName.value)
     retryWhen500orGoogleError(() => {
-      executeGoogleRequest(storage.defaultObjectAccessControls().list(bucketName.value))
-    })
+      executeGoogleRequest(lister)
+    }) {
+      case e: GoogleJsonResponseException if shouldRetryWithRequesterPays(e) =>
+        executeGoogleRequest(lister.setUserProject(gcsRequesterPaysProject.get.value))
+    }
   }
 }
