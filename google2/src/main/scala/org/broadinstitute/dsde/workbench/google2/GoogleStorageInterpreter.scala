@@ -71,6 +71,18 @@ private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer: Async
     } yield r
   }
 
+  override def getObjectMetadata(bucketName: GcsBucketName, blobName: GcsBlobName, traceId: Option[TraceId]): Stream[F, Map[String, String]] = {
+    val getBlobs = blockingF(Async[F].delay(db.get(BlobId.of(bucketName.value, blobName.value)))).map(Option(_))
+
+    for {
+      blobOpt <- retryStorageF(getBlobs, traceId, s"com.google.cloud.storage.Storage.get(${BlobId.of(bucketName.value, blobName.value)})")
+      r = blobOpt match {
+        case Some(blob) => Option(blob.getMetadata).map(_.asScala.toMap).getOrElse(Map.empty)
+        case None => Map.empty[String, String]
+      }
+    } yield r
+  }
+
   override def storeObject(bucketName: GcsBucketName, objectName: GcsBlobName, objectContents: Array[Byte], objectType: String, traceId: Option[TraceId] = None): F[Unit] = {
     val blobInfo = BlobInfo.newBuilder(bucketName.value, objectName.value).setContentType(objectType).build()
 

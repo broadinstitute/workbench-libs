@@ -54,6 +54,11 @@ trait GoogleStorageService[F[_]] {
   def getObject(bucketName: GcsBucketName, blobName: GcsBlobName, traceId: Option[TraceId] = None): Stream[F, Byte]
 
   /**
+    * @param traceId uuid for tracing a unique call flow in logging
+    */
+  def getObjectMetadata(bucketName: GcsBucketName, blobName: GcsBlobName, traceId: Option[TraceId]): Stream[F, Map[String, String]]
+
+  /**
     * @return true if deleted; false if not found
     */
   def removeObject(bucketName: GcsBucketName, objectName: GcsBlobName, traceId: Option[TraceId] = None): F[RemoveObjectResult]
