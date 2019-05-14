@@ -5,7 +5,7 @@ import java.nio.file.Paths
 import java.time.Instant
 
 import cats.effect._
-import cats.data.NonEmptyList
+import cats.data.{NonEmptyList, NonEmptyMap}
 import cats.implicits._
 import com.google.auth.oauth2.ServiceAccountCredentials
 import com.google.cloud.Identity
@@ -23,6 +23,8 @@ import scala.collection.JavaConverters._
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 import io.circe.fs2._
+
+import scala.collection.immutable.SortedMap
 
 private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer: Async: Logger](db: Storage,
                                       blockingEc: ExecutionContext,
@@ -71,14 +73,20 @@ private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer: Async
     } yield r
   }
 
-  override def getObjectMetadata(bucketName: GcsBucketName, blobName: GcsBlobName, traceId: Option[TraceId]): Stream[F, Map[String, String]] = {
+  override def getObjectMetadata(bucketName: GcsBucketName, blobName: GcsBlobName, traceId: Option[TraceId]): Stream[F, GetMetadataResponse] = {
     val getBlobs = blockingF(Async[F].delay(db.get(BlobId.of(bucketName.value, blobName.value)))).map(Option(_))
 
     for {
       blobOpt <- retryStorageF(getBlobs, traceId, s"com.google.cloud.storage.Storage.get(${BlobId.of(bucketName.value, blobName.value)})")
       r = blobOpt match {
-        case Some(blob) => Option(blob.getMetadata).map(_.asScala.toMap).getOrElse(Map.empty)
-        case None => Map.empty[String, String]
+        case Some(blob) =>
+          Option(blob.getMetadata) match {
+            case None => GetMetadataResponse.NoMetadata
+            case Some(x) =>
+              val res = NonEmptyMap.fromMap[String, String](SortedMap[String, String](x.asScala.toSeq: _*)) //It's not great that we have to sort here, but given the amount of metadata we usually have, this is probably fine
+              res.fold[GetMetadataResponse](GetMetadataResponse.NoMetadata)(GetMetadataResponse.Metadata)
+          }
+        case None => GetMetadataResponse.NotFound
       }
     } yield r
   }
