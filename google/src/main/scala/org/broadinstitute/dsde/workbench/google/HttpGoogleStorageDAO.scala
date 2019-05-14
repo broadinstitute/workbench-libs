@@ -11,23 +11,22 @@ import akka.http.scaladsl.model.{StatusCodes, _}
 import akka.stream.ActorMaterializer
 import cats.implicits._
 import com.google.api.client.googleapis.json.GoogleJsonResponseException
-import com.google.api.client.googleapis.services.AbstractGoogleClientRequest
 import com.google.api.client.http.{AbstractInputStreamContent, FileContent, HttpResponseException, InputStreamContent}
 import com.google.api.services.compute.ComputeScopes
 import com.google.api.services.plus.PlusScopes
 import com.google.api.services.storage.model.Bucket.Lifecycle
 import com.google.api.services.storage.model.Bucket.Lifecycle.Rule.{Action, Condition}
 import com.google.api.services.storage.model._
-import com.google.api.services.storage.{Storage, StorageRequest, StorageScopes}
+import com.google.api.services.storage.{Storage, StorageScopes}
 import org.broadinstitute.dsde.workbench.google.GoogleCredentialModes._
-import org.broadinstitute.dsde.workbench.metrics.{GoogleInstrumentedService, Histogram}
+import org.broadinstitute.dsde.workbench.metrics.GoogleInstrumentedService
 import org.broadinstitute.dsde.workbench.model.WorkbenchEmail
 import org.broadinstitute.dsde.workbench.model.google.GcsLifecycleTypes.{Delete, GcsLifecycleType}
 import org.broadinstitute.dsde.workbench.model.google.GcsRoles.{GcsRole, Owner, Reader}
 import org.broadinstitute.dsde.workbench.model.google._
 
 import scala.collection.JavaConverters._
-import scala.concurrent.{ExecutionContext, Future, blocking}
+import scala.concurrent.{ExecutionContext, Future}
 
 class HttpGoogleStorageDAO(appName: String,
                            googleCredentialMode: GoogleCredentialMode,
@@ -424,7 +423,7 @@ class HttpGoogleStorageDAO(appName: String,
 
   override def getDefaultObjectAccessControls(bucketName: GcsBucketName): Future[ObjectAccessControls] = {
     val lister = storage.defaultObjectAccessControls().list(bucketName.value)
-    retryWhen500orGoogleError(() => {
+    retryWithRecoverWhen500orGoogleError(() => {
       executeGoogleRequest(lister)
     }) {
       case e: GoogleJsonResponseException if shouldRetryWithRequesterPays(e) =>
