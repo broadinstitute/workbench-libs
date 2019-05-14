@@ -1,6 +1,6 @@
 package org.broadinstitute.dsde.workbench.google2
 
-import cats.data.NonEmptyList
+import cats.data.{NonEmptyList, NonEmptyMap}
 import cats.effect._
 import com.google.cloud.Identity
 import com.google.cloud.storage.Acl
@@ -56,7 +56,7 @@ trait GoogleStorageService[F[_]] {
   /**
     * @param traceId uuid for tracing a unique call flow in logging
     */
-  def getObjectMetadata(bucketName: GcsBucketName, blobName: GcsBlobName, traceId: Option[TraceId]): Stream[F, Map[String, String]]
+  def getObjectMetadata(bucketName: GcsBucketName, blobName: GcsBlobName, traceId: Option[TraceId]): Stream[F, GetMetadataResponse]
 
   /**
     * @return true if deleted; false if not found
@@ -107,4 +107,11 @@ object StorageRole {
   final case object StorageAdmin extends StorageRole {
     def name: String = "roles/storage.admin"
   }
+}
+
+sealed abstract class GetMetadataResponse extends Product with Serializable
+object GetMetadataResponse {
+  final case object NotFound extends GetMetadataResponse
+  final case object NoMetadata extends GetMetadataResponse
+  final case class Metadata(data: NonEmptyMap[String, String]) extends GetMetadataResponse
 }
