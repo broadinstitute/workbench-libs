@@ -4,30 +4,29 @@ package google2
 import java.nio.file.Paths
 import java.time.Instant
 
-import cats.effect._
 import cats.data.NonEmptyList
+import cats.effect._
 import cats.implicits._
 import com.google.auth.oauth2.ServiceAccountCredentials
-import com.google.cloud.Identity
+import com.google.cloud.{Identity, Role}
 import com.google.cloud.storage.BucketInfo.LifecycleRule
 import com.google.cloud.storage.Storage.{BlobListOption, BucketTargetOption}
 import com.google.cloud.storage.{Acl, Blob, BlobId, BlobInfo, BucketInfo, Storage, StorageException, StorageOptions}
-import com.google.cloud.Role
 import fs2.{Stream, text}
 import io.chrisdavenport.log4cats.Logger
 import io.circe.Decoder
+import io.circe.fs2._
 import org.broadinstitute.dsde.workbench.model.TraceId
 import org.broadinstitute.dsde.workbench.model.google.{GcsBucketName, GcsObjectName, GoogleProject}
 
 import scala.collection.JavaConverters._
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
-import io.circe.fs2._
 
 private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer: Async: Logger](db: Storage,
                                       blockingEc: ExecutionContext,
                                       retryConfig: RetryConfig
-                                     )extends GoogleStorageService[F] {
+                                     ) extends GoogleStorageService[F] {
   private def retryStorageF[A]: (F[A], Option[TraceId], String) => Stream[F, A] = retryGoogleF(retryConfig)
 
   override def listObjectsWithPrefix(bucketName: GcsBucketName, objectNamePrefix: String, maxPageSize: Long = 1000, traceId: Option[TraceId] = None): Stream[F, GcsObjectName] = {
@@ -67,6 +66,22 @@ private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer: Async
       r <- blobOpt match {
         case Some(blob) => Stream.emits(blob.getContent()).covary[F]
         case None => Stream.empty
+      }
+    } yield r
+  }
+
+  override def getObjectMetadata(bucketName: GcsBucketName, blobName: GcsBlobName, traceId: Option[TraceId]): Stream[F, GetMetadataResponse] = {
+    val getBlobs = blockingF(Async[F].delay(db.get(BlobId.of(bucketName.value, blobName.value)))).map(Option(_))
+
+    for {
+      blobOpt <- retryStorageF(getBlobs, traceId, s"com.google.cloud.storage.Storage.get(${BlobId.of(bucketName.value, blobName.value)})")
+      r = blobOpt match {
+        case Some(blob) =>
+          Option(blob.getMetadata) match {
+            case None => GetMetadataResponse.Metadata(Crc32(blob.getCrc32c), Map.empty)
+            case Some(x) => GetMetadataResponse.Metadata(Crc32(blob.getCrc32c), x.asScala.toMap)
+          }
+        case None => GetMetadataResponse.NotFound
       }
     } yield r
   }

@@ -139,6 +139,7 @@ object Dependencies {
     http4sBlazeClient,
     http4sDsl,
     fs2Io,
+    log4cats,
     circeFs2
   )
 

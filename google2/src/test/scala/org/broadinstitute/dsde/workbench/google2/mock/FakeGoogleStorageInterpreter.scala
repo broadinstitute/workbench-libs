@@ -22,6 +22,8 @@ object FakeGoogleStorageInterpreter extends GoogleStorageService[IO] {
 
   override def getObject(bucketName: GcsBucketName, blobName: GcsBlobName, traceId: Option[TraceId] = None): Stream[IO, Byte] = localStorage.getObject(bucketName, blobName)
 
+  override def getObjectMetadata(bucketName: GcsBucketName, blobName: GcsBlobName, traceId: Option[TraceId]): Stream[IO, GetMetadataResponse] = Stream.empty
+
   override def removeObject(bucketName: GcsBucketName, blobName: GcsBlobName, traceId: Option[TraceId] = None): IO[RemoveObjectResult] = localStorage.removeObject(bucketName, blobName).as(RemoveObjectResult.Removed)
 
   override def createBucket(googleProject: GoogleProject, bucketName: GcsBucketName, acl: Option[NonEmptyList[Acl]] = None, traceId: Option[TraceId] = None): Stream[IO, Unit] = Stream.empty
