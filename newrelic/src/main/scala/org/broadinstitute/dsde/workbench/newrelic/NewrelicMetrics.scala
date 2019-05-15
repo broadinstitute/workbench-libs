@@ -28,7 +28,7 @@ class NewRelicMetrics(appName: String) {
       res <- IO.fromEither(attemptedResult)
     } yield res
 
-  def timeFuture[A](name: String, reportError: Boolean = false)(futureA: Future[A])(implicit ec: ExecutionContext): Future[A] =
+  def timeFuture[A](name: String, reportError: Boolean = false)(futureA: => Future[A])(implicit ec: ExecutionContext): Future[A] =
     for {
       start <- Future(System.currentTimeMillis())
       attemptedResult <- futureA.attempt
