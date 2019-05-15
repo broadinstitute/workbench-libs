@@ -54,6 +54,11 @@ trait GoogleStorageService[F[_]] {
   def getObject(bucketName: GcsBucketName, blobName: GcsBlobName, traceId: Option[TraceId] = None): Stream[F, Byte]
 
   /**
+    * @param traceId uuid for tracing a unique call flow in logging
+    */
+  def getObjectMetadata(bucketName: GcsBucketName, blobName: GcsBlobName, traceId: Option[TraceId]): Stream[F, GetMetadataResponse]
+
+  /**
     * @return true if deleted; false if not found
     */
   def removeObject(bucketName: GcsBucketName, objectName: GcsBlobName, traceId: Option[TraceId] = None): F[RemoveObjectResult]
@@ -102,4 +107,11 @@ object StorageRole {
   final case object StorageAdmin extends StorageRole {
     def name: String = "roles/storage.admin"
   }
+}
+
+final case class Crc32(asString: String) extends AnyVal
+sealed abstract class GetMetadataResponse extends Product with Serializable
+object GetMetadataResponse {
+  final case object NotFound extends GetMetadataResponse
+  final case class Metadata(crc32: Crc32, userDefined: Map[String, String]) extends GetMetadataResponse
 }

@@ -45,6 +45,16 @@ class GoogleStorageInterpreterSpec extends AsyncFlatSpec with Matchers with Work
     }
   }
 
+  "ioStorage getObjectMetadata" should "return GetMetadataResponse.NotFound if object doesn't exist" in ioAssertion {
+    val bucketName = genGcsBucketName.sample.get
+    val blobName = genGcsBlobName.sample.get
+    for {
+      r <- localStorage.getObjectMetadata(bucketName, blobName, None).compile.lastOrError
+    } yield {
+      r shouldBe(GetMetadataResponse.NotFound)
+    }
+  }
+
   "ioStorage removeObject" should "remove an object" in ioAssertion {
     val bucketName = genGcsBucketName.sample.get
     val blobName = genGcsBlobName.sample.get

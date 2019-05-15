@@ -7,12 +7,13 @@ This file documents changes to the `workbench-google2` library, including notes 
 Added
 - Add `GoogleStorageNotificationCreatorInterpreter.getStorageServer`
 - Add `GoogleStorageService.createBucketWithAdminRole`
+- Add `GoogleStorageInterpreter.getObjectMetadata`
 
 Changed
 - Updated a few return type in `GoogleStorageService` to Stream[F, A] since it's easier to convert from Stream to F, but a bit detour if we go the other direction at caller
 - Rename `GoogleServiceNotificationCreator` to `GoogleServiceHttp`
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.2-4c7acd5"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.2-TRAVIS-REPLACE-ME"`
 
 ## 0.1
 
