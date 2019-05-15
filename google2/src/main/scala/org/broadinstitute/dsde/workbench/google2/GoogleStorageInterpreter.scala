@@ -4,32 +4,29 @@ package google2
 import java.nio.file.Paths
 import java.time.Instant
 
+import cats.data.NonEmptyList
 import cats.effect._
-import cats.data.{NonEmptyList, NonEmptyMap}
 import cats.implicits._
 import com.google.auth.oauth2.ServiceAccountCredentials
-import com.google.cloud.Identity
+import com.google.cloud.{Identity, Role}
 import com.google.cloud.storage.BucketInfo.LifecycleRule
 import com.google.cloud.storage.Storage.{BlobListOption, BucketTargetOption}
 import com.google.cloud.storage.{Acl, Blob, BlobId, BlobInfo, BucketInfo, Storage, StorageException, StorageOptions}
-import com.google.cloud.Role
 import fs2.{Stream, text}
 import io.chrisdavenport.log4cats.Logger
 import io.circe.Decoder
+import io.circe.fs2._
 import org.broadinstitute.dsde.workbench.model.TraceId
 import org.broadinstitute.dsde.workbench.model.google.{GcsBucketName, GcsObjectName, GoogleProject}
 
 import scala.collection.JavaConverters._
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
-import io.circe.fs2._
-
-import scala.collection.immutable.SortedMap
 
 private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer: Async: Logger](db: Storage,
                                       blockingEc: ExecutionContext,
                                       retryConfig: RetryConfig
-                                     )extends GoogleStorageService[F] {
+                                     ) extends GoogleStorageService[F] {
   private def retryStorageF[A]: (F[A], Option[TraceId], String) => Stream[F, A] = retryGoogleF(retryConfig)
 
   override def listObjectsWithPrefix(bucketName: GcsBucketName, objectNamePrefix: String, maxPageSize: Long = 1000, traceId: Option[TraceId] = None): Stream[F, GcsObjectName] = {
@@ -81,10 +78,8 @@ private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer: Async
       r = blobOpt match {
         case Some(blob) =>
           Option(blob.getMetadata) match {
-            case None => GetMetadataResponse.NoMetadata
-            case Some(x) =>
-              val res = NonEmptyMap.fromMap[String, String](SortedMap[String, String](x.asScala.toSeq: _*)) //It's not great that we have to sort here, but given the amount of metadata we usually have, this is probably fine
-              res.fold[GetMetadataResponse](GetMetadataResponse.NoMetadata)(GetMetadataResponse.Metadata)
+            case None => GetMetadataResponse.Metadata(Crc32(blob.getCrc32c), Map.empty)
+            case Some(x) => GetMetadataResponse.Metadata(Crc32(blob.getCrc32c), x.asScala.toMap)
           }
         case None => GetMetadataResponse.NotFound
       }
