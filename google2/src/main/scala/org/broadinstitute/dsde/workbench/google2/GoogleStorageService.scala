@@ -1,6 +1,6 @@
 package org.broadinstitute.dsde.workbench.google2
 
-import cats.data.{NonEmptyList, NonEmptyMap}
+import cats.data.NonEmptyList
 import cats.effect._
 import com.google.cloud.Identity
 import com.google.cloud.storage.Acl
@@ -109,9 +109,9 @@ object StorageRole {
   }
 }
 
+final case class Crc32(asString: String) extends AnyVal
 sealed abstract class GetMetadataResponse extends Product with Serializable
 object GetMetadataResponse {
   final case object NotFound extends GetMetadataResponse
-  final case object NoMetadata extends GetMetadataResponse
-  final case class Metadata(data: NonEmptyMap[String, String]) extends GetMetadataResponse
+  final case class Metadata(crc32: Crc32, userDefined: Map[String, String]) extends GetMetadataResponse
 }
