@@ -26,7 +26,7 @@ object FakeGoogleStorageInterpreter extends GoogleStorageService[IO] {
 
   override def downloadObject(blobId: BlobId, path: Path, traceId: Option[TraceId] = None): Stream[IO, Unit] = Stream.eval(IO.unit)
 
-  override def getObjectMetadata(bucketName: GcsBucketName, blobName: GcsBlobName, traceId: Option[TraceId]): Stream[IO, GetMetadataResponse] = Stream.empty
+  override def getObjectMetadata(bucketName: GcsBucketName, blobName: GcsBlobName, traceId: Option[TraceId]): Stream[IO, GetMetadataResponse] = Stream.emit(GetMetadataResponse.NotFound).covary[IO]
 
   override def removeObject(bucketName: GcsBucketName, blobName: GcsBlobName, traceId: Option[TraceId] = None): IO[RemoveObjectResult] = localStorage.removeObject(bucketName, blobName).as(RemoveObjectResult.Removed)
 
