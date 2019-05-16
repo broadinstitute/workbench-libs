@@ -88,7 +88,9 @@ object Dependencies {
     log4cats,
     circeCore,
     circeParser,
-    circeGeneric
+    circeGeneric,
+    fs2Io,
+    circeFs2
   )
 
   val modelDependencies = commonDependencies ++ Seq(
@@ -139,9 +141,7 @@ object Dependencies {
     http4sCirce,
     http4sBlazeClient,
     http4sDsl,
-    fs2Io,
-    log4cats,
-    circeFs2
+    log4cats
   )
 
   val newrelicDependencies = commonDependencies ++ Seq(
