@@ -63,7 +63,7 @@ To start the Google PubSub emulator for unit testing:
 
 Contains utility functions for publishing custom metrics to newrelic. 
 
-Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.1-TRAVIS-REPLACE-ME"`
+Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-newrelic" % "0.1-TRAVIS-REPLACE-ME"`
 
 [Changelog](newrelic/CHANGELOG.md)
 
