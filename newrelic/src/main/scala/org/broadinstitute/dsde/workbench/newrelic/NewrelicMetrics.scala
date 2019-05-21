@@ -45,6 +45,8 @@ class NewRelicMetrics(appName: String) {
       res <- Future.fromTry(attemptedResult.toTry)
     } yield res
 
+  def gauge[A](name: String, value: Float): IO[Unit] = IO(NewRelic.recordMetric(s"${prefix}/${name}", value))
+
   def incrementCounterIO[A](name: String, count: Int = 1): IO[Unit] = IO(NewRelic.incrementCounter(s"${prefix}/${name}", count))
 
   def incrementCounterFuture[A](name: String, count: Int = 1)(implicit ec: ExecutionContext): Future[Unit] = Future(NewRelic.incrementCounter(s"${prefix}/${name}", count))
