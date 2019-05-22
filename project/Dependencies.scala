@@ -71,6 +71,7 @@ object Dependencies {
   val fs2Io: ModuleID = "co.fs2" %% "fs2-io" % "1.0.4"
 
   val rawlsModel: ModuleID = "org.broadinstitute.dsde" %% "rawls-model" % "0.1-0d02c8ce-SNAP" exclude("com.typesafe.scala-logging", "scala-logging_2.11") exclude("com.typesafe.akka", "akka-stream_2.11")
+  val newRelic: ModuleID = "com.newrelic.agent.java" % "newrelic-api" % "5.0.0"
 
   val commonDependencies = Seq(
     scalatest,
@@ -141,6 +142,11 @@ object Dependencies {
     fs2Io,
     log4cats,
     circeFs2
+  )
+
+  val newrelicDependencies = commonDependencies ++ Seq(
+    catsEffect,
+    newRelic
   )
 
   val serviceTestDependencies = commonDependencies ++ Seq(
