@@ -88,7 +88,7 @@ class HttpGoogleProjectDAO(appName: String,
     }
   }
 
-  def getAncestry(projectName: String): Future[Seq[Ancestor]] = {
+  override def getAncestry(projectName: String): Future[Seq[Ancestor]] = {
     retryWhen500orGoogleError(() => {
       executeGoogleRequest(cloudResManager.projects().getAncestry(projectName, new GetAncestryRequest()))
     }).map { ancestry =>
