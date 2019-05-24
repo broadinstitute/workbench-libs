@@ -5,7 +5,7 @@ import akka.http.scaladsl.model.StatusCodes
 import com.google.api.client.http.HttpResponseException
 import com.google.api.services.cloudbilling.Cloudbilling
 import com.google.api.services.cloudresourcemanager.CloudResourceManager
-import com.google.api.services.cloudresourcemanager.model.{Operation, Project}
+import com.google.api.services.cloudresourcemanager.model.{Ancestor, GetAncestryRequest, Operation, Project}
 import com.google.api.services.compute.ComputeScopes
 import com.google.api.services.servicemanagement.ServiceManagement
 import com.google.api.services.servicemanagement.model.EnableServiceRequest
@@ -13,6 +13,7 @@ import org.broadinstitute.dsde.workbench.google.GoogleCredentialModes._
 import org.broadinstitute.dsde.workbench.google.GoogleCredentialModes.GoogleCredentialMode
 import org.broadinstitute.dsde.workbench.metrics.GoogleInstrumentedService
 
+import scala.collection.JavaConverters._
 import scala.concurrent.{ExecutionContext, Future}
 
 class HttpGoogleProjectDAO(appName: String,
@@ -84,6 +85,14 @@ class HttpGoogleProjectDAO(appName: String,
       executeGoogleRequest(serviceManagement.services().enable(serviceName, new EnableServiceRequest().setConsumerId(s"project:$projectName")))
     }).map { operation =>
       operation.getName
+    }
+  }
+
+  def getAncestry(projectName: String): Future[Seq[Ancestor]] = {
+    retryWhen500orGoogleError(() => {
+      executeGoogleRequest(cloudResManager.projects().getAncestry(projectName, new GetAncestryRequest()))
+    }).map { ancestry =>
+      Option(ancestry.getAncestor).map(_.asScala).getOrElse(Seq.empty)
     }
   }
 }

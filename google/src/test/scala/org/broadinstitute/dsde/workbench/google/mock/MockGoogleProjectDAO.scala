@@ -2,7 +2,7 @@ package org.broadinstitute.dsde.workbench.google.mock
 
 import java.util.UUID
 
-import com.google.api.services.cloudresourcemanager.model.Operation
+import com.google.api.services.cloudresourcemanager.model.{Ancestor, Operation, ResourceId}
 import org.broadinstitute.dsde.workbench.google.GoogleProjectDAO
 
 import scala.concurrent.Future
@@ -17,4 +17,6 @@ class MockGoogleProjectDAO extends GoogleProjectDAO {
   override def isBillingActive(projectName: String): Future[Boolean] = Future.successful(true)
 
   override def enableService(projectName: String, serviceName: String): Future[String] = Future.successful(UUID.randomUUID().toString)
+
+  override def getAncestry(projectName: String): Future[Seq[Ancestor]] = Future.successful(Seq(new Ancestor().setResourceId(new ResourceId().setId("mock-org-number").setType("organization"))))
 }
