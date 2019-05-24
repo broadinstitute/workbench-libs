@@ -1,7 +1,6 @@
 package org.broadinstitute.dsde.workbench.google
 
-import com.google.api.services.cloudresourcemanager.model.Operation
-
+import com.google.api.services.cloudresourcemanager.model.{Ancestor, Operation}
 
 import scala.concurrent.Future
 
@@ -16,4 +15,6 @@ trait GoogleProjectDAO {
   def isBillingActive(projectName: String): Future[Boolean]
 
   def enableService(projectName: String, serviceName: String): Future[String]
+
+  def getAncestry(projectName: String): Future[Seq[Ancestor]]
 }
