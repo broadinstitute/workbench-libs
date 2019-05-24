@@ -4,7 +4,7 @@ This file documents changes to the `workbench-google` library, including notes o
 
 ## 0.18
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util" % "0.18-5941525"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util" % "0.18-TRAVIS-REPLACE-ME"`
 
 ### Changed
 - Moved `SamModel`
@@ -13,6 +13,7 @@ SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util" % "0.18
 - Add `GoogleKms` service and interpreter
 - Add `enableService` function to `GoogleProjectDAO`
 - removing member from google group handles 400 error when user does not exist
+- Add `getAncestry` to HttpGoogleProjectDAO
 
 ## 0.17
 - upgrade cats to 1.4.0 and scala to 2.12.7
