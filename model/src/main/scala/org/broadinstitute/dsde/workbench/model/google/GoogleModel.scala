@@ -73,6 +73,21 @@ object ProjectTeamTypes {
   }
 }
 
+object GoogleResourceTypes {
+  sealed trait GoogleResourceType extends ValueObject
+  sealed trait GoogleParentResourceType extends GoogleResourceType
+  case object Organization extends GoogleParentResourceType { val value = "organization" }
+  case object Folder extends GoogleParentResourceType { val value = "folder" }
+  case object Project extends GoogleResourceType { val value = "project" }
+
+  def withName(name: String): GoogleResourceType = name.toLowerCase() match {
+    case "organization" => Organization
+    case "folder" => Folder
+    case "project" => Project
+    case _ => throw new WorkbenchException(s"Invalid Google resource type: $name")
+  }
+}
+
 object GcsEntityTypes {
   sealed trait GcsEntityType extends ValueObject
   case object User extends GcsEntityType { val value = "user" }
