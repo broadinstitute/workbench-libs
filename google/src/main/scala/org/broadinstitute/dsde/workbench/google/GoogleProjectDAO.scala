@@ -1,12 +1,15 @@
 package org.broadinstitute.dsde.workbench.google
 
 import com.google.api.services.cloudresourcemanager.model.{Ancestor, Operation}
+import org.broadinstitute.dsde.workbench.model.google.GoogleResourceTypes.GoogleParentResourceType
 
 import scala.concurrent.Future
 
 trait GoogleProjectDAO {
 
   def createProject(projectName: String): Future[String]
+
+  def createProject(projectName: String, parentId: String, parentType: GoogleParentResourceType): Future[String]
 
   def pollOperation(operationId: String): Future[Operation]
 
