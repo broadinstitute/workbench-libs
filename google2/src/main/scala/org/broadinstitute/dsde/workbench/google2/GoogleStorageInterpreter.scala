@@ -1,7 +1,7 @@
 package org.broadinstitute.dsde.workbench
 package google2
 
-import java.nio.file.Paths
+import java.nio.file.{Path, Paths}
 import java.time.Instant
 
 import cats.data.NonEmptyList
@@ -68,6 +68,12 @@ private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer: Async
         case None => Stream.empty
       }
     } yield r
+  }
+
+  def downloadObject(blobId: BlobId, path: Path, traceId: Option[TraceId] = None): Stream[F, Unit] = {
+    val downLoad = blockingF(Async[F].delay(db.get(blobId).downloadTo(path)))
+
+    retryStorageF(downLoad, traceId, s"com.google.cloud.storage.Storage.get($blobId).download")
   }
 
   override def getObjectMetadata(bucketName: GcsBucketName, blobName: GcsBlobName, traceId: Option[TraceId]): Stream[F, GetMetadataResponse] = {

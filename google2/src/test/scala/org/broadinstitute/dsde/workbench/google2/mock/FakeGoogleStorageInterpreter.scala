@@ -1,9 +1,11 @@
 package org.broadinstitute.dsde.workbench.google2
 package mock
 
+import java.nio.file.Path
+
 import cats.implicits._
 import cats.effect.IO
-import com.google.cloud.storage.{Acl, BucketInfo}
+import com.google.cloud.storage.{Acl, BlobId, BucketInfo}
 import org.broadinstitute.dsde.workbench.model.google.{GcsBucketName, GcsObjectName, GoogleProject}
 import GoogleStorageInterpreterSpec._
 import cats.data.NonEmptyList
@@ -21,6 +23,8 @@ object FakeGoogleStorageInterpreter extends GoogleStorageService[IO] {
   override def unsafeGetObject(bucketName: GcsBucketName, blobName: GcsBlobName, traceId: Option[TraceId] = None): IO[Option[String]] = localStorage.unsafeGetObject(bucketName, blobName)
 
   override def getObject(bucketName: GcsBucketName, blobName: GcsBlobName, traceId: Option[TraceId] = None): Stream[IO, Byte] = localStorage.getObject(bucketName, blobName)
+
+  override def downloadObject(blobId: BlobId, path: Path, traceId: Option[TraceId] = None): Stream[IO, Unit] = Stream.eval(IO.unit)
 
   override def getObjectMetadata(bucketName: GcsBucketName, blobName: GcsBlobName, traceId: Option[TraceId]): Stream[IO, GetMetadataResponse] = Stream.empty
 
