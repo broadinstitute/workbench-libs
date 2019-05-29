@@ -35,7 +35,7 @@ trait GoogleStorageService[F[_]] {
   /**
     * @param traceId uuid for tracing a unique call flow in logging
     */
-  def storeObject(bucketName: GcsBucketName, objectName: GcsBlobName, objectContents: Array[Byte], objectType: String, traceId: Option[TraceId] = None): F[Unit]
+  def storeObject(bucketName: GcsBucketName, objectName: GcsBlobName, objectContents: Array[Byte], objectType: String, metadata: Map[String, String] = Map.empty, generation: Option[Long] = None, traceId: Option[TraceId] = None): Stream[F, Unit]
 
   /**
     * @param traceId uuid for tracing a unique call flow in logging
@@ -113,5 +113,5 @@ final case class Crc32(asString: String) extends AnyVal
 sealed abstract class GetMetadataResponse extends Product with Serializable
 object GetMetadataResponse {
   final case object NotFound extends GetMetadataResponse
-  final case class Metadata(crc32: Crc32, userDefined: Map[String, String]) extends GetMetadataResponse
+  final case class Metadata(crc32: Crc32, userDefined: Map[String, String], generation: Long) extends GetMetadataResponse
 }

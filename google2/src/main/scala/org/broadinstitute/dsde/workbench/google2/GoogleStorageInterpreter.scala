@@ -10,7 +10,7 @@ import cats.implicits._
 import com.google.auth.oauth2.ServiceAccountCredentials
 import com.google.cloud.{Identity, Role}
 import com.google.cloud.storage.BucketInfo.LifecycleRule
-import com.google.cloud.storage.Storage.{BlobListOption, BucketTargetOption}
+import com.google.cloud.storage.Storage.{BlobListOption, BlobTargetOption, BucketTargetOption}
 import com.google.cloud.storage.{Acl, Blob, BlobId, BlobInfo, BucketInfo, Storage, StorageException, StorageOptions}
 import fs2.{Stream, text}
 import io.chrisdavenport.log4cats.Logger
@@ -78,21 +78,41 @@ private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer: Async
       r = blobOpt match {
         case Some(blob) =>
           Option(blob.getMetadata) match {
-            case None => GetMetadataResponse.Metadata(Crc32(blob.getCrc32c), Map.empty)
-            case Some(x) => GetMetadataResponse.Metadata(Crc32(blob.getCrc32c), x.asScala.toMap)
+            case None => GetMetadataResponse.Metadata(Crc32(blob.getCrc32c), Map.empty, blob.getGeneration)
+            case Some(x) => GetMetadataResponse.Metadata(Crc32(blob.getCrc32c), x.asScala.toMap, blob.getGeneration)
           }
         case None => GetMetadataResponse.NotFound
       }
     } yield r
   }
 
-  override def storeObject(bucketName: GcsBucketName, objectName: GcsBlobName, objectContents: Array[Byte], objectType: String, traceId: Option[TraceId] = None): F[Unit] = {
-    val blobInfo = BlobInfo.newBuilder(bucketName.value, objectName.value).setContentType(objectType).build()
+  override def storeObject(bucketName: GcsBucketName,
+                           objectName: GcsBlobName,
+                           objectContents: Array[Byte],
+                           objectType: String,
+                           metadata: Map[String, String] = Map.empty,
+                           generation: Option[Long] = None,
+                           traceId: Option[TraceId] = None): Stream[F, Unit] = {
+    val storeObject: F[Unit] = generation match {
+      case Some(g) =>
+        val blobId = BlobId.of(bucketName.value, objectName.value, g)
+        val blobInfo = BlobInfo
+          .newBuilder(blobId)
+          .setContentType(objectType)
+          .setMetadata(metadata.asJava)
+          .build()
+        blockingF(Async[F].delay(db.create(blobInfo, objectContents, BlobTargetOption.generationMatch())))
+      case None =>
+        val blobId = BlobId.of(bucketName.value, objectName.value)
+        val blobInfo = BlobInfo
+          .newBuilder(blobId)
+          .setContentType(objectType)
+          .setMetadata(metadata.asJava)
+          .build()
+        blockingF(Async[F].delay(db.create(blobInfo, objectContents)))
+    }
 
-    val storeObject = blockingF(Async[F].delay(db.create(blobInfo, objectContents)))
-    for {
-      _ <- retryStorageF(storeObject, traceId, s"com.google.cloud.storage.Storage.create($bucketName/$objectName, xxx)").compile.drain
-    } yield ()
+    retryStorageF(storeObject, traceId, s"com.google.cloud.storage.Storage.create($bucketName/$objectName, xxx)")
   }
 
   override def removeObject(bucketName: GcsBucketName, blobName: GcsBlobName, traceId: Option[TraceId] = None): F[RemoveObjectResult] = {
