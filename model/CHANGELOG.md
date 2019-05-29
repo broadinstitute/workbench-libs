@@ -6,7 +6,7 @@ This file documents changes to the `workbench-model` library, including notes on
 
 - Added generators in `test`
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-model" % "0.13-4c7acd5"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-model" % "0.13-TRAVIS-REPLACE-ME"`
 
 ### Changed
 
@@ -14,6 +14,7 @@ SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-model" % "0.1
 
 ### Added
 - TraceId
+- GoogleResourceTypes
 
 ## 0.12
 

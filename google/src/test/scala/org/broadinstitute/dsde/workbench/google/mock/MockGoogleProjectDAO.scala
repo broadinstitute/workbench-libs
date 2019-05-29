@@ -4,11 +4,14 @@ import java.util.UUID
 
 import com.google.api.services.cloudresourcemanager.model.{Ancestor, Operation, ResourceId}
 import org.broadinstitute.dsde.workbench.google.GoogleProjectDAO
+import org.broadinstitute.dsde.workbench.model.google.GoogleResourceTypes.GoogleParentResourceType
 
 import scala.concurrent.Future
 
 class MockGoogleProjectDAO extends GoogleProjectDAO {
   override def createProject(projectName: String): Future[String] = Future.successful(UUID.randomUUID().toString)
+
+  override def createProject(projectName: String, parentId: String, parentType: GoogleParentResourceType): Future[String] = Future.successful(UUID.randomUUID().toString)
 
   override def pollOperation(operationId: String): Future[Operation] = Future.successful(new Operation)
 

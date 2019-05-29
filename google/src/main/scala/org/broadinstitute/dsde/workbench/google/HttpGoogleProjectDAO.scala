@@ -5,13 +5,14 @@ import akka.http.scaladsl.model.StatusCodes
 import com.google.api.client.http.HttpResponseException
 import com.google.api.services.cloudbilling.Cloudbilling
 import com.google.api.services.cloudresourcemanager.CloudResourceManager
-import com.google.api.services.cloudresourcemanager.model.{Ancestor, GetAncestryRequest, Operation, Project}
+import com.google.api.services.cloudresourcemanager.model._
 import com.google.api.services.compute.ComputeScopes
 import com.google.api.services.servicemanagement.ServiceManagement
 import com.google.api.services.servicemanagement.model.EnableServiceRequest
 import org.broadinstitute.dsde.workbench.google.GoogleCredentialModes._
 import org.broadinstitute.dsde.workbench.google.GoogleCredentialModes.GoogleCredentialMode
 import org.broadinstitute.dsde.workbench.metrics.GoogleInstrumentedService
+import org.broadinstitute.dsde.workbench.model.google.GoogleResourceTypes.GoogleParentResourceType
 
 import scala.collection.JavaConverters._
 import scala.concurrent.{ExecutionContext, Future}
@@ -41,6 +42,15 @@ class HttpGoogleProjectDAO(appName: String,
   override def createProject(projectName: String): Future[String] = {
     retryWhen500orGoogleError(() => {
       executeGoogleRequest(cloudResManager.projects().create(new Project().setName(projectName).setProjectId(projectName)))
+    }).map { operation =>
+      operation.getName
+    }
+  }
+
+  override def createProject(projectName: String, parentId: String, parentType: GoogleParentResourceType): Future[String] = {
+    retryWhen500orGoogleError(() => {
+      executeGoogleRequest(cloudResManager.projects().create(new Project().setName(projectName).setProjectId(projectName)
+        .setParent(new ResourceId().setId(parentId).setType(parentType.value))))
     }).map { operation =>
       operation.getName
     }
