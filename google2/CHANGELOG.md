@@ -11,7 +11,7 @@ Changed
 - Add `generation` to `GetMetadataResponse`
 - Add `generation` and `metadata` as optional fields for `GoogleStorageService.storeObject`
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.3-TRAVIS-REPLACE-ME"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.3-574da3b"`
 
 ## 0.2
 
