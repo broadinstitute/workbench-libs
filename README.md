@@ -21,7 +21,7 @@ Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util" 
 
 Contains generic, externally-facing model classes used across Workbench.
 
-Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-model" % "0.13-4c7acd5`
+Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-model" % "0.13-TRAVIS-REPLACE-ME`
 
 [Changelog](model/CHANGELOG.md)
 
@@ -39,7 +39,7 @@ Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-metric
 
 Contains utility functions for talking to Google APIs and DAOs for Google PubSub, Google Directory, Google IAM, and Google BigQuery. 
 
-Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.18-38342fa"`
+Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.18-TRAVIS-REPLACE-ME"`
 
 To depend on the `MockGoogle*` classes, additionally depend on:
 
