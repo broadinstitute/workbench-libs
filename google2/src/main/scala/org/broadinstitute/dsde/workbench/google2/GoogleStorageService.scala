@@ -1,9 +1,11 @@
 package org.broadinstitute.dsde.workbench.google2
 
+import java.nio.file.Path
+
 import cats.data.NonEmptyList
 import cats.effect._
 import com.google.cloud.Identity
-import com.google.cloud.storage.Acl
+import com.google.cloud.storage.{Acl, BlobId}
 import com.google.cloud.storage.BucketInfo.LifecycleRule
 import fs2.Stream
 import io.chrisdavenport.log4cats.Logger
@@ -52,6 +54,11 @@ trait GoogleStorageService[F[_]] {
     * @param traceId uuid for tracing a unique call flow in logging
     */
   def getObject(bucketName: GcsBucketName, blobName: GcsBlobName, traceId: Option[TraceId] = None): Stream[F, Byte]
+
+  /**
+    * @param traceId uuid for tracing a unique call flow in logging
+    */
+  def downloadObject(blobId: BlobId, path: Path, traceId: Option[TraceId] = None): Stream[F, Unit]
 
   /**
     * @param traceId uuid for tracing a unique call flow in logging
