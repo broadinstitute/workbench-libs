@@ -3,11 +3,15 @@
 This file documents changes to the `workbench-google2` library, including notes on how to upgrade to new versions.
 
 ## 0.3
+
+Added
+- Add `downloadObject`
+
 Changed
 - Add `generation` to `GetMetadataResponse`
 - Add `generation` and `metadata` as optional fields for `GoogleStorageService.storeObject`
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.3-149b82c"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.3-TRAVIS-REPLACE-ME"`
 
 ## 0.2
 
