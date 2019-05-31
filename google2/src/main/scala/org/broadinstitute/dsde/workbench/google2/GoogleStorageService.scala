@@ -4,8 +4,9 @@ import java.nio.file.Path
 
 import cats.data.NonEmptyList
 import cats.effect._
+import com.google.auth.oauth2.GoogleCredentials
 import com.google.cloud.Identity
-import com.google.cloud.storage.{Acl, BlobId}
+import com.google.cloud.storage.{Acl, BlobId, StorageOptions}
 import com.google.cloud.storage.BucketInfo.LifecycleRule
 import fs2.Stream
 import io.chrisdavenport.log4cats.Logger
@@ -85,6 +86,18 @@ trait GoogleStorageService[F[_]] {
 object GoogleStorageService {
   def resource[F[_]: ContextShift: Timer: Async: Logger](pathToCredentialJson: String, blockingEc: ExecutionContext, project: Option[GoogleProject] = None, retryConfig: RetryConfig = defaultRetryConfig): Resource[F, GoogleStorageService[F]] = for {
     db <- GoogleStorageInterpreter.storage[F](pathToCredentialJson, blockingEc, project)
+  } yield GoogleStorageInterpreter[F](db, blockingEc, retryConfig)
+
+  def fromApplicationDefault[F[_]: ContextShift: Timer: Async: Logger](blockingEc: ExecutionContext, retryConfig: RetryConfig = defaultRetryConfig): Resource[F, GoogleStorageService[F]] = for {
+    db <- Resource.liftF(
+      Sync[F].delay(
+        StorageOptions
+          .newBuilder()
+          .setCredentials(GoogleCredentials.getApplicationDefault())
+          .build()
+          .getService
+      )
+    )
   } yield GoogleStorageInterpreter[F](db, blockingEc, retryConfig)
 }
 
