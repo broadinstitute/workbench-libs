@@ -6,12 +6,13 @@ This file documents changes to the `workbench-google2` library, including notes 
 
 Added
 - Add `downloadObject`
+- Add constructor for creating GoogleStorageService from application default credential
 
 Changed
 - Add `generation` to `GetMetadataResponse`
 - Add `generation` and `metadata` as optional fields for `GoogleStorageService.storeObject`
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.3-574da3b"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.3-TRAVIS-REPLACE-ME"`
 
 ## 0.2
 
