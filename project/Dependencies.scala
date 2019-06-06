@@ -146,6 +146,7 @@ object Dependencies {
 
   val newrelicDependencies = commonDependencies ++ Seq(
     catsEffect,
+    log4cats,
     newRelic
   )
 
