@@ -51,3 +51,7 @@ class NewRelicMetrics(appName: String) {
 
   def incrementCounterFuture[A](name: String, count: Int = 1)(implicit ec: ExecutionContext): Future[Unit] = Future(NewRelic.incrementCounter(s"${prefix}/${name}", count))
 }
+
+object NewRelicMetrics {
+  def apply(appName: String): NewRelicMetrics = new NewRelicMetrics(appName)
+}
