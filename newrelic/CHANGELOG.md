@@ -7,4 +7,4 @@ This file documents changes to the `workbench-newrelic` library, including notes
 ### Added
 - Add `NewRelicMetrics`
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-newrelic" % "0.1-TRAVIS-REPLACE-ME"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-newrelic" % "0.1-c5db8e4"`
