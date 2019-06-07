@@ -1,17 +1,17 @@
-package org.broadinstitute.dsde.workbench.google
+package org.broadinstitute.dsde.workbench.google2
 
-import cats.implicits._
 import cats.effect.{ContextShift, Resource, Sync}
+import cats.implicits._
 import com.google.api.gax.core.FixedCredentialsProvider
 import com.google.auth.oauth2.ServiceAccountCredentials
 import com.google.cloud.kms.v1.CryptoKey.CryptoKeyPurpose
-import com.google.cloud.kms.v1._
+import com.google.cloud.kms.v1.{CryptoKey, CryptoKeyName, KeyManagementServiceClient, KeyManagementServiceSettings, KeyRing, KeyRingName, LocationName}
 import com.google.iam.v1.{Binding, Policy}
-import com.google.protobuf.{Timestamp, Duration}
+import com.google.protobuf.{Duration, Timestamp}
+import io.chrisdavenport.linebacker.Linebacker
 import org.broadinstitute.dsde.workbench.model.google.GoogleProject
 
 import scala.collection.JavaConverters._
-import scala.concurrent.ExecutionContext
 import scala.language.higherKinds
 
 /**
@@ -20,7 +20,7 @@ import scala.language.higherKinds
   * created by mtalbott on 1/18/19
   */
 
-private[google] class GoogleKmsInterpreter[F[_]: Sync: ContextShift](client: KeyManagementServiceClient, blockingEc: ExecutionContext) extends GoogleKmsService[F] {
+private[google2] class GoogleKmsInterpreter[F[_]: Sync: ContextShift: Linebacker](client: KeyManagementServiceClient) extends GoogleKmsService[F] {
   override def createKeyRing(project: GoogleProject, location: Location, keyRingId: KeyRingId): F[KeyRing] = {
     val locationName = LocationName.format(project.value, location.value)
     blockingF(Sync[F].delay[KeyRing] {
@@ -109,11 +109,11 @@ private[google] class GoogleKmsInterpreter[F[_]: Sync: ContextShift](client: Key
     })
   }
 
-  private def blockingF[A](fa: F[A]): F[A] = ContextShift[F].evalOn(blockingEc)(fa)
+  private def blockingF[A](fa: F[A]): F[A] = Linebacker[F].blockCS(fa)
 }
 
 object GoogleKmsInterpreter {
-  def apply[F[_]: Sync: ContextShift](client: KeyManagementServiceClient, blockingEc: ExecutionContext): GoogleKmsInterpreter[F] = new GoogleKmsInterpreter[F](client, blockingEc)
+  def apply[F[_]: Sync: ContextShift: Linebacker](client: KeyManagementServiceClient): GoogleKmsInterpreter[F] = new GoogleKmsInterpreter[F](client)
 
   def client[F[_]: Sync](pathToJson: String): Resource[F, KeyManagementServiceClient] =
     for {
