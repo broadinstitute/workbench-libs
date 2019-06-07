@@ -1,10 +1,10 @@
-package org.broadinstitute.dsde.workbench.google.mock
+package org.broadinstitute.dsde.workbench.google2
+package mock
 
 import cats.effect._
 import com.google.cloud.kms.v1.{CryptoKey, KeyRing}
 import com.google.iam.v1.Policy
 import com.google.protobuf.{Duration, Timestamp}
-import org.broadinstitute.dsde.workbench.google.{GoogleKmsService, KeyId, KeyRingId, Location}
 import org.broadinstitute.dsde.workbench.model.google.GoogleProject
 
 /**
