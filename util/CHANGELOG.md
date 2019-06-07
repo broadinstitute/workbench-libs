@@ -6,8 +6,9 @@ This file documents changes to the `workbench-util` library, including notes on 
 - add retry for IO
 - upgrade cats-effect
 - add `org.broadinstitute.dsde.workbench.util.PropertyBasedTesting`
+- add `org.broadinstitute.dsde.workbench.util.readJsonFileToA`
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util" % "0.5-4c7acd5"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util" % "0.5-TRAVIS-REPLACE-ME"`
 
 ### Changed
 - Moved `SamModel`
