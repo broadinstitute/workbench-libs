@@ -151,6 +151,17 @@ private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer: Async
     )
   }
 
+  override def setBucketOnlyPolicy(bucketName: GcsBucketName, bucketOnlyPolicyEnabled: Boolean, traceId: Option[TraceId] = None): Stream[F, Unit] = {
+    val iamConfiguration = BucketInfo.IamConfiguration.newBuilder().setIsBucketPolicyOnlyEnabled(bucketOnlyPolicyEnabled).build()
+    val updateBucket = blockingF(Async[F].delay(db.update(BucketInfo.newBuilder(bucketName.value).setIamConfiguration(iamConfiguration).build())))
+
+    retryStorageF(
+      updateBucket,
+      traceId,
+      s"com.google.cloud.storage.Storage.update($bucketName)"
+    ).flatMap(_ => Stream.empty)
+  }
+
   override def setIamPolicy(bucketName: GcsBucketName, roles: Map[StorageRole, NonEmptyList[Identity]], traceId: Option[TraceId] = None): Stream[F, Unit] = {
     val getAndSetIamPolicy = for {
       policy <- blockingF(Async[F].delay(db.getIamPolicy(bucketName.value)))

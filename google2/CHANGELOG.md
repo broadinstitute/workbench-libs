@@ -2,6 +2,16 @@
 
 This file documents changes to the `workbench-google2` library, including notes on how to upgrade to new versions.
 
+## 0.4
+
+Added
+- Add `setBucketOnlyPolicy`
+
+Changed
+- Update Google Cloud Storage client library to 1.77.0
+
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.4-TRAVIS-REPLACE-ME"`
+
 ## 0.3
 
 Added
