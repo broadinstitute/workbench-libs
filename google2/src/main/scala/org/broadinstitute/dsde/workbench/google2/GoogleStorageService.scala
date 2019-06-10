@@ -80,7 +80,7 @@ trait GoogleStorageService[F[_]] {
   /**
     * @param traceId uuid for tracing a unique call flow in logging
     */
-  def setBucketOnlyPolicy(bucketName: GcsBucketName, bucketOnlyPolicyEnabled: Boolean, traceId: Option[TraceId] = None): Stream[F, Unit]
+  def setBucketPolicyOnly(bucketName: GcsBucketName, bucketPolicyOnlyEnabled: Boolean, traceId: Option[TraceId] = None): Stream[F, Unit]
 
   /**
     * @param traceId uuid for tracing a unique call flow in logging
