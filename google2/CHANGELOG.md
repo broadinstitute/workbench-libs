@@ -5,7 +5,7 @@ This file documents changes to the `workbench-google2` library, including notes 
 ## 0.4
 
 Added
-- Add `setBucketOnlyPolicy`
+- Add `setBucketPolicyOnly`
 
 Changed
 - Update Google Cloud Storage client library to 1.77.0
