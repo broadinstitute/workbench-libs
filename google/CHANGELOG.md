@@ -5,7 +5,7 @@ This file documents changes to the `workbench-google` library, including notes o
 ## 0.19
 - Moved `org.broadinstitute.dsde.workbench.google.GoogleKmsService` to `org.broadinstitute.dsde.workbench.google2.GoogleKmsService`
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.19-TRAVIS-REPLACE-ME"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.19-47baf94"`
 
 ## 0.18
 
