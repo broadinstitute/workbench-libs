@@ -1,6 +1,6 @@
-package org.broadinstitute.dsde.workbench.google
+package org.broadinstitute.dsde.workbench.google2
 
-import com.google.cloud.kms.v1._
+import com.google.cloud.kms.v1.{CryptoKey, KeyRing}
 import com.google.iam.v1.Policy
 import com.google.protobuf.{Duration, Timestamp}
 import org.broadinstitute.dsde.workbench.model.google.GoogleProject

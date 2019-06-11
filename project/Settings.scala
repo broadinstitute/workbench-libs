@@ -129,14 +129,14 @@ object Settings {
   val googleSettings = only212 ++ commonSettings ++ List(
     name := "workbench-google",
     libraryDependencies ++= googleDependencies,
-    version := createVersion("0.18"),
+    version := createVersion("0.19"),
     coverageExcludedPackages := ".*HttpGoogle.*DAO.*"
   ) ++ publishSettings
 
   val google2Settings = only212 ++ commonSettings ++ List(
     name := "workbench-google2",
     libraryDependencies ++= google2Dependencies,
-    version := createVersion("0.4")
+    version := createVersion("0.5")
   ) ++ publishSettings
 
   val newrelicSettings = only212 ++ commonSettings ++ List(

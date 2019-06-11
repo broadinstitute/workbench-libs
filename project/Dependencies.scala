@@ -69,7 +69,7 @@ object Dependencies {
   val http4sDsl = "org.http4s"      %% "http4s-dsl"          % http4sVersion
 
   val fs2Io: ModuleID = "co.fs2" %% "fs2-io" % "1.0.4"
-
+  val lineBacker: ModuleID = "io.chrisdavenport" %% "linebacker" % "0.2.0"
   val rawlsModel: ModuleID = "org.broadinstitute.dsde" %% "rawls-model" % "0.1-0d02c8ce-SNAP" exclude("com.typesafe.scala-logging", "scala-logging_2.11") exclude("com.typesafe.akka", "akka-stream_2.11")
   val newRelic: ModuleID = "com.newrelic.agent.java" % "newrelic-api" % "5.0.0"
 
@@ -127,7 +127,6 @@ object Dependencies {
     googleBigQuery,
     googleGuava,
     googleRpc,
-    googleKms,
     akkaHttpSprayJson,
     akkaTestkit
   ).map(excludeGuavaJDK5)
@@ -138,10 +137,13 @@ object Dependencies {
     googleStorageNew,
     googleStorageLocal,
     googlePubsubNew,
+    googleKms,
     http4sCirce,
     http4sBlazeClient,
     http4sDsl,
-    log4cats
+    log4cats,
+    circeFs2,
+    lineBacker
   )
 
   val newrelicDependencies = commonDependencies ++ Seq(

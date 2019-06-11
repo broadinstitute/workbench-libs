@@ -13,6 +13,7 @@ import com.google.cloud.storage.BucketInfo.LifecycleRule
 import com.google.cloud.storage.Storage.{BlobListOption, BlobTargetOption, BucketTargetOption}
 import com.google.cloud.storage.{Acl, Blob, BlobId, BlobInfo, BucketInfo, Storage, StorageException, StorageOptions}
 import fs2.{Stream, text}
+import io.chrisdavenport.linebacker.Linebacker
 import io.chrisdavenport.log4cats.Logger
 import io.circe.Decoder
 import io.circe.fs2._
@@ -23,8 +24,7 @@ import scala.collection.JavaConverters._
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 
-private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer: Async: Logger](db: Storage,
-                                      blockingEc: ExecutionContext,
+private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer: Async: Logger: Linebacker](db: Storage,
                                       retryConfig: RetryConfig
                                      ) extends GoogleStorageService[F] {
   private def retryStorageF[A]: (F[A], Option[TraceId], String) => Stream[F, A] = retryGoogleF(retryConfig)
@@ -48,7 +48,7 @@ private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer: Async
               fetchNext.compile.lastOrError.map(next => (p, next))
           }
       }
-      objects <- Stream.fromIterator[F, Blob](page.getValues.iterator().asScala).map{
+      objects <- Stream.fromIterator[F, Blob](page.getValues.iterator().asScala).map {
         blob => GcsObjectName(blob.getName, Instant.ofEpochMilli(blob.getCreateTime))
       }
     } yield objects
@@ -185,7 +185,7 @@ private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer: Async
     retryStorageF(blockingF(Async[F].delay(db.update(bucketInfo))), traceId, s"com.google.cloud.storage.Storage.update($bucketInfo)").void
   }
 
-  private def blockingF[A](fa: F[A]): F[A] = ContextShift[F].evalOn(blockingEc)(fa)
+  private def blockingF[A](fa: F[A]): F[A] = Linebacker[F].blockCS(fa)//ContextShift[F].evalOn(blockingEc)(fa)
 }
 
 object GoogleStorageInterpreter {
@@ -201,8 +201,8 @@ object GoogleStorageInterpreter {
     }
   )
 
-  def apply[F[_]: Timer: Async: ContextShift: Logger](db: Storage, blockingEc: ExecutionContext, retryConfig: RetryConfig): GoogleStorageInterpreter[F] =
-    new GoogleStorageInterpreter(db, blockingEc, retryConfig)
+  def apply[F[_]: Timer: Async: ContextShift: Logger: Linebacker](db: Storage, retryConfig: RetryConfig): GoogleStorageInterpreter[F] =
+    new GoogleStorageInterpreter(db, retryConfig)
 
   def storage[F[_]: Sync: ContextShift](
       pathToJson: String,

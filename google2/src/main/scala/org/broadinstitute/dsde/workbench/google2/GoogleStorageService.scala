@@ -9,13 +9,13 @@ import com.google.cloud.Identity
 import com.google.cloud.storage.{Acl, BlobId, StorageOptions}
 import com.google.cloud.storage.BucketInfo.LifecycleRule
 import fs2.Stream
+import io.chrisdavenport.linebacker.Linebacker
 import io.chrisdavenport.log4cats.Logger
 import org.broadinstitute.dsde.workbench.RetryConfig
 import org.broadinstitute.dsde.workbench.google2.GoogleStorageInterpreter.defaultRetryConfig
 import org.broadinstitute.dsde.workbench.model.TraceId
 import org.broadinstitute.dsde.workbench.model.google.{GcsBucketName, GcsObjectName, GoogleProject}
 
-import scala.concurrent.ExecutionContext
 import scala.language.higherKinds
 
 /**
@@ -89,11 +89,11 @@ trait GoogleStorageService[F[_]] {
 }
 
 object GoogleStorageService {
-  def resource[F[_]: ContextShift: Timer: Async: Logger](pathToCredentialJson: String, blockingEc: ExecutionContext, project: Option[GoogleProject] = None, retryConfig: RetryConfig = defaultRetryConfig): Resource[F, GoogleStorageService[F]] = for {
-    db <- GoogleStorageInterpreter.storage[F](pathToCredentialJson, blockingEc, project)
-  } yield GoogleStorageInterpreter[F](db, blockingEc, retryConfig)
+  def resource[F[_]: ContextShift: Timer: Async: Logger: Linebacker](pathToCredentialJson: String, project: Option[GoogleProject] = None, retryConfig: RetryConfig = defaultRetryConfig): Resource[F, GoogleStorageService[F]] = for {
+    db <- GoogleStorageInterpreter.storage[F](pathToCredentialJson, Linebacker[F].blockingContext, project)
+  } yield GoogleStorageInterpreter[F](db, retryConfig)
 
-  def fromApplicationDefault[F[_]: ContextShift: Timer: Async: Logger](blockingEc: ExecutionContext, retryConfig: RetryConfig = defaultRetryConfig): Resource[F, GoogleStorageService[F]] = for {
+  def fromApplicationDefault[F[_]: ContextShift: Timer: Async: Logger: Linebacker](retryConfig: RetryConfig = defaultRetryConfig): Resource[F, GoogleStorageService[F]] = for {
     db <- Resource.liftF(
       Sync[F].delay(
         StorageOptions
@@ -103,7 +103,7 @@ object GoogleStorageService {
           .getService
       )
     )
-  } yield GoogleStorageInterpreter[F](db, blockingEc, retryConfig)
+  } yield GoogleStorageInterpreter[F](db, retryConfig)
 }
 
 final case class GcsBlobName(value: String) extends AnyVal
