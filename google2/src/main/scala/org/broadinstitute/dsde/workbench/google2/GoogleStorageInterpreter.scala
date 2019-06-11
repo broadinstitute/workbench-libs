@@ -159,7 +159,7 @@ private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer: Async
       updateBucket,
       traceId,
       s"com.google.cloud.storage.Storage.update($bucketName)"
-    ).flatMap(_ => Stream.empty)
+    ).void
   }
 
   override def setIamPolicy(bucketName: GcsBucketName, roles: Map[StorageRole, NonEmptyList[Identity]], traceId: Option[TraceId] = None): Stream[F, Unit] = {
