@@ -6,7 +6,7 @@ import cats.data.NonEmptyList
 import cats.effect._
 import com.google.auth.oauth2.GoogleCredentials
 import com.google.cloud.Identity
-import com.google.cloud.storage.{Acl, Blob, BlobId, StorageOptions}
+import com.google.cloud.storage.{Acl, BlobId, StorageOptions}
 import com.google.cloud.storage.BucketInfo.LifecycleRule
 import fs2.Stream
 import io.chrisdavenport.log4cats.Logger

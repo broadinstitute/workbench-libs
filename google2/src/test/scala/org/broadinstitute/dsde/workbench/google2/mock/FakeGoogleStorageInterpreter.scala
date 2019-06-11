@@ -5,7 +5,7 @@ import java.nio.file.Path
 
 import cats.implicits._
 import cats.effect.IO
-import com.google.cloud.storage.{Acl, Blob, BlobId, BucketInfo}
+import com.google.cloud.storage.{Acl, BlobId, BucketInfo}
 import org.broadinstitute.dsde.workbench.model.google.{GcsBucketName, GcsObjectName, GoogleProject}
 import GoogleStorageInterpreterSpec._
 import cats.data.NonEmptyList
