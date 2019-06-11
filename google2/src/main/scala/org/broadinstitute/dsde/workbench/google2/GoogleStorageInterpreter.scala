@@ -10,7 +10,7 @@ import cats.implicits._
 import com.google.auth.oauth2.ServiceAccountCredentials
 import com.google.cloud.{Identity, Role}
 import com.google.cloud.storage.BucketInfo.LifecycleRule
-import com.google.cloud.storage.Storage.{BlobListOption, BlobTargetOption, BucketTargetOption}
+import com.google.cloud.storage.Storage.{BlobListOption, BlobSourceOption, BlobTargetOption, BucketTargetOption}
 import com.google.cloud.storage.{Acl, Blob, BlobId, BlobInfo, BucketInfo, Storage, StorageException, StorageOptions}
 import fs2.{Stream, text}
 import io.chrisdavenport.linebacker.Linebacker
@@ -134,10 +134,20 @@ private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer: Async
     retryStorageF(storeObject, traceId, s"com.google.cloud.storage.Storage.create($bucketName/$objectName, xxx)")
   }
 
-  override def removeObject(bucketName: GcsBucketName, blobName: GcsBlobName, traceId: Option[TraceId] = None): F[RemoveObjectResult] = {
-    val deleteObject = blockingF(Async[F].delay(db.delete(BlobId.of(bucketName.value, blobName.value))))
+  override def removeObject(bucketName: GcsBucketName,
+                            blobName: GcsBlobName,
+                            generation: Option[Long] = None,
+                            traceId: Option[TraceId] = None): Stream[F, RemoveObjectResult] = {
+    val deleteObject: F[Boolean] = generation match {
+      case Some(g) =>
+        val blobId = BlobId.of(bucketName.value, blobName.value, g)
+        blockingF(Async[F].delay(db.delete(blobId, BlobSourceOption.generationMatch(g))))
+      case None =>
+        blockingF(Async[F].delay(db.delete(BlobId.of(bucketName.value, blobName.value))))
+    }
+
     for {
-      deleted <- retryStorageF(deleteObject, traceId, s"com.google.cloud.storage.Storage.delete($bucketName/$blobName)").compile.lastOrError
+      deleted <- retryStorageF(deleteObject, traceId, s"com.google.cloud.storage.Storage.delete(${bucketName.value}/${blobName.value})")
     } yield RemoveObjectResult(deleted)
   }
 
