@@ -93,7 +93,7 @@ private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer: Async
   }
 
   //Overwrites all of the metadata on the GCS object with the provided metadata
-  override def setObjectMetadata(bucketName: GcsBucketName, objectName: GcsBlobName, metadata: Map[String, String], traceId: Option[TraceId]): Stream[F, Blob] = {
+  override def setObjectMetadata(bucketName: GcsBucketName, objectName: GcsBlobName, metadata: Map[String, String], traceId: Option[TraceId]): Stream[F, Unit] = {
     val blobId = BlobId.of(bucketName.value, objectName.value)
     val blobInfo = BlobInfo
       .newBuilder(blobId)
@@ -102,7 +102,7 @@ private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer: Async
 
     val metadataUpdate = blockingF(Async[F].delay(db.update(blobInfo)))
 
-    retryStorageF(metadataUpdate, traceId, s"com.google.cloud.storage.Storage.update($bucketName/$objectName)")
+    retryStorageF(metadataUpdate, traceId, s"com.google.cloud.storage.Storage.update($bucketName/$objectName)").void
   }
 
   override def storeObject(bucketName: GcsBucketName,
