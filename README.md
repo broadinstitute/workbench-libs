@@ -21,7 +21,7 @@ Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util" 
 
 Contains generic, externally-facing model classes used across Workbench.
 
-Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-model" % "0.13-d4e0782`
+Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-model" % "0.13-d4e0782"`
 
 [Changelog](model/CHANGELOG.md)
 
@@ -51,7 +51,7 @@ To depend on the `MockGoogle*` classes, additionally depend on:
 
 Contains utility functions for talking to Google APIs via com.google.cloud client library (more recent) via gRPC. 
 
-Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.4-88966fd"`
+Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.4-TRAVIS-REPLACE-ME"`
 
 To start the Google PubSub emulator for unit testing:
 

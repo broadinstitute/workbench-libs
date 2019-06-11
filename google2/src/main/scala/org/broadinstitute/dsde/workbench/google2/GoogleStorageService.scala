@@ -6,7 +6,7 @@ import cats.data.NonEmptyList
 import cats.effect._
 import com.google.auth.oauth2.GoogleCredentials
 import com.google.cloud.Identity
-import com.google.cloud.storage.{Acl, BlobId, StorageOptions}
+import com.google.cloud.storage.{Acl, Blob, BlobId, StorageOptions}
 import com.google.cloud.storage.BucketInfo.LifecycleRule
 import fs2.Stream
 import io.chrisdavenport.log4cats.Logger
@@ -65,6 +65,11 @@ trait GoogleStorageService[F[_]] {
     * @param traceId uuid for tracing a unique call flow in logging
     */
   def getObjectMetadata(bucketName: GcsBucketName, blobName: GcsBlobName, traceId: Option[TraceId]): Stream[F, GetMetadataResponse]
+
+  /**
+    * @param traceId uuid for tracing a unique call flow in logging
+    */
+  def setObjectMetadata(bucketName: GcsBucketName, blobName: GcsBlobName, metadata: Map[String, String], traceId: Option[TraceId]): Stream[F, Blob]
 
   /**
     * @return true if deleted; false if not found
