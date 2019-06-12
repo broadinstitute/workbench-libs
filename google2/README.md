@@ -31,7 +31,7 @@ implicit def unsafeLogger = Slf4jLogger.getLogger[IO]
 implicit val lineBacker = Linebacker.fromExecutionContext[IO](global)
 ```
 
-`scala> GoogleStorageService.resource[IO]("credentials.json", global)`
+`scala> GoogleStorageService.resource[IO]("credentials.json")`
 
 SLF4J: Failed to load class "org.slf4j.impl.StaticLoggerBinder".
 SLF4J: Defaulting to no-operation (NOP) logger implementation

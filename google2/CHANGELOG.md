@@ -7,6 +7,7 @@ This file documents changes to the `workbench-google2` library, including notes 
 Changed
 - Use linebacker for blocking execution context
 - Moved `org.broadinstitute.dsde.workbench.google.GoogleKmsService` to `org.broadinstitute.dsde.workbench.google2.GoogleKmsService`
+- Add optional generation parameter to `removeObject`
 
 SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.5-47baf94"`
 
