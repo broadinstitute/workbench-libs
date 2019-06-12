@@ -14,11 +14,12 @@ SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0
 
 Added
 - Add `setBucketPolicyOnly`
+- Add `setObjectMetadata`
 
 Changed
 - Update Google Cloud Storage client library to 1.77.0
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.4-88966fd"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.4-TRAVIS-REPLACE-ME"`
 
 ## 0.3
 
