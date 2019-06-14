@@ -30,7 +30,7 @@ class GoogleStorageInterpreterSpec extends AsyncFlatSpec with Matchers with Work
     val objectBody = genGcsObjectBody.sample.get
     for {
       _ <- localStorage.storeObject(bucketName, blobName, objectBody, objectType).compile.drain
-      r <- localStorage.unsafeGetObject(bucketName, blobName)
+      r <- localStorage.unsafeGetObjectBody(bucketName, blobName)
     } yield {
       r.get.getBytes(Generators.utf8Charset) shouldBe(objectBody)
     }
@@ -40,9 +40,21 @@ class GoogleStorageInterpreterSpec extends AsyncFlatSpec with Matchers with Work
     val bucketName = genGcsBucketName.sample.get
     val blobName = genGcsBlobName.sample.get
     for {
-      r <- localStorage.unsafeGetObject(bucketName, blobName)
+      r <- localStorage.unsafeGetObjectBody(bucketName, blobName)
     } yield {
       r shouldBe(None)
+    }
+  }
+
+  "ioStorage getBlob" should "be able to get blob" in ioAssertion {
+    val bucketName = genGcsBucketName.sample.get
+    val blobName = genGcsBlobName.sample.get
+    for {
+      _ <- localStorage.storeObject(bucketName, blobName, "test".getBytes("UTF-8")).compile.drain
+      r <- localStorage.getBlob(bucketName, blobName, None).compile.lastOrError
+    } yield {
+      r.getBucket shouldBe bucketName.value
+      r.getBlobId.getName shouldBe(blobName.value)
     }
   }
 
@@ -62,9 +74,9 @@ class GoogleStorageInterpreterSpec extends AsyncFlatSpec with Matchers with Work
     val objectBody = genGcsObjectBody.sample.get
     for {
       _ <- localStorage.storeObject(bucketName, blobName, objectBody, objectType).compile.drain
-      getBeforeDelete <- localStorage.unsafeGetObject(bucketName, blobName)
+      getBeforeDelete <- localStorage.unsafeGetObjectBody(bucketName, blobName)
       _ <- localStorage.removeObject(bucketName, blobName).compile.drain
-      getAfterDelete <- localStorage.unsafeGetObject(bucketName, blobName)
+      getAfterDelete <- localStorage.unsafeGetObjectBody(bucketName, blobName)
     } yield {
       getBeforeDelete.get.getBytes(Generators.utf8Charset) shouldBe(objectBody)
       getAfterDelete shouldBe(None)
