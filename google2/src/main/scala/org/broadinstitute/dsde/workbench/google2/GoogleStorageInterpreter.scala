@@ -53,11 +53,11 @@ private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer: Async
     } yield objects
   }
 
-  override def unsafeGetObject(bucketName: GcsBucketName, blobName: GcsBlobName, traceId: Option[TraceId] = None): F[Option[String]] = {
-    getObject(bucketName, blobName, traceId).through(text.utf8Decode).compile.foldSemigroup
+  override def unsafeGetObjectBody(bucketName: GcsBucketName, blobName: GcsBlobName, traceId: Option[TraceId] = None): F[Option[String]] = {
+    getObjectBody(bucketName, blobName, traceId).through(text.utf8Decode).compile.foldSemigroup
   }
 
-  override def getObject(bucketName: GcsBucketName, blobName: GcsBlobName, traceId: Option[TraceId] = None): Stream[F, Byte] = {
+  override def getObjectBody(bucketName: GcsBucketName, blobName: GcsBlobName, traceId: Option[TraceId] = None): Stream[F, Byte] = {
     val getBlobs = blockingF(Async[F].delay(db.get(BlobId.of(bucketName.value, blobName.value)))).map(Option(_))
 
     for {
@@ -67,6 +67,12 @@ private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer: Async
         case None => Stream.empty
       }
     } yield r
+  }
+
+  override def getBlob(bucketName: GcsBucketName, blobName: GcsBlobName, traceId: Option[TraceId] = None): Stream[F, Blob] = {
+    val getBlobs = blockingF(Async[F].delay(db.get(BlobId.of(bucketName.value, blobName.value)))).map(Option(_))
+
+    retryStorageF(getBlobs, traceId, s"com.google.cloud.storage.Storage.get(${BlobId.of(bucketName.value, blobName.value)})").unNone
   }
 
   def downloadObject(blobId: BlobId, path: Path, traceId: Option[TraceId] = None): Stream[F, Unit] = {
@@ -107,11 +113,11 @@ private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer: Async
   override def storeObject(bucketName: GcsBucketName,
                            objectName: GcsBlobName,
                            objectContents: Array[Byte],
-                           objectType: String,
+                           objectType: String = "text/plain",
                            metadata: Map[String, String] = Map.empty,
                            generation: Option[Long] = None,
-                           traceId: Option[TraceId] = None): Stream[F, Unit] = {
-    val storeObject: F[Unit] = generation match {
+                           traceId: Option[TraceId] = None): Stream[F, Blob] = {
+    val storeObject: F[Blob] = generation match {
       case Some(g) =>
         val blobId = BlobId.of(bucketName.value, objectName.value, g)
         val blobInfo = BlobInfo

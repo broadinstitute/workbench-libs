@@ -2,6 +2,18 @@
 
 This file documents changes to the `workbench-google2` library, including notes on how to upgrade to new versions.
 
+## 0.6
+
+Added
+- Add `getBlob`
+
+Changed
+- Rename previous `getObject` to `getObjectBody`, `unsafeGetObject` to `unsafeGetObjectBody`
+- provide `text/plain` as default `objectType` for `storeObject`
+- Bump `http4sVersion` to `0.20.3`
+
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.6-TRAVIS-REPLACE-ME"`
+
 ## 0.5
 
 Changed
