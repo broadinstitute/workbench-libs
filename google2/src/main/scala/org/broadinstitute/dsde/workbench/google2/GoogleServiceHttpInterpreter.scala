@@ -29,7 +29,7 @@ class GoogleServiceHttpInterpreter[F[_]: Sync: Logger](httpClient: Client[F], co
   def createNotification(topic: ProjectTopicName, bucketName: GcsBucketName, filters: Filters, traceId: Option[TraceId]): F[Unit] = {
     val notificationUri = config.googleUrl.withPath(s"/storage/v1/b/${bucketName.value}/notificationConfigs")
     val notificationBody = NotificationRequest(topic, "JSON_API_V1", filters.eventTypes, filters.objectNamePrefix)
-    val headers = Headers(authHeader)
+    val headers = Headers.of(authHeader)
 
     for {
       notifications <- httpClient.expect[NotificationResponse](Request[F](
@@ -55,7 +55,7 @@ class GoogleServiceHttpInterpreter[F[_]: Sync: Logger](httpClient: Client[F], co
     httpClient.expectOr[GetProjectServiceAccountResponse](Request[F](
       method = Method.GET,
       uri = uri,
-      headers = Headers(authHeader)
+      headers = Headers.of(authHeader)
     ))(onError(traceId)).map(_.serviceAccount)
   }
 

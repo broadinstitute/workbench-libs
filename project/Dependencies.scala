@@ -8,7 +8,7 @@ object Dependencies {
   val scalaLoggingV = "3.7.2"
   val scalaTestV    = "3.0.1"
   val circeVersion = "0.12.0-M3"
-  val http4sVersion = "0.20.0-M6" //This isn't ideal, but 0.20.+ has breaking changes from 0.18.0, so I think it's probably not worth using 0.18.22(stable version)
+  val http4sVersion = "0.20.3" //This isn't ideal, but 0.20.+ has breaking changes from 0.18.0, so I think it's probably not worth using 0.18.22(stable version)
 
   def excludeGuavaJDK5(m: ModuleID): ModuleID = m.exclude("com.google.guava", "guava-jdk5")
 
@@ -68,7 +68,7 @@ object Dependencies {
   val http4sDsl = "org.http4s"      %% "http4s-dsl"          % http4sVersion
 
   val fs2Io: ModuleID = "co.fs2" %% "fs2-io" % "1.1.0-M1"
-  val lineBacker: ModuleID = "io.chrisdavenport" %% "linebacker" % "0.2.0"
+  val lineBacker: ModuleID = "io.chrisdavenport" %% "linebacker" % "0.2.1"
   val rawlsModel: ModuleID = "org.broadinstitute.dsde" %% "rawls-model" % "0.1-0d02c8ce-SNAP" exclude("com.typesafe.scala-logging", "scala-logging_2.11") exclude("com.typesafe.akka", "akka-stream_2.11")
   val newRelic: ModuleID = "com.newrelic.agent.java" % "newrelic-api" % "5.0.0"
 

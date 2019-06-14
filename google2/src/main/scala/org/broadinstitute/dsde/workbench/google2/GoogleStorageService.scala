@@ -6,7 +6,7 @@ import cats.data.NonEmptyList
 import cats.effect._
 import com.google.auth.oauth2.GoogleCredentials
 import com.google.cloud.Identity
-import com.google.cloud.storage.{Acl, BlobId, StorageOptions}
+import com.google.cloud.storage.{Acl, Blob, BlobId, StorageOptions}
 import com.google.cloud.storage.BucketInfo.LifecycleRule
 import fs2.Stream
 import io.chrisdavenport.linebacker.Linebacker
@@ -38,7 +38,7 @@ trait GoogleStorageService[F[_]] {
   /**
     * @param traceId uuid for tracing a unique call flow in logging
     */
-  def storeObject(bucketName: GcsBucketName, objectName: GcsBlobName, objectContents: Array[Byte], objectType: String, metadata: Map[String, String] = Map.empty, generation: Option[Long] = None, traceId: Option[TraceId] = None): Stream[F, Unit]
+  def storeObject(bucketName: GcsBucketName, objectName: GcsBlobName, objectContents: Array[Byte], objectType: String, metadata: Map[String, String] = Map.empty, generation: Option[Long] = None, traceId: Option[TraceId] = None): Stream[F, Blob]
 
   /**
     * @param traceId uuid for tracing a unique call flow in logging
@@ -49,13 +49,14 @@ trait GoogleStorageService[F[_]] {
     * not memory safe. Use getObject if you're worried about OOM
     * @param traceId uuid for tracing a unique call flow in logging
     */
-  def unsafeGetObject(bucketName: GcsBucketName, blobName: GcsBlobName, traceId: Option[TraceId] = None): F[Option[String]]
+  def unsafeGetObjectBody(bucketName: GcsBucketName, blobName: GcsBlobName, traceId: Option[TraceId] = None): F[Option[String]]
 
   /**
     * @param traceId uuid for tracing a unique call flow in logging
     */
-  def getObject(bucketName: GcsBucketName, blobName: GcsBlobName, traceId: Option[TraceId] = None): Stream[F, Byte]
+  def getObjectBody(bucketName: GcsBucketName, blobName: GcsBlobName, traceId: Option[TraceId] = None): Stream[F, Byte]
 
+  def getBlob(bucketName: GcsBucketName, blobName: GcsBlobName, traceId: Option[TraceId] = None): Stream[F, Blob]
   /**
     * @param traceId uuid for tracing a unique call flow in logging
     */
