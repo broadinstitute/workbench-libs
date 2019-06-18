@@ -7,8 +7,8 @@ object Dependencies {
   val googleV       = "1.22.0"
   val scalaLoggingV = "3.7.2"
   val scalaTestV    = "3.0.1"
-  val circeVersion = "0.12.0-M3"
-  val http4sVersion = "0.20.3" //This isn't ideal, but 0.20.+ has breaking changes from 0.18.0, so I think it's probably not worth using 0.18.22(stable version)
+  val circeVersion = "0.11.1"
+  val http4sVersion = "0.20.3"
 
   def excludeGuavaJDK5(m: ModuleID): ModuleID = m.exclude("com.google.guava", "guava-jdk5")
 
@@ -28,7 +28,7 @@ object Dependencies {
 
   val selenium: ModuleID = "org.seleniumhq.selenium" % "selenium-java" % "3.11.0" % "test"
 
-  val catsEffect: ModuleID = "org.typelevel" %% "cats-effect" % "2.0.0-M4"
+  val catsEffect: ModuleID = "org.typelevel" %% "cats-effect" % "1.3.1"
 
   // metrics-scala transitively pulls in io.dropwizard.metrics:metrics-core
   val metricsScala: ModuleID =      "nl.grons"              %% "metrics-scala"    % "3.5.6"
@@ -67,7 +67,7 @@ object Dependencies {
   val http4sBlazeClient = "org.http4s" %% "http4s-blaze-client" % http4sVersion
   val http4sDsl = "org.http4s"      %% "http4s-dsl"          % http4sVersion
 
-  val fs2Io: ModuleID = "co.fs2" %% "fs2-io" % "1.1.0-M1"
+  val fs2Io: ModuleID = "co.fs2" %% "fs2-io" % "1.0.4"
   val lineBacker: ModuleID = "io.chrisdavenport" %% "linebacker" % "0.2.1"
   val rawlsModel: ModuleID = "org.broadinstitute.dsde" %% "rawls-model" % "0.1-0d02c8ce-SNAP" exclude("com.typesafe.scala-logging", "scala-logging_2.11") exclude("com.typesafe.akka", "akka-stream_2.11")
   val newRelic: ModuleID = "com.newrelic.agent.java" % "newrelic-api" % "5.0.0"

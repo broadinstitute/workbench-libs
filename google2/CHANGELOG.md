@@ -11,6 +11,7 @@ Changed
 - Rename previous `getObject` to `getObjectBody`, `unsafeGetObject` to `unsafeGetObjectBody`
 - provide `text/plain` as default `objectType` for `storeObject`
 - Bump `http4sVersion` to `0.20.3`
+- `storeObject` returns `Blob`
 
 SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.6-TRAVIS-REPLACE-ME"`
 
