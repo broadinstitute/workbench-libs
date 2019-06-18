@@ -3,9 +3,11 @@
 This file documents changes to the `workbench-google` library, including notes on how to upgrade to new versions.
 
 ## 0.19
-- Moved `org.broadinstitute.dsde.workbench.google.GoogleKmsService` to `org.broadinstitute.dsde.workbench.google2.GoogleKmsService`
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.19-47baf94"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.19-TRAVIS-REPLACE-ME"`
+
+- Moved `org.broadinstitute.dsde.workbench.google.GoogleKmsService` to `org.broadinstitute.dsde.workbench.google2.GoogleKmsService`
+- Add `getProjectLabels` to `GoogleProjectDAO`
 
 ## 0.18
 
