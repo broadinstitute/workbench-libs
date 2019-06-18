@@ -39,6 +39,7 @@ trait CommonConfig {
   // note: no separate "projects" config stanza
   trait CommonProjects extends CommonGCS {
     val billingAccountId = gcsConfig.getString("billingAccountId")
+    val googleAccessPolicy = gcsConfig.getString("googleAccessPolicy")
   }
 
   trait CommonFireCloud {
