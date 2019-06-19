@@ -23,9 +23,10 @@ trait Rawls extends RestClient with LazyLogging {
 
   object billing {
 
-    def createBillingProject(projectName: String, billingAccount: String)(implicit token: AuthToken): String = {
+    def createBillingProject(projectName: String, billingAccount: String, servicePerimeterOpt: Option[String] = None)(implicit token: AuthToken): String = {
       logger.info(s"Creating billing project $projectName in billing account $billingAccount")
-      postRequest(url +"api/billing", Map("projectName" -> projectName, "billingAccount" -> billingAccount))
+      val request = Map("projectName" -> projectName, "billingAccount" -> billingAccount) ++ servicePerimeterOpt.map(servicePerimeter => "servicePerimeter" -> servicePerimeter)
+      postRequest(s"${url}api/billing", request)
     }
 
     def getBillingProjectStatus(projectName: String)(implicit token: AuthToken): Map[String, String] = {
