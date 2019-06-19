@@ -56,6 +56,10 @@ trait GoogleStorageService[F[_]] {
     */
   def getObjectBody(bucketName: GcsBucketName, blobName: GcsBlobName, traceId: Option[TraceId] = None): Stream[F, Byte]
 
+  /**
+    * return com.google.cloud.storage.Blob, which gives you metadata and user defined metadata etc
+    * @param traceId uuid for tracing a unique call flow in logging
+    */
   def getBlob(bucketName: GcsBucketName, blobName: GcsBlobName, traceId: Option[TraceId] = None): Stream[F, Blob]
   /**
     * @param traceId uuid for tracing a unique call flow in logging
