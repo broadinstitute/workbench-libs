@@ -12,7 +12,7 @@ import com.google.cloud.Identity
 import fs2.Stream
 import org.broadinstitute.dsde.workbench.model.TraceId
 
-object FakeGoogleStorageInterpreter extends GoogleStorageService[IO] {
+class BaseFakeGoogleStorage extends GoogleStorageService[IO] {
   override def listObjectsWithPrefix(bucketName: GcsBucketName, objectNamePrefix: String, maxPageSize: Long = 1000, traceId: Option[TraceId] = None): fs2.Stream[IO, GcsObjectName] = localStorage.listObjectsWithPrefix(bucketName, objectNamePrefix)
 
   override def storeObject(bucketName: GcsBucketName, objectName: GcsBlobName, objectContents: Array[Byte], objectType: String, metadata: Map[String, String] = Map.empty, generation: Option[Long], traceId: Option[TraceId] = None): Stream[IO, Blob] = localStorage.storeObject(bucketName, objectName, objectContents, objectType)
@@ -42,3 +42,5 @@ object FakeGoogleStorageInterpreter extends GoogleStorageService[IO] {
 
   override def setIamPolicy(bucketName: GcsBucketName, roles: Map[StorageRole, NonEmptyList[Identity]], traceId: Option[TraceId] = None): Stream[IO, Unit] = Stream.empty
 }
+
+object FakeGoogleStorageInterpreter extends BaseFakeGoogleStorage
