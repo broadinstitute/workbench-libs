@@ -87,7 +87,7 @@ trait GoogleStorageService[F[_]] {
     * Supports adding bucket labels during creation
     * Acl is deprecated. Use setIamPolicy if possible
     */
-  def createBucket(googleProject: GoogleProject, bucketName: GcsBucketName, acl: Option[NonEmptyList[Acl]] = None, labels: Map[String, String] = Map.empty, traceId: Option[TraceId] = None): Stream[F, Unit]
+  def createBucket(googleProject: GoogleProject, bucketName: GcsBucketName, acl: Option[NonEmptyList[Acl]], labels: Map[String, String], traceId: Option[TraceId] = None): Stream[F, Unit]
 
   /**
     * @param traceId uuid for tracing a unique call flow in logging
