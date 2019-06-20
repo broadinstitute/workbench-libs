@@ -10,7 +10,7 @@ Changed
 - Add optional generation parameter to `removeObject`
 - Add insertBucket, which supports adding bucket labels
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.5-TRAVIS-REPLACE-ME"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.5-ea3ee30"`
 
 ## 0.4
 
