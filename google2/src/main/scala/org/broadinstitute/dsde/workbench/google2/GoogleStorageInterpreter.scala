@@ -152,10 +152,10 @@ private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer: Async
   }
 
   override def createBucket(billingProject: GoogleProject, bucketName: GcsBucketName, acl: Option[NonEmptyList[Acl]] = None, traceId: Option[TraceId] = None): Stream[F, Unit] = {
-    createBucket(billingProject, bucketName, acl, Map.empty, traceId)
+    createBucket(billingProject, bucketName, acl, traceId)
   }
 
-  override def createBucket(billingProject: GoogleProject, bucketName: GcsBucketName, acl: Option[NonEmptyList[Acl]], labels: Map[String, String], traceId: Option[TraceId] = None): Stream[F, Unit] = {
+  override def insertBucket(billingProject: GoogleProject, bucketName: GcsBucketName, acl: Option[NonEmptyList[Acl]] = None, labels: Map[String, String] = Map.empty, traceId: Option[TraceId] = None): Stream[F, Unit] = {
     val bucketInfoBuilder = BucketInfo.of(bucketName.value).toBuilder
     val bucketInfo = acl.map{
       aclList =>
