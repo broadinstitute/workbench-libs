@@ -151,8 +151,9 @@ private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer: Async
     } yield RemoveObjectResult(deleted)
   }
 
+  @deprecated("Deprecated in favor of insertBucket", "0.5")
   override def createBucket(billingProject: GoogleProject, bucketName: GcsBucketName, acl: Option[NonEmptyList[Acl]] = None, traceId: Option[TraceId] = None): Stream[F, Unit] = {
-    createBucket(billingProject, bucketName, acl, traceId)
+    insertBucket(billingProject, bucketName, acl, Map.empty, traceId)
   }
 
   override def insertBucket(billingProject: GoogleProject, bucketName: GcsBucketName, acl: Option[NonEmptyList[Acl]] = None, labels: Map[String, String] = Map.empty, traceId: Option[TraceId] = None): Stream[F, Unit] = {
