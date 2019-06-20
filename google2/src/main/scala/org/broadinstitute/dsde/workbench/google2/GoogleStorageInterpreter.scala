@@ -55,11 +55,11 @@ private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer: Async
     } yield objects
   }
 
-  override def unsafeGetObjectBody(bucketName: GcsBucketName, blobName: GcsBlobName, traceId: Option[TraceId] = None): F[Option[String]] = {
-    getObjectBody(bucketName, blobName, traceId).through(text.utf8Decode).compile.foldSemigroup
+  override def unsafeGetBlobBody(bucketName: GcsBucketName, blobName: GcsBlobName, traceId: Option[TraceId] = None): F[Option[String]] = {
+    getBlobBody(bucketName, blobName, traceId).through(text.utf8Decode).compile.foldSemigroup
   }
 
-  override def getObjectBody(bucketName: GcsBucketName, blobName: GcsBlobName, traceId: Option[TraceId] = None): Stream[F, Byte] = {
+  override def getBlobBody(bucketName: GcsBucketName, blobName: GcsBlobName, traceId: Option[TraceId] = None): Stream[F, Byte] = {
     val getBlobs = blockingF(Async[F].delay(db.get(BlobId.of(bucketName.value, blobName.value)))).map(Option(_))
 
     for {
@@ -112,7 +112,7 @@ private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer: Async
     retryStorageF(metadataUpdate, traceId, s"com.google.cloud.storage.Storage.update($bucketName/$objectName)").void
   }
 
-  override def storeObject(bucketName: GcsBucketName,
+  override def createBlob(bucketName: GcsBucketName,
                            objectName: GcsBlobName,
                            objectContents: Array[Byte],
                            objectType: String = "text/plain",
@@ -156,11 +156,6 @@ private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer: Async
     for {
       deleted <- retryStorageF(deleteObject, traceId, s"com.google.cloud.storage.Storage.delete(${bucketName.value}/${blobName.value})")
     } yield RemoveObjectResult(deleted)
-  }
-
-  @deprecated("Deprecated in favor of insertBucket", "0.5")
-  override def createBucket(billingProject: GoogleProject, bucketName: GcsBucketName, acl: Option[NonEmptyList[Acl]] = None, traceId: Option[TraceId] = None): Stream[F, Unit] = {
-    insertBucket(billingProject, bucketName, acl, Map.empty, traceId)
   }
 
   override def insertBucket(billingProject: GoogleProject, bucketName: GcsBucketName, acl: Option[NonEmptyList[Acl]] = None, labels: Map[String, String] = Map.empty, traceId: Option[TraceId] = None): Stream[F, Unit] = {
