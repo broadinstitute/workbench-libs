@@ -8,8 +8,9 @@ Changed
 - Use linebacker for blocking execution context
 - Moved `org.broadinstitute.dsde.workbench.google.GoogleKmsService` to `org.broadinstitute.dsde.workbench.google2.GoogleKmsService`
 - Add optional generation parameter to `removeObject`
+- Support adding bucket labels in createBucket
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.5-47baf94"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.5-TRAVIS-REPLACE-ME"`
 
 ## 0.4
 

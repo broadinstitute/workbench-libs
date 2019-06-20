@@ -151,6 +151,11 @@ private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer: Async
     } yield RemoveObjectResult(deleted)
   }
 
+  @deprecated
+  override def createBucket(billingProject: GoogleProject, bucketName: GcsBucketName, acl: Option[NonEmptyList[Acl]] = None, traceId: Option[TraceId] = None): Stream[F, Unit] = {
+    createBucket(billingProject, bucketName, acl, Map.empty, traceId)
+  }
+
   override def createBucket(billingProject: GoogleProject, bucketName: GcsBucketName, acl: Option[NonEmptyList[Acl]] = None, labels: Map[String, String] = Map.empty, traceId: Option[TraceId] = None): Stream[F, Unit] = {
     val bucketInfoBuilder = BucketInfo.of(bucketName.value).toBuilder
     val bucketInfo = acl.map{
