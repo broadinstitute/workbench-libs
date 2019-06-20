@@ -47,8 +47,8 @@ package object util {
    * res0: List[String] = List(this is great)
    *
    */
-  def readJsonFileToA[F[_]: Sync: ContextShift: Concurrent, A: Decoder](path: Path, executionContext: ExecutionContext = global): Stream[F, A] = {
-    io.file.readAll[F](path, executionContext, 4096)
+  def readJsonFileToA[F[_]: Sync: ContextShift: Concurrent, A: Decoder](path: Path, blockingExecutionContext: Option[ExecutionContext] = None): Stream[F, A] = {
+    io.file.readAll[F](path, blockingExecutionContext.getOrElse(global), 4096)
       .through(fs2.text.utf8Decode)
       .through(_root_.io.circe.fs2.stringParser(AsyncParser.SingleValue))
       .through(decoder)
