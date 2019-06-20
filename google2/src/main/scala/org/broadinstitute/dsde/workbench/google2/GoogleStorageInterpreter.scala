@@ -242,14 +242,14 @@ object GoogleStorageInterpreter {
 
   def storage[F[_]: Sync: ContextShift](
       pathToJson: String,
-      blockingEc: ExecutionContext,
+      blockingExecutionContext: ExecutionContext,
       project: Option[GoogleProject] = None // legacy credential file doesn't have `project_id` field. Hence we need to pass in explicitly
   ): Resource[F, Storage] =
     for {
       credential <- org.broadinstitute.dsde.workbench.util.readFile(pathToJson)
       project <- project match { //Use explicitly passed in project if it's defined; else use `project_id` in json credential; if neither has project defined, raise error
         case Some(p) => Resource.pure[F, GoogleProject](p)
-        case None => Resource.liftF(parseProject(pathToJson, blockingEc).compile.lastOrError)
+        case None => Resource.liftF(parseProject(pathToJson, blockingExecutionContext).compile.lastOrError)
       }
       db <- Resource.liftF(
         Sync[F].delay(
@@ -267,8 +267,8 @@ object GoogleStorageInterpreter {
     "project_id"
   )(GoogleProject.apply)
 
-  def parseProject[F[_]: ContextShift: Sync](pathToJson: String, executionContext: ExecutionContext = global): Stream[F, GoogleProject] =
-     fs2.io.file.readAll[F](Paths.get(pathToJson), executionContext, 4096)
+  def parseProject[F[_]: ContextShift: Sync](pathToJson: String, blockingExecutionContext: ExecutionContext = global): Stream[F, GoogleProject] =
+     fs2.io.file.readAll[F](Paths.get(pathToJson), blockingExecutionContext, 4096)
           .through(byteStreamParser)
           .through(decoder[F, GoogleProject])
 }
