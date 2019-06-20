@@ -80,11 +80,11 @@ trait GoogleStorageService[F[_]] {
     * @param traceId uuid for tracing a unique call flow in logging
     * Acl is deprecated. Use setIamPolicy if possible
     */
-  @deprecated
   def createBucket(billingProject: GoogleProject, bucketName: GcsBucketName, acl: Option[NonEmptyList[Acl]] = None, traceId: Option[TraceId] = None): Stream[F, Unit]
 
   /**
     * @param traceId uuid for tracing a unique call flow in logging
+    * Supports adding bucket labels during creation
     * Acl is deprecated. Use setIamPolicy if possible
     */
   def createBucket(googleProject: GoogleProject, bucketName: GcsBucketName, acl: Option[NonEmptyList[Acl]] = None, labels: Map[String, String] = Map.empty, traceId: Option[TraceId] = None): Stream[F, Unit]
