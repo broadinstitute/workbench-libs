@@ -24,7 +24,7 @@ object Settings {
     javacOptions ++= Seq("-source", "1.8", "-target", "1.8"),
     scalacOptions in (Compile, console) --= Seq("-Ywarn-unused:imports", "-Xfatal-warnings"),
     scalacOptions in Test -= "-Ywarn-dead-code", // due to https://github.com/mockito/mockito-scala#notes
-    addCompilerPlugin("org.spire-math" %% "kind-projector" % "0.9.9")
+    addCompilerPlugin("org.typelevel" %% "kind-projector" % "0.10.3")
   )
 
   lazy val commonCompilerSettings = scalacOptions ++= (CrossVersion.partialVersion(scalaVersion.value) match {
@@ -35,7 +35,7 @@ object Settings {
         "-language:implicitConversions",     // Allow definition of implicit functions called views
         "-Ypartial-unification"              // Enable partial unification in type constructor inference
       )
-    case _ =>
+    case Some((2, 12)) =>
       Seq(
         "-deprecation",                      // Emit warning and location for usages of deprecated APIs.
         "-encoding", "utf-8",                // Specify character encoding used by source files.

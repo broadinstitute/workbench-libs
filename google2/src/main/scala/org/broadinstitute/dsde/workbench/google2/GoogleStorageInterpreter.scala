@@ -22,6 +22,7 @@ import org.broadinstitute.dsde.workbench.model.google.{GcsBucketName, GcsObjectN
 
 import scala.collection.JavaConverters._
 import scala.concurrent.ExecutionContext
+import scala.concurrent.ExecutionContext.global
 import scala.concurrent.duration._
 
 private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer: Async: Logger: Linebacker](db: Storage,
@@ -54,11 +55,11 @@ private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer: Async
     } yield objects
   }
 
-  override def unsafeGetObject(bucketName: GcsBucketName, blobName: GcsBlobName, traceId: Option[TraceId] = None): F[Option[String]] = {
-    getObject(bucketName, blobName, traceId).through(text.utf8Decode).compile.foldSemigroup
+  override def unsafeGetBlobBody(bucketName: GcsBucketName, blobName: GcsBlobName, traceId: Option[TraceId] = None): F[Option[String]] = {
+    getBlobBody(bucketName, blobName, traceId).through(text.utf8Decode).compile.foldSemigroup
   }
 
-  override def getObject(bucketName: GcsBucketName, blobName: GcsBlobName, traceId: Option[TraceId] = None): Stream[F, Byte] = {
+  override def getBlobBody(bucketName: GcsBucketName, blobName: GcsBlobName, traceId: Option[TraceId] = None): Stream[F, Byte] = {
     val getBlobs = blockingF(Async[F].delay(db.get(BlobId.of(bucketName.value, blobName.value)))).map(Option(_))
 
     for {
@@ -68,6 +69,12 @@ private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer: Async
         case None => Stream.empty
       }
     } yield r
+  }
+
+  override def getBlob(bucketName: GcsBucketName, blobName: GcsBlobName, traceId: Option[TraceId] = None): Stream[F, Blob] = {
+    val getBlobs = blockingF(Async[F].delay(db.get(BlobId.of(bucketName.value, blobName.value)))).map(Option(_))
+
+    retryStorageF(getBlobs, traceId, s"com.google.cloud.storage.Storage.get(${BlobId.of(bucketName.value, blobName.value)})").unNone
   }
 
   def downloadObject(blobId: BlobId, path: Path, traceId: Option[TraceId] = None): Stream[F, Unit] = {
@@ -105,14 +112,14 @@ private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer: Async
     retryStorageF(metadataUpdate, traceId, s"com.google.cloud.storage.Storage.update($bucketName/$objectName)").void
   }
 
-  override def storeObject(bucketName: GcsBucketName,
+  override def createBlob(bucketName: GcsBucketName,
                            objectName: GcsBlobName,
                            objectContents: Array[Byte],
-                           objectType: String,
+                           objectType: String = "text/plain",
                            metadata: Map[String, String] = Map.empty,
                            generation: Option[Long] = None,
-                           traceId: Option[TraceId] = None): Stream[F, Unit] = {
-    val storeObject: F[Unit] = generation match {
+                           traceId: Option[TraceId] = None): Stream[F, Blob] = {
+    val storeObject: F[Blob] = generation match {
       case Some(g) =>
         val blobId = BlobId.of(bucketName.value, objectName.value, g)
         val blobInfo = BlobInfo
@@ -149,11 +156,6 @@ private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer: Async
     for {
       deleted <- retryStorageF(deleteObject, traceId, s"com.google.cloud.storage.Storage.delete(${bucketName.value}/${blobName.value})")
     } yield RemoveObjectResult(deleted)
-  }
-
-  @deprecated("Deprecated in favor of insertBucket", "0.5")
-  override def createBucket(billingProject: GoogleProject, bucketName: GcsBucketName, acl: Option[NonEmptyList[Acl]] = None, traceId: Option[TraceId] = None): Stream[F, Unit] = {
-    insertBucket(billingProject, bucketName, acl, Map.empty, traceId)
   }
 
   override def insertBucket(billingProject: GoogleProject, bucketName: GcsBucketName, acl: Option[NonEmptyList[Acl]] = None, labels: Map[String, String] = Map.empty, traceId: Option[TraceId] = None): Stream[F, Unit] = {
@@ -260,7 +262,7 @@ object GoogleStorageInterpreter {
     "project_id"
   )(GoogleProject.apply)
 
-  def parseProject[F[_]: ContextShift: Sync](pathToJson: String, blockingExecutionContext: ExecutionContext): Stream[F, GoogleProject] =
+  def parseProject[F[_]: ContextShift: Sync](pathToJson: String, blockingExecutionContext: ExecutionContext = global): Stream[F, GoogleProject] =
      fs2.io.file.readAll[F](Paths.get(pathToJson), blockingExecutionContext, 4096)
           .through(byteStreamParser)
           .through(decoder[F, GoogleProject])
