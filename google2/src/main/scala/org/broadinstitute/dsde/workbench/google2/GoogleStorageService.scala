@@ -3,10 +3,11 @@ package org.broadinstitute.dsde.workbench.google2
 import java.nio.file.Path
 
 import cats.data.NonEmptyList
+import cats.implicits._
 import cats.effect._
 import com.google.auth.oauth2.GoogleCredentials
 import com.google.cloud.Identity
-import com.google.cloud.storage.{Acl, BlobId, StorageOptions}
+import com.google.cloud.storage.{Acl, Blob, BlobId, StorageOptions}
 import com.google.cloud.storage.BucketInfo.LifecycleRule
 import fs2.Stream
 import io.chrisdavenport.linebacker.Linebacker
@@ -38,7 +39,13 @@ trait GoogleStorageService[F[_]] {
   /**
     * @param traceId uuid for tracing a unique call flow in logging
     */
-  def storeObject(bucketName: GcsBucketName, objectName: GcsBlobName, objectContents: Array[Byte], objectType: String, metadata: Map[String, String] = Map.empty, generation: Option[Long] = None, traceId: Option[TraceId] = None): Stream[F, Unit]
+  def createBlob(bucketName: GcsBucketName, objectName: GcsBlobName, objectContents: Array[Byte], objectType: String = "text/plain", metadata: Map[String, String] = Map.empty, generation: Option[Long] = None, traceId: Option[TraceId] = None): Stream[F, Blob]
+
+  /**
+    * @param traceId uuid for tracing a unique call flow in logging
+    */
+  @deprecated("Use createBlob instead", "0.5")
+  def storeObject(bucketName: GcsBucketName, objectName: GcsBlobName, objectContents: Array[Byte], objectType: String, metadata: Map[String, String] = Map.empty, generation: Option[Long] = None, traceId: Option[TraceId] = None): Stream[F, Unit] = createBlob(bucketName, objectName, objectContents, objectType, metadata, generation, traceId).void
 
   /**
     * @param traceId uuid for tracing a unique call flow in logging
@@ -49,13 +56,31 @@ trait GoogleStorageService[F[_]] {
     * not memory safe. Use getObject if you're worried about OOM
     * @param traceId uuid for tracing a unique call flow in logging
     */
-  def unsafeGetObject(bucketName: GcsBucketName, blobName: GcsBlobName, traceId: Option[TraceId] = None): F[Option[String]]
+  @deprecated("Use unsafeGetObjectBody instead", "0.5")
+  def unsafeGetObject(bucketName: GcsBucketName, blobName: GcsBlobName, traceId: Option[TraceId] = None): F[Option[String]] = unsafeGetBlobBody(bucketName, blobName, traceId)
+
+  /**
+    * not memory safe. Use getObject if you're worried about OOM
+    * @param traceId uuid for tracing a unique call flow in logging
+    */
+  def unsafeGetBlobBody(bucketName: GcsBucketName, blobName: GcsBlobName, traceId: Option[TraceId] = None): F[Option[String]]
 
   /**
     * @param traceId uuid for tracing a unique call flow in logging
     */
-  def getObject(bucketName: GcsBucketName, blobName: GcsBlobName, traceId: Option[TraceId] = None): Stream[F, Byte]
+  @deprecated("Use getObject instead", "0.5")
+  def getObject(bucketName: GcsBucketName, blobName: GcsBlobName, traceId: Option[TraceId] = None): Stream[F, Byte] = getBlobBody(bucketName, blobName, traceId)
 
+  /**
+    * @param traceId uuid for tracing a unique call flow in logging
+    */
+  def getBlobBody(bucketName: GcsBucketName, blobName: GcsBlobName, traceId: Option[TraceId] = None): Stream[F, Byte]
+
+  /**
+    * return com.google.cloud.storage.Blob, which gives you metadata and user defined metadata etc
+    * @param traceId uuid for tracing a unique call flow in logging
+    */
+  def getBlob(bucketName: GcsBucketName, blobName: GcsBlobName, traceId: Option[TraceId] = None): Stream[F, Blob]
   /**
     * @param traceId uuid for tracing a unique call flow in logging
     */
@@ -81,7 +106,7 @@ trait GoogleStorageService[F[_]] {
     * Acl is deprecated. Use setIamPolicy if possible
     */
   @deprecated("Deprecated in favor of insertBucket", "0.5")
-  def createBucket(billingProject: GoogleProject, bucketName: GcsBucketName, acl: Option[NonEmptyList[Acl]] = None, traceId: Option[TraceId] = None): Stream[F, Unit]
+  def createBucket(billingProject: GoogleProject, bucketName: GcsBucketName, acl: Option[NonEmptyList[Acl]] = None, traceId: Option[TraceId] = None): Stream[F, Unit] = insertBucket(billingProject, bucketName, acl, Map.empty, traceId)
 
   /**
     * @param traceId uuid for tracing a unique call flow in logging
