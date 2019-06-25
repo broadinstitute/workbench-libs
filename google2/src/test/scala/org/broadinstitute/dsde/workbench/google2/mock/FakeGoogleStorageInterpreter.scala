@@ -25,7 +25,7 @@ class BaseFakeGoogleStorage extends GoogleStorageService[IO] {
 
   override def downloadObject(blobId: BlobId, path: Path, traceId: Option[TraceId] = None): Stream[IO, Unit] = Stream.eval(IO.unit)
 
-  override def getObjectMetadata(bucketName: GcsBucketName, blobName: GcsBlobName, traceId: Option[TraceId]): Stream[IO, GetMetadataResponse] = Stream.emit(GetMetadataResponse.NotFound).covary[IO]
+  override def getObjectMetadata(bucketName: GcsBucketName, blobName: GcsBlobName, traceId: Option[TraceId]): Stream[IO, GetMetadataResponse] = localStorage.getObjectMetadata(bucketName, blobName, traceId)
 
   override def setObjectMetadata(bucketName: GcsBucketName, objectName: GcsBlobName, metadata: Map[String, String], traceId: Option[TraceId]): Stream[IO, Unit] = Stream.eval(IO.unit)
 
