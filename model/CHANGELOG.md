@@ -5,8 +5,10 @@ This file documents changes to the `workbench-model` library, including notes on
 ## 0.13
 
 - Added generators in `test`
+- Add `disabled` attribute to `ServiceAccount`
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-model" % "0.13-d4e0782"`
+
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-model" % "0.13-TRAVIS-REPLACE-ME"`
 
 ### Changed
 
