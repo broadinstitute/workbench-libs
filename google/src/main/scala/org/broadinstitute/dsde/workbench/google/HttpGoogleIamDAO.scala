@@ -18,8 +18,8 @@ import com.google.api.client.googleapis.auth.oauth2.GoogleClientSecrets
 import com.google.api.client.googleapis.json.GoogleJsonResponseException
 import com.google.api.client.http.HttpResponseException
 import com.google.api.services.cloudresourcemanager.CloudResourceManager
-import com.google.api.services.cloudresourcemanager.model.{Binding => ProjectBinding, Policy => ProjectPolicy, SetIamPolicyRequest => ProjectSetIamPolicyRequest, TestIamPermissionsRequest}
-import com.google.api.services.iam.v1.model.{CreateServiceAccountKeyRequest, CreateServiceAccountRequest, ServiceAccount, Binding => ServiceAccountBinding, Policy => ServiceAccountPolicy, ServiceAccountKey => GoogleServiceAccountKey, SetIamPolicyRequest => ServiceAccountSetIamPolicyRequest}
+import com.google.api.services.cloudresourcemanager.model.{TestIamPermissionsRequest, Binding => ProjectBinding, Policy => ProjectPolicy, SetIamPolicyRequest => ProjectSetIamPolicyRequest}
+import com.google.api.services.iam.v1.model.{CreateServiceAccountKeyRequest, CreateServiceAccountRequest, DisableServiceAccountRequest, EnableServiceAccountRequest, ServiceAccount, Binding => ServiceAccountBinding, Policy => ServiceAccountPolicy, ServiceAccountKey => GoogleServiceAccountKey, SetIamPolicyRequest => ServiceAccountSetIamPolicyRequest}
 import com.google.api.services.iam.v1.{Iam, IamScopes}
 import org.broadinstitute.dsde.workbench.google.GoogleCredentialModes._
 import org.broadinstitute.dsde.workbench.google.HttpGoogleIamDAO._
@@ -119,6 +119,26 @@ class HttpGoogleIamDAO(appName: String,
     } {
       // if the service account is already gone, don't fail
       case e: HttpResponseException if e.getStatusCode == StatusCodes.NotFound.intValue => ()
+    }
+  }
+
+  override def disableServiceAccount(serviceAccountProject: GoogleProject, serviceAccountName: ServiceAccountName): Future[Unit] = {
+    val serviceAccountEmail = toServiceAccountEmail(serviceAccountProject, serviceAccountName)
+    val name = s"projects/${serviceAccountProject.value}/serviceAccounts/${serviceAccountEmail.value}"
+    val disabler = iam.projects().serviceAccounts().disable(name, new DisableServiceAccountRequest())
+    retryWhen500orGoogleError { () =>
+      executeGoogleRequest(disabler)
+      ()
+    }
+  }
+
+  override def enableServiceAccount(serviceAccountProject: GoogleProject, serviceAccountName: ServiceAccountName): Future[Unit] = {
+    val serviceAccountEmail = toServiceAccountEmail(serviceAccountProject, serviceAccountName)
+    val name = s"projects/${serviceAccountProject.value}/serviceAccounts/${serviceAccountEmail.value}"
+    val enabler = iam.projects().serviceAccounts().enable(name, new EnableServiceAccountRequest())
+    retryWhen500orGoogleError { () =>
+      executeGoogleRequest(enabler)
+      ()
     }
   }
 

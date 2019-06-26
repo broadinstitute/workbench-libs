@@ -4,10 +4,11 @@ This file documents changes to the `workbench-google` library, including notes o
 
 ## 0.19
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.19-ad7ff9d"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.19-TRAVIS-REPLACE-ME"`
 
 - Moved `org.broadinstitute.dsde.workbench.google.GoogleKmsService` to `org.broadinstitute.dsde.workbench.google2.GoogleKmsService`
 - Add `getProjectLabels` to `GoogleProjectDAO`
+- Add endable and disable service account to `GoogleIamDAO`
 
 ## 0.18
 

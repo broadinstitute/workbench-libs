@@ -57,11 +57,28 @@ trait GoogleIamDAO {
   }
 
   /**
-    * Removes a service account in the given project.
+    * Removes a service account in the given project. Note that google does not like it when service account names
+    * are reused in a project so be sure this name will never be used again in this project.
     * @param serviceAccountProject the project in which to remove the service account
     * @param serviceAccountName the service account name
     */
   def removeServiceAccount(serviceAccountProject: GoogleProject, serviceAccountName: ServiceAccountName): Future[Unit]
+
+  /**
+    * Disables a service account in the given project.
+    * @param serviceAccountProject the project in which to remove the service account
+    * @param serviceAccountName the service account name
+    * @return
+    */
+  def disableServiceAccount(serviceAccountProject: GoogleProject, serviceAccountName: ServiceAccountName): Future[Unit]
+
+  /**
+    * Enables a service account in the given project.
+    * @param serviceAccountProject the project in which to remove the service account
+    * @param serviceAccountName the service account name
+    * @return
+    */
+  def enableServiceAccount(serviceAccountProject: GoogleProject, serviceAccountName: ServiceAccountName): Future[Unit]
 
   /**
     * Test that the caller has a specified permission on the project.
