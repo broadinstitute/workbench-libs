@@ -99,12 +99,11 @@ class HttpGoogleProjectDAO(appName: String,
   }
 
   override def getLabels(projectName: String): Future[Map[String, String]] = {
-    import scala.collection.JavaConverters._
     retryWhen500orGoogleError { () =>
       // get the project
       executeGoogleRequest(cloudResManager.projects().get(projectName))
     } map { project =>
-      project.getLabels.asScala.toMap
+      Option(project.getLabels).map(_.asScala.toMap).getOrElse(Map.empty)
     }
   }
 
