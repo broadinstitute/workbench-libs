@@ -8,7 +8,7 @@ import com.newrelic.api.agent.NewRelic
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class NewRelicMetrics(appName: String) {
+class NewRelicMetricsInterpreter(appName: String) extends NewRelicMetrics {
   val prefix = s"Custom/$appName"
 
   def timeIO[A](name: String, reportError: Boolean = false)(ioa: IO[A])(implicit timer: Timer[IO]): IO[A] =
@@ -35,13 +35,13 @@ class NewRelicMetrics(appName: String) {
       end <- Future(System.currentTimeMillis())
       duration = end - start
       _ <- attemptedResult match {
-            case Left(e) =>
-              for {
-                _ <- Future(NewRelic.recordResponseTimeMetric(s"${prefix}/${name}/failure", duration))
-                _ <- if (reportError) Future(NewRelic.noticeError(e)) else Future.unit
-              } yield ()
-            case Right(_) => Future(NewRelic.recordResponseTimeMetric(s"${prefix}/${name}/success", duration))
-          }
+        case Left(e) =>
+          for {
+            _ <- Future(NewRelic.recordResponseTimeMetric(s"${prefix}/${name}/failure", duration))
+            _ <- if (reportError) Future(NewRelic.noticeError(e)) else Future.unit
+          } yield ()
+        case Right(_) => Future(NewRelic.recordResponseTimeMetric(s"${prefix}/${name}/success", duration))
+      }
       res <- Future.fromTry(attemptedResult.toTry)
     } yield res
 
@@ -50,8 +50,4 @@ class NewRelicMetrics(appName: String) {
   def incrementCounterIO[A](name: String, count: Int = 1): IO[Unit] = IO(NewRelic.incrementCounter(s"${prefix}/${name}", count))
 
   def incrementCounterFuture[A](name: String, count: Int = 1)(implicit ec: ExecutionContext): Future[Unit] = Future(NewRelic.incrementCounter(s"${prefix}/${name}", count))
-}
-
-object NewRelicMetrics {
-  def apply(appName: String): NewRelicMetrics = new NewRelicMetrics(appName)
 }
