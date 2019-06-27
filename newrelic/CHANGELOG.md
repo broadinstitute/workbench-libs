@@ -5,14 +5,14 @@ This file documents changes to the `workbench-newrelic` library, including notes
 ## 0.2
 
 ### Added
-- Add `NewRelicMetrics` trait
-- Add `NewRelicMetricsInterpreter`
-- Add `FakeNewRelicMetricsInterpreter`
+- Added `NewRelicMetrics` trait
+- Added `FakeNewRelicMetricsInterpreter`
 
 ### Changed
 - Changed constructor to `NewRelicMetrics.fromNewRelic(appName)`
+- Renamed `NewRelicMetrics` class to `NewRelicMetricsInterpreter`
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-newrelic" % "TRAVIS-REPLACE-ME"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-newrelic" % "0.2-TRAVIS-REPLACE-ME"`
 
 ## 0.1
 
