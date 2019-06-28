@@ -8,7 +8,7 @@ This file documents changes to the `workbench-util` library, including notes on 
 - add `org.broadinstitute.dsde.workbench.util.PropertyBasedTesting`
 - add `org.broadinstitute.dsde.workbench.util.readJsonFileToA`
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util" % "0.5-d4b4838"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util" % "0.5-TRAVIS-REPLACE-ME"`
 
 ### Changed
 - Moved `SamModel`
