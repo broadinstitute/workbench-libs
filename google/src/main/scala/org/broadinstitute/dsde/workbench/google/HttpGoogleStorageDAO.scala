@@ -121,20 +121,19 @@ class HttpGoogleStorageDAO(appName: String,
 
   private def storeObject(bucketName: GcsBucketName, objectName: GcsObjectName, content: AbstractInputStreamContent): Future[Unit] = {
     val storageObject = new StorageObject().setName(objectName.value)
-    val inserter = storage.objects().insert(bucketName.value, storageObject, content)
-    inserter.getMediaHttpUploader.setDirectUploadEnabled(true)
-
     retryWhen500orGoogleError(() => {
+      val inserter = storage.objects().insert(bucketName.value, storageObject, content)
+      inserter.getMediaHttpUploader.setDirectUploadEnabled(true)
+
       executeGoogleRequest(inserter)
     })
   }
 
   override def getObject(bucketName: GcsBucketName, objectName: GcsObjectName): Future[Option[ByteArrayOutputStream]] = {
-    val getter = storage.objects().get(bucketName.value, objectName.value)
-    getter.getMediaHttpDownloader.setDirectDownloadEnabled(true)
-
     retryWhen500orGoogleError(() => {
       try {
+        val getter = storage.objects().get(bucketName.value, objectName.value)
+        getter.getMediaHttpDownloader.setDirectDownloadEnabled(true)
         val objectBytes = new ByteArrayOutputStream()
         getter.executeMediaAndDownloadTo(objectBytes)
         executeGoogleRequest(getter)
