@@ -49,6 +49,22 @@ class MockGoogleIamDAO extends GoogleIamDAO {
     Future.successful(())
   }
 
+  override def disableServiceAccount(serviceAccountProject: GoogleProject, serviceAccountName: ServiceAccountName): Future[Unit] = {
+    val email = toServiceAccountEmail(serviceAccountProject, serviceAccountName)
+    serviceAccounts.get(email).foreach { sa =>
+      serviceAccounts += email -> sa.copy(disabled = true)
+    }
+    Future.successful(())
+  }
+
+  override def enableServiceAccount(serviceAccountProject: GoogleProject, serviceAccountName:  ServiceAccountName): Future[Unit] = {
+    val email = toServiceAccountEmail(serviceAccountProject, serviceAccountName)
+    serviceAccounts.get(email).foreach { sa =>
+      serviceAccounts += email -> sa.copy(disabled = false)
+    }
+    Future.successful(())
+  }
+
   override def addIamRolesForUser(googleProject: GoogleProject, userEmail: WorkbenchEmail, rolesToAdd: Set[String]): Future[Unit] = {
     Future.successful(())
   }

@@ -8,6 +8,7 @@ SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.
 
 - Moved `org.broadinstitute.dsde.workbench.google.GoogleKmsService` to `org.broadinstitute.dsde.workbench.google2.GoogleKmsService`
 - Add `getProjectLabels` to `GoogleProjectDAO`
+- Add endable and disable service account to `GoogleIamDAO`
 
 ## 0.18
 

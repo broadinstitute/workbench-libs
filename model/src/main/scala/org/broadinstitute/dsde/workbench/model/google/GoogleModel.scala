@@ -13,7 +13,7 @@ case class GoogleProject(value: String) extends ValueObject
 case class ProjectNumber(value: String) extends ValueObject
 
 // Service Accounts
-case class ServiceAccount(subjectId: ServiceAccountSubjectId, email: WorkbenchEmail, displayName: ServiceAccountDisplayName)
+case class ServiceAccount(subjectId: ServiceAccountSubjectId, email: WorkbenchEmail, displayName: ServiceAccountDisplayName, disabled: Boolean = false)
 case class ServiceAccountSubjectId(value: String) extends ValueObject //The SA's Subject ID.
 case class ServiceAccountName(value: String) extends ValueObject //The left half of the SA's email.
 case class ServiceAccountDisplayName(value: String) extends ValueObject //A friendly name.
@@ -136,7 +136,7 @@ object GoogleModelJsonSupport {
   implicit val ServiceAccountUniqueIdFormat = ValueObjectFormat(ServiceAccountSubjectId)
   implicit val ServiceAccountNameFormat = ValueObjectFormat(ServiceAccountName)
   implicit val ServiceAccountDisplayNameFormat = ValueObjectFormat(ServiceAccountDisplayName)
-  implicit val ServiceAccountFormat = jsonFormat3(ServiceAccount)
+  implicit val ServiceAccountFormat = jsonFormat4(ServiceAccount)
 
   implicit val ServiceAccountKeyIdFormat = ValueObjectFormat(ServiceAccountKeyId)
   implicit val ServiceAccountPrivateKeyDataFormat = ValueObjectFormat(ServiceAccountPrivateKeyData)
