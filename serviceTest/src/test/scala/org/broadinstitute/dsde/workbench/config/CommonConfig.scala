@@ -30,6 +30,7 @@ trait CommonConfig {
     protected val gcsConfig = config.getConfig("gcs")
 
     val pathToQAPem = gcsConfig.getString("qaPemFile")
+    val pathToQAJson = gcsConfig.getString("qaJsonFile")
     val qaEmail = gcsConfig.getString("qaEmail")
     val trialBillingPemFile = gcsConfig.getString("trialBillingPemFile")
     val trialBillingPemFileClientId = gcsConfig.getString("trialBillingPemFileClientId")
