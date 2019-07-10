@@ -170,6 +170,9 @@ object StorageRole {
   final case object StorageAdmin extends StorageRole {
     def name: String = "roles/storage.admin"
   }
+  final case object LegacyBucketReader extends StorageRole {
+    def name: String = "roles/storage.legacyBucketReader"
+  }
 }
 
 final case class Crc32(asString: String) extends AnyVal
