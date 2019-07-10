@@ -6,6 +6,7 @@ This file documents changes to the `workbench-google2` library, including notes 
 
 Added
 - Add `getBlob`, `createObject`
+- Add LegacyBucketReader storage role
 
 Changed
 - Use linebacker for blocking execution context
@@ -17,7 +18,7 @@ Changed
 - Bump `http4sVersion` to `0.20.3`
 - Deprecate `storeObject`, and add `createObject` that returns `Blob`
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.5-40c9ae6"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.5-TRAVIS-REPLACE-ME"`
 
 ## 0.4
 
