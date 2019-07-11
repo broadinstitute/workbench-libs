@@ -10,7 +10,7 @@ import cats.implicits._
 import com.google.auth.oauth2.ServiceAccountCredentials
 import com.google.cloud.{Identity, Role}
 import com.google.cloud.storage.BucketInfo.LifecycleRule
-import com.google.cloud.storage.Storage.{BlobListOption, BlobSourceOption, BlobTargetOption, BucketTargetOption}
+import com.google.cloud.storage.Storage.{BlobListOption, BlobSourceOption, BlobTargetOption}
 import com.google.cloud.storage.{Acl, Blob, BlobId, BlobInfo, BucketInfo, Storage, StorageException, StorageOptions}
 import fs2.{Stream, text}
 import io.chrisdavenport.linebacker.Linebacker
