@@ -39,7 +39,7 @@ trait GoogleUtilities extends LazyLogging with InstrumentedRetry with GoogleInst
     }
   }
 
-  protected def when500(throwable: Throwable): Boolean = throwable match {
+  protected def when5xx(throwable: Throwable): Boolean = throwable match {
     case t: GoogleHttpResponseException => t.getStatusCode / 100 == 5
     case _ => false
   }
