@@ -24,6 +24,7 @@ import scala.util.{Failure, Success, Try}
 trait GoogleUtilities extends LazyLogging with InstrumentedRetry with GoogleInstrumented {
   implicit val executionContext: ExecutionContext
 
+  @deprecated(message = "This predicate is complicated and almost certainly doesn't do what you mean. Favor use of retry() and retryWithRecover() with explicitly defined predicates instead.", since = "workbench-google 0.20")
   protected def when500orGoogleError(throwable: Throwable): Boolean = {
     throwable match {
       case t: GoogleJsonResponseException => {
@@ -38,12 +39,49 @@ trait GoogleUtilities extends LazyLogging with InstrumentedRetry with GoogleInst
     }
   }
 
+  protected def when500(throwable: Throwable): Boolean = throwable match {
+    case t: GoogleHttpResponseException => t.getStatusCode / 100 == 5
+    case _ => false
+  }
+
+  protected def whenRateLimited(throwable: Throwable): Boolean = throwable match {
+    case t: GoogleJsonResponseException =>
+      (t.getStatusCode == 403 || t.getStatusCode == 429) && t.getDetails.getErrors.asScala.head.getDomain.equalsIgnoreCase("usageLimits")
+    case _ => false
+  }
+
+  protected def when404(throwable: Throwable): Boolean = throwable match {
+    case t: GoogleHttpResponseException => t.getStatusCode == 404
+    case _ => false
+  }
+
+  protected def whenInvalidValueOnBucketCreation(throwable: Throwable): Boolean = throwable match {
+    case t: GoogleJsonResponseException => t.getStatusCode == 400 && t.getDetails.getErrors.asScala.head.getReason.equalsIgnoreCase("invalid")
+    case _ => false
+  }
+
+  @deprecated(message = "This function relies on a complicated predicate that almost certainly doesn't do what you mean. Use retry() with explicitly defined predicates instead.", since = "workbench-google 0.20")
   protected def retryWhen500orGoogleError[T](op: () => T)(implicit histo: Histogram): Future[T] = {
     retryExponentially(when500orGoogleError)(() => Future(blocking(op())))
   }
 
+  private def combine(predicates: Seq[Throwable => Boolean]): (Throwable => Boolean) = { throwable =>
+    predicates.map( _(throwable) ).foldLeft(false)(_ || _)
+  }
+
+  //Retry if any of the predicates return true.
+  protected def retry[T](predicates: (Throwable => Boolean)*)(op: () => T): Future[T] = {
+    retryExponentially(combine(predicates))(() => Future(blocking(op())))
+  }
+
+  @deprecated(message = "This function relies on a complicated predicate that almost certainly doesn't do what you mean. Use retryWithRecover() with explicitly defined predicates instead.", since = "workbench-google 0.20")
   protected def retryWithRecoverWhen500orGoogleError[T](op: () => T)(recover: PartialFunction[Throwable, T])(implicit histo: Histogram): Future[T] = {
     retryExponentially(when500orGoogleError)(() => Future(blocking(op())).recover(recover))
+  }
+
+  //Retry if any of the predicates return true.
+  protected def retryWithRecover[T](predicates: (Throwable => Boolean)*)(op: () => T)(recover: PartialFunction[Throwable, T]) : Future[T] = {
+    retryExponentially(combine(predicates))(() => Future(blocking(op())).recover(recover))
   }
 
   // $COVERAGE-OFF$Can't test Google request code. -hussein
