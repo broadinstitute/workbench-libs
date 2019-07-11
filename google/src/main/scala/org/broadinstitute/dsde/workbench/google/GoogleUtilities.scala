@@ -21,10 +21,38 @@ import scala.util.{Failure, Success, Try}
 /**
  * Created by mbemis on 5/10/16.
  */
+
+//These predicates are for use in retries.
+//To use them, import GoogleUtilities.Predicates._
+object GoogleUtilities {
+  object Predicates {
+    def when5xx(throwable: Throwable): Boolean = throwable match {
+      case t: GoogleHttpResponseException => t.getStatusCode / 100 == 5
+      case _ => false
+    }
+
+    def whenRateLimited(throwable: Throwable): Boolean = throwable match {
+      case t: GoogleJsonResponseException =>
+        (t.getStatusCode == 403 || t.getStatusCode == 429) && t.getDetails.getErrors.asScala.head.getDomain.equalsIgnoreCase("usageLimits")
+      case _ => false
+    }
+
+    def when404(throwable: Throwable): Boolean = throwable match {
+      case t: GoogleHttpResponseException => t.getStatusCode == 404
+      case _ => false
+    }
+
+    def whenInvalidValueOnBucketCreation(throwable: Throwable): Boolean = throwable match {
+      case t: GoogleJsonResponseException => t.getStatusCode == 400 && t.getDetails.getErrors.asScala.head.getReason.equalsIgnoreCase("invalid")
+      case _ => false
+    }
+  }
+}
+
 trait GoogleUtilities extends LazyLogging with InstrumentedRetry with GoogleInstrumented {
   implicit val executionContext: ExecutionContext
 
-  @deprecated(message = "This predicate is complicated and almost certainly doesn't do what you mean. Favor use of retry() and retryWithRecover() with explicitly defined predicates instead.", since = "workbench-google 0.20")
+  @deprecated(message = "This predicate is complicated and almost certainly doesn't do what you mean. Favor use of retry() and retryWithRecover() with explicitly defined predicates instead. There are some useful predicates at the top of GoogleUtilities; try importing GoogleUtilities.Predicates._", since = "workbench-google 0.20")
   protected def when500orGoogleError(throwable: Throwable): Boolean = {
     throwable match {
       case t: GoogleJsonResponseException => {
@@ -60,7 +88,7 @@ trait GoogleUtilities extends LazyLogging with InstrumentedRetry with GoogleInst
     case _ => false
   }
 
-  @deprecated(message = "This function relies on a complicated predicate that almost certainly doesn't do what you mean. Use retry() with explicitly defined predicates instead.", since = "workbench-google 0.20")
+  @deprecated(message = "This function relies on a complicated predicate that almost certainly doesn't do what you mean. Use retry() with explicitly defined predicates instead. There are some useful predicates at the top of GoogleUtilities; try importing GoogleUtilities.Predicates._", since = "workbench-google 0.20")
   protected def retryWhen500orGoogleError[T](op: () => T)(implicit histo: Histogram): Future[T] = {
     retryExponentially(when500orGoogleError)(() => Future(blocking(op())))
   }
@@ -74,7 +102,7 @@ trait GoogleUtilities extends LazyLogging with InstrumentedRetry with GoogleInst
     retryExponentially(combine(predicates))(() => Future(blocking(op())))
   }
 
-  @deprecated(message = "This function relies on a complicated predicate that almost certainly doesn't do what you mean. Use retryWithRecover() with explicitly defined predicates instead.", since = "workbench-google 0.20")
+  @deprecated(message = "This function relies on a complicated predicate that almost certainly doesn't do what you mean. Use retryWithRecover() with explicitly defined predicates instead. There are some useful predicates at the top of GoogleUtilities; try importing GoogleUtilities.Predicates._", since = "workbench-google 0.20")
   protected def retryWithRecoverWhen500orGoogleError[T](op: () => T)(recover: PartialFunction[Throwable, T])(implicit histo: Histogram): Future[T] = {
     retryExponentially(when500orGoogleError)(() => Future(blocking(op())).recover(recover))
   }
