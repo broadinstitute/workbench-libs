@@ -6,7 +6,7 @@ This file documents changes to the `workbench-google2` library, including notes 
 
 Changed
 - Support custom storage IAM roles
-- Remove `project` parameter from `insertBucket` in `GoogleStorageInterpreter`
+- Remove `googleProject` parameter from `insertBucket` in `GoogleStorageInterpreter`
 
 SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.6-TRAVIS-REPLACE-ME"`
 
