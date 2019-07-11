@@ -109,7 +109,7 @@ private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer: Async
 
     val metadataUpdate = blockingF(Async[F].delay(db.update(blobInfo)))
 
-    retryStorageF(metadataUpdate, traceId, s"com.google.cloud.storage.Storage.update($bucketName/$objectName)").void
+    retryStorageF(metadataUpdate, traceId, s"com.google.cloud.storage.Storage.update($bucketName/${objectName.value})").void
   }
 
   override def createBlob(bucketName: GcsBucketName,
@@ -138,7 +138,7 @@ private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer: Async
         blockingF(Async[F].delay(db.create(blobInfo, objectContents)))
     }
 
-    retryStorageF(storeObject, traceId, s"com.google.cloud.storage.Storage.create($bucketName/$objectName, xxx)")
+    retryStorageF(storeObject, traceId, s"com.google.cloud.storage.Storage.create($bucketName/${objectName.value}, xxx)")
   }
 
   override def removeObject(bucketName: GcsBucketName,
