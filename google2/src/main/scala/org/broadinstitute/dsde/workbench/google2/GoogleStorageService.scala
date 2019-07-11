@@ -170,11 +170,8 @@ object StorageRole {
   final case object StorageAdmin extends StorageRole {
     def name: String = "roles/storage.admin"
   }
-  final case class TerraBucketReader(orgId: String) extends StorageRole {
-    def name: String = s"organizations/$orgId/roles/terraBucketReader"
-  }
-  final case class TerraBucketWriter(orgId: String) extends StorageRole {
-    def name: String = s"organizations/$orgId/roles/terraBucketWriter"
+  final case class CustomStorageRole(roleId: String) extends StorageRole {
+    def name: String = roleId
   }
 }
 
