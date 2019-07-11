@@ -158,7 +158,7 @@ private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer: Async
     } yield RemoveObjectResult(deleted)
   }
 
-  override def insertBucket(billingProject: GoogleProject, bucketName: GcsBucketName, acl: Option[NonEmptyList[Acl]] = None, labels: Map[String, String] = Map.empty, traceId: Option[TraceId] = None): Stream[F, Unit] = {
+  override def insertBucket(bucketName: GcsBucketName, acl: Option[NonEmptyList[Acl]] = None, labels: Map[String, String] = Map.empty, traceId: Option[TraceId] = None): Stream[F, Unit] = {
     val bucketInfoBuilder = BucketInfo.of(bucketName.value).toBuilder
     val bucketInfo = acl.map{
       aclList =>
@@ -170,7 +170,7 @@ private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer: Async
           .build()
     }.getOrElse(bucketInfoBuilder.build())
 
-    val createBucket = blockingF(Async[F].delay(db.create(bucketInfo, BucketTargetOption.userProject(billingProject.value)))).void.handleErrorWith {
+    val createBucket = blockingF(Async[F].delay(db.create(bucketInfo))).void.handleErrorWith {
       case e: com.google.cloud.storage.StorageException if(e.getCode == 409) =>
         Logger[F].info(s"$bucketName already exists")
     }
@@ -178,7 +178,7 @@ private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer: Async
     retryStorageF(
       createBucket,
       traceId,
-      s"com.google.cloud.storage.Storage.create($bucketInfo, ${billingProject})"
+      s"com.google.cloud.storage.Storage.create($bucketInfo)"
     )
   }
 
