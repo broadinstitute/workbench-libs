@@ -126,7 +126,7 @@ trait GoogleStorageService[F[_]] {
     */
   def setIamPolicy(bucketName: GcsBucketName, roles: Map[StorageRole, NonEmptyList[Identity]], traceId: Option[TraceId] = None): Stream[F, Unit]
 
-  def getIamPolicy(bucketName: GcsBucketName, roles: Map[StorageRole, NonEmptyList[Identity]], traceId: Option[TraceId] = None): Stream[F, Policy]
+  def getIamPolicy(bucketName: GcsBucketName, traceId: Option[TraceId] = None): Stream[F, Policy]
 }
 
 object GoogleStorageService {

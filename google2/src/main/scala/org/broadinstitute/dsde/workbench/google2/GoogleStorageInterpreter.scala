@@ -209,7 +209,7 @@ private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer: Async
     )
   }
 
-  override def getIamPolicy(bucketName: GcsBucketName, roles: Map[StorageRole, NonEmptyList[Identity]], traceId: Option[TraceId] = None): Stream[F, Policy] = {
+  override def getIamPolicy(bucketName: GcsBucketName, traceId: Option[TraceId] = None): Stream[F, Policy] = {
     val getIamPolicy = for {
       policy <- blockingF(Async[F].delay(db.getIamPolicy(bucketName.value)))
     } yield policy

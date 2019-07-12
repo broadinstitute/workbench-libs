@@ -8,7 +8,7 @@ import com.google.cloud.storage.{Acl, Blob, BlobId, BucketInfo}
 import org.broadinstitute.dsde.workbench.model.google.{GcsBucketName, GcsObjectName}
 import GoogleStorageInterpreterSpec._
 import cats.data.NonEmptyList
-import com.google.cloud.Identity
+import com.google.cloud.{Identity, Policy}
 import fs2.Stream
 import org.broadinstitute.dsde.workbench.model.TraceId
 
@@ -38,6 +38,8 @@ class BaseFakeGoogleStorage extends GoogleStorageService[IO] {
   override def setIamPolicy(bucketName: GcsBucketName, roles: Map[StorageRole, NonEmptyList[Identity]], traceId: Option[TraceId] = None): Stream[IO, Unit] = Stream.empty
 
   override def createBlob(bucketName: GcsBucketName, objectName: GcsBlobName, objectContents: Array[Byte], objectType: String, metadata: Map[String, String], generation: Option[Long], traceId: Option[TraceId]): Stream[IO, Blob] = localStorage.createBlob(bucketName, objectName, objectContents, objectType, metadata, generation, traceId)
+
+  override def getIamPolicy(bucketName: GcsBucketName, traceId: Option[TraceId]): Stream[IO, Policy] = localStorage.getIamPolicy(bucketName, traceId)
 }
 
 object FakeGoogleStorageInterpreter extends BaseFakeGoogleStorage
