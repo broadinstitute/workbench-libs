@@ -25,7 +25,7 @@ import scala.util.{Failure, Success, Try}
 //These predicates are for use in retries.
 //To use them, import GoogleUtilities.Predicates._
 object GoogleUtilities {
-  object Predicates {
+  object RetryPredicates {
     def when5xx(throwable: Throwable): Boolean = throwable match {
       case t: GoogleHttpResponseException => t.getStatusCode / 100 == 5
       case _ => false

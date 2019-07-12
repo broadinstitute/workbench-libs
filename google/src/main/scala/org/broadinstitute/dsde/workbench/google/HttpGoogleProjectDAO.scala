@@ -11,7 +11,7 @@ import com.google.api.services.servicemanagement.ServiceManagement
 import com.google.api.services.servicemanagement.model.EnableServiceRequest
 import org.broadinstitute.dsde.workbench.google.GoogleCredentialModes._
 import org.broadinstitute.dsde.workbench.google.GoogleCredentialModes.GoogleCredentialMode
-import org.broadinstitute.dsde.workbench.google.GoogleUtilities.Predicates._
+import org.broadinstitute.dsde.workbench.google.GoogleUtilities.RetryPredicates._
 import org.broadinstitute.dsde.workbench.metrics.GoogleInstrumentedService
 import org.broadinstitute.dsde.workbench.model.google.GoogleResourceTypes.GoogleParentResourceType
 

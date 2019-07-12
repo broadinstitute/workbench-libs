@@ -12,7 +12,7 @@ import com.google.api.services.admin.directory.{Directory, DirectoryScopes}
 import com.google.api.services.groupssettings.{Groupssettings, GroupssettingsScopes}
 import com.google.api.services.groupssettings.model.{Groups => GroupSettings}
 import org.broadinstitute.dsde.workbench.google.GoogleCredentialModes._
-import org.broadinstitute.dsde.workbench.google.GoogleUtilities.Predicates._
+import org.broadinstitute.dsde.workbench.google.GoogleUtilities.RetryPredicates._
 import org.broadinstitute.dsde.workbench.metrics.GoogleInstrumentedService
 import org.broadinstitute.dsde.workbench.model._
 
