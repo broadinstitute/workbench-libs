@@ -5,6 +5,7 @@ import java.nio.file.Path
 import cats.data.NonEmptyList
 import cats.implicits._
 import cats.effect._
+import com.google.cloud.Policy
 import com.google.auth.oauth2.GoogleCredentials
 import com.google.cloud.Identity
 import com.google.cloud.storage.{Acl, Blob, BlobId, StorageOptions}
@@ -124,6 +125,8 @@ trait GoogleStorageService[F[_]] {
     * @param traceId uuid for tracing a unique call flow in logging
     */
   def setIamPolicy(bucketName: GcsBucketName, roles: Map[StorageRole, NonEmptyList[Identity]], traceId: Option[TraceId] = None): Stream[F, Unit]
+
+  def getIamPolicy(bucketName: GcsBucketName, roles: Map[StorageRole, NonEmptyList[Identity]], traceId: Option[TraceId] = None): Stream[F, Policy]
 }
 
 object GoogleStorageService {

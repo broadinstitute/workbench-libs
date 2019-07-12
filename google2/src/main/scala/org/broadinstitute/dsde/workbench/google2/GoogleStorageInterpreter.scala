@@ -7,6 +7,7 @@ import java.time.Instant
 import cats.data.NonEmptyList
 import cats.effect._
 import cats.implicits._
+import com.google.cloud.Policy
 import com.google.auth.oauth2.ServiceAccountCredentials
 import com.google.cloud.{Identity, Role}
 import com.google.cloud.storage.BucketInfo.LifecycleRule
@@ -205,6 +206,18 @@ private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer: Async
       getAndSetIamPolicy,
       traceId,
       s"com.google.cloud.storage.Storage.getIamPolicy(${bucketName}), com.google.cloud.storage.Storage.setIamPolicy(${bucketName}, ???)"
+    )
+  }
+
+  override def getIamPolicy(bucketName: GcsBucketName, roles: Map[StorageRole, NonEmptyList[Identity]], traceId: Option[TraceId] = None): Stream[F, Policy] = {
+    val getIamPolicy = for {
+      policy <- blockingF(Async[F].delay(db.getIamPolicy(bucketName.value)))
+    } yield policy
+
+    retryStorageF(
+      getIamPolicy,
+      traceId,
+      s"com.google.cloud.storage.Storage.getIamPolicy(${bucketName})"
     )
   }
 
