@@ -17,6 +17,8 @@ import scala.collection.JavaConverters._
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 
+//FIXME: This annotation silences deprecation warnings, which are triggered by the testing of retryWhen500orGoogleError.
+//When we remove that function, we should remove this annotation too.
 import com.github.ghik.silencer.silent
 @silent("deprecated")
 class GoogleUtilitiesSpec extends TestKit(ActorSystem("MySpec")) with GoogleUtilities with FlatSpecLike with BeforeAndAfterAll with Matchers with ScalaFutures with Eventually with MockitoTestUtils with StatsDTestUtils {
