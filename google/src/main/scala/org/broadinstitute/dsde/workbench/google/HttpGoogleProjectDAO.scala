@@ -40,7 +40,7 @@ class HttpGoogleProjectDAO(appName: String,
   }
 
   override def createProject(projectName: String): Future[String] = {
-    retry(when5xx, whenRateLimited, when404, whenInvalidValueOnBucketCreation)(() => {
+    retry(when5xx, whenRateLimited, when404, whenInvalidValueOnBucketCreation, whenIOException)(() => {
       executeGoogleRequest(cloudResManager.projects().create(new Project().setName(projectName).setProjectId(projectName)))
     }).map { operation =>
       operation.getName
@@ -48,7 +48,7 @@ class HttpGoogleProjectDAO(appName: String,
   }
 
   override def createProject(projectName: String, parentId: String, parentType: GoogleParentResourceType): Future[String] = {
-    retry(when5xx, whenRateLimited, when404, whenInvalidValueOnBucketCreation)(() => {
+    retry(when5xx, whenRateLimited, when404, whenInvalidValueOnBucketCreation, whenIOException)(() => {
       executeGoogleRequest(cloudResManager.projects().create(new Project().setName(projectName).setProjectId(projectName)
         .setParent(new ResourceId().setId(parentId).setType(parentType.value))))
     }).map { operation =>
@@ -57,13 +57,13 @@ class HttpGoogleProjectDAO(appName: String,
   }
 
   override def pollOperation(operationId: String): Future[Operation] = {
-    retry(when5xx, whenRateLimited, when404, whenInvalidValueOnBucketCreation)(() => {
+    retry(when5xx, whenRateLimited, when404, whenInvalidValueOnBucketCreation, whenIOException)(() => {
       executeGoogleRequest(cloudResManager.operations().get(operationId))
     })
   }
 
   override def isProjectActive(projectName: String): Future[Boolean] = {
-    retryWithRecover(when5xx, whenRateLimited, when404, whenInvalidValueOnBucketCreation) { () =>
+    retryWithRecover(when5xx, whenRateLimited, when404, whenInvalidValueOnBucketCreation, whenIOException) { () =>
       // get the project
       Option(executeGoogleRequest(cloudResManager.projects().get(projectName)))
     } {
@@ -78,7 +78,7 @@ class HttpGoogleProjectDAO(appName: String,
   }
 
   override def isBillingActive(projectName: String): Future[Boolean] = {
-    retryWithRecover(when5xx, whenRateLimited, when404, whenInvalidValueOnBucketCreation) { () =>
+    retryWithRecover(when5xx, whenRateLimited, when404, whenInvalidValueOnBucketCreation, whenIOException) { () =>
       Option(executeGoogleRequest(billing.projects().getBillingInfo(s"projects/$projectName")))
     } {
       // if the project doesn't exist, don't fail
@@ -91,7 +91,7 @@ class HttpGoogleProjectDAO(appName: String,
   }
 
   override def enableService(projectName: String, serviceName: String): Future[String] = {
-    retry(when5xx, whenRateLimited, when404, whenInvalidValueOnBucketCreation)(() => {
+    retry(when5xx, whenRateLimited, when404, whenInvalidValueOnBucketCreation, whenIOException)(() => {
       executeGoogleRequest(serviceManagement.services().enable(serviceName, new EnableServiceRequest().setConsumerId(s"project:$projectName")))
     }).map { operation =>
       operation.getName
@@ -99,7 +99,7 @@ class HttpGoogleProjectDAO(appName: String,
   }
 
   override def getLabels(projectName: String): Future[Map[String, String]] = {
-    retry(when5xx, whenRateLimited, when404, whenInvalidValueOnBucketCreation) { () =>
+    retry(when5xx, whenRateLimited, when404, whenInvalidValueOnBucketCreation, whenIOException) { () =>
       // get the project
       executeGoogleRequest(cloudResManager.projects().get(projectName))
     } map { project =>
@@ -108,7 +108,7 @@ class HttpGoogleProjectDAO(appName: String,
   }
 
   override def getAncestry(projectName: String): Future[Seq[Ancestor]] = {
-    retry(when5xx, whenRateLimited, when404, whenInvalidValueOnBucketCreation)(() => {
+    retry(when5xx, whenRateLimited, when404, whenInvalidValueOnBucketCreation, whenIOException)(() => {
       executeGoogleRequest(cloudResManager.projects().getAncestry(projectName, new GetAncestryRequest()))
     }).map { ancestry =>
       Option(ancestry.getAncestor).map(_.asScala).getOrElse(Seq.empty)

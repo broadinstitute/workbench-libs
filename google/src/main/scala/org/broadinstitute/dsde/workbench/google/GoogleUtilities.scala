@@ -46,6 +46,11 @@ object GoogleUtilities {
       case t: GoogleJsonResponseException => t.getStatusCode == 400 && t.getDetails.getErrors.asScala.head.getReason.equalsIgnoreCase("invalid")
       case _ => false
     }
+
+    def whenIOException(throwable: Throwable): Boolean = throwable match {
+      case _: IOException => true
+      case _ => false
+    }
   }
 }
 
