@@ -25,7 +25,7 @@ Changed
 - Bump `http4sVersion` to `0.20.3`
 - Deprecate `storeObject`, and add `createObject` that returns `Blob`
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.5-40c9ae6"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.5-f8ebba7"`
 
 ## 0.4
 
