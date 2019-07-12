@@ -18,7 +18,7 @@ import io.chrisdavenport.log4cats.Logger
 import io.circe.Decoder
 import io.circe.fs2._
 import org.broadinstitute.dsde.workbench.model.TraceId
-import org.broadinstitute.dsde.workbench.model.google.{GcsBucketName, GcsObjectName}
+import org.broadinstitute.dsde.workbench.model.google.{GcsBucketName, GcsObjectName, GoogleProject}
 
 import scala.collection.JavaConverters._
 import scala.concurrent.ExecutionContext
