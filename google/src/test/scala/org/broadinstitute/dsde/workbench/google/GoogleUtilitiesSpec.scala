@@ -84,7 +84,7 @@ class GoogleUtilitiesSpec extends TestKit(ActorSystem("MySpec")) with GoogleUtil
 
     whenInvalidValueOnBucketCreation(buildGoogleJsonResponseException(400, None, Some("invalid"), None)) shouldBe true
 
-    whenIOException(new IOException("boom")) shouldBe true
+    whenNonHttpIOException(new IOException("boom")) shouldBe true
   }
 
   it should "return false in negative cases" in {
@@ -103,7 +103,7 @@ class GoogleUtilitiesSpec extends TestKit(ActorSystem("MySpec")) with GoogleUtil
     whenInvalidValueOnBucketCreation(buildHttpResponseException(403)) shouldBe false
     whenInvalidValueOnBucketCreation(new IOException("boom")) shouldBe false
 
-    whenIOException(buildHttpResponseException(404)) shouldBe false
+    whenNonHttpIOException(buildHttpResponseException(404)) shouldBe false
   }
 
   "when500orGoogleError" should "return true for 500 or Google errors" in {
@@ -160,6 +160,41 @@ class GoogleUtilitiesSpec extends TestKit(ActorSystem("MySpec")) with GoogleUtil
     }
   }
 
+  "combine" should "combine predicates correctly" in {
+    combine(Seq(whenNonHttpIOException, when5xx))(new IOException("boom")) shouldBe true
+    combine(Seq(whenNonHttpIOException, when5xx))(buildHttpResponseException(502)) shouldBe true
+
+    combine(Seq(whenNonHttpIOException, when5xx))(buildHttpResponseException(400)) shouldBe false
+
+    combine(Seq.empty)(new IOException("boom")) shouldBe false
+  }
+
+  "retry" should "retry once per backoff interval and then fail" in {
+    withStatsD {
+      val counter = new Counter()
+      whenReady(retry(whenNonHttpIOException(_))(() => counter.alwaysBoom()).failed) { f =>
+        f shouldBe a[IOException]
+        counter.counter shouldBe 4 //extra one for the first attempt
+      }
+    } { capturedMetrics =>
+      capturedMetrics should contain ("test.histo.samples" -> "1")
+      capturedMetrics should contain ("test.histo.max" -> "4")  // 4 exceptions
+    }
+  }
+
+  it should "not retry after a success" in {
+    withStatsD {
+      val counter = new Counter()
+      whenReady(retry(whenNonHttpIOException(_))(() => counter.boomOnce())) { s =>
+        s shouldBe 42
+        counter.counter shouldBe 2
+      }
+    } { capturedMetrics =>
+      capturedMetrics should contain ("test.histo.samples" -> "1")
+      capturedMetrics should contain ("test.histo.max" -> "1")  // 1 exception
+    }
+  }
+
   "retryWithRecoverWhen500orGoogleError" should "stop retrying if it recovers" in {
     withStatsD {
       val counter = new Counter()
@@ -187,6 +222,42 @@ class GoogleUtilitiesSpec extends TestKit(ActorSystem("MySpec")) with GoogleUtil
       }
 
       whenReady(retryWithRecoverWhen500orGoogleError(() => counter.httpBoom())(recoverHttp).failed) { f =>
+        f shouldBe a[HttpResponseException]
+        counter.counter shouldBe 4 //extra one for the first attempt
+      }
+    } { capturedMetrics =>
+      capturedMetrics should contain ("test.histo.samples" -> "1")
+      capturedMetrics should contain ("test.histo.max" -> "4")  // 4 exceptions
+    }
+  }
+
+  "retryWithRecover" should "stop retrying if it recovers" in {
+    withStatsD {
+      val counter = new Counter()
+
+      def recoverIO: PartialFunction[Throwable, Int] = {
+        case _: IOException => 42
+      }
+
+      whenReady(retryWithRecover(whenNonHttpIOException(_))(() => counter.alwaysBoom())(recoverIO)) { s =>
+        s shouldBe 42
+        counter.counter shouldBe 1
+      }
+    } { capturedMetrics =>
+      capturedMetrics should contain ("test.histo.samples" -> "1")
+      capturedMetrics should contain ("test.histo.max" -> "0")  // 0 exceptions
+    }
+  }
+
+  it should "keep retrying and fail if it doesn't recover" in {
+    withStatsD {
+      val counter = new Counter()
+
+      def recoverHttp: PartialFunction[Throwable, Int] = {
+        case h: HttpResponseException if h.getStatusCode == 404 => 42
+      }
+
+      whenReady(retryWithRecover(when5xx(_))(() => counter.httpBoom())(recoverHttp).failed) { f =>
         f shouldBe a[HttpResponseException]
         counter.counter shouldBe 4 //extra one for the first attempt
       }

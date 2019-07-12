@@ -47,7 +47,9 @@ object GoogleUtilities {
       case _ => false
     }
 
-    def whenIOException(throwable: Throwable): Boolean = throwable match {
+    def whenNonHttpIOException(throwable: Throwable): Boolean = throwable match {
+      case _: GoogleJsonResponseException => false
+      case _: GoogleHttpResponseException => false
       case _: IOException => true
       case _ => false
     }
@@ -78,12 +80,12 @@ trait GoogleUtilities extends LazyLogging with InstrumentedRetry with GoogleInst
     retryExponentially(when500orGoogleError)(() => Future(blocking(op())))
   }
 
-  private def combine(predicates: Seq[Throwable => Boolean]): (Throwable => Boolean) = { throwable =>
+  protected def combine(predicates: Seq[Throwable => Boolean]): (Throwable => Boolean) = { throwable =>
     predicates.map( _(throwable) ).foldLeft(false)(_ || _)
   }
 
   //Retry if any of the predicates return true.
-  protected def retry[T](predicates: (Throwable => Boolean)*)(op: () => T): Future[T] = {
+  protected def retry[T](predicates: (Throwable => Boolean)*)(op: () => T)(implicit histo: Histogram): Future[T] = {
     retryExponentially(combine(predicates))(() => Future(blocking(op())))
   }
 
@@ -93,7 +95,7 @@ trait GoogleUtilities extends LazyLogging with InstrumentedRetry with GoogleInst
   }
 
   //Retry if any of the predicates return true.
-  protected def retryWithRecover[T](predicates: (Throwable => Boolean)*)(op: () => T)(recover: PartialFunction[Throwable, T]) : Future[T] = {
+  protected def retryWithRecover[T](predicates: (Throwable => Boolean)*)(op: () => T)(recover: PartialFunction[Throwable, T])(implicit histo: Histogram) : Future[T] = {
     retryExponentially(combine(predicates))(() => Future(blocking(op())).recover(recover))
   }
 

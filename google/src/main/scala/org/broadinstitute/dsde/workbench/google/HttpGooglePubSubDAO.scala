@@ -49,7 +49,7 @@ class HttpGooglePubSubDAO(appName: String,
   }
 
   override def createTopic(topicName: String) = {
-    retryWithRecover(when5xx, whenRateLimited, when404, whenInvalidValueOnBucketCreation, whenIOException)(() => {
+    retryWithRecover(when5xx, whenRateLimited, when404, whenInvalidValueOnBucketCreation, whenNonHttpIOException)(() => {
       executeGoogleRequest(pubSub.projects().topics().create(topicToFullPath(topicName), new Topic()))
       true
     }) {
@@ -58,7 +58,7 @@ class HttpGooglePubSubDAO(appName: String,
   }
 
   override def deleteTopic(topicName: String): Future[Boolean] = {
-    retryWithRecover(when5xx, whenRateLimited, when404, whenInvalidValueOnBucketCreation, whenIOException)(() => {
+    retryWithRecover(when5xx, whenRateLimited, when404, whenInvalidValueOnBucketCreation, whenNonHttpIOException)(() => {
       executeGoogleRequest(pubSub.projects().topics().delete(topicToFullPath(topicName)))
       true
     }) {
@@ -67,7 +67,7 @@ class HttpGooglePubSubDAO(appName: String,
   }
 
   override def getTopic(topicName: String)(implicit executionContext: ExecutionContext): Future[Option[Topic]] = {
-    retryWithRecover(when5xx, whenRateLimited, when404, whenInvalidValueOnBucketCreation, whenIOException)(() => {
+    retryWithRecover(when5xx, whenRateLimited, when404, whenInvalidValueOnBucketCreation, whenNonHttpIOException)(() => {
       Option(executeGoogleRequest(pubSub.projects().topics().get(topicToFullPath(topicName))))
     }) {
       case e: HttpResponseException if e.getStatusCode == StatusCodes.NotFound.intValue => None
@@ -84,13 +84,13 @@ class HttpGooglePubSubDAO(appName: String,
 
     val request = new SetIamPolicyRequest().setPolicy(new Policy().setBindings(bindings.toList.asJava))
 
-    retry(when5xx, whenRateLimited, when404, whenInvalidValueOnBucketCreation, whenIOException)(() => {
+    retry(when5xx, whenRateLimited, when404, whenInvalidValueOnBucketCreation, whenNonHttpIOException)(() => {
       executeGoogleRequest(pubSub.projects().topics().setIamPolicy(topicToFullPath(topicName), request))
     })
   }
 
   override def createSubscription(topicName: String, subscriptionName: String) = {
-    retryWithRecover(when5xx, whenRateLimited, when404, whenInvalidValueOnBucketCreation, whenIOException)(() => {
+    retryWithRecover(when5xx, whenRateLimited, when404, whenInvalidValueOnBucketCreation, whenNonHttpIOException)(() => {
       val subscription = new Subscription().setTopic(topicToFullPath(topicName))
       executeGoogleRequest(pubSub.projects().subscriptions().create(subscriptionToFullPath(subscriptionName), subscription))
       true
@@ -100,7 +100,7 @@ class HttpGooglePubSubDAO(appName: String,
   }
 
   override def deleteSubscription(subscriptionName: String): Future[Boolean] = {
-    retryWithRecover(when5xx, whenRateLimited, when404, whenInvalidValueOnBucketCreation, whenIOException)(() => {
+    retryWithRecover(when5xx, whenRateLimited, when404, whenInvalidValueOnBucketCreation, whenNonHttpIOException)(() => {
       executeGoogleRequest(pubSub.projects().subscriptions().delete(subscriptionToFullPath(subscriptionName)))
       true
     }) {
@@ -111,7 +111,7 @@ class HttpGooglePubSubDAO(appName: String,
   override def publishMessages(topicName: String, messages: Seq[String]) = {
     logger.debug(s"publishing to google pubsub topic $topicName, messages [${messages.mkString(", ")}]")
     Future.traverse(messages.grouped(1000)) { messageBatch =>
-      retry(when5xx, whenRateLimited, when404, whenInvalidValueOnBucketCreation, whenIOException)(() => {
+      retry(when5xx, whenRateLimited, when404, whenInvalidValueOnBucketCreation, whenNonHttpIOException)(() => {
         val pubsubMessages = messageBatch.map(text => new PubsubMessage().encodeData(text.getBytes(characterEncoding)))
         val pubsubRequest = new PublishRequest().setMessages(pubsubMessages.asJava)
         executeGoogleRequest(pubSub.projects().topics().publish(topicToFullPath(topicName), pubsubRequest))
@@ -124,14 +124,14 @@ class HttpGooglePubSubDAO(appName: String,
   }
 
   override def acknowledgeMessagesById(subscriptionName: String, ackIds: Seq[String]) = {
-    retry(when5xx, whenRateLimited, when404, whenInvalidValueOnBucketCreation, whenIOException)(() => {
+    retry(when5xx, whenRateLimited, when404, whenInvalidValueOnBucketCreation, whenNonHttpIOException)(() => {
       val ackRequest = new AcknowledgeRequest().setAckIds(ackIds.asJava)
       executeGoogleRequest(pubSub.projects().subscriptions().acknowledge(subscriptionToFullPath(subscriptionName), ackRequest))
     })
   }
 
   override def pullMessages(subscriptionName: String, maxMessages: Int): Future[Seq[PubSubMessage]] = {
-    retry(when5xx, whenRateLimited, when404, whenInvalidValueOnBucketCreation, whenIOException)(() => {
+    retry(when5xx, whenRateLimited, when404, whenInvalidValueOnBucketCreation, whenNonHttpIOException)(() => {
       val pullRequest = new PullRequest().setReturnImmediately(true).setMaxMessages(maxMessages) //won't keep the connection open if there's no msgs available
       val messages = executeGoogleRequest(pubSub.projects().subscriptions().pull(subscriptionToFullPath(subscriptionName), pullRequest)).getReceivedMessages.asScala
       if(messages == null)
