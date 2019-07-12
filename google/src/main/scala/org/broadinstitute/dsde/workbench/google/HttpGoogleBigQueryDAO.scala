@@ -28,7 +28,7 @@ class HttpGoogleBigQueryDAO(appName: String,
   private def submitQuery(projectId: String, job: Job): Future[JobReference] = {
     val queryRequest = bigquery.jobs.insert(projectId, job)
 
-    retryWhen500orGoogleError { () =>
+    retry(when5xx, whenRateLimited, when404, whenInvalidValueOnBucketCreation) { () =>
       executeGoogleRequest(queryRequest)
     } map { job =>
       job.getJobReference
@@ -60,7 +60,7 @@ class HttpGoogleBigQueryDAO(appName: String,
   override def getQueryStatus(jobRef: JobReference): Future[Job] = {
     val statusRequest = bigquery.jobs.get(jobRef.getProjectId, jobRef.getJobId)
 
-    retryWhen500orGoogleError { () =>
+    retry(when5xx, whenRateLimited, when404, whenInvalidValueOnBucketCreation) { () =>
       executeGoogleRequest(statusRequest)
     }
   }
@@ -70,7 +70,7 @@ class HttpGoogleBigQueryDAO(appName: String,
       Future.failed(new WorkbenchException(s"job ${job.getJobReference.getJobId} not done"))
 
     val resultRequest = bigquery.jobs.getQueryResults(job.getJobReference.getProjectId, job.getJobReference.getJobId)
-    retryWhen500orGoogleError { () =>
+    retry(when5xx, whenRateLimited, when404, whenInvalidValueOnBucketCreation) { () =>
       executeGoogleRequest(resultRequest)
     }
   }

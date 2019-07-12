@@ -17,6 +17,8 @@ import scala.collection.JavaConverters._
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 
+import com.github.ghik.silencer.silent
+@silent("deprecated")
 class GoogleUtilitiesSpec extends TestKit(ActorSystem("MySpec")) with GoogleUtilities with FlatSpecLike with BeforeAndAfterAll with Matchers with ScalaFutures with Eventually with MockitoTestUtils with StatsDTestUtils {
   implicit val executionContext = ExecutionContext.global
   implicit def histo: Histogram = ExpandedMetricBuilder.empty.asHistogram("histo")

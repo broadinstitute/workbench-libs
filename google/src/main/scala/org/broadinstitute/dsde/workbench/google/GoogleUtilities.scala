@@ -52,6 +52,7 @@ object GoogleUtilities {
 trait GoogleUtilities extends LazyLogging with InstrumentedRetry with GoogleInstrumented {
   implicit val executionContext: ExecutionContext
 
+  //FIXME: when we finally remove this, also remove the @silent annotation from the top of GoogleUtilitiesSpec.scala
   @deprecated(message = "This predicate is complicated and almost certainly doesn't do what you mean. Favor use of retry() and retryWithRecover() with explicitly defined predicates instead. There are some useful predicates at the top of GoogleUtilities; try importing GoogleUtilities.Predicates._", since = "workbench-google 0.20")
   protected def when500orGoogleError(throwable: Throwable): Boolean = {
     throwable match {
