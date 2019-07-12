@@ -31,7 +31,7 @@ object GoogleUtilities {
       case _ => false
     }
 
-    def whenRateLimited(throwable: Throwable): Boolean = throwable match {
+    def whenUsageLimited(throwable: Throwable): Boolean = throwable match {
       case t: GoogleJsonResponseException =>
         (t.getStatusCode == 403 || t.getStatusCode == 429) && t.getDetails.getErrors.asScala.head.getDomain.equalsIgnoreCase("usageLimits")
       case _ => false
