@@ -7,6 +7,7 @@ import akka.testkit.TestKit
 import com.google.api.client.googleapis.json.GoogleJsonError.ErrorInfo
 import com.google.api.client.googleapis.json.{GoogleJsonError, GoogleJsonResponseException}
 import com.google.api.client.http._
+import org.broadinstitute.dsde.workbench.google.GoogleUtilities.Predicates._
 import org.broadinstitute.dsde.workbench.metrics.{Histogram, StatsDTestUtils}
 import org.broadinstitute.dsde.workbench.util.MockitoTestUtils
 import org.scalatest.{BeforeAndAfterAll, FlatSpecLike, Matchers}
@@ -69,6 +70,40 @@ class GoogleUtilitiesSpec extends TestKit(ActorSystem("MySpec")) with GoogleUtil
       counter += 1
       throw buildHttpResponseException(503)
     }
+  }
+
+  "GoogleUtilities.Predicates" should "return true in positive cases" in {
+    when5xx(buildGoogleJsonResponseException(500)) shouldBe true
+    when5xx(buildHttpResponseException(502)) shouldBe true
+
+    whenRateLimited(buildGoogleJsonResponseException(403, None, None, Some("usageLimits"))) shouldBe true
+    whenRateLimited(buildGoogleJsonResponseException(429, None, None, Some("usageLimits"))) shouldBe true
+
+    when404(buildGoogleJsonResponseException(404)) shouldBe true
+    when404(buildHttpResponseException(404)) shouldBe true
+
+    whenInvalidValueOnBucketCreation(buildGoogleJsonResponseException(400, None, Some("invalid"), None)) shouldBe true
+
+    whenIOException(new IOException("boom")) shouldBe true
+  }
+
+  it should "return false in negative cases" in {
+    when5xx(buildGoogleJsonResponseException(400)) shouldBe false
+    when5xx(new IOException("boom")) shouldBe false
+
+    whenRateLimited(buildGoogleJsonResponseException(403, None, None, Some("boom"))) shouldBe false
+    whenRateLimited(buildGoogleJsonResponseException(429, None, None, Some("boom"))) shouldBe false
+    whenRateLimited(buildGoogleJsonResponseException(400)) shouldBe false
+    whenRateLimited(new IOException("boom")) shouldBe false
+
+    when404(buildGoogleJsonResponseException(403)) shouldBe false
+    when404(buildHttpResponseException(403)) shouldBe false
+
+    whenInvalidValueOnBucketCreation(buildGoogleJsonResponseException(400, None, Some("boom"), None)) shouldBe false
+    whenInvalidValueOnBucketCreation(buildHttpResponseException(403)) shouldBe false
+    whenInvalidValueOnBucketCreation(new IOException("boom")) shouldBe false
+
+    whenIOException(buildHttpResponseException(404)) shouldBe false
   }
 
   "when500orGoogleError" should "return true for 500 or Google errors" in {

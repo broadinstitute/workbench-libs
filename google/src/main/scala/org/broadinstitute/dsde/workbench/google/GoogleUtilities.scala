@@ -73,27 +73,6 @@ trait GoogleUtilities extends LazyLogging with InstrumentedRetry with GoogleInst
     }
   }
 
-  protected def when5xx(throwable: Throwable): Boolean = throwable match {
-    case t: GoogleHttpResponseException => t.getStatusCode / 100 == 5
-    case _ => false
-  }
-
-  protected def whenRateLimited(throwable: Throwable): Boolean = throwable match {
-    case t: GoogleJsonResponseException =>
-      (t.getStatusCode == 403 || t.getStatusCode == 429) && t.getDetails.getErrors.asScala.head.getDomain.equalsIgnoreCase("usageLimits")
-    case _ => false
-  }
-
-  protected def when404(throwable: Throwable): Boolean = throwable match {
-    case t: GoogleHttpResponseException => t.getStatusCode == 404
-    case _ => false
-  }
-
-  protected def whenInvalidValueOnBucketCreation(throwable: Throwable): Boolean = throwable match {
-    case t: GoogleJsonResponseException => t.getStatusCode == 400 && t.getDetails.getErrors.asScala.head.getReason.equalsIgnoreCase("invalid")
-    case _ => false
-  }
-
   @deprecated(message = "This function relies on a complicated predicate that almost certainly doesn't do what you mean. Use retry() with explicitly defined predicates instead. There are some useful predicates at the top of GoogleUtilities; try importing GoogleUtilities.Predicates._", since = "workbench-google 0.20")
   protected def retryWhen500orGoogleError[T](op: () => T)(implicit histo: Histogram): Future[T] = {
     retryExponentially(when500orGoogleError)(() => Future(blocking(op())))
