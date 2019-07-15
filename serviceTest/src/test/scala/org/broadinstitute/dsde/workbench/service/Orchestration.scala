@@ -14,8 +14,9 @@ import org.broadinstitute.dsde.workbench.service.OrchestrationModel._
 import org.broadinstitute.dsde.workbench.service.Sam.user.UserStatusDetails
 import org.broadinstitute.dsde.workbench.service.WorkspaceAccessLevel.WorkspaceAccessLevel
 import org.broadinstitute.dsde.workbench.service.test.RandomUtil
-import org.broadinstitute.dsde.workbench.service.util.Retry
+import org.broadinstitute.dsde.workbench.util.Retry
 import spray.json._
+
 import scala.concurrent.duration._
 import scala.util.{Failure, Success, Try}
 

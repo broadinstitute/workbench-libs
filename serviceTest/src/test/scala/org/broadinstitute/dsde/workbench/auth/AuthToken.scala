@@ -8,7 +8,7 @@ import com.google.api.client.googleapis.auth.oauth2.GoogleCredential
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport
 import com.google.api.client.json.jackson2.JacksonFactory
 import com.typesafe.scalalogging.LazyLogging
-import org.broadinstitute.dsde.workbench.service.util.Retry
+import org.broadinstitute.dsde.workbench.util.Retry
 
 import scala.concurrent.duration._
 
