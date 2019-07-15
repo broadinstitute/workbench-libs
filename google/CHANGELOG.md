@@ -2,6 +2,19 @@
 
 This file documents changes to the `workbench-google` library, including notes on how to upgrade to new versions.
 
+## 0.20
+
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.20-TRAVIS-REPLACE-ME"`
+
+### Added
+
+- A new set of predicates in `GoogleUtilities.RetryPredicates` to define retry conditions.
+- Simpler functions `retry` and `retryWithRecover` that compose a list of these predicates when deciding whether to retry.
+
+### Deprecated
+
+- `when500orGoogleError`, `retryWhen500orGoogleError`, and `retryWithRecoverWhen500orGoogleError` in `GoogleUtilities` have been deprecated in favour of the predicate-composing approach above. Code in workbench-libs has been changed to use this approach, preserving the original behaviour.
+
 ## 0.19
 
 SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.19-084fa1b"`

@@ -12,6 +12,7 @@ import com.google.api.services.admin.directory.{Directory, DirectoryScopes}
 import com.google.api.services.groupssettings.{Groupssettings, GroupssettingsScopes}
 import com.google.api.services.groupssettings.model.{Groups => GroupSettings}
 import org.broadinstitute.dsde.workbench.google.GoogleCredentialModes._
+import org.broadinstitute.dsde.workbench.google.GoogleUtilities.RetryPredicates._
 import org.broadinstitute.dsde.workbench.metrics.GoogleInstrumentedService
 import org.broadinstitute.dsde.workbench.model._
 
@@ -42,7 +43,7 @@ class HttpGoogleDirectoryDAO(appName: String,
 
     def updateGroupSettings(groupEmail: WorkbenchEmail, settings: GroupSettings) = {
       val updater = settingsClient.groups().update(groupEmail.value, settings)
-      retryWhen500orGoogleError (() => { executeGoogleRequest(updater) })
+      retry(when5xx, whenUsageLimited, when404, whenInvalidValueOnBucketCreation, whenNonHttpIOException) (() => { executeGoogleRequest(updater) })
     }
   }
 
@@ -86,7 +87,7 @@ class HttpGoogleDirectoryDAO(appName: String,
     val inserter = groups.insert(group)
 
     for {
-      _ <- retryWhen500orGoogleError (() => { executeGoogleRequest(inserter) })
+      _ <- retry(when5xx, whenUsageLimited, when404, whenInvalidValueOnBucketCreation, whenNonHttpIOException) (() => { executeGoogleRequest(inserter) })
       _ <- groupSettings match {
         case None => Future.successful(())
         case Some(settings) => new GroupSettingsDAO().updateGroupSettings(groupEmail, settings)
@@ -98,7 +99,7 @@ class HttpGoogleDirectoryDAO(appName: String,
     val groups = directory.groups
     val deleter = groups.delete(groupEmail.value)
 
-    retryWithRecoverWhen500orGoogleError(() => {
+    retryWithRecover(when5xx, whenUsageLimited, when404, whenInvalidValueOnBucketCreation, whenNonHttpIOException)(() => {
       executeGoogleRequest(deleter)
       ()
     }) {
@@ -110,7 +111,7 @@ class HttpGoogleDirectoryDAO(appName: String,
     val member = new Member().setEmail(memberEmail.value).setRole(groupMemberRole)
     val inserter = directory.members.insert(groupEmail.value, member)
 
-    retryWithRecoverWhen500orGoogleError(() => {
+    retryWithRecover(when5xx, whenUsageLimited, when404, whenInvalidValueOnBucketCreation, whenNonHttpIOException)(() => {
       executeGoogleRequest(inserter)
       ()
     }) {
@@ -123,7 +124,7 @@ class HttpGoogleDirectoryDAO(appName: String,
   override def removeMemberFromGroup(groupEmail: WorkbenchEmail, memberEmail: WorkbenchEmail): Future[Unit] = {
     val deleter = directory.members.delete(groupEmail.value, memberEmail.value)
 
-    retryWithRecoverWhen500orGoogleError(() => {
+    retryWithRecover(when5xx, whenUsageLimited, when404, whenInvalidValueOnBucketCreation, whenNonHttpIOException)(() => {
       executeGoogleRequest(deleter)
       ()
     }) {
@@ -135,7 +136,7 @@ class HttpGoogleDirectoryDAO(appName: String,
   override def getGoogleGroup(groupEmail: WorkbenchEmail): Future[Option[Group]] = {
     val getter = directory.groups().get(groupEmail.value)
 
-    retryWithRecoverWhen500orGoogleError(() => { Option(executeGoogleRequest(getter)) }){
+    retryWithRecover(when5xx, whenUsageLimited, when404, whenInvalidValueOnBucketCreation, whenNonHttpIOException)(() => { Option(executeGoogleRequest(getter)) }){
       case e: HttpResponseException if e.getStatusCode == StatusCodes.NotFound.intValue => None
     }
   }
@@ -143,7 +144,7 @@ class HttpGoogleDirectoryDAO(appName: String,
   override def isGroupMember(groupEmail: WorkbenchEmail, memberEmail: WorkbenchEmail): Future[Boolean] = {
     val getter = directory.members.get(groupEmail.value, memberEmail.value)
 
-    retryWithRecoverWhen500orGoogleError(() => {
+    retryWithRecover(when5xx, whenUsageLimited, when404, whenInvalidValueOnBucketCreation, whenNonHttpIOException)(() => {
       executeGoogleRequest(getter)
       true
     }) {
@@ -180,14 +181,14 @@ class HttpGoogleDirectoryDAO(appName: String,
     implicit val service = GoogleInstrumentedService.Groups
     accumulated match {
       // when accumulated has a Nil list then this must be the first request
-      case Some(Nil) => retryWithRecoverWhen500orGoogleError(() => {
+      case Some(Nil) => retryWithRecover(when5xx, whenUsageLimited, when404, whenInvalidValueOnBucketCreation, whenNonHttpIOException)(() => {
         Option(executeGoogleRequest(fetcher))
       }) {
         case e: HttpResponseException if e.getStatusCode == StatusCodes.NotFound.intValue => None
       }.flatMap(firstPage => listGroupMembersRecursive(fetcher, firstPage.map(List(_))))
 
       // the head is the Members object of the prior request which contains next page token
-      case Some(head :: _) if head.getNextPageToken != null => retryWhen500orGoogleError(() => {
+      case Some(head :: _) if head.getNextPageToken != null => retry(when5xx, whenUsageLimited, when404, whenInvalidValueOnBucketCreation, whenNonHttpIOException)(() => {
         executeGoogleRequest(fetcher.setPageToken(head.getNextPageToken))
       }).flatMap(nextPage => listGroupMembersRecursive(fetcher, accumulated.map(pages => nextPage :: pages)))
 

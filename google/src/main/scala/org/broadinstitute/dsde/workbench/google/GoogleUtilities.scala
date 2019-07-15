@@ -21,9 +21,48 @@ import scala.util.{Failure, Success, Try}
 /**
  * Created by mbemis on 5/10/16.
  */
+
+//These predicates are for use in retries.
+//To use them, import GoogleUtilities.Predicates._
+object GoogleUtilities {
+  object RetryPredicates {
+    def when5xx(throwable: Throwable): Boolean = throwable match {
+      case t: GoogleHttpResponseException => t.getStatusCode / 100 == 5
+      case _ => false
+    }
+
+    def whenUsageLimited(throwable: Throwable): Boolean = throwable match {
+      case t: GoogleJsonResponseException =>
+        (t.getStatusCode == 403 || t.getStatusCode == 429) && t.getDetails.getErrors.asScala.head.getDomain.equalsIgnoreCase("usageLimits")
+      case _ => false
+    }
+
+    def when404(throwable: Throwable): Boolean = throwable match {
+      case t: GoogleHttpResponseException => t.getStatusCode == 404
+      case _ => false
+    }
+
+    def whenInvalidValueOnBucketCreation(throwable: Throwable): Boolean = throwable match {
+      case t: GoogleJsonResponseException => t.getStatusCode == 400 && t.getDetails.getErrors.asScala.head.getReason.equalsIgnoreCase("invalid")
+      case _ => false
+    }
+
+    def whenNonHttpIOException(throwable: Throwable): Boolean = throwable match {
+      //NOTE Google exceptions are subclasses of IO, so without the two false cases at the top, this would
+      //match on ANY non-2xx Google response.
+      case _: GoogleJsonResponseException => false
+      case _: GoogleHttpResponseException => false
+      case _: IOException => true
+      case _ => false
+    }
+  }
+}
+
 trait GoogleUtilities extends LazyLogging with InstrumentedRetry with GoogleInstrumented {
   implicit val executionContext: ExecutionContext
 
+  //FIXME: when we finally remove this, also remove the @silent annotation from the top of GoogleUtilitiesSpec.scala
+  @deprecated(message = "This predicate is complicated and almost certainly doesn't do what you mean. Favor use of retry() and retryWithRecover() with explicitly defined predicates instead. There are some useful predicates at the top of GoogleUtilities; try importing GoogleUtilities.Predicates._", since = "workbench-google 0.20")
   protected def when500orGoogleError(throwable: Throwable): Boolean = {
     throwable match {
       case t: GoogleJsonResponseException => {
@@ -38,12 +77,28 @@ trait GoogleUtilities extends LazyLogging with InstrumentedRetry with GoogleInst
     }
   }
 
+  @deprecated(message = "This function relies on a complicated predicate that almost certainly doesn't do what you mean. Use retry() with explicitly defined predicates instead. There are some useful predicates at the top of GoogleUtilities; try importing GoogleUtilities.Predicates._", since = "workbench-google 0.20")
   protected def retryWhen500orGoogleError[T](op: () => T)(implicit histo: Histogram): Future[T] = {
     retryExponentially(when500orGoogleError)(() => Future(blocking(op())))
   }
 
+  protected def combine(predicates: Seq[Throwable => Boolean]): (Throwable => Boolean) = { throwable =>
+    predicates.map( _(throwable) ).foldLeft(false)(_ || _)
+  }
+
+  //Retry if any of the predicates return true.
+  protected def retry[T](predicates: (Throwable => Boolean)*)(op: () => T)(implicit histo: Histogram): Future[T] = {
+    retryExponentially(combine(predicates))(() => Future(blocking(op())))
+  }
+
+  @deprecated(message = "This function relies on a complicated predicate that almost certainly doesn't do what you mean. Use retryWithRecover() with explicitly defined predicates instead. There are some useful predicates at the top of GoogleUtilities; try importing GoogleUtilities.Predicates._", since = "workbench-google 0.20")
   protected def retryWithRecoverWhen500orGoogleError[T](op: () => T)(recover: PartialFunction[Throwable, T])(implicit histo: Histogram): Future[T] = {
     retryExponentially(when500orGoogleError)(() => Future(blocking(op())).recover(recover))
+  }
+
+  //Retry if any of the predicates return true.
+  protected def retryWithRecover[T](predicates: (Throwable => Boolean)*)(op: () => T)(recover: PartialFunction[Throwable, T])(implicit histo: Histogram) : Future[T] = {
+    retryExponentially(combine(predicates))(() => Future(blocking(op())).recover(recover))
   }
 
   // $COVERAGE-OFF$Can't test Google request code. -hussein

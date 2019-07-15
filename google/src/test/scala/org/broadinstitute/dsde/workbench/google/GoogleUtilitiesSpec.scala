@@ -7,6 +7,7 @@ import akka.testkit.TestKit
 import com.google.api.client.googleapis.json.GoogleJsonError.ErrorInfo
 import com.google.api.client.googleapis.json.{GoogleJsonError, GoogleJsonResponseException}
 import com.google.api.client.http._
+import org.broadinstitute.dsde.workbench.google.GoogleUtilities.RetryPredicates._
 import org.broadinstitute.dsde.workbench.metrics.{Histogram, StatsDTestUtils}
 import org.broadinstitute.dsde.workbench.util.MockitoTestUtils
 import org.scalatest.{BeforeAndAfterAll, FlatSpecLike, Matchers}
@@ -17,6 +18,10 @@ import scala.collection.JavaConverters._
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 
+//FIXME: This annotation silences deprecation warnings, which are triggered by the testing of retryWhen500orGoogleError.
+//When we remove that function, we should remove this annotation too.
+import com.github.ghik.silencer.silent
+@silent("deprecated")
 class GoogleUtilitiesSpec extends TestKit(ActorSystem("MySpec")) with GoogleUtilities with FlatSpecLike with BeforeAndAfterAll with Matchers with ScalaFutures with Eventually with MockitoTestUtils with StatsDTestUtils {
   implicit val executionContext = ExecutionContext.global
   implicit def histo: Histogram = ExpandedMetricBuilder.empty.asHistogram("histo")
@@ -65,6 +70,40 @@ class GoogleUtilitiesSpec extends TestKit(ActorSystem("MySpec")) with GoogleUtil
       counter += 1
       throw buildHttpResponseException(503)
     }
+  }
+
+  "GoogleUtilities.Predicates" should "return true in positive cases" in {
+    when5xx(buildGoogleJsonResponseException(500)) shouldBe true
+    when5xx(buildHttpResponseException(502)) shouldBe true
+
+    whenUsageLimited(buildGoogleJsonResponseException(403, None, None, Some("usageLimits"))) shouldBe true
+    whenUsageLimited(buildGoogleJsonResponseException(429, None, None, Some("usageLimits"))) shouldBe true
+
+    when404(buildGoogleJsonResponseException(404)) shouldBe true
+    when404(buildHttpResponseException(404)) shouldBe true
+
+    whenInvalidValueOnBucketCreation(buildGoogleJsonResponseException(400, None, Some("invalid"), None)) shouldBe true
+
+    whenNonHttpIOException(new IOException("boom")) shouldBe true
+  }
+
+  it should "return false in negative cases" in {
+    when5xx(buildGoogleJsonResponseException(400)) shouldBe false
+    when5xx(new IOException("boom")) shouldBe false
+
+    whenUsageLimited(buildGoogleJsonResponseException(403, None, None, Some("boom"))) shouldBe false
+    whenUsageLimited(buildGoogleJsonResponseException(429, None, None, Some("boom"))) shouldBe false
+    whenUsageLimited(buildGoogleJsonResponseException(400)) shouldBe false
+    whenUsageLimited(new IOException("boom")) shouldBe false
+
+    when404(buildGoogleJsonResponseException(403)) shouldBe false
+    when404(buildHttpResponseException(403)) shouldBe false
+
+    whenInvalidValueOnBucketCreation(buildGoogleJsonResponseException(400, None, Some("boom"), None)) shouldBe false
+    whenInvalidValueOnBucketCreation(buildHttpResponseException(403)) shouldBe false
+    whenInvalidValueOnBucketCreation(new IOException("boom")) shouldBe false
+
+    whenNonHttpIOException(buildHttpResponseException(404)) shouldBe false
   }
 
   "when500orGoogleError" should "return true for 500 or Google errors" in {
@@ -121,6 +160,41 @@ class GoogleUtilitiesSpec extends TestKit(ActorSystem("MySpec")) with GoogleUtil
     }
   }
 
+  "combine" should "combine predicates correctly" in {
+    combine(Seq(whenNonHttpIOException, when5xx))(new IOException("boom")) shouldBe true
+    combine(Seq(whenNonHttpIOException, when5xx))(buildHttpResponseException(502)) shouldBe true
+
+    combine(Seq(whenNonHttpIOException, when5xx))(buildHttpResponseException(400)) shouldBe false
+
+    combine(Seq.empty)(new IOException("boom")) shouldBe false
+  }
+
+  "retry" should "retry once per backoff interval and then fail" in {
+    withStatsD {
+      val counter = new Counter()
+      whenReady(retry(whenNonHttpIOException(_))(() => counter.alwaysBoom()).failed) { f =>
+        f shouldBe a[IOException]
+        counter.counter shouldBe 4 //extra one for the first attempt
+      }
+    } { capturedMetrics =>
+      capturedMetrics should contain ("test.histo.samples" -> "1")
+      capturedMetrics should contain ("test.histo.max" -> "4")  // 4 exceptions
+    }
+  }
+
+  it should "not retry after a success" in {
+    withStatsD {
+      val counter = new Counter()
+      whenReady(retry(whenNonHttpIOException(_))(() => counter.boomOnce())) { s =>
+        s shouldBe 42
+        counter.counter shouldBe 2
+      }
+    } { capturedMetrics =>
+      capturedMetrics should contain ("test.histo.samples" -> "1")
+      capturedMetrics should contain ("test.histo.max" -> "1")  // 1 exception
+    }
+  }
+
   "retryWithRecoverWhen500orGoogleError" should "stop retrying if it recovers" in {
     withStatsD {
       val counter = new Counter()
@@ -148,6 +222,42 @@ class GoogleUtilitiesSpec extends TestKit(ActorSystem("MySpec")) with GoogleUtil
       }
 
       whenReady(retryWithRecoverWhen500orGoogleError(() => counter.httpBoom())(recoverHttp).failed) { f =>
+        f shouldBe a[HttpResponseException]
+        counter.counter shouldBe 4 //extra one for the first attempt
+      }
+    } { capturedMetrics =>
+      capturedMetrics should contain ("test.histo.samples" -> "1")
+      capturedMetrics should contain ("test.histo.max" -> "4")  // 4 exceptions
+    }
+  }
+
+  "retryWithRecover" should "stop retrying if it recovers" in {
+    withStatsD {
+      val counter = new Counter()
+
+      def recoverIO: PartialFunction[Throwable, Int] = {
+        case _: IOException => 42
+      }
+
+      whenReady(retryWithRecover(whenNonHttpIOException(_))(() => counter.alwaysBoom())(recoverIO)) { s =>
+        s shouldBe 42
+        counter.counter shouldBe 1
+      }
+    } { capturedMetrics =>
+      capturedMetrics should contain ("test.histo.samples" -> "1")
+      capturedMetrics should contain ("test.histo.max" -> "0")  // 0 exceptions
+    }
+  }
+
+  it should "keep retrying and fail if it doesn't recover" in {
+    withStatsD {
+      val counter = new Counter()
+
+      def recoverHttp: PartialFunction[Throwable, Int] = {
+        case h: HttpResponseException if h.getStatusCode == 404 => 42
+      }
+
+      whenReady(retryWithRecover(when5xx(_))(() => counter.httpBoom())(recoverHttp).failed) { f =>
         f shouldBe a[HttpResponseException]
         counter.counter shouldBe 4 //extra one for the first attempt
       }

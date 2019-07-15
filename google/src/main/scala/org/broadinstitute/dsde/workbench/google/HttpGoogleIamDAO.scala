@@ -22,6 +22,7 @@ import com.google.api.services.cloudresourcemanager.model.{Binding => ProjectBin
 import com.google.api.services.iam.v1.model.{CreateServiceAccountKeyRequest, CreateServiceAccountRequest, ServiceAccount, Binding => ServiceAccountBinding, Policy => ServiceAccountPolicy, ServiceAccountKey => GoogleServiceAccountKey, SetIamPolicyRequest => ServiceAccountSetIamPolicyRequest}
 import com.google.api.services.iam.v1.{Iam, IamScopes}
 import org.broadinstitute.dsde.workbench.google.GoogleCredentialModes._
+import org.broadinstitute.dsde.workbench.google.GoogleUtilities.RetryPredicates._
 import org.broadinstitute.dsde.workbench.google.HttpGoogleIamDAO._
 import org.broadinstitute.dsde.workbench.metrics.GoogleInstrumentedService
 import org.broadinstitute.dsde.workbench.model._
@@ -77,7 +78,7 @@ class HttpGoogleIamDAO(appName: String,
     val getter = iam.projects().serviceAccounts().get(name)
 
     //Return a Future[Option[ServiceAccount]]. The future fails if we get a Google error we don't understand. The Option is None if we get a 404, i.e. the SA doesn't exist.
-    val findOption = OptionT(retryWithRecoverWhen500orGoogleError { () =>
+    val findOption = OptionT(retryWithRecover(when5xx, whenUsageLimited, when404, whenInvalidValueOnBucketCreation, whenNonHttpIOException) { () =>
       Option(executeGoogleRequest(getter))
     } {
       case t: GoogleJsonResponseException if t.getStatusCode == 404 =>
@@ -100,7 +101,7 @@ class HttpGoogleIamDAO(appName: String,
     val request = new CreateServiceAccountRequest().setAccountId(serviceAccountName.value)
       .setServiceAccount(new ServiceAccount().setDisplayName(displayName.value))
     val inserter = iam.projects().serviceAccounts().create(s"projects/${serviceAccountProject.value}", request)
-    retryWithRecoverWhen500orGoogleError { () =>
+    retryWithRecover(when5xx, whenUsageLimited, when404, whenInvalidValueOnBucketCreation, whenNonHttpIOException) { () =>
       executeGoogleRequest(inserter)
     } {
       case t: GoogleJsonResponseException if t.getStatusCode == StatusCodes.NotFound.intValue => throw new WorkbenchException(s"The project [${serviceAccountProject.value}] was not found")
@@ -113,7 +114,7 @@ class HttpGoogleIamDAO(appName: String,
     val serviceAccountEmail = toServiceAccountEmail(serviceAccountProject, serviceAccountName)
     val name = s"projects/${serviceAccountProject.value}/serviceAccounts/${serviceAccountEmail.value}"
     val deleter = iam.projects().serviceAccounts().delete(name)
-    retryWithRecoverWhen500orGoogleError { () =>
+    retryWithRecover(when5xx, whenUsageLimited, when404, whenInvalidValueOnBucketCreation, whenNonHttpIOException) { () =>
       executeGoogleRequest(deleter)
       ()
     } {
@@ -125,7 +126,7 @@ class HttpGoogleIamDAO(appName: String,
   override def testIamPermission(project: GoogleProject, iamPermissions: Set[IamPermission]): Future[Set[IamPermission]] = {
     val testRequest = new TestIamPermissionsRequest().setPermissions(iamPermissions.map(p => p.value).toList.asJava)
     val request = cloudResourceManager.projects().testIamPermissions(project.value, testRequest)
-    retryWhen500orGoogleError { () =>
+    retry(when5xx, whenUsageLimited, when404, whenInvalidValueOnBucketCreation, whenNonHttpIOException) { () =>
       executeGoogleRequest(request)
     } map { response =>
       Option(response.getPermissions).getOrElse(Collections.emptyList()).asScala.toSet.map(IamPermission)
@@ -138,7 +139,7 @@ class HttpGoogleIamDAO(appName: String,
       val updatedPolicy = updatePolicy(policy, userEmail, rolesToAdd, Set.empty)
       val policyRequest = new ProjectSetIamPolicyRequest().setPolicy(updatedPolicy).setUpdateMask("bindings,etag")
       val request = cloudResourceManager.projects().setIamPolicy(iamProject.value, policyRequest)
-      retryWhen500orGoogleError { () =>
+      retry(when5xx, whenUsageLimited, when404, whenInvalidValueOnBucketCreation, whenNonHttpIOException) { () =>
         executeGoogleRequest(request)
       }.void
     }
@@ -150,7 +151,7 @@ class HttpGoogleIamDAO(appName: String,
       val updatedPolicy = updatePolicy(policy, userEmail, Set.empty, rolesToRemove)
       val policyRequest = new ProjectSetIamPolicyRequest().setPolicy(updatedPolicy).setUpdateMask("bindings,etag")
       val request = cloudResourceManager.projects().setIamPolicy(iamProject.value, policyRequest)
-      retryWhen500orGoogleError { () =>
+      retry(when5xx, whenUsageLimited, when404, whenInvalidValueOnBucketCreation, whenNonHttpIOException) { () =>
         executeGoogleRequest(request)
       }.void
     }
@@ -166,7 +167,7 @@ class HttpGoogleIamDAO(appName: String,
       val updatedPolicy = updatePolicy(policy, userEmail, Set("roles/iam.serviceAccountUser"), Set.empty)
       val policyRequest = new ServiceAccountSetIamPolicyRequest().setPolicy(updatedPolicy)
       val request = iam.projects().serviceAccounts().setIamPolicy(s"projects/${serviceAccountProject.value}/serviceAccounts/${serviceAccountEmail.value}", policyRequest)
-      retryWhen500orGoogleError { () =>
+      retry(when5xx, whenUsageLimited, when404, whenInvalidValueOnBucketCreation, whenNonHttpIOException) { () =>
         executeGoogleRequest(request)
       }.void
     }
@@ -177,14 +178,14 @@ class HttpGoogleIamDAO(appName: String,
       .setPrivateKeyType("TYPE_GOOGLE_CREDENTIALS_FILE")
       .setKeyAlgorithm("KEY_ALG_RSA_2048")
     val creater = iam.projects().serviceAccounts().keys().create(s"projects/${serviceAccountProject.value}/serviceAccounts/${serviceAccountEmail.value}", request)
-    retryWhen500orGoogleError { () =>
+    retry(when5xx, whenUsageLimited, when404, whenInvalidValueOnBucketCreation, whenNonHttpIOException) { () =>
       executeGoogleRequest(creater)
     } map googleKeyToWorkbenchKey
   }
 
   override def removeServiceAccountKey(serviceAccountProject: GoogleProject, serviceAccountEmail: WorkbenchEmail, keyId: ServiceAccountKeyId): Future[Unit] = {
     val request = iam.projects().serviceAccounts().keys().delete(s"projects/${serviceAccountProject.value}/serviceAccounts/${serviceAccountEmail.value}/keys/${keyId.value}")
-    retryWithRecoverWhen500orGoogleError{ () =>
+    retryWithRecover(when5xx, whenUsageLimited, when404, whenInvalidValueOnBucketCreation, whenNonHttpIOException){ () =>
       executeGoogleRequest(request)
       ()
     } {
@@ -195,7 +196,7 @@ class HttpGoogleIamDAO(appName: String,
   override def listServiceAccountKeys(serviceAccountProject: GoogleProject, serviceAccountEmail: WorkbenchEmail): Future[Seq[ServiceAccountKey]] = {
     val request = iam.projects().serviceAccounts().keys().list(s"projects/${serviceAccountProject.value}/serviceAccounts/${serviceAccountEmail.value}")
 
-    retryWhen500orGoogleError { () =>
+    retry(when5xx, whenUsageLimited, when404, whenInvalidValueOnBucketCreation, whenNonHttpIOException) { () =>
       executeGoogleRequest(request)
     } map { response =>
       Option(response.getKeys).getOrElse(Collections.emptyList()).asScala map googleKeyToWorkbenchKey
@@ -205,7 +206,7 @@ class HttpGoogleIamDAO(appName: String,
   override def listUserManagedServiceAccountKeys(serviceAccountProject: GoogleProject, serviceAccountEmail: WorkbenchEmail): Future[Seq[ServiceAccountKey]] = {
     val request = iam.projects().serviceAccounts().keys().list(s"projects/${serviceAccountProject.value}/serviceAccounts/${serviceAccountEmail.value}").setKeyTypes(List("USER_MANAGED").asJava)
 
-    retryWhen500orGoogleError { () =>
+    retry(when5xx, whenUsageLimited, when404, whenInvalidValueOnBucketCreation, whenNonHttpIOException) { () =>
       executeGoogleRequest(request)
     } map { response =>
       Option(response.getKeys).getOrElse(Collections.emptyList()).asScala map googleKeyToWorkbenchKey
@@ -228,14 +229,14 @@ class HttpGoogleIamDAO(appName: String,
 
   private def getProjectPolicy(googleProject: GoogleProject): Future[Policy] = {
     val request = cloudResourceManager.projects().getIamPolicy(googleProject.value, null)
-    retryWhen500orGoogleError { () =>
+    retry(when5xx, whenUsageLimited, when404, whenInvalidValueOnBucketCreation, whenNonHttpIOException) { () =>
       executeGoogleRequest(request)
     }
   }
 
   private def getServiceAccountPolicy(serviceAccountProject: GoogleProject, serviceAccountEmail: WorkbenchEmail): Future[Policy] = {
     val request = iam.projects().serviceAccounts().getIamPolicy(s"projects/${serviceAccountProject.value}/serviceAccounts/${serviceAccountEmail.value}")
-    retryWhen500orGoogleError { () =>
+    retry(when5xx, whenUsageLimited, when404, whenInvalidValueOnBucketCreation, whenNonHttpIOException) { () =>
       executeGoogleRequest(request)
     }
   }
