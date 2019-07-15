@@ -110,7 +110,8 @@ trait Retry {
 
 }
 
-object Retry{
+object Retry extends LazyLogging {
+
   def retry[F[_], A](fa: F[A], interval: FiniteDuration, maxRetries: Int)
                     (implicit sf: Sync[F], timer: Timer[F]): F[A] = {
     fa.handleErrorWith {
@@ -138,7 +139,7 @@ object Retry{
       case None => remainingBackOffIntervals match {
         case Nil => None
         case h :: t =>
-          //logger.info(s"Retrying: ${remainingBackOffIntervals.size} retries remaining, retrying in $h")
+          logger.info(s"Retrying: ${remainingBackOffIntervals.size} retries remaining, retrying in $h")
           Thread sleep h.toMillis
           retry(t)(op)
       }
@@ -157,7 +158,7 @@ object Retry{
       case Failure(ex) => remainingBackOffIntervals match {
         case Nil => Failure(ex)
         case h :: t =>
-          //logger.info(s"Retrying: ${remainingBackOffIntervals.size} retries remaining, retrying in $h")
+          logger.info(s"Retrying: ${remainingBackOffIntervals.size} retries remaining, retrying in $h")
           Thread sleep h.toMillis
           retryForTry(t)(tryOp)
       }
