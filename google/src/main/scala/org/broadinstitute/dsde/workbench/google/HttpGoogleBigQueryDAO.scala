@@ -4,6 +4,7 @@ import akka.actor.ActorSystem
 import com.google.api.services.bigquery.{Bigquery, BigqueryScopes}
 import com.google.api.services.bigquery.model._
 import org.broadinstitute.dsde.workbench.google.GoogleCredentialModes._
+import org.broadinstitute.dsde.workbench.google.GoogleUtilities.RetryPredicates._
 import org.broadinstitute.dsde.workbench.metrics.GoogleInstrumentedService
 import org.broadinstitute.dsde.workbench.model.WorkbenchException
 import org.broadinstitute.dsde.workbench.model.google.GoogleProject
@@ -28,7 +29,7 @@ class HttpGoogleBigQueryDAO(appName: String,
   private def submitQuery(projectId: String, job: Job): Future[JobReference] = {
     val queryRequest = bigquery.jobs.insert(projectId, job)
 
-    retryWhen500orGoogleError { () =>
+    retry(when5xx, whenUsageLimited, when404, whenInvalidValueOnBucketCreation, whenNonHttpIOException) { () =>
       executeGoogleRequest(queryRequest)
     } map { job =>
       job.getJobReference
@@ -60,7 +61,7 @@ class HttpGoogleBigQueryDAO(appName: String,
   override def getQueryStatus(jobRef: JobReference): Future[Job] = {
     val statusRequest = bigquery.jobs.get(jobRef.getProjectId, jobRef.getJobId)
 
-    retryWhen500orGoogleError { () =>
+    retry(when5xx, whenUsageLimited, when404, whenInvalidValueOnBucketCreation, whenNonHttpIOException) { () =>
       executeGoogleRequest(statusRequest)
     }
   }
@@ -70,7 +71,7 @@ class HttpGoogleBigQueryDAO(appName: String,
       Future.failed(new WorkbenchException(s"job ${job.getJobReference.getJobId} not done"))
 
     val resultRequest = bigquery.jobs.getQueryResults(job.getJobReference.getProjectId, job.getJobReference.getJobId)
-    retryWhen500orGoogleError { () =>
+    retry(when5xx, whenUsageLimited, when404, whenInvalidValueOnBucketCreation, whenNonHttpIOException) { () =>
       executeGoogleRequest(resultRequest)
     }
   }
