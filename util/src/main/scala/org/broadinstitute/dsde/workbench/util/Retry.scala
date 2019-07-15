@@ -11,6 +11,7 @@ import org.broadinstitute.dsde.workbench.model.WorkbenchException
 import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
 import scala.language.implicitConversions
+import scala.util.{Failure, Success, Try}
 
 /**
  * Created by tsharpe on 9/21/15.
@@ -147,6 +148,25 @@ object Retry{
   def retry[T](interval: FiniteDuration, timeout: FiniteDuration)(op: => Option[T]): Option[T] = {
     val iterations = (timeout / interval).round.toInt
     retry(Seq.fill(iterations)(interval))(op)
+  }
+
+
+  def retryForTry[T](remainingBackOffIntervals: Seq[FiniteDuration])(tryOp: => Try[T]): Try[T] = {
+    tryOp match {
+      case Success(x) => Success(x)
+      case Failure(ex) => remainingBackOffIntervals match {
+        case Nil => Failure(ex)
+        case h :: t =>
+          //logger.info(s"Retrying: ${remainingBackOffIntervals.size} retries remaining, retrying in $h")
+          Thread sleep h.toMillis
+          retryForTry(t)(tryOp)
+      }
+    }
+  }
+
+  def retryForTry[T](interval: FiniteDuration, timeout: FiniteDuration)(op: => Try[T]): Try[T] = {
+    val iterations = (timeout / interval).round.toInt
+    retryForTry(Seq.fill(iterations)(interval))(op)
   }
 
 }
