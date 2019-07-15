@@ -48,6 +48,8 @@ object GoogleUtilities {
     }
 
     def whenNonHttpIOException(throwable: Throwable): Boolean = throwable match {
+      //NOTE Google exceptions are subclasses of IO, so without the two false cases at the top, this would
+      //match on ANY non-2xx Google response.
       case _: GoogleJsonResponseException => false
       case _: GoogleHttpResponseException => false
       case _: IOException => true
