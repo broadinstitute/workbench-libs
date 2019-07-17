@@ -103,12 +103,12 @@ trait GoogleStorageService[F[_]] {
   def removeObject(bucketName: GcsBucketName, blobName: GcsBlobName, generation: Option[Long] = None, traceId: Option[TraceId] = None): Stream[F, RemoveObjectResult]
 
   /**
-    * @param googleProject Optional. The name of the Google project to create the bucket in. If not specified, this will default to the service project.
+    * @param googleProject The name of the Google project to create the bucket in
     * @param traceId uuid for tracing a unique call flow in logging
     * Supports adding bucket labels during creation
     * Acl is deprecated. Use setIamPolicy if possible
     */
-  def insertBucket(bucketName: GcsBucketName, googleProject: Option[GoogleProject] = None, acl: Option[NonEmptyList[Acl]] = None, labels: Map[String, String] = Map.empty, traceId: Option[TraceId] = None): Stream[F, Unit]
+  def insertBucket(googleProject: GoogleProject, bucketName: GcsBucketName, acl: Option[NonEmptyList[Acl]] = None, labels: Map[String, String] = Map.empty, traceId: Option[TraceId] = None): Stream[F, Unit]
 
   /**
     * @param traceId uuid for tracing a unique call flow in logging

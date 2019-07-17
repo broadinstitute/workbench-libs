@@ -159,7 +159,7 @@ private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer: Async
     } yield RemoveObjectResult(deleted)
   }
 
-  override def insertBucket(bucketName: GcsBucketName, googleProject: Option[GoogleProject] = None, acl: Option[NonEmptyList[Acl]] = None, labels: Map[String, String] = Map.empty, traceId: Option[TraceId] = None): Stream[F, Unit] = {
+  override def insertBucket(googleProject: GoogleProject, bucketName: GcsBucketName, acl: Option[NonEmptyList[Acl]] = None, labels: Map[String, String] = Map.empty, traceId: Option[TraceId] = None): Stream[F, Unit] = {
     val bucketInfoBuilder = BucketInfo.of(bucketName.value).toBuilder
     val bucketInfo = acl.map{
       aclList =>
@@ -171,10 +171,7 @@ private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer: Async
           .build()
     }.getOrElse(bucketInfoBuilder.build())
 
-    val dbForProject = googleProject match {
-      case Some(project) => db.getOptions.toBuilder.setProjectId(project.value).build().getService
-      case None => db
-    }
+    val dbForProject = db.getOptions.toBuilder.setProjectId(googleProject.value).build().getService
 
     val createBucket = blockingF(Async[F].delay(dbForProject.create(bucketInfo))).void.handleErrorWith {
       case e: com.google.cloud.storage.StorageException if(e.getCode == 409) =>
