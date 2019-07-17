@@ -2,31 +2,24 @@
 
 This file documents changes to the `workbench-google2` library, including notes on how to upgrade to new versions.
 
-## 0.6
-
-Changed
-- Support custom storage IAM roles
-- Removed `googleProject` parameter from `insertBucket` in `GoogleStorageInterpreter` as it was not having the desired effect of creating the bucket in the specified project but rather it was configuring requester pays settings for that bucket
-- Add `getIamPolicy`
-
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.6-TRAVIS-REPLACE-ME"`
-
 ## 0.5
 
 Added
 - Add `getBlob`, `createObject`
+- Add `insertBucket`, which supports adding bucket labels
+- Add `getIamPolicy`
 
 Changed
 - Use linebacker for blocking execution context
 - Moved `org.broadinstitute.dsde.workbench.google.GoogleKmsService` to `org.broadinstitute.dsde.workbench.google2.GoogleKmsService`
 - Add optional generation parameter to `removeObject`
-- Add insertBucket, which supports adding bucket labels
 - Deprecate `getObject`, `unsafeGetObject`, and add `getBlobBody`, `unsafeGetObjectBody`
 - provide `text/plain` as default `objectType` for `storeObject`
 - Bump `http4sVersion` to `0.20.3`
 - Deprecate `storeObject`, and add `createObject` that returns `Blob`
+- Support custom storage IAM roles
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.5-f8ebba7"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.5-TRAVIS-REPLACE-ME"`
 
 ## 0.4
 
