@@ -181,7 +181,7 @@ private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer: Async
     retryStorageF(
       createBucket,
       traceId,
-      s"com.google.cloud.storage.Storage.create($bucketInfo)"
+      s"com.google.cloud.storage.Storage.create($bucketInfo, ${googleProject.value})"
     )
   }
 
