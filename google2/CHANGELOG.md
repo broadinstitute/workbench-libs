@@ -6,18 +6,20 @@ This file documents changes to the `workbench-google2` library, including notes 
 
 Added
 - Add `getBlob`, `createObject`
+- Add `insertBucket`, which supports adding bucket labels
+- Add `getIamPolicy`
 
 Changed
 - Use linebacker for blocking execution context
 - Moved `org.broadinstitute.dsde.workbench.google.GoogleKmsService` to `org.broadinstitute.dsde.workbench.google2.GoogleKmsService`
 - Add optional generation parameter to `removeObject`
-- Add insertBucket, which supports adding bucket labels
 - Deprecate `getObject`, `unsafeGetObject`, and add `getBlobBody`, `unsafeGetObjectBody`
 - provide `text/plain` as default `objectType` for `storeObject`
 - Bump `http4sVersion` to `0.20.3`
 - Deprecate `storeObject`, and add `createObject` that returns `Blob`
+- Support custom storage IAM roles
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.5-f8ebba7"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.5-TRAVIS-REPLACE-ME"`
 
 ## 0.4
 

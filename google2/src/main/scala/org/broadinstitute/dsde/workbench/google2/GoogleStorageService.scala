@@ -5,6 +5,7 @@ import java.nio.file.Path
 import cats.data.NonEmptyList
 import cats.implicits._
 import cats.effect._
+import com.google.cloud.Policy
 import com.google.auth.oauth2.GoogleCredentials
 import com.google.cloud.Identity
 import com.google.cloud.storage.{Acl, Blob, BlobId, StorageOptions}
@@ -109,6 +110,7 @@ trait GoogleStorageService[F[_]] {
   def createBucket(billingProject: GoogleProject, bucketName: GcsBucketName, acl: Option[NonEmptyList[Acl]] = None, traceId: Option[TraceId] = None): Stream[F, Unit] = insertBucket(billingProject, bucketName, acl, Map.empty, traceId)
 
   /**
+    * @param googleProject The name of the Google project to create the bucket in
     * @param traceId uuid for tracing a unique call flow in logging
     * Supports adding bucket labels during creation
     * Acl is deprecated. Use setIamPolicy if possible
@@ -124,6 +126,8 @@ trait GoogleStorageService[F[_]] {
     * @param traceId uuid for tracing a unique call flow in logging
     */
   def setIamPolicy(bucketName: GcsBucketName, roles: Map[StorageRole, NonEmptyList[Identity]], traceId: Option[TraceId] = None): Stream[F, Unit]
+
+  def getIamPolicy(bucketName: GcsBucketName, traceId: Option[TraceId] = None): Stream[F, Policy]
 }
 
 object GoogleStorageService {
@@ -169,6 +173,11 @@ object StorageRole {
   }
   final case object StorageAdmin extends StorageRole {
     def name: String = "roles/storage.admin"
+  }
+  //The custom roleId must be in the form "organizations/{organization_id}/roles/{role}",
+  //or "projects/{project_id}/roles/{role}"
+  final case class CustomStorageRole(roleId: String) extends StorageRole {
+    def name: String = roleId
   }
 }
 

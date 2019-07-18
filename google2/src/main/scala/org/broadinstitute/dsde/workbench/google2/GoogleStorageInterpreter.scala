@@ -7,10 +7,11 @@ import java.time.Instant
 import cats.data.NonEmptyList
 import cats.effect._
 import cats.implicits._
+import com.google.cloud.Policy
 import com.google.auth.oauth2.ServiceAccountCredentials
 import com.google.cloud.{Identity, Role}
 import com.google.cloud.storage.BucketInfo.LifecycleRule
-import com.google.cloud.storage.Storage.{BlobListOption, BlobSourceOption, BlobTargetOption, BucketTargetOption}
+import com.google.cloud.storage.Storage.{BlobListOption, BlobSourceOption, BlobTargetOption}
 import com.google.cloud.storage.{Acl, Blob, BlobId, BlobInfo, BucketInfo, Storage, StorageException, StorageOptions}
 import fs2.{Stream, text}
 import io.chrisdavenport.linebacker.Linebacker
@@ -158,7 +159,7 @@ private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer: Async
     } yield RemoveObjectResult(deleted)
   }
 
-  override def insertBucket(billingProject: GoogleProject, bucketName: GcsBucketName, acl: Option[NonEmptyList[Acl]] = None, labels: Map[String, String] = Map.empty, traceId: Option[TraceId] = None): Stream[F, Unit] = {
+  override def insertBucket(googleProject: GoogleProject, bucketName: GcsBucketName, acl: Option[NonEmptyList[Acl]] = None, labels: Map[String, String] = Map.empty, traceId: Option[TraceId] = None): Stream[F, Unit] = {
     val bucketInfoBuilder = BucketInfo.of(bucketName.value).toBuilder
     val bucketInfo = acl.map{
       aclList =>
@@ -170,7 +171,9 @@ private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer: Async
           .build()
     }.getOrElse(bucketInfoBuilder.build())
 
-    val createBucket = blockingF(Async[F].delay(db.create(bucketInfo, BucketTargetOption.userProject(billingProject.value)))).void.handleErrorWith {
+    val dbForProject = db.getOptions.toBuilder.setProjectId(googleProject.value).build().getService
+
+    val createBucket = blockingF(Async[F].delay(dbForProject.create(bucketInfo))).void.handleErrorWith {
       case e: com.google.cloud.storage.StorageException if(e.getCode == 409) =>
         Logger[F].info(s"$bucketName already exists")
     }
@@ -178,7 +181,7 @@ private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer: Async
     retryStorageF(
       createBucket,
       traceId,
-      s"com.google.cloud.storage.Storage.create($bucketInfo, ${billingProject})"
+      s"com.google.cloud.storage.Storage.create($bucketInfo, ${googleProject.value})"
     )
   }
 
@@ -204,7 +207,19 @@ private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer: Async
     retryStorageF(
       getAndSetIamPolicy,
       traceId,
-      s"com.google.cloud.storage.Storage.getIamPolicy(${bucketName}), com.google.cloud.storage.Storage.setIamPolicy(${bucketName}, ???)"
+      s"com.google.cloud.storage.Storage.getIamPolicy(${bucketName}), com.google.cloud.storage.Storage.setIamPolicy(${bucketName}, $roles)"
+    )
+  }
+
+  override def getIamPolicy(bucketName: GcsBucketName, traceId: Option[TraceId] = None): Stream[F, Policy] = {
+    val getIamPolicy = for {
+      policy <- blockingF(Async[F].delay(db.getIamPolicy(bucketName.value)))
+    } yield policy
+
+    retryStorageF(
+      getIamPolicy,
+      traceId,
+      s"com.google.cloud.storage.Storage.getIamPolicy(${bucketName})"
     )
   }
 
