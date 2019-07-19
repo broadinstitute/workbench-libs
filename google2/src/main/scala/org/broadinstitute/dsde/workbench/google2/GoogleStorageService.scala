@@ -122,6 +122,8 @@ trait GoogleStorageService[F[_]] {
     */
   def setBucketPolicyOnly(bucketName: GcsBucketName, bucketPolicyOnlyEnabled: Boolean, traceId: Option[TraceId] = None): Stream[F, Unit]
 
+  def setBucketLabels(bucketName: GcsBucketName, labels: Map[String, String], traceId: Option[TraceId] = None): Stream[F, Unit]
+
   /**
     * @param traceId uuid for tracing a unique call flow in logging
     */

@@ -195,6 +195,16 @@ private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer: Async
     ).void
   }
 
+  override def setBucketLabels(bucketName: GcsBucketName, labels: Map[String, String], traceId: Option[TraceId] = None): Stream[F, Unit] = {
+    val updateBucket = blockingF(Async[F].delay(db.update(BucketInfo.newBuilder(bucketName.value).setLabels(labels.asJava).build())))
+
+    retryStorageF(
+      updateBucket,
+      traceId,
+      s"com.google.cloud.storage.Storage.update($bucketName)"
+    ).void
+  }
+
   override def setIamPolicy(bucketName: GcsBucketName, roles: Map[StorageRole, NonEmptyList[Identity]], traceId: Option[TraceId] = None): Stream[F, Unit] = {
     val getAndSetIamPolicy = for {
       policy <- blockingF(Async[F].delay(db.getIamPolicy(bucketName.value)))
