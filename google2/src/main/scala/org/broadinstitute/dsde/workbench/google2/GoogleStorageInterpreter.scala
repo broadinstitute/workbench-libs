@@ -201,7 +201,7 @@ private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer: Async
     retryStorageF(
       updateBucket,
       traceId,
-      s"com.google.cloud.storage.Storage.update($bucketName)"
+      s"com.google.cloud.storage.Storage.update($bucketName, $labels)"
     ).void
   }
 
