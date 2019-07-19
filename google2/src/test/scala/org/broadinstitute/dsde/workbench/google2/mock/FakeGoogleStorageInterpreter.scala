@@ -35,7 +35,7 @@ class BaseFakeGoogleStorage extends GoogleStorageService[IO] {
 
   override def setBucketPolicyOnly(bucketName: GcsBucketName, bucketOnlyPolicyEnabled: Boolean, traceId: Option[TraceId] = None): Stream[IO, Unit] = Stream.empty
 
-  override def setBucketLabels(bucketName: GcsBucketName, labels: Map[String, String], traceId: Option[TraceId] = None): Stream[F, Unit] = Stream.empty
+  override def setBucketLabels(bucketName: GcsBucketName, labels: Map[String, String], traceId: Option[TraceId] = None): Stream[IO, Unit] = Stream.empty
 
   override def setIamPolicy(bucketName: GcsBucketName, roles: Map[StorageRole, NonEmptyList[Identity]], traceId: Option[TraceId] = None): Stream[IO, Unit] = Stream.empty
 
