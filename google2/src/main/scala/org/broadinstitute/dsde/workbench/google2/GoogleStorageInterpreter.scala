@@ -167,12 +167,8 @@ private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer: Async
         bucketInfoBuilder
           .setAcl(acls)
           .setDefaultAcl(acls)
-          .setLabels(labels.asJava)
           .build()
-    }.getOrElse(bucketInfoBuilder.setLabels(labels.asJava).build())
-
-    println(s"INPUT LABELS ARE: ${labels}")
-    println(s"BUCKETINFO LABELS ARE: ${bucketInfo.getLabels}")
+    }.getOrElse(bucketInfoBuilder.build())
 
     val dbForProject = db.getOptions.toBuilder.setProjectId(googleProject.value).build().getService
 
