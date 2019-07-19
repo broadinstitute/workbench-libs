@@ -8,6 +8,7 @@ Added
 - Add `getBlob`, `createObject`
 - Add `insertBucket`, which supports adding bucket labels
 - Add `getIamPolicy`
+- Add `setBucketLabels`
 
 Changed
 - Use linebacker for blocking execution context
@@ -19,7 +20,7 @@ Changed
 - Deprecate `storeObject`, and add `createObject` that returns `Blob`
 - Support custom storage IAM roles
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.5-429e059"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.5-TRAVIS-REPLACE-ME"`
 
 ## 0.4
 
