@@ -160,14 +160,13 @@ private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer: Async
   }
 
   override def insertBucket(googleProject: GoogleProject, bucketName: GcsBucketName, acl: Option[NonEmptyList[Acl]] = None, labels: Map[String, String] = Map.empty, traceId: Option[TraceId] = None): Stream[F, Unit] = {
-    val bucketInfoBuilder = BucketInfo.of(bucketName.value).toBuilder
+    val bucketInfoBuilder = BucketInfo.of(bucketName.value).toBuilder.setLabels(labels.asJava)
     val bucketInfo = acl.map{
       aclList =>
         val acls = aclList.toList.asJava
         bucketInfoBuilder
           .setAcl(acls)
           .setDefaultAcl(acls)
-          .setLabels(labels.asJava)
           .build()
     }.getOrElse(bucketInfoBuilder.build())
 
@@ -193,6 +192,16 @@ private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer: Async
       updateBucket,
       traceId,
       s"com.google.cloud.storage.Storage.update($bucketName)"
+    ).void
+  }
+
+  override def setBucketLabels(bucketName: GcsBucketName, labels: Map[String, String], traceId: Option[TraceId] = None): Stream[F, Unit] = {
+    val updateBucket = blockingF(Async[F].delay(db.update(BucketInfo.newBuilder(bucketName.value).setLabels(labels.asJava).build())))
+
+    retryStorageF(
+      updateBucket,
+      traceId,
+      s"com.google.cloud.storage.Storage.update($bucketName, $labels)"
     ).void
   }
 
