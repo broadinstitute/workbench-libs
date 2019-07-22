@@ -10,6 +10,7 @@ Added
 - Add `getIamPolicy`
 - Add `setBucketLabels`
 - Add `listBlobsWithPrefix`
+- Add `isRecursive` parameter to `listBlobsWithPrefix` and `listObjectsWithPrefix`
 
 Changed
 - Use linebacker for blocking execution context
@@ -21,7 +22,7 @@ Changed
 - Deprecate `storeObject`, and add `createObject` that returns `Blob`
 - Support custom storage IAM roles
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.5-6a71c1b"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.5-TRAVIS-REPLACE-ME"`
 
 ## 0.4
 
