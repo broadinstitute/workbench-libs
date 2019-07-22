@@ -65,7 +65,7 @@ private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer: Async
       if(blob.getName.endsWith("/"))
         None
       else
-        Some(blob)
+        Option(blob)
     }
     result.unNone
   }
