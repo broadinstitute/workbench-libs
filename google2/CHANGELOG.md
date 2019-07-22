@@ -21,7 +21,7 @@ Changed
 - Deprecate `storeObject`, and add `createObject` that returns `Blob`
 - Support custom storage IAM roles
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.5-TRAVIS-REPLACE-ME"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.5-6a71c1b"`
 
 ## 0.4
 
