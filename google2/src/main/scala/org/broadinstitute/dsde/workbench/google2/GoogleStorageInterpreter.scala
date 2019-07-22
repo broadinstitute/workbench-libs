@@ -7,12 +7,11 @@ import java.time.Instant
 import cats.data.NonEmptyList
 import cats.effect._
 import cats.implicits._
-import com.google.cloud.Policy
 import com.google.auth.oauth2.ServiceAccountCredentials
-import com.google.cloud.{Identity, Role}
 import com.google.cloud.storage.BucketInfo.LifecycleRule
 import com.google.cloud.storage.Storage.{BlobListOption, BlobSourceOption, BlobTargetOption}
 import com.google.cloud.storage.{Acl, Blob, BlobId, BlobInfo, BucketInfo, Storage, StorageException, StorageOptions}
+import com.google.cloud.{Identity, Policy, Role}
 import fs2.{Stream, text}
 import io.chrisdavenport.linebacker.Linebacker
 import io.chrisdavenport.log4cats.Logger
@@ -32,6 +31,10 @@ private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer: Async
   private def retryStorageF[A]: (F[A], Option[TraceId], String) => Stream[F, A] = retryGoogleF(retryConfig)
 
   override def listObjectsWithPrefix(bucketName: GcsBucketName, objectNamePrefix: String, maxPageSize: Long = 1000, traceId: Option[TraceId] = None): Stream[F, GcsObjectName] = {
+    listBlobsWithPrefix(bucketName, objectNamePrefix, maxPageSize, traceId).map(blob => GcsObjectName(blob.getName, Instant.ofEpochMilli(blob.getCreateTime)))
+  }
+
+  override def listBlobsWithPrefix(bucketName: GcsBucketName, objectNamePrefix: String, maxPageSize: Long = 1000, traceId: Option[TraceId] = None): Stream[F, Blob] = {
     for {
       firstPage <- retryStorageF(
         blockingF(Async[F].delay(db.list(bucketName.value, BlobListOption.prefix(objectNamePrefix), BlobListOption.pageSize(maxPageSize.longValue()), BlobListOption.currentDirectory()))),
@@ -40,7 +43,7 @@ private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer: Async
       )
       page <- Stream.unfoldEval(firstPage){
         currentPage =>
-          Option(currentPage).traverse{
+          Option(currentPage).traverse {
             p =>
               val fetchNext = retryStorageF(
                 blockingF(Async[F].delay(p.getNextPage)),
@@ -50,9 +53,7 @@ private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer: Async
               fetchNext.compile.lastOrError.map(next => (p, next))
           }
       }
-      objects <- Stream.fromIterator[F, Blob](page.getValues.iterator().asScala).map {
-        blob => GcsObjectName(blob.getName, Instant.ofEpochMilli(blob.getCreateTime))
-      }
+      objects <- Stream.fromIterator[F, Blob](page.getValues.iterator().asScala)
     } yield objects
   }
 
