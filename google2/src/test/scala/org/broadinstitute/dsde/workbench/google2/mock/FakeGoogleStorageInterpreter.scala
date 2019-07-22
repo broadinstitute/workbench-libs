@@ -13,9 +13,9 @@ import fs2.Stream
 import org.broadinstitute.dsde.workbench.model.TraceId
 
 class BaseFakeGoogleStorage extends GoogleStorageService[IO] {
-  override def listObjectsWithPrefix(bucketName: GcsBucketName, objectNamePrefix: String, maxPageSize: Long = 1000, traceId: Option[TraceId] = None): fs2.Stream[IO, GcsObjectName] = localStorage.listObjectsWithPrefix(bucketName, objectNamePrefix)
+  override def listObjectsWithPrefix(bucketName: GcsBucketName, objectNamePrefix: String, isRecursive: Boolean, maxPageSize: Long = 1000, traceId: Option[TraceId] = None): fs2.Stream[IO, GcsObjectName] = localStorage.listObjectsWithPrefix(bucketName, objectNamePrefix, isRecursive)
 
-  override def listBlobsWithPrefix(bucketName: GcsBucketName, objectNamePrefix: String, maxPageSize: Long = 1000, traceId: Option[TraceId] = None): fs2.Stream[IO, Blob] = localStorage.listBlobsWithPrefix(bucketName, objectNamePrefix)
+  override def listBlobsWithPrefix(bucketName: GcsBucketName, objectNamePrefix: String, isRecursive: Boolean, maxPageSize: Long = 1000, traceId: Option[TraceId] = None): fs2.Stream[IO, Blob] = localStorage.listBlobsWithPrefix(bucketName, objectNamePrefix, isRecursive)
 
   override def setBucketLifecycle(bucketName: GcsBucketName, lifecycleRules: List[BucketInfo.LifecycleRule], traceId: Option[TraceId] = None): Stream[IO, Unit] = Stream.empty
 
