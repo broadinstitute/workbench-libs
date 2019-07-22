@@ -30,16 +30,21 @@ private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer: Async
                                      ) extends GoogleStorageService[F] {
   private def retryStorageF[A]: (F[A], Option[TraceId], String) => Stream[F, A] = retryGoogleF(retryConfig)
 
-  override def listObjectsWithPrefix(bucketName: GcsBucketName, objectNamePrefix: String, maxPageSize: Long = 1000, traceId: Option[TraceId] = None): Stream[F, GcsObjectName] = {
-    listBlobsWithPrefix(bucketName, objectNamePrefix, maxPageSize, traceId).map(blob => GcsObjectName(blob.getName, Instant.ofEpochMilli(blob.getCreateTime)))
+  override def listObjectsWithPrefix(bucketName: GcsBucketName, objectNamePrefix: String, isRecursive: Boolean = false, maxPageSize: Long = 1000, traceId: Option[TraceId] = None): Stream[F, GcsObjectName] = {
+    listBlobsWithPrefix(bucketName, objectNamePrefix, false, maxPageSize, traceId).map(blob => GcsObjectName(blob.getName, Instant.ofEpochMilli(blob.getCreateTime)))
   }
 
-  override def listBlobsWithPrefix(bucketName: GcsBucketName, objectNamePrefix: String, maxPageSize: Long = 1000, traceId: Option[TraceId] = None): Stream[F, Blob] = {
-    for {
+  override def listBlobsWithPrefix(bucketName: GcsBucketName, objectNamePrefix: String, isRecursive: Boolean, maxPageSize: Long = 1000, traceId: Option[TraceId] = None): Stream[F, Blob] = {
+    val blobListOptions = if (isRecursive)
+      List(BlobListOption.prefix(objectNamePrefix), BlobListOption.pageSize(maxPageSize.longValue()))
+    else
+      List(BlobListOption.prefix(objectNamePrefix), BlobListOption.pageSize(maxPageSize.longValue()), BlobListOption.currentDirectory())
+
+    val result = for {
       firstPage <- retryStorageF(
-        blockingF(Async[F].delay(db.list(bucketName.value, BlobListOption.prefix(objectNamePrefix), BlobListOption.pageSize(maxPageSize.longValue()), BlobListOption.currentDirectory()))),
+        blockingF(Async[F].delay(db.list(bucketName.value, blobListOptions:_*))),
         traceId,
-        s"com.google.cloud.storage.Storage.list($bucketName, ${BlobListOption.prefix(objectNamePrefix)}, ${BlobListOption.pageSize(maxPageSize.longValue())}, ${BlobListOption.currentDirectory()})"
+        s"com.google.cloud.storage.Storage.list($bucketName, ${blobListOptions})"
       )
       page <- Stream.unfoldEval(firstPage){
         currentPage =>
@@ -53,8 +58,16 @@ private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer: Async
               fetchNext.compile.lastOrError.map(next => (p, next))
           }
       }
-      objects <- Stream.fromIterator[F, Blob](page.getValues.iterator().asScala)
-    } yield objects
+      blob <- Stream.fromIterator[F, Blob](page.getValues.iterator().asScala)
+    } yield {
+      // Remove directory from end result
+      // For example, if you have `bucketName/dir1/object1` in GCS, remove `bucketName/dir1/` from the end result
+      if(blob.getName.endsWith("/"))
+        None
+      else
+        Option(blob)
+    }
+    result.unNone
   }
 
   override def unsafeGetBlobBody(bucketName: GcsBucketName, blobName: GcsBlobName, traceId: Option[TraceId] = None): F[Option[String]] = {

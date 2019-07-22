@@ -132,7 +132,7 @@ class GoogleStorageInterpreterSpec extends AsyncFlatSpec with Matchers with Work
     val objectBody = genGcsObjectBody.sample.get
     for {
       _ <- duplicateBlobs.parTraverse(obj => localStorage.createBlob(bucketName, obj, objectBody, objectType).compile.drain)
-      allObjectsWithPrefix <- localStorage.listObjectsWithPrefix(bucketName, prefix, 1).compile.toList
+      allObjectsWithPrefix <- localStorage.listObjectsWithPrefix(bucketName, prefix, false, 1).compile.toList
     } yield {
       allObjectsWithPrefix.map(_.value) should contain theSameElementsAs List(blobNameWithPrefix.value)
     }
