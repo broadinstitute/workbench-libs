@@ -99,7 +99,7 @@ class HttpGoogleDirectoryDAO(appName: String,
     val groups = directory.groups
     val deleter = groups.delete(groupEmail.value)
 
-    retryWithRecover(when5xx, whenUsageLimited, when404, whenInvalidValueOnBucketCreation, whenNonHttpIOException)(() => {
+    retryWithRecover(when5xx, whenUsageLimited, when404, whenInvalidValueOnBucketCreation, whenPreconditionFailed, whenNonHttpIOException)(() => {
       executeGoogleRequest(deleter)
       ()
     }) {
