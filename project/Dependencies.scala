@@ -129,6 +129,7 @@ object Dependencies {
     googleBigQuery,
     googleGuava,
     googleRpc,
+    googleKms,
     akkaHttpSprayJson,
     akkaTestkit,
     silencer,
