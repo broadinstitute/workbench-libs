@@ -4,7 +4,7 @@ This file documents changes to the `workbench-google` library, including notes o
 
 ## 0.20
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.20-9d7f0b6"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.20-TRAVIS-REPLACE-ME"`
 
 ### Added
 
@@ -15,6 +15,10 @@ SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.
 ### Deprecated
 
 - `when500orGoogleError`, `retryWhen500orGoogleError`, and `retryWithRecoverWhen500orGoogleError` in `GoogleUtilities` have been deprecated in favour of the predicate-composing approach above. Code in workbench-libs has been changed to use this approach, preserving the original behaviour.
+
+### Restored
+
+- Non-Stream versions of `GoogleKmsInterpreter` and `GoogleKmsService` have been restored.
 
 ## 0.19
 
