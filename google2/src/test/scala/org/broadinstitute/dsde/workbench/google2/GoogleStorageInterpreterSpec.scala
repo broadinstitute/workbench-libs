@@ -6,7 +6,6 @@ import fs2.Stream
 import com.google.cloud.storage.contrib.nio.testing.LocalStorageHelper
 import io.chrisdavenport.linebacker.Linebacker
 import org.broadinstitute.dsde.workbench.google2.Generators._
-import org.broadinstitute.dsde.workbench.google2.GoogleStorageInterpreter._
 import org.broadinstitute.dsde.workbench.google2.GoogleStorageInterpreterSpec._
 import org.broadinstitute.dsde.workbench.util.WorkbenchTest
 import org.scalacheck.Gen
@@ -146,6 +145,6 @@ object GoogleStorageInterpreterSpec {
   implicit val lineBacker = Linebacker.fromExecutionContext[IO](ExecutionContext.global)
 
   val db = LocalStorageHelper.getOptions().getService()
-  val localStorage = GoogleStorageInterpreter[IO](db, defaultRetryConfig)
+  val localStorage = GoogleStorageInterpreter[IO](db)
   val objectType = "text/plain"
 }

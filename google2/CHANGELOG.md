@@ -11,6 +11,7 @@ Added
 - Add `setBucketLabels`
 - Add `listBlobsWithPrefix`
 - Add `isRecursive` parameter to `listBlobsWithPrefix` and `listObjectsWithPrefix`
+- Add RetryPredicates
 
 Changed
 - Use linebacker for blocking execution context
@@ -21,8 +22,9 @@ Changed
 - Bump `http4sVersion` to `0.20.3`
 - Deprecate `storeObject`, and add `createObject` that returns `Blob`
 - Support custom storage IAM roles
+- GoogleStorageService retry config defined per function via parameters instead of per service instance
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.5-3fa06b5"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.5-TRAVIS-REPLACE-ME"`
 
 ## 0.4
 
