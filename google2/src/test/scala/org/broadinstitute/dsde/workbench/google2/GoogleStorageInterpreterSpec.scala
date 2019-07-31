@@ -109,7 +109,8 @@ class GoogleStorageInterpreterSpec extends AsyncFlatSpec with Matchers with Work
     }
   }
 
-  it should "retrieve multiple pages" in ioAssertion {
+  // disabled because the LocalStorageHelper does not seem to support pagination of results
+  ignore should "retrieve multiple pages" in ioAssertion {
     val bucketName = genGcsBucketName.sample.get
     val prefix = Gen.uuid.sample.get.toString
     val blobNameWithPrefix = Gen.listOfN(4, genGcsBlobName).sample.get.map(x => GcsBlobName(s"$prefix${x.value}"))
