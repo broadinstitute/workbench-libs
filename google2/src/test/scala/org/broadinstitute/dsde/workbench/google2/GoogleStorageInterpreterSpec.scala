@@ -6,7 +6,6 @@ import fs2.Stream
 import com.google.cloud.storage.contrib.nio.testing.LocalStorageHelper
 import io.chrisdavenport.linebacker.Linebacker
 import org.broadinstitute.dsde.workbench.google2.Generators._
-import org.broadinstitute.dsde.workbench.google2.GoogleStorageInterpreter._
 import org.broadinstitute.dsde.workbench.google2.GoogleStorageInterpreterSpec._
 import org.broadinstitute.dsde.workbench.util.WorkbenchTest
 import org.scalacheck.Gen
@@ -110,7 +109,8 @@ class GoogleStorageInterpreterSpec extends AsyncFlatSpec with Matchers with Work
     }
   }
 
-  it should "retrieve multiple pages" in ioAssertion {
+  // disabled because the LocalStorageHelper does not seem to support pagination of results
+  ignore should "retrieve multiple pages" in ioAssertion {
     val bucketName = genGcsBucketName.sample.get
     val prefix = Gen.uuid.sample.get.toString
     val blobNameWithPrefix = Gen.listOfN(4, genGcsBlobName).sample.get.map(x => GcsBlobName(s"$prefix${x.value}"))
@@ -146,6 +146,6 @@ object GoogleStorageInterpreterSpec {
   implicit val lineBacker = Linebacker.fromExecutionContext[IO](ExecutionContext.global)
 
   val db = LocalStorageHelper.getOptions().getService()
-  val localStorage = GoogleStorageInterpreter[IO](db, defaultRetryConfig)
+  val localStorage = GoogleStorageInterpreter[IO](db)
   val objectType = "text/plain"
 }
