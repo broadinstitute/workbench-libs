@@ -4,7 +4,7 @@ This file documents changes to the `workbench-google` library, including notes o
 
 ## 0.21
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.21-e4cdd00"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.21-TRAVIS-REPLACE-ME"`
 
 ### Added
 
