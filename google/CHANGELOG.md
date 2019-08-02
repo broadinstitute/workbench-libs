@@ -2,27 +2,20 @@
 
 This file documents changes to the `workbench-google` library, including notes on how to upgrade to new versions.
 
-## 0.21
-
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.21-TRAVIS-REPLACE-ME"`
-
-### Added
-
-- A new whenGlobalUsageLimited predicate in `GoogleUtilities.RetryPredicates`
-
-### Changed
-
-- applied whenGlobalUsageLimited to createServiceAccountKey
-
 ## 0.20
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.20-a9f29eb"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.20-TRAVIS-REPLACE-ME"`
 
 ### Added
 
 - A new set of predicates in `GoogleUtilities.RetryPredicates` to define retry conditions.
 - Simpler functions `retry` and `retryWithRecover` that compose a list of these predicates when deciding whether to retry.
 - `HttpGoogleDirectoryDAO.deleteGroup` retries on rare instances of Google returning `412 Precondition Failed`.
+- A new whenGlobalUsageLimited predicate in `GoogleUtilities.RetryPredicates`
+
+### Changed
+
+ - applied whenGlobalUsageLimited to createServiceAccountKey
 
 ### Deprecated
 
