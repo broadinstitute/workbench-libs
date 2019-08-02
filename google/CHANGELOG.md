@@ -2,6 +2,18 @@
 
 This file documents changes to the `workbench-google` library, including notes on how to upgrade to new versions.
 
+## 0.21
+
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.21-e4cdd00"`
+
+### Added
+
+- A new whenGlobalUsageLimited predicate in `GoogleUtilities.RetryPredicates`
+
+### Changed
+
+- applied whenGlobalUsageLimited to createServiceAccountKey
+
 ## 0.20
 
 SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.20-a9f29eb"`

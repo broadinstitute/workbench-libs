@@ -37,6 +37,12 @@ object GoogleUtilities {
       case _ => false
     }
 
+    def whenGlobalUsageLimited(throwable: Throwable): Boolean = throwable match {
+      case t: GoogleJsonResponseException =>
+        (t.getStatusCode == 403 || t.getStatusCode == 429) && t.getDetails.getErrors.asScala.head.getDomain.equalsIgnoreCase("global")
+      case _ => false
+    }
+
     def when404(throwable: Throwable): Boolean = throwable match {
       case t: GoogleHttpResponseException => t.getStatusCode == 404
       case _ => false
