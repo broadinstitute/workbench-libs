@@ -79,6 +79,8 @@ class GoogleUtilitiesSpec extends TestKit(ActorSystem("MySpec")) with GoogleUtil
     whenUsageLimited(buildGoogleJsonResponseException(403, None, None, Some("usageLimits"))) shouldBe true
     whenUsageLimited(buildGoogleJsonResponseException(429, None, None, Some("usageLimits"))) shouldBe true
 
+    whenGlobalUsageLimited(buildGoogleJsonResponseException(429, None, None, Some("global"))) shouldBe true
+
     when404(buildGoogleJsonResponseException(404)) shouldBe true
     when404(buildHttpResponseException(404)) shouldBe true
 
@@ -95,6 +97,11 @@ class GoogleUtilitiesSpec extends TestKit(ActorSystem("MySpec")) with GoogleUtil
     whenUsageLimited(buildGoogleJsonResponseException(429, None, None, Some("boom"))) shouldBe false
     whenUsageLimited(buildGoogleJsonResponseException(400)) shouldBe false
     whenUsageLimited(new IOException("boom")) shouldBe false
+
+    whenGlobalUsageLimited(buildGoogleJsonResponseException(403, None, None, Some("boom"))) shouldBe false
+    whenGlobalUsageLimited(buildGoogleJsonResponseException(429, None, None, Some("boom"))) shouldBe false
+    whenGlobalUsageLimited(buildGoogleJsonResponseException(400)) shouldBe false
+    whenGlobalUsageLimited(new IOException("boom")) shouldBe false
 
     when404(buildGoogleJsonResponseException(403)) shouldBe false
     when404(buildHttpResponseException(403)) shouldBe false
