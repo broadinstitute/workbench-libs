@@ -114,7 +114,7 @@ trait GoogleStorageService[F[_]] {
     * Acl is deprecated. Use setIamPolicy if possible
     */
   @deprecated("Deprecated in favor of insertBucket", "0.5")
-  def createBucket(billingProject: GoogleProject, bucketName: GcsBucketName, acl: Option[NonEmptyList[Acl]] = None, traceId: Option[TraceId] = None, retryConfig: RetryConfig = standardRetryConfig): Stream[F, Unit] = insertBucket(billingProject, bucketName, acl, Map.empty, traceId)
+  def createBucket(billingProject: GoogleProject, bucketName: GcsBucketName, acl: Option[NonEmptyList[Acl]] = None, traceId: Option[TraceId] = None, retryConfig: RetryConfig = standardRetryConfig): Stream[F, Unit] = insertBucket(billingProject, bucketName, None, acl, Map.empty, traceId)
 
   /**
     * @param googleProject The name of the Google project to create the bucket in
@@ -122,7 +122,7 @@ trait GoogleStorageService[F[_]] {
     * Supports adding bucket labels during creation
     * Acl is deprecated. Use setIamPolicy if possible
     */
-  def insertBucket(googleProject: GoogleProject, bucketName: GcsBucketName, acl: Option[NonEmptyList[Acl]] = None, labels: Map[String, String] = Map.empty, traceId: Option[TraceId] = None, retryConfig: RetryConfig = standardRetryConfig): Stream[F, Unit]
+  def insertBucket(googleProject: GoogleProject, bucketName: GcsBucketName, bucketRegion: Option[String] = None, acl: Option[NonEmptyList[Acl]] = None, labels: Map[String, String] = Map.empty, traceId: Option[TraceId] = None, retryConfig: RetryConfig = standardRetryConfig): Stream[F, Unit]
 
   /**
     * @param traceId uuid for tracing a unique call flow in logging
