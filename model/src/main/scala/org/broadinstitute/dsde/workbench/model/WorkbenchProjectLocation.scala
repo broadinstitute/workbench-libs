@@ -22,3 +22,9 @@ object WorkbenchProjectLocation {
   }
 }
 
+
+object WorkbenchProjectLocationJsonSupport {
+  import spray.json.DefaultJsonProtocol._
+
+  implicit val WorkbenchProjectLocationFormat = jsonFormat4(WorkbenchProjectLocation.apply)
+}
