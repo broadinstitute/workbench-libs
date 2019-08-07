@@ -7,7 +7,7 @@ import cats.implicits._
 import cats.effect._
 import com.google.cloud.{Identity, Policy}
 import com.google.auth.oauth2.GoogleCredentials
-import com.google.cloud.storage.{Acl, Blob, BlobId, StorageOptions}
+import com.google.cloud.storage.{Acl, Blob, BlobId, StorageClass, StorageOptions}
 import com.google.cloud.storage.BucketInfo.LifecycleRule
 import fs2.Stream
 import io.chrisdavenport.linebacker.Linebacker
@@ -15,7 +15,6 @@ import io.chrisdavenport.log4cats.Logger
 import org.broadinstitute.dsde.workbench.RetryConfig
 import org.broadinstitute.dsde.workbench.model.TraceId
 import org.broadinstitute.dsde.workbench.model.google.{GcsBucketName, GcsObjectName, GoogleProject}
-
 import org.broadinstitute.dsde.workbench.google2.util.RetryPredicates.standardRetryConfig
 
 import scala.language.higherKinds
@@ -114,7 +113,7 @@ trait GoogleStorageService[F[_]] {
     * Acl is deprecated. Use setIamPolicy if possible
     */
   @deprecated("Deprecated in favor of insertBucket", "0.5")
-  def createBucket(billingProject: GoogleProject, bucketName: GcsBucketName, acl: Option[NonEmptyList[Acl]] = None, traceId: Option[TraceId] = None, retryConfig: RetryConfig = standardRetryConfig): Stream[F, Unit] = insertBucket(billingProject, bucketName, None, acl, Map.empty, traceId)
+  def createBucket(billingProject: GoogleProject, bucketName: GcsBucketName, acl: Option[NonEmptyList[Acl]] = None, traceId: Option[TraceId] = None, retryConfig: RetryConfig = standardRetryConfig): Stream[F, Unit] = insertBucket(billingProject, bucketName, None, None, acl, Map.empty, traceId)
 
   /**
     * @param googleProject The name of the Google project to create the bucket in
@@ -122,7 +121,7 @@ trait GoogleStorageService[F[_]] {
     * Supports adding bucket labels during creation
     * Acl is deprecated. Use setIamPolicy if possible
     */
-  def insertBucket(googleProject: GoogleProject, bucketName: GcsBucketName, bucketRegion: Option[String] = None, acl: Option[NonEmptyList[Acl]] = None, labels: Map[String, String] = Map.empty, traceId: Option[TraceId] = None, retryConfig: RetryConfig = standardRetryConfig): Stream[F, Unit]
+  def insertBucket(googleProject: GoogleProject, bucketName: GcsBucketName, bucketRegion: Option[String] = None, storageClass: Option[StorageClass] = None, acl: Option[NonEmptyList[Acl]] = None, labels: Map[String, String] = Map.empty, traceId: Option[TraceId] = None, retryConfig: RetryConfig = standardRetryConfig): Stream[F, Unit]
 
   /**
     * @param traceId uuid for tracing a unique call flow in logging

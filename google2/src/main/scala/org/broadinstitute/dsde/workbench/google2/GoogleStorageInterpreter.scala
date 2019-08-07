@@ -10,7 +10,7 @@ import cats.implicits._
 import com.google.auth.oauth2.ServiceAccountCredentials
 import com.google.cloud.storage.BucketInfo.LifecycleRule
 import com.google.cloud.storage.Storage.{BlobListOption, BlobSourceOption, BlobTargetOption}
-import com.google.cloud.storage.{Acl, Blob, BlobId, BlobInfo, BucketInfo, Storage, StorageOptions}
+import com.google.cloud.storage.{Acl, Blob, BlobId, BlobInfo, BucketInfo, Storage, StorageClass, StorageOptions}
 import com.google.cloud.{Identity, Policy, Role}
 import fs2.{Stream, text}
 import io.chrisdavenport.linebacker.Linebacker
@@ -159,10 +159,11 @@ private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer: Async
     } yield RemoveObjectResult(deleted)
   }
 
-  override def insertBucket(googleProject: GoogleProject, bucketName: GcsBucketName, bucketRegion: Option[String] = None, acl: Option[NonEmptyList[Acl]] = None, labels: Map[String, String] = Map.empty, traceId: Option[TraceId] = None, retryConfig: RetryConfig): Stream[F, Unit] = {
+  override def insertBucket(googleProject: GoogleProject, bucketName: GcsBucketName, bucketRegion: Option[String] = None, storageClass: Option[StorageClass] = None, acl: Option[NonEmptyList[Acl]] = None, labels: Map[String, String] = Map.empty, traceId: Option[TraceId] = None, retryConfig: RetryConfig): Stream[F, Unit] = {
     val bucketInfoBuilder = BucketInfo.of(bucketName.value).toBuilder.setLabels(labels.asJava)
 
     bucketRegion.map(region => bucketInfoBuilder.setLocation(region))
+    storageClass.map(storageClass => bucketInfoBuilder.setStorageClass(storageClass))
 
     val bucketInfo = acl.map{
       aclList =>

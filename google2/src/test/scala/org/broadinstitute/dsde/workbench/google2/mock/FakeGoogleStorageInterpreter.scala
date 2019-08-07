@@ -4,7 +4,7 @@ package mock
 import java.nio.file.Path
 
 import cats.effect.IO
-import com.google.cloud.storage.{Acl, Blob, BlobId, BucketInfo}
+import com.google.cloud.storage.{Acl, Blob, BlobId, BucketInfo, StorageClass}
 import org.broadinstitute.dsde.workbench.model.google.{GcsBucketName, GcsObjectName, GoogleProject}
 import GoogleStorageInterpreterSpec._
 import cats.data.NonEmptyList
@@ -34,7 +34,7 @@ class BaseFakeGoogleStorage extends GoogleStorageService[IO] {
 
   override def removeObject(bucketName: GcsBucketName, blobName: GcsBlobName, generation: Option[Long], traceId: Option[TraceId] = None, retryConfig: RetryConfig): Stream[IO, RemoveObjectResult] = localStorage.removeObject(bucketName, blobName).as(RemoveObjectResult.Removed)
 
-  override def insertBucket(googleProject: GoogleProject, bucketName: GcsBucketName, bucketRegion: Option[String] = None, acl: Option[NonEmptyList[Acl]] = None, labels: Map[String, String] = Map.empty, traceId: Option[TraceId] = None, retryConfig: RetryConfig): Stream[IO, Unit] = Stream.empty
+  override def insertBucket(googleProject: GoogleProject, bucketName: GcsBucketName, bucketRegion: Option[String] = None, storageClass: Option[StorageClass], acl: Option[NonEmptyList[Acl]] = None, labels: Map[String, String] = Map.empty, traceId: Option[TraceId] = None, retryConfig: RetryConfig): Stream[IO, Unit] = Stream.empty
 
   override def setBucketPolicyOnly(bucketName: GcsBucketName, bucketOnlyPolicyEnabled: Boolean, traceId: Option[TraceId] = None, retryConfig: RetryConfig): Stream[IO, Unit] = Stream.empty
 
