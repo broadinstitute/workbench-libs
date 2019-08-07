@@ -18,6 +18,7 @@ object WorkbenchProjectLocation {
   def fromName(name: String): Option[WorkbenchProjectLocation] = name.toLowerCase match {
     case US.name => Some(US)
     case "" => Some(US)
+    case NearlineUS.name => Some(NearlineUS)
     case Finland.name => Some(Finland)
     case Japan.name => Some(Japan)
     case Australia.name => Some(Australia)
