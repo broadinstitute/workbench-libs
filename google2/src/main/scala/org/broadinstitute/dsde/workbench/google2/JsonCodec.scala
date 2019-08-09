@@ -10,5 +10,5 @@ object JsonCodec {
       s"projects/${projectTopicName.getProject}/topics/${projectTopicName.getTopic}"
   )
 
-  implicit val traceIdEncoder: Encoder[TraceId] = Encoder.encodeString.contramap(_.uuid.toString)
+  implicit val traceIdEncoder: Encoder[TraceId] = Encoder.encodeString.contramap(_.asString)
 }
