@@ -56,6 +56,7 @@ object Dependencies {
   val googleStorageLocal: ModuleID = "com.google.cloud" % "google-cloud-nio" % "0.95.0-alpha" % "test"
   val googlePubsubNew: ModuleID = "com.google.cloud" % "google-cloud-pubsub" % "1.62.0"
   val googleKms: ModuleID = "com.google.cloud" % "google-cloud-kms" % "0.77.0-beta"
+  val googleCloudCompute: ModuleID = "com.google.cloud" % "google-cloud-compute" % "0.104.0-alpha"
 
   val circeCore: ModuleID = "io.circe" %% "circe-core" % circeVersion
   val circeParser: ModuleID = "io.circe" %% "circe-parser" % circeVersion
@@ -143,6 +144,7 @@ object Dependencies {
     googleStorageLocal,
     googlePubsubNew,
     googleKms,
+    googleCloudCompute,
     http4sCirce,
     http4sBlazeClient,
     http4sDsl,
