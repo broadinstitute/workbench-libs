@@ -50,7 +50,7 @@ class NewRelicMetricsInterpreter(appName: String) extends NewRelicMetrics {
 
   def incrementCounterIO[A](name: String, count: Int = 1): IO[Unit] = IO(NewRelic.incrementCounter(s"${prefix}/${name}", count))
 
-  def incrementCounterFuture[A](name: String, count: Int = 1)(implicit ec: ExecutionContext) = Future(NewRelic.incrementCounter(s"${prefix}/${name}", count))
+  def incrementCounterFuture[A](name: String, count: Int = 1)(implicit ec: ExecutionContext): Future[Unit] = Future(NewRelic.incrementCounter(s"${prefix}/${name}", count))
 
   def recordResponseTimeIO(name: String, duration: Duration): IO[Unit] = IO(NewRelic.recordResponseTimeMetric(s"${prefix}/${name}", duration.toMillis))
 

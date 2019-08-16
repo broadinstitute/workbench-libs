@@ -17,7 +17,7 @@ object FakeNewRelicMetricsInterpreter extends NewRelicMetrics {
 
   def incrementCounterFuture[A](name: String, count: Int = 1)(implicit ec: ExecutionContext): Future[Unit] = Future.unit
 
-  override def recordResponseTimeIO(name: String, duration: Duration): IO[Unit] = IO.unit
+  def recordResponseTimeIO(name: String, duration: Duration): IO[Unit] = IO.unit
 
-  override def recordResponseTimeFuture(name: String, duration: Duration)(implicit ec: ExecutionContext): Future[Unit] = Future.unit
+  def recordResponseTimeFuture(name: String, duration: Duration)(implicit ec: ExecutionContext): Future[Unit] = Future.unit
 }
