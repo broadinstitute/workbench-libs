@@ -2,6 +2,8 @@ package org.broadinstitute.dsde.workbench.newrelic
 package mock
 
 import cats.effect._
+
+import scala.concurrent.duration.Duration
 import scala.concurrent.{ExecutionContext, Future}
 
 object FakeNewRelicMetricsInterpreter extends NewRelicMetrics {
@@ -15,4 +17,7 @@ object FakeNewRelicMetricsInterpreter extends NewRelicMetrics {
 
   def incrementCounterFuture[A](name: String, count: Int = 1)(implicit ec: ExecutionContext): Future[Unit] = Future.unit
 
+  override def recordResponseTimeIO(name: String, duration: Duration): IO[Unit] = IO.unit
+
+  override def recordResponseTimeFuture(name: String, duration: Duration)(implicit ec: ExecutionContext): Future[Unit] = Future.unit
 }
