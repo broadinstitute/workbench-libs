@@ -12,7 +12,7 @@ This file documents changes to the `workbench-newrelic` library, including notes
 - Changed constructor to `NewRelicMetrics.fromNewRelic(appName)`
 - Renamed `NewRelicMetrics` class to `NewRelicMetricsInterpreter`
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-newrelic" % "0.2-TRAVIS-REPLACE-ME"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-newrelic" % "0.2-ad29822"`
 
 ## 0.1
 
