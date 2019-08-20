@@ -2,6 +2,7 @@ package org.broadinstitute.dsde.workbench.newrelic
 
 import cats.effect.{IO, Timer}
 
+import scala.concurrent.duration.Duration
 import scala.concurrent.{ExecutionContext, Future}
 
 trait NewRelicMetrics {
@@ -14,6 +15,10 @@ trait NewRelicMetrics {
   def incrementCounterIO[A](name: String, count: Int = 1): IO[Unit]
 
   def incrementCounterFuture[A](name: String, count: Int = 1)(implicit ec: ExecutionContext): Future[Unit]
+
+  def recordResponseTimeIO(name: String, duration: Duration): IO[Unit]
+
+  def recordResponseTimeFuture(name: String, duration: Duration)(implicit ec: ExecutionContext): Future[Unit]
 }
 
 object NewRelicMetrics {
