@@ -8,9 +8,11 @@ SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.
 
 ### Changed
 
-- GoogleIamDAO.addIamRolesForUser and removeIamRolesForUser now return a Boolean specifying whether the policy was changed.
-- Updated retry behavior for GoogleIamDAO.addIamRolesForUser and removeIamRolesForUser. The methods now retry on
-  concurrent policy changes, and retry the entire read-modify-write transaction.
+- `addIamRolesForUser` and `removeIamRolesForUser` in `GoogleIamDAO`:
+  - These methods now check whether the policy has changed before updating Google. A `Boolean` is returned
+    indicating whether an update was made.
+  - Fixed a bug in retry behavior. We now retry the entire read-modify-write operation in case of errors or 
+    concurrent modifications. Previously we only retried the write which did not handle concurrent modfiications.
 
 ## 0.20
 
