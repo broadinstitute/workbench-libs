@@ -2,6 +2,16 @@
 
 This file documents changes to the `workbench-google` library, including notes on how to upgrade to new versions.
 
+## 0.21
+
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.20-TRAVIS-REPLACE-ME"`
+
+### Changed
+
+- GoogleIamDAO.addIamRolesForUser and removeIamRolesForUser now return a Boolean specifying whether the policy was changed.
+- Updated retry behavior for GoogleIamDAO.addIamRolesForUser and removeIamRolesForUser. The methods now retry on
+  concurrent policy changes, and retry the entire read-modify-write transaction.
+
 ## 0.20
 
 SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.20-161813d"`
