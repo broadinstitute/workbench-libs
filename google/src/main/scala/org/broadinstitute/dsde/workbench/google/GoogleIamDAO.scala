@@ -73,19 +73,25 @@ trait GoogleIamDAO {
 
   /**
     * Adds project-level IAM roles for the given user.
+    * This method will perform a read-modify-write of the project's IAM policy, and return whether a change was
+    * actually made.
     * @param iamProject the project in which to add the roles
     * @param email the user email address
     * @param rolesToAdd Set of roles to add (example: roles/storage.admin)
+    * @return true if the policy was updated; false otherwise.
     */
-  def addIamRolesForUser(iamProject: GoogleProject, email: WorkbenchEmail, rolesToAdd: Set[String]): Future[Unit]
+  def addIamRolesForUser(iamProject: GoogleProject, email: WorkbenchEmail, rolesToAdd: Set[String]): Future[Boolean]
 
   /**
     * Removes project-level IAM roles for the given user.
+    * This method will perform a read-modify-write of the project's IAM policy, and return whether a change was
+    * actually made.
     * @param iamProject the google project in which to remove the roles
     * @param email the user email address
     * @param rolesToRemove Set of roles to remove (example: roles/dataproc.worker)
+    * @return true if the policy was updated; false otherwise.
     */
-  def removeIamRolesForUser(iamProject: GoogleProject, email: WorkbenchEmail, rolesToRemove: Set[String]): Future[Unit]
+  def removeIamRolesForUser(iamProject: GoogleProject, email: WorkbenchEmail, rolesToRemove: Set[String]): Future[Boolean]
 
   /**
     * Adds the Service Account User role for the given users on the given service account.

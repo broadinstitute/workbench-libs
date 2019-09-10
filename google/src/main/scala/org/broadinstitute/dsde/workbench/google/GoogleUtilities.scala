@@ -81,6 +81,11 @@ object GoogleUtilities {
       case _: IOException => true
       case _ => false
     }
+
+    def when409(throwable: Throwable): Boolean = throwable match {
+      case t: GoogleHttpResponseException => t.getStatusCode == 409
+      case _ => false
+    }
   }
 }
 
