@@ -73,8 +73,8 @@ trait GoogleIamDAO {
 
   /**
     * Adds project-level IAM roles for the given user.
-    * This method will perform a read-modify-write of the project's IAM policy, and return whether a change was
-    * actually made.
+    * This method will perform a read-modify-write of the project's IAM policy, and return a Boolean
+    * indicating whether a change was actually made.
     * @param iamProject the project in which to add the roles
     * @param email the user email address
     * @param rolesToAdd Set of roles to add (example: roles/storage.admin)
@@ -84,8 +84,8 @@ trait GoogleIamDAO {
 
   /**
     * Removes project-level IAM roles for the given user.
-    * This method will perform a read-modify-write of the project's IAM policy, and return whether a change was
-    * actually made.
+    * This method will perform a read-modify-write of the project's IAM policy, and return a Boolean
+    * indicating whether a change was actually made.
     * @param iamProject the google project in which to remove the roles
     * @param email the user email address
     * @param rolesToRemove Set of roles to remove (example: roles/dataproc.worker)
