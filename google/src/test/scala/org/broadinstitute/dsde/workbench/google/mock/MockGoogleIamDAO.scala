@@ -49,16 +49,16 @@ class MockGoogleIamDAO extends GoogleIamDAO {
     Future.successful(())
   }
 
-  override def addIamRolesForUser(googleProject: GoogleProject, userEmail: WorkbenchEmail, rolesToAdd: Set[String]): Future[Unit] = {
-    Future.successful(())
+  override def addIamRolesForUser(googleProject: GoogleProject, userEmail: WorkbenchEmail, rolesToAdd: Set[String]): Future[Boolean] = {
+    Future.successful(false)
   }
 
   override def testIamPermission(project: GoogleProject, iamPermissions: Set[IamPermission]): Future[Set[IamPermission]] = {
     Future.successful(iamPermissions)
   }
 
-  override def removeIamRolesForUser(googleProject: GoogleProject, userEmail: WorkbenchEmail, rolesToRemove: Set[String]): Future[Unit] = {
-    Future.successful(())
+  override def removeIamRolesForUser(googleProject: GoogleProject, userEmail: WorkbenchEmail, rolesToRemove: Set[String]): Future[Boolean] = {
+    Future.successful(false)
   }
 
   override def addServiceAccountUserRoleForUser(googleProject: GoogleProject, serviceAccountEmail: WorkbenchEmail, userEmail: WorkbenchEmail): Future[Unit] = {
