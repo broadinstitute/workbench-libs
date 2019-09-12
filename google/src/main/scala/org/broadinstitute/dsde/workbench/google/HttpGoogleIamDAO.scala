@@ -10,6 +10,7 @@ import akka.http.scaladsl.model.StatusCodes
 import cats.data.OptionT
 import cats.instances.future._
 import cats.instances.list._
+import cats.instances.set._
 import cats.instances.map._
 import cats.syntax.foldable._
 import cats.syntax.functor._
@@ -133,27 +134,32 @@ class HttpGoogleIamDAO(appName: String,
     }
   }
 
-  override def addIamRolesForUser(iamProject: GoogleProject, userEmail: WorkbenchEmail, rolesToAdd: Set[String]): Future[Unit] = {
-    // Note the project here is the one in which we're adding the IAM roles
-    getProjectPolicy(iamProject).flatMap { policy =>
-      val updatedPolicy = updatePolicy(policy, userEmail, rolesToAdd, Set.empty)
-      val policyRequest = new ProjectSetIamPolicyRequest().setPolicy(updatedPolicy).setUpdateMask("bindings,etag")
-      val request = cloudResourceManager.projects().setIamPolicy(iamProject.value, policyRequest)
-      retry(when5xx, whenUsageLimited, when404, whenInvalidValueOnBucketCreation, whenNonHttpIOException) { () =>
-        executeGoogleRequest(request)
-      }.void
-    }
+  override def addIamRolesForUser(iamProject: GoogleProject, userEmail: WorkbenchEmail, rolesToAdd: Set[String]): Future[Boolean] = {
+    modifyIamRolesForUser(iamProject, userEmail, rolesToAdd, Set.empty)
   }
 
-  override def removeIamRolesForUser(iamProject: GoogleProject, userEmail: WorkbenchEmail, rolesToRemove: Set[String]): Future[Unit] = {
+  override def removeIamRolesForUser(iamProject: GoogleProject, userEmail: WorkbenchEmail, rolesToRemove: Set[String]): Future[Boolean] = {
+    modifyIamRolesForUser(iamProject, userEmail, Set.empty, rolesToRemove)
+  }
+
+  private def modifyIamRolesForUser(iamProject: GoogleProject, userEmail: WorkbenchEmail, rolesToAdd: Set[String], rolesToRemove: Set[String]): Future[Boolean] = {
     // Note the project here is the one in which we're removing the IAM roles
-    getProjectPolicy(iamProject).flatMap { policy =>
-      val updatedPolicy = updatePolicy(policy, userEmail, Set.empty, rolesToRemove)
-      val policyRequest = new ProjectSetIamPolicyRequest().setPolicy(updatedPolicy).setUpdateMask("bindings,etag")
-      val request = cloudResourceManager.projects().setIamPolicy(iamProject.value, policyRequest)
-      retry(when5xx, whenUsageLimited, when404, whenInvalidValueOnBucketCreation, whenNonHttpIOException) { () =>
-        executeGoogleRequest(request)
-      }.void
+    // Retry 409s here as recommended for concurrent modifications of the IAM policy
+    retry(when5xx, whenUsageLimited, when404, whenInvalidValueOnBucketCreation, whenNonHttpIOException, when409) { () =>
+      // it is important that we call getIamPolicy within the same retry block as we call setIamPolicy
+      // getIamPolicy gets the etag that is used in setIamPolicy, the etag is used to detect concurrent
+      // modifications and if that happens we need to be sure to get a new etag before retrying setIamPolicy
+      val existingPolicy = executeGoogleRequest(cloudResourceManager.projects().getIamPolicy(iamProject.value, null))
+      val updatedPolicy = updatePolicy(existingPolicy, userEmail, rolesToAdd, rolesToRemove)
+
+      // Policy objects use Sets so are not sensitive to ordering and duplication
+      if (existingPolicy == updatedPolicy) {
+        false
+      } else {
+        val policyRequest = new ProjectSetIamPolicyRequest().setPolicy(updatedPolicy).setUpdateMask("bindings,etag")
+        executeGoogleRequest(cloudResourceManager.projects().setIamPolicy(iamProject.value, policyRequest))
+        true
+      }
     }
   }
 
@@ -250,13 +256,13 @@ class HttpGoogleIamDAO(appName: String,
     val email = s"$memberType:${userEmail.value}"
 
     // current members grouped by role
-    val curMembersByRole: Map[String, List[String]] = policy.bindings.foldMap { binding =>
+    val curMembersByRole: Map[String, Set[String]] = policy.bindings.toList.foldMap { binding =>
       Map(binding.role -> binding.members)
     }
 
     // Apply additions
     val withAdditions = if (rolesToAdd.nonEmpty) {
-      val rolesToAddMap = rolesToAdd.map { _ -> List(email) }.toMap
+      val rolesToAddMap = rolesToAdd.map { _ -> Set(email) }.toMap
       curMembersByRole |+| rolesToAddMap
     } else {
       curMembersByRole
@@ -267,7 +273,7 @@ class HttpGoogleIamDAO(appName: String,
       withAdditions.toList.foldMap { case (role, members) =>
         if (rolesToRemove.contains(role)) {
           val filtered = members.filterNot(_ == email)
-          if (filtered.isEmpty) Map.empty[String, List[String]]
+          if (filtered.isEmpty) Map.empty[String, Set[String]]
           else Map(role -> filtered)
         } else {
           Map(role -> members)
@@ -279,7 +285,7 @@ class HttpGoogleIamDAO(appName: String,
 
     val bindings = newMembersByRole.map { case (role, members) =>
       Binding(role, members)
-    }.toList
+    }.toSet
 
     Policy(bindings, policy.etag)
   }
@@ -301,35 +307,35 @@ object HttpGoogleIamDAO {
    * {Policy, Binding} case classes in Scala, with implicit conversions to/from the above Google classes.
    */
 
-  private case class Binding(role: String, members: List[String])
-  private case class Policy(bindings: List[Binding], etag: String)
+  private case class Binding(role: String, members: Set[String])
+  private case class Policy(bindings: Set[Binding], etag: String)
 
   private implicit def fromProjectBinding(projectBinding: ProjectBinding): Binding = {
-    Binding(projectBinding.getRole, projectBinding.getMembers)
+    Binding(projectBinding.getRole, projectBinding.getMembers.toSet)
   }
 
   private implicit def fromServiceAccountBinding(serviceAccountBinding: ServiceAccountBinding): Binding = {
-    Binding(serviceAccountBinding.getRole, serviceAccountBinding.getMembers)
+    Binding(serviceAccountBinding.getRole, serviceAccountBinding.getMembers.toSet)
   }
 
   private implicit def fromProjectPolicy(projectPolicy: ProjectPolicy): Policy = {
-    Policy(projectPolicy.getBindings.map(fromProjectBinding), projectPolicy.getEtag)
+    Policy(projectPolicy.getBindings.map(fromProjectBinding).toSet, projectPolicy.getEtag)
   }
 
   private implicit def fromServiceAccountPolicy(serviceAccountPolicy: ServiceAccountPolicy): Policy = {
-    Policy(serviceAccountPolicy.getBindings.map(fromServiceAccountBinding), serviceAccountPolicy.getEtag)
+    Policy(serviceAccountPolicy.getBindings.map(fromServiceAccountBinding).toSet, serviceAccountPolicy.getEtag)
   }
 
   private implicit def toServiceAccountPolicy(policy: Policy): ServiceAccountPolicy = {
     new ServiceAccountPolicy().setBindings(policy.bindings.map { b =>
-      new ServiceAccountBinding().setRole(b.role).setMembers(b.members.asJava)
-    }.asJava).setEtag(policy.etag)
+      new ServiceAccountBinding().setRole(b.role).setMembers(b.members.toList.asJava)
+    }.toList.asJava).setEtag(policy.etag)
   }
 
   private implicit def toProjectPolicy(policy: Policy): ProjectPolicy = {
     new ProjectPolicy().setBindings(policy.bindings.map { b =>
-      new ProjectBinding().setRole(b.role).setMembers(b.members.asJava)
-    }.asJava).setEtag(policy.etag)
+      new ProjectBinding().setRole(b.role).setMembers(b.members.toList.asJava)
+    }.toList.asJava).setEtag(policy.etag)
   }
 
   private implicit def nullSafeList[A](list: java.util.List[A]): List[A] = {
