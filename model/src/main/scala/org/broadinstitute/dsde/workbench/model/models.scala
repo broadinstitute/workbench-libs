@@ -2,5 +2,9 @@ package org.broadinstitute.dsde.workbench.model
 
 import java.util.UUID
 
-// uuid for tracing a unique call flow in logging
-final case class TraceId(uuid: UUID) extends AnyVal
+// unique identifier for tracing a unique call flow in logging
+final case class TraceId(asString: String) extends AnyVal
+
+object TraceId {
+  def apply(uuid: UUID): TraceId = new TraceId(uuid.toString)
+}
