@@ -2,6 +2,17 @@
 
 This file documents changes to the `workbench-google2` library, including notes on how to upgrade to new versions.
 
+## 0.6
+Changed
+- Bump `fs2-io` to `2.0.1`
+- Add optional `blockderBound` to `GoogleStorageService` constructor
+- Remove `LineBacker` usage
+
+Add
+- Add `GoogleDataproc` and `GoogleDataprocInterpreter`
+
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.6-TRAVIS-REPLACE-ME"`
+
 ## 0.5
 
 Added

@@ -4,6 +4,7 @@ import java.util.concurrent.TimeUnit
 
 import cats.implicits._
 import cats.effect.{Resource, Sync, Timer}
+import cats.mtl.ApplicativeAsk
 import com.google.api.core.ApiFutureCallback
 import com.google.auth.oauth2.ServiceAccountCredentials
 import fs2.{RaiseThrowable, Stream}
@@ -46,6 +47,14 @@ package object google2 {
     } yield result
 
     Stream.retry[F, A](faWithLogging, retryConfig.retryInitialDelay, retryConfig.retryNextDelay, retryConfig.maxAttempts, retryConfig.retryable)
+  }
+
+  def tracedRetryGoogleF[F[_]: Sync: Timer: RaiseThrowable: Logger, A](retryConfig: RetryConfig)(fa: F[A], action: String)
+                                                                      (implicit ev: ApplicativeAsk[F, TraceId]): Stream[F, A] = {
+    for {
+      traceId <- Stream.eval(ev.ask)
+      result <- retryGoogleF(retryConfig)(fa, Some(traceId), action)
+    } yield result
   }
 
   def callBack[A](cb: Either[Throwable, A] => Unit): ApiFutureCallback[A] =

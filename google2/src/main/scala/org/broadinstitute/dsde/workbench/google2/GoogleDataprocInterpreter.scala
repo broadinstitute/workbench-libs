@@ -1,9 +1,9 @@
 package org.broadinstitute.dsde.workbench.google2
 
-import java.util.UUID
-
 import cats.effect._
+import cats.effect.concurrent.Semaphore
 import cats.implicits._
+import cats.mtl.ApplicativeAsk
 import com.google.api.core.ApiFutures
 import com.google.api.gax.rpc.StatusCode.Code
 import com.google.cloud.dataproc.v1._
@@ -11,15 +11,17 @@ import com.google.common.util.concurrent.MoreExecutors
 import io.chrisdavenport.log4cats.Logger
 import org.broadinstitute.dsde.workbench.RetryConfig
 import fs2.Stream
+import org.broadinstitute.dsde.workbench.model.TraceId
 
-import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 
 private[google2] class GoogleDataprocInterpreter[F[_]: Async: Logger: Timer: ContextShift](clusterControllerClient: ClusterControllerClient,
                                                                              retryConfig: RetryConfig,
-                                                                             blockingExecutionContext: ExecutionContext) extends GoogleDataproc[F] {
+                                                                             blocker: Blocker,
+                                                                             blockerBound: Semaphore[F]) extends GoogleDataproc[F] {
 
-  override def createCluster(region: RegionName, clusterName: ClusterName, createClusterConfig: Option[CreateClusterConfig]): F[CreateClusterResponse] = {
+  override def createCluster(region: RegionName, clusterName: ClusterName, createClusterConfig: Option[CreateClusterConfig])
+                            (implicit ev: ApplicativeAsk[F, TraceId]): F[CreateClusterResponse] = {
     val config: ClusterConfig = createClusterConfig.map(config => ClusterConfig
       .newBuilder
       .setGceClusterConfig(config.gceClusterConfig)
@@ -43,19 +45,26 @@ private[google2] class GoogleDataprocInterpreter[F[_]: Async: Logger: Timer: Con
       .setProjectId(region.getProject)
       .build()
 
+    val createCluster = Async[F].async[ClusterOperationMetadata]{
+      cb =>
+        ApiFutures.addCallback(
+          clusterControllerClient.createClusterAsync(request).getMetadata,
+          callBack(cb),
+          MoreExecutors.directExecutor()
+        )
+    }
+
     for {
-      createCluster <- Async[F].async[ClusterOperationMetadata]{
-        cb =>
-          ApiFutures.addCallback(
-            clusterControllerClient.createClusterAsync(request).getMetadata,
-            callBack(cb),
-            MoreExecutors.directExecutor()
-          )
-      }.attempt
+      createCluster <- tracedRetryGoogleF(retryConfig)(
+        createCluster,
+        s"com.google.cloud.dataproc.v1.ClusterControllerClient.deleteClusterAsync(${region}, ${clusterName}, ${createClusterConfig})")
+        .compile
+        .lastOrError
+        .attempt
 
       result <- createCluster match {
         case Left(e: com.google.api.gax.rpc.ApiException) =>
-          if(e.getStatusCode == Code.ALREADY_EXISTS)
+          if(e.getStatusCode.getCode == Code.ALREADY_EXISTS)
             Async[F].pure(CreateClusterResponse.AlreadyExists: CreateClusterResponse)
           else
             Async[F].raiseError(e): F[CreateClusterResponse]
@@ -65,22 +74,30 @@ private[google2] class GoogleDataprocInterpreter[F[_]: Async: Logger: Timer: Con
     } yield result
   }
 
-  override def deleteCluster(region: RegionName, clusterName: ClusterName): F[DeleteClusterResponse] = {
+  override def deleteCluster(region: RegionName, clusterName: ClusterName)
+                            (implicit ev: ApplicativeAsk[F, TraceId]): F[DeleteClusterResponse] = {
     val request = DeleteClusterRequest.newBuilder()
       .setRegion(region.getRegion)
       .setProjectId(region.getProject)
       .setClusterName(clusterName.asString)
       .build()
 
+    val deleteCluster = Async[F].async[ClusterOperationMetadata]{
+      cb =>
+        ApiFutures.addCallback(
+          clusterControllerClient.deleteClusterAsync(request).getMetadata,
+          callBack(cb),
+          MoreExecutors.directExecutor()
+        )
+    }
+
     for {
-      createCluster <- Async[F].async[ClusterOperationMetadata]{
-        cb =>
-          ApiFutures.addCallback(
-            clusterControllerClient.deleteClusterAsync(request).getMetadata,
-            callBack(cb),
-            MoreExecutors.directExecutor()
-          )
-      }.attempt
+      createCluster <- tracedRetryGoogleF(retryConfig)(
+        deleteCluster,
+        "com.google.cloud.dataproc.v1.ClusterControllerClient.deleteClusterAsync(com.google.cloud.dataproc.v1.DeleteClusterRequest)")
+        .compile
+        .lastOrError
+        .attempt
 
       result <- createCluster match {
         case Left(e: com.google.api.gax.rpc.ApiException) =>
@@ -95,9 +112,14 @@ private[google2] class GoogleDataprocInterpreter[F[_]: Async: Logger: Timer: Con
     } yield result
   }
 
-  override def getCluster(region: RegionName, clusterName: ClusterName): F[Option[Cluster]] = {
+  override def getCluster(region: RegionName, clusterName: ClusterName)
+                         (implicit ev: ApplicativeAsk[F, TraceId]): F[Option[Cluster]] = {
     for {
-      clusterAttempted <- blockingF(Async[F].delay(clusterControllerClient.getCluster(region.getProject(), region.getRegion(), clusterName.asString))).attempt
+      clusterAttempted <- blockingF(
+        Async[F].delay(clusterControllerClient.getCluster(region.getProject(), region.getRegion(), clusterName.asString)),
+        s"com.google.cloud.dataproc.v1.ClusterControllerClient.getCluster(${region.getProject()}, ${region.getRegion()}, ${clusterName})"
+      ).compile.lastOrError.attempt
+
       resEither = clusterAttempted.map(c => Some(c)).leftFlatMap {
         case e: com.google.api.gax.rpc.ApiException =>
           if(e.getStatusCode.getCode == Code.NOT_FOUND)
@@ -110,19 +132,8 @@ private[google2] class GoogleDataprocInterpreter[F[_]: Async: Logger: Timer: Con
     } yield result
   }
 
-  private def blockingF[A](fa: F[A]): F[A] = ContextShift[F].evalOn(blockingExecutionContext)(fa)
-
-  override def listClusters(region: RegionName, filter: Option[String]): Stream[F, UUID] = {
-    val listClusters = filter match {
-      case Some(f) => blockingF(Async[F].delay(clusterControllerClient.listClusters(region.getProject(), region.getRegion(), f)))
-      case None => blockingF(Async[F].delay(clusterControllerClient.listClusters(region.getProject(), region.getRegion())))
-    }
-
-    for {
-      clusters <- Stream.eval(listClusters)
-      sf <- clusters.getPage
-    } yield ???
-  }
+  private def blockingF[A](fa: F[A], loggingMsg: String)(implicit ev: ApplicativeAsk[F, TraceId]): Stream[F, A] =
+    Stream.eval(ev.ask).flatMap(traceId => retryGoogleF(retryConfig)(blockerBound.withPermit(blocker.blockOn(fa)), Some(traceId), loggingMsg))
 }
 
 object GoogleDataprocInterpreter {
