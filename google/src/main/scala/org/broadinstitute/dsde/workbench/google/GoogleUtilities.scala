@@ -9,6 +9,7 @@ import com.google.api.client.http.{HttpResponseException => GoogleHttpResponseEx
 import com.google.api.client.http.{HttpResponse => GoogleHttpResponse}
 import com.google.api.client.http.json.JsonHttpContent
 import com.typesafe.scalalogging.LazyLogging
+import io.opencensus.trace.Span
 import org.broadinstitute.dsde.workbench.metrics.GoogleInstrumented.GoogleCounters
 import org.broadinstitute.dsde.workbench.metrics.{GoogleInstrumented, Histogram, InstrumentedRetry}
 import org.broadinstitute.dsde.workbench.model.ErrorReport
@@ -120,6 +121,10 @@ trait GoogleUtilities extends LazyLogging with InstrumentedRetry with GoogleInst
   //Retry if any of the predicates return true.
   protected def retry[T](predicates: (Throwable => Boolean)*)(op: () => T)(implicit histo: Histogram): Future[T] = {
     retryExponentially(combine(predicates))(() => Future(blocking(op())))
+  }
+
+  protected def tracedRetry[T](span: Span, predicates: (Throwable => Boolean)*)(op: () => T): Future[T] = {
+    tracedRetryExponentially(span, combine(predicates), defaultErrorMessage)(() => Future(blocking(op())))
   }
 
   @deprecated(message = "This function relies on a complicated predicate that almost certainly doesn't do what you mean. Use retryWithRecover() with explicitly defined predicates instead. There are some useful predicates at the top of GoogleUtilities; try importing GoogleUtilities.Predicates._", since = "workbench-google 0.20")

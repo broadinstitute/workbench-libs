@@ -3,6 +3,7 @@ package org.broadinstitute.dsde.workbench.google
 import com.google.api.services.admin.directory.model.Group
 import org.broadinstitute.dsde.workbench.model._
 import com.google.api.services.groupssettings.model.{Groups => GroupSettings}
+import io.opencensus.trace.Span
 
 import scala.concurrent.Future
 
@@ -14,7 +15,7 @@ trait GoogleDirectoryDAO {
 
   @deprecated(message = "use createGroup(String, WorkbenchEmail) instead", since = "0.9")
   def createGroup(groupName: WorkbenchGroupName, groupEmail: WorkbenchEmail): Future[Unit]
-  def createGroup(displayName: String, groupEmail: WorkbenchEmail, groupSettings: Option[GroupSettings] = None): Future[Unit]
+  def createGroup(displayName: String, groupEmail: WorkbenchEmail, groupSettings: Option[GroupSettings] = None)(implicit span: Span = null): Future[Unit]
   def deleteGroup(groupEmail: WorkbenchEmail): Future[Unit]
   def addMemberToGroup(groupEmail: WorkbenchEmail, memberEmail: WorkbenchEmail): Future[Unit]
   def removeMemberFromGroup(groupEmail: WorkbenchEmail, memberEmail: WorkbenchEmail): Future[Unit]

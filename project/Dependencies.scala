@@ -76,6 +76,20 @@ object Dependencies {
   val silencer: ModuleID = compilerPlugin("com.github.ghik" %% "silencer-plugin" % silencerVersion)
   val silencerLib: ModuleID = "com.github.ghik" %% "silencer-lib" % silencerVersion % Provided
 
+  val opencensusScalaCode: ModuleID = "com.github.sebruck" %% "opencensus-scala-core" % "0.7.0-M2"
+  val opencensusAkkaHttp: ModuleID = "com.github.sebruck" %% "opencensus-scala-akka-http" % "0.7.0-M2"
+
+  val opencensusStackDriverExporter: ModuleID = "io.opencensus" % "opencensus-exporter-trace-stackdriver" % "0.23.0"
+  val opencensusLoggingExporter: ModuleID = "io.opencensus" % "opencensus-exporter-trace-logging"     % "0.23.0"
+
+  val openCensusDependencies = Seq(
+    opencensusScalaCode,
+    opencensusStackDriverExporter,
+//    opencensusAkkaHttp,
+//    opencensusLoggingExporter
+  )
+
+
   val commonDependencies = Seq(
     scalatest,
     scalaCheck
@@ -93,7 +107,7 @@ object Dependencies {
     circeGeneric,
     fs2Io,
     circeFs2
-  )
+  ) ++ openCensusDependencies
 
   val modelDependencies = commonDependencies ++ Seq(
     scalaLogging,
@@ -134,7 +148,7 @@ object Dependencies {
     akkaTestkit,
     silencer,
     silencerLib
-  ).map(excludeGuavaJDK5)
+  ).map(excludeGuavaJDK5) ++ openCensusDependencies
 
   val google2Dependencies = commonDependencies ++ Seq(
     googleRpc,

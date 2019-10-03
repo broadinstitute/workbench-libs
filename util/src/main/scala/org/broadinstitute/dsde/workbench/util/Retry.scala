@@ -11,6 +11,9 @@ import org.broadinstitute.dsde.workbench.model.WorkbenchException
 import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
 import scala.language.implicitConversions
+import io.opencensus.scala.Tracing._
+import io.opencensus.trace.Span
+
 
 /**
  * Created by tsharpe on 9/21/15.
@@ -45,6 +48,10 @@ trait Retry {
     retryInternal(exponentialBackOffIntervals, pred, failureLogMessage)(op)
   }
 
+  def tracedRetryExponentially[T](span: Span, pred: Predicate[Throwable], failureLogMessage: String)(op: () => Future[T])(implicit executionContext: ExecutionContext): RetryableFuture[T] = {
+    retryInternal(exponentialBackOffIntervals, pred, failureLogMessage, Some(span))(op)
+  }
+
   /**
    * will retry at the given interval until success or the overall timeout has passed
    * @param pred which failures to retry
@@ -62,12 +69,19 @@ trait Retry {
 
   private def retryInternal[T](backoffIntervals: Seq[FiniteDuration],
                                pred: Predicate[Throwable],
-                               failureLogMessage: String)
+                               failureLogMessage: String,
+                               span: Option[Span] = None)
                               (op: () => Future[T])
                               (implicit executionContext: ExecutionContext): RetryableFuture[T] = {
 
     def loop(remainingBackoffIntervals: Seq[FiniteDuration], errors: => List[Throwable]): RetryableFuture[T] = {
-      op().map(x => Right((errors, x))).recoverWith {
+
+        // don't trace unless a span was supplied
+        val r = span match {
+            case Some(x) => traceWithParent ("(re)try", x) (_ => op())
+            case None => op()
+        }
+        r.map(x => Right((errors, x))).recoverWith {
         case t if pred(t) && !remainingBackoffIntervals.isEmpty =>
           logger.info(s"$failureLogMessage: ${remainingBackoffIntervals.size} retries remaining, retrying in ${remainingBackoffIntervals.head}", t)
           after(remainingBackoffIntervals.head, system.scheduler) {

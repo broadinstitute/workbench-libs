@@ -87,7 +87,7 @@ object Settings {
   })
 
   val commonCrossCompileSettings = Seq(
-    crossScalaVersions := List("2.11.12", "2.12.8")
+    crossScalaVersions := List("2.12.8")
   )
 
   val only212 = Seq(
