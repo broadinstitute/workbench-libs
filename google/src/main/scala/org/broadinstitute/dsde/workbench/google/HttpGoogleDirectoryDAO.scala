@@ -11,6 +11,8 @@ import com.google.api.services.admin.directory.model.{Group, Member, Members}
 import com.google.api.services.admin.directory.{Directory, DirectoryScopes}
 import com.google.api.services.groupssettings.{Groupssettings, GroupssettingsScopes}
 import com.google.api.services.groupssettings.model.{Groups => GroupSettings}
+import io.opencensus.trace.Span
+import io.opencensus.scala.Tracing._
 import org.broadinstitute.dsde.workbench.google.GoogleCredentialModes._
 import org.broadinstitute.dsde.workbench.google.GoogleUtilities.RetryPredicates._
 import org.broadinstitute.dsde.workbench.metrics.GoogleInstrumentedService
@@ -81,16 +83,16 @@ class HttpGoogleDirectoryDAO(appName: String,
 
   override def createGroup(groupId: WorkbenchGroupName, groupEmail: WorkbenchEmail): Future[Unit] = createGroup(groupId.value, groupEmail)
 
-  override def createGroup(displayName: String, groupEmail: WorkbenchEmail, groupSettings: Option[GroupSettings] = None): Future[Unit] = {
+  override def createGroup(displayName: String, groupEmail: WorkbenchEmail, groupSettings: Option[GroupSettings] = None)(implicit span: Span = null): Future[Unit] = {
     val groups = directory.groups
     val group = new Group().setEmail(groupEmail.value).setName(displayName.take(60)) //max google group name length is 60 characters
     val inserter = groups.insert(group)
 
     for {
-      _ <- retry(when5xx, whenUsageLimited, when404, whenInvalidValueOnBucketCreation, whenNonHttpIOException) (() => { executeGoogleRequest(inserter) })
+      _ <- tracedRetry(span, when5xx, whenUsageLimited, when404, whenInvalidValueOnBucketCreation, whenNonHttpIOException)(() => { executeGoogleRequest(inserter) })
       _ <- groupSettings match {
         case None => Future.successful(())
-        case Some(settings) => new GroupSettingsDAO().updateGroupSettings(groupEmail, settings)
+        case Some(settings) => traceWithParent("update", span)(_ => new GroupSettingsDAO().updateGroupSettings(groupEmail, settings))
       }
     } yield ()
   }
