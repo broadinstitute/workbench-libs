@@ -6,7 +6,7 @@ This file documents changes to the `workbench-model` library, including notes on
 
 - Added generators in `test`
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-model" % "0.13-TRAVIS-REPLACE-ME"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-model" % "0.13-58c913d"`
 
 ### Changed
 
