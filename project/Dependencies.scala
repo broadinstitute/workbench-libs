@@ -7,7 +7,8 @@ object Dependencies {
   val googleV       = "1.22.0"
   val scalaLoggingV = "3.7.2"
   val scalaTestV    = "3.0.1"
-  val circeVersion = "0.12.1"
+  //this is the last verion that supports 2.11, which util depends on. TODO: Going forward, we should probably stop publishing 2.11 for util assuming orch is not going to need util updates.
+  val circeVersion = "0.12.0-M3"
   val http4sVersion = "0.20.3"
 
   def excludeGuavaJDK5(m: ModuleID): ModuleID = m.exclude("com.google.guava", "guava-jdk5")
