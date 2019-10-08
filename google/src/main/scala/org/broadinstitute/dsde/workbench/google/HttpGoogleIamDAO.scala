@@ -145,7 +145,7 @@ class HttpGoogleIamDAO(appName: String,
   private def modifyIamRolesForUser(iamProject: GoogleProject, userEmail: WorkbenchEmail, rolesToAdd: Set[String], rolesToRemove: Set[String]): Future[Boolean] = {
     // Note the project here is the one in which we're removing the IAM roles
     // Retry 409s here as recommended for concurrent modifications of the IAM policy
-    retry(when5xx, whenUsageLimited, when404, whenInvalidValueOnBucketCreation, whenNonHttpIOException, when409) { () =>
+    retry(when5xx, whenUsageLimited, whenGlobalUsageLimited, when404, whenInvalidValueOnBucketCreation, whenNonHttpIOException, when409) { () =>
       // it is important that we call getIamPolicy within the same retry block as we call setIamPolicy
       // getIamPolicy gets the etag that is used in setIamPolicy, the etag is used to detect concurrent
       // modifications and if that happens we need to be sure to get a new etag before retrying setIamPolicy
