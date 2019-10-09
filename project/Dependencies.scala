@@ -9,7 +9,7 @@ object Dependencies {
   val scalaTestV    = "3.0.1"
   //this is the last verion that supports 2.11, which util depends on. TODO: Going forward, we should probably stop publishing 2.11 for util assuming orch is not going to need util updates.
   val circeVersion = "0.12.0-M3"
-  val http4sVersion = "0.20.3"
+  val http4sVersion = "0.21.0-M5"
 
   def excludeGuavaJDK5(m: ModuleID): ModuleID = m.exclude("com.google.guava", "guava-jdk5")
 
@@ -52,7 +52,7 @@ object Dependencies {
   val googleGuava: ModuleID = "com.google.guava"  % "guava" % "22.0"
   val googleRpc: ModuleID =               "io.grpc" % "grpc-core" % "1.16.1" //old google libraries relies on older version of grpc
 
-  val googleRpc2: ModuleID =               "io.grpc" % "grpc-core" % "1.16.1" //google2 may depends on newer version of grpc
+  val googleRpc2: ModuleID =               "io.grpc" % "grpc-core" % "1.24.0" //google2 may depends on newer version of grpc
   val googleFirestore: ModuleID = "com.google.cloud" % "google-cloud-firestore" % "0.71.0-beta"
   val googleStorageNew: ModuleID = "com.google.cloud" % "google-cloud-storage" % "1.93.0"
   val googleStorageLocal: ModuleID = "com.google.cloud" % "google-cloud-nio" % "0.111.0-alpha" % "test"
