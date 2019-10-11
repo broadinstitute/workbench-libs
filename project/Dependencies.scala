@@ -64,7 +64,7 @@ object Dependencies {
   val circeParser: ModuleID = "io.circe" %% "circe-parser" % circeVersion
   val circeGeneric: ModuleID = "io.circe" %% "circe-generic" % circeVersion % "test"
   val circeFs2: ModuleID = "io.circe" %% "circe-fs2" % "0.12.0"
-  val log4cats = "io.chrisdavenport" %% "log4cats-slf4j"   % "1.0.0"
+  val log4cats = "io.chrisdavenport" %% "log4cats-slf4j"   % "0.3.0" // Can't use 1.0.1 yet because 0.0.3 is last version that supports 2.11, and we need to support 2.11 in util due to firecloud-orchestration
   val catsMtl = "org.typelevel" %% "cats-mtl-core" % "0.7.0"
 
   val http4sCirce = "org.http4s" %% "http4s-circe" % http4sVersion
