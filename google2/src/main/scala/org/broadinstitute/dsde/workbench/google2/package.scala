@@ -64,7 +64,7 @@ package object google2 {
     }
 
   def credentialResource[F[_]: Sync](pathToCredential: String): Resource[F, ServiceAccountCredentials] = for {
-    credentialFile <- org.broadinstitute.dsde.workbench.util.readFile(pathToCredential)
+    credentialFile <- org.broadinstitute.dsde.workbench.util2.readFile(pathToCredential)
     credential <- Resource.liftF(Sync[F].delay(ServiceAccountCredentials.fromStream(credentialFile)))
   } yield credential
 }

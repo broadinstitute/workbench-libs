@@ -31,7 +31,7 @@ trait GoogleDataproc[F[_]] {
 
 object GoogleDataproc {
   def fromCredentialPath[F[_]: Logger: Async: Timer: ContextShift](pathToCredential: String, blocker: Blocker, blockerBound: Semaphore[F], retryConfig: RetryConfig = GoogleDataprocInterpreter.defaultRetryConfig): Resource[F, GoogleDataproc[F]] = for {
-    credentialFile <- org.broadinstitute.dsde.workbench.util.readFile(pathToCredential)
+    credentialFile <- org.broadinstitute.dsde.workbench.util2.readFile(pathToCredential)
     client <- fromServiceAccountCrendential(ServiceAccountCredentials.fromStream(credentialFile), blocker, blockerBound, retryConfig)
   } yield client
 

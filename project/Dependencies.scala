@@ -7,8 +7,7 @@ object Dependencies {
   val googleV       = "1.22.0"
   val scalaLoggingV = "3.7.2"
   val scalaTestV    = "3.0.1"
-  //this is the last verion that supports 2.11, which util depends on. TODO: Going forward, we should probably stop publishing 2.11 for util assuming orch is not going to need util updates.
-  val circeVersion = "0.12.0-M3"
+  val circeVersion = "0.12.2"
   val http4sVersion = "0.21.0-M5"
 
   def excludeGuavaJDK5(m: ModuleID): ModuleID = m.exclude("com.google.guava", "guava-jdk5")
@@ -64,7 +63,8 @@ object Dependencies {
   val circeParser: ModuleID = "io.circe" %% "circe-parser" % circeVersion
   val circeGeneric: ModuleID = "io.circe" %% "circe-generic" % circeVersion % "test"
   val circeFs2: ModuleID = "io.circe" %% "circe-fs2" % "0.12.0"
-  val log4cats = "io.chrisdavenport" %% "log4cats-slf4j"   % "0.3.0" // Can't use 1.0.1 yet because 0.0.3 is last version that supports 2.11, and we need to support 2.11 in util due to firecloud-orchestration
+  val cats: ModuleID = "org.typelevel" %% "cats-core" % "2.0.0"
+  val log4cats = "io.chrisdavenport" %% "log4cats-slf4j"   % "1.0.0"
   val catsMtl = "org.typelevel" %% "cats-mtl-core" % "0.7.0"
 
   val http4sCirce = "org.http4s" %% "http4s-circe" % http4sVersion
@@ -90,12 +90,7 @@ object Dependencies {
     akkaHttpSprayJson,
     akkaTestkit,
     mockito,
-    log4cats,
-    circeCore,
-    circeParser,
-    circeGeneric,
-    fs2Io,
-    circeFs2
+    cats
   )
 
   val modelDependencies = commonDependencies ++ Seq(
@@ -159,6 +154,16 @@ object Dependencies {
     catsEffect,
     log4cats,
     newRelic
+  )
+
+  val util2Dependencies = commonDependencies ++ List(
+    catsEffect,
+    log4cats,
+    fs2Io,
+    circeFs2,
+    circeCore,
+    circeParser,
+    circeGeneric
   )
 
   val serviceTestDependencies = commonDependencies ++ Seq(

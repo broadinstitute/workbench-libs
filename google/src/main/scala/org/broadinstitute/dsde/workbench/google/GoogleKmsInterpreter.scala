@@ -117,7 +117,7 @@ object GoogleKmsInterpreter {
 
   def client[F[_]: Sync](pathToJson: String): Resource[F, KeyManagementServiceClient] =
     for {
-      credentials <- org.broadinstitute.dsde.workbench.util.readFile(pathToJson)
+      credentials <- org.broadinstitute.dsde.workbench.util2.readFile(pathToJson)
       client <- Resource.make[F, KeyManagementServiceClient](
         Sync[F].delay(
           KeyManagementServiceClient.create(
