@@ -255,7 +255,7 @@ object GoogleStorageInterpreter {
       project: Option[GoogleProject] = None // legacy credential file doesn't have `project_id` field. Hence we need to pass in explicitly
   ): Resource[F, Storage] =
     for {
-      credential <- org.broadinstitute.dsde.workbench.util.readFile(pathToJson)
+      credential <- org.broadinstitute.dsde.workbench.util2.readFile(pathToJson)
       project <- project match { //Use explicitly passed in project if it's defined; else use `project_id` in json credential; if neither has project defined, raise error
         case Some(p) => Resource.pure[F, GoogleProject](p)
         case None => Resource.liftF(parseProject(pathToJson, blocker).compile.lastOrError)

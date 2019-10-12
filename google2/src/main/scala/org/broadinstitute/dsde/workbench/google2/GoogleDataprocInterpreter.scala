@@ -57,7 +57,7 @@ private[google2] class GoogleDataprocInterpreter[F[_]: Async: Logger: Timer: Con
     for {
       createCluster <- tracedRetryGoogleF(retryConfig)(
         createCluster,
-        s"com.google.cloud.dataproc.v1.ClusterControllerClient.deleteClusterAsync(${region}, ${clusterName}, ${createClusterConfig})")
+        s"com.google.cloud.dataproc.v1.ClusterControllerClient.createClusterAsync(${region}, ${clusterName}, ${createClusterConfig})")
         .compile
         .lastOrError
         .attempt
@@ -138,7 +138,7 @@ private[google2] class GoogleDataprocInterpreter[F[_]: Async: Logger: Timer: Con
 
 object GoogleDataprocInterpreter {
   val defaultRetryConfig = RetryConfig(
-    org.broadinstitute.dsde.workbench.util.addJitter(1 seconds, 1 seconds),
+    org.broadinstitute.dsde.workbench.util2.addJitter(1 seconds, 1 seconds),
     x => x * 2,
     5,
     {

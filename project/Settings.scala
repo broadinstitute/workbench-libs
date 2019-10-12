@@ -87,11 +87,11 @@ object Settings {
   })
 
   val commonCrossCompileSettings = Seq(
-    crossScalaVersions := List("2.11.12", "2.12.8")
+    crossScalaVersions := List("2.11.12", "2.12.10")
   )
 
   val only212 = Seq(
-    crossScalaVersions := List("2.12.8")
+    crossScalaVersions := List("2.12.10")
   )
 
   //sbt assembly settings
@@ -112,6 +112,12 @@ object Settings {
     name := "workbench-util",
     libraryDependencies ++= utilDependencies,
     version := createVersion("0.5")
+  ) ++ publishSettings
+
+  val util2Settings = only212 ++ commonSettings ++ List(
+    name := "workbench-util2",
+    libraryDependencies ++= util2Dependencies,
+    version := createVersion("0.1")
   ) ++ publishSettings
 
   val modelSettings = commonCrossCompileSettings ++ commonSettings ++ List(

@@ -59,7 +59,7 @@ class GoogleTopicAdminInterpreter[F[_]: Logger: Sync: Timer](topicAdminClient: T
 
 object GoogleTopicAdminInterpreter {
   val defaultRetryConfig = RetryConfig(
-    org.broadinstitute.dsde.workbench.util.addJitter(1 seconds, 1 seconds),
+    org.broadinstitute.dsde.workbench.util2.addJitter(1 seconds, 1 seconds),
     x => x * 2,
     5
   )
