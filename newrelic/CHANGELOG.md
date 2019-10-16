@@ -2,6 +2,13 @@
 
 This file documents changes to the `workbench-newrelic` library, including notes on how to upgrade to new versions.
 
+## 0.3
+
+### Changed
+- Use `F[_]` instead of hardcoding `IO` for `NewRelicMetrics` 
+
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-newrelic" % "0.3-TRAVIS-REPLACE-ME"`
+
 ## 0.2
 
 ### Added

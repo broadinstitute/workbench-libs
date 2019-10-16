@@ -6,6 +6,7 @@ import java.time.Instant
 
 import cats.data.NonEmptyList
 import cats.effect._
+import cats.effect.concurrent.Semaphore
 import cats.implicits._
 import com.google.auth.oauth2.ServiceAccountCredentials
 import com.google.cloud.storage.BucketInfo.LifecycleRule
@@ -13,7 +14,6 @@ import com.google.cloud.storage.Storage.{BlobListOption, BlobSourceOption, BlobT
 import com.google.cloud.storage.{Acl, Blob, BlobId, BlobInfo, BucketInfo, Storage, StorageOptions}
 import com.google.cloud.{Identity, Policy, Role}
 import fs2.{Stream, text}
-import io.chrisdavenport.linebacker.Linebacker
 import io.chrisdavenport.log4cats.Logger
 import io.circe.Decoder
 import io.circe.fs2._
@@ -21,10 +21,8 @@ import org.broadinstitute.dsde.workbench.model.TraceId
 import org.broadinstitute.dsde.workbench.model.google.{GcsBucketName, GcsObjectName, GoogleProject}
 
 import scala.collection.JavaConverters._
-import scala.concurrent.ExecutionContext
-import scala.concurrent.ExecutionContext.global
 
-private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer: Async: Logger: Linebacker](db: Storage) extends GoogleStorageService[F] {
+private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer: Async: Logger](db: Storage, blocker: Blocker, blockerBound: Option[Semaphore[F]]) extends GoogleStorageService[F] {
   override def listObjectsWithPrefix(bucketName: GcsBucketName, objectNamePrefix: String, isRecursive: Boolean = false, maxPageSize: Long = 1000, traceId: Option[TraceId] = None, retryConfig: RetryConfig): Stream[F, GcsObjectName] = {
     listBlobsWithPrefix(bucketName, objectNamePrefix, isRecursive, maxPageSize, traceId, retryConfig).map(blob => GcsObjectName(blob.getName, Instant.ofEpochMilli(blob.getCreateTime)))
   }
@@ -53,7 +51,7 @@ private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer: Async
               fetchNext.compile.lastOrError.map(next => (p, next))
           }
       }
-      blob <- Stream.fromIterator[F, Blob](page.getValues.iterator().asScala)
+      blob <- Stream.fromIterator[F](page.getValues.iterator().asScala)
     } yield {
       // Remove directory from end result
       // For example, if you have `bucketName/dir1/object1` in GCS, remove `bucketName/dir1/` from the end result
@@ -240,23 +238,27 @@ private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer: Async
     retryGoogleF(retryConfig)(blockingF(Async[F].delay(db.update(bucketInfo))), traceId, s"com.google.cloud.storage.Storage.update($bucketInfo)").void
   }
 
-  private def blockingF[A](fa: F[A]): F[A] = Linebacker[F].blockCS(fa)//ContextShift[F].evalOn(blockingEc)(fa)
+  private def blockingF[A](fa: F[A]): F[A] = blockerBound match {
+    case None => blocker.blockOn(fa)
+    case Some(s) => s.withPermit(blocker.blockOn(fa))
+  }
 }
 
 object GoogleStorageInterpreter {
-  def apply[F[_]: Timer: Async: ContextShift: Logger: Linebacker](db: Storage): GoogleStorageInterpreter[F] =
-    new GoogleStorageInterpreter(db)
+  def apply[F[_]: Timer: Async: ContextShift: Logger](db: Storage, blocker: Blocker, blockerBound: Option[Semaphore[F]]): GoogleStorageInterpreter[F] =
+    new GoogleStorageInterpreter(db, blocker, blockerBound)
 
   def storage[F[_]: Sync: ContextShift](
       pathToJson: String,
-      blockingExecutionContext: ExecutionContext,
+      blocker: Blocker,
+      blockerBound: Option[Semaphore[F]],
       project: Option[GoogleProject] = None // legacy credential file doesn't have `project_id` field. Hence we need to pass in explicitly
   ): Resource[F, Storage] =
     for {
-      credential <- org.broadinstitute.dsde.workbench.util.readFile(pathToJson)
+      credential <- org.broadinstitute.dsde.workbench.util2.readFile(pathToJson)
       project <- project match { //Use explicitly passed in project if it's defined; else use `project_id` in json credential; if neither has project defined, raise error
         case Some(p) => Resource.pure[F, GoogleProject](p)
-        case None => Resource.liftF(parseProject(pathToJson, blockingExecutionContext).compile.lastOrError)
+        case None => Resource.liftF(parseProject(pathToJson, blocker).compile.lastOrError)
       }
       db <- Resource.liftF(
         Sync[F].delay(
@@ -274,8 +276,8 @@ object GoogleStorageInterpreter {
     "project_id"
   )(GoogleProject.apply)
 
-  def parseProject[F[_]: ContextShift: Sync](pathToJson: String, blockingExecutionContext: ExecutionContext = global): Stream[F, GoogleProject] =
-     fs2.io.file.readAll[F](Paths.get(pathToJson), blockingExecutionContext, 4096)
+  def parseProject[F[_]: ContextShift: Sync](pathToJson: String, blocker: Blocker): Stream[F, GoogleProject] =
+     fs2.io.file.readAll[F](Paths.get(pathToJson), blocker, 4096)
           .through(byteStreamParser)
           .through(decoder[F, GoogleProject])
 }

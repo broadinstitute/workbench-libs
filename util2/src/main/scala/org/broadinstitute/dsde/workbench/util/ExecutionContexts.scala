@@ -1,4 +1,4 @@
-package org.broadinstitute.dsde.workbench.util
+package org.broadinstitute.dsde.workbench.util2
 import java.util.concurrent.{ExecutorService, Executors}
 
 import cats.effect.{Resource, Sync}

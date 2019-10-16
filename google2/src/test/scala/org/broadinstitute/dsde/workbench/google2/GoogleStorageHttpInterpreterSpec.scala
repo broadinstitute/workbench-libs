@@ -3,11 +3,11 @@ package org.broadinstitute.dsde.workbench.google2
 import io.circe.parser._
 import org.broadinstitute.dsde.workbench.google2.Generators._
 import org.broadinstitute.dsde.workbench.google2.GoogleServiceHttpInterpreter._
-import org.broadinstitute.dsde.workbench.util.{PropertyBasedTesting, WorkbenchTest}
+import org.broadinstitute.dsde.workbench.util2.{PropertyBasedTesting, WorkbenchTestSuite}
 import org.scalatest.{FlatSpec, Matchers}
 import io.circe.syntax._
 
-class GoogleStorageNotificationCreatorInterpreterSpec extends FlatSpec with Matchers with WorkbenchTest with PropertyBasedTesting {
+class GoogleStorageNotificationCreatorInterpreterSpec extends FlatSpec with Matchers with WorkbenchTestSuite with PropertyBasedTesting {
   "notificationResponseDecoder" should "decode NotificationResopnse properly" in {
     forAll {
       (notificationResponse: NotificationResponse) =>

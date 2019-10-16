@@ -87,11 +87,11 @@ object Settings {
   })
 
   val commonCrossCompileSettings = Seq(
-    crossScalaVersions := List("2.11.12", "2.12.8")
+    crossScalaVersions := List("2.11.12", "2.12.10")
   )
 
   val only212 = Seq(
-    crossScalaVersions := List("2.12.8")
+    crossScalaVersions := List("2.12.10")
   )
 
   //sbt assembly settings
@@ -111,7 +111,13 @@ object Settings {
   val utilSettings = commonCrossCompileSettings ++ commonSettings ++ List(
     name := "workbench-util",
     libraryDependencies ++= utilDependencies,
-    version := createVersion("0.5")
+    version := createVersion("0.6")
+  ) ++ publishSettings
+
+  val util2Settings = only212 ++ commonSettings ++ List(
+    name := "workbench-util2",
+    libraryDependencies ++= util2Dependencies,
+    version := createVersion("0.1")
   ) ++ publishSettings
 
   val modelSettings = commonCrossCompileSettings ++ commonSettings ++ List(
@@ -136,13 +142,13 @@ object Settings {
   val google2Settings = only212 ++ commonSettings ++ List(
     name := "workbench-google2",
     libraryDependencies ++= google2Dependencies,
-    version := createVersion("0.5")
+    version := createVersion("0.6")
   ) ++ publishSettings
 
   val newrelicSettings = only212 ++ commonSettings ++ List(
     name := "workbench-newrelic",
     libraryDependencies ++= newrelicDependencies,
-    version := createVersion("0.2")
+    version := createVersion("0.3")
   ) ++ publishSettings
 
   val serviceTestSettings = only212 ++ commonSettings ++ List(

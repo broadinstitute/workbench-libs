@@ -5,17 +5,16 @@ import java.nio.file.Path
 import cats.data.NonEmptyList
 import cats.implicits._
 import cats.effect._
+import cats.effect.concurrent.Semaphore
 import com.google.cloud.{Identity, Policy}
 import com.google.auth.oauth2.GoogleCredentials
 import com.google.cloud.storage.{Acl, Blob, BlobId, StorageOptions}
 import com.google.cloud.storage.BucketInfo.LifecycleRule
 import fs2.Stream
-import io.chrisdavenport.linebacker.Linebacker
 import io.chrisdavenport.log4cats.Logger
 import org.broadinstitute.dsde.workbench.RetryConfig
 import org.broadinstitute.dsde.workbench.model.TraceId
 import org.broadinstitute.dsde.workbench.model.google.{GcsBucketName, GcsObjectName, GoogleProject}
-
 import org.broadinstitute.dsde.workbench.google2.util.RetryPredicates.standardRetryConfig
 
 import scala.language.higherKinds
@@ -140,11 +139,14 @@ trait GoogleStorageService[F[_]] {
 }
 
 object GoogleStorageService {
-  def resource[F[_]: ContextShift: Timer: Async: Logger: Linebacker](pathToCredentialJson: String, project: Option[GoogleProject] = None): Resource[F, GoogleStorageService[F]] = for {
-    db <- GoogleStorageInterpreter.storage[F](pathToCredentialJson, Linebacker[F].blockingContext, project)
-  } yield GoogleStorageInterpreter[F](db)
+  def resource[F[_]: ContextShift: Timer: Async: Logger](pathToCredentialJson: String,
+                                                         blocker: Blocker,
+                                                         blockerBound: Option[Semaphore[F]] = None,
+                                                         project: Option[GoogleProject] = None): Resource[F, GoogleStorageService[F]] = for {
+    db <- GoogleStorageInterpreter.storage[F](pathToCredentialJson, blocker, blockerBound, project)
+  } yield GoogleStorageInterpreter[F](db, blocker, blockerBound)
 
-  def fromApplicationDefault[F[_]: ContextShift: Timer: Async: Logger: Linebacker](): Resource[F, GoogleStorageService[F]] = for {
+  def fromApplicationDefault[F[_]: ContextShift: Timer: Async: Logger](blocker: Blocker, blockerBound: Option[Semaphore[F]] = None): Resource[F, GoogleStorageService[F]] = for {
     db <- Resource.liftF(
       Sync[F].delay(
         StorageOptions
@@ -154,7 +156,7 @@ object GoogleStorageService {
           .getService
       )
     )
-  } yield GoogleStorageInterpreter[F](db)
+  } yield GoogleStorageInterpreter[F](db, blocker, blockerBound)
 }
 
 final case class GcsBlobName(value: String) extends AnyVal

@@ -17,6 +17,15 @@ Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util" 
 
 [Changelog](util/CHANGELOG.md)
 
+## workbench-util2
+
+Contains utility functions and classes. Util2 is added because util needs to support 2.11 for `firecloud-orchestration`,
+but many libraries start to drop 2.11 support. Util2 doesn't support 2.11.
+
+Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util2" % "0.1-"TRAVIS-REPLACE-ME`
+
+[Changelog](util2/CHANGELOG.md)
+
 ## workbench-model
 
 Contains generic, externally-facing model classes used across Workbench.

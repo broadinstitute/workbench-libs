@@ -63,7 +63,7 @@ object GoogleFirestoreInterpreter {
       pathToJson: String
   )(implicit sf: Sync[F]): Resource[F, Firestore] =
     for {
-      credential <- org.broadinstitute.dsde.workbench.util.readFile(pathToJson)
+      credential <- org.broadinstitute.dsde.workbench.util2.readFile(pathToJson)
       db <- Resource.make[F, Firestore](
         sf.delay(
           FirestoreOptions
