@@ -7,7 +7,7 @@ This file documents changes to the `workbench-newrelic` library, including notes
 ### Changed
 - Use `F[_]` instead of hardcoding `IO` for `NewRelicMetrics` 
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-newrelic" % "0.3-TRAVIS-REPLACE-ME"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-newrelic" % "0.3-8bae8e8"`
 
 ## 0.2
 
