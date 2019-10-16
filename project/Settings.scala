@@ -111,7 +111,7 @@ object Settings {
   val utilSettings = commonCrossCompileSettings ++ commonSettings ++ List(
     name := "workbench-util",
     libraryDependencies ++= utilDependencies,
-    version := createVersion("0.5")
+    version := createVersion("0.6")
   ) ++ publishSettings
 
   val util2Settings = only212 ++ commonSettings ++ List(
