@@ -110,7 +110,7 @@ object GoogleServiceHttpInterpreter {
   implicit val eqProjectTopicName: Eq[ProjectTopicName] = Eq.instance((t1, t2) => t1.getProject == t2.getProject && t1.getTopic == t2.getTopic)
 
   def credentialResourceWithScope[F[_]: Sync](pathToCredential: String): Resource[F, GoogleCredentials] = for {
-    credentialFile <- org.broadinstitute.dsde.workbench.util.readFile(pathToCredential)
+    credentialFile <- org.broadinstitute.dsde.workbench.util2.readFile(pathToCredential)
     credential <- Resource.liftF(Sync[F].delay(ServiceAccountCredentials.fromStream(credentialFile).createScoped(StorageScopes.all())))
   } yield credential
 }

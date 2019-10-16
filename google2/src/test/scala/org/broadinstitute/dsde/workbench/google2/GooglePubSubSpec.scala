@@ -17,13 +17,13 @@ import io.grpc.ManagedChannelBuilder
 import io.grpc.Status.Code
 import org.broadinstitute.dsde.workbench.RetryConfig
 import org.broadinstitute.dsde.workbench.google2.GooglePubSubSpec._
-import org.broadinstitute.dsde.workbench.util.WorkbenchTest
+import org.broadinstitute.dsde.workbench.util2.WorkbenchTestSuite
 import org.scalatest.{FlatSpec, Matchers}
 
 import scala.concurrent.duration._
 import scala.util.Try
 
-class GooglePubSubSpec extends FlatSpec with Matchers with WorkbenchTest {
+class GooglePubSubSpec extends FlatSpec with Matchers with WorkbenchTestSuite {
   "GooglePublisherInterpreter" should "be able to publish message successfully" in {
     val people = Generators.genListPerson.sample.get
     val projectTopicName = Generators.genProjectTopicName.sample.get
