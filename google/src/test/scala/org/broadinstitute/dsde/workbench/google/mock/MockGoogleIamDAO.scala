@@ -5,6 +5,7 @@ import java.time.Instant
 import java.util.{Base64, UUID}
 
 import org.broadinstitute.dsde.workbench.google.GoogleIamDAO
+import org.broadinstitute.dsde.workbench.google.GoogleIamDAO.MemberType
 import org.broadinstitute.dsde.workbench.model._
 import org.broadinstitute.dsde.workbench.model.google._
 
@@ -49,16 +50,16 @@ class MockGoogleIamDAO extends GoogleIamDAO {
     Future.successful(())
   }
 
-  override def addIamRolesForUser(googleProject: GoogleProject, userEmail: WorkbenchEmail, rolesToAdd: Set[String]): Future[Boolean] = {
+  override def addIamRoles(googleProject: GoogleProject, userEmail: WorkbenchEmail, memberType: MemberType, rolesToAdd: Set[String]): Future[Boolean] = {
+    Future.successful(false)
+  }
+
+  override def removeIamRoles(googleProject: GoogleProject, userEmail: WorkbenchEmail, memberType: MemberType, rolesToRemove: Set[String]): Future[Boolean] = {
     Future.successful(false)
   }
 
   override def testIamPermission(project: GoogleProject, iamPermissions: Set[IamPermission]): Future[Set[IamPermission]] = {
     Future.successful(iamPermissions)
-  }
-
-  override def removeIamRolesForUser(googleProject: GoogleProject, userEmail: WorkbenchEmail, rolesToRemove: Set[String]): Future[Boolean] = {
-    Future.successful(false)
   }
 
   override def addServiceAccountUserRoleForUser(googleProject: GoogleProject, serviceAccountEmail: WorkbenchEmail, userEmail: WorkbenchEmail): Future[Unit] = {

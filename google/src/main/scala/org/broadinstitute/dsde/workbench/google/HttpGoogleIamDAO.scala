@@ -24,7 +24,6 @@ import com.google.api.services.iam.v1.model.{CreateServiceAccountKeyRequest, Cre
 import com.google.api.services.iam.v1.{Iam, IamScopes}
 import org.broadinstitute.dsde.workbench.google.GoogleCredentialModes._
 import org.broadinstitute.dsde.workbench.google.GoogleIamDAO.MemberType
-import org.broadinstitute.dsde.workbench.google.GoogleIamDAO.MemberType.User
 import org.broadinstitute.dsde.workbench.google.GoogleUtilities.RetryPredicates._
 import org.broadinstitute.dsde.workbench.google.HttpGoogleIamDAO._
 import org.broadinstitute.dsde.workbench.metrics.GoogleInstrumentedService
@@ -136,20 +135,12 @@ class HttpGoogleIamDAO(appName: String,
     }
   }
 
-  override def addIamRolesForUser(iamProject: GoogleProject, userEmail: WorkbenchEmail, rolesToAdd: Set[String]): Future[Boolean] = {
-    modifyIamRoles(iamProject, userEmail, MemberType.User, rolesToAdd, Set.empty)
+  override def addIamRoles(iamProject: GoogleProject, userEmail: WorkbenchEmail, memberType: MemberType, rolesToAdd: Set[String]): Future[Boolean] = {
+    modifyIamRoles(iamProject, userEmail, memberType, rolesToAdd, Set.empty)
   }
 
-  override def removeIamRolesForUser(iamProject: GoogleProject, userEmail: WorkbenchEmail, rolesToRemove: Set[String]): Future[Boolean] = {
-    modifyIamRoles(iamProject, userEmail, MemberType.User, Set.empty, rolesToRemove)
-  }
-
-  override def addIamRolesForGroup(iamProject: GoogleProject, userEmail: WorkbenchEmail, rolesToAdd: Set[String]): Future[Boolean] = {
-    modifyIamRoles(iamProject, userEmail, MemberType.Group, rolesToAdd, Set.empty)
-  }
-
-  override def removeIamRolesForGroup(iamProject: GoogleProject, userEmail: WorkbenchEmail, rolesToRemove: Set[String]): Future[Boolean] = {
-    modifyIamRoles(iamProject, userEmail, MemberType.Group, Set.empty, rolesToRemove)
+  override def removeIamRoles(iamProject: GoogleProject, userEmail: WorkbenchEmail, memberType: MemberType, rolesToRemove: Set[String]): Future[Boolean] = {
+    modifyIamRoles(iamProject, userEmail, memberType, Set.empty, rolesToRemove)
   }
 
   private def modifyIamRoles(iamProject: GoogleProject,
