@@ -169,6 +169,10 @@ trait GoogleIamDAO {
 }
 
 object GoogleIamDAO {
+
+  /**
+    * Typing for the Google IAM member types as described at https://cloud.google.com/iam/docs/overview
+    */
   sealed trait MemberType extends Serializable with Product
   object MemberType {
     final case object User extends MemberType {
@@ -180,8 +184,8 @@ object GoogleIamDAO {
     final case object ServiceAccount extends MemberType {
       override def toString = "serviceAccount"
     }
-    final case class Other(memberType: String) extends MemberType {
-      override def toString = memberType
+    final case object Domain extends MemberType {
+      override def toString = "domain"
     }
 
     val stringToMemberType: Map[String, MemberType] = sealerate.collect[MemberType].map(p => (p.toString, p)).toMap
