@@ -1,5 +1,6 @@
 package org.broadinstitute.dsde.workbench.google
 
+import ca.mrvisser.sealerate
 import org.broadinstitute.dsde.workbench.model._
 import org.broadinstitute.dsde.workbench.model.google._
 
@@ -94,6 +95,28 @@ trait GoogleIamDAO {
   def removeIamRolesForUser(iamProject: GoogleProject, email: WorkbenchEmail, rolesToRemove: Set[String]): Future[Boolean]
 
   /**
+    * Adds project-level IAM roles for the given Google group.
+    * This method will perform a read-modify-write of the project's IAM policy, and return a Boolean
+    * indicating whether a change was actually made.
+    * @param iamProject the project in which to add the roles
+    * @param email the group email address
+    * @param rolesToAdd Set of roles to add (example: roles/storage.admin)
+    * @return true if the policy was updated; false otherwise.
+    */
+  def addIamRolesForGroup(iamProject: GoogleProject, email: WorkbenchEmail, rolesToAdd: Set[String]): Future[Boolean]
+
+  /**
+    * Removes project-level IAM roles for the given Google group.
+    * This method will perform a read-modify-write of the project's IAM policy, and return a Boolean
+    * indicating whether a change was actually made.
+    * @param iamProject the google project in which to remove the roles
+    * @param email the group email address
+    * @param rolesToRemove Set of roles to remove (example: roles/dataproc.worker)
+    * @return true if the policy was updated; false otherwise.
+    */
+  def removeIamRolesForGroup(iamProject: GoogleProject, email: WorkbenchEmail, rolesToRemove: Set[String]): Future[Boolean]
+
+  /**
     * Adds the Service Account User role for the given users on the given service account.
     * This allows the users to impersonate as the service account.
     * @param serviceAccountProject the project in which to add the roles
@@ -134,4 +157,24 @@ trait GoogleIamDAO {
     * @return list of service account keys
     */
   def listUserManagedServiceAccountKeys(serviceAccountProject: GoogleProject, serviceAccountEmail: WorkbenchEmail): Future[Seq[ServiceAccountKey]]
+}
+
+object GoogleIamDAO {
+  sealed trait MemberType extends Serializable with Product
+  object MemberType {
+    final case object User extends MemberType {
+      override def toString = "user"
+    }
+    final case object Group extends MemberType {
+      override def toString = "group"
+    }
+    final case object ServiceAccount extends MemberType {
+      override def toString = "serviceAccount"
+    }
+    final case class Other(memberType: String) extends MemberType {
+      override def toString = memberType
+    }
+
+    val stringToMemberType: Map[String, MemberType] = sealerate.collect[MemberType].map(p => (p.toString, p)).toMap
+  }
 }
