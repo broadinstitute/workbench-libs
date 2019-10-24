@@ -4,7 +4,14 @@ This file documents changes to the `workbench-google` library, including notes o
 
 ## 0.21
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.20-58c913d"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.21-TRAVIS-REPLACE-ME"`
+
+### Added
+
+- `addIamRoles` and `removeIamRoles` in `GoogleIamDAO`:
+  - These methods accept a member type of the newly created ADT `MemberType`.
+  - The now deprecated `addIamRolesForUser` and `removeIamRolesForUser` call the aforementioned methods
+  for backwards compatibility.
 
 ### Changed
 
