@@ -74,6 +74,7 @@ object Dependencies {
   val fs2Io: ModuleID = "co.fs2" %% "fs2-io" % "2.0.1"
   val rawlsModel: ModuleID = "org.broadinstitute.dsde" %% "rawls-model" % "0.1-0d02c8ce-SNAP" exclude("com.typesafe.scala-logging", "scala-logging_2.11") exclude("com.typesafe.akka", "akka-stream_2.11")
   val newRelic: ModuleID = "com.newrelic.agent.java" % "newrelic-api" % "5.0.0"
+  val sealerate: ModuleID = "ca.mrvisser" %% "sealerate" % "0.0.5"
 
   val silencerVersion = "1.4.1"
   val silencer: ModuleID = compilerPlugin("com.github.ghik" %% "silencer-plugin" % silencerVersion)
@@ -130,6 +131,7 @@ object Dependencies {
     googleKms,
     akkaHttpSprayJson,
     akkaTestkit,
+    sealerate,
     silencer,
     silencerLib
   ).map(excludeGuavaJDK5)

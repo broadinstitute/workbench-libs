@@ -19,10 +19,11 @@ import com.google.api.client.googleapis.auth.oauth2.GoogleClientSecrets
 import com.google.api.client.googleapis.json.GoogleJsonResponseException
 import com.google.api.client.http.HttpResponseException
 import com.google.api.services.cloudresourcemanager.CloudResourceManager
-import com.google.api.services.cloudresourcemanager.model.{Binding => ProjectBinding, Policy => ProjectPolicy, SetIamPolicyRequest => ProjectSetIamPolicyRequest, TestIamPermissionsRequest}
+import com.google.api.services.cloudresourcemanager.model.{TestIamPermissionsRequest, Binding => ProjectBinding, Policy => ProjectPolicy, SetIamPolicyRequest => ProjectSetIamPolicyRequest}
 import com.google.api.services.iam.v1.model.{CreateServiceAccountKeyRequest, CreateServiceAccountRequest, ServiceAccount, Binding => ServiceAccountBinding, Policy => ServiceAccountPolicy, ServiceAccountKey => GoogleServiceAccountKey, SetIamPolicyRequest => ServiceAccountSetIamPolicyRequest}
 import com.google.api.services.iam.v1.{Iam, IamScopes}
 import org.broadinstitute.dsde.workbench.google.GoogleCredentialModes._
+import org.broadinstitute.dsde.workbench.google.GoogleIamDAO.MemberType
 import org.broadinstitute.dsde.workbench.google.GoogleUtilities.RetryPredicates._
 import org.broadinstitute.dsde.workbench.google.HttpGoogleIamDAO._
 import org.broadinstitute.dsde.workbench.metrics.GoogleInstrumentedService
@@ -134,23 +135,27 @@ class HttpGoogleIamDAO(appName: String,
     }
   }
 
-  override def addIamRolesForUser(iamProject: GoogleProject, userEmail: WorkbenchEmail, rolesToAdd: Set[String]): Future[Boolean] = {
-    modifyIamRolesForUser(iamProject, userEmail, rolesToAdd, Set.empty)
+  override def addIamRoles(iamProject: GoogleProject, userEmail: WorkbenchEmail, memberType: MemberType, rolesToAdd: Set[String]): Future[Boolean] = {
+    modifyIamRoles(iamProject, userEmail, memberType, rolesToAdd, Set.empty)
   }
 
-  override def removeIamRolesForUser(iamProject: GoogleProject, userEmail: WorkbenchEmail, rolesToRemove: Set[String]): Future[Boolean] = {
-    modifyIamRolesForUser(iamProject, userEmail, Set.empty, rolesToRemove)
+  override def removeIamRoles(iamProject: GoogleProject, userEmail: WorkbenchEmail, memberType: MemberType, rolesToRemove: Set[String]): Future[Boolean] = {
+    modifyIamRoles(iamProject, userEmail, memberType, Set.empty, rolesToRemove)
   }
 
-  private def modifyIamRolesForUser(iamProject: GoogleProject, userEmail: WorkbenchEmail, rolesToAdd: Set[String], rolesToRemove: Set[String]): Future[Boolean] = {
+  private def modifyIamRoles(iamProject: GoogleProject,
+                             userEmail: WorkbenchEmail,
+                             memberType: MemberType,
+                             rolesToAdd: Set[String],
+                             rolesToRemove: Set[String]): Future[Boolean] = {
     // Note the project here is the one in which we're removing the IAM roles
     // Retry 409s here as recommended for concurrent modifications of the IAM policy
     retry(when5xx, whenUsageLimited, whenGlobalUsageLimited, when404, whenInvalidValueOnBucketCreation, whenNonHttpIOException, when409) { () =>
-      // it is important that we call getIamPolicy within the same retry block as we call setIamPolicy
+      // It is important that we call getIamPolicy within the same retry block as we call setIamPolicy
       // getIamPolicy gets the etag that is used in setIamPolicy, the etag is used to detect concurrent
       // modifications and if that happens we need to be sure to get a new etag before retrying setIamPolicy
       val existingPolicy = executeGoogleRequest(cloudResourceManager.projects().getIamPolicy(iamProject.value, null))
-      val updatedPolicy = updatePolicy(existingPolicy, userEmail, rolesToAdd, rolesToRemove)
+      val updatedPolicy = updatePolicy(existingPolicy, userEmail, memberType, rolesToAdd, rolesToRemove)
 
       // Policy objects use Sets so are not sensitive to ordering and duplication
       if (existingPolicy == updatedPolicy) {
@@ -170,7 +175,7 @@ class HttpGoogleIamDAO(appName: String,
     // - https://cloud.google.com/iam/docs/service-accounts#service_account_permissions
     // - https://cloud.google.com/iam/docs/service-accounts#the_service_account_user_role
     getServiceAccountPolicy(serviceAccountProject, serviceAccountEmail).flatMap { policy =>
-      val updatedPolicy = updatePolicy(policy, userEmail, Set("roles/iam.serviceAccountUser"), Set.empty)
+      val updatedPolicy = updatePolicy(policy, userEmail, MemberType.ServiceAccount, Set("roles/iam.serviceAccountUser"), Set.empty)
       val policyRequest = new ServiceAccountSetIamPolicyRequest().setPolicy(updatedPolicy)
       val request = iam.projects().serviceAccounts().setIamPolicy(s"projects/${serviceAccountProject.value}/serviceAccounts/${serviceAccountEmail.value}", policyRequest)
       retry(when5xx, whenUsageLimited, when404, whenInvalidValueOnBucketCreation, whenNonHttpIOException) { () =>
@@ -251,18 +256,21 @@ class HttpGoogleIamDAO(appName: String,
     * Read-modify-write a Policy to insert or remove new bindings for the given member and roles.
     * Note that if the same role is in both rolesToAdd and rolesToRemove, the deletion takes precedence.
     */
-  private def updatePolicy(policy: Policy, userEmail: WorkbenchEmail, rolesToAdd: Set[String], rolesToRemove: Set[String]): Policy = {
-    val memberType = if (isServiceAccount(userEmail)) "serviceAccount" else "user"
-    val email = s"$memberType:${userEmail.value}"
+  private def updatePolicy(policy: Policy,
+                           email: WorkbenchEmail,
+                           memberType: MemberType,
+                           rolesToAdd: Set[String],
+                           rolesToRemove: Set[String]): Policy = {
+    val memberTypeAndEmail = s"$memberType:${email.value}"
 
-    // current members grouped by role
+    // Current members grouped by role
     val curMembersByRole: Map[String, Set[String]] = policy.bindings.toList.foldMap { binding =>
       Map(binding.role -> binding.members)
     }
 
     // Apply additions
     val withAdditions = if (rolesToAdd.nonEmpty) {
-      val rolesToAddMap = rolesToAdd.map { _ -> Set(email) }.toMap
+      val rolesToAddMap = rolesToAdd.map { _ -> Set(memberTypeAndEmail) }.toMap
       curMembersByRole |+| rolesToAddMap
     } else {
       curMembersByRole
@@ -272,7 +280,7 @@ class HttpGoogleIamDAO(appName: String,
     val newMembersByRole = if (rolesToRemove.nonEmpty) {
       withAdditions.toList.foldMap { case (role, members) =>
         if (rolesToRemove.contains(role)) {
-          val filtered = members.filterNot(_ == email)
+          val filtered = members.filterNot(_ == memberTypeAndEmail)
           if (filtered.isEmpty) Map.empty[String, Set[String]]
           else Map(role -> filtered)
         } else {
