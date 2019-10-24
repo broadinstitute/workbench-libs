@@ -82,7 +82,7 @@ trait GoogleIamDAO {
     * @param rolesToAdd Set of roles to add (example: roles/storage.admin)
     * @return true if the policy was updated; false otherwise.
     */
-  @deprecated(message = "Please use the generic method with {{{ memberType = MemberType.User }}}.", since = "0.22")
+  @deprecated(message = "Please use the generic method with {{{ memberType = MemberType.User }}}.", since = "0.21")
   def addIamRolesForUser(iamProject: GoogleProject, email: WorkbenchEmail, rolesToAdd: Set[String]): Future[Boolean] = {
     addIamRoles(iamProject: GoogleProject, email: WorkbenchEmail, MemberType.User, rolesToAdd: Set[String])
   }
@@ -96,7 +96,7 @@ trait GoogleIamDAO {
     * @param rolesToRemove Set of roles to remove (example: roles/dataproc.worker)
     * @return true if the policy was updated; false otherwise.
     */
-  @deprecated(message = "Please use the generic method with {{{ memberType = MemberType.User }}}.", since = "0.22")
+  @deprecated(message = "Please use the generic method with {{{ memberType = MemberType.User }}}.", since = "0.21")
   def removeIamRolesForUser(iamProject: GoogleProject, email: WorkbenchEmail, rolesToRemove: Set[String]): Future[Boolean] = {
     removeIamRoles(iamProject: GoogleProject, email: WorkbenchEmail, MemberType.User, rolesToRemove: Set[String])
   }
