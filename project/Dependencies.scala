@@ -5,7 +5,7 @@ object Dependencies {
   val akkaHttpV     = "10.0.6"
   val jacksonV      = "2.9.0"
   val googleV       = "1.22.0"
-  val scalaLoggingV = "3.7.2"
+  val scalaLoggingV = "3.9.2"
   val scalaTestV    = "3.2.0"
   val circeVersion = "0.13.0"
   val http4sVersion = "0.21.5"
@@ -49,7 +49,6 @@ object Dependencies {
   val googleServicemanagement: ModuleID =    "com.google.apis"       % "google-api-services-servicemanagement"    % s"v1-rev359-$googleV"
   val googleIam: ModuleID =                  "com.google.apis"       % "google-api-services-iam"                  % s"v1-rev215-$googleV"
   val googleBigQuery: ModuleID =             "com.google.apis"       % "google-api-services-bigquery"             % s"v2-rev377-$googleV"
-
   val googleGuava: ModuleID = "com.google.guava"  % "guava" % "22.0"
   val googleRpc: ModuleID =               "io.grpc" % "grpc-core" % "1.16.1" //old google libraries relies on older version of grpc
 
@@ -106,7 +105,7 @@ object Dependencies {
     akkaTestkit,
     mockito,
     scalaTestMockito,
-    "org.typelevel" %% "cats-core" % "2.0.0" //This is the last version supports scala 2.11, which is use in orchestration
+    "org.typelevel" %% "cats-core" % "2.1.1"
   )
 
   val modelDependencies = commonDependencies ++ Seq(
