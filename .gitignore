@@ -20,3 +20,4 @@ test-output/
 *.pid
 
 .metals
+.DS_Store

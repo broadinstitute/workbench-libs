@@ -1,23 +1,23 @@
-package org.broadinstitute.dsde.workbench.google2
+package org.broadinstitute.dsde.workbench
+package google2
 
 import java.nio.file.Path
 
 import cats.data.NonEmptyList
-import cats.implicits._
 import cats.effect._
 import cats.effect.concurrent.Semaphore
+import cats.implicits._
 import com.google.auth.Credentials
-import com.google.cloud.{Identity, Policy}
 import com.google.auth.oauth2.{AccessToken, GoogleCredentials}
-import com.google.cloud.storage.{Acl, Blob, BlobId, StorageOptions}
 import com.google.cloud.storage.BucketInfo.LifecycleRule
-import com.google.cloud.storage.Storage.BucketSourceOption
+import com.google.cloud.storage.{Acl, Blob, BlobId, StorageOptions}
+import com.google.cloud.{Identity, Policy}
 import fs2.{Pipe, Stream}
+import com.google.cloud.storage.Storage.BucketSourceOption
 import io.chrisdavenport.log4cats.StructuredLogger
-import org.broadinstitute.dsde.workbench.RetryConfig
+import org.broadinstitute.dsde.workbench.google2.util.RetryPredicates.standardRetryConfig
 import org.broadinstitute.dsde.workbench.model.TraceId
 import org.broadinstitute.dsde.workbench.model.google.{GcsBucketName, GcsObjectName, GoogleProject}
-import org.broadinstitute.dsde.workbench.google2.util.RetryPredicates.standardRetryConfig
 
 import scala.language.higherKinds
 

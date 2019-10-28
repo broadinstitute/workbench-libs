@@ -30,7 +30,7 @@ Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util2"
 
 Contains generic, externally-facing model classes used across Workbench.
 
-Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-model" % "0.14-2e155f0"`
+Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-model" % "0.14-TRAVIS-REPLACE-ME"`
 
 [Changelog](model/CHANGELOG.md)
 
@@ -40,7 +40,7 @@ NOTE: This library uses akka-http's implementation of spray-json and is therefor
 
 Contains utilities for instrumenting Scala code and reporting to StatsD using [metrics-scala](https://github.com/erikvanoosten/metrics-scala) and [metrics-statsd](https://github.com/ReadyTalk/metrics-statsd).
 
-Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-metrics" % "0.5-e66171c"`
+Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-metrics" % "0.5-TRAVIS-REPLACE-ME"`
 
 [Changelog](metrics/CHANGELOG.md)
 
@@ -60,7 +60,11 @@ To depend on the `MockGoogle*` classes, additionally depend on:
 
 Contains utility functions for talking to Google APIs via com.google.cloud client library (more recent) via gRPC. 
 
-Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.11-997b116"`
+<<<<<<< HEAD
+Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.11-2e155f0"`
+=======
+Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.11-TRAVIS-REPLACE-ME"`
+>>>>>>> attempt to publish 2.13 for google2 and newrelic
 
 To start the Google PubSub emulator for unit testing:
 

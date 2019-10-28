@@ -132,16 +132,12 @@ object Settings {
       )
   })
 
-  val commonCrossCompileSettings = Seq(
-    crossScalaVersions := List("2.11.12", "2.12.10")
-  )
-
   val only212 = Seq(
-    crossScalaVersions := List("2.12.10")
+    crossScalaVersions := List("2.12.11")
   )
 
   val cross212and213 = Seq(
-    crossScalaVersions := List("2.12.10", "2.13.1")
+    crossScalaVersions := List("2.12.11", "2.13.3")
   )
 
   //sbt assembly settings
@@ -153,12 +149,12 @@ object Settings {
   //common settings for all sbt subprojects
   val commonSettings = commonBuildSettings ++ commonAssemblySettings ++ commonTestSettings ++ List(
     organization := "org.broadinstitute.dsde.workbench",
-    scalaVersion := "2.12.10",
+    scalaVersion := "2.12.11", //We can't use 2.13 by default yet because some projects are still built for 2.12 only
     resolvers ++= commonResolvers,
     commonCompilerSettings
   )
 
-  val utilSettings = commonCrossCompileSettings ++ commonSettings ++ List(
+  val utilSettings = cross212and213 ++ commonSettings ++ List(
     name := "workbench-util",
     libraryDependencies ++= utilDependencies,
     version := createVersion("0.6")
@@ -170,7 +166,7 @@ object Settings {
     version := createVersion("0.1")
   ) ++ publishSettings
 
-  val modelSettings = commonCrossCompileSettings ++ commonSettings ++ List(
+  val modelSettings = cross212and213 ++ commonSettings ++ List(
     name := "workbench-model",
     libraryDependencies ++= modelDependencies,
     version := createVersion("0.14")
@@ -189,13 +185,13 @@ object Settings {
     coverageExcludedPackages := ".*HttpGoogle.*DAO.*"
   ) ++ publishSettings
 
-  val google2Settings = only212 ++ commonSettings ++ List(
+  val google2Settings = cross212and213 ++ commonSettings ++ List(
     name := "workbench-google2",
     libraryDependencies ++= google2Dependencies,
     version := createVersion("0.11")
   ) ++ publishSettings
 
-  val newrelicSettings = only212 ++ commonSettings ++ List(
+  val newrelicSettings = cross212and213 ++ commonSettings ++ List(
     name := "workbench-newrelic",
     libraryDependencies ++= newrelicDependencies,
     version := createVersion("0.3")
