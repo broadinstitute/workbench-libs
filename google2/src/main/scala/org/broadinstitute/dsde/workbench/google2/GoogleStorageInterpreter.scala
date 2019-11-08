@@ -157,8 +157,25 @@ private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer: Async
     } yield RemoveObjectResult(deleted)
   }
 
-  override def insertBucket(googleProject: GoogleProject, bucketName: GcsBucketName, acl: Option[NonEmptyList[Acl]] = None, labels: Map[String, String] = Map.empty, traceId: Option[TraceId] = None, retryConfig: RetryConfig): Stream[F, Unit] = {
-    val bucketInfoBuilder = BucketInfo.of(bucketName.value).toBuilder.setLabels(labels.asJava)
+  override def insertBucket(googleProject: GoogleProject, bucketName: GcsBucketName, acl: Option[NonEmptyList[Acl]] = None, labels: Map[String, String] = Map.empty, traceId: Option[TraceId] = None, bucketPolicyOnlyEnabled: Boolean = false, logBucket: Option[String] = None, retryConfig: RetryConfig): Stream[F, Unit] = {
+
+    //val iamConfig = BucketInfo.IamConfiguration.newBuilder().setIsUniformBucketLevelAccessEnabled(bucketPolicyOnlyEnabled).build()
+    val iamConfig = BucketInfo.IamConfiguration.newBuilder().setIsUniformBucketLevelAccessEnabled(bucketPolicyOnlyEnabled).build()
+
+    val bucketInfoBuilder = BucketInfo.of(bucketName.value).toBuilder
+      .setLabels(labels.asJava)
+      .setIamConfiguration(iamConfig)
+
+    logBucket match {
+      case Some(logBucketName) => {
+        val logging = BucketInfo.Logging.newBuilder().setLogBucket(logBucketName).build()
+        bucketInfoBuilder.setLogging(logging)
+      }
+      case None =>
+    }
+
+    //roles.foldLeft(bucketInfoBuilder)((currentBuilder, item) => currentBuilder.addIdentity(Role.of(item._1.name), item._2.head, item._2.tail: _*)).build()
+
     val bucketInfo = acl.map{
       aclList =>
         val acls = aclList.toList.asJava
@@ -183,7 +200,7 @@ private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer: Async
   }
 
   override def setBucketPolicyOnly(bucketName: GcsBucketName, bucketPolicyOnlyEnabled: Boolean, traceId: Option[TraceId] = None, retryConfig: RetryConfig): Stream[F, Unit] = {
-    val iamConfiguration = BucketInfo.IamConfiguration.newBuilder().setIsBucketPolicyOnlyEnabled(bucketPolicyOnlyEnabled).build()
+    val iamConfiguration = BucketInfo.IamConfiguration.newBuilder().setIsUniformBucketLevelAccessEnabled(bucketPolicyOnlyEnabled).build()
     val updateBucket = blockingF(Async[F].delay(db.update(BucketInfo.newBuilder(bucketName.value).setIamConfiguration(iamConfiguration).build())))
 
     retryGoogleF(retryConfig)(
