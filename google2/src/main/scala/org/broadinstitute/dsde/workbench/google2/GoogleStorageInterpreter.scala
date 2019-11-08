@@ -159,7 +159,6 @@ private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer: Async
 
   override def insertBucket(googleProject: GoogleProject, bucketName: GcsBucketName, acl: Option[NonEmptyList[Acl]] = None, labels: Map[String, String] = Map.empty, traceId: Option[TraceId] = None, bucketPolicyOnlyEnabled: Boolean = false, logBucket: Option[String] = None, retryConfig: RetryConfig): Stream[F, Unit] = {
 
-    //val iamConfig = BucketInfo.IamConfiguration.newBuilder().setIsUniformBucketLevelAccessEnabled(bucketPolicyOnlyEnabled).build()
     val iamConfig = BucketInfo.IamConfiguration.newBuilder().setIsUniformBucketLevelAccessEnabled(bucketPolicyOnlyEnabled).build()
 
     val bucketInfoBuilder = BucketInfo.of(bucketName.value).toBuilder
@@ -173,8 +172,6 @@ private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer: Async
       }
       case None =>
     }
-
-    //roles.foldLeft(bucketInfoBuilder)((currentBuilder, item) => currentBuilder.addIdentity(Role.of(item._1.name), item._2.head, item._2.tail: _*)).build()
 
     val bucketInfo = acl.map{
       aclList =>
