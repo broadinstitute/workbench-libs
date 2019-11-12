@@ -170,14 +170,6 @@ private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer: Async
       bucketInfoBuilder.setLogging(logging)
     }
 
-    logBucket match {
-      case Some(logBucketName) => {
-        val logging = BucketInfo.Logging.newBuilder().setLogBucket(logBucketName.value).build()
-        bucketInfoBuilder.setLogging(logging)
-      }
-      case None =>
-    }
-
     val bucketInfo = acl.map{
       aclList =>
         val acls = aclList.toList.asJava
