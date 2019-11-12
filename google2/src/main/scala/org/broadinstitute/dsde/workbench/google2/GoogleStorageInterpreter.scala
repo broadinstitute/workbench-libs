@@ -157,7 +157,7 @@ private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer: Async
     } yield RemoveObjectResult(deleted)
   }
 
-  override def insertBucket(googleProject: GoogleProject, bucketName: GcsBucketName, acl: Option[NonEmptyList[Acl]] = None, labels: Map[String, String] = Map.empty, traceId: Option[TraceId] = None, bucketPolicyOnlyEnabled: Boolean = false, logBucket: Option[String] = None, retryConfig: RetryConfig): Stream[F, Unit] = {
+  override def insertBucket(googleProject: GoogleProject, bucketName: GcsBucketName, acl: Option[NonEmptyList[Acl]] = None, labels: Map[String, String] = Map.empty, traceId: Option[TraceId] = None, bucketPolicyOnlyEnabled: Boolean = false, logBucket: Option[GcsBucketName] = None, retryConfig: RetryConfig): Stream[F, Unit] = {
 
     val iamConfig = BucketInfo.IamConfiguration.newBuilder().setIsUniformBucketLevelAccessEnabled(bucketPolicyOnlyEnabled).build()
 
@@ -165,9 +165,14 @@ private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer: Async
       .setLabels(labels.asJava)
       .setIamConfiguration(iamConfig)
 
+    logBucket.map { logBucketName =>
+      val logging = BucketInfo.Logging.newBuilder().setLogBucket(logBucketName.value).build()
+      bucketInfoBuilder.setLogging(logging)
+    }
+
     logBucket match {
       case Some(logBucketName) => {
-        val logging = BucketInfo.Logging.newBuilder().setLogBucket(logBucketName).build()
+        val logging = BucketInfo.Logging.newBuilder().setLogBucket(logBucketName.value).build()
         bucketInfoBuilder.setLogging(logging)
       }
       case None =>
