@@ -17,7 +17,7 @@ import fs2.{Stream, text}
 import io.chrisdavenport.log4cats.Logger
 import io.circe.Decoder
 import io.circe.fs2._
-import org.broadinstitute.dsde.workbench.model.TraceId
+import org.broadinstitute.dsde.workbench.model.{TraceId, WorkbenchException}
 import org.broadinstitute.dsde.workbench.model.google.{GcsBucketName, GcsObjectName, GoogleProject}
 
 import scala.collection.JavaConverters._
@@ -157,8 +157,30 @@ private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer: Async
     } yield RemoveObjectResult(deleted)
   }
 
-  override def insertBucket(googleProject: GoogleProject, bucketName: GcsBucketName, acl: Option[NonEmptyList[Acl]] = None, labels: Map[String, String] = Map.empty, traceId: Option[TraceId] = None, retryConfig: RetryConfig): Stream[F, Unit] = {
-    val bucketInfoBuilder = BucketInfo.of(bucketName.value).toBuilder.setLabels(labels.asJava)
+  override def insertBucket(googleProject: GoogleProject,
+                            bucketName: GcsBucketName,
+                            acl: Option[NonEmptyList[Acl]] = None,
+                            labels: Map[String, String] = Map.empty,
+                            traceId: Option[TraceId] = None,
+                            bucketPolicyOnlyEnabled: Boolean = false,
+                            logBucket: Option[GcsBucketName] = None,
+                            retryConfig: RetryConfig): Stream[F, Unit] = {
+
+    if (acl.isDefined && bucketPolicyOnlyEnabled) {
+      throw new WorkbenchException("Cannot set acls on a bucket that has bucketPolicyOnlyEnabled set to true. Either set uniform bucket-level access OR provide a list of acls.")
+    }
+
+    val iamConfig = BucketInfo.IamConfiguration.newBuilder().setIsUniformBucketLevelAccessEnabled(bucketPolicyOnlyEnabled).build()
+
+    val bucketInfoBuilder = BucketInfo.of(bucketName.value).toBuilder
+      .setLabels(labels.asJava)
+      .setIamConfiguration(iamConfig)
+
+    logBucket.map { logBucketName =>
+      val logging = BucketInfo.Logging.newBuilder().setLogBucket(logBucketName.value).build()
+      bucketInfoBuilder.setLogging(logging)
+    }
+
     val bucketInfo = acl.map{
       aclList =>
         val acls = aclList.toList.asJava
@@ -183,7 +205,7 @@ private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer: Async
   }
 
   override def setBucketPolicyOnly(bucketName: GcsBucketName, bucketPolicyOnlyEnabled: Boolean, traceId: Option[TraceId] = None, retryConfig: RetryConfig): Stream[F, Unit] = {
-    val iamConfiguration = BucketInfo.IamConfiguration.newBuilder().setIsBucketPolicyOnlyEnabled(bucketPolicyOnlyEnabled).build()
+    val iamConfiguration = BucketInfo.IamConfiguration.newBuilder().setIsUniformBucketLevelAccessEnabled(bucketPolicyOnlyEnabled).build()
     val updateBucket = blockingF(Async[F].delay(db.update(BucketInfo.newBuilder(bucketName.value).setIamConfiguration(iamConfiguration).build())))
 
     retryGoogleF(retryConfig)(
