@@ -4,7 +4,7 @@ This file documents changes to the `workbench-service-test` library, including n
 
 ## 0.16
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "0.16-e6493d5"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "0.16-TRAVIS-REPLACE-ME"`
 
 
 ### Added
@@ -16,7 +16,8 @@ SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test"
 variable. This better reflects end-user behavior.
 - add `updateAcl` and `updateAttributes` endpoint to Rawls.workspaces
 - add `storageCostEstimate` endpoint to Orchestration.workspaces
-- `createBillingProject` now optionally takes a service perimeter 
+- `createBillingProject` now optionally takes a service perimeter
+- fixed `withBrandNewBillingProject` to create project with legal name 
 
 ## 0.15
 

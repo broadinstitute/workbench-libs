@@ -53,7 +53,7 @@ trait BillingFixtures extends ExceptionHandling with LazyLogging with CleanUp wi
   }
 
   private def createNewBillingProject(namePrefix: String, ownerEmails: List[String] = List(), userEmails: List[String] = List())(implicit token: AuthToken): String = {
-    val billingProjectName = randomIdWithPrefix(namePrefix)
+    val billingProjectName = s"$namePrefix-${makeRandomId()}"
     Orchestration.billing.createBillingProject(billingProjectName, ServiceTestConfig.Projects.billingAccountId)
     addMembersToBillingProject(billingProjectName, ownerEmails, BillingProjectRole.Owner)
     addMembersToBillingProject(billingProjectName, userEmails, BillingProjectRole.User)
