@@ -13,7 +13,7 @@ Changed
 Add
 - Add `GoogleDataproc` and `GoogleDataprocInterpreter`
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.6-TRAVIS-REPLACE-ME"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.6-ca8509e"`
 
 ## 0.5
 
