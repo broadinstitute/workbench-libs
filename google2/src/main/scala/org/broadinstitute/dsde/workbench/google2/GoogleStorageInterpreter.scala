@@ -192,7 +192,7 @@ private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer: Async
 
     val dbForProject = db.getOptions.toBuilder.setProjectId(googleProject.value).build().getService
 
-    val createBucket = blockingF(Async[F].delay(dbForProject.create(bucketInfo))).void.handleErrorWith {
+    val createBucket = blockingF(Async[F].delay(dbForProject.create(bucketInfo))).void.onError {
       case e: com.google.cloud.storage.StorageException if(e.getCode == 409) =>
         Logger[F].info(s"$bucketName already exists")
     }
