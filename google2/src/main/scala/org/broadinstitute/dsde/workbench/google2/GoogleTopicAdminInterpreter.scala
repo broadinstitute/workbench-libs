@@ -23,7 +23,7 @@ class GoogleTopicAdminInterpreter[F[_]: Logger: Sync: Timer](topicAdminClient: T
 
   def create(projectTopicName: ProjectTopicName, traceId: Option[TraceId] = None): Stream[F, Unit] = {
     val loggingCtx = Map("topic" -> projectTopicName.asJson, "traceId" -> traceId.asJson)
-    val createTopic = Sync[F].delay(topicAdminClient.createTopic(projectTopicName)).void.handleErrorWith {
+    val createTopic = Sync[F].delay(topicAdminClient.createTopic(projectTopicName)).void.onError {
         case _: com.google.api.gax.rpc.AlreadyExistsException =>
           Logger[F].debug(s"$projectTopicName already exists")
       }
@@ -33,7 +33,7 @@ class GoogleTopicAdminInterpreter[F[_]: Logger: Sync: Timer](topicAdminClient: T
 
   def createWithPublisherMembers(projectTopicName: ProjectTopicName, members: List[Identity], traceId: Option[TraceId] = None): Stream[F, Unit] = {
     val loggingCtx = Map("topic" -> projectTopicName.asJson, "traceId" -> traceId.asJson)
-    val createTopic = Sync[F].delay(topicAdminClient.createTopic(projectTopicName)).void.handleErrorWith {
+    val createTopic = Sync[F].delay(topicAdminClient.createTopic(projectTopicName)).void.onError {
       case _: com.google.api.gax.rpc.AlreadyExistsException =>
         Logger[F].debug(s"$projectTopicName topic already exists")
     }

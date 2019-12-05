@@ -17,9 +17,9 @@ import io.circe.syntax._
 import org.broadinstitute.dsde.workbench.RetryConfig
 
 private[google2] class GooglePublisherInterpreter[F[_]: Async: Timer: Logger](
-                                                         publisher: Publisher,
-                                                         retryConfig: RetryConfig
-                                     ) extends GooglePublisher[F] {
+                                                                               publisher: Publisher,
+                                                                               retryConfig: RetryConfig
+                                                                             ) extends GooglePublisher[F] {
   def publish[MessageType: Encoder]: Pipe[F, MessageType, Unit] = in => {
     in.flatMap {
       message =>
@@ -49,9 +49,9 @@ private[google2] class GooglePublisherInterpreter[F[_]: Async: Timer: Logger](
 
 object GooglePublisherInterpreter {
   def apply[F[_]: Async: Timer: ContextShift: Logger](
-             publisher: Publisher,
-             retryConfig: RetryConfig
-           ): GooglePublisherInterpreter[F] = new GooglePublisherInterpreter(publisher, retryConfig)
+                                                       publisher: Publisher,
+                                                       retryConfig: RetryConfig
+                                                     ): GooglePublisherInterpreter[F] = new GooglePublisherInterpreter(publisher, retryConfig)
 
   def publisher[F[_]: Sync](config: PublisherConfig): Resource[F, Publisher] =
     for {

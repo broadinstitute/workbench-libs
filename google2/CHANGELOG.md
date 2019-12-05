@@ -7,12 +7,13 @@ Changed
 - Bump `fs2-io` to `2.0.1`
 - Add optional `blockderBound` to `GoogleStorageService` constructor
 - Remove `LineBacker` usage
-- Add arguments to `insertBucket` 
+- Add arguments to `insertBucket`
+- Fix `scala.MatchError` from `handleErrorWith`
 
 Add
 - Add `GoogleDataproc` and `GoogleDataprocInterpreter`
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.6-4df42ca"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.6-TRAVIS-REPLACE-ME"`
 
 ## 0.5
 
