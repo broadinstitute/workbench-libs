@@ -8,7 +8,8 @@ Changed
 - Add optional `blockderBound` to `GoogleStorageService` constructor
 - Remove `LineBacker` usage
 - Add arguments to `insertBucket`
-- Fix `scala.MatchError` from `handleErrorWith`
+- Fix `scala.MatchError` from `handleErrorWith
+- Add `delete` function to `GoogleTopicAdmin` trait and implementation
 
 Add
 - Add `GoogleDataproc` and `GoogleDataprocInterpreter`
