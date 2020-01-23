@@ -9,11 +9,13 @@ Changed
 - Remove `LineBacker` usage
 - Add arguments to `insertBucket`
 - Fix `scala.MatchError` from `handleErrorWith`
+- Add `delete` function to `GoogleTopicAdmin` trait and implementation
 
 Add
 - Add `GoogleDataproc` and `GoogleDataprocInterpreter`
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.6-ca8509e"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.6-TRAVIS-REPLACE-ME"`
+
 
 ## 0.5
 
