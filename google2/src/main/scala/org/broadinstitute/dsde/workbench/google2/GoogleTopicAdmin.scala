@@ -16,6 +16,8 @@ trait GoogleTopicAdmin[F[_]] {
     */
   def create(projectTopicName: ProjectTopicName, traceId: Option[TraceId] = None): Stream[F, Unit]
 
+  def delete(projectTopicName: ProjectTopicName, traceId: Option[TraceId] = None): Stream[F, Unit]
+
   /**
     * @param projectTopicName
     * @param members can have the following values

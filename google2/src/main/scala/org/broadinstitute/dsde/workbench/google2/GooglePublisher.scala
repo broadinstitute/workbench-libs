@@ -15,6 +15,7 @@ trait GooglePublisher[F[_]] {
     * Watch out message size quota and limitations https://cloud.google.com/pubsub/quotas
     */
   def publishString: Pipe[F, String, Unit]
+
 }
 
 object GooglePublisher {

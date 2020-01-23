@@ -31,6 +31,27 @@ class GoogleTopicAdminSpec extends FlatSpec with Matchers with WorkbenchTestSuit
     }
   }
 
+  "GoogleTopicAdminInterpreter" should "be able to delete topic" in {
+    forAll{
+      (topic: ProjectTopicName) =>
+        val result = localTopicAdmin.use {
+          topicAdmin =>
+            val googleTopicAdmin = new GoogleTopicAdminInterpreter[IO](topicAdmin, GoogleTopicAdminInterpreter.defaultRetryConfig)
+            val res = for {
+              _ <- googleTopicAdmin.create(topic)
+              _ <- googleTopicAdmin.delete(topic)
+              caught = the[com.google.api.gax.rpc.NotFoundException] thrownBy {
+                topicAdmin.getTopic(topic)
+              }
+            } yield (caught.getMessage should include("NOT_FOUND"))
+
+            res.compile.lastOrError
+        }
+
+        result.unsafeRunSync()
+    }
+  }
+
   //pubsub getIamPolicy isn't implemented in emulator
 }
 

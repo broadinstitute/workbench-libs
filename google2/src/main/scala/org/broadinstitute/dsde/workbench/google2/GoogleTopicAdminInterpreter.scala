@@ -31,6 +31,13 @@ class GoogleTopicAdminInterpreter[F[_]: Logger: Sync: Timer](topicAdminClient: T
     retryHelper[Unit](createTopic, traceId, s"com.google.cloud.pubsub.v1.TopicAdminClient.createTopic($projectTopicName)")
   }
 
+  def delete(projectTopicName: ProjectTopicName, traceId: Option[TraceId] = None): Stream[F, Unit] = {
+      val loggingCtx = Map("topic" -> projectTopicName.asJson, "traceId" -> traceId.asJson)
+      val deleteTopic = Sync[F].delay(topicAdminClient.deleteTopic(projectTopicName))
+
+      retryHelper[Unit](deleteTopic, traceId, s"com.google.cloud.pubsub.v1.TopicAdminClient.deleteTopic($projectTopicName)")
+  }
+
   def createWithPublisherMembers(projectTopicName: ProjectTopicName, members: List[Identity], traceId: Option[TraceId] = None): Stream[F, Unit] = {
     val loggingCtx = Map("topic" -> projectTopicName.asJson, "traceId" -> traceId.asJson)
     val createTopic = Sync[F].delay(topicAdminClient.createTopic(projectTopicName)).void.onError {
