@@ -18,7 +18,7 @@ import scala.language.higherKinds
   *
   * We follow tagless final pattern similar to https://typelevel.org/cats-tagless/
   */
-trait GoogleDataproc[F[_]] {
+trait GoogleDataprocService[F[_]] {
   def createCluster(region: RegionName, clusterName: ClusterName, createClusterConfig: Option[CreateClusterConfig])
                    (implicit ev: ApplicativeAsk[F, TraceId]): F[CreateClusterResponse]
 
@@ -29,13 +29,13 @@ trait GoogleDataproc[F[_]] {
                 (implicit ev: ApplicativeAsk[F, TraceId]): F[Option[Cluster]]
 }
 
-object GoogleDataproc {
-  def fromCredentialPath[F[_]: Logger: Async: Timer: ContextShift](pathToCredential: String, blocker: Blocker, blockerBound: Semaphore[F], retryConfig: RetryConfig = GoogleDataprocInterpreter.defaultRetryConfig): Resource[F, GoogleDataproc[F]] = for {
+object GoogleDataprocService {
+  def fromCredentialPath[F[_]: Logger: Async: Timer: ContextShift](pathToCredential: String, blocker: Blocker, blockerBound: Semaphore[F], retryConfig: RetryConfig = GoogleDataprocInterpreter.defaultRetryConfig): Resource[F, GoogleDataprocService[F]] = for {
     credentialFile <- org.broadinstitute.dsde.workbench.util2.readFile(pathToCredential)
     client <- fromServiceAccountCrendential(ServiceAccountCredentials.fromStream(credentialFile), blocker, blockerBound, retryConfig)
   } yield client
 
-  def fromServiceAccountCrendential[F[_]: Logger: Async: Timer: ContextShift](serviceAccountCredentials: ServiceAccountCredentials, blocker: Blocker, blockerBound: Semaphore[F], retryConfig: RetryConfig = GoogleTopicAdminInterpreter.defaultRetryConfig): Resource[F, GoogleDataproc[F]] = {
+  def fromServiceAccountCrendential[F[_]: Logger: Async: Timer: ContextShift](serviceAccountCredentials: ServiceAccountCredentials, blocker: Blocker, blockerBound: Semaphore[F], retryConfig: RetryConfig = GoogleTopicAdminInterpreter.defaultRetryConfig): Resource[F, GoogleDataprocService[F]] = {
     val settings = ClusterControllerSettings.newBuilder()
       .setCredentialsProvider(FixedCredentialsProvider.create(serviceAccountCredentials))
       .build()
@@ -45,7 +45,7 @@ object GoogleDataproc {
     } yield new GoogleDataprocInterpreter[F](client, retryConfig, blocker, blockerBound)
   }
 
-  def fromApplicationDefault[F[_]: ContextShift: Timer: Async: Logger](blocker: Blocker, blockerBound: Semaphore[F], retryConfig: RetryConfig = GoogleDataprocInterpreter.defaultRetryConfig): Resource[F, GoogleDataproc[F]] = for {
+  def fromApplicationDefault[F[_]: ContextShift: Timer: Async: Logger](blocker: Blocker, blockerBound: Semaphore[F], retryConfig: RetryConfig = GoogleDataprocInterpreter.defaultRetryConfig): Resource[F, GoogleDataprocService[F]] = for {
     db <- Resource.make(
       Sync[F].delay(
         ClusterControllerClient.create()

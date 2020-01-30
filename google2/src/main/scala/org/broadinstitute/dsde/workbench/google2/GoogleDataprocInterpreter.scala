@@ -18,7 +18,7 @@ import scala.concurrent.duration._
 private[google2] class GoogleDataprocInterpreter[F[_]: Async: Logger: Timer: ContextShift](clusterControllerClient: ClusterControllerClient,
                                                                              retryConfig: RetryConfig,
                                                                              blocker: Blocker,
-                                                                             blockerBound: Semaphore[F]) extends GoogleDataproc[F] {
+                                                                             blockerBound: Semaphore[F]) extends GoogleDataprocService[F] {
 
   override def createCluster(region: RegionName, clusterName: ClusterName, createClusterConfig: Option[CreateClusterConfig])
                             (implicit ev: ApplicativeAsk[F, TraceId]): F[CreateClusterResponse] = {
