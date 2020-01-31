@@ -5,15 +5,17 @@ import cats.effect.concurrent.Semaphore
 import cats.implicits._
 import cats.mtl.ApplicativeAsk
 import com.google.api.core.ApiFutures
+import com.google.api.gax.rpc.ApiException
 import com.google.api.gax.rpc.StatusCode.Code
 import com.google.cloud.dataproc.v1._
 import com.google.common.util.concurrent.MoreExecutors
+import fs2.Stream
 import io.chrisdavenport.log4cats.Logger
 import org.broadinstitute.dsde.workbench.RetryConfig
-import fs2.Stream
 import org.broadinstitute.dsde.workbench.model.TraceId
 
 import scala.concurrent.duration._
+import scala.util.control.NonFatal
 
 private[google2] class GoogleDataprocInterpreter[F[_]: Async: Logger: Timer: ContextShift](clusterControllerClient: ClusterControllerClient,
                                                                              retryConfig: RetryConfig,
@@ -142,8 +144,8 @@ object GoogleDataprocInterpreter {
     x => x * 2,
     5,
     {
-      case e: com.google.api.gax.rpc.ApiException => e.isRetryable()
-      case other => scala.util.control.NonFatal.apply(other)
+      case e: ApiException => e.isRetryable()
+      case other => NonFatal.apply(other)
     }
   )
 }
