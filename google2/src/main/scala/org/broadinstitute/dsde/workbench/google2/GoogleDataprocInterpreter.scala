@@ -13,6 +13,7 @@ import fs2.Stream
 import io.chrisdavenport.log4cats.Logger
 import org.broadinstitute.dsde.workbench.RetryConfig
 import org.broadinstitute.dsde.workbench.model.TraceId
+import org.broadinstitute.dsde.workbench.model.google.GoogleProject
 
 import scala.concurrent.duration._
 import scala.util.control.NonFatal
@@ -22,7 +23,7 @@ private[google2] class GoogleDataprocInterpreter[F[_]: Async: Logger: Timer: Con
                                                                              blocker: Blocker,
                                                                              blockerBound: Semaphore[F]) extends GoogleDataprocService[F] {
 
-  override def createCluster(region: RegionName, clusterName: ClusterName, createClusterConfig: Option[CreateClusterConfig])
+  override def createCluster(project: GoogleProject, region: RegionName, clusterName: ClusterName, createClusterConfig: Option[CreateClusterConfig])
                             (implicit ev: ApplicativeAsk[F, TraceId]): F[CreateClusterResponse] = {
     val config: ClusterConfig = createClusterConfig.map(config => ClusterConfig
       .newBuilder
@@ -36,15 +37,15 @@ private[google2] class GoogleDataprocInterpreter[F[_]: Async: Logger: Timer: Con
 
     val cluster = Cluster
       .newBuilder()
-      .setClusterName(clusterName.asString)
+      .setClusterName(clusterName.value)
       .setConfig(config)
       .build()
 
 
     val request = CreateClusterRequest.newBuilder()
       .setCluster(cluster)
-      .setRegion(region.getRegion)
-      .setProjectId(region.getProject)
+      .setRegion(region.value)
+      .setProjectId(project.value)
       .build()
 
     val createCluster = Async[F].async[ClusterOperationMetadata]{
@@ -76,12 +77,12 @@ private[google2] class GoogleDataprocInterpreter[F[_]: Async: Logger: Timer: Con
     } yield result
   }
 
-  override def deleteCluster(region: RegionName, clusterName: ClusterName)
+  override def deleteCluster(project: GoogleProject, region: RegionName, clusterName: ClusterName)
                             (implicit ev: ApplicativeAsk[F, TraceId]): F[DeleteClusterResponse] = {
     val request = DeleteClusterRequest.newBuilder()
-      .setRegion(region.getRegion)
-      .setProjectId(region.getProject)
-      .setClusterName(clusterName.asString)
+      .setRegion(region.value)
+      .setProjectId(project.value)
+      .setClusterName(clusterName.value)
       .build()
 
     val deleteCluster = Async[F].async[ClusterOperationMetadata]{
@@ -114,12 +115,12 @@ private[google2] class GoogleDataprocInterpreter[F[_]: Async: Logger: Timer: Con
     } yield result
   }
 
-  override def getCluster(region: RegionName, clusterName: ClusterName)
+  override def getCluster(project: GoogleProject, region: RegionName, clusterName: ClusterName)
                          (implicit ev: ApplicativeAsk[F, TraceId]): F[Option[Cluster]] = {
     for {
       clusterAttempted <- blockingF(
-        Async[F].delay(clusterControllerClient.getCluster(region.getProject(), region.getRegion(), clusterName.asString)),
-        s"com.google.cloud.dataproc.v1.ClusterControllerClient.getCluster(${region.getProject()}, ${region.getRegion()}, ${clusterName})"
+        Async[F].delay(clusterControllerClient.getCluster(project.value, region.value, clusterName.value)),
+        s"com.google.cloud.dataproc.v1.ClusterControllerClient.getCluster(${project.value}, ${region.value}, ${clusterName.value})"
       ).compile.lastOrError.attempt
 
       resEither = clusterAttempted.map(c => Some(c)).leftFlatMap {

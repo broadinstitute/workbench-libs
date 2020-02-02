@@ -22,4 +22,6 @@ trait GoogleProjectDAO {
   def getLabels(projectName: String): Future[Map[String, String]]
 
   def getAncestry(projectName: String): Future[Seq[Ancestor]]
+
+  def getProjectNumber(projectName: String): Future[Option[Long]]
 }
