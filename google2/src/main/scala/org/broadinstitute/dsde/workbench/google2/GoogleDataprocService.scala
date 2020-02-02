@@ -9,7 +9,7 @@ import com.google.cloud.dataproc.v1._
 import io.chrisdavenport.log4cats.Logger
 import org.broadinstitute.dsde.workbench.RetryConfig
 import org.broadinstitute.dsde.workbench.model.TraceId
-import org.broadinstitute.dsde.workbench.model.google.GcsBucketName
+import org.broadinstitute.dsde.workbench.model.google.{GcsBucketName, GoogleProject}
 
 import scala.language.higherKinds
 
@@ -19,13 +19,13 @@ import scala.language.higherKinds
   * We follow tagless final pattern similar to https://typelevel.org/cats-tagless/
   */
 trait GoogleDataprocService[F[_]] {
-  def createCluster(region: RegionName, clusterName: ClusterName, createClusterConfig: Option[CreateClusterConfig])
+  def createCluster(project: GoogleProject, region: RegionName, clusterName: ClusterName, createClusterConfig: Option[CreateClusterConfig])
                    (implicit ev: ApplicativeAsk[F, TraceId]): F[CreateClusterResponse]
 
-  def deleteCluster(region: RegionName, clusterName: ClusterName)
+  def deleteCluster(project: GoogleProject, region: RegionName, clusterName: ClusterName)
                    (implicit ev: ApplicativeAsk[F, TraceId]): F[DeleteClusterResponse]
 
-  def getCluster(region: RegionName, clusterName: ClusterName)
+  def getCluster(project: GoogleProject, region: RegionName, clusterName: ClusterName)
                 (implicit ev: ApplicativeAsk[F, TraceId]): F[Option[Cluster]]
 }
 
@@ -54,7 +54,7 @@ object GoogleDataprocService {
   } yield new GoogleDataprocInterpreter[F](db, retryConfig, blocker, blockerBound)
 }
 
-final case class ClusterName(asString: String) extends AnyVal
+final case class ClusterName(value: String) extends AnyVal
 final case class ClusterErrorDetails(code: Int, message: Option[String])
 
 sealed abstract class CreateClusterResponse
