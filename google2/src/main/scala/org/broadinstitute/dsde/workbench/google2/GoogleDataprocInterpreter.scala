@@ -5,17 +5,14 @@ import cats.effect.concurrent.Semaphore
 import cats.implicits._
 import cats.mtl.ApplicativeAsk
 import com.google.api.core.ApiFutures
-import com.google.api.gax.rpc.ApiException
 import com.google.api.gax.rpc.StatusCode.Code
 import com.google.cloud.dataproc.v1._
 import com.google.common.util.concurrent.MoreExecutors
 import io.chrisdavenport.log4cats.Logger
 import org.broadinstitute.dsde.workbench.RetryConfig
+import org.broadinstitute.dsde.workbench.google2.util.RetryPredicates._
 import org.broadinstitute.dsde.workbench.model.TraceId
 import org.broadinstitute.dsde.workbench.model.google.GoogleProject
-
-import scala.concurrent.duration._
-import scala.util.control.NonFatal
 
 private[google2] class GoogleDataprocInterpreter[F[_]: Async: Logger: Timer: ContextShift](
   clusterControllerClient: ClusterControllerClient,
@@ -123,21 +120,10 @@ private[google2] class GoogleDataprocInterpreter[F[_]: Async: Logger: Timer: Con
     implicit ev: ApplicativeAsk[F, TraceId]
   ): F[Option[Cluster]] =
     retryF(
-      recoverF(Async[F].delay(clusterControllerClient.getCluster(project.value, region.value, clusterName.value))),
+      recoverF(Async[F].delay(clusterControllerClient.getCluster(project.value, region.value, clusterName.value)), whenStatusCode(404)),
       s"com.google.cloud.dataproc.v1.ClusterControllerClient.getCluster(${project.value}, ${region.value}, ${clusterName.value})"
     )
 
   private def retryF[A](fa: F[A], loggingMsg: String)(implicit ev: ApplicativeAsk[F, TraceId]): F[A] =
     tracedRetryGoogleF(retryConfig)(blockerBound.withPermit(blocker.blockOn(fa)), loggingMsg).compile.lastOrError
-}
-
-object GoogleDataprocInterpreter {
-  val defaultRetryConfig = RetryConfig(
-    org.broadinstitute.dsde.workbench.util2.addJitter(1 seconds, 1 seconds),
-    x => x * 2,
-    5, {
-      case e: ApiException => e.isRetryable()
-      case other           => NonFatal.apply(other)
-    }
-  )
 }

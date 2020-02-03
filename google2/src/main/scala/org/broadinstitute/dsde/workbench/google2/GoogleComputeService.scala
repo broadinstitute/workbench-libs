@@ -9,6 +9,7 @@ import com.google.auth.oauth2.GoogleCredentials
 import com.google.cloud.compute.v1._
 import io.chrisdavenport.log4cats.Logger
 import org.broadinstitute.dsde.workbench.RetryConfig
+import org.broadinstitute.dsde.workbench.google2.util.RetryPredicates
 import org.broadinstitute.dsde.workbench.model.google.GoogleProject
 import org.broadinstitute.dsde.workbench.model.{TraceId, WorkbenchEmail}
 
@@ -74,7 +75,7 @@ object GoogleComputeService {
     pathToCredential: String,
     blocker: Blocker,
     blockerBound: Semaphore[F],
-    retryConfig: RetryConfig = GoogleComputeInterpreter.defaultRetryConfig
+    retryConfig: RetryConfig = RetryPredicates.standardRetryConfig
   ): Resource[F, GoogleComputeService[F]] =
     for {
       credential <- credentialResource(pathToCredential)
@@ -86,7 +87,7 @@ object GoogleComputeService {
     googleCredentials: GoogleCredentials,
     blocker: Blocker,
     blockerBound: Semaphore[F],
-    retryConfig: RetryConfig = GoogleComputeInterpreter.defaultRetryConfig
+    retryConfig: RetryConfig
   ): Resource[F, GoogleComputeService[F]] = {
     val credentialsProvider = FixedCredentialsProvider.create(googleCredentials)
 

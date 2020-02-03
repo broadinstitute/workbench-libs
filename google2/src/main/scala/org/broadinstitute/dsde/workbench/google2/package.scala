@@ -82,7 +82,7 @@ package object google2 {
     Resource.make(Sync[F].delay(resource))(c => Sync[F].delay(c.close()))
 
   // Recovers a F[A] to an F[Option[A]] depending on predicate
-  def recoverF[F[_]: Sync, A](fa: F[A], pred: Throwable => Boolean = GoogleComputeInterpreter.is404): F[Option[A]] =
+  def recoverF[F[_]: Sync, A](fa: F[A], pred: Throwable => Boolean): F[Option[A]] =
     fa.map(Option(_)).recover { case e if pred(e) => None }
 }
 
