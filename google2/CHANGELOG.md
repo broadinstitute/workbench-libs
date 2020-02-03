@@ -3,12 +3,12 @@
 This file documents changes to the `workbench-google2` library, including notes on how to upgrade to new versions.
 
 ## 0.7
-Changed
+Changed:
 - Renamed `GoogleDataproc` to `GoogleDataprocService`
 - Updated `GoogleDataprocService` methods to take a `GoogleProject
 - Added `scalafmt` plugin and formatted the `google2` module
 
-Added
+Added:
 - `GoogleComputeService` and `GoogleComputeInterpreter`
 - `com.google.cloud" % "google-cloud-compute` SBT dependency
 
