@@ -120,7 +120,8 @@ private[google2] class GoogleDataprocInterpreter[F[_]: Async: Logger: Timer: Con
     implicit ev: ApplicativeAsk[F, TraceId]
   ): F[Option[Cluster]] =
     retryF(
-      recoverF(Async[F].delay(clusterControllerClient.getCluster(project.value, region.value, clusterName.value)), whenStatusCode(404)),
+      recoverF(Async[F].delay(clusterControllerClient.getCluster(project.value, region.value, clusterName.value)),
+               whenStatusCode(404)),
       s"com.google.cloud.dataproc.v1.ClusterControllerClient.getCluster(${project.value}, ${region.value}, ${clusterName.value})"
     )
 

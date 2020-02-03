@@ -15,26 +15,25 @@ object RetryPredicates {
     standardRetryPredicate
   )
 
-  def retryConfigWithPredicates(predicates: (Throwable => Boolean)*): RetryConfig = {
+  def retryConfigWithPredicates(predicates: (Throwable => Boolean)*): RetryConfig =
     standardRetryConfig.copy(retryable = combine(predicates))
-  }
 
   /**
-    * Retries anything google thinks is ok to retry plus any IOException
-    * @return
-    */
+   * Retries anything google thinks is ok to retry plus any IOException
+   * @return
+   */
   def standardRetryPredicate: Throwable => Boolean = {
     case e: BaseServiceException => e.isRetryable
-    case _: IOException => true
-    case _ => false
+    case _: IOException          => true
+    case _                       => false
   }
 
   def whenStatusCode(code: Int): Throwable => Boolean = {
     case e: BaseServiceException => e.getCode == code
-    case _ => false
+    case _                       => false
   }
 
   def combine(predicates: Seq[Throwable => Boolean]): Throwable => Boolean = { throwable =>
-    predicates.map( _(throwable) ).foldLeft(false)(_ || _)
+    predicates.map(_(throwable)).foldLeft(false)(_ || _)
   }
 }
