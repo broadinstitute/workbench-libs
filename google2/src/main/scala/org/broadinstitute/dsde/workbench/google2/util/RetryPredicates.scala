@@ -4,6 +4,7 @@ import java.io.IOException
 
 import com.google.cloud.BaseServiceException
 import org.broadinstitute.dsde.workbench.RetryConfig
+
 import scala.concurrent.duration._
 
 object RetryPredicates {

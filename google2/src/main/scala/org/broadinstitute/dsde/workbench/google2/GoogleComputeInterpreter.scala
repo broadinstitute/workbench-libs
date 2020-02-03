@@ -5,16 +5,13 @@ import cats.effect.concurrent.Semaphore
 import cats.effect.{Async, Blocker, ContextShift, Timer}
 import cats.implicits._
 import cats.mtl.ApplicativeAsk
-import com.google.api.gax.rpc.ApiException
-import com.google.api.gax.rpc.StatusCode.Code
 import com.google.cloud.compute.v1._
 import io.chrisdavenport.log4cats.Logger
+import org.broadinstitute.dsde.workbench.google2.util.RetryPredicates._
 import org.broadinstitute.dsde.workbench.model.google.GoogleProject
 import org.broadinstitute.dsde.workbench.model.{TraceId, WorkbenchException}
 
 import scala.collection.JavaConverters._
-import scala.concurrent.duration._
-import scala.util.control.NonFatal
 
 private[google2] class GoogleComputeInterpreter[F[_]: Async: Logger: Timer: ContextShift](
   instanceClient: InstanceClient,
@@ -52,7 +49,7 @@ private[google2] class GoogleComputeInterpreter[F[_]: Async: Logger: Timer: Cont
   ): F[Option[Instance]] = {
     val projectZoneInstanceName = ProjectZoneInstanceName.of(instanceName.value, project.value, zone.value)
     retryF(
-      recoverF(Async[F].delay(instanceClient.getInstance(projectZoneInstanceName))),
+      recoverF(Async[F].delay(instanceClient.getInstance(projectZoneInstanceName)), whenStatusCode(404)),
       s"com.google.cloud.compute.v1.InstanceClient.getInstance(${projectZoneInstanceName.toString})"
     )
   }
@@ -123,7 +120,7 @@ private[google2] class GoogleComputeInterpreter[F[_]: Async: Logger: Timer: Cont
   ): F[Option[Firewall]] = {
     val projectFirewallRuleName = ProjectGlobalFirewallName.of(firewallRuleName.value, project.value)
     retryF(
-      recoverF(Async[F].delay(firewallClient.getFirewall(projectFirewallRuleName))),
+      recoverF(Async[F].delay(firewallClient.getFirewall(projectFirewallRuleName)), whenStatusCode(404)),
       s"com.google.cloud.compute.v1.FirewallClient.insertFirewall(${project.value}, ${firewallRuleName.value})"
     )
   }
@@ -171,7 +168,7 @@ private[google2] class GoogleComputeInterpreter[F[_]: Async: Logger: Timer: Cont
   ): F[Option[MachineType]] = {
     val projectZoneMachineTypeName = ProjectZoneMachineTypeName.of(machineTypeName.value, project.value, zone.value)
     retryF(
-      recoverF(Async[F].delay(machineTypeClient.getMachineType(projectZoneMachineTypeName))),
+      recoverF(Async[F].delay(machineTypeClient.getMachineType(projectZoneMachineTypeName)), whenStatusCode(404)),
       s"com.google.cloud.compute.v1.MachineTypeClient.getMachineType(${projectZoneMachineTypeName.toString})"
     )
   }
@@ -186,22 +183,4 @@ private[google2] class GoogleComputeInterpreter[F[_]: Async: Logger: Timer: Cont
   private def retryF[A](fa: F[A], loggingMsg: String)(implicit ev: ApplicativeAsk[F, TraceId]): F[A] =
     tracedRetryGoogleF(retryConfig)(blockerBound.withPermit(blocker.blockOn(fa)), loggingMsg).compile.lastOrError
 
-}
-object GoogleComputeInterpreter {
-  val isRetryable: Throwable => Boolean = {
-    case e: ApiException => e.isRetryable()
-    case other           => NonFatal(other)
-  }
-
-  val is404: Throwable => Boolean = {
-    case e: ApiException if e.getStatusCode.getCode == Code.NOT_FOUND => true
-    case _                                                            => false
-  }
-
-  val defaultRetryConfig = RetryConfig(
-    org.broadinstitute.dsde.workbench.util2.addJitter(1 seconds, 1 seconds),
-    x => x * 2,
-    5,
-    isRetryable
-  )
 }

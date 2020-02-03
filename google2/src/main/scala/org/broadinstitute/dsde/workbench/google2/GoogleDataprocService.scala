@@ -9,6 +9,7 @@ import com.google.auth.oauth2.GoogleCredentials
 import com.google.cloud.dataproc.v1._
 import io.chrisdavenport.log4cats.Logger
 import org.broadinstitute.dsde.workbench.RetryConfig
+import org.broadinstitute.dsde.workbench.google2.util.RetryPredicates
 import org.broadinstitute.dsde.workbench.model.TraceId
 import org.broadinstitute.dsde.workbench.model.google.{GcsBucketName, GoogleProject}
 
@@ -42,7 +43,7 @@ object GoogleDataprocService {
     pathToCredential: String,
     blocker: Blocker,
     blockerBound: Semaphore[F],
-    retryConfig: RetryConfig = GoogleDataprocInterpreter.defaultRetryConfig
+    retryConfig: RetryConfig = RetryPredicates.standardRetryConfig
   ): Resource[F, GoogleDataprocService[F]] =
     for {
       credential <- credentialResource(pathToCredential)
@@ -54,7 +55,7 @@ object GoogleDataprocService {
     googleCredentials: GoogleCredentials,
     blocker: Blocker,
     blockerBound: Semaphore[F],
-    retryConfig: RetryConfig = GoogleTopicAdminInterpreter.defaultRetryConfig
+    retryConfig: RetryConfig
   ): Resource[F, GoogleDataprocService[F]] = {
     val settings = ClusterControllerSettings
       .newBuilder()
