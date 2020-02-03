@@ -11,12 +11,13 @@ import com.google.common.util.concurrent.MoreExecutors
 import com.google.protobuf.ByteString
 import com.google.pubsub.v1.{ProjectTopicName, PubsubMessage}
 import fs2.Pipe
-import io.chrisdavenport.log4cats.Logger
+import io.chrisdavenport.log4cats.StructuredLogger
 import io.circe.Encoder
 import io.circe.syntax._
+import org.broadinstitute.dsde.workbench.google2.JsonCodec.traceIdEncoder
 import org.broadinstitute.dsde.workbench.RetryConfig
 
-private[google2] class GooglePublisherInterpreter[F[_]: Async: Timer: Logger](
+private[google2] class GooglePublisherInterpreter[F[_]: Async: Timer: StructuredLogger](
                                                                                publisher: Publisher,
                                                                                retryConfig: RetryConfig
                                                                              ) extends GooglePublisher[F] {
@@ -24,6 +25,14 @@ private[google2] class GooglePublisherInterpreter[F[_]: Async: Timer: Logger](
     in.flatMap {
       message =>
         publishMessage(message.asJson.noSpaces) //This will turn message case class into raw json string
+    }
+  }
+
+  def tracedPublish[MessageType: Encoder]: Pipe[F, Message[MessageType], Unit] = in => {
+    in.flatMap {
+      message =>
+        val msg = message.traceId.fold(message.msg.asJson)(tid => message.msg.asJson.deepMerge(Map("traceId" -> tid).asJson))
+        publishMessage(msg.noSpaces) //This will turn message case class into raw json string
     }
   }
 
@@ -48,7 +57,7 @@ private[google2] class GooglePublisherInterpreter[F[_]: Async: Timer: Logger](
 }
 
 object GooglePublisherInterpreter {
-  def apply[F[_]: Async: Timer: ContextShift: Logger](
+  def apply[F[_]: Async: Timer: ContextShift: StructuredLogger](
                                                        publisher: Publisher,
                                                        retryConfig: RetryConfig
                                                      ): GooglePublisherInterpreter[F] = new GooglePublisherInterpreter(publisher, retryConfig)

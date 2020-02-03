@@ -26,7 +26,7 @@ import org.broadinstitute.dsde.workbench.model.google.GcsBucketName
 import org.broadinstitute.dsde.workbench.google2.GcsBlobName
 implicit val cs = IO.contextShift(global)
 implicit val t = IO.timer(global)
-implicit def unsafeLogger = Slf4jLogger.getLogger[IO]  
+implicit def logger = Slf4jLogger.getLogger[IO]  
 ```
 
 `scala> GoogleStorageService.resource[IO]("credentials.json")`

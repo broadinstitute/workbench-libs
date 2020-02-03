@@ -13,10 +13,10 @@ import com.google.common.util.concurrent.MoreExecutors
 import com.google.pubsub.v1.{PubsubMessage, _}
 import fs2.Stream
 import fs2.concurrent.Queue
-import io.chrisdavenport.log4cats.Logger
+import io.chrisdavenport.log4cats.StructuredLogger
 import io.circe.Decoder
 import io.circe.parser._
-
+import org.broadinstitute.dsde.workbench.model.TraceId
 import scala.concurrent.duration.FiniteDuration
 
 private[google2] class GoogleSubscriberInterpreter[F[_]: Async: Timer: ContextShift, MessageType](
@@ -65,25 +65,36 @@ object GoogleSubscriberInterpreter {
                                                   queue: fs2.concurrent.Queue[F, Event[MessageType]]
                                                 ): GoogleSubscriberInterpreter[F, MessageType] = new GoogleSubscriberInterpreter[F, MessageType](subscriber, queue)
 
-  def receiver[F[_]: Effect: Logger, MessageType: Decoder](queue: fs2.concurrent.Queue[F, Event[MessageType]]): MessageReceiver = new MessageReceiver() {
+  private[google2] def receiver[F[_]: Effect: StructuredLogger, MessageType: Decoder](queue: fs2.concurrent.Queue[F, Event[MessageType]]): MessageReceiver = new MessageReceiver() {
+    import org.broadinstitute.dsde.workbench.google2.JsonCodec.traceIdDecoder
+
+    implicit val messageDecoder: Decoder[Message[MessageType]] = Decoder.instance(
+      x =>
+        for {
+          msg <- x.as[MessageType]
+          traceId <- x.downField("traceId").as[Option[TraceId]]
+        } yield Message(traceId, msg)
+    )
+
     override def receiveMessage(message: PubsubMessage, consumer: AckReplyConsumer): Unit = {
       val result = for {
-        json <- parse(message.getData.toStringUtf8)
-        message <- json.as[MessageType]
-        _ <- queue.enqueue1(Event(message, consumer)).attempt.toIO.unsafeRunSync()
+        json <- Effect[F].fromEither(parse(message.getData.toStringUtf8))
+        message <- Effect[F].fromEither(json.as[Message[MessageType]])
+        r <- queue.enqueue1(Event(message.traceId, message.msg, consumer)).attempt
+        loggingCtx = Map("traceId" -> message.traceId.map(_.asString).getOrElse(""))
+        _ <- r match {
+          case Left(e) =>
+            StructuredLogger[F].info(loggingCtx)(s"failed to enqueue $message to internal Queue due to $e") >> Effect[F].delay(consumer.nack()) //pubsub will resend the message up to ackDeadlineSeconds (this is configed during subscription creation
+          case Right(_) =>
+            StructuredLogger[F].info(loggingCtx)(s"successfully to enqueue $message")
+        }
       } yield ()
 
-      result match {
-        case Left(e) =>
-          Logger[F].info(s"failed to publish $message to internal Queue due to $e")
-          consumer.nack() //pubsub will resend the message up to ackDeadlineSeconds (this is configed during subscription creation
-        case Right(_) =>
-          ()
-      }
+      result.toIO.unsafeRunSync()
     }
   }
 
-  def subscriber[F[_]: Effect: Logger, MessageType: Decoder](subscriberConfig: SubscriberConfig, queue: fs2.concurrent.Queue[F, Event[MessageType]]): Resource[F, Subscriber] = {
+  def subscriber[F[_]: Effect: StructuredLogger, MessageType: Decoder](subscriberConfig: SubscriberConfig, queue: fs2.concurrent.Queue[F, Event[MessageType]]): Resource[F, Subscriber] = {
     val subscription = ProjectSubscriptionName.of(subscriberConfig.projectTopicName.getProject, subscriberConfig.projectTopicName.getTopic)
 
     for {
@@ -101,7 +112,7 @@ object GoogleSubscriberInterpreter {
     } yield sub
   }
 
-  private def subscriberResource[MessageType: Decoder, F[_] : Effect : Logger](queue: Queue[F, Event[MessageType]], subscription: ProjectSubscriptionName, credential: ServiceAccountCredentials, flowControlSettings: Option[FlowControlSettings]): Resource[F, Subscriber] = {
+  private def subscriberResource[MessageType: Decoder, F[_] : Effect : StructuredLogger](queue: Queue[F, Event[MessageType]], subscription: ProjectSubscriptionName, credential: ServiceAccountCredentials, flowControlSettings: Option[FlowControlSettings]): Resource[F, Subscriber] = {
     val subscriber = for {
       builder <- Sync[F].delay(Subscriber
         .newBuilder(subscription, receiver(queue))
@@ -115,7 +126,7 @@ object GoogleSubscriberInterpreter {
     Resource.make(subscriber)(s => Sync[F].delay(s.stopAsync()))
   }
 
-  private def createSubscription[MessageType: Decoder, F[_] : Effect : Logger](subsriberConfig: SubscriberConfig, subscription: ProjectSubscriptionName, subscriptionAdminClient: SubscriptionAdminClient) = {
+  private def createSubscription[MessageType: Decoder, F[_] : Effect : StructuredLogger](subsriberConfig: SubscriberConfig, subscription: ProjectSubscriptionName, subscriptionAdminClient: SubscriptionAdminClient) = {
     Resource.liftF(Async[F].delay(
       subscriptionAdminClient.createSubscription(subscription, subsriberConfig.projectTopicName, PushConfig.getDefaultInstance, subsriberConfig.ackDeadLine.toSeconds.toInt)
     ).void.recover {
@@ -123,7 +134,7 @@ object GoogleSubscriberInterpreter {
     })
   }
 
-  private def subscriptionAdminClientResource[MessageType: Decoder, F[_] : Effect : Logger](credential: ServiceAccountCredentials) = {
+  private def subscriptionAdminClientResource[MessageType: Decoder, F[_] : Effect : StructuredLogger](credential: ServiceAccountCredentials) = {
     Resource.make[F, SubscriptionAdminClient](Async[F].delay(
       SubscriptionAdminClient.create(
         SubscriptionAdminSettings.newBuilder()
@@ -135,4 +146,5 @@ object GoogleSubscriberInterpreter {
 
 final case class FlowControlSettingsConfig(maxOutstandingElementCount: Long, maxOutstandingRequestBytes: Long)
 final case class SubscriberConfig(pathToCredentialJson: String, projectTopicName: ProjectTopicName, ackDeadLine: FiniteDuration, flowControlSettingsConfig: Option[FlowControlSettingsConfig])
-final case class Event[A](msg: A, consumer: AckReplyConsumer)
+final case class Message[A](traceId: Option[TraceId], msg: A)
+final case class Event[A](traceId: Option[TraceId] = None, msg: A, consumer: AckReplyConsumer)

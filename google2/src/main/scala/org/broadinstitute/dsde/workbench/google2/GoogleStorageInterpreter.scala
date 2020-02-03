@@ -14,7 +14,7 @@ import com.google.cloud.storage.Storage.{BlobListOption, BlobSourceOption, BlobT
 import com.google.cloud.storage.{Acl, Blob, BlobId, BlobInfo, BucketInfo, Storage, StorageOptions}
 import com.google.cloud.{Identity, Policy, Role}
 import fs2.{Stream, text}
-import io.chrisdavenport.log4cats.Logger
+import io.chrisdavenport.log4cats.{Logger, StructuredLogger}
 import io.circe.Decoder
 import io.circe.fs2._
 import org.broadinstitute.dsde.workbench.model.{TraceId, WorkbenchException}
@@ -22,7 +22,7 @@ import org.broadinstitute.dsde.workbench.model.google.{GcsBucketName, GcsObjectN
 
 import scala.collection.JavaConverters._
 
-private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer: Async: Logger](db: Storage, blocker: Blocker, blockerBound: Option[Semaphore[F]]) extends GoogleStorageService[F] {
+private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer: Async: StructuredLogger](db: Storage, blocker: Blocker, blockerBound: Option[Semaphore[F]]) extends GoogleStorageService[F] {
   override def listObjectsWithPrefix(bucketName: GcsBucketName, objectNamePrefix: String, isRecursive: Boolean = false, maxPageSize: Long = 1000, traceId: Option[TraceId] = None, retryConfig: RetryConfig): Stream[F, GcsObjectName] = {
     listBlobsWithPrefix(bucketName, objectNamePrefix, isRecursive, maxPageSize, traceId, retryConfig).map(blob => GcsObjectName(blob.getName, Instant.ofEpochMilli(blob.getCreateTime)))
   }
@@ -267,7 +267,7 @@ private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer: Async
 }
 
 object GoogleStorageInterpreter {
-  def apply[F[_]: Timer: Async: ContextShift: Logger](db: Storage, blocker: Blocker, blockerBound: Option[Semaphore[F]]): GoogleStorageInterpreter[F] =
+  def apply[F[_]: Timer: Async: ContextShift: StructuredLogger](db: Storage, blocker: Blocker, blockerBound: Option[Semaphore[F]]): GoogleStorageInterpreter[F] =
     new GoogleStorageInterpreter(db, blocker, blockerBound)
 
   def storage[F[_]: Sync: ContextShift](
