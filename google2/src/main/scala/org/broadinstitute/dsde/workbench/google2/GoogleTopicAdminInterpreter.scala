@@ -8,7 +8,7 @@ import com.google.cloud.Identity
 import com.google.cloud.pubsub.v1.{TopicAdminClient, TopicAdminSettings}
 import com.google.iam.v1.{Binding, Policy}
 import com.google.pubsub.v1.ProjectTopicName
-import io.chrisdavenport.log4cats.Logger
+import io.chrisdavenport.log4cats.{Logger, StructuredLogger}
 import org.broadinstitute.dsde.workbench.RetryConfig
 
 import scala.concurrent.duration._
@@ -18,7 +18,7 @@ import io.circe.syntax._
 import JsonCodec._
 import org.broadinstitute.dsde.workbench.model.TraceId
 
-class GoogleTopicAdminInterpreter[F[_]: Logger: Sync: Timer](topicAdminClient: TopicAdminClient, retryConfig: RetryConfig) extends GoogleTopicAdmin[F] {
+class GoogleTopicAdminInterpreter[F[_]: StructuredLogger: Sync: Timer](topicAdminClient: TopicAdminClient, retryConfig: RetryConfig) extends GoogleTopicAdmin[F] {
   def retryHelper[A]: (F[A], Option[TraceId], String) => Stream[F, A] = retryGoogleF[F, A](retryConfig)
 
   def create(projectTopicName: ProjectTopicName, traceId: Option[TraceId] = None): Stream[F, Unit] = {

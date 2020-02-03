@@ -9,10 +9,13 @@ Changed
 - Remove `LineBacker` usage
 - Add arguments to `insertBucket`
 - Fix `scala.MatchError` from `handleErrorWith`
-- Add `delete` function to `GoogleTopicAdmin` trait and implementation
+- Use `io.chrisdavenport.log4cats.StructuredLogger` instead of `io.chrisdavenport.log4cats.Logger`
 
 Add
 - Add `GoogleDataproc` and `GoogleDataprocInterpreter`
+- Add `tracedPublish` to `GooglePublisher[F]`
+- Log messages with traceId in `GoogleSubscriberInterpreter`
+- Add `delete` function to `GoogleTopicAdmin` trait and implementation
 
 SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.6-c91d96b"`
 

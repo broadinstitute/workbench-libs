@@ -8,17 +8,17 @@ import com.google.api.core.ApiFutures
 import com.google.api.gax.rpc.StatusCode.Code
 import com.google.cloud.dataproc.v1._
 import com.google.common.util.concurrent.MoreExecutors
-import io.chrisdavenport.log4cats.Logger
+import io.chrisdavenport.log4cats.StructuredLogger
 import org.broadinstitute.dsde.workbench.RetryConfig
 import fs2.Stream
 import org.broadinstitute.dsde.workbench.model.TraceId
 
 import scala.concurrent.duration._
 
-private[google2] class GoogleDataprocInterpreter[F[_]: Async: Logger: Timer: ContextShift](clusterControllerClient: ClusterControllerClient,
-                                                                             retryConfig: RetryConfig,
-                                                                             blocker: Blocker,
-                                                                             blockerBound: Semaphore[F]) extends GoogleDataproc[F] {
+private[google2] class GoogleDataprocInterpreter[F[_]: Async: StructuredLogger: Timer: ContextShift](clusterControllerClient: ClusterControllerClient,
+                                                                                                     retryConfig: RetryConfig,
+                                                                                                     blocker: Blocker,
+                                                                                                     blockerBound: Semaphore[F]) extends GoogleDataproc[F] {
 
   override def createCluster(region: RegionName, clusterName: ClusterName, createClusterConfig: Option[CreateClusterConfig])
                             (implicit ev: ApplicativeAsk[F, TraceId]): F[CreateClusterResponse] = {
