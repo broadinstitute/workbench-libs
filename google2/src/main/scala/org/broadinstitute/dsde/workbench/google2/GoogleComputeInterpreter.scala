@@ -49,7 +49,10 @@ private[google2] class GoogleComputeInterpreter[F[_]: Async: Logger: Timer: Cont
   ): F[Option[Instance]] = {
     val projectZoneInstanceName = ProjectZoneInstanceName.of(instanceName.value, project.value, zone.value)
     retryF(
-      recoverF(Async[F].delay(instanceClient.getInstance(projectZoneInstanceName)), whenStatusCode(404)),
+      recoverF(
+        Async[F].delay(instanceClient.getInstance(projectZoneInstanceName)),
+        whenStatusCode(404)
+      ),
       s"com.google.cloud.compute.v1.InstanceClient.getInstance(${projectZoneInstanceName.toString})"
     )
   }
@@ -80,7 +83,7 @@ private[google2] class GoogleComputeInterpreter[F[_]: Async: Logger: Timer: Cont
                                    metadata: Map[String, String])(implicit ev: ApplicativeAsk[F, TraceId]): F[Unit] = {
     val projectZoneInstanceName = ProjectZoneInstanceName.of(instanceName.value, project.value, zone.value)
     val readAndUpdate = for {
-      instanceOpt <- Async[F].delay(Option(instanceClient.getInstance(projectZoneInstanceName)))
+      instanceOpt <- recoverF(Async[F].delay(instanceClient.getInstance(projectZoneInstanceName)), whenStatusCode(404))
       instance <- instanceOpt.fold(
         Async[F]
           .raiseError[Instance](new WorkbenchException(s"Instance not found: ${projectZoneInstanceName.toString}"))
@@ -120,7 +123,10 @@ private[google2] class GoogleComputeInterpreter[F[_]: Async: Logger: Timer: Cont
   ): F[Option[Firewall]] = {
     val projectFirewallRuleName = ProjectGlobalFirewallName.of(firewallRuleName.value, project.value)
     retryF(
-      recoverF(Async[F].delay(firewallClient.getFirewall(projectFirewallRuleName)), whenStatusCode(404)),
+      recoverF(
+        Async[F].delay(firewallClient.getFirewall(projectFirewallRuleName)),
+        whenStatusCode(404)
+      ),
       s"com.google.cloud.compute.v1.FirewallClient.insertFirewall(${project.value}, ${firewallRuleName.value})"
     )
   }
@@ -179,7 +185,6 @@ private[google2] class GoogleComputeInterpreter[F[_]: Async: Logger: Timer: Cont
   private def buildRegionUri(googleProject: GoogleProject, regionName: RegionName): String =
     s"https://www.googleapis.com/compute/v1/projects/${googleProject.value}/regions/${regionName.value}"
 
-  // Retries an F[A] depending on a RetryConfig, logging each attempt. Returns the last attempt.
   private def retryF[A](fa: F[A], loggingMsg: String)(implicit ev: ApplicativeAsk[F, TraceId]): F[A] =
     tracedRetryGoogleF(retryConfig)(blockerBound.withPermit(blocker.blockOn(fa)), loggingMsg).compile.lastOrError
 
