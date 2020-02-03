@@ -7,8 +7,7 @@ import cats.implicits._
 import cats.mtl.ApplicativeAsk
 import com.google.api.gax.rpc.ApiException
 import com.google.api.gax.rpc.StatusCode.Code
-import com.google.cloud.compute.v1.{ProjectZoneInstanceName, _}
-import fs2.Stream
+import com.google.cloud.compute.v1._
 import io.chrisdavenport.log4cats.Logger
 import org.broadinstitute.dsde.workbench.model.google.GoogleProject
 import org.broadinstitute.dsde.workbench.model.{TraceId, WorkbenchException}
@@ -17,16 +16,20 @@ import scala.collection.JavaConverters._
 import scala.concurrent.duration._
 import scala.util.control.NonFatal
 
-class GoogleComputeInterpreter[F[_]: Async: Logger: Timer: ContextShift](instanceClient: InstanceClient,
-                                                                         firewallClient: FirewallClient,
-                                                                         diskClient: DiskClient,
-                                                                         zoneClient: ZoneClient,
-                                                                         machineTypeClient: MachineTypeClient,
-                                                                         retryConfig: RetryConfig,
-                                                                         blocker: Blocker,
-                                                                         blockerBound: Semaphore[F]) extends GoogleComputeService[F] {
+private[google2] class GoogleComputeInterpreter[F[_]: Async: Logger: Timer: ContextShift](
+  instanceClient: InstanceClient,
+  firewallClient: FirewallClient,
+  diskClient: DiskClient,
+  zoneClient: ZoneClient,
+  machineTypeClient: MachineTypeClient,
+  retryConfig: RetryConfig,
+  blocker: Blocker,
+  blockerBound: Semaphore[F]
+) extends GoogleComputeService[F] {
 
-  override def createInstance(project: GoogleProject, zone: ZoneName, instance: Instance)(implicit ev: ApplicativeAsk[F, TraceId]): F[Operation] = {
+  override def createInstance(project: GoogleProject, zone: ZoneName, instance: Instance)(
+    implicit ev: ApplicativeAsk[F, TraceId]
+  ): F[Operation] = {
     val projectZone = ProjectZoneName.of(project.value, zone.value)
     retryF(
       Async[F].delay(instanceClient.insertInstance(projectZone, instance)),
@@ -34,7 +37,9 @@ class GoogleComputeInterpreter[F[_]: Async: Logger: Timer: ContextShift](instanc
     )
   }
 
-  override def deleteInstance(project: GoogleProject, zone: ZoneName, instanceName: InstanceName)(implicit ev: ApplicativeAsk[F, TraceId]): F[Operation] = {
+  override def deleteInstance(project: GoogleProject, zone: ZoneName, instanceName: InstanceName)(
+    implicit ev: ApplicativeAsk[F, TraceId]
+  ): F[Operation] = {
     val projectZoneInstanceName = ProjectZoneInstanceName.of(instanceName.value, project.value, zone.value)
     retryF(
       Async[F].delay(instanceClient.deleteInstance(projectZoneInstanceName)),
@@ -42,7 +47,9 @@ class GoogleComputeInterpreter[F[_]: Async: Logger: Timer: ContextShift](instanc
     )
   }
 
-  override def getInstance(project: GoogleProject, zone: ZoneName, instanceName: InstanceName)(implicit ev: ApplicativeAsk[F, TraceId]): F[Option[Instance]] = {
+  override def getInstance(project: GoogleProject, zone: ZoneName, instanceName: InstanceName)(
+    implicit ev: ApplicativeAsk[F, TraceId]
+  ): F[Option[Instance]] = {
     val projectZoneInstanceName = ProjectZoneInstanceName.of(instanceName.value, project.value, zone.value)
     retryF(
       recoverF(Async[F].delay(instanceClient.getInstance(projectZoneInstanceName))),
@@ -50,7 +57,9 @@ class GoogleComputeInterpreter[F[_]: Async: Logger: Timer: ContextShift](instanc
     )
   }
 
-  override def stopInstance(project: GoogleProject, zone: ZoneName, instanceName: InstanceName)(implicit ev: ApplicativeAsk[F, TraceId]): F[Operation] = {
+  override def stopInstance(project: GoogleProject, zone: ZoneName, instanceName: InstanceName)(
+    implicit ev: ApplicativeAsk[F, TraceId]
+  ): F[Operation] = {
     val projectZoneInstanceName = ProjectZoneInstanceName.of(instanceName.value, project.value, zone.value)
     retryF(
       Async[F].delay(instanceClient.stopInstance(projectZoneInstanceName)),
@@ -58,7 +67,9 @@ class GoogleComputeInterpreter[F[_]: Async: Logger: Timer: ContextShift](instanc
     )
   }
 
-  override def startInstance(project: GoogleProject, zone: ZoneName, instanceName: InstanceName)(implicit ev: ApplicativeAsk[F, TraceId]): F[Operation] = {
+  override def startInstance(project: GoogleProject, zone: ZoneName, instanceName: InstanceName)(
+    implicit ev: ApplicativeAsk[F, TraceId]
+  ): F[Operation] = {
     val projectZoneInstanceName = ProjectZoneInstanceName.of(instanceName.value, project.value, zone.value)
     retryF(
       Async[F].delay(instanceClient.startInstance(projectZoneInstanceName)),
@@ -66,20 +77,29 @@ class GoogleComputeInterpreter[F[_]: Async: Logger: Timer: ContextShift](instanc
     )
   }
 
-  override def addInstanceMetadata(project: GoogleProject, zone: ZoneName, instanceName: InstanceName, metadata: Map[String, String])(implicit ev: ApplicativeAsk[F, TraceId]): F[Unit] = {
+  override def addInstanceMetadata(project: GoogleProject,
+                                   zone: ZoneName,
+                                   instanceName: InstanceName,
+                                   metadata: Map[String, String])(implicit ev: ApplicativeAsk[F, TraceId]): F[Unit] = {
     val projectZoneInstanceName = ProjectZoneInstanceName.of(instanceName.value, project.value, zone.value)
     val readAndUpdate = for {
       instanceOpt <- Async[F].delay(Option(instanceClient.getInstance(projectZoneInstanceName)))
-      instance <- instanceOpt.fold(Async[F].raiseError[Instance](new WorkbenchException(s"Instance not found: ${projectZoneInstanceName.toString}")))(Async[F].pure)
+      instance <- instanceOpt.fold(
+        Async[F]
+          .raiseError[Instance](new WorkbenchException(s"Instance not found: ${projectZoneInstanceName.toString}"))
+      )(Async[F].pure)
       curMetadataOpt = Option(instance.getMetadata)
 
       fingerprint = curMetadataOpt.map(_.getFingerprint).orNull
       curItems = curMetadataOpt.flatMap(m => Option(m.getItemsList)).map(_.asScala).getOrElse(List.empty)
-      newMetadata = Metadata.newBuilder()
+      newMetadata = Metadata
+        .newBuilder()
         .setFingerprint(fingerprint)
-        .addAllItems((curItems.filterNot(i => metadata.contains(i.getKey)) ++ metadata.toList.map { case (k, v) =>
-          Items.newBuilder().setKey(k).setValue(v).build()
-        }).asJava).build
+        .addAllItems((curItems.filterNot(i => metadata.contains(i.getKey)) ++ metadata.toList.map {
+          case (k, v) =>
+            Items.newBuilder().setKey(k).setValue(v).build()
+        }).asJava)
+        .build
 
       _ <- Async[F].delay(instanceClient.setMetadataInstance(projectZoneInstanceName, newMetadata))
     } yield ()
@@ -91,14 +111,16 @@ class GoogleComputeInterpreter[F[_]: Async: Logger: Timer: ContextShift](instanc
     )
   }
 
-  override def addFirewallRule(project: GoogleProject, firewall: Firewall)(implicit ev: ApplicativeAsk[F, TraceId]): F[Unit] = {
+  override def addFirewallRule(project: GoogleProject,
+                               firewall: Firewall)(implicit ev: ApplicativeAsk[F, TraceId]): F[Unit] =
     retryF(
       Async[F].delay(firewallClient.insertFirewall(project.value, firewall)),
       s"com.google.cloud.compute.v1.FirewallClient.insertFirewall(${project.value}, ${firewall.getName})"
     ).void
-  }
 
-  override def getFirewallRule(project: GoogleProject, firewallRuleName: FirewallRuleName)(implicit ev: ApplicativeAsk[F, TraceId]): F[Option[Firewall]] = {
+  override def getFirewallRule(project: GoogleProject, firewallRuleName: FirewallRuleName)(
+    implicit ev: ApplicativeAsk[F, TraceId]
+  ): F[Option[Firewall]] = {
     val projectFirewallRuleName = ProjectGlobalFirewallName.of(firewallRuleName.value, project.value)
     retryF(
       recoverF(Async[F].delay(firewallClient.getFirewall(projectFirewallRuleName))),
@@ -106,16 +128,22 @@ class GoogleComputeInterpreter[F[_]: Async: Logger: Timer: ContextShift](instanc
     )
   }
 
-  override def setMachineType(project: GoogleProject, zone: ZoneName, instanceName: InstanceName, machineTypeName: MachineTypeName)(implicit ev: ApplicativeAsk[F, TraceId]): F[Unit] = {
+  override def setMachineType(project: GoogleProject,
+                              zone: ZoneName,
+                              instanceName: InstanceName,
+                              machineTypeName: MachineTypeName)(implicit ev: ApplicativeAsk[F, TraceId]): F[Unit] = {
     val projectZoneInstanceName = ProjectZoneInstanceName.of(instanceName.value, project.value, zone.value)
-    val request = InstancesSetMachineTypeRequest.newBuilder().setMachineType(buildMachineTypeUri(zone, machineTypeName)).build()
+    val request =
+      InstancesSetMachineTypeRequest.newBuilder().setMachineType(buildMachineTypeUri(zone, machineTypeName)).build()
     retryF(
       Async[F].delay(instanceClient.setMachineTypeInstance(projectZoneInstanceName, request)),
       s"com.google.cloud.compute.v1.InstanceClient.setMachineTypeInstance(${projectZoneInstanceName.toString}, ${machineTypeName.value})"
     )
   }
 
-  override def resizeDisk(project: GoogleProject, zone: ZoneName, diskName: DiskName, newSizeGb: Int)(implicit ev: ApplicativeAsk[F, TraceId]): F[Unit] = {
+  override def resizeDisk(project: GoogleProject, zone: ZoneName, diskName: DiskName, newSizeGb: Int)(
+    implicit ev: ApplicativeAsk[F, TraceId]
+  ): F[Unit] = {
     val projectZoneDiskName = ProjectZoneDiskName.of(diskName.value, project.value, zone.value)
     val request = DisksResizeRequest.newBuilder().setSizeGb(newSizeGb.toString).build()
     retryF(
@@ -124,9 +152,13 @@ class GoogleComputeInterpreter[F[_]: Async: Logger: Timer: ContextShift](instanc
     )
   }
 
-  def getZones(project: GoogleProject, regionName: RegionName)(implicit ev: ApplicativeAsk[F, TraceId]): F[List[Zone]] = {
-    val request = ListZonesHttpRequest.newBuilder().setProject(project.value).setFilter(s"region eq ${buildRegionUri(project, regionName)}").build()
-
+  def getZones(project: GoogleProject,
+               regionName: RegionName)(implicit ev: ApplicativeAsk[F, TraceId]): F[List[Zone]] = {
+    val request = ListZonesHttpRequest
+      .newBuilder()
+      .setProject(project.value)
+      .setFilter(s"region eq ${buildRegionUri(project, regionName)}")
+      .build()
 
     retryF(
       Async[F].delay(zoneClient.listZones(request)),
@@ -134,7 +166,9 @@ class GoogleComputeInterpreter[F[_]: Async: Logger: Timer: ContextShift](instanc
     ).map(_.iterateAll.asScala.toList)
   }
 
-  def getMachineType(project: GoogleProject, zone: ZoneName, machineTypeName: MachineTypeName)(implicit ev: ApplicativeAsk[F, TraceId]): F[Option[MachineType]] = {
+  def getMachineType(project: GoogleProject, zone: ZoneName, machineTypeName: MachineTypeName)(
+    implicit ev: ApplicativeAsk[F, TraceId]
+  ): F[Option[MachineType]] = {
     val projectZoneMachineTypeName = ProjectZoneMachineTypeName.of(machineTypeName.value, project.value, zone.value)
     retryF(
       recoverF(Async[F].delay(machineTypeClient.getMachineType(projectZoneMachineTypeName))),
@@ -148,34 +182,21 @@ class GoogleComputeInterpreter[F[_]: Async: Logger: Timer: ContextShift](instanc
   private def buildRegionUri(googleProject: GoogleProject, regionName: RegionName): String =
     s"https://www.googleapis.com/compute/v1/projects/${googleProject.value}/regions/${regionName.value}"
 
-  // blocks on a F[A]
-  private def blockingF[A](fa: F[A]): F[A] =
-    blockerBound.withPermit(blocker.blockOn(fa))
-
-  // Recovers a F[A] to an F[Option[A]] depending on predicate
-  private def recoverF[A](fa: F[A], pred: Throwable => Boolean = GoogleComputeInterpreter.is404): F[Option[A]] =
-    fa.map(Option(_)).recover { case e if pred(e) => None }
-
   // Retries an F[A] depending on a RetryConfig, logging each attempt. Returns the last attempt.
   private def retryF[A](fa: F[A], loggingMsg: String)(implicit ev: ApplicativeAsk[F, TraceId]): F[A] =
-    retryFStream(fa, loggingMsg).compile.lastOrError
-
-  private def retryFStream[A](fa: F[A], loggingMsg: String)(implicit ev: ApplicativeAsk[F, TraceId]): Stream[F, A] =
-    Stream.eval(ev.ask).flatMap(traceId => retryGoogleF(retryConfig)(blockingF(fa), Some(traceId), loggingMsg))
+    tracedRetryGoogleF(retryConfig)(blockerBound.withPermit(blocker.blockOn(fa)), loggingMsg).compile.lastOrError
 
 }
 object GoogleComputeInterpreter {
-  val isRetryable: Throwable => Boolean =
-    {
-      case e: ApiException => e.isRetryable()
-      case other => NonFatal(other)
-    }
+  val isRetryable: Throwable => Boolean = {
+    case e: ApiException => e.isRetryable()
+    case other           => NonFatal(other)
+  }
 
-  val is404: Throwable => Boolean =
-    {
-      case e: ApiException if e.getStatusCode.getCode == Code.NOT_FOUND => true
-      case _ => false
-    }
+  val is404: Throwable => Boolean = {
+    case e: ApiException if e.getStatusCode.getCode == Code.NOT_FOUND => true
+    case _                                                            => false
+  }
 
   val defaultRetryConfig = RetryConfig(
     org.broadinstitute.dsde.workbench.util2.addJitter(1 seconds, 1 seconds),
