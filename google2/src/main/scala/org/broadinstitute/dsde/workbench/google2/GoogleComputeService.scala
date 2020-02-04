@@ -7,7 +7,7 @@ import com.google.api.gax.core.FixedCredentialsProvider
 import com.google.api.services.compute.ComputeScopes
 import com.google.auth.oauth2.GoogleCredentials
 import com.google.cloud.compute.v1._
-import io.chrisdavenport.log4cats.Logger
+import io.chrisdavenport.log4cats.StructuredLogger
 import org.broadinstitute.dsde.workbench.RetryConfig
 import org.broadinstitute.dsde.workbench.google2.util.RetryPredicates
 import org.broadinstitute.dsde.workbench.model.google.GoogleProject
@@ -71,7 +71,7 @@ trait GoogleComputeService[F[_]] {
 }
 
 object GoogleComputeService {
-  def resource[F[_]: Logger: Async: Timer: ContextShift](
+  def resource[F[_]: StructuredLogger: Async: Timer: ContextShift](
     pathToCredential: String,
     blocker: Blocker,
     blockerBound: Semaphore[F],
@@ -83,7 +83,7 @@ object GoogleComputeService {
       interpreter <- fromCredential(scopedCredential, blocker, blockerBound, retryConfig)
     } yield interpreter
 
-  private def fromCredential[F[_]: Logger: Async: Timer: ContextShift](
+  private def fromCredential[F[_]: StructuredLogger: Async: Timer: ContextShift](
     googleCredentials: GoogleCredentials,
     blocker: Blocker,
     blockerBound: Semaphore[F],

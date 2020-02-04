@@ -8,13 +8,13 @@ import com.google.api.core.ApiFutures
 import com.google.api.gax.rpc.StatusCode.Code
 import com.google.cloud.dataproc.v1._
 import com.google.common.util.concurrent.MoreExecutors
-import io.chrisdavenport.log4cats.Logger
+import io.chrisdavenport.log4cats.StructuredLogger
 import org.broadinstitute.dsde.workbench.RetryConfig
 import org.broadinstitute.dsde.workbench.google2.util.RetryPredicates._
 import org.broadinstitute.dsde.workbench.model.TraceId
 import org.broadinstitute.dsde.workbench.model.google.GoogleProject
 
-private[google2] class GoogleDataprocInterpreter[F[_]: Async: Logger: Timer: ContextShift](
+private[google2] class GoogleDataprocInterpreter[F[_]: Async: StructuredLogger: Timer: ContextShift](
   clusterControllerClient: ClusterControllerClient,
   retryConfig: RetryConfig,
   blocker: Blocker,
