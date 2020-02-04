@@ -1,5 +1,7 @@
 package org.broadinstitute.dsde.workbench.google2
 
+import java.util.concurrent.TimeUnit
+
 import cats.effect._
 import cats.implicits._
 import com.google.api.core.ApiFutures
@@ -10,11 +12,10 @@ import com.google.cloud.pubsub.v1.{Publisher, TopicAdminClient}
 import com.google.common.util.concurrent.MoreExecutors
 import com.google.protobuf.ByteString
 import com.google.pubsub.v1.{ProjectTopicName, PubsubMessage}
-import fs2.Pipe
+import fs2.{Pipe, Stream}
 import io.chrisdavenport.log4cats.StructuredLogger
 import io.circe.Encoder
 import io.circe.syntax._
-import org.broadinstitute.dsde.workbench.google2.JsonCodec.traceIdEncoder
 import org.broadinstitute.dsde.workbench.RetryConfig
 
 private[google2] class GooglePublisherInterpreter[F[_]: Async: Timer: StructuredLogger](
@@ -28,11 +29,17 @@ private[google2] class GooglePublisherInterpreter[F[_]: Async: Timer: Structured
     }
   }
 
-  def tracedPublish[MessageType: Encoder]: Pipe[F, Message[MessageType], Unit] = in => {
+  def tracedPublish[MessageType: Encoder]: Pipe[F, DecoratedMessage[MessageType], Unit] = in => {
     in.flatMap {
       message =>
-        val msg = message.traceId.fold(message.msg.asJson)(tid => message.msg.asJson.deepMerge(Map("traceId" -> tid).asJson))
-        publishMessage(msg.noSpaces) //This will turn message case class into raw json string
+      for {
+        now <- Stream.eval(Timer[F].clock.realTime(TimeUnit.MILLISECONDS))
+        extraInfo = message.traceId.fold[Map[String, String]](Map.empty)(tid => Map ("traceId" -> tid.asString)) ++ Map(
+          "publishedInMillis" -> now.toString
+        )
+        msg = message.msg.asJson.deepMerge(extraInfo.asJson) //decorate the message with extra info
+        _ <- publishMessage(msg.noSpaces) //publish case class as raw json string
+      } yield ()
     }
   }
 

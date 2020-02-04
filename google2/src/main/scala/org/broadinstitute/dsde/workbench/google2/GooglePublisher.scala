@@ -14,7 +14,7 @@ trait GooglePublisher[F[_]] {
   /**
     * Watch out message size quota and limitations https://cloud.google.com/pubsub/quotas
     */
-  def tracedPublish[MessageType: Encoder]: Pipe[F, Message[MessageType], Unit]
+  def tracedPublish[MessageType: Encoder]: Pipe[F, DecoratedMessage[MessageType], Unit]
 
   /**
     * Watch out message size quota and limitations https://cloud.google.com/pubsub/quotas

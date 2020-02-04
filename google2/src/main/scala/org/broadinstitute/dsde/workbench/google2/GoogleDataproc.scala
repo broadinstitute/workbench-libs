@@ -37,7 +37,7 @@ object GoogleDataproc {
 
   def fromServiceAccountCrendential[F[_]: StructuredLogger: Async: Timer: ContextShift](serviceAccountCredentials: ServiceAccountCredentials, blocker: Blocker, blockerBound: Semaphore[F], retryConfig: RetryConfig = GoogleTopicAdminInterpreter.defaultRetryConfig): Resource[F, GoogleDataproc[F]] = {
     val settings = ClusterControllerSettings.newBuilder()
-      .setCredentialsProvider(FixedCredentialsProvider.create(serviceAccountCredentchials))
+      .setCredentialsProvider(FixedCredentialsProvider.create(serviceAccountCredentials))
       .build()
 
     for {

@@ -56,15 +56,15 @@ class GooglePubSubSpec extends FlatSpec with Matchers with WorkbenchTestSuite {
 
           val processEvents: Stream[IO, Unit] = sub.messages.zipWithIndex.evalMap[IO, Unit]{
             case (event, index)=>
-              if(expectedPeople.contains(event.msg)) {
-                expectedPeople = expectedPeople.filterNot(_ == event.msg)
+              if(expectedPeople.contains(event.decoratedMsg.msg)) {
+                expectedPeople = expectedPeople.filterNot(_ == event.decoratedMsg.msg)
                 if(index.toInt == people.length - 1)
                   IO(event.consumer.ack()).void >> terminateSubscriber.set(true)
                 else
                   IO(event.consumer.ack()).void
               }
               else
-                IO.raiseError(new Exception(s"${event.msg} doesn't equal ${people(index.toInt)}")) >> terminateSubscriber.set(true)
+                IO.raiseError(new Exception(s"${event.decoratedMsg} doesn't equal ${people(index.toInt)}")) >> terminateSubscriber.set(true)
           }.interruptWhen(terminateStopStream)
 
           // stopStream will check every 1 seconds to see if SignallingRef is set to false, if so terminate subscriber
