@@ -6,14 +6,14 @@ import cats.effect.{Async, Blocker, ContextShift, Timer}
 import cats.implicits._
 import cats.mtl.ApplicativeAsk
 import com.google.cloud.compute.v1._
-import io.chrisdavenport.log4cats.Logger
+import io.chrisdavenport.log4cats.StructuredLogger
 import org.broadinstitute.dsde.workbench.google2.util.RetryPredicates._
 import org.broadinstitute.dsde.workbench.model.google.GoogleProject
 import org.broadinstitute.dsde.workbench.model.{TraceId, WorkbenchException}
 
 import scala.collection.JavaConverters._
 
-private[google2] class GoogleComputeInterpreter[F[_]: Async: Logger: Timer: ContextShift](
+private[google2] class GoogleComputeInterpreter[F[_]: Async: StructuredLogger: Timer: ContextShift](
   instanceClient: InstanceClient,
   firewallClient: FirewallClient,
   diskClient: DiskClient,
