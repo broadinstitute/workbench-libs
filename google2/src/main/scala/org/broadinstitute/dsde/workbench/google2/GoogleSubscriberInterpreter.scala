@@ -1,5 +1,7 @@
 package org.broadinstitute.dsde.workbench.google2
 
+import java.time.Instant
+
 import cats.effect._
 import cats.effect.implicits._
 import cats.implicits._
@@ -17,6 +19,7 @@ import io.chrisdavenport.log4cats.StructuredLogger
 import io.circe.Decoder
 import io.circe.parser._
 import org.broadinstitute.dsde.workbench.model.TraceId
+
 import scala.concurrent.duration.FiniteDuration
 
 private[google2] class GoogleSubscriberInterpreter[F[_]: Async: Timer: ContextShift, MessageType](
@@ -68,25 +71,29 @@ object GoogleSubscriberInterpreter {
   private[google2] def receiver[F[_]: Effect: StructuredLogger, MessageType: Decoder](queue: fs2.concurrent.Queue[F, Event[MessageType]]): MessageReceiver = new MessageReceiver() {
     import org.broadinstitute.dsde.workbench.google2.JsonCodec.traceIdDecoder
 
-    implicit val messageDecoder: Decoder[Message[MessageType]] = Decoder.instance(
+    implicit val messageDecoder: Decoder[DecoratedMessage[MessageType]] = Decoder.instance(
       x =>
         for {
           msg <- x.as[MessageType]
           traceId <- x.downField("traceId").as[Option[TraceId]]
-        } yield Message(traceId, msg)
+          publishedInMillis <- x.downField("publishedInMillis").as[Option[Instant]]
+        } yield DecoratedMessage(traceId, publishedInMillis, msg)
     )
 
     override def receiveMessage(message: PubsubMessage, consumer: AckReplyConsumer): Unit = {
       val result = for {
         json <- Effect[F].fromEither(parse(message.getData.toStringUtf8))
-        message <- Effect[F].fromEither(json.as[Message[MessageType]])
-        r <- queue.enqueue1(Event(message.traceId, message.msg, consumer)).attempt
-        loggingCtx = Map("traceId" -> message.traceId.map(_.asString).getOrElse(""))
+        msg <- Effect[F].fromEither(json.as[DecoratedMessage[MessageType]])
+        r <- queue.enqueue1(Event(msg, consumer)).attempt
+        loggingCtx = Map(
+          "traceId" -> msg.traceId.map(_.asString).getOrElse(""),
+          "publishedInMillis" -> msg.publishedInMillis.map(_.toEpochMilli.toString).getOrElse("")
+        )
         _ <- r match {
           case Left(e) =>
-            StructuredLogger[F].info(loggingCtx)(s"failed to enqueue $message to internal Queue due to $e") >> Effect[F].delay(consumer.nack()) //pubsub will resend the message up to ackDeadlineSeconds (this is configed during subscription creation
+            StructuredLogger[F].info(loggingCtx)(s"Fail to enqueue $message due to $e") >> Effect[F].delay(consumer.nack()) //pubsub will resend the message up to ackDeadlineSeconds (this is configed during subscription creation)
           case Right(_) =>
-            StructuredLogger[F].info(loggingCtx)(s"successfully to enqueue $message")
+            StructuredLogger[F].info(loggingCtx)(s"Successfully enqueue $message")
         }
       } yield ()
 
@@ -146,5 +153,5 @@ object GoogleSubscriberInterpreter {
 
 final case class FlowControlSettingsConfig(maxOutstandingElementCount: Long, maxOutstandingRequestBytes: Long)
 final case class SubscriberConfig(pathToCredentialJson: String, projectTopicName: ProjectTopicName, ackDeadLine: FiniteDuration, flowControlSettingsConfig: Option[FlowControlSettingsConfig])
-final case class Message[A](traceId: Option[TraceId], msg: A)
-final case class Event[A](traceId: Option[TraceId] = None, msg: A, consumer: AckReplyConsumer)
+final case class DecoratedMessage[A](traceId: Option[TraceId], publishedInMillis: Option[Instant], msg: A)
+final case class Event[A](decoratedMsg: DecoratedMessage[A], consumer: AckReplyConsumer)
