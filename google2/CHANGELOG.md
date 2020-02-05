@@ -19,7 +19,6 @@ Changed
 - Remove `LineBacker` usage
 - Add arguments to `insertBucket`
 - Fix `scala.MatchError` from `handleErrorWith`
-- Use `io.chrisdavenport.log4cats.StructuredLogger` instead of `io.chrisdavenport.log4cats.Logger`
 
 Add
 - Add `GoogleDataproc` and `GoogleDataprocInterpreter`
