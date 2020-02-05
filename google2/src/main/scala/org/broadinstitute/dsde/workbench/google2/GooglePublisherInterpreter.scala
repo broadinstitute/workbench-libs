@@ -17,6 +17,7 @@ import io.chrisdavenport.log4cats.StructuredLogger
 import io.circe.Encoder
 import io.circe.syntax._
 import org.broadinstitute.dsde.workbench.RetryConfig
+import org.broadinstitute.dsde.workbench.model.TraceId
 
 private[google2] class GooglePublisherInterpreter[F[_]: Async: Timer: StructuredLogger](
                                                                                publisher: Publisher,
@@ -25,34 +26,35 @@ private[google2] class GooglePublisherInterpreter[F[_]: Async: Timer: Structured
   def publish[MessageType: Encoder]: Pipe[F, MessageType, Unit] = in => {
     in.flatMap {
       message =>
-        publishMessage(message.asJson.noSpaces) //This will turn message case class into raw json string
+        publishMessage(message.asJson.noSpaces, None) //This will turn message case class into raw json string
     }
   }
 
   def tracedPublish[MessageType: Encoder]: Pipe[F, DecoratedMessage[MessageType], Unit] = in => {
     in.flatMap {
       message =>
-      for {
-        now <- Stream.eval(Timer[F].clock.realTime(TimeUnit.MILLISECONDS))
-        extraInfo = message.traceId.fold[Map[String, String]](Map.empty)(tid => Map ("traceId" -> tid.asString)) ++ Map(
-          "publishedInMillis" -> now.toString
-        )
-        msg = message.msg.asJson.deepMerge(extraInfo.asJson) //decorate the message with extra info
-        _ <- publishMessage(msg.noSpaces) //publish case class as raw json string
-      } yield ()
+        for {
+          _ <- Stream.eval(StructuredLogger[F].info(s"trying to publish ${message}"))
+          now <- Stream.eval(Timer[F].clock.realTime(TimeUnit.MILLISECONDS))
+          extraInfo = message.traceId.fold[Map[String, String]](Map.empty)(tid => Map ("traceId" -> tid.asString)) ++ Map(
+            "publishedInMillis" -> now.toString
+          )
+          msg = message.msg.asJson.deepMerge(extraInfo.asJson) //decorate the message with extra info
+          _ <- publishMessage(msg.noSpaces, message.traceId) //publish case class as raw json string
+        } yield ()
     }
   }
 
   def publishString: Pipe[F, String, Unit] = in => {
-    in.flatMap(publishMessage)
+    in.flatMap(s => publishMessage(s, None))
   }
 
-  private def publishMessage(message: String) = {
+  private def publishMessage(message: String, traceId: Option[TraceId]): Stream[F, Unit] = {
     val byteString = ByteString.copyFromUtf8(message)
-    retryGoogleF(retryConfig)(asyncPublishMessage(byteString), None, s"Publishing $message")
+    retryGoogleF(retryConfig)(asyncPublishMessage(byteString), traceId, s"Publishing $message")
   }
 
-  private def asyncPublishMessage(byteString: ByteString): F[Unit] = Async[F].async[String]{
+  private def asyncPublishMessage(byteString: ByteString): F[Unit] = StructuredLogger[F].info("trying to publish") >> Async[F].async[String]{
     callback =>
       val message = PubsubMessage.newBuilder().setData(byteString).build()
       ApiFutures.addCallback(

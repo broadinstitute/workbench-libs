@@ -60,7 +60,11 @@ package object google2 {
 
   def callBack[A](cb: Either[Throwable, A] => Unit): ApiFutureCallback[A] =
     new ApiFutureCallback[A] {
-      @Override def onFailure(t: Throwable): Unit = cb(Left(t))
+      @Override def onFailure(t: Throwable): Unit = {
+        println(s"failed due to ${t}")
+        cb(Left(t))
+      }
+
       @Override def onSuccess(result: A): Unit = cb(Right(result))
     }
 
