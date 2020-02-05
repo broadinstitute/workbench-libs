@@ -2,6 +2,16 @@
 
 This file documents changes to the `workbench-service-test` library, including notes on how to upgrade to new versions.
 
+## 0.17
+
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "0.17-TRAVIS-REPLACE-ME"`
+
+###
+
+### Added
+
+- add `deleteIntermedateOutputFiles` parameter to `Rawls.submissions.launchWorkflow`
+
 ## 0.16
 
 SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "0.16-20dceaa"`

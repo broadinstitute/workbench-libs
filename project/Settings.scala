@@ -8,6 +8,7 @@ import sbt._
 import sbtassembly.AssemblyPlugin.autoImport._
 import scoverage.ScoverageKeys.coverageExcludedPackages
 
+//noinspection TypeAnnotation
 object Settings {
 
   val artifactory = "https://broadinstitute.jfrog.io/broadinstitute/"
@@ -154,7 +155,7 @@ object Settings {
   val serviceTestSettings = only212 ++ commonSettings ++ List(
     name := "workbench-service-test",
     libraryDependencies ++= serviceTestDependencies,
-    version := createVersion("0.16")
+    version := createVersion("0.17")
   ) ++ publishSettings
 
   val notificationsSettings = only212 ++ commonSettings ++ List(
