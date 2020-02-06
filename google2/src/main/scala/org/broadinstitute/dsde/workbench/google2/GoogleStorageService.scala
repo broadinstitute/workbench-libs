@@ -11,7 +11,7 @@ import com.google.auth.oauth2.GoogleCredentials
 import com.google.cloud.storage.{Acl, Blob, BlobId, StorageOptions}
 import com.google.cloud.storage.BucketInfo.LifecycleRule
 import fs2.Stream
-import io.chrisdavenport.log4cats.Logger
+import io.chrisdavenport.log4cats.StructuredLogger
 import org.broadinstitute.dsde.workbench.RetryConfig
 import org.broadinstitute.dsde.workbench.model.TraceId
 import org.broadinstitute.dsde.workbench.model.google.{GcsBucketName, GcsObjectName, GoogleProject}
@@ -139,14 +139,14 @@ trait GoogleStorageService[F[_]] {
 }
 
 object GoogleStorageService {
-  def resource[F[_]: ContextShift: Timer: Async: Logger](pathToCredentialJson: String,
-                                                         blocker: Blocker,
-                                                         blockerBound: Option[Semaphore[F]] = None,
-                                                         project: Option[GoogleProject] = None): Resource[F, GoogleStorageService[F]] = for {
+  def resource[F[_]: ContextShift: Timer: Async: StructuredLogger](pathToCredentialJson: String,
+                                                                   blocker: Blocker,
+                                                                   blockerBound: Option[Semaphore[F]] = None,
+                                                                   project: Option[GoogleProject] = None): Resource[F, GoogleStorageService[F]] = for {
     db <- GoogleStorageInterpreter.storage[F](pathToCredentialJson, blocker, blockerBound, project)
   } yield GoogleStorageInterpreter[F](db, blocker, blockerBound)
 
-  def fromApplicationDefault[F[_]: ContextShift: Timer: Async: Logger](blocker: Blocker, blockerBound: Option[Semaphore[F]] = None): Resource[F, GoogleStorageService[F]] = for {
+  def fromApplicationDefault[F[_]: ContextShift: Timer: Async: StructuredLogger](blocker: Blocker, blockerBound: Option[Semaphore[F]] = None): Resource[F, GoogleStorageService[F]] = for {
     db <- Resource.liftF(
       Sync[F].delay(
         StorageOptions

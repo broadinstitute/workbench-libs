@@ -16,8 +16,9 @@ object GooglePubSubMannualTest {
   implicit def logger = Slf4jLogger.getLogger[IO]
 
   // NOTE: Update the next 2 lines to your own data
-  val projectTopicName = ProjectTopicName.of("your project name", "your topic name")
-  val path = "you service account path that has proper permission to your topic"
+
+  val projectTopicName = ProjectTopicName.of("broad-dsde-dev", "leonardo-pubsub")
+  val path = "/Users/qi/workspace/leonardo/config/leonardo-account.json"
 
   val printPipe: Pipe[IO, Event[Messagee], Unit] = in => in.evalMap(s => IO(println("processed "+s.toString)))
 
