@@ -72,7 +72,8 @@ object GoogleSubscriberInterpreter {
       val parseEvent = for {
         isJson <- Effect[F].fromEither(parse(message.getData.toStringUtf8)).attempt
         msg <- isJson match {
-          case Left(_) => Effect[F].pure(message.getData.toStringUtf8.asInstanceOf[MessageType])
+          case Left(_) =>
+            Effect[F].raiseError[MessageType](new Exception(s"${message.getData.toStringUtf8} is not a valid Json"))
           case Right(json) =>
             Effect[F].fromEither(json.as[MessageType])
         }
@@ -95,11 +96,11 @@ object GoogleSubscriberInterpreter {
                 case Left(e) =>
                   logger.info(loggingCtx)(s"Subscriber fail to enqueue $message due to $e") >> Effect[F].delay(consumer.nack()) //pubsub will resend the message up to ackDeadlineSeconds (this is configed during subscription creation)
                 case Right(_) =>
-                  logger.info(loggingCtx)(s"Subscriber Successfully received $message")
+                  logger.info(loggingCtx)(s"Subscriber Successfully received $message.")
               }
             } yield ()
           case Left(e) =>
-            logger.info(s"Subscriber fail to decode message ${message} due to ${e}") >> Effect[F].delay(consumer.ack())
+            logger.info(s"Subscriber fail to decode message ${message} due to ${e}. Going to ack the message") >> Effect[F].delay(consumer.ack())
         }
       } yield ()
 
@@ -108,7 +109,7 @@ object GoogleSubscriberInterpreter {
   }
 
   def subscriber[F[_]: Effect: StructuredLogger, MessageType: Decoder](subscriberConfig: SubscriberConfig, queue: fs2.concurrent.Queue[F, Event[MessageType]]): Resource[F, Subscriber] = {
-    val subscription = ProjectSubscriptionName.of(subscriberConfig.projectTopicName.getProject, subscriberConfig.projectTopicName.getTopic+"Subscriber")
+    val subscription = ProjectSubscriptionName.of(subscriberConfig.projectTopicName.getProject, subscriberConfig.projectTopicName.getTopic)
 
     for {
       credential <- credentialResource(subscriberConfig.pathToCredentialJson)
@@ -143,7 +144,7 @@ object GoogleSubscriberInterpreter {
     Resource.liftF(Async[F].delay(
       subscriptionAdminClient.createSubscription(subscription, subsriberConfig.projectTopicName, PushConfig.getDefaultInstance, subsriberConfig.ackDeadLine.toSeconds.toInt)
     ).void.recover {
-      case _: AlreadyExistsException => ()
+      case _: AlreadyExistsException => Logger[F].info(s"subscription ${subscription} already exists")
     })
   }
 

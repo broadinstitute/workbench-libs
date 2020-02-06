@@ -42,7 +42,7 @@ private[google2] class GooglePublisherInterpreter[F[_]: Async: Timer: Structured
               )
           }.void,
             Option(message.getAttributesMap.get("traceId")).map(s => TraceId(s)),
-            s"Publishing ${message.getData}"
+            s"Publishing ${message}"
           )
         } yield ()
     }

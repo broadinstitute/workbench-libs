@@ -18,4 +18,11 @@ object GoogleSubscriber{
                                                 ): Resource[F, GoogleSubscriber[F, MessageType]] = for {
     subscriberClient <- GoogleSubscriberInterpreter.subscriber(subscriberConfig, queue)
   } yield GoogleSubscriberInterpreter(subscriberClient, queue)
+//
+//  def stringResource[F[_]: Effect: Timer: ContextShift: StructuredLogger](
+//                                                  subscriberConfig: SubscriberConfig,
+//                                                  queue: fs2.concurrent.Queue[F, Event[String]]
+//                                                ): Resource[F, GoogleSubscriber[F, MessageType]] = for {
+//    subscriberClient <- GoogleSubscriberInterpreter.subscriber(subscriberConfig, queue)
+//  } yield GoogleSubscriberInterpreter(subscriberClient, queue)
 }
