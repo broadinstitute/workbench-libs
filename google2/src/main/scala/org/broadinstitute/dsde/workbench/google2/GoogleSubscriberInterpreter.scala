@@ -1,7 +1,5 @@
 package org.broadinstitute.dsde.workbench.google2
 
-import java.time.Instant
-
 import cats.effect._
 import cats.effect.implicits._
 import cats.implicits._
@@ -19,7 +17,7 @@ import io.chrisdavenport.log4cats.StructuredLogger
 import io.circe.Decoder
 import io.circe.parser._
 import org.broadinstitute.dsde.workbench.model.TraceId
-
+import com.google.protobuf.Timestamp
 import scala.concurrent.duration.FiniteDuration
 
 private[google2] class GoogleSubscriberInterpreter[F[_]: Async: Timer: ContextShift, MessageType](
@@ -68,41 +66,50 @@ object GoogleSubscriberInterpreter {
                                                   queue: fs2.concurrent.Queue[F, Event[MessageType]]
                                                 ): GoogleSubscriberInterpreter[F, MessageType] = new GoogleSubscriberInterpreter[F, MessageType](subscriber, queue)
 
-  private[google2] def receiver[F[_]: Effect: StructuredLogger, MessageType: Decoder](queue: fs2.concurrent.Queue[F, Event[MessageType]]): MessageReceiver = new MessageReceiver() {
-    import org.broadinstitute.dsde.workbench.google2.JsonCodec.traceIdDecoder
-
-    implicit val messageDecoder: Decoder[DecoratedMessage[MessageType]] = Decoder.instance(
-      x =>
-        for {
-          msg <- x.as[MessageType]
-          traceId <- x.downField("traceId").as[Option[TraceId]]
-          publishedInMillis <- x.downField("publishedInMillis").as[Option[Instant]]
-        } yield DecoratedMessage(traceId, publishedInMillis, msg)
-    )
-
+  private[google2] def receiver[F[_]: Effect, MessageType: Decoder](queue: fs2.concurrent.Queue[F, Event[MessageType]])(implicit logger: StructuredLogger[F]): MessageReceiver = new MessageReceiver() {
     override def receiveMessage(message: PubsubMessage, consumer: AckReplyConsumer): Unit = {
+      val parseEvent = for {
+        isJson <- Effect[F].fromEither(parse(message.getData.toStringUtf8)).attempt
+        msg <- isJson match {
+          case Left(_) => Effect[F].pure(message.getData.toStringUtf8.asInstanceOf[MessageType])
+          case Right(json) =>
+            Effect[F].fromEither(json.as[MessageType])
+        }
+        traceId = Option(message.getAttributesMap.get("traceId")).map(s => TraceId(s))
+      } yield Event(DecoratedMessage(traceId, msg), message.getPublishTime, consumer)
+
+      val loggingCtx = Map(
+        "traceId" -> Option(message.getAttributesMap.get("traceId")).getOrElse(""),
+        "publishTime" -> message.getPublishTime.toString
+      )
+
       val result = for {
-        json <- Effect[F].fromEither(parse(message.getData.toStringUtf8))
-        msg <- Effect[F].fromEither(json.as[DecoratedMessage[MessageType]])
-        r <- queue.enqueue1(Event(msg, consumer)).attempt
-        loggingCtx = Map(
-          "traceId" -> msg.traceId.map(_.asString).getOrElse(""),
-          "publishedInMillis" -> msg.publishedInMillis.map(_.toEpochMilli.toString).getOrElse("")
-        )
-        _ <- r match {
+        _ <- logger.info(loggingCtx)(s"Subscriber received ${message.getData.toStringUtf8}")
+        res <- parseEvent.attempt
+        _ <- res match {
+          case Right(event) =>
+            for {
+              r <- queue.enqueue1(event).attempt
+
+              _ <- r match {
+                case Left(e) =>
+                  logger.info(loggingCtx)(s"Fail to enqueue $message due to $e") >> Effect[F].delay(consumer.nack()) //pubsub will resend the message up to ackDeadlineSeconds (this is configed during subscription creation)
+                case Right(_) =>
+                  logger.info(loggingCtx)(s"Successfully enqueue $message")
+              }
+            } yield ()
           case Left(e) =>
-            StructuredLogger[F].info(loggingCtx)(s"Fail to enqueue $message due to $e") >> Effect[F].delay(consumer.nack()) //pubsub will resend the message up to ackDeadlineSeconds (this is configed during subscription creation)
-          case Right(_) =>
-            StructuredLogger[F].info(loggingCtx)(s"Successfully enqueue $message")
+            println(s"1111 ${e} | message: ${message}")
+            logger.info(s"Fail to decode message ${message} due to ${e}") >> Effect[F].delay(consumer.ack())
         }
       } yield ()
 
-      result.toIO.unsafeRunSync()
+      result.toIO.unsafeRunSync
     }
   }
 
   def subscriber[F[_]: Effect: StructuredLogger, MessageType: Decoder](subscriberConfig: SubscriberConfig, queue: fs2.concurrent.Queue[F, Event[MessageType]]): Resource[F, Subscriber] = {
-    val subscription = ProjectSubscriptionName.of(subscriberConfig.projectTopicName.getProject, subscriberConfig.projectTopicName.getTopic)
+    val subscription = ProjectSubscriptionName.of(subscriberConfig.projectTopicName.getProject, subscriberConfig.projectTopicName.getTopic+"Subscriber")
 
     for {
       credential <- credentialResource(subscriberConfig.pathToCredentialJson)
@@ -133,7 +140,7 @@ object GoogleSubscriberInterpreter {
     Resource.make(subscriber)(s => Sync[F].delay(s.stopAsync()))
   }
 
-  private def createSubscription[MessageType: Decoder, F[_] : Effect : StructuredLogger](subsriberConfig: SubscriberConfig, subscription: ProjectSubscriptionName, subscriptionAdminClient: SubscriptionAdminClient) = {
+  private def createSubscription[MessageType: Decoder, F[_] : Effect : StructuredLogger](subsriberConfig: SubscriberConfig, subscription: ProjectSubscriptionName, subscriptionAdminClient: SubscriptionAdminClient): Resource[F, Unit] = {
     Resource.liftF(Async[F].delay(
       subscriptionAdminClient.createSubscription(subscription, subsriberConfig.projectTopicName, PushConfig.getDefaultInstance, subsriberConfig.ackDeadLine.toSeconds.toInt)
     ).void.recover {
@@ -153,5 +160,6 @@ object GoogleSubscriberInterpreter {
 
 final case class FlowControlSettingsConfig(maxOutstandingElementCount: Long, maxOutstandingRequestBytes: Long)
 final case class SubscriberConfig(pathToCredentialJson: String, projectTopicName: ProjectTopicName, ackDeadLine: FiniteDuration, flowControlSettingsConfig: Option[FlowControlSettingsConfig])
-final case class DecoratedMessage[A](traceId: Option[TraceId], publishedInMillis: Option[Instant], msg: A)
-final case class Event[A](decoratedMsg: DecoratedMessage[A], consumer: AckReplyConsumer)
+final case class Event[A](decoratedMsg: DecoratedMessage[A],
+                          publishedTime: Timestamp,
+                          consumer: AckReplyConsumer)
