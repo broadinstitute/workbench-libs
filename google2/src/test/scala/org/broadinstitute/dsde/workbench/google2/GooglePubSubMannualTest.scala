@@ -23,7 +23,7 @@ object GooglePubSubMannualTest {
 
   /**
     * How to use this:
-    * 1. sbt "project workbenchGoogle2" console
+    * 1. sbt "project workbenchGoogle2" test:console
     * 2. val res = org.broadinstitute.dsde.workbench.google2.GooglePubSubMannualTest.publish()
     * 3. res.unsafeRunSync
     *
@@ -39,7 +39,7 @@ object GooglePubSubMannualTest {
 
   /**
     * How to use this:
-    * 1. sbt "project workbenchGoogle2" console
+    * 1. sbt "project workbenchGoogle2" test:console
     * 2. val res = org.broadinstitute.dsde.workbench.google2.GooglePubSubMannualTest.subscriber()
     * 3. res.unsafeRunSync
     *
