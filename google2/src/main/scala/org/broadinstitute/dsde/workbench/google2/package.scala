@@ -8,8 +8,8 @@ import cats.mtl.ApplicativeAsk
 import com.google.api.core.ApiFutureCallback
 import com.google.auth.oauth2.ServiceAccountCredentials
 import fs2.{RaiseThrowable, Stream}
-import io.chrisdavenport.log4cats.{Logger, StructuredLogger}
-import io.circe.{Encoder, Json}
+import io.chrisdavenport.log4cats.StructuredLogger
+import io.circe.Encoder
 import org.broadinstitute.dsde.workbench.model.{ErrorReportSource, TraceId}
 import io.circe.syntax._
 
@@ -25,7 +25,7 @@ package object google2 {
     "result"
   )(x => LoggableGoogleCall.unapply(x).get)
 
-  def retryGoogleF[F[_]: Sync: Timer: RaiseThrowable, A](retryConfig: RetryConfig)(fa: F[A], traceId: Option[TraceId], action: String)(implicit logger: Logger[F]): Stream[F, A] = {
+  def retryGoogleF[F[_]: Sync: Timer: RaiseThrowable, A](retryConfig: RetryConfig)(fa: F[A], traceId: Option[TraceId], action: String)(implicit logger: StructuredLogger[F]): Stream[F, A] = {
     val faWithLogging = for {
       startTime <- Timer[F].clock.realTime(TimeUnit.MILLISECONDS)
       attempted <- fa.attempt
@@ -39,17 +39,14 @@ package object google2 {
         case Left(e) =>
           val loggableGoogleCall = LoggableGoogleCall(None, "Failed")
 
-          if (logger.isInstanceOf[StructuredLogger[F]]) {
-            val log = logger.asInstanceOf[StructuredLogger[F]]
-            log.error(loggingCtx, e)(loggableGoogleCall.asJson.noSpaces)
-          } else {
-            val msg = loggingCtx.asJson.deepMerge(loggableGoogleCall.asJson)
-            logger.error(e)(msg.noSpaces)
-          }
+          val msg = loggingCtx.asJson.deepMerge(loggableGoogleCall.asJson)
+          // Duplicate MDC context in regular logging until log formats can be changed in apps
+          logger.error(loggingCtx, e)(msg.noSpaces)
         case Right(r) =>
           val response = if(r == null) "null" else r.toString.take(1024)
           val loggableGoogleCall = LoggableGoogleCall(Some(response), "Succeeded")
-          maybeStructuredLoggingInfo(loggingCtx)(loggableGoogleCall.asJson)
+          val msg = loggingCtx.asJson.deepMerge(loggableGoogleCall.asJson)
+          logger.info(loggingCtx)(msg.noSpaces)
       }
       result <- Sync[F].fromEither(attempted)
     } yield result
@@ -71,26 +68,6 @@ package object google2 {
 
       @Override def onSuccess(result: A): Unit = cb(Right(result))
     }
-
-  def maybeStructuredLoggingInfo[F[_]](ctx: Map[String, String])(msg: => Json)(implicit logger: Logger[F]): F[Unit] = {
-    if (logger.isInstanceOf[StructuredLogger[F]]) {
-      val log = logger.asInstanceOf[StructuredLogger[F]]
-      log.info(ctx)(msg.noSpaces)
-    } else {
-      val m = ctx.asJson.deepMerge(msg)
-      logger.info(m.noSpaces)
-    }
-  }
-
-  def maybeStructuredLoggingError[F[_]](ctx: Map[String, String], e: Throwable)(msg: => Json)(implicit logger: Logger[F]): F[Unit] = {
-    if (logger.isInstanceOf[StructuredLogger[F]]) {
-      val log = logger.asInstanceOf[StructuredLogger[F]]
-      log.error(ctx, e)(msg.noSpaces)
-    } else {
-      val m = ctx.asJson.deepMerge(msg)
-      logger.error(e)(m.noSpaces)
-    }
-  }
 
   def credentialResource[F[_]: Sync](pathToCredential: String): Resource[F, ServiceAccountCredentials] = for {
     credentialFile <- org.broadinstitute.dsde.workbench.util2.readFile(pathToCredential)
