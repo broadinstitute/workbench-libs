@@ -19,12 +19,17 @@ Changed
 - Remove `LineBacker` usage
 - Add arguments to `insertBucket`
 - Fix `scala.MatchError` from `handleErrorWith`
+<<<<<<< HEAD
+=======
+- Add `delete` function to `GoogleTopicAdmin` trait and implementation
+- Use `recoverWith` instead of `onError` which doesn't actually recover the error
+>>>>>>> 8956707... fix wrong use of onError
 
 Add
 - Add `GoogleDataproc` and `GoogleDataprocInterpreter`
 - Add `delete` function to `GoogleTopicAdmin` trait and implementation
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.6-c91d96b"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.6-TRAVIS-REPLACE-ME"`
 
 ## 0.5
 

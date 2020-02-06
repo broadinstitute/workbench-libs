@@ -23,6 +23,7 @@ object Settings {
     javaOptions += "-Xmx2G",
     javacOptions ++= Seq("-source", "1.8", "-target", "1.8"),
     scalacOptions in (Compile, console) --= Seq("-Ywarn-unused:imports", "-Xfatal-warnings"),
+    scalacOptions in (Test, console) --= Seq("-Ywarn-unused:imports", "-Xfatal-warnings"),
     scalacOptions in Test -= "-Ywarn-dead-code", // due to https://github.com/mockito/mockito-scala#notes
     addCompilerPlugin("org.typelevel" %% "kind-projector" % "0.10.3")
   )

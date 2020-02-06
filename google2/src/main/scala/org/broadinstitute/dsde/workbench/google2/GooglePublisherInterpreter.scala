@@ -1,7 +1,5 @@
 package org.broadinstitute.dsde.workbench.google2
 
-import java.util.concurrent.TimeUnit
-
 import cats.effect._
 import cats.implicits._
 import com.google.api.core.ApiFutures
@@ -30,17 +28,23 @@ private[google2] class GooglePublisherInterpreter[F[_]: Async: Timer: Structured
     }
   }
 
-  def tracedPublish[MessageType: Encoder]: Pipe[F, DecoratedMessage[MessageType], Unit] = in => {
+  def publishNative: Pipe[F, PubsubMessage, Unit] = in => {
     in.flatMap {
       message =>
         for {
           _ <- Stream.eval(StructuredLogger[F].info(s"trying to publish ${message}"))
-          now <- Stream.eval(Timer[F].clock.realTime(TimeUnit.MILLISECONDS))
-          extraInfo = message.traceId.fold[Map[String, String]](Map.empty)(tid => Map ("traceId" -> tid.asString)) ++ Map(
-            "publishedInMillis" -> now.toString
+          _ <- retryGoogleF(retryConfig)(
+            Async[F].async[String]{
+            callback =>
+              ApiFutures.addCallback(
+                publisher.publish(message),
+                callBack(callback),
+                MoreExecutors.directExecutor()
+              )
+          }.void,
+            Option(message.getAttributesMap.get("traceId")).map(s => TraceId(s)),
+            s"Publishing ${message.getData}"
           )
-          msg = message.msg.asJson.deepMerge(extraInfo.asJson) //decorate the message with extra info
-          _ <- publishMessage(msg.noSpaces, message.traceId) //publish case class as raw json string
         } yield ()
     }
   }
@@ -51,12 +55,15 @@ private[google2] class GooglePublisherInterpreter[F[_]: Async: Timer: Structured
 
   private def publishMessage(message: String, traceId: Option[TraceId]): Stream[F, Unit] = {
     val byteString = ByteString.copyFromUtf8(message)
-    retryGoogleF(retryConfig)(asyncPublishMessage(byteString), traceId, s"Publishing $message")
+    retryGoogleF(retryConfig)(asyncPublishMessage(byteString, traceId), traceId, s"Publishing $message")
   }
 
-  private def asyncPublishMessage(byteString: ByteString): F[Unit] = StructuredLogger[F].info("trying to publish") >> Async[F].async[String]{
+  private def asyncPublishMessage(byteString: ByteString, traceId: Option[TraceId]): F[Unit] = StructuredLogger[F].info("trying to publish") >> Async[F].async[String]{
     callback =>
-      val message = PubsubMessage.newBuilder().setData(byteString).build()
+      val message = PubsubMessage.newBuilder()
+        .setData(byteString)
+//        .putAttributes("traceId", traceId.map(_.asString).getOrElse("null"))
+        .build()
       ApiFutures.addCallback(
         publisher.publish(message),
         callBack(callback),
@@ -71,7 +78,7 @@ object GooglePublisherInterpreter {
                                                        retryConfig: RetryConfig
                                                      ): GooglePublisherInterpreter[F] = new GooglePublisherInterpreter(publisher, retryConfig)
 
-  def publisher[F[_]: Sync](config: PublisherConfig): Resource[F, Publisher] =
+  def publisher[F[_]: Sync: StructuredLogger](config: PublisherConfig): Resource[F, Publisher] =
     for {
       credential <- credentialResource(config.pathToCredentialJson)
       publisher <- publisherResource(config.projectTopicName, credential)
@@ -79,13 +86,13 @@ object GooglePublisherInterpreter {
       _ <- createTopic(config.projectTopicName, topicAdminClient)
     } yield publisher
 
-  private def createTopic[F[_] : Sync](topicName: ProjectTopicName, topicAdminClient: TopicAdminClient): Resource[F, Unit] = {
+  private def createTopic[F[_] : Sync](topicName: ProjectTopicName, topicAdminClient: TopicAdminClient)(implicit logger: StructuredLogger[F]): Resource[F, Unit] = {
     Resource.liftF(
       Sync[F]
         .delay(topicAdminClient.createTopic(topicName))
         .void
-        .recover {
-          case _: AlreadyExistsException => ()
+        .recoverWith {
+          case _: AlreadyExistsException => logger.info(s"${topicName} already exists")
         })
   }
 
@@ -99,3 +106,4 @@ object GooglePublisherInterpreter {
 }
 
 final case class PublisherConfig(pathToCredentialJson: String, projectTopicName: ProjectTopicName, retryConfig: RetryConfig)
+final case class DecoratedMessage[A](traceId: Option[TraceId], msg: A)
