@@ -6,7 +6,7 @@ import fs2.concurrent.InspectableQueue
 import fs2.{Pipe, Stream}
 import io.chrisdavenport.log4cats.slf4j.Slf4jLogger
 import io.circe.Decoder
-
+import cats.implicits._
 import scala.concurrent.ExecutionContext.global
 import scala.concurrent.duration._
 
@@ -20,7 +20,7 @@ object GooglePubSubMannualTest {
   val projectTopicName = ProjectTopicName.of("broad-dsde-dev", "leonardo-pubsub")
   val path = "/Users/qi/workspace/leonardo/config/leonardo-account.json"
 
-  val printPipe: Pipe[IO, Event[Messagee], Unit] = in => in.evalMap(s => IO(println("processed "+s.toString)))
+  val printPipe: Pipe[IO, Event[Messagee], Unit] = in => in.evalMap(s => IO(println("processed "+s)) >> IO(s.consumer.ack()))
 
   /**
     * How to use this:
