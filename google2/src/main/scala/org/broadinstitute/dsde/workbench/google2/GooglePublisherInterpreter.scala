@@ -11,13 +11,13 @@ import com.google.common.util.concurrent.MoreExecutors
 import com.google.protobuf.ByteString
 import com.google.pubsub.v1.{ProjectTopicName, PubsubMessage}
 import fs2.{Pipe, Stream}
-import io.chrisdavenport.log4cats.StructuredLogger
+import io.chrisdavenport.log4cats.Logger
 import io.circe.Encoder
 import io.circe.syntax._
 import org.broadinstitute.dsde.workbench.RetryConfig
 import org.broadinstitute.dsde.workbench.model.TraceId
 
-private[google2] class GooglePublisherInterpreter[F[_]: Async: Timer: StructuredLogger](
+private[google2] class GooglePublisherInterpreter[F[_]: Async: Timer: Logger](
                                                                                publisher: Publisher,
                                                                                retryConfig: RetryConfig
                                                                              ) extends GooglePublisher[F] {
@@ -32,7 +32,6 @@ private[google2] class GooglePublisherInterpreter[F[_]: Async: Timer: Structured
     in.flatMap {
       message =>
         for {
-          _ <- Stream.eval(StructuredLogger[F].info(s"trying to publish ${message}"))
           _ <- retryGoogleF(retryConfig)(
             Async[F].async[String]{
             callback =>
@@ -58,11 +57,10 @@ private[google2] class GooglePublisherInterpreter[F[_]: Async: Timer: Structured
     retryGoogleF(retryConfig)(asyncPublishMessage(byteString, traceId), traceId, s"Publishing $message")
   }
 
-  private def asyncPublishMessage(byteString: ByteString, traceId: Option[TraceId]): F[Unit] = StructuredLogger[F].info("trying to publish") >> Async[F].async[String]{
+  private def asyncPublishMessage(byteString: ByteString, traceId: Option[TraceId]): F[Unit] = Async[F].async[String]{
     callback =>
       val message = PubsubMessage.newBuilder()
         .setData(byteString)
-//        .putAttributes("traceId", traceId.map(_.asString).getOrElse("null"))
         .build()
       ApiFutures.addCallback(
         publisher.publish(message),
@@ -73,12 +71,12 @@ private[google2] class GooglePublisherInterpreter[F[_]: Async: Timer: Structured
 }
 
 object GooglePublisherInterpreter {
-  def apply[F[_]: Async: Timer: ContextShift: StructuredLogger](
+  def apply[F[_]: Async: Timer: ContextShift: Logger](
                                                        publisher: Publisher,
                                                        retryConfig: RetryConfig
                                                      ): GooglePublisherInterpreter[F] = new GooglePublisherInterpreter(publisher, retryConfig)
 
-  def publisher[F[_]: Sync: StructuredLogger](config: PublisherConfig): Resource[F, Publisher] =
+  def publisher[F[_]: Sync: Logger](config: PublisherConfig): Resource[F, Publisher] =
     for {
       credential <- credentialResource(config.pathToCredentialJson)
       publisher <- publisherResource(config.projectTopicName, credential)
@@ -86,7 +84,7 @@ object GooglePublisherInterpreter {
       _ <- createTopic(config.projectTopicName, topicAdminClient)
     } yield publisher
 
-  private def createTopic[F[_] : Sync](topicName: ProjectTopicName, topicAdminClient: TopicAdminClient)(implicit logger: StructuredLogger[F]): Resource[F, Unit] = {
+  private def createTopic[F[_] : Sync](topicName: ProjectTopicName, topicAdminClient: TopicAdminClient)(implicit logger: Logger[F]): Resource[F, Unit] = {
     Resource.liftF(
       Sync[F]
         .delay(topicAdminClient.createTopic(topicName))
@@ -106,4 +104,3 @@ object GooglePublisherInterpreter {
 }
 
 final case class PublisherConfig(pathToCredentialJson: String, projectTopicName: ProjectTopicName, retryConfig: RetryConfig)
-final case class DecoratedMessage[A](traceId: Option[TraceId], msg: A)

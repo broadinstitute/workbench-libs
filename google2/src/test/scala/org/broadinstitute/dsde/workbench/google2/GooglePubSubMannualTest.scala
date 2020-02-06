@@ -14,18 +14,37 @@ object GooglePubSubMannualTest {
   implicit val cs = IO.contextShift(global)
   implicit val t = IO.timer(global)
   implicit def logger = Slf4jLogger.getLogger[IO]
-  val projectTopicName = ProjectTopicName.of("broad-dsde-dev", "leonardo-pubsub")
 
-  val path = "/Users/qi/workspace/leonardo/config/leonardo-account.json"
-  val printPipe: Pipe[IO, Event[Messagee], Unit] = in => in.evalMap(s => IO(println("receiving "+s.toString)))
+  // NOTE: Update the next 2 lines to your own data
+  val projectTopicName = ProjectTopicName.of("your project name", "your topic name")
+  val path = "you service account path that has proper permission to your topic"
 
-  def test() = {
+  val printPipe: Pipe[IO, Event[Messagee], Unit] = in => in.evalMap(s => IO(println("processed "+s.toString)))
+
+  /**
+    * How to use this:
+    * 1. sbt "project workbenchGoogle2" console
+    * 2. val res = org.broadinstitute.dsde.workbench.google2.GooglePubSubMannualTest.publish()
+    * 3. res.unsafeRunSync
+    *
+    * You can now see messages being published
+    */
+  def publish() = {
     val config = PublisherConfig(path, projectTopicName, org.broadinstitute.dsde.workbench.google2.GoogleTopicAdminInterpreter.defaultRetryConfig)
     val pub = GooglePublisher.resource[IO](config)
     pub.use(x => (Stream.eval(IO.pure("yes")) through x.publish).compile.drain)
   }
 
   implicit val msgDecoder: Decoder[Messagee] = Decoder.forProduct1("msg")(Messagee)
+
+  /**
+    * How to use this:
+    * 1. sbt "project workbenchGoogle2" console
+    * 2. val res = org.broadinstitute.dsde.workbench.google2.GooglePubSubMannualTest.subscriber()
+    * 3. res.unsafeRunSync
+    *
+    * You can now publish messages in console and watch messages being printed out
+    */
   def subscriber() = {
     val config = SubscriberConfig(path, projectTopicName, 1 minute, None)
     for {

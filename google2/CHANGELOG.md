@@ -2,16 +2,6 @@
 
 This file documents changes to the `workbench-google2` library, including notes on how to upgrade to new versions.
 
-## 0.7
-Changed
-- Use `io.chrisdavenport.log4cats.StructuredLogger` instead of `io.chrisdavenport.log4cats.Logger`
-
-Add
-- Add `tracedPublish` to `GooglePublisher[F]`
-- Log messages with traceId in `GoogleSubscriberInterpreter`
-
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.7-TRAVIS-REPLACE-ME"`
-
 ## 0.6
 Changed
 - Bump `fs2-io` to `2.0.1`
@@ -19,15 +9,15 @@ Changed
 - Remove `LineBacker` usage
 - Add arguments to `insertBucket`
 - Fix `scala.MatchError` from `handleErrorWith`
-<<<<<<< HEAD
-=======
 - Add `delete` function to `GoogleTopicAdmin` trait and implementation
 - Use `recoverWith` instead of `onError` which doesn't actually recover the error
->>>>>>> 8956707... fix wrong use of onError
 
 Add
 - Add `GoogleDataproc` and `GoogleDataprocInterpreter`
 - Add `delete` function to `GoogleTopicAdmin` trait and implementation
+- Add `publishNative` to `GooglePublisher[F]` so that user can add attributes easily
+- Log messages with traceId in `GoogleSubscriberInterpreter`
+- Add `io.chrisdavenport.log4cats.StructuredLogger` instead of `io.chrisdavenport.log4cats.Logger`
 
 SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.6-TRAVIS-REPLACE-ME"`
 

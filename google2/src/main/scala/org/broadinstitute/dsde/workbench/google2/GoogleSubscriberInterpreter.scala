@@ -13,11 +13,12 @@ import com.google.common.util.concurrent.MoreExecutors
 import com.google.pubsub.v1.{PubsubMessage, _}
 import fs2.Stream
 import fs2.concurrent.Queue
-import io.chrisdavenport.log4cats.StructuredLogger
+import io.chrisdavenport.log4cats.{Logger, StructuredLogger}
 import io.circe.Decoder
 import io.circe.parser._
 import org.broadinstitute.dsde.workbench.model.TraceId
 import com.google.protobuf.Timestamp
+
 import scala.concurrent.duration.FiniteDuration
 
 private[google2] class GoogleSubscriberInterpreter[F[_]: Async: Timer: ContextShift, MessageType](
@@ -76,7 +77,7 @@ object GoogleSubscriberInterpreter {
             Effect[F].fromEither(json.as[MessageType])
         }
         traceId = Option(message.getAttributesMap.get("traceId")).map(s => TraceId(s))
-      } yield Event(DecoratedMessage(traceId, msg), message.getPublishTime, consumer)
+      } yield Event(msg, traceId, message.getPublishTime, consumer)
 
       val loggingCtx = Map(
         "traceId" -> Option(message.getAttributesMap.get("traceId")).getOrElse(""),
@@ -84,7 +85,6 @@ object GoogleSubscriberInterpreter {
       )
 
       val result = for {
-        _ <- logger.info(loggingCtx)(s"Subscriber received ${message.getData.toStringUtf8}")
         res <- parseEvent.attempt
         _ <- res match {
           case Right(event) =>
@@ -93,14 +93,13 @@ object GoogleSubscriberInterpreter {
 
               _ <- r match {
                 case Left(e) =>
-                  logger.info(loggingCtx)(s"Fail to enqueue $message due to $e") >> Effect[F].delay(consumer.nack()) //pubsub will resend the message up to ackDeadlineSeconds (this is configed during subscription creation)
+                  logger.info(loggingCtx)(s"Subscriber fail to enqueue $message due to $e") >> Effect[F].delay(consumer.nack()) //pubsub will resend the message up to ackDeadlineSeconds (this is configed during subscription creation)
                 case Right(_) =>
-                  logger.info(loggingCtx)(s"Successfully enqueue $message")
+                  logger.info(loggingCtx)(s"Subscriber Successfully received $message")
               }
             } yield ()
           case Left(e) =>
-            println(s"1111 ${e} | message: ${message}")
-            logger.info(s"Fail to decode message ${message} due to ${e}") >> Effect[F].delay(consumer.ack())
+            logger.info(s"Subscriber fail to decode message ${message} due to ${e}") >> Effect[F].delay(consumer.ack())
         }
       } yield ()
 
@@ -140,7 +139,7 @@ object GoogleSubscriberInterpreter {
     Resource.make(subscriber)(s => Sync[F].delay(s.stopAsync()))
   }
 
-  private def createSubscription[MessageType: Decoder, F[_] : Effect : StructuredLogger](subsriberConfig: SubscriberConfig, subscription: ProjectSubscriptionName, subscriptionAdminClient: SubscriptionAdminClient): Resource[F, Unit] = {
+  private def createSubscription[MessageType: Decoder, F[_] : Effect : Logger](subsriberConfig: SubscriberConfig, subscription: ProjectSubscriptionName, subscriptionAdminClient: SubscriptionAdminClient): Resource[F, Unit] = {
     Resource.liftF(Async[F].delay(
       subscriptionAdminClient.createSubscription(subscription, subsriberConfig.projectTopicName, PushConfig.getDefaultInstance, subsriberConfig.ackDeadLine.toSeconds.toInt)
     ).void.recover {
@@ -148,7 +147,7 @@ object GoogleSubscriberInterpreter {
     })
   }
 
-  private def subscriptionAdminClientResource[MessageType: Decoder, F[_] : Effect : StructuredLogger](credential: ServiceAccountCredentials) = {
+  private def subscriptionAdminClientResource[MessageType: Decoder, F[_] : Effect : Logger](credential: ServiceAccountCredentials) = {
     Resource.make[F, SubscriptionAdminClient](Async[F].delay(
       SubscriptionAdminClient.create(
         SubscriptionAdminSettings.newBuilder()
@@ -160,6 +159,7 @@ object GoogleSubscriberInterpreter {
 
 final case class FlowControlSettingsConfig(maxOutstandingElementCount: Long, maxOutstandingRequestBytes: Long)
 final case class SubscriberConfig(pathToCredentialJson: String, projectTopicName: ProjectTopicName, ackDeadLine: FiniteDuration, flowControlSettingsConfig: Option[FlowControlSettingsConfig])
-final case class Event[A](decoratedMsg: DecoratedMessage[A],
+final case class Event[A](msg: A,
+                          traceId: Option[TraceId] = None,
                           publishedTime: Timestamp,
                           consumer: AckReplyConsumer)
