@@ -22,10 +22,10 @@ class GoogleTopicAdminInterpreter[F[_]: Logger: Sync: Timer](topicAdminClient: T
   def retryHelper[A]: (F[A], Option[TraceId], String) => Stream[F, A] = retryGoogleF[F, A](retryConfig)
 
   def create(projectTopicName: ProjectTopicName, traceId: Option[TraceId] = None): Stream[F, Unit] = {
-    val loggingCtx = Map("topic" -> projectTopicName.asJson, "traceId" -> traceId.asJson)
-    val createTopic = Sync[F].delay(topicAdminClient.createTopic(projectTopicName)).void.onError {
+    val loggingCtx = Map("topic" -> projectTopicName.toString, "traceId" -> traceId.map(_.asString).getOrElse(""))
+    val createTopic = Sync[F].delay(topicAdminClient.createTopic(projectTopicName)).void.recoverWith {
         case _: com.google.api.gax.rpc.AlreadyExistsException =>
-          Logger[F].debug(s"$projectTopicName already exists")
+          StructuredLogger[F].debug(loggingCtx)(s"$projectTopicName already exists")
       }
 
     retryHelper[Unit](createTopic, traceId, s"com.google.cloud.pubsub.v1.TopicAdminClient.createTopic($projectTopicName)")
@@ -39,10 +39,10 @@ class GoogleTopicAdminInterpreter[F[_]: Logger: Sync: Timer](topicAdminClient: T
   }
 
   def createWithPublisherMembers(projectTopicName: ProjectTopicName, members: List[Identity], traceId: Option[TraceId] = None): Stream[F, Unit] = {
-    val loggingCtx = Map("topic" -> projectTopicName.asJson, "traceId" -> traceId.asJson)
-    val createTopic = Sync[F].delay(topicAdminClient.createTopic(projectTopicName)).void.onError {
+    val loggingCtx = Map("topic" -> projectTopicName.toString, "traceId" -> traceId.map(_.asString).getOrElse(""))
+    val createTopic = Sync[F].delay(topicAdminClient.createTopic(projectTopicName)).void.recoverWith {
       case _: com.google.api.gax.rpc.AlreadyExistsException =>
-        Logger[F].debug(s"$projectTopicName topic already exists")
+        StructuredLogger[F].debug(loggingCtx)(s"$projectTopicName topic already exists")
     }
 
     for {
