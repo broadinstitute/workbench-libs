@@ -17,8 +17,8 @@ object GooglePubSubMannualTest {
 
   // NOTE: Update the next 2 lines to your own data
 
-  val projectTopicName = ProjectTopicName.of("broad-dsde-dev", "leonardo-pubsub")
-  val path = "/Users/qi/workspace/leonardo/config/leonardo-account.json"
+  val projectTopicName = ProjectTopicName.of("your google project", "your topic name")
+  val path = "your service account path"
 
   val printPipe: Pipe[IO, Event[Messagee], Unit] = in => in.evalMap(s => IO(println("processed "+s)) >> IO(s.consumer.ack()))
 

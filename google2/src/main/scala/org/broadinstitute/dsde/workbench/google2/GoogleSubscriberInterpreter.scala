@@ -108,6 +108,18 @@ object GoogleSubscriberInterpreter {
     }
   }
 
+  private[google2] def stringReceiver[F[_]: Effect](queue: fs2.concurrent.Queue[F, Event[String]]): MessageReceiver = new MessageReceiver() {
+    override def receiveMessage(message: PubsubMessage, consumer: AckReplyConsumer): Unit = {
+      val enqueueAction = queue.enqueue1(
+        Event(message.getData.toStringUtf8,
+        Option(message.getAttributesMap.get("traceId")).map(s => TraceId(s)),
+        message.getPublishTime,
+        consumer
+      ))
+      enqueueAction.toIO.unsafeRunSync
+    }
+  }
+
   def subscriber[F[_]: Effect: StructuredLogger, MessageType: Decoder](subscriberConfig: SubscriberConfig, queue: fs2.concurrent.Queue[F, Event[MessageType]]): Resource[F, Subscriber] = {
     val subscription = ProjectSubscriptionName.of(subscriberConfig.projectTopicName.getProject, subscriberConfig.projectTopicName.getTopic)
 
@@ -126,6 +138,24 @@ object GoogleSubscriberInterpreter {
     } yield sub
   }
 
+  def stringSubscriber[F[_]: Effect: StructuredLogger](subscriberConfig: SubscriberConfig, queue: fs2.concurrent.Queue[F, Event[String]]): Resource[F, Subscriber] = {
+    val subscription = ProjectSubscriptionName.of(subscriberConfig.projectTopicName.getProject, subscriberConfig.projectTopicName.getTopic)
+
+    for {
+      credential <- credentialResource(subscriberConfig.pathToCredentialJson)
+      subscriptionAdminClient <- subscriptionAdminClientResource(credential)
+      _ <- createSubscription(subscriberConfig, subscription, subscriptionAdminClient)
+      flowControlSettings = subscriberConfig.flowControlSettingsConfig.map(config =>
+        FlowControlSettings
+          .newBuilder
+          .setMaxOutstandingElementCount(config.maxOutstandingElementCount)
+          .setMaxOutstandingRequestBytes(config.maxOutstandingRequestBytes)
+          .build
+      )
+      sub <- stringSubscriberResource(queue, subscription, credential, flowControlSettings)
+    } yield sub
+  }
+
   private def subscriberResource[MessageType: Decoder, F[_] : Effect : StructuredLogger](queue: Queue[F, Event[MessageType]], subscription: ProjectSubscriptionName, credential: ServiceAccountCredentials, flowControlSettings: Option[FlowControlSettings]): Resource[F, Subscriber] = {
     val subscriber = for {
       builder <- Sync[F].delay(Subscriber
@@ -140,7 +170,21 @@ object GoogleSubscriberInterpreter {
     Resource.make(subscriber)(s => Sync[F].delay(s.stopAsync()))
   }
 
-  private def createSubscription[MessageType: Decoder, F[_] : Effect : Logger](subsriberConfig: SubscriberConfig, subscription: ProjectSubscriptionName, subscriptionAdminClient: SubscriptionAdminClient): Resource[F, Unit] = {
+  private def stringSubscriberResource[F[_] : Effect](queue: Queue[F, Event[String]], subscription: ProjectSubscriptionName, credential: ServiceAccountCredentials, flowControlSettings: Option[FlowControlSettings]): Resource[F, Subscriber] = {
+    val subscriber = for {
+      builder <- Sync[F].delay(Subscriber
+        .newBuilder(subscription, stringReceiver(queue))
+        .setCredentialsProvider(FixedCredentialsProvider.create(credential)))
+      builderWithFlowControlSetting <- flowControlSettings.traverse{
+        fcs =>
+          Sync[F].delay(builder.setFlowControlSettings(fcs))
+      }
+    } yield builderWithFlowControlSetting.getOrElse(builder).build()
+
+    Resource.make(subscriber)(s => Sync[F].delay(s.stopAsync()))
+  }
+
+  private def createSubscription[F[_] : Effect : Logger](subsriberConfig: SubscriberConfig, subscription: ProjectSubscriptionName, subscriptionAdminClient: SubscriptionAdminClient): Resource[F, Unit] = {
     Resource.liftF(Async[F].delay(
       subscriptionAdminClient.createSubscription(subscription, subsriberConfig.projectTopicName, PushConfig.getDefaultInstance, subsriberConfig.ackDeadLine.toSeconds.toInt)
     ).void.recover {
@@ -148,7 +192,7 @@ object GoogleSubscriberInterpreter {
     })
   }
 
-  private def subscriptionAdminClientResource[MessageType: Decoder, F[_] : Effect : Logger](credential: ServiceAccountCredentials) = {
+  private def subscriptionAdminClientResource[F[_] : Effect : Logger](credential: ServiceAccountCredentials) = {
     Resource.make[F, SubscriptionAdminClient](Async[F].delay(
       SubscriptionAdminClient.create(
         SubscriptionAdminSettings.newBuilder()
