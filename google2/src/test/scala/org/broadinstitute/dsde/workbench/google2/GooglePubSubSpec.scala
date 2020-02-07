@@ -10,7 +10,7 @@ import com.google.cloud.pubsub.v1._
 import com.google.pubsub.v1.{ProjectSubscriptionName, ProjectTopicName, PushConfig}
 import fs2.Stream
 import fs2.concurrent.SignallingRef
-import io.chrisdavenport.log4cats.Logger
+import io.chrisdavenport.log4cats.StructuredLogger
 import io.circe.Decoder
 import io.circe.generic.auto._
 import io.grpc.ManagedChannelBuilder
@@ -64,7 +64,7 @@ class GooglePubSubSpec extends FlatSpec with Matchers with WorkbenchTestSuite {
                   IO(event.consumer.ack()).void
               }
               else
-                IO.raiseError(new Exception(s"${event.msg} doesn't equal ${people(index.toInt)}")) >> terminateSubscriber.set(true)
+                IO.raiseError(new Exception(s"${event} doesn't equal ${people(index.toInt)}")) >> terminateSubscriber.set(true)
           }.interruptWhen(terminateStopStream)
 
           // stopStream will check every 1 seconds to see if SignallingRef is set to false, if so terminate subscriber
@@ -87,7 +87,7 @@ class GooglePubSubSpec extends FlatSpec with Matchers with WorkbenchTestSuite {
 }
 
 object GooglePubSubSpec {
-  def localPubsub[A: Decoder](projectTopicName: ProjectTopicName, queue: fs2.concurrent.Queue[IO, Event[A]])(implicit timer: Timer[IO], cs: ContextShift[IO], logger: Logger[IO]): Resource[IO, (GooglePublisherInterpreter[IO], GoogleSubscriberInterpreter[IO, A])] = {
+  def localPubsub[A: Decoder](projectTopicName: ProjectTopicName, queue: fs2.concurrent.Queue[IO, Event[A]])(implicit timer: Timer[IO], cs: ContextShift[IO], logger: StructuredLogger[IO]): Resource[IO, (GooglePublisherInterpreter[IO], GoogleSubscriberInterpreter[IO, A])] = {
     for{
       channel <- Resource.make(IO(ManagedChannelBuilder.forTarget("localhost:8085").usePlaintext().build()))(c => IO(c.shutdown()))
       channelProvider = FixedTransportChannelProvider.create(GrpcTransportChannel.create(channel))

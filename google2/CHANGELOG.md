@@ -10,12 +10,16 @@ Changed
 - Add arguments to `insertBucket`
 - Fix `scala.MatchError` from `handleErrorWith`
 - Add `delete` function to `GoogleTopicAdmin` trait and implementation
+- Use `recoverWith` instead of `onError` which doesn't actually recover the error
 
 Add
 - Add `GoogleDataproc` and `GoogleDataprocInterpreter`
+- Add `delete` function to `GoogleTopicAdmin` trait and implementation
+- Add `publishNative` to `GooglePublisher[F]` so that user can add attributes easily
+- Log messages with traceId in `GoogleSubscriberInterpreter`
+- Add `io.chrisdavenport.log4cats.StructuredLogger` instead of `io.chrisdavenport.log4cats.Logger`
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.6-c91d96b"`
-
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.6-TRAVIS-REPLACE-ME"`
 
 ## 0.5
 
