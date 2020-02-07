@@ -19,6 +19,7 @@ import spray.json._
 import scala.concurrent.duration._
 import scala.util.{Failure, Success, Try}
 
+//noinspection TypeAnnotation,ScalaDocMissingParameterDescription
 trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport with DefaultJsonProtocol with RandomUtil {
 
   def responseAsList[T](response: String): List[Map[String, T]] = {
@@ -433,10 +434,31 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
    */
 
   object submissions {
-    def launchWorkflow(ns: String, wsName: String, methodConfigurationNamespace: String, methodConfigurationName: String, entityType: String, entityName: String, expression: String, useCallCache: Boolean, workflowFailureMode: String = "NoNewCalls")(implicit token: AuthToken): String = {
+    def launchWorkflow(ns: String,
+                       wsName: String,
+                       methodConfigurationNamespace: String,
+                       methodConfigurationName: String,
+                       entityType: String,
+                       entityName: String,
+                       expression: String,
+                       useCallCache: Boolean,
+                       deleteIntermediateOutputFiles: Boolean,
+                       workflowFailureMode: String = "NoNewCalls"
+                      )(implicit token: AuthToken): String = {
       logger.info(s"Creating a submission: $ns/$wsName config: $methodConfigurationNamespace/$methodConfigurationName")
-      postRequest(apiUrl(s"api/workspaces/$ns/$wsName/submissions"),
-        Map("methodConfigurationNamespace" -> methodConfigurationNamespace, "methodConfigurationName" -> methodConfigurationName, "entityType" -> entityType, "entityName" -> entityName, "expression" -> expression, "useCallCache" -> useCallCache, "workflowFailureMode" -> workflowFailureMode))
+      postRequest(
+        apiUrl(s"api/workspaces/$ns/$wsName/submissions"),
+        Map(
+          "methodConfigurationNamespace" -> methodConfigurationNamespace,
+          "methodConfigurationName" -> methodConfigurationName,
+          "entityType" -> entityType,
+          "entityName" -> entityName,
+          "expression" -> expression,
+          "useCallCache" -> useCallCache,
+          "deleteIntermediateOutputFiles" -> deleteIntermediateOutputFiles,
+          "workflowFailureMode" -> workflowFailureMode
+        )
+      )
     }
 
   }
@@ -630,6 +652,7 @@ object Orchestration extends Orchestration
 /**
   * Dictionary of access level values expected by the web service API.
   */
+//noinspection TypeAnnotation
 object WorkspaceAccessLevel extends Enumeration {
   type WorkspaceAccessLevel = Value
   val NoAccess = Value("NO ACCESS")
@@ -653,6 +676,7 @@ case class AclEntry(email: String, accessLevel: WorkspaceAccessLevel, canShare: 
   }
 }
 
+//noinspection TypeAnnotation
 object OrchestrationModel {
   import DefaultJsonProtocol._
   case class ManagedGroupWithMembers(membersEmails: Seq[String], adminsEmails: Seq[String], groupEmail: String)
