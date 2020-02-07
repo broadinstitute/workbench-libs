@@ -4,10 +4,10 @@ import cats.effect.{Resource, Sync, Timer}
 import com.google.auth.oauth2.ServiceAccountCredentials
 import com.google.cloud.Identity
 import com.google.pubsub.v1.ProjectTopicName
-import io.chrisdavenport.log4cats.Logger
+import fs2.Stream
+import io.chrisdavenport.log4cats.StructuredLogger
 import org.broadinstitute.dsde.workbench.RetryConfig
 import org.broadinstitute.dsde.workbench.google2.GoogleTopicAdminInterpreter._
-import fs2.Stream
 import org.broadinstitute.dsde.workbench.model.TraceId
 
 trait GoogleTopicAdmin[F[_]] {
@@ -40,12 +40,12 @@ trait GoogleTopicAdmin[F[_]] {
 
 
 object GoogleTopicAdmin {
-  def fromCredentialPath[F[_]: Logger: Sync: Timer](pathToCredential: String, retryConfig: RetryConfig = GoogleTopicAdminInterpreter.defaultRetryConfig): Resource[F, GoogleTopicAdmin[F]] = for {
+  def fromCredentialPath[F[_]: StructuredLogger: Sync: Timer](pathToCredential: String, retryConfig: RetryConfig = GoogleTopicAdminInterpreter.defaultRetryConfig): Resource[F, GoogleTopicAdmin[F]] = for {
     credential <- credentialResource(pathToCredential)
     topicAdmin <- fromServiceAccountCrendential(credential, retryConfig)
   } yield topicAdmin
 
-  def fromServiceAccountCrendential[F[_]: Logger: Sync: Timer](serviceAccountCredentials: ServiceAccountCredentials, retryConfig: RetryConfig): Resource[F, GoogleTopicAdmin[F]] = for {
+  def fromServiceAccountCrendential[F[_]: StructuredLogger: Sync: Timer](serviceAccountCredentials: ServiceAccountCredentials, retryConfig: RetryConfig): Resource[F, GoogleTopicAdmin[F]] = for {
     topicAdminClient <- topicAdminClientResource(serviceAccountCredentials)
   } yield new GoogleTopicAdminInterpreter[F](topicAdminClient, retryConfig)
 }

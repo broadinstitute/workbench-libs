@@ -10,35 +10,58 @@ import com.google.cloud.pubsub.v1.{Publisher, TopicAdminClient}
 import com.google.common.util.concurrent.MoreExecutors
 import com.google.protobuf.ByteString
 import com.google.pubsub.v1.{ProjectTopicName, PubsubMessage}
-import fs2.Pipe
-import io.chrisdavenport.log4cats.Logger
+import fs2.{Pipe, Stream}
+import io.chrisdavenport.log4cats.StructuredLogger
 import io.circe.Encoder
 import io.circe.syntax._
 import org.broadinstitute.dsde.workbench.RetryConfig
+import org.broadinstitute.dsde.workbench.model.TraceId
 
-private[google2] class GooglePublisherInterpreter[F[_]: Async: Timer: Logger](
+private[google2] class GooglePublisherInterpreter[F[_]: Async: Timer: StructuredLogger](
                                                                                publisher: Publisher,
                                                                                retryConfig: RetryConfig
                                                                              ) extends GooglePublisher[F] {
   def publish[MessageType: Encoder]: Pipe[F, MessageType, Unit] = in => {
     in.flatMap {
       message =>
-        publishMessage(message.asJson.noSpaces) //This will turn message case class into raw json string
+        publishMessage(message.asJson.noSpaces, None) //This will turn message case class into raw json string
+    }
+  }
+
+  def publishNative: Pipe[F, PubsubMessage, Unit] = in => {
+    in.flatMap {
+      message =>
+        for {
+          _ <- retryGoogleF(retryConfig)(
+            Async[F].async[String]{
+            callback =>
+              ApiFutures.addCallback(
+                publisher.publish(message),
+                callBack(callback),
+                MoreExecutors.directExecutor()
+              )
+          }.void,
+            Option(message.getAttributesMap.get("traceId")).map(s => TraceId(s)),
+            s"Publishing ${message}"
+          )
+        } yield ()
     }
   }
 
   def publishString: Pipe[F, String, Unit] = in => {
-    in.flatMap(publishMessage)
+    in.flatMap(s => publishMessage(s, None))
   }
 
-  private def publishMessage(message: String) = {
+  private def publishMessage(message: String, traceId: Option[TraceId]): Stream[F, Unit] = {
     val byteString = ByteString.copyFromUtf8(message)
-    retryGoogleF(retryConfig)(asyncPublishMessage(byteString), None, s"Publishing $message")
+    retryGoogleF(retryConfig)(asyncPublishMessage(byteString, traceId), traceId, s"Publishing $message")
   }
 
-  private def asyncPublishMessage(byteString: ByteString): F[Unit] = Async[F].async[String]{
+  private def asyncPublishMessage(byteString: ByteString, traceId: Option[TraceId]): F[Unit] = Async[F].async[String]{
     callback =>
-      val message = PubsubMessage.newBuilder().setData(byteString).build()
+      val message = PubsubMessage.newBuilder()
+        .setData(byteString)
+        .build()
       ApiFutures.addCallback(
         publisher.publish(message),
         callBack(callback),
@@ -48,12 +71,12 @@ private[google2] class GooglePublisherInterpreter[F[_]: Async: Timer: Logger](
 }
 
 object GooglePublisherInterpreter {
-  def apply[F[_]: Async: Timer: ContextShift: Logger](
+  def apply[F[_]: Async: Timer: ContextShift: StructuredLogger](
                                                        publisher: Publisher,
                                                        retryConfig: RetryConfig
                                                      ): GooglePublisherInterpreter[F] = new GooglePublisherInterpreter(publisher, retryConfig)
 
-  def publisher[F[_]: Sync](config: PublisherConfig): Resource[F, Publisher] =
+  def publisher[F[_]: Sync: StructuredLogger](config: PublisherConfig): Resource[F, Publisher] =
     for {
       credential <- credentialResource(config.pathToCredentialJson)
       publisher <- publisherResource(config.projectTopicName, credential)
@@ -61,13 +84,13 @@ object GooglePublisherInterpreter {
       _ <- createTopic(config.projectTopicName, topicAdminClient)
     } yield publisher
 
-  private def createTopic[F[_] : Sync](topicName: ProjectTopicName, topicAdminClient: TopicAdminClient): Resource[F, Unit] = {
+  private def createTopic[F[_] : Sync](topicName: ProjectTopicName, topicAdminClient: TopicAdminClient)(implicit logger: StructuredLogger[F]): Resource[F, Unit] = {
     Resource.liftF(
       Sync[F]
         .delay(topicAdminClient.createTopic(topicName))
         .void
-        .recover {
-          case _: AlreadyExistsException => ()
+        .recoverWith {
+          case _: AlreadyExistsException => logger.info(s"${topicName} already exists")
         })
   }
 
