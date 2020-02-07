@@ -21,6 +21,7 @@ trait Rawls extends RestClient with LazyLogging {
     mapper.readValue(response, classOf[List[Map[String, T]]])
   }
 
+  //noinspection RedundantBlock
   object billing {
 
     def createBillingProject(projectName: String, billingAccount: String, servicePerimeterOpt: Option[String] = None)(implicit token: AuthToken): String = {
@@ -60,6 +61,7 @@ trait Rawls extends RestClient with LazyLogging {
 
   }
 
+  //noinspection RedundantBlock,ScalaUnnecessaryParentheses
   object methodConfigs {
     def copyMethodConfigFromWorkspace(sourceMethodConfig: Map[String,Any], destinationMethodConfigName: Map[String,Any])(implicit token: AuthToken): String = {
       logger.info(s"Copying method configuration from workspace: ${sourceMethodConfig} ")
@@ -211,8 +213,27 @@ trait Rawls extends RestClient with LazyLogging {
   }
 
   object submissions {
-    def launchWorkflow(billingProject: String, workspaceName: String, methodConfigurationNamespace: String, methodConfigurationName: String, entityType: String, entityName: String, expression: String, useCallCache: Boolean, workflowFailureMode: String = "NoNewCalls")(implicit token: AuthToken): String = {
-      val body: Map[String, Any] = Map("methodConfigurationNamespace" -> methodConfigurationNamespace, "methodConfigurationName" -> methodConfigurationName, "entityType" -> entityType, "entityName" -> entityName, "expression" -> expression, "useCallCache" -> useCallCache, "workflowFailureMode" -> workflowFailureMode)
+    def launchWorkflow(billingProject: String,
+                       workspaceName: String,
+                       methodConfigurationNamespace: String,
+                       methodConfigurationName: String,
+                       entityType: String,
+                       entityName: String,
+                       expression: String,
+                       useCallCache: Boolean,
+                       deleteIntermediateOutputFiles: Boolean,
+                       workflowFailureMode: String = "NoNewCalls"
+                      )(implicit token: AuthToken): String = {
+      val body: Map[String, Any] = Map(
+        "methodConfigurationNamespace" -> methodConfigurationNamespace,
+        "methodConfigurationName" -> methodConfigurationName,
+        "entityType" -> entityType,
+        "entityName" -> entityName,
+        "expression" -> expression,
+        "useCallCache" -> useCallCache,
+        "deleteIntermediateOutputFiles" -> deleteIntermediateOutputFiles,
+        "workflowFailureMode" -> workflowFailureMode
+      )
       logger.info(s"Creating a submission: $billingProject/$workspaceName config: $methodConfigurationNamespace/$methodConfigurationName with body $body")
       val response = postRequest(url + s"api/workspaces/$billingProject/$workspaceName/submissions", body)
 
