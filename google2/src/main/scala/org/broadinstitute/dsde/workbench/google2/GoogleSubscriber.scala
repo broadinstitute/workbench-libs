@@ -7,6 +7,7 @@ import io.circe.Decoder
 
 trait GoogleSubscriber[F[_], A] {
   def messages: Stream[F, Event[A]]
+  // If you use `start`, make sure to hook up `messages` somewhere as well on the same instance for consuming the messages; Otherwise, messages will be left nacked
   def start: F[Unit]
   def stop: F[Unit]
 }
