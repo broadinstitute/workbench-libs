@@ -115,4 +115,13 @@ class HttpGoogleProjectDAO(appName: String,
       Option(ancestry.getAncestor).map(_.asScala).getOrElse(Seq.empty)
     }
   }
+
+  override def getProjectNumber(projectName: String): Future[Option[Long]] = {
+    retryWithRecover(when5xx, whenUsageLimited, whenInvalidValueOnBucketCreation, whenNonHttpIOException) { () =>
+      Option(executeGoogleRequest(cloudResManager.projects().get(projectName))).map(_.getProjectNumber).map(_.toLong)
+    } {
+      // if the project doesn't exist, don't fail
+      case e: HttpResponseException if e.getStatusCode == StatusCodes.NotFound.intValue => None
+    }
+  }
 }
