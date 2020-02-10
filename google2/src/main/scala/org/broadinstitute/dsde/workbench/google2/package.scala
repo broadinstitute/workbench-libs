@@ -6,6 +6,7 @@ import cats.implicits._
 import cats.effect.{Resource, Sync, Timer}
 import cats.mtl.ApplicativeAsk
 import com.google.api.core.ApiFutureCallback
+import com.google.api.gax.core.BackgroundResource
 import com.google.auth.oauth2.ServiceAccountCredentials
 import fs2.{RaiseThrowable, Stream}
 import io.chrisdavenport.log4cats.StructuredLogger
@@ -73,6 +74,13 @@ package object google2 {
     credentialFile <- org.broadinstitute.dsde.workbench.util2.readFile(pathToCredential)
     credential <- Resource.liftF(Sync[F].delay(ServiceAccountCredentials.fromStream(credentialFile)))
   } yield credential
+
+  def resourceF[F[_]: Sync, A <: BackgroundResource](resource: => A): Resource[F, A] =
+    Resource.make(Sync[F].delay(resource))(c => Sync[F].delay(c.close()))
+
+  // Recovers a F[A] to an F[Option[A]] depending on predicate
+  def recoverF[F[_]: Sync, A](fa: F[A], pred: Throwable => Boolean): F[Option[A]] =
+    fa.map(Option(_)).recover { case e if pred(e) => None }
 }
 
 final case class RetryConfig(retryInitialDelay: FiniteDuration, retryNextDelay: FiniteDuration => FiniteDuration, maxAttempts: Int, retryable: Throwable => Boolean = scala.util.control.NonFatal.apply)
