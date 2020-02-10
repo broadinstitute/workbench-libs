@@ -17,17 +17,17 @@ import scala.collection.JavaConverters._
 import scala.language.higherKinds
 
 /**
-  * Algebra for Google Dataproc access
-  *
-  * We follow tagless final pattern similar to https://typelevel.org/cats-tagless/
-  */
+ * Algebra for Google Dataproc access
+ *
+ * We follow tagless final pattern similar to https://typelevel.org/cats-tagless/
+ */
 trait GoogleDataprocService[F[_]] {
   def createCluster(
-                     project: GoogleProject,
-                     region: RegionName,
-                     clusterName: ClusterName,
-                     createClusterConfig: Option[CreateClusterConfig]
-                   )(implicit ev: ApplicativeAsk[F, TraceId]): F[CreateClusterResponse]
+    project: GoogleProject,
+    region: RegionName,
+    clusterName: ClusterName,
+    createClusterConfig: Option[CreateClusterConfig]
+  )(implicit ev: ApplicativeAsk[F, TraceId]): F[CreateClusterResponse]
 
   def deleteCluster(project: GoogleProject, region: RegionName, clusterName: ClusterName)(
     implicit ev: ApplicativeAsk[F, TraceId]
@@ -40,11 +40,11 @@ trait GoogleDataprocService[F[_]] {
 
 object GoogleDataprocService {
   def resource[F[_]: StructuredLogger: Async: Timer: ContextShift](
-                                                                    pathToCredential: String,
-                                                                    blocker: Blocker,
-                                                                    blockerBound: Semaphore[F],
-                                                                    retryConfig: RetryConfig = RetryPredicates.standardRetryConfig
-                                                                  ): Resource[F, GoogleDataprocService[F]] =
+    pathToCredential: String,
+    blocker: Blocker,
+    blockerBound: Semaphore[F],
+    retryConfig: RetryConfig = RetryPredicates.standardRetryConfig
+  ): Resource[F, GoogleDataprocService[F]] =
     for {
       credential <- credentialResource(pathToCredential)
       scopedCredential = credential.createScoped(Seq(ComputeScopes.CLOUD_PLATFORM).asJava)
@@ -52,11 +52,11 @@ object GoogleDataprocService {
     } yield interpreter
 
   private def fromCredential[F[_]: StructuredLogger: Async: Timer: ContextShift](
-                                                                                  googleCredentials: GoogleCredentials,
-                                                                                  blocker: Blocker,
-                                                                                  blockerBound: Semaphore[F],
-                                                                                  retryConfig: RetryConfig
-                                                                                ): Resource[F, GoogleDataprocService[F]] = {
+    googleCredentials: GoogleCredentials,
+    blocker: Blocker,
+    blockerBound: Semaphore[F],
+    retryConfig: RetryConfig
+  ): Resource[F, GoogleDataprocService[F]] = {
     val settings = ClusterControllerSettings
       .newBuilder()
       .setCredentialsProvider(FixedCredentialsProvider.create(googleCredentials))
@@ -78,12 +78,12 @@ object CreateClusterResponse {
 }
 
 final case class CreateClusterConfig(
-                                      gceClusterConfig: GceClusterConfig,
-                                      nodeInitializationAction: NodeInitializationAction,
-                                      instanceGroupConfig: InstanceGroupConfig,
-                                      stagingBucket: GcsBucketName,
-                                      softwareConfig: SoftwareConfig
-                                    ) //valid properties are https://cloud.google.com/dataproc/docs/concepts/configuring-clusters/cluster-properties
+  gceClusterConfig: GceClusterConfig,
+  nodeInitializationAction: NodeInitializationAction,
+  instanceGroupConfig: InstanceGroupConfig,
+  stagingBucket: GcsBucketName,
+  softwareConfig: SoftwareConfig
+) //valid properties are https://cloud.google.com/dataproc/docs/concepts/configuring-clusters/cluster-properties
 
 sealed abstract class DeleteClusterResponse
 object DeleteClusterResponse {

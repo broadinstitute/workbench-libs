@@ -15,18 +15,18 @@ import org.broadinstitute.dsde.workbench.model.TraceId
 import org.broadinstitute.dsde.workbench.model.google.GoogleProject
 
 private[google2] class GoogleDataprocInterpreter[F[_]: Async: StructuredLogger: Timer: ContextShift](
-                                                                                                      clusterControllerClient: ClusterControllerClient,
-                                                                                                      retryConfig: RetryConfig,
-                                                                                                      blocker: Blocker,
-                                                                                                      blockerBound: Semaphore[F]
-                                                                                                    ) extends GoogleDataprocService[F] {
+  clusterControllerClient: ClusterControllerClient,
+  retryConfig: RetryConfig,
+  blocker: Blocker,
+  blockerBound: Semaphore[F]
+) extends GoogleDataprocService[F] {
 
   override def createCluster(
-                              project: GoogleProject,
-                              region: RegionName,
-                              clusterName: ClusterName,
-                              createClusterConfig: Option[CreateClusterConfig]
-                            )(implicit ev: ApplicativeAsk[F, TraceId]): F[CreateClusterResponse] = {
+    project: GoogleProject,
+    region: RegionName,
+    clusterName: ClusterName,
+    createClusterConfig: Option[CreateClusterConfig]
+  )(implicit ev: ApplicativeAsk[F, TraceId]): F[CreateClusterResponse] = {
     val config: ClusterConfig = createClusterConfig
       .map(
         config =>
@@ -121,7 +121,7 @@ private[google2] class GoogleDataprocInterpreter[F[_]: Async: StructuredLogger: 
   ): F[Option[Cluster]] =
     retryF(
       recoverF(Async[F].delay(clusterControllerClient.getCluster(project.value, region.value, clusterName.value)),
-        whenStatusCode(404)),
+               whenStatusCode(404)),
       s"com.google.cloud.dataproc.v1.ClusterControllerClient.getCluster(${project.value}, ${region.value}, ${clusterName.value})"
     )
 

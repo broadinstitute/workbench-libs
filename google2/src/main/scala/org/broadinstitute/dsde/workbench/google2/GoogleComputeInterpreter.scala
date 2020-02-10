@@ -14,15 +14,15 @@ import org.broadinstitute.dsde.workbench.model.{TraceId, WorkbenchException}
 import scala.collection.JavaConverters._
 
 private[google2] class GoogleComputeInterpreter[F[_]: Async: StructuredLogger: Timer: ContextShift](
-                                                                                                     instanceClient: InstanceClient,
-                                                                                                     firewallClient: FirewallClient,
-                                                                                                     diskClient: DiskClient,
-                                                                                                     zoneClient: ZoneClient,
-                                                                                                     machineTypeClient: MachineTypeClient,
-                                                                                                     retryConfig: RetryConfig,
-                                                                                                     blocker: Blocker,
-                                                                                                     blockerBound: Semaphore[F]
-                                                                                                   ) extends GoogleComputeService[F] {
+  instanceClient: InstanceClient,
+  firewallClient: FirewallClient,
+  diskClient: DiskClient,
+  zoneClient: ZoneClient,
+  machineTypeClient: MachineTypeClient,
+  retryConfig: RetryConfig,
+  blocker: Blocker,
+  blockerBound: Semaphore[F]
+) extends GoogleComputeService[F] {
 
   override def createInstance(project: GoogleProject, zone: ZoneName, instance: Instance)(
     implicit ev: ApplicativeAsk[F, TraceId]

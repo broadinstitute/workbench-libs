@@ -6,8 +6,7 @@ import org.broadinstitute.dsde.workbench.model.TraceId
 
 object JsonCodec {
   implicit val projectTopicNameEncoder: Encoder[ProjectTopicName] = Encoder.encodeString.contramap(
-    projectTopicName =>
-      s"projects/${projectTopicName.getProject}/topics/${projectTopicName.getTopic}"
+    projectTopicName => s"projects/${projectTopicName.getProject}/topics/${projectTopicName.getTopic}"
   )
 
   implicit val traceIdEncoder: Encoder[TraceId] = Encoder.encodeString.contramap(_.asString)

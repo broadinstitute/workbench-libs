@@ -16,8 +16,8 @@ import org.broadinstitute.dsde.workbench.model.{TraceId, WorkbenchEmail}
 import scala.collection.JavaConverters._
 
 /**
-  * Algebra for Google Compute access.
-  */
+ * Algebra for Google Compute access.
+ */
 trait GoogleComputeService[F[_]] {
   def createInstance(project: GoogleProject, zone: ZoneName, instance: Instance)(
     implicit ev: ApplicativeAsk[F, TraceId]
@@ -51,8 +51,8 @@ trait GoogleComputeService[F[_]] {
   ): F[Option[Firewall]]
 
   def getComputeEngineDefaultServiceAccount(projectNumber: Long): WorkbenchEmail =
-  // Service account email format documented in:
-  // https://cloud.google.com/compute/docs/access/service-accounts#compute_engine_default_service_account
+    // Service account email format documented in:
+    // https://cloud.google.com/compute/docs/access/service-accounts#compute_engine_default_service_account
     WorkbenchEmail(s"$projectNumber-compute@developer.gserviceaccount.com")
 
   def setMachineType(project: GoogleProject, zone: ZoneName, instanceName: InstanceName, machineType: MachineTypeName)(
@@ -72,11 +72,11 @@ trait GoogleComputeService[F[_]] {
 
 object GoogleComputeService {
   def resource[F[_]: StructuredLogger: Async: Timer: ContextShift](
-                                                                    pathToCredential: String,
-                                                                    blocker: Blocker,
-                                                                    blockerBound: Semaphore[F],
-                                                                    retryConfig: RetryConfig = RetryPredicates.standardRetryConfig
-                                                                  ): Resource[F, GoogleComputeService[F]] =
+    pathToCredential: String,
+    blocker: Blocker,
+    blockerBound: Semaphore[F],
+    retryConfig: RetryConfig = RetryPredicates.standardRetryConfig
+  ): Resource[F, GoogleComputeService[F]] =
     for {
       credential <- credentialResource(pathToCredential)
       scopedCredential = credential.createScoped(Seq(ComputeScopes.COMPUTE).asJava)
@@ -84,11 +84,11 @@ object GoogleComputeService {
     } yield interpreter
 
   private def fromCredential[F[_]: StructuredLogger: Async: Timer: ContextShift](
-                                                                                  googleCredentials: GoogleCredentials,
-                                                                                  blocker: Blocker,
-                                                                                  blockerBound: Semaphore[F],
-                                                                                  retryConfig: RetryConfig
-                                                                                ): Resource[F, GoogleComputeService[F]] = {
+    googleCredentials: GoogleCredentials,
+    blocker: Blocker,
+    blockerBound: Semaphore[F],
+    retryConfig: RetryConfig
+  ): Resource[F, GoogleComputeService[F]] = {
     val credentialsProvider = FixedCredentialsProvider.create(googleCredentials)
 
     val instanceSettings = InstanceSettings
@@ -119,13 +119,13 @@ object GoogleComputeService {
       zoneClient <- resourceF(ZoneClient.create(zoneSettings))
       machineTypeClient <- resourceF(MachineTypeClient.create(machineTypeSettings))
     } yield new GoogleComputeInterpreter[F](instanceClient,
-      firewallClient,
-      diskClient,
-      zoneClient,
-      machineTypeClient,
-      retryConfig,
-      blocker,
-      blockerBound)
+                                            firewallClient,
+                                            diskClient,
+                                            zoneClient,
+                                            machineTypeClient,
+                                            retryConfig,
+                                            blocker,
+                                            blockerBound)
   }
 }
 

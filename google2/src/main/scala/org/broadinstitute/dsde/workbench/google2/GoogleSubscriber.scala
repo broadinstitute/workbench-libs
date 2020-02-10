@@ -12,18 +12,20 @@ trait GoogleSubscriber[F[_], A] {
   def stop: F[Unit]
 }
 
-object GoogleSubscriber{
+object GoogleSubscriber {
   def resource[F[_]: Effect: Timer: ContextShift: StructuredLogger, MessageType: Decoder](
-                                                  subscriberConfig: SubscriberConfig,
-                                                  queue: fs2.concurrent.Queue[F, Event[MessageType]]
-                                                ): Resource[F, GoogleSubscriber[F, MessageType]] = for {
-    subscriberClient <- GoogleSubscriberInterpreter.subscriber(subscriberConfig, queue)
-  } yield GoogleSubscriberInterpreter(subscriberClient, queue)
+    subscriberConfig: SubscriberConfig,
+    queue: fs2.concurrent.Queue[F, Event[MessageType]]
+  ): Resource[F, GoogleSubscriber[F, MessageType]] =
+    for {
+      subscriberClient <- GoogleSubscriberInterpreter.subscriber(subscriberConfig, queue)
+    } yield GoogleSubscriberInterpreter(subscriberClient, queue)
 
   def stringResource[F[_]: Effect: Timer: ContextShift: StructuredLogger](
-                                                  subscriberConfig: SubscriberConfig,
-                                                  queue: fs2.concurrent.Queue[F, Event[String]]
-                                                ): Resource[F, GoogleSubscriber[F, String]] = for {
-    subscriberClient <- GoogleSubscriberInterpreter.stringSubscriber(subscriberConfig, queue)
-  } yield GoogleSubscriberInterpreter(subscriberClient, queue)
+    subscriberConfig: SubscriberConfig,
+    queue: fs2.concurrent.Queue[F, Event[String]]
+  ): Resource[F, GoogleSubscriber[F, String]] =
+    for {
+      subscriberClient <- GoogleSubscriberInterpreter.stringSubscriber(subscriberConfig, queue)
+    } yield GoogleSubscriberInterpreter(subscriberClient, queue)
 }
