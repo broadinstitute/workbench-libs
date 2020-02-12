@@ -12,7 +12,8 @@ object WorkbenchIdentityJsonSupport {
   implicit val WorkbenchEmailFormat = ValueObjectFormat(WorkbenchEmail)
   implicit val WorkbenchUserIdFormat = ValueObjectFormat(WorkbenchUserId)
   implicit val googleSubjectIdFormat = ValueObjectFormat(GoogleSubjectId)
-  implicit val WorkbenchUserFormat = jsonFormat3(WorkbenchUser)
+  implicit val identityConcentratorIdFormat = ValueObjectFormat(IdentityConcentratorId.apply)
+  implicit val WorkbenchUserFormat = jsonFormat4(WorkbenchUser)
 
   implicit val WorkbenchGroupNameFormat = ValueObjectFormat(WorkbenchGroupName)
 }
@@ -21,7 +22,8 @@ sealed trait WorkbenchSubject
 
 final case class WorkbenchEmail(value: String) extends ValueObject
 final case class GoogleSubjectId(value: String) extends ValueObject
-final case class WorkbenchUser(id: WorkbenchUserId, googleSubjectId: Option[GoogleSubjectId], email: WorkbenchEmail)
+final case class IdentityConcentratorId(value: String) extends ValueObject
+final case class WorkbenchUser(id: WorkbenchUserId, googleSubjectId: Option[GoogleSubjectId], email: WorkbenchEmail, identityConcentratorId: Option[IdentityConcentratorId])
 final case class WorkbenchUserId(value: String) extends WorkbenchSubject with ValueObject
 
 trait WorkbenchGroup { val id: WorkbenchGroupIdentity; val members: Set[WorkbenchSubject]; val email: WorkbenchEmail }
