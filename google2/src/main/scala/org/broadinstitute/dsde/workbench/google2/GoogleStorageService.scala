@@ -7,7 +7,7 @@ import cats.implicits._
 import cats.effect._
 import cats.effect.concurrent.Semaphore
 import com.google.cloud.{Identity, Policy}
-import com.google.auth.oauth2.GoogleCredentials
+import com.google.auth.oauth2.{AccessToken, GoogleCredentials}
 import com.google.cloud.storage.{Acl, Blob, BlobId, StorageOptions}
 import com.google.cloud.storage.BucketInfo.LifecycleRule
 import fs2.Stream
@@ -152,6 +152,18 @@ object GoogleStorageService {
         StorageOptions
           .newBuilder()
           .setCredentials(GoogleCredentials.getApplicationDefault())
+          .build()
+          .getService
+      )
+    )
+  } yield GoogleStorageInterpreter[F](db, blocker, blockerBound)
+
+  def fromAccessToken[F[_]: ContextShift: Timer: Async: StructuredLogger](accessToken: AccessToken, blocker: Blocker, blockerBound: Option[Semaphore[F]] = None): Resource[F, GoogleStorageService[F]] = for {
+    db <- Resource.liftF(
+      Sync[F].delay(
+        StorageOptions
+          .newBuilder()
+          .setCredentials(GoogleCredentials.create(accessToken))
           .build()
           .getService
       )
