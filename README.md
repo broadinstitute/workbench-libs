@@ -30,7 +30,7 @@ Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util2"
 
 Contains generic, externally-facing model classes used across Workbench.
 
-Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-model" % "0.13-58c913d"`
+Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-model" % "0.14-TRAVIS-REPLACE-ME"`
 
 [Changelog](model/CHANGELOG.md)
 
