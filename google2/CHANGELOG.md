@@ -18,8 +18,9 @@ Add
 - Add `publishNative` to `GooglePublisher[F]` so that user can add attributes easily
 - Log messages with traceId in `GoogleSubscriberInterpreter`
 - Add `io.chrisdavenport.log4cats.StructuredLogger` instead of `io.chrisdavenport.log4cats.Logger`
+- Add `org.broadinstitute.dsde.workbench.google2.GoogleStorageService.fromAccessToken`
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.6-31cacc4"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.6-TRAVIS-REPLACE-ME"`
 
 ## 0.5
 
