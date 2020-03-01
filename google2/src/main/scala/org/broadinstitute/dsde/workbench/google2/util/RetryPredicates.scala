@@ -2,8 +2,10 @@ package org.broadinstitute.dsde.workbench.google2.util
 
 import java.io.IOException
 
+import com.google.api.gax.rpc.ApiException
 import com.google.cloud.BaseServiceException
 import org.broadinstitute.dsde.workbench.RetryConfig
+
 import scala.concurrent.duration._
 
 object RetryPredicates {
@@ -29,6 +31,7 @@ object RetryPredicates {
 
   def whenStatusCode(code: Int): Throwable => Boolean = {
     case e: BaseServiceException => e.getCode == code
+    case e: ApiException         => e.getStatusCode.getCode.getHttpStatusCode == code
     case _                       => false
   }
 
