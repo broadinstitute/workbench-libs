@@ -20,7 +20,7 @@ Add
 - Add `io.chrisdavenport.log4cats.StructuredLogger` instead of `io.chrisdavenport.log4cats.Logger`
 - Add `org.broadinstitute.dsde.workbench.google2.GoogleStorageService.fromAccessToken`
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.6-TRAVIS-REPLACE-ME"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.6-858f5a0"`
 
 ## 0.5
 
