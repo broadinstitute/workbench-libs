@@ -5,7 +5,7 @@ This file documents changes to the `workbench-google2` library, including notes 
 ## 0.7
 Changed:
 - Renamed `GoogleDataproc` to `GoogleDataprocService`
-- Updated `GoogleDataprocService` methods to take a `GoogleProject
+- Updated `GoogleDataprocService` methods to take a `GoogleProject`
 - Added `scalafmt` plugin and formatted the `google2` module
 Added:
 - `GoogleComputeService` and `GoogleComputeInterpreter`
