@@ -62,6 +62,8 @@ object Dependencies {
   val googleKms: ModuleID = "com.google.cloud" % "google-cloud-kms" % "0.77.0-beta"
   val googleDataproc: ModuleID =    "com.google.cloud" % "google-cloud-dataproc" % "0.111.0"
   val googleComputeNew: ModuleID = "com.google.cloud" % "google-cloud-compute" % "0.117.0-alpha"
+  val googleContainer: ModuleID = "com.google.cloud" % "google-cloud-container" % "1.0.0"
+  val kubernetesClient: ModuleID = "io.kubernetes" % "client-java" % "5.0.0" % "compile"
 
   val circeCore: ModuleID = "io.circe" %% "circe-core" % circeVersion
   val circeParser: ModuleID = "io.circe" %% "circe-parser" % circeVersion
@@ -160,7 +162,9 @@ object Dependencies {
     http4sDsl,
     log4cats,
     circeFs2,
-    catsMtl
+    catsMtl,
+    googleContainer,
+    kubernetesClient
   )
 
   val newrelicDependencies = Seq(
