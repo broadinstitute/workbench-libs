@@ -7,10 +7,10 @@ import cats.effect.{Async, ContextShift, Resource, Timer}
 import cats.implicits._
 import io.chrisdavenport.log4cats.StructuredLogger
 import org.broadinstitute.dsde.workbench.RetryConfig
-import org.broadinstitute.dsde.workbench.google2.util.{KubernetesConstants, KubernetesNamespace, KubernetesPod, KubernetesServiceKind, RetryPredicates}
 import io.kubernetes.client.apis.CoreV1Api
 import io.kubernetes.client.Configuration
 import io.kubernetes.client.util.{ClientBuilder, KubeConfig}
+import org.broadinstitute.dsde.workbench.google2.util.RetryPredicates
 
 trait KubernetesService[F[_]] {
   //namespaces group resources, and allow our list/get/update API calls to be segmented. This can be used on a per-user basis, for example
@@ -30,7 +30,6 @@ object KubernetesService {
                                                                         pathToKubeConfig: String,
                                                                         clusterIds: Set[KubernetesClusterIdentifier],
                                                                         retryConfig: RetryConfig = RetryPredicates.standardRetryConfig
-//                                                                      ): Resource[F, KubernetesService[F]] =
                                                                      ): Resource[F,KubernetesService[F]] =
     for {
       _ <- Resource.liftF(performGKEtoKubernetesCLIAuthHandoff(pathToCredential, clusterIds))

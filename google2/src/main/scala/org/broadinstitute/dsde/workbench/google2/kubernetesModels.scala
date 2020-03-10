@@ -1,16 +1,71 @@
-package org.broadinstitute.dsde.workbench.google2.util
+package org.broadinstitute.dsde.workbench.google2
+import com.google.container.v1.ClusterAutoscaling
+
 import collection.JavaConverters._
 import io.kubernetes.client.models.{V1Container, V1ContainerPort, V1Namespace, V1ObjectMeta, V1ObjectMetaBuilder, V1Pod, V1PodSpec, V1Service, V1ServicePort, V1ServiceSpec}
+import org.broadinstitute.dsde.workbench.model.WorkbenchException
+import org.broadinstitute.dsde.workbench.model.google.GoogleProject
 
 
 object KubernetesConstants {
   //this default namespace is initialized automatically with a kubernetes environment, and we do not create it
   val DEFAULT_NAMESPACE = KubernetesNamespace(KubernetesNamespaceName("default"))
   //this is a default service you must create in your environment. This is mostly used for testing, and should possibly be initialized with createCluster if you wish to use it.
-  val DEFAULT_SERVICE_NAME = KubernetesServiceName("defaultService")
-  val DEFAULT_SERVICE_SELECTOR = KubernetesSelector(Map("user" -> "testUser"))
-  val DEFAULT_SERVICE = KubernetesNodePortService(DEFAULT_SERVICE_SELECTOR, Set(ServicePort(8080)), DEFAULT_SERVICE_NAME)
+  val DEFAULT_SERVICE_NAME = KubernetesServiceName("default-service")
+
+  val DEFAULT_SERVICE_SELECTOR = KubernetesSelector(Map("user" -> "test-user"))
+
+  //composite of NodePort and ClusterIP types. Allows external access
+  val DEFAULT_LOADBALANCER_SERVICE = KubernetesLoadBalancerService(DEFAULT_SERVICE_SELECTOR, Set(ServicePort(8080)), DEFAULT_SERVICE_NAME)
+
+  val DEFAULT_NODEPOOL_SIZE: Int = 1
+  val DEFAULT_NODEPOOL_AUTOSCALING: ClusterNodePoolAutoscalingConfig = ClusterNodePoolAutoscalingConfig(1, 10)
 }
+
+
+// Common kubernetes models //
+
+final case class KubernetesException(message: String) extends WorkbenchException
+
+trait KubernetesNameValidation {
+  def value: String
+
+  val regex = "(?:[a-z](?:[-a-z0-9]{0,38}[a-z0-9])?)".r //this is taken directly from the google error message if you have an invalid nodepool name. Its not in the docs anywhere
+  val isValidName: Boolean = regex.pattern.matcher(value).matches()
+  if (!isValidName) {
+    //the throwing of this exception here is assuming that leo will be the one controlling nodepool names, not users, and is to sanitize the data in this case class at construction as opposed to downstream
+    throw KubernetesException(s"The name ${value} must match the regex ${regex}")
+  }
+}
+
+
+// Google kubernetes client models //
+
+
+//"us-central1" is an example of a valid location.
+final case class Parent(project: GoogleProject, location: Location) {
+  def parentString: String = s"projects/${project.value}/locations/${location.value}"
+}
+
+final case class KubernetesCreateClusterRequest(clusterId: KubernetesClusterIdentifier, initialNodePoolName: NodePoolName, clusterOpts: Option[KubernetesClusterOpts])
+
+//TODO: determine what leo needs here
+final case class KubernetesClusterOpts(autoscaling: ClusterAutoscaling, initialNodePoolSize: Int = KubernetesConstants.DEFAULT_NODEPOOL_SIZE)
+//this is NOT analogous to clusterName in the context of dataproc/GCE. A single cluster can have multiple nodes, pods, services, containers, deployments, etc.
+//clusters should most likely NOT be provisioned per user as they are today. More design/security research is needed
+final case class KubernetesClusterName(value: String) extends KubernetesNameValidation
+final case class ClusterNodePoolAutoscalingConfig(minimumNodes: Int, maximumNodes: Int)
+
+final case class NodePoolName(value: String) extends KubernetesNameValidation
+
+final case class NodePoolConfig(initialNodes: Int, name: NodePoolName, autoscalingConfig: ClusterNodePoolAutoscalingConfig = KubernetesConstants.DEFAULT_NODEPOOL_AUTOSCALING)
+
+final case class KubernetesClusterIdentifier(project: GoogleProject, location: Location, clusterName: KubernetesClusterName) {
+  def idString: String = s"projects/${project.value}/locations/${location.value}/clusters/${clusterName.value}"
+}
+
+
+// Kubernetes client models //
 
 
 sealed trait KubernetesSerializable {
@@ -18,7 +73,7 @@ sealed trait KubernetesSerializable {
 }
 
 //the V1ObjectMeta is generalized to provide both 'name' and 'labels', as well as other fields, for all kubernetes entities
-sealed trait KubernetesSerializableName extends KubernetesSerializable {
+sealed trait KubernetesSerializableName extends KubernetesSerializable with KubernetesNameValidation {
   def value: String
 
    def getJavaSerialization: V1ObjectMeta = {
@@ -89,21 +144,24 @@ final case class KubernetesContainer(name: KubernetesContainerName, image: Image
 final case class KubernetesServiceName(value: String) extends KubernetesSerializableName
 sealed trait KubernetesServiceKind extends KubernetesSerializable {
   val NODEPORT_SERVICE_TYPE = "NodePort"
+  val LOADBALANCER_SERVICE_TYPE = "LoadBalancer"
+  val SERVICE_KIND = "Service"
 
   def serviceType: KubernetesServiceType
   def name: KubernetesServiceName
 
   override def getJavaSerialization: V1Service = {
     val v1Service = new V1Service()
-    v1Service.setKind(serviceType.value)
+    v1Service.setKind(SERVICE_KIND) //may not be necessary
     v1Service.setMetadata(name.getJavaSerialization)
 
     v1Service
   }
 }
 
-final case class KubernetesNodePortService(selector: KubernetesSelector, ports: Set[ServicePort], name: KubernetesServiceName) extends KubernetesServiceKind {
-  val serviceType = KubernetesServiceType(NODEPORT_SERVICE_TYPE)
+//duplicative of above, but commonalities not fully understood yet
+final case class KubernetesLoadBalancerService(selector: KubernetesSelector, ports: Set[ServicePort], name: KubernetesServiceName) extends KubernetesServiceKind {
+  val serviceType = KubernetesServiceType(LOADBALANCER_SERVICE_TYPE)
 
   override def getJavaSerialization: V1Service = {
     val v1Service = super.getJavaSerialization
@@ -112,6 +170,7 @@ final case class KubernetesNodePortService(selector: KubernetesSelector, ports: 
 
     ports.foreach(port => serviceSpec.addPortsItem(port.getJavaSerialization))
     serviceSpec.selector(selector.labels.asJava)
+    serviceSpec.setType(serviceType.value)
     v1Service.setSpec(serviceSpec)
 
     v1Service
