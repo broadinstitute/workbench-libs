@@ -1,9 +1,8 @@
 package org.broadinstitute.dsde.workbench.google2
-import com.google.container.v1.{ClusterAutoscaling, ResourceLimit}
+import com.google.container.v1.{ClusterAutoscaling}
 
 import collection.JavaConverters._
-import io.kubernetes.client.models.{V1Container, V1ContainerPort, V1Namespace, V1ObjectMeta, V1ObjectMetaBuilder, V1Pod, V1PodSpec, V1ResourceQuota, V1ResourceRequirements, V1Service, V1ServicePort, V1ServiceSpec}
-import io.kubernetes.client.proto.V1.ResourceRequirements
+import io.kubernetes.client.models.{V1Container, V1ContainerPort, V1Namespace, V1ObjectMeta, V1ObjectMetaBuilder, V1Pod, V1PodSpec, V1Service, V1ServicePort, V1ServiceSpec}
 import org.broadinstitute.dsde.workbench.model.WorkbenchException
 import org.broadinstitute.dsde.workbench.model.google.GoogleProject
 

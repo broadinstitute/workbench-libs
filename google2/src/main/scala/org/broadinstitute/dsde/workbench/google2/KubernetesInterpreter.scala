@@ -1,7 +1,6 @@
 package org.broadinstitute.dsde.workbench.google2
 
-import cats.effect.concurrent.Semaphore
-import cats.effect.{Async, Blocker, ContextShift, Timer}
+import cats.effect.{Async, ContextShift, Timer}
 import io.chrisdavenport.log4cats.StructuredLogger
 import io.kubernetes.client.apis.CoreV1Api
 import org.broadinstitute.dsde.workbench.RetryConfig
@@ -13,8 +12,8 @@ import io.kubernetes.client.ApiException
 
 class KubernetesInterpreter[F[_]: Async: StructuredLogger: Timer: ContextShift](
 
-                                                                                blocker: Blocker,
-                                                                                blockerBound: Semaphore[F],
+//                                                                                blocker: Blocker,
+//                                                                                blockerBound: Semaphore[F],
                                                                                  kubernetesClient: CoreV1Api,
                                                                                  retryConfig: RetryConfig
                                                                                ) extends KubernetesService[F] {
