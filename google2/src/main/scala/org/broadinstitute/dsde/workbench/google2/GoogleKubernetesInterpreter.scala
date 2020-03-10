@@ -13,8 +13,6 @@ class GoogleKubernetesInterpreter[F[_]: Async: StructuredLogger: Timer: ContextS
                                          retryConfig: RetryConfig
                                        ) extends GoogleKubernetesService[F] {
 
-
-  //
    override def createCluster(kubernetesClusterRequest: KubernetesCreateClusterRequest): F[Operation] = {
      //TODO: this portion is mainly to highlight possibly relevant API fields. This will require additional design consideration to use intelligently
      val clusterConfig: Cluster = Cluster

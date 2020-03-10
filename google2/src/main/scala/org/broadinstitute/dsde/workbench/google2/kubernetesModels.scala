@@ -178,7 +178,7 @@ final case class KubernetesLoadBalancerService(selector: KubernetesSelector, por
 
     val serviceSpec = new V1ServiceSpec()
 
-    ports.foreach(port => serviceSpec.addPortsItem(port.getJavaSerialization))
+    serviceSpec.ports(ports.map(_.getJavaSerialization).toList.asJava)
     serviceSpec.selector(selector.labels.asJava)
     serviceSpec.setType(serviceType.value)
     v1Service.setSpec(serviceSpec)
