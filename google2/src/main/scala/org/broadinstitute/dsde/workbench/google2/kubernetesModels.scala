@@ -1,8 +1,9 @@
 package org.broadinstitute.dsde.workbench.google2
-import com.google.container.v1.ClusterAutoscaling
+import com.google.container.v1.{ClusterAutoscaling, ResourceLimit}
 
 import collection.JavaConverters._
-import io.kubernetes.client.models.{V1Container, V1ContainerPort, V1Namespace, V1ObjectMeta, V1ObjectMetaBuilder, V1Pod, V1PodSpec, V1Service, V1ServicePort, V1ServiceSpec}
+import io.kubernetes.client.models.{V1Container, V1ContainerPort, V1Namespace, V1ObjectMeta, V1ObjectMetaBuilder, V1Pod, V1PodSpec, V1ResourceQuota, V1ResourceRequirements, V1Service, V1ServicePort, V1ServiceSpec}
+import io.kubernetes.client.proto.V1.ResourceRequirements
 import org.broadinstitute.dsde.workbench.model.WorkbenchException
 import org.broadinstitute.dsde.workbench.model.google.GoogleProject
 
@@ -98,6 +99,8 @@ final case class KubernetesNamespace(name: KubernetesNamespaceName) extends Kube
 }
 
 final case class KubernetesPodName(value: String)  extends KubernetesSerializableName
+
+//consider using a replica set if you would like multiple autoscaling pods https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.12/#replicaset-v1-apps
 final case class KubernetesPod(name: KubernetesPodName, containers: Set[KubernetesContainer], selector: KubernetesSelector) extends KubernetesSerializable {
 
   val DEFAULT_POD_KIND = "Pod"
@@ -114,6 +117,8 @@ final case class KubernetesPod(name: KubernetesPodName, containers: Set[Kubernet
       containers.map(_.getJavaSerialization).toList.asJava
     )
 
+    v1Pod.getSpec
+
     v1Pod.metadata(podMetadata)
     v1Pod.spec(podSpec)
     v1Pod.kind(DEFAULT_POD_KIND)
@@ -126,11 +131,16 @@ final case class KubernetesContainerName(value: String) extends KubernetesSerial
 final case class Image(uri: String)
 
 //volumes can be added here
-final case class KubernetesContainer(name: KubernetesContainerName, image: Image, ports: Option[Set[ContainerPort]]) extends KubernetesSerializable {
+final case class KubernetesContainer(name: KubernetesContainerName, image: Image, ports: Option[Set[ContainerPort]], resourceLimits: Option[Map[String, String]] = None) extends KubernetesSerializable {
   override def getJavaSerialization: V1Container = {
     val v1Container = new V1Container()
     v1Container.setName(name.value)
     v1Container.setImage(image.uri)
+
+// example on leo use case to set resource limits, https://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/
+//    val resourceLimits = new V1ResourceRequirements()
+//    resourceLimits.setLimits(Map("memory" -> "64Mi", "cpu" -> "500m"))
+//    v1Container.resources(resourceLimits)
 
     ports.map( ports =>
       v1Container.setPorts(ports.map(_.getJavaSerialization).toList.asJava)

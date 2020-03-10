@@ -25,7 +25,7 @@ class KubernetesInterpreter[F[_]: Async: StructuredLogger: Timer: ContextShift](
   }
 
   //why we use a service over a deployment https://matthewpalmer.net/kubernetes-app-developer/articles/service-kubernetes-example-tutorial.html
-  //sevices can be applied to pods/containers, while deployments are more for pre-creating pods
+  //sevices can be applied to pods/containers, while deployments are for pre-creating pods/containers
   def createService(service: KubernetesServiceKind, namespace: KubernetesNamespace): F[Unit] = {
     val result = for {
       _ <- Async[F].delay(
