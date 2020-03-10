@@ -64,7 +64,7 @@ object GoogleDataprocService {
 
     for {
       client <- resourceF(ClusterControllerClient.create(settings))
-    } yield new GoogleDataprocInterpreter[F](client, retryConfig, blocker, blockerBound)
+    } yield new GoogleDataprocInterpreter[F](client, blocker, blockerBound, retryConfig)
   }
 }
 

@@ -16,9 +16,9 @@ import org.broadinstitute.dsde.workbench.model.google.GoogleProject
 
 private[google2] class GoogleDataprocInterpreter[F[_]: Async: StructuredLogger: Timer: ContextShift](
   clusterControllerClient: ClusterControllerClient,
-  retryConfig: RetryConfig,
   blocker: Blocker,
-  blockerBound: Semaphore[F]
+  blockerBound: Semaphore[F],
+  retryConfig: RetryConfig
 ) extends GoogleDataprocService[F] {
 
   override def createCluster(
