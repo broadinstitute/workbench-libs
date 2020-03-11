@@ -8,16 +8,19 @@ import com.google.cloud.container.v1.{ClusterManagerClient, ClusterManagerSettin
 import com.google.container.v1.Operation
 import io.chrisdavenport.log4cats.StructuredLogger
 import org.broadinstitute.dsde.workbench.RetryConfig
+import org.broadinstitute.dsde.workbench.google2.KubernetesConstants.DEFAULT_LOADBANCER_PORTS
 import org.broadinstitute.dsde.workbench.google2.util.RetryPredicates
 import org.broadinstitute.dsde.workbench.model.google.GoogleProject
 
 trait GoogleKubernetesService[F[_]] {
+  //should clusters be created per project, or per user for billing?
   def createCluster(kubernetesClusterRequest: KubernetesCreateClusterRequest): F[Operation]
 
   def deleteCluster(clusterId: KubernetesClusterIdentifier): F[Operation]
 
   def getCluster(clusterId: KubernetesClusterIdentifier): F[Cluster]
 }
+
 //TODO: migrate to a unit test
 object Test {
   import scala.concurrent.ExecutionContext.global
@@ -28,13 +31,13 @@ object Test {
   val project = GoogleProject("broad-dsde-dev")
   val location =  Location("us-central1")
   val parent = Parent(project, location)
-  val clusterName = KubernetesClusterName("c2")
+  val clusterName = KubernetesClusterName("c4")
   val nodePoolName = NodePoolName("nodepool1")
 
   val cluster2Id = KubernetesClusterIdentifier(project, location, clusterName)
 
   val serviceResource = GoogleKubernetesService.resource("/Users/jcanas/Downloads/kube-broad-dsde-dev-key.json")
-  val kubeService = KubernetesService.resource("/Users/jcanas/Downloads/kube-broad-dsde-dev-key.json", "/Users/jcanas/.kube/config", Set(cluster2Id))
+  val kubeService = KubernetesService.resource("/Users/jcanas/Downloads/kube-broad-dsde-dev-key.json", "/Users/jcanas/.kube/config", cluster2Id)
 
   def createCluster(kubernetesClusterRequest: KubernetesCreateClusterRequest) = {
     serviceResource.use { service =>
@@ -52,24 +55,26 @@ object Test {
     service.getCluster(KubernetesClusterIdentifier(project, location, clusterName))
   }
 
-  def testKubeClient_namespace() = {
+  def callCreateNamespace() = {
     kubeService.use { k =>
-      k.asInstanceOf[KubernetesInterpreter[IO]].createNamespace(KubernetesNamespace(KubernetesNamespaceName("test1")))
+      k.asInstanceOf[KubernetesInterpreter[IO]].createNamespace(KubernetesNamespace(KubernetesNamespaceName("test2")))
     }
   }
 
+  val DEFAULT_SERVICE_SELECTOR = KubernetesSelector(Map("user" -> "test-user"))
+
   val containers = Set(KubernetesContainer(KubernetesContainerName("container1"), Image("gcr.io/google-samples/node-hello:1.0"), None))
-  val pod = KubernetesPod(KubernetesPodName("pod1"), containers, KubernetesConstants.DEFAULT_SERVICE_SELECTOR)
+  val pod = KubernetesPod(KubernetesPodName("pod1"), containers, DEFAULT_SERVICE_SELECTOR)
 
   def callCreateService() = {
     kubeService.use { k =>
-      k.createService(KubernetesConstants.DEFAULT_LOADBALANCER_SERVICE)
+        k.createService(KubernetesLoadBalancerService(DEFAULT_SERVICE_SELECTOR, DEFAULT_LOADBANCER_PORTS, KubernetesServiceName("s1")), KubernetesNamespace(KubernetesNamespaceName("test2")))
     }
   }
 
   def callCreatePod() = {
     kubeService.use { k =>
-      k.createPod(pod)
+      k.createPod(pod, KubernetesNamespace(KubernetesNamespaceName("test2")))
     }
   }
 }

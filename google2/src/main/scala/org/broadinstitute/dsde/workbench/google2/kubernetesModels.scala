@@ -1,5 +1,5 @@
 package org.broadinstitute.dsde.workbench.google2
-import com.google.container.v1.{ClusterAutoscaling}
+import com.google.container.v1.ClusterAutoscaling
 
 import collection.JavaConverters._
 import io.kubernetes.client.models.{V1Container, V1ContainerPort, V1Namespace, V1ObjectMeta, V1ObjectMetaBuilder, V1Pod, V1PodSpec, V1Service, V1ServicePort, V1ServiceSpec}
@@ -9,14 +9,13 @@ import org.broadinstitute.dsde.workbench.model.google.GoogleProject
 
 object KubernetesConstants {
   //this default namespace is initialized automatically with a kubernetes environment, and we do not create it
-  val DEFAULT_NAMESPACE = KubernetesNamespace(KubernetesNamespaceName("default"))
+  val DEFAULT_NAMESPACE = "default"
   //this is a default service you must create in your environment. This is mostly used for testing, and should possibly be initialized with createCluster if you wish to use it.
-  val DEFAULT_SERVICE_NAME = KubernetesServiceName("default-service")
-
-  val DEFAULT_SERVICE_SELECTOR = KubernetesSelector(Map("user" -> "test-user"))
+  val DEFAULT_SERVICE_NAME = "default-service"
 
   //composite of NodePort and ClusterIP types. Allows external access
-  val DEFAULT_LOADBALANCER_SERVICE = KubernetesLoadBalancerService(DEFAULT_SERVICE_SELECTOR, Set(ServicePort(8080)), DEFAULT_SERVICE_NAME)
+  val DEFAULT_LOADBANCER_PORTS = Set(ServicePort(8080))
+//  val DEFAULT_LOADBALANCER_SERVICE = KubernetesLoadBalancerService(DEFAULT_SERVICE_SELECTOR, Set(ServicePort(8080)), DEFAULT_SERVICE_NAME)
 
   val DEFAULT_NODEPOOL_SIZE: Int = 1
   val DEFAULT_NODEPOOL_AUTOSCALING: ClusterNodePoolAutoscalingConfig = ClusterNodePoolAutoscalingConfig(1, 10)
@@ -202,5 +201,6 @@ final case class ContainerPort(value: Int) extends KubernetesSerializable {
     v1Port.containerPort(value)
   }
 }
+
 final case class KubernetesSelector(labels: Map[String, String])
 protected final case class KubernetesServiceType(value: String)
