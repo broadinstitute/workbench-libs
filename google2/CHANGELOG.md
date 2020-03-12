@@ -11,7 +11,7 @@ Added:
 - `GoogleComputeService` and `GoogleComputeInterpreter`
 - `com.google.cloud" % "google-cloud-compute` SBT dependency
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.7-TRAVIS-REPLACE-ME"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.7-96ad43c"`
 
 ## 0.6
 Changed
