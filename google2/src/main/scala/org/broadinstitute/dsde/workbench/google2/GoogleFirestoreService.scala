@@ -6,10 +6,10 @@ import com.google.cloud.firestore.{DocumentSnapshot, Firestore, Transaction}
 import scala.language.higherKinds
 
 /**
-  * Algebra for Google firestore access
-  *
-  * We follow tagless final pattern similar to https://typelevel.org/cats-tagless/
-  */
+ * Algebra for Google firestore access
+ *
+ * We follow tagless final pattern similar to https://typelevel.org/cats-tagless/
+ */
 trait GoogleFirestoreService[F[_]] {
   def set(collectionName: CollectionName, document: Document, dataMap: Map[String, Any]): F[Instant]
   def get(collectionName: CollectionName, document: Document): F[DocumentSnapshot]

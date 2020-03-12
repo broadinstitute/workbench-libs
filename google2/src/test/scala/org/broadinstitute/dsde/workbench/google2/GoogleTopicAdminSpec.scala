@@ -14,41 +14,39 @@ import org.scalatest.{FlatSpec, Matchers}
 
 class GoogleTopicAdminSpec extends FlatSpec with Matchers with WorkbenchTestSuite with PropertyBasedTesting {
   "GoogleTopicAdminInterpreter" should "be able to create topic" in {
-    forAll{
-      (topic: ProjectTopicName) =>
-        val result = localTopicAdmin.use {
-          topicAdmin =>
-            val googleTopicAdmin = new GoogleTopicAdminInterpreter[IO](topicAdmin, GoogleTopicAdminInterpreter.defaultRetryConfig)
-            val res = for {
-              _ <- googleTopicAdmin.create(topic)
-              t <- Stream.eval(IO(topicAdmin.getTopic(topic)))
-            } yield t.getName shouldBe topic.toString
+    forAll { (topic: ProjectTopicName) =>
+      val result = localTopicAdmin.use { topicAdmin =>
+        val googleTopicAdmin =
+          new GoogleTopicAdminInterpreter[IO](topicAdmin, GoogleTopicAdminInterpreter.defaultRetryConfig)
+        val res = for {
+          _ <- googleTopicAdmin.create(topic)
+          t <- Stream.eval(IO(topicAdmin.getTopic(topic)))
+        } yield t.getName shouldBe topic.toString
 
-            res.compile.lastOrError
-        }
+        res.compile.lastOrError
+      }
 
-        result.unsafeRunSync()
+      result.unsafeRunSync()
     }
   }
 
   "GoogleTopicAdminInterpreter" should "be able to delete topic" in {
-    forAll{
-      (topic: ProjectTopicName) =>
-        val result = localTopicAdmin.use {
-          topicAdmin =>
-            val googleTopicAdmin = new GoogleTopicAdminInterpreter[IO](topicAdmin, GoogleTopicAdminInterpreter.defaultRetryConfig)
-            val res = for {
-              _ <- googleTopicAdmin.create(topic)
-              _ <- googleTopicAdmin.delete(topic)
-              caught = the[com.google.api.gax.rpc.NotFoundException] thrownBy {
-                topicAdmin.getTopic(topic)
-              }
-            } yield (caught.getMessage should include("NOT_FOUND"))
+    forAll { (topic: ProjectTopicName) =>
+      val result = localTopicAdmin.use { topicAdmin =>
+        val googleTopicAdmin =
+          new GoogleTopicAdminInterpreter[IO](topicAdmin, GoogleTopicAdminInterpreter.defaultRetryConfig)
+        val res = for {
+          _ <- googleTopicAdmin.create(topic)
+          _ <- googleTopicAdmin.delete(topic)
+          caught = the[com.google.api.gax.rpc.NotFoundException] thrownBy {
+            topicAdmin.getTopic(topic)
+          }
+        } yield (caught.getMessage should include("NOT_FOUND"))
 
-            res.compile.lastOrError
-        }
+        res.compile.lastOrError
+      }
 
-        result.unsafeRunSync()
+      result.unsafeRunSync()
     }
   }
 
@@ -56,14 +54,22 @@ class GoogleTopicAdminSpec extends FlatSpec with Matchers with WorkbenchTestSuit
 }
 
 object GoogleTopicAdminSpec {
-  val localTopicAdmin: Resource[IO, TopicAdminClient]= for {
-    channel <- Resource.make(IO(ManagedChannelBuilder.forTarget("localhost:8085").usePlaintext().build()))(c => IO(c.shutdown()))
+  val localTopicAdmin: Resource[IO, TopicAdminClient] = for {
+    channel <- Resource.make(IO(ManagedChannelBuilder.forTarget("localhost:8085").usePlaintext().build()))(
+      c => IO(c.shutdown())
+    )
     channelProvider = FixedTransportChannelProvider.create(GrpcTransportChannel.create(channel))
     credentialsProvider = NoCredentialsProvider.create()
-    topicClient <- Resource.make(IO(TopicAdminClient.create(
-      TopicAdminSettings.newBuilder()
-        .setTransportChannelProvider(channelProvider)
-        .setCredentialsProvider(credentialsProvider)
-        .build())))(client => IO(client.shutdown()))
+    topicClient <- Resource.make(
+      IO(
+        TopicAdminClient.create(
+          TopicAdminSettings
+            .newBuilder()
+            .setTransportChannelProvider(channelProvider)
+            .setCredentialsProvider(credentialsProvider)
+            .build()
+        )
+      )
+    )(client => IO(client.shutdown()))
   } yield topicClient
 }

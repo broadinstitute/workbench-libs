@@ -21,7 +21,12 @@ class GoogleStorageInterpreterSpec extends AsyncFlatSpec with Matchers with Work
     val bucketName = genGcsBucketName.sample.get
     val objectName = genGcsBlobName.sample.get
     val objectBody = genGcsObjectBody.sample.get
-    localStorage.createBlob(bucketName, objectName, objectBody, objectType).compile.drain.attempt.map(x => x.isRight shouldBe(true))
+    localStorage
+      .createBlob(bucketName, objectName, objectBody, objectType)
+      .compile
+      .drain
+      .attempt
+      .map(x => x.isRight shouldBe (true))
   }
 
   "ioStorage unsafeGetObject" should "be able to retrieve an object" in ioAssertion {
@@ -32,7 +37,7 @@ class GoogleStorageInterpreterSpec extends AsyncFlatSpec with Matchers with Work
       _ <- localStorage.createBlob(bucketName, blobName, objectBody, objectType).compile.drain
       r <- localStorage.unsafeGetBlobBody(bucketName, blobName)
     } yield {
-      r.get.getBytes(Generators.utf8Charset) shouldBe(objectBody)
+      r.get.getBytes(Generators.utf8Charset) shouldBe (objectBody)
     }
   }
 
@@ -42,7 +47,7 @@ class GoogleStorageInterpreterSpec extends AsyncFlatSpec with Matchers with Work
     for {
       r <- localStorage.unsafeGetBlobBody(bucketName, blobName)
     } yield {
-      r shouldBe(None)
+      r shouldBe (None)
     }
   }
 
@@ -54,7 +59,7 @@ class GoogleStorageInterpreterSpec extends AsyncFlatSpec with Matchers with Work
       r <- localStorage.getBlob(bucketName, blobName, None).compile.lastOrError
     } yield {
       r.getBucket shouldBe bucketName.value
-      r.getBlobId.getName shouldBe(blobName.value)
+      r.getBlobId.getName shouldBe (blobName.value)
     }
   }
 
@@ -64,7 +69,7 @@ class GoogleStorageInterpreterSpec extends AsyncFlatSpec with Matchers with Work
     for {
       r <- localStorage.getObjectMetadata(bucketName, blobName, None).compile.lastOrError
     } yield {
-      r shouldBe(GetMetadataResponse.NotFound)
+      r shouldBe (GetMetadataResponse.NotFound)
     }
   }
 
@@ -78,8 +83,8 @@ class GoogleStorageInterpreterSpec extends AsyncFlatSpec with Matchers with Work
       _ <- localStorage.removeObject(bucketName, blobName).compile.drain
       getAfterDelete <- localStorage.unsafeGetBlobBody(bucketName, blobName)
     } yield {
-      getBeforeDelete.get.getBytes(Generators.utf8Charset) shouldBe(objectBody)
-      getAfterDelete shouldBe(None)
+      getBeforeDelete.get.getBytes(Generators.utf8Charset) shouldBe (objectBody)
+      getAfterDelete shouldBe (None)
     }
   }
 
@@ -100,13 +105,19 @@ class GoogleStorageInterpreterSpec extends AsyncFlatSpec with Matchers with Work
 
   it should "list objects with / properly" in ioAssertion {
     val objectBody = genGcsObjectBody.sample.get
-    val blobName = GcsBlobName("pet-254290011538078c723da@testproject.iam.gserviceaccount.com/806ad9bb-a9b7-4706-a29b-0d06a1a3519")
+    val blobName =
+      GcsBlobName("pet-254290011538078c723da@testproject.iam.gserviceaccount.com/806ad9bb-a9b7-4706-a29b-0d06a1a3519")
     val bucketName = genGcsBucketName.sample.get
     for {
       _ <- localStorage.createBlob(bucketName, blobName, objectBody, objectType).compile.drain
-      allObjectsWithPrefix <- localStorage.unsafeListObjectsWithPrefix(bucketName, "pet-254290011538078c723da@testproject.iam.gserviceaccount.com/")
+      allObjectsWithPrefix <- localStorage.unsafeListObjectsWithPrefix(
+        bucketName,
+        "pet-254290011538078c723da@testproject.iam.gserviceaccount.com/"
+      )
     } yield {
-      allObjectsWithPrefix.map(_.value) should contain theSameElementsAs List("pet-254290011538078c723da@testproject.iam.gserviceaccount.com/806ad9bb-a9b7-4706-a29b-0d06a1a3519")
+      allObjectsWithPrefix.map(_.value) should contain theSameElementsAs List(
+        "pet-254290011538078c723da@testproject.iam.gserviceaccount.com/806ad9bb-a9b7-4706-a29b-0d06a1a3519"
+      )
     }
   }
 
@@ -117,9 +128,13 @@ class GoogleStorageInterpreterSpec extends AsyncFlatSpec with Matchers with Work
     val blobNameWithPrefix = Gen.listOfN(4, genGcsBlobName).sample.get.map(x => GcsBlobName(s"$prefix${x.value}"))
     val objectBody = genGcsObjectBody.sample.get
     for {
-      _ <- blobNameWithPrefix.parTraverse(obj => localStorage.createBlob(bucketName, obj, objectBody, objectType).compile.drain)
+      _ <- blobNameWithPrefix.parTraverse(
+        obj => localStorage.createBlob(bucketName, obj, objectBody, objectType).compile.drain
+      )
       allObjectsWithPrefix <- localStorage.unsafeListObjectsWithPrefix(bucketName, prefix, 1)
-      _ <- allObjectsWithPrefix.traverse(obj => localStorage.removeObject(bucketName, GcsBlobName(obj.value), None).compile.drain) //clean up test objects
+      _ <- allObjectsWithPrefix.traverse(
+        obj => localStorage.removeObject(bucketName, GcsBlobName(obj.value), None).compile.drain
+      ) //clean up test objects
     } yield {
       allObjectsWithPrefix.map(_.value) should contain theSameElementsAs (blobNameWithPrefix.map(_.value))
     }
@@ -132,7 +147,9 @@ class GoogleStorageInterpreterSpec extends AsyncFlatSpec with Matchers with Work
     val duplicateBlobs = Stream(blobNameWithPrefix).repeat.take(3).toList
     val objectBody = genGcsObjectBody.sample.get
     for {
-      _ <- duplicateBlobs.parTraverse(obj => localStorage.createBlob(bucketName, obj, objectBody, objectType).compile.drain)
+      _ <- duplicateBlobs.parTraverse(
+        obj => localStorage.createBlob(bucketName, obj, objectBody, objectType).compile.drain
+      )
       allObjectsWithPrefix <- localStorage.listObjectsWithPrefix(bucketName, prefix, false, 1).compile.toList
     } yield {
       allObjectsWithPrefix.map(_.value) should contain theSameElementsAs List(blobNameWithPrefix.value)

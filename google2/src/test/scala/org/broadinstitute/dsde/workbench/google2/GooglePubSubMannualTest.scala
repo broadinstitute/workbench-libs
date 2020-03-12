@@ -20,18 +20,23 @@ object GooglePubSubMannualTest {
   val projectTopicName = ProjectTopicName.of("your google project", "your topic name")
   val path = "your service account path"
 
-  val printPipe: Pipe[IO, Event[Messagee], Unit] = in => in.evalMap(s => IO(println("processed "+s)) >> IO(s.consumer.ack()))
+  val printPipe: Pipe[IO, Event[Messagee], Unit] = in =>
+    in.evalMap(s => IO(println("processed " + s)) >> IO(s.consumer.ack()))
 
   /**
-    * How to use this:
-    * 1. sbt "project workbenchGoogle2" test:console
-    * 2. val res = org.broadinstitute.dsde.workbench.google2.GooglePubSubMannualTest.publish()
-    * 3. res.unsafeRunSync
-    *
-    * You can now see messages being published
-    */
+   * How to use this:
+   * 1. sbt "project workbenchGoogle2" test:console
+   * 2. val res = org.broadinstitute.dsde.workbench.google2.GooglePubSubMannualTest.publish()
+   * 3. res.unsafeRunSync
+   *
+   * You can now see messages being published
+   */
   def publish() = {
-    val config = PublisherConfig(path, projectTopicName, org.broadinstitute.dsde.workbench.google2.GoogleTopicAdminInterpreter.defaultRetryConfig)
+    val config = PublisherConfig(
+      path,
+      projectTopicName,
+      org.broadinstitute.dsde.workbench.google2.GoogleTopicAdminInterpreter.defaultRetryConfig
+    )
     val pub = GooglePublisher.resource[IO](config)
     pub.use(x => (Stream.eval(IO.pure("yes")) through x.publish).compile.drain)
   }
@@ -39,25 +44,24 @@ object GooglePubSubMannualTest {
   implicit val msgDecoder: Decoder[Messagee] = Decoder.forProduct1("msg")(Messagee)
 
   /**
-    * How to use this:
-    * 1. sbt "project workbenchGoogle2" test:console
-    * 2. val res = org.broadinstitute.dsde.workbench.google2.GooglePubSubMannualTest.subscriber()
-    * 3. res.unsafeRunSync
-    *
-    * You can now publish messages in console and watch messages being printed out
-    */
+   * How to use this:
+   * 1. sbt "project workbenchGoogle2" test:console
+   * 2. val res = org.broadinstitute.dsde.workbench.google2.GooglePubSubMannualTest.subscriber()
+   * 3. res.unsafeRunSync
+   *
+   * You can now publish messages in console and watch messages being printed out
+   */
   def subscriber() = {
     val config = SubscriberConfig(path, projectTopicName, 1 minute, None)
     for {
       queue <- InspectableQueue.bounded[IO, Event[Messagee]](100)
       sub = GoogleSubscriber.resource[IO, Messagee](config, queue)
-      _ <- sub.use {
-        s =>
-          val stream = Stream(
-            Stream.eval(s.start),
-            queue.dequeue through printPipe
-          ).parJoin(2)
-          stream.compile.drain
+      _ <- sub.use { s =>
+        val stream = Stream(
+          Stream.eval(s.start),
+          queue.dequeue through printPipe
+        ).parJoin(2)
+        stream.compile.drain
       }
     } yield ()
   }
