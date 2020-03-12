@@ -12,6 +12,7 @@ SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.
   - These methods accept a member type of the newly created ADT `MemberType`.
   - The now deprecated `addIamRolesForUser` and `removeIamRolesForUser` call the aforementioned methods
   for backwards compatibility.
+- `getProjectNumber` in `GoogleProjectDAO`
 
 ### Changed
 

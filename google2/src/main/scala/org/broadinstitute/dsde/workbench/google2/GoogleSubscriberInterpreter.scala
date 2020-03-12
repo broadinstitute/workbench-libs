@@ -22,52 +22,48 @@ import com.google.protobuf.Timestamp
 import scala.concurrent.duration.FiniteDuration
 
 private[google2] class GoogleSubscriberInterpreter[F[_]: Async: Timer: ContextShift, MessageType](
-                                                                                         subscriber: Subscriber,
-                                                                                         queue: fs2.concurrent.Queue[F, Event[MessageType]]
-                                                                                       ) extends GoogleSubscriber[F, MessageType] {
+  subscriber: Subscriber,
+  queue: fs2.concurrent.Queue[F, Event[MessageType]]
+) extends GoogleSubscriber[F, MessageType] {
   val messages: Stream[F, Event[MessageType]] = queue.dequeue
 
-  def start: F[Unit] = Async[F].async[Unit]{
-    callback =>
-      subscriber.addListener(
-        new ApiService.Listener() {
-          override def failed(from: ApiService.State, failure: Throwable): Unit = {
-            callback(Left(failure))
-          }
-          override def terminated(from: ApiService.State): Unit = {
-            callback(Right(()))
-          }
-        },
-        MoreExecutors.directExecutor()
-      )
-      subscriber.startAsync()
+  def start: F[Unit] = Async[F].async[Unit] { callback =>
+    subscriber.addListener(
+      new ApiService.Listener() {
+        override def failed(from: ApiService.State, failure: Throwable): Unit =
+          callback(Left(failure))
+        override def terminated(from: ApiService.State): Unit =
+          callback(Right(()))
+      },
+      MoreExecutors.directExecutor()
+    )
+    subscriber.startAsync()
   }
 
   def stop: F[Unit] =
-    Async[F].async[Unit]{
-      callback =>
-        subscriber.addListener(
-          new ApiService.Listener() {
-            override def failed(from: ApiService.State, failure: Throwable): Unit = {
-              callback(Left(failure))
-            }
-            override def terminated(from: ApiService.State): Unit = {
-              callback(Right(()))
-            }
-          },
-          MoreExecutors.directExecutor()
-        )
-        subscriber.stopAsync()
+    Async[F].async[Unit] { callback =>
+      subscriber.addListener(
+        new ApiService.Listener() {
+          override def failed(from: ApiService.State, failure: Throwable): Unit =
+            callback(Left(failure))
+          override def terminated(from: ApiService.State): Unit =
+            callback(Right(()))
+        },
+        MoreExecutors.directExecutor()
+      )
+      subscriber.stopAsync()
     }
 }
 
 object GoogleSubscriberInterpreter {
   def apply[F[_]: Async: Timer: ContextShift, MessageType](
-                                                  subscriber: Subscriber,
-                                                  queue: fs2.concurrent.Queue[F, Event[MessageType]]
-                                                ): GoogleSubscriberInterpreter[F, MessageType] = new GoogleSubscriberInterpreter[F, MessageType](subscriber, queue)
+    subscriber: Subscriber,
+    queue: fs2.concurrent.Queue[F, Event[MessageType]]
+  ): GoogleSubscriberInterpreter[F, MessageType] = new GoogleSubscriberInterpreter[F, MessageType](subscriber, queue)
 
-  private[google2] def receiver[F[_]: Effect, MessageType: Decoder](queue: fs2.concurrent.Queue[F, Event[MessageType]])(implicit logger: StructuredLogger[F]): MessageReceiver = new MessageReceiver() {
+  private[google2] def receiver[F[_]: Effect, MessageType: Decoder](
+    queue: fs2.concurrent.Queue[F, Event[MessageType]]
+  )(implicit logger: StructuredLogger[F]): MessageReceiver = new MessageReceiver() {
     override def receiveMessage(message: PubsubMessage, consumer: AckReplyConsumer): Unit = {
       val parseEvent = for {
         isJson <- Effect[F].fromEither(parse(message.getData.toStringUtf8)).attempt
@@ -94,13 +90,17 @@ object GoogleSubscriberInterpreter {
 
               _ <- r match {
                 case Left(e) =>
-                  logger.info(loggingCtx)(s"Subscriber fail to enqueue $message due to $e") >> Effect[F].delay(consumer.nack()) //pubsub will resend the message up to ackDeadlineSeconds (this is configed during subscription creation)
+                  logger.info(loggingCtx)(s"Subscriber fail to enqueue $message due to $e") >> Effect[F].delay(
+                    consumer.nack()
+                  ) //pubsub will resend the message up to ackDeadlineSeconds (this is configed during subscription creation)
                 case Right(_) =>
                   logger.info(loggingCtx)(s"Subscriber Successfully received $message.")
               }
             } yield ()
           case Left(e) =>
-            logger.info(s"Subscriber fail to decode message ${message} due to ${e}. Going to ack the message") >> Effect[F].delay(consumer.ack())
+            logger
+              .info(s"Subscriber fail to decode message ${message} due to ${e}. Going to ack the message") >> Effect[F]
+              .delay(consumer.ack())
         }
       } yield ()
 
@@ -108,103 +108,138 @@ object GoogleSubscriberInterpreter {
     }
   }
 
-  private[google2] def stringReceiver[F[_]: Effect](queue: fs2.concurrent.Queue[F, Event[String]]): MessageReceiver = new MessageReceiver() {
-    override def receiveMessage(message: PubsubMessage, consumer: AckReplyConsumer): Unit = {
-      val enqueueAction = queue.enqueue1(
-        Event(message.getData.toStringUtf8,
-        Option(message.getAttributesMap.get("traceId")).map(s => TraceId(s)),
-        message.getPublishTime,
-        consumer
-      ))
-      enqueueAction.toIO.unsafeRunSync
+  private[google2] def stringReceiver[F[_]: Effect](queue: fs2.concurrent.Queue[F, Event[String]]): MessageReceiver =
+    new MessageReceiver() {
+      override def receiveMessage(message: PubsubMessage, consumer: AckReplyConsumer): Unit = {
+        val enqueueAction = queue.enqueue1(
+          Event(message.getData.toStringUtf8,
+                Option(message.getAttributesMap.get("traceId")).map(s => TraceId(s)),
+                message.getPublishTime,
+                consumer)
+        )
+        enqueueAction.toIO.unsafeRunSync
+      }
     }
-  }
 
-  def subscriber[F[_]: Effect: StructuredLogger, MessageType: Decoder](subscriberConfig: SubscriberConfig, queue: fs2.concurrent.Queue[F, Event[MessageType]]): Resource[F, Subscriber] = {
-    val subscription = ProjectSubscriptionName.of(subscriberConfig.projectTopicName.getProject, subscriberConfig.projectTopicName.getTopic)
+  def subscriber[F[_]: Effect: StructuredLogger, MessageType: Decoder](
+    subscriberConfig: SubscriberConfig,
+    queue: fs2.concurrent.Queue[F, Event[MessageType]]
+  ): Resource[F, Subscriber] = {
+    val subscription = ProjectSubscriptionName.of(subscriberConfig.projectTopicName.getProject,
+                                                  subscriberConfig.projectTopicName.getTopic)
 
     for {
       credential <- credentialResource(subscriberConfig.pathToCredentialJson)
       subscriptionAdminClient <- subscriptionAdminClientResource(credential)
       _ <- createSubscription(subscriberConfig, subscription, subscriptionAdminClient)
-      flowControlSettings = subscriberConfig.flowControlSettingsConfig.map(config =>
-        FlowControlSettings
-          .newBuilder
-          .setMaxOutstandingElementCount(config.maxOutstandingElementCount)
-          .setMaxOutstandingRequestBytes(config.maxOutstandingRequestBytes)
-          .build
+      flowControlSettings = subscriberConfig.flowControlSettingsConfig.map(
+        config =>
+          FlowControlSettings.newBuilder
+            .setMaxOutstandingElementCount(config.maxOutstandingElementCount)
+            .setMaxOutstandingRequestBytes(config.maxOutstandingRequestBytes)
+            .build
       )
       sub <- subscriberResource(queue, subscription, credential, flowControlSettings)
     } yield sub
   }
 
-  def stringSubscriber[F[_]: Effect: StructuredLogger](subscriberConfig: SubscriberConfig, queue: fs2.concurrent.Queue[F, Event[String]]): Resource[F, Subscriber] = {
-    val subscription = ProjectSubscriptionName.of(subscriberConfig.projectTopicName.getProject, subscriberConfig.projectTopicName.getTopic)
+  def stringSubscriber[F[_]: Effect: StructuredLogger](
+    subscriberConfig: SubscriberConfig,
+    queue: fs2.concurrent.Queue[F, Event[String]]
+  ): Resource[F, Subscriber] = {
+    val subscription = ProjectSubscriptionName.of(subscriberConfig.projectTopicName.getProject,
+                                                  subscriberConfig.projectTopicName.getTopic)
 
     for {
       credential <- credentialResource(subscriberConfig.pathToCredentialJson)
       subscriptionAdminClient <- subscriptionAdminClientResource(credential)
       _ <- createSubscription(subscriberConfig, subscription, subscriptionAdminClient)
-      flowControlSettings = subscriberConfig.flowControlSettingsConfig.map(config =>
-        FlowControlSettings
-          .newBuilder
-          .setMaxOutstandingElementCount(config.maxOutstandingElementCount)
-          .setMaxOutstandingRequestBytes(config.maxOutstandingRequestBytes)
-          .build
+      flowControlSettings = subscriberConfig.flowControlSettingsConfig.map(
+        config =>
+          FlowControlSettings.newBuilder
+            .setMaxOutstandingElementCount(config.maxOutstandingElementCount)
+            .setMaxOutstandingRequestBytes(config.maxOutstandingRequestBytes)
+            .build
       )
       sub <- stringSubscriberResource(queue, subscription, credential, flowControlSettings)
     } yield sub
   }
 
-  private def subscriberResource[MessageType: Decoder, F[_] : Effect : StructuredLogger](queue: Queue[F, Event[MessageType]], subscription: ProjectSubscriptionName, credential: ServiceAccountCredentials, flowControlSettings: Option[FlowControlSettings]): Resource[F, Subscriber] = {
+  private def subscriberResource[MessageType: Decoder, F[_]: Effect: StructuredLogger](
+    queue: Queue[F, Event[MessageType]],
+    subscription: ProjectSubscriptionName,
+    credential: ServiceAccountCredentials,
+    flowControlSettings: Option[FlowControlSettings]
+  ): Resource[F, Subscriber] = {
     val subscriber = for {
-      builder <- Sync[F].delay(Subscriber
-        .newBuilder(subscription, receiver(queue))
-        .setCredentialsProvider(FixedCredentialsProvider.create(credential)))
-      builderWithFlowControlSetting <- flowControlSettings.traverse{
-        fcs =>
-          Sync[F].delay(builder.setFlowControlSettings(fcs))
-      }
-    } yield builderWithFlowControlSetting.getOrElse(builder).build()
-
-    Resource.make(subscriber)(s => Sync[F].delay(s.stopAsync()))
-  }
-
-  private def stringSubscriberResource[F[_] : Effect](queue: Queue[F, Event[String]], subscription: ProjectSubscriptionName, credential: ServiceAccountCredentials, flowControlSettings: Option[FlowControlSettings]): Resource[F, Subscriber] = {
-    val subscriber = for {
-      builder <- Sync[F].delay(Subscriber
-        .newBuilder(subscription, stringReceiver(queue))
-        .setCredentialsProvider(FixedCredentialsProvider.create(credential)))
-      builderWithFlowControlSetting <- flowControlSettings.traverse{
-        fcs =>
-          Sync[F].delay(builder.setFlowControlSettings(fcs))
-      }
-    } yield builderWithFlowControlSetting.getOrElse(builder).build()
-
-    Resource.make(subscriber)(s => Sync[F].delay(s.stopAsync()))
-  }
-
-  private def createSubscription[F[_] : Effect : Logger](subsriberConfig: SubscriberConfig, subscription: ProjectSubscriptionName, subscriptionAdminClient: SubscriptionAdminClient): Resource[F, Unit] = {
-    Resource.liftF(Async[F].delay(
-      subscriptionAdminClient.createSubscription(subscription, subsriberConfig.projectTopicName, PushConfig.getDefaultInstance, subsriberConfig.ackDeadLine.toSeconds.toInt)
-    ).void.recover {
-      case _: AlreadyExistsException => Logger[F].info(s"subscription ${subscription} already exists")
-    })
-  }
-
-  private def subscriptionAdminClientResource[F[_] : Effect : Logger](credential: ServiceAccountCredentials) = {
-    Resource.make[F, SubscriptionAdminClient](Async[F].delay(
-      SubscriptionAdminClient.create(
-        SubscriptionAdminSettings.newBuilder()
+      builder <- Sync[F].delay(
+        Subscriber
+          .newBuilder(subscription, receiver(queue))
           .setCredentialsProvider(FixedCredentialsProvider.create(credential))
-          .build()))
-    )(client => Async[F].delay(client.shutdown()))
+      )
+      builderWithFlowControlSetting <- flowControlSettings.traverse { fcs =>
+        Sync[F].delay(builder.setFlowControlSettings(fcs))
+      }
+    } yield builderWithFlowControlSetting.getOrElse(builder).build()
+
+    Resource.make(subscriber)(s => Sync[F].delay(s.stopAsync()))
   }
+
+  private def stringSubscriberResource[F[_]: Effect](
+    queue: Queue[F, Event[String]],
+    subscription: ProjectSubscriptionName,
+    credential: ServiceAccountCredentials,
+    flowControlSettings: Option[FlowControlSettings]
+  ): Resource[F, Subscriber] = {
+    val subscriber = for {
+      builder <- Sync[F].delay(
+        Subscriber
+          .newBuilder(subscription, stringReceiver(queue))
+          .setCredentialsProvider(FixedCredentialsProvider.create(credential))
+      )
+      builderWithFlowControlSetting <- flowControlSettings.traverse { fcs =>
+        Sync[F].delay(builder.setFlowControlSettings(fcs))
+      }
+    } yield builderWithFlowControlSetting.getOrElse(builder).build()
+
+    Resource.make(subscriber)(s => Sync[F].delay(s.stopAsync()))
+  }
+
+  private def createSubscription[F[_]: Effect: Logger](
+    subsriberConfig: SubscriberConfig,
+    subscription: ProjectSubscriptionName,
+    subscriptionAdminClient: SubscriptionAdminClient
+  ): Resource[F, Unit] =
+    Resource.liftF(
+      Async[F]
+        .delay(
+          subscriptionAdminClient.createSubscription(subscription,
+                                                     subsriberConfig.projectTopicName,
+                                                     PushConfig.getDefaultInstance,
+                                                     subsriberConfig.ackDeadLine.toSeconds.toInt)
+        )
+        .void
+        .recover {
+          case _: AlreadyExistsException => Logger[F].info(s"subscription ${subscription} already exists")
+        }
+    )
+
+  private def subscriptionAdminClientResource[F[_]: Effect: Logger](credential: ServiceAccountCredentials) =
+    Resource.make[F, SubscriptionAdminClient](
+      Async[F].delay(
+        SubscriptionAdminClient.create(
+          SubscriptionAdminSettings
+            .newBuilder()
+            .setCredentialsProvider(FixedCredentialsProvider.create(credential))
+            .build()
+        )
+      )
+    )(client => Async[F].delay(client.shutdown()))
 }
 
 final case class FlowControlSettingsConfig(maxOutstandingElementCount: Long, maxOutstandingRequestBytes: Long)
-final case class SubscriberConfig(pathToCredentialJson: String, projectTopicName: ProjectTopicName, ackDeadLine: FiniteDuration, flowControlSettingsConfig: Option[FlowControlSettingsConfig])
-final case class Event[A](msg: A,
-                          traceId: Option[TraceId] = None,
-                          publishedTime: Timestamp,
-                          consumer: AckReplyConsumer)
+final case class SubscriberConfig(pathToCredentialJson: String,
+                                  projectTopicName: ProjectTopicName,
+                                  ackDeadLine: FiniteDuration,
+                                  flowControlSettingsConfig: Option[FlowControlSettingsConfig])
+final case class Event[A](msg: A, traceId: Option[TraceId] = None, publishedTime: Timestamp, consumer: AckReplyConsumer)

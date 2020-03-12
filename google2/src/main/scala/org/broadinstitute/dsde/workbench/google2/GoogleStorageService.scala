@@ -20,162 +20,266 @@ import org.broadinstitute.dsde.workbench.google2.util.RetryPredicates.standardRe
 import scala.language.higherKinds
 
 /**
-  * Algebra for Google storage access
-  *
-  * We follow tagless final pattern similar to https://typelevel.org/cats-tagless/
-  */
+ * Algebra for Google storage access
+ *
+ * We follow tagless final pattern similar to https://typelevel.org/cats-tagless/
+ */
 trait GoogleStorageService[F[_]] {
-  /**
-    * @param traceId uuid for tracing a unique call flow in logging
-    */
-  def listObjectsWithPrefix(bucketName: GcsBucketName, objectNamePrefix: String, isRecursive: Boolean = false, maxPageSize: Long = 1000, traceId: Option[TraceId] = None, retryConfig: RetryConfig = standardRetryConfig): Stream[F, GcsObjectName]
 
   /**
-    * @param traceId uuid for tracing a unique call flow in logging
-    */
-  def listBlobsWithPrefix(bucketName: GcsBucketName, objectNamePrefix: String, isRecursive: Boolean, maxPageSize: Long = 1000, traceId: Option[TraceId] = None, retryConfig: RetryConfig = standardRetryConfig): Stream[F, Blob]
+   * @param traceId uuid for tracing a unique call flow in logging
+   */
+  def listObjectsWithPrefix(bucketName: GcsBucketName,
+                            objectNamePrefix: String,
+                            isRecursive: Boolean = false,
+                            maxPageSize: Long = 1000,
+                            traceId: Option[TraceId] = None,
+                            retryConfig: RetryConfig = standardRetryConfig): Stream[F, GcsObjectName]
 
   /**
-    * not memory safe. Use listObjectsWithPrefix if you're worried about OOM
-    * @param traceId uuid for tracing a unique call flow in logging
-    */
-  def unsafeListObjectsWithPrefix(bucketName: GcsBucketName, objectNamePrefix: String, maxPageSize: Long = 1000, traceId: Option[TraceId] = None, retryConfig: RetryConfig = standardRetryConfig)(implicit sf: Sync[F]): F[List[GcsObjectName]] =
-    listObjectsWithPrefix(bucketName, objectNamePrefix, maxPageSize = maxPageSize, traceId = traceId, retryConfig = retryConfig).compile.toList
+   * @param traceId uuid for tracing a unique call flow in logging
+   */
+  def listBlobsWithPrefix(bucketName: GcsBucketName,
+                          objectNamePrefix: String,
+                          isRecursive: Boolean,
+                          maxPageSize: Long = 1000,
+                          traceId: Option[TraceId] = None,
+                          retryConfig: RetryConfig = standardRetryConfig): Stream[F, Blob]
 
   /**
-    * @param traceId uuid for tracing a unique call flow in logging
-    */
-  def createBlob(bucketName: GcsBucketName, objectName: GcsBlobName, objectContents: Array[Byte], objectType: String = "text/plain", metadata: Map[String, String] = Map.empty, generation: Option[Long] = None, traceId: Option[TraceId] = None, retryConfig: RetryConfig = standardRetryConfig): Stream[F, Blob]
+   * not memory safe. Use listObjectsWithPrefix if you're worried about OOM
+   * @param traceId uuid for tracing a unique call flow in logging
+   */
+  def unsafeListObjectsWithPrefix(
+    bucketName: GcsBucketName,
+    objectNamePrefix: String,
+    maxPageSize: Long = 1000,
+    traceId: Option[TraceId] = None,
+    retryConfig: RetryConfig = standardRetryConfig
+  )(implicit sf: Sync[F]): F[List[GcsObjectName]] =
+    listObjectsWithPrefix(bucketName,
+                          objectNamePrefix,
+                          maxPageSize = maxPageSize,
+                          traceId = traceId,
+                          retryConfig = retryConfig).compile.toList
 
   /**
-    * @param traceId uuid for tracing a unique call flow in logging
-    */
+   * @param traceId uuid for tracing a unique call flow in logging
+   */
+  def createBlob(bucketName: GcsBucketName,
+                 objectName: GcsBlobName,
+                 objectContents: Array[Byte],
+                 objectType: String = "text/plain",
+                 metadata: Map[String, String] = Map.empty,
+                 generation: Option[Long] = None,
+                 traceId: Option[TraceId] = None,
+                 retryConfig: RetryConfig = standardRetryConfig): Stream[F, Blob]
+
+  /**
+   * @param traceId uuid for tracing a unique call flow in logging
+   */
   @deprecated("Use createBlob instead", "0.5")
-  def storeObject(bucketName: GcsBucketName, objectName: GcsBlobName, objectContents: Array[Byte], objectType: String, metadata: Map[String, String] = Map.empty, generation: Option[Long] = None, traceId: Option[TraceId] = None): Stream[F, Unit] = createBlob(bucketName, objectName, objectContents, objectType, metadata, generation, traceId).void
+  def storeObject(bucketName: GcsBucketName,
+                  objectName: GcsBlobName,
+                  objectContents: Array[Byte],
+                  objectType: String,
+                  metadata: Map[String, String] = Map.empty,
+                  generation: Option[Long] = None,
+                  traceId: Option[TraceId] = None): Stream[F, Unit] =
+    createBlob(bucketName, objectName, objectContents, objectType, metadata, generation, traceId).void
 
   /**
-    * @param traceId uuid for tracing a unique call flow in logging
-    */
-  def setBucketLifecycle(bucketName: GcsBucketName, lifecycleRules: List[LifecycleRule], traceId: Option[TraceId] = None, retryConfig: RetryConfig = standardRetryConfig): Stream[F, Unit]
+   * @param traceId uuid for tracing a unique call flow in logging
+   */
+  def setBucketLifecycle(bucketName: GcsBucketName,
+                         lifecycleRules: List[LifecycleRule],
+                         traceId: Option[TraceId] = None,
+                         retryConfig: RetryConfig = standardRetryConfig): Stream[F, Unit]
 
   /**
-    * not memory safe. Use getObject if you're worried about OOM
-    * @param traceId uuid for tracing a unique call flow in logging
-    */
+   * not memory safe. Use getObject if you're worried about OOM
+   * @param traceId uuid for tracing a unique call flow in logging
+   */
   @deprecated("Use unsafeGetObjectBody instead", "0.5")
-  def unsafeGetObject(bucketName: GcsBucketName, blobName: GcsBlobName, traceId: Option[TraceId] = None, retryConfig: RetryConfig = standardRetryConfig): F[Option[String]] = unsafeGetBlobBody(bucketName, blobName, traceId, retryConfig)
+  def unsafeGetObject(bucketName: GcsBucketName,
+                      blobName: GcsBlobName,
+                      traceId: Option[TraceId] = None,
+                      retryConfig: RetryConfig = standardRetryConfig): F[Option[String]] =
+    unsafeGetBlobBody(bucketName, blobName, traceId, retryConfig)
 
   /**
-    * not memory safe. Use getObject if you're worried about OOM
-    * @param traceId uuid for tracing a unique call flow in logging
-    */
-  def unsafeGetBlobBody(bucketName: GcsBucketName, blobName: GcsBlobName, traceId: Option[TraceId] = None, retryConfig: RetryConfig = standardRetryConfig): F[Option[String]]
+   * not memory safe. Use getObject if you're worried about OOM
+   * @param traceId uuid for tracing a unique call flow in logging
+   */
+  def unsafeGetBlobBody(bucketName: GcsBucketName,
+                        blobName: GcsBlobName,
+                        traceId: Option[TraceId] = None,
+                        retryConfig: RetryConfig = standardRetryConfig): F[Option[String]]
 
   /**
-    * @param traceId uuid for tracing a unique call flow in logging
-    */
+   * @param traceId uuid for tracing a unique call flow in logging
+   */
   @deprecated("Use getObject instead", "0.5")
-  def getObject(bucketName: GcsBucketName, blobName: GcsBlobName, traceId: Option[TraceId] = None, retryConfig: RetryConfig = standardRetryConfig): Stream[F, Byte] = getBlobBody(bucketName, blobName, traceId, retryConfig)
+  def getObject(bucketName: GcsBucketName,
+                blobName: GcsBlobName,
+                traceId: Option[TraceId] = None,
+                retryConfig: RetryConfig = standardRetryConfig): Stream[F, Byte] =
+    getBlobBody(bucketName, blobName, traceId, retryConfig)
 
   /**
-    * @param traceId uuid for tracing a unique call flow in logging
-    */
-  def getBlobBody(bucketName: GcsBucketName, blobName: GcsBlobName, traceId: Option[TraceId] = None, retryConfig: RetryConfig = standardRetryConfig): Stream[F, Byte]
+   * @param traceId uuid for tracing a unique call flow in logging
+   */
+  def getBlobBody(bucketName: GcsBucketName,
+                  blobName: GcsBlobName,
+                  traceId: Option[TraceId] = None,
+                  retryConfig: RetryConfig = standardRetryConfig): Stream[F, Byte]
 
   /**
-    * return com.google.cloud.storage.Blob, which gives you metadata and user defined metadata etc
-    * @param traceId uuid for tracing a unique call flow in logging
-    */
-  def getBlob(bucketName: GcsBucketName, blobName: GcsBlobName, traceId: Option[TraceId] = None, retryConfig: RetryConfig = standardRetryConfig): Stream[F, Blob]
+   * return com.google.cloud.storage.Blob, which gives you metadata and user defined metadata etc
+   * @param traceId uuid for tracing a unique call flow in logging
+   */
+  def getBlob(bucketName: GcsBucketName,
+              blobName: GcsBlobName,
+              traceId: Option[TraceId] = None,
+              retryConfig: RetryConfig = standardRetryConfig): Stream[F, Blob]
 
   /**
-    * @param traceId uuid for tracing a unique call flow in logging
-    */
-  def downloadObject(blobId: BlobId, path: Path, traceId: Option[TraceId] = None, retryConfig: RetryConfig = standardRetryConfig): Stream[F, Unit]
+   * @param traceId uuid for tracing a unique call flow in logging
+   */
+  def downloadObject(blobId: BlobId,
+                     path: Path,
+                     traceId: Option[TraceId] = None,
+                     retryConfig: RetryConfig = standardRetryConfig): Stream[F, Unit]
 
   /**
-    * @param traceId uuid for tracing a unique call flow in logging
-    */
-  def getObjectMetadata(bucketName: GcsBucketName, blobName: GcsBlobName, traceId: Option[TraceId], retryConfig: RetryConfig = standardRetryConfig): Stream[F, GetMetadataResponse]
+   * @param traceId uuid for tracing a unique call flow in logging
+   */
+  def getObjectMetadata(bucketName: GcsBucketName,
+                        blobName: GcsBlobName,
+                        traceId: Option[TraceId],
+                        retryConfig: RetryConfig = standardRetryConfig): Stream[F, GetMetadataResponse]
 
   /**
-    * @param traceId uuid for tracing a unique call flow in logging
-    */
-  def setObjectMetadata(bucketName: GcsBucketName, blobName: GcsBlobName, metadata: Map[String, String], traceId: Option[TraceId], retryConfig: RetryConfig = standardRetryConfig): Stream[F, Unit]
+   * @param traceId uuid for tracing a unique call flow in logging
+   */
+  def setObjectMetadata(bucketName: GcsBucketName,
+                        blobName: GcsBlobName,
+                        metadata: Map[String, String],
+                        traceId: Option[TraceId],
+                        retryConfig: RetryConfig = standardRetryConfig): Stream[F, Unit]
 
   /**
-    * @return true if deleted; false if not found
-    */
-  def removeObject(bucketName: GcsBucketName, blobName: GcsBlobName, generation: Option[Long] = None, traceId: Option[TraceId] = None, retryConfig: RetryConfig = standardRetryConfig): Stream[F, RemoveObjectResult]
+   * @return true if deleted; false if not found
+   */
+  def removeObject(bucketName: GcsBucketName,
+                   blobName: GcsBlobName,
+                   generation: Option[Long] = None,
+                   traceId: Option[TraceId] = None,
+                   retryConfig: RetryConfig = standardRetryConfig): Stream[F, RemoveObjectResult]
 
   /**
-    * @param traceId uuid for tracing a unique call flow in logging
-    * Acl is deprecated. Use setIamPolicy if possible
-    */
+   * @param traceId uuid for tracing a unique call flow in logging
+   * Acl is deprecated. Use setIamPolicy if possible
+   */
   @deprecated("Deprecated in favor of insertBucket", "0.5")
-  def createBucket(billingProject: GoogleProject, bucketName: GcsBucketName, acl: Option[NonEmptyList[Acl]] = None, traceId: Option[TraceId] = None, retryConfig: RetryConfig = standardRetryConfig): Stream[F, Unit] = insertBucket(billingProject, bucketName, acl, Map.empty, traceId)
+  def createBucket(billingProject: GoogleProject,
+                   bucketName: GcsBucketName,
+                   acl: Option[NonEmptyList[Acl]] = None,
+                   traceId: Option[TraceId] = None,
+                   retryConfig: RetryConfig = standardRetryConfig): Stream[F, Unit] =
+    insertBucket(billingProject, bucketName, acl, Map.empty, traceId)
 
   /**
-    * @param googleProject The name of the Google project to create the bucket in
-    * @param traceId uuid for tracing a unique call flow in logging
-    * Supports adding bucket labels during creation
-    * Acl is deprecated. Use setIamPolicy if possible
-    */
-  def insertBucket(  googleProject: GoogleProject, bucketName: GcsBucketName, acl: Option[NonEmptyList[Acl]] = None, labels: Map[String, String] = Map.empty, traceId: Option[TraceId] = None, bucketPolicyOnlyEnabled: Boolean = false, logBucket: Option[GcsBucketName] = None, retryConfig: RetryConfig = standardRetryConfig): Stream[F, Unit]
+   * @param googleProject The name of the Google project to create the bucket in
+   * @param traceId uuid for tracing a unique call flow in logging
+   * Supports adding bucket labels during creation
+   * Acl is deprecated. Use setIamPolicy if possible
+   */
+  def insertBucket(googleProject: GoogleProject,
+                   bucketName: GcsBucketName,
+                   acl: Option[NonEmptyList[Acl]] = None,
+                   labels: Map[String, String] = Map.empty,
+                   traceId: Option[TraceId] = None,
+                   bucketPolicyOnlyEnabled: Boolean = false,
+                   logBucket: Option[GcsBucketName] = None,
+                   retryConfig: RetryConfig = standardRetryConfig): Stream[F, Unit]
 
   /**
-    * @param traceId uuid for tracing a unique call flow in logging
-    */
-  def setBucketPolicyOnly(bucketName: GcsBucketName, bucketPolicyOnlyEnabled: Boolean, traceId: Option[TraceId] = None, retryConfig: RetryConfig = standardRetryConfig): Stream[F, Unit]
+   * @param traceId uuid for tracing a unique call flow in logging
+   */
+  def setBucketPolicyOnly(bucketName: GcsBucketName,
+                          bucketPolicyOnlyEnabled: Boolean,
+                          traceId: Option[TraceId] = None,
+                          retryConfig: RetryConfig = standardRetryConfig): Stream[F, Unit]
 
-  def setBucketLabels(bucketName: GcsBucketName, labels: Map[String, String], traceId: Option[TraceId] = None, retryConfig: RetryConfig = standardRetryConfig): Stream[F, Unit]
+  def setBucketLabels(bucketName: GcsBucketName,
+                      labels: Map[String, String],
+                      traceId: Option[TraceId] = None,
+                      retryConfig: RetryConfig = standardRetryConfig): Stream[F, Unit]
 
   /**
-    * @param traceId uuid for tracing a unique call flow in logging
-    */
-  def setIamPolicy(bucketName: GcsBucketName, roles: Map[StorageRole, NonEmptyList[Identity]], traceId: Option[TraceId] = None, retryConfig: RetryConfig = standardRetryConfig): Stream[F, Unit]
+   * @param traceId uuid for tracing a unique call flow in logging
+   */
+  def setIamPolicy(bucketName: GcsBucketName,
+                   roles: Map[StorageRole, NonEmptyList[Identity]],
+                   traceId: Option[TraceId] = None,
+                   retryConfig: RetryConfig = standardRetryConfig): Stream[F, Unit]
 
-  def getIamPolicy(bucketName: GcsBucketName, traceId: Option[TraceId] = None, retryConfig: RetryConfig = standardRetryConfig): Stream[F, Policy]
+  def getIamPolicy(bucketName: GcsBucketName,
+                   traceId: Option[TraceId] = None,
+                   retryConfig: RetryConfig = standardRetryConfig): Stream[F, Policy]
 }
 
 object GoogleStorageService {
-  def resource[F[_]: ContextShift: Timer: Async: StructuredLogger](pathToCredentialJson: String,
-                                                                   blocker: Blocker,
-                                                                   blockerBound: Option[Semaphore[F]] = None,
-                                                                   project: Option[GoogleProject] = None): Resource[F, GoogleStorageService[F]] = for {
-    db <- GoogleStorageInterpreter.storage[F](pathToCredentialJson, blocker, blockerBound, project)
-  } yield GoogleStorageInterpreter[F](db, blocker, blockerBound)
+  def resource[F[_]: ContextShift: Timer: Async: StructuredLogger](
+    pathToCredentialJson: String,
+    blocker: Blocker,
+    blockerBound: Option[Semaphore[F]] = None,
+    project: Option[GoogleProject] = None
+  ): Resource[F, GoogleStorageService[F]] =
+    for {
+      db <- GoogleStorageInterpreter.storage[F](pathToCredentialJson, blocker, blockerBound, project)
+    } yield GoogleStorageInterpreter[F](db, blocker, blockerBound)
 
-  def fromApplicationDefault[F[_]: ContextShift: Timer: Async: StructuredLogger](blocker: Blocker, blockerBound: Option[Semaphore[F]] = None): Resource[F, GoogleStorageService[F]] = for {
-    db <- Resource.liftF(
-      Sync[F].delay(
-        StorageOptions
-          .newBuilder()
-          .setCredentials(GoogleCredentials.getApplicationDefault())
-          .build()
-          .getService
+  def fromApplicationDefault[F[_]: ContextShift: Timer: Async: StructuredLogger](
+    blocker: Blocker,
+    blockerBound: Option[Semaphore[F]] = None
+  ): Resource[F, GoogleStorageService[F]] =
+    for {
+      db <- Resource.liftF(
+        Sync[F].delay(
+          StorageOptions
+            .newBuilder()
+            .setCredentials(GoogleCredentials.getApplicationDefault())
+            .build()
+            .getService
+        )
       )
-    )
-  } yield GoogleStorageInterpreter[F](db, blocker, blockerBound)
+    } yield GoogleStorageInterpreter[F](db, blocker, blockerBound)
 
-  def fromAccessToken[F[_]: ContextShift: Timer: Async: StructuredLogger](accessToken: AccessToken, blocker: Blocker, blockerBound: Option[Semaphore[F]] = None): Resource[F, GoogleStorageService[F]] = for {
-    db <- Resource.liftF(
-      Sync[F].delay(
-        StorageOptions
-          .newBuilder()
-          .setCredentials(GoogleCredentials.create(accessToken))
-          .build()
-          .getService
+  def fromAccessToken[F[_]: ContextShift: Timer: Async: StructuredLogger](
+    accessToken: AccessToken,
+    blocker: Blocker,
+    blockerBound: Option[Semaphore[F]] = None
+  ): Resource[F, GoogleStorageService[F]] =
+    for {
+      db <- Resource.liftF(
+        Sync[F].delay(
+          StorageOptions
+            .newBuilder()
+            .setCredentials(GoogleCredentials.create(accessToken))
+            .build()
+            .getService
+        )
       )
-    )
-  } yield GoogleStorageInterpreter[F](db, blocker, blockerBound)
+    } yield GoogleStorageInterpreter[F](db, blocker, blockerBound)
 }
 
 final case class GcsBlobName(value: String) extends AnyVal
 
 sealed trait RemoveObjectResult extends Product with Serializable
 object RemoveObjectResult {
-  def apply(res: Boolean): RemoveObjectResult = if(res) Removed else NotFound
+  def apply(res: Boolean): RemoveObjectResult = if (res) Removed else NotFound
 
   final case object Removed extends RemoveObjectResult
   final case object NotFound extends RemoveObjectResult
@@ -208,5 +312,6 @@ final case class Crc32(asString: String) extends AnyVal
 sealed abstract class GetMetadataResponse extends Product with Serializable
 object GetMetadataResponse {
   final case object NotFound extends GetMetadataResponse
-  final case class Metadata(crc32: Crc32, userDefined: Map[String, String], generation: Long) extends GetMetadataResponse
+  final case class Metadata(crc32: Crc32, userDefined: Map[String, String], generation: Long)
+      extends GetMetadataResponse
 }

@@ -13,19 +13,17 @@ import com.google.cloud.firestore._
 import scala.collection.JavaConverters._
 import scala.concurrent.ExecutionContext
 
-private[google2] class GoogleFirestoreInterpreter[F[_]](db: Firestore)(
-              implicit effect: Effect[F],
-              ec: ExecutionContext) extends GoogleFirestoreService[F] {
-  override def set(
-                    collectionName: CollectionName,
-                    document: Document,
-                    dataMap: Map[String, Any]): F[Instant] = {
+private[google2] class GoogleFirestoreInterpreter[F[_]](db: Firestore)(implicit effect: Effect[F], ec: ExecutionContext)
+    extends GoogleFirestoreService[F] {
+  override def set(collectionName: CollectionName, document: Document, dataMap: Map[String, Any]): F[Instant] = {
     val docRef =
       db.collection(collectionName.asString).document(document.asString)
-    effect.async[WriteResult] { cb =>
-      ApiFutures
-        .addCallback(docRef.set(dataMap.asJava), callBack(cb), executor)
-    }.map(x => Instant.ofEpochSecond(x.getUpdateTime.getSeconds))
+    effect
+      .async[WriteResult] { cb =>
+        ApiFutures
+          .addCallback(docRef.set(dataMap.asJava), callBack(cb), executor)
+      }
+      .map(x => Instant.ofEpochSecond(x.getUpdateTime.getSeconds))
   }
 
   override def get(collectionName: CollectionName, document: Document): F[DocumentSnapshot] =
@@ -55,12 +53,12 @@ private[google2] class GoogleFirestoreInterpreter[F[_]](db: Firestore)(
 
 object GoogleFirestoreInterpreter {
   def apply[F[_]](db: Firestore)(
-      implicit effect: Effect[F],
-      ec: ExecutionContext
+    implicit effect: Effect[F],
+    ec: ExecutionContext
   ): GoogleFirestoreInterpreter[F] = new GoogleFirestoreInterpreter[F](db)
 
   def firestore[F[_]](
-      pathToJson: String
+    pathToJson: String
   )(implicit sf: Sync[F]): Resource[F, Firestore] =
     for {
       credential <- org.broadinstitute.dsde.workbench.util2.readFile(pathToJson)
