@@ -2,9 +2,12 @@ package org.broadinstitute.dsde.workbench.google2
 
 import java.io.FileReader
 
+import cats.effect.concurrent.Semaphore
+
 import sys.process._
-import cats.effect.{Async, ContextShift, Resource, Timer}
+import cats.effect.{Async, Blocker, ContextShift, Resource, Timer}
 import cats.implicits._
+import cats.mtl.ApplicativeAsk
 import com.google.auth.oauth2.GoogleCredentials
 import io.chrisdavenport.log4cats.StructuredLogger
 import org.broadinstitute.dsde.workbench.RetryConfig
@@ -12,16 +15,20 @@ import io.kubernetes.client.apis.CoreV1Api
 import io.kubernetes.client.Configuration
 import io.kubernetes.client.util.{ClientBuilder, Config, KubeConfig}
 import org.broadinstitute.dsde.workbench.google2.util.{ReplacedGCPAuthenticator, RetryPredicates}
+import org.broadinstitute.dsde.workbench.model.TraceId
 
 trait KubernetesService[F[_]] {
   //namespaces group resources, and allow our list/get/update API calls to be segmented. This can be used on a per-user basis, for example
-  def createNamespace(namespace: KubernetesNamespace): F[Unit]
+  def createNamespace(namespace: KubernetesNamespace)
+  (implicit ev: ApplicativeAsk[F, TraceId]): F[Unit]
 
   //pods represent a set of containers
-  def createPod(pod: KubernetesPod, namespace: KubernetesNamespace): F[Unit]
+  def createPod(pod: KubernetesPod, namespace: KubernetesNamespace)
+               (implicit ev: ApplicativeAsk[F, TraceId]): F[Unit]
 
   //certain services allow us to expose various containers via a matching selector
-  def createService(service: KubernetesServiceKind, namespace: KubernetesNamespace): F[Unit]
+  def createService(service: KubernetesServiceKind, namespace: KubernetesNamespace)
+                   (implicit ev: ApplicativeAsk[F, TraceId]): F[Unit]
 }
 
 object KubernetesService {
@@ -32,6 +39,9 @@ object KubernetesService {
                                                                         //TODO: preferably, this should be set via KUBECONFIG env var, which  See https://cloud.google.com/sdk/gcloud/reference/container/clusters/get-credentials
                                                                         pathToKubeConfig: String,
                                                                         clusterId: KubernetesClusterIdentifier,
+                                                                        blocker: Blocker,
+                                                                        blockerBound: Semaphore[F],
+                                                                     //This is not used anywhere yet, there should be a custom kube one
                                                                         retryConfig: RetryConfig = RetryPredicates.standardRetryConfig
                                                                      ): Resource[F,KubernetesService[F]] =
     for {
@@ -44,7 +54,7 @@ object KubernetesService {
       ).build()))
       _ = Configuration.setDefaultApiClient(apiClient)
       kubernetesApi = new CoreV1Api()
-  } yield new KubernetesInterpreter(kubernetesApi, retryConfig)
+  } yield new KubernetesInterpreter(kubernetesApi, blocker, blockerBound, retryConfig)
 
   //doesn't work for multi-cluster or multi-project configs
   //doesn't refresh every hour

@@ -1,6 +1,10 @@
 package org.broadinstitute.dsde.workbench.google2
 
-import cats.effect.{Async, ContextShift, IO, Resource, Timer}
+import java.util.UUID
+
+import cats.effect.concurrent.Semaphore
+import cats.effect.{Async, Blocker, ContextShift, IO, Resource, Timer}
+import cats.mtl.ApplicativeAsk
 import com.google.container.v1.Cluster
 import io.chrisdavenport.log4cats.slf4j.Slf4jLogger
 import com.google.api.gax.core.FixedCredentialsProvider
@@ -10,15 +14,20 @@ import io.chrisdavenport.log4cats.StructuredLogger
 import org.broadinstitute.dsde.workbench.RetryConfig
 import org.broadinstitute.dsde.workbench.google2.KubernetesConstants.DEFAULT_LOADBANCER_PORTS
 import org.broadinstitute.dsde.workbench.google2.util.RetryPredicates
+import org.broadinstitute.dsde.workbench.model.TraceId
 import org.broadinstitute.dsde.workbench.model.google.GoogleProject
+import org.broadinstitute.dsde.workbench.google2.util.RetryPredicates._
 
 trait GoogleKubernetesService[F[_]] {
   //should clusters be created per project, or per user for billing?
-  def createCluster(kubernetesClusterRequest: KubernetesCreateClusterRequest): F[Operation]
+  def createCluster(kubernetesClusterRequest: KubernetesCreateClusterRequest)
+                   (implicit ev: ApplicativeAsk[F, TraceId]): F[Operation]
 
-  def deleteCluster(clusterId: KubernetesClusterIdentifier): F[Operation]
+  def deleteCluster(clusterId: KubernetesClusterIdentifier)
+                   (implicit ev: ApplicativeAsk[F, TraceId]): F[Operation]
 
-  def getCluster(clusterId: KubernetesClusterIdentifier): F[Cluster]
+  def getCluster(clusterId: KubernetesClusterIdentifier)
+                (implicit ev: ApplicativeAsk[F, TraceId]): F[Cluster]
 }
 
 //TODO: migrate to a unit test
@@ -26,18 +35,21 @@ object Test {
   import scala.concurrent.ExecutionContext.global
   implicit val cs = IO.contextShift(global)
   implicit val t = IO.timer(global)
+  implicit val traceId = ApplicativeAsk.const[IO, TraceId](TraceId(UUID.randomUUID()))
   implicit def logger = Slf4jLogger.getLogger[IO]
+  val blocker = Blocker.liftExecutionContext(global)
+  val semaphore = Semaphore[IO](1).unsafeRunSync
 
   val project = GoogleProject("broad-dsde-dev")
   val location =  Location("us-central1")
   val parent = Parent(project, location)
-  val clusterName = KubernetesClusterName("c4")
+  val clusterName = KubernetesClusterName("c5")
   val nodePoolName = NodePoolName("nodepool1")
 
   val cluster2Id = KubernetesClusterIdentifier(project, location, clusterName)
 
-  val serviceResource = GoogleKubernetesService.resource("/Users/jcanas/Downloads/kube-broad-dsde-dev-key.json")
-  val kubeService = KubernetesService.resource("/Users/jcanas/Downloads/kube-broad-dsde-dev-key.json", "/Users/jcanas/.kube/config", cluster2Id)
+  val serviceResource = GoogleKubernetesService.resource("/Users/jcanas/Downloads/kube-broad-dsde-dev-key.json", blocker, semaphore)
+  val kubeService = KubernetesService.resource("/Users/jcanas/Downloads/kube-broad-dsde-dev-key.json", "/Users/jcanas/.kube/config", cluster2Id, blocker, semaphore)
 
   def createCluster(kubernetesClusterRequest: KubernetesCreateClusterRequest) = {
     serviceResource.use { service =>
@@ -83,7 +95,9 @@ object GoogleKubernetesService {
 
   def resource[F[_] : StructuredLogger : Async : Timer : ContextShift](
                                                                         pathToCredential: String,
-                                                                        retryConfig: RetryConfig = RetryPredicates.standardRetryConfig
+                                                                        blocker: Blocker,
+                                                                        blockerBound: Semaphore[F],
+                                                                        retryConfig: RetryConfig = RetryPredicates.retryConfigWithPredicates(whenStatusCode(404))
                                                                       ): Resource[F, GoogleKubernetesService[F]] = {
     for {
       //service account used needs permissions
@@ -92,14 +106,12 @@ object GoogleKubernetesService {
       credential <- credentialResource(pathToCredential)
       credentialsProvider = FixedCredentialsProvider.create(credential)
       clusterManagerSettings = ClusterManagerSettings.newBuilder()
-        //          .createClusterSettings()
-        //          .setRetryableCodes() //TODO: investigate which codes should be labeled as retryable.
         .setCredentialsProvider(credentialsProvider)
         .build()
       clusterManager <- Resource.make(Async[F].delay(
         ClusterManagerClient.create(clusterManagerSettings)
       ))(client => Async[F].delay(client.shutdown()))
-    } yield new GoogleKubernetesInterpreter[F](clusterManager, /*blocker, blockerBound,*/ retryConfig)
+    } yield new GoogleKubernetesInterpreter[F](clusterManager, blocker, blockerBound, retryConfig)
   }
 
 }
