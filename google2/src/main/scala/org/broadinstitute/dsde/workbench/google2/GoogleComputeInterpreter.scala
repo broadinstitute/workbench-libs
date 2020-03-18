@@ -19,6 +19,8 @@ private[google2] class GoogleComputeInterpreter[F[_]: Async: StructuredLogger: T
   diskClient: DiskClient,
   zoneClient: ZoneClient,
   machineTypeClient: MachineTypeClient,
+  networkClient: NetworkClient,
+  subnetworkClient: SubnetworkClient,
   retryConfig: RetryConfig,
   blocker: Blocker,
   blockerBound: Semaphore[F]
@@ -131,6 +133,17 @@ private[google2] class GoogleComputeInterpreter[F[_]: Async: StructuredLogger: T
     )
   }
 
+  override def deleteFirewallRule(project: GoogleProject, firewallRuleName: FirewallRuleName)(
+    implicit ev: ApplicativeAsk[F, TraceId]
+  ): F[Unit] = {
+    val request =
+      ProjectGlobalFirewallName.newBuilder().setProject(project.value).setFirewall(firewallRuleName.value).build
+    retryF(
+      Async[F].delay(firewallClient.deleteFirewall(request)),
+      s"com.google.cloud.compute.v1.FirewallClient.deleteFirewall(${project.value}, ${firewallRuleName.value})"
+    ).void
+  }
+
   override def setMachineType(project: GoogleProject,
                               zone: ZoneName,
                               instanceName: InstanceName,
@@ -155,8 +168,8 @@ private[google2] class GoogleComputeInterpreter[F[_]: Async: StructuredLogger: T
     )
   }
 
-  def getZones(project: GoogleProject,
-               regionName: RegionName)(implicit ev: ApplicativeAsk[F, TraceId]): F[List[Zone]] = {
+  override def getZones(project: GoogleProject,
+                        regionName: RegionName)(implicit ev: ApplicativeAsk[F, TraceId]): F[List[Zone]] = {
     val request = ListZonesHttpRequest
       .newBuilder()
       .setProject(project.value)
@@ -169,13 +182,32 @@ private[google2] class GoogleComputeInterpreter[F[_]: Async: StructuredLogger: T
     ).map(_.iterateAll.asScala.toList)
   }
 
-  def getMachineType(project: GoogleProject, zone: ZoneName, machineTypeName: MachineTypeName)(
+  override def getMachineType(project: GoogleProject, zone: ZoneName, machineTypeName: MachineTypeName)(
     implicit ev: ApplicativeAsk[F, TraceId]
   ): F[Option[MachineType]] = {
     val projectZoneMachineTypeName = ProjectZoneMachineTypeName.of(machineTypeName.value, project.value, zone.value)
     retryF(
       recoverF(Async[F].delay(machineTypeClient.getMachineType(projectZoneMachineTypeName)), whenStatusCode(404)),
       s"com.google.cloud.compute.v1.MachineTypeClient.getMachineType(${projectZoneMachineTypeName.toString})"
+    )
+  }
+
+  override def createNetwork(project: GoogleProject,
+                             network: Network)(implicit ev: ApplicativeAsk[F, TraceId]): F[Operation] = {
+    val projectName = ProjectName.newBuilder().setProject(project.value).build
+    retryF(
+      Async[F].delay(networkClient.insertNetwork(projectName, network)),
+      s"com.google.cloud.compute.v1.NetworkClient.insertNetwork(${projectName.toString}, ${network.getName})"
+    )
+  }
+
+  override def createSubnetwork(project: GoogleProject, region: RegionName, subnetwork: Subnetwork)(
+    implicit ev: ApplicativeAsk[F, TraceId]
+  ): F[Operation] = {
+    val projectRegionName = ProjectRegionName.newBuilder().setProject(project.value).setRegion(region.value).build
+    retryF(
+      Async[F].delay(subnetworkClient.insertSubnetwork(projectRegionName, subnetwork)),
+      s"com.google.cloud.compute.v1.SubnetworkClient.insertSubnetwork(${projectRegionName.toString}, ${subnetwork.getName})"
     )
   }
 

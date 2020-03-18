@@ -50,6 +50,10 @@ trait GoogleComputeService[F[_]] {
     implicit ev: ApplicativeAsk[F, TraceId]
   ): F[Option[Firewall]]
 
+  def deleteFirewallRule(project: GoogleProject, firewallRuleName: FirewallRuleName)(
+    implicit ev: ApplicativeAsk[F, TraceId]
+  ): F[Unit]
+
   def getComputeEngineDefaultServiceAccount(projectNumber: Long): WorkbenchEmail =
     // Service account email format documented in:
     // https://cloud.google.com/compute/docs/access/service-accounts#compute_engine_default_service_account
@@ -68,6 +72,12 @@ trait GoogleComputeService[F[_]] {
   ): F[Unit]
 
   def getZones(project: GoogleProject, regionName: RegionName)(implicit ev: ApplicativeAsk[F, TraceId]): F[List[Zone]]
+
+  def createNetwork(project: GoogleProject, network: Network)(implicit ev: ApplicativeAsk[F, TraceId]): F[Operation]
+
+  def createSubnetwork(project: GoogleProject, region: RegionName, subnetwork: Subnetwork)(
+    implicit ev: ApplicativeAsk[F, TraceId]
+  ): F[Operation]
 }
 
 object GoogleComputeService {
@@ -111,6 +121,14 @@ object GoogleComputeService {
       .newBuilder()
       .setCredentialsProvider(credentialsProvider)
       .build()
+    val networkSettings = NetworkSettings
+      .newBuilder()
+      .setCredentialsProvider(credentialsProvider)
+      .build()
+    val subnetworkSettings = SubnetworkSettings
+      .newBuilder()
+      .setCredentialsProvider(credentialsProvider)
+      .build()
 
     for {
       instanceClient <- resourceF(InstanceClient.create(instanceSettings))
@@ -118,11 +136,15 @@ object GoogleComputeService {
       diskClient <- resourceF(DiskClient.create(diskSettings))
       zoneClient <- resourceF(ZoneClient.create(zoneSettings))
       machineTypeClient <- resourceF(MachineTypeClient.create(machineTypeSettings))
+      networkClient <- resourceF(NetworkClient.create(networkSettings))
+      subnetworkClient <- resourceF(SubnetworkClient.create(subnetworkSettings))
     } yield new GoogleComputeInterpreter[F](instanceClient,
                                             firewallClient,
                                             diskClient,
                                             zoneClient,
                                             machineTypeClient,
+                                            networkClient,
+                                            subnetworkClient,
                                             retryConfig,
                                             blocker,
                                             blockerBound)
