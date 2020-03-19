@@ -73,7 +73,15 @@ trait GoogleComputeService[F[_]] {
 
   def getZones(project: GoogleProject, regionName: RegionName)(implicit ev: ApplicativeAsk[F, TraceId]): F[List[Zone]]
 
+  def getNetwork(project: GoogleProject, networkName: NetworkName)(
+    implicit ev: ApplicativeAsk[F, TraceId]
+  ): F[Option[Network]]
+
   def createNetwork(project: GoogleProject, network: Network)(implicit ev: ApplicativeAsk[F, TraceId]): F[Operation]
+
+  def getSubnetwork(project: GoogleProject, region: RegionName, subnetwork: SubnetworkName)(
+    implicit ev: ApplicativeAsk[F, TraceId]
+  ): F[Option[Subnetwork]]
 
   def createSubnetwork(project: GoogleProject, region: RegionName, subnetwork: Subnetwork)(
     implicit ev: ApplicativeAsk[F, TraceId]
@@ -157,3 +165,5 @@ final case class ZoneName(value: String) extends AnyVal
 final case class FirewallRuleName(value: String) extends AnyVal
 final case class MachineTypeName(value: String) extends AnyVal
 final case class RegionName(value: String) extends AnyVal
+final case class NetworkName(value: String) extends AnyVal
+final case class SubnetworkName(value: String) extends AnyVal

@@ -192,12 +192,37 @@ private[google2] class GoogleComputeInterpreter[F[_]: Async: StructuredLogger: T
     )
   }
 
+  override def getNetwork(project: GoogleProject,
+                          networkName: NetworkName)(implicit ev: ApplicativeAsk[F, TraceId]): F[Option[Network]] = {
+    val projectNetworkName =
+      ProjectGlobalNetworkName.newBuilder().setProject(project.value).setNetwork(networkName.value).build
+    retryF(
+      recoverF(Async[F].delay(networkClient.getNetwork(projectNetworkName)), whenStatusCode(404)),
+      s"com.google.cloud.compute.v1.NetworkClient.getNetwork(${projectNetworkName.toString})"
+    )
+  }
+
   override def createNetwork(project: GoogleProject,
                              network: Network)(implicit ev: ApplicativeAsk[F, TraceId]): F[Operation] = {
     val projectName = ProjectName.newBuilder().setProject(project.value).build
     retryF(
       Async[F].delay(networkClient.insertNetwork(projectName, network)),
       s"com.google.cloud.compute.v1.NetworkClient.insertNetwork(${projectName.toString}, ${network.getName})"
+    )
+  }
+
+  override def getSubnetwork(project: GoogleProject, region: RegionName, subnetwork: SubnetworkName)(
+    implicit ev: ApplicativeAsk[F, TraceId]
+  ): F[Option[Subnetwork]] = {
+    val projectRegionSubnetworkName = ProjectRegionSubnetworkName
+      .newBuilder()
+      .setProject(project.value)
+      .setRegion(region.value)
+      .setSubnetwork(subnetwork.value)
+      .build
+    retryF(
+      recoverF(Async[F].delay(subnetworkClient.getSubnetwork(projectRegionSubnetworkName)), whenStatusCode(404)),
+      s"com.google.cloud.compute.v1.SubnetworkClient.getSubnetwork(${projectRegionSubnetworkName.toString})"
     )
   }
 
