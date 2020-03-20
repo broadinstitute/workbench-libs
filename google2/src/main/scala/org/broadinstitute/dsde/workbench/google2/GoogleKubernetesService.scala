@@ -15,34 +15,35 @@ import org.broadinstitute.dsde.workbench.google2.util.RetryPredicates._
 import cats.implicits._
 
 trait GoogleKubernetesService[F[_]] {
-  def createCluster(kubernetesClusterRequest: KubernetesCreateClusterRequest)
-                   (implicit ev: ApplicativeAsk[F, TraceId]): F[Operation]
+  def createCluster(kubernetesClusterRequest: KubernetesCreateClusterRequest)(
+    implicit ev: ApplicativeAsk[F, TraceId]
+  ): F[Operation]
 
-  def deleteCluster(clusterId: KubernetesClusterId)
-                   (implicit ev: ApplicativeAsk[F, TraceId]): F[Operation]
+  def deleteCluster(clusterId: KubernetesClusterId)(implicit ev: ApplicativeAsk[F, TraceId]): F[Operation]
 
-  def getCluster(clusterId: KubernetesClusterId)
-                (implicit ev: ApplicativeAsk[F, TraceId]): F[Cluster]
+  def getCluster(clusterId: KubernetesClusterId)(implicit ev: ApplicativeAsk[F, TraceId]): F[Cluster]
 }
 
 object GoogleKubernetesService {
 
-  def resource[F[_] : StructuredLogger : Async : Timer : ContextShift](
-                                                                        pathToCredential: String,
-                                                                        blocker: Blocker,
-                                                                        blockerBound: Semaphore[F],
-                                                                        retryConfig: RetryConfig = RetryPredicates.retryConfigWithPredicates(whenStatusCode(404))
-                                                                      ): Resource[F, GoogleKubernetesService[F]] = {
+  def resource[F[_]: StructuredLogger: Async: Timer: ContextShift](
+    pathToCredential: String,
+    blocker: Blocker,
+    blockerBound: Semaphore[F],
+    retryConfig: RetryConfig = RetryPredicates.retryConfigWithPredicates(whenStatusCode(404))
+  ): Resource[F, GoogleKubernetesService[F]] =
     for {
       credential <- credentialResource(pathToCredential)
       credentialsProvider = FixedCredentialsProvider.create(credential)
-      clusterManagerSettings = ClusterManagerSettings.newBuilder()
+      clusterManagerSettings = ClusterManagerSettings
+        .newBuilder()
         .setCredentialsProvider(credentialsProvider)
         .build()
-      clusterManager <- Resource.make(Async[F].delay(
-        ClusterManagerClient.create(clusterManagerSettings)
-      ))(client =>  Async[F].delay(client.shutdown()) >> Async[F].delay(client.close()))
+      clusterManager <- Resource.make(
+        Async[F].delay(
+          ClusterManagerClient.create(clusterManagerSettings)
+        )
+      )(client => Async[F].delay(client.shutdown()) >> Async[F].delay(client.close()))
     } yield new GoogleKubernetesInterpreter[F](clusterManager, blocker, blockerBound, retryConfig)
-  }
 
 }

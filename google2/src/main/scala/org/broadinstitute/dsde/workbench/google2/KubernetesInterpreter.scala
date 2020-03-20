@@ -21,39 +21,45 @@ import scala.collection.concurrent.TrieMap
 // It is highly recommended to use the kubernetes API docs here https://kubernetes.io/docs/reference/generated/kubernetes-api as opposed to the client library docs
 
 class KubernetesInterpreter[F[_]: Async: StructuredLogger: Timer: ContextShift](
-                                                                                 credentials: GoogleCredentials,
-                                                                                 googleKubernetesService: GoogleKubernetesService[F],
-                                                                                 blocker: Blocker,
-                                                                                 blockerBound: Semaphore[F],
-                                                                                 retryConfig: RetryConfig
-                                                                               ) extends KubernetesService[F] {
+  credentials: GoogleCredentials,
+  googleKubernetesService: GoogleKubernetesService[F],
+  blocker: Blocker,
+  blockerBound: Semaphore[F],
+  retryConfig: RetryConfig
+) extends KubernetesService[F] {
   //here, we store the apiClient so we do not have to make the google calls necessary to construct it more often than needed
-  private val clientStore = TrieMap[KubernetesClusterId,ApiClient]()
+  private val clientStore = TrieMap[KubernetesClusterId, ApiClient]()
 
   // https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.12/#podspec-v1-core
-  override def createPod(clusterId: KubernetesClusterId, pod: KubernetesPod, namespace: KubernetesNamespace)
-                        (implicit ev: ApplicativeAsk[F, TraceId]): F[Unit] =
+  override def createPod(clusterId: KubernetesClusterId, pod: KubernetesPod, namespace: KubernetesNamespace)(
+    implicit ev: ApplicativeAsk[F, TraceId]
+  ): F[Unit] =
     blockingClientProvider(clusterId, { kubernetesClient =>
-      Async[F].delay(kubernetesClient.createNamespacedPod(namespace.name.value, pod.getJavaSerialization, null, null, null))
+      Async[F].delay(
+        kubernetesClient.createNamespacedPod(namespace.name.value, pod.getJavaSerialization, null, null, null)
+      )
     })
-
 
   //why we use a service over a deployment https://matthewpalmer.net/kubernetes-app-developer/articles/service-kubernetes-example-tutorial.html
   //services can be applied to pods/containers, while deployments are for pre-creating pods/containers
-  override def createService(clusterId: KubernetesClusterId, service: KubernetesServiceKind, namespace: KubernetesNamespace)
-                   (implicit ev: ApplicativeAsk[F, TraceId]): F[Unit] =
-    blockingClientProvider(clusterId, { kubernetesClient =>
-       Async[F].delay(kubernetesClient.createNamespacedService(namespace.name.value, service.getJavaSerialization, null, null, null))
-    })
+  override def createService(clusterId: KubernetesClusterId,
+                             service: KubernetesServiceKind,
+                             namespace: KubernetesNamespace)(implicit ev: ApplicativeAsk[F, TraceId]): F[Unit] =
+    blockingClientProvider(
+      clusterId, { kubernetesClient =>
+        Async[F].delay(
+          kubernetesClient.createNamespacedService(namespace.name.value, service.getJavaSerialization, null, null, null)
+        )
+      }
+    )
 
-  override def createNamespace(clusterId: KubernetesClusterId, namespace: KubernetesNamespace)
-                              (implicit ev: ApplicativeAsk[F, TraceId]): F[Unit] =
+  override def createNamespace(clusterId: KubernetesClusterId,
+                               namespace: KubernetesNamespace)(implicit ev: ApplicativeAsk[F, TraceId]): F[Unit] =
     blockingClientProvider(clusterId, { kubernetesClient =>
       Async[F].delay(kubernetesClient.createNamespace(namespace.getJavaSerialization, null, null, null))
     })
 
-  private def getClient(clusterId: KubernetesClusterId)
-                       (implicit ev: ApplicativeAsk[F, TraceId]): F[CoreV1Api] = {
+  private def getClient(clusterId: KubernetesClusterId)(implicit ev: ApplicativeAsk[F, TraceId]): F[CoreV1Api] = {
     val clientOpt = clientStore.get(clusterId)
 
     //we always update the token, even for existing clients, so we don't have to maintain a reference to the last time each client was updated
@@ -63,13 +69,15 @@ class KubernetesInterpreter[F[_]: Async: StructuredLogger: Timer: ContextShift](
     val token = credentials.getAccessToken
 
     clientOpt match {
-      case Some(client) => Async[F].delay(client.setApiKey(token.getTokenValue)) >>
-        Async[F].delay(new CoreV1Api(client))
-      case None => for {
-        cluster <- googleKubernetesService.getCluster(clusterId)
-        client <- createClient(cluster, token)
-        _ = clientStore.put(clusterId, client)
-      } yield new CoreV1Api(client)
+      case Some(client) =>
+        Async[F].delay(client.setApiKey(token.getTokenValue)) >>
+          Async[F].delay(new CoreV1Api(client))
+      case None =>
+        for {
+          cluster <- googleKubernetesService.getCluster(clusterId)
+          client <- createClient(cluster, token)
+          _ = clientStore.put(clusterId, client)
+        } yield new CoreV1Api(client)
     }
   }
 
@@ -83,23 +91,31 @@ class KubernetesInterpreter[F[_]: Async: StructuredLogger: Timer: ContextShift](
     )(stream => Async[F].delay(stream.close()))
 
     certResource.use { certStream =>
-      Async[F].delay(Config.fromToken(
-        endpoint.url,
-        token.getTokenValue
-      ).setSslCaCert(certStream))
+      Async[F].delay(
+        Config
+          .fromToken(
+            endpoint.url,
+            token.getTokenValue
+          )
+          .setSslCaCert(certStream)
+      )
     }
   }
 
   //TODO: retry once we know what kubernetes codes are applicable
-  private def blockingClientProvider[A](clusterId: KubernetesClusterId, fa: CoreV1Api => F[A])
-                                      (implicit ev: ApplicativeAsk[F, TraceId]): F[A] =
-    blockerBound.withPermit(blocker.blockOn(
-      for {
-        kubernetesClient <- getClient(clusterId)
-        clientCallResult <- fa(kubernetesClient)
-      } yield clientCallResult
-    ).onError { //we aren't handling any errors here, they will be bubbled up, but we want to print a more helpful message that is otherwise obfuscated
-      case e: ApiException => Async[F].delay(StructuredLogger[F].error(e.getResponseBody()))
-    })
+  private def blockingClientProvider[A](clusterId: KubernetesClusterId,
+                                        fa: CoreV1Api => F[A])(implicit ev: ApplicativeAsk[F, TraceId]): F[A] =
+    blockerBound.withPermit(
+      blocker
+        .blockOn(
+          for {
+            kubernetesClient <- getClient(clusterId)
+            clientCallResult <- fa(kubernetesClient)
+          } yield clientCallResult
+        )
+        .onError { //we aren't handling any errors here, they will be bubbled up, but we want to print a more helpful message that is otherwise obfuscated
+          case e: ApiException => Async[F].delay(StructuredLogger[F].error(e.getResponseBody()))
+        }
+    )
 
- }
+}

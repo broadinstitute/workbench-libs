@@ -2,11 +2,21 @@ package org.broadinstitute.dsde.workbench.google2
 import com.google.container.v1.{Cluster, NodePool, NodePoolAutoscaling}
 
 import collection.JavaConverters._
-import io.kubernetes.client.models.{V1Container, V1ContainerPort, V1Namespace, V1ObjectMeta, V1ObjectMetaBuilder, V1Pod, V1PodSpec, V1Service, V1ServicePort, V1ServiceSpec}
+import io.kubernetes.client.models.{
+  V1Container,
+  V1ContainerPort,
+  V1Namespace,
+  V1ObjectMeta,
+  V1ObjectMetaBuilder,
+  V1Pod,
+  V1PodSpec,
+  V1Service,
+  V1ServicePort,
+  V1ServiceSpec
+}
 import org.apache.commons.codec.binary.Base64
 import org.broadinstitute.dsde.workbench.model.WorkbenchException
 import org.broadinstitute.dsde.workbench.model.google.GoogleProject
-
 
 object KubernetesConstants {
   //this default namespace is initialized automatically with a kubernetes environment, and we do not create it
@@ -20,15 +30,16 @@ object KubernetesConstants {
   val DEFAULT_NODEPOOL_SIZE: Int = 1
   val DEFAULT_NODEPOOL_AUTOSCALING: ClusterNodePoolAutoscalingConfig = ClusterNodePoolAutoscalingConfig(1, 10)
 
-  def getDefaultCluster(nodePoolName: NodePoolName, clusterName: KubernetesClusterName): Cluster = {
+  def getDefaultCluster(nodePoolName: NodePoolName, clusterName: KubernetesClusterName): Cluster =
     Cluster
       .newBuilder()
       .setName(clusterName.value) //required
-      .addNodePools(getNodePoolBuilder(NodePoolConfig(DEFAULT_NODEPOOL_SIZE, nodePoolName, DEFAULT_NODEPOOL_AUTOSCALING))) //required
+      .addNodePools(
+        getNodePoolBuilder(NodePoolConfig(DEFAULT_NODEPOOL_SIZE, nodePoolName, DEFAULT_NODEPOOL_AUTOSCALING))
+      ) //required
       .build() //builds recursively
-  }
 
-  def getNodePoolBuilder(config: NodePoolConfig) = {
+  def getNodePoolBuilder(config: NodePoolConfig) =
     NodePool
       .newBuilder()
       .setInitialNodeCount(config.initialNodes)
@@ -40,9 +51,7 @@ object KubernetesConstants {
           .setMinNodeCount(config.autoscalingConfig.minimumNodes)
           .setMaxNodeCount(config.autoscalingConfig.maximumNodes)
       )
-  }
 }
-
 
 // Common kubernetes models //
 
@@ -59,9 +68,7 @@ trait KubernetesNameValidation {
   }
 }
 
-
 // Google kubernetes client models //
-
 
 //"us-central1" is an example of a valid location.
 final case class Parent(project: GoogleProject, location: Location) {
@@ -70,7 +77,9 @@ final case class Parent(project: GoogleProject, location: Location) {
 
 //the cluster must have a name, and a com.google.container.v1.NodePool. The NodePool must have an initialNodeCount and a name.
 //see getDefaultCluster for an example of construction with the minimum fields necessary, plus some others you almost certainly want to configure
-final case class KubernetesCreateClusterRequest(project: GoogleProject, location: Location, cluster: com.google.container.v1.Cluster)
+final case class KubernetesCreateClusterRequest(project: GoogleProject,
+                                                location: Location,
+                                                cluster: com.google.container.v1.Cluster)
 
 //this is NOT analogous to clusterName in the context of dataproc/GCE. A single cluster can have multiple nodes, pods, services, containers, deployments, etc.
 //clusters should most likely NOT be provisioned per user as they are today. More design/security research is needed
@@ -80,12 +89,14 @@ final case class ClusterNodePoolAutoscalingConfig(minimumNodes: Int, maximumNode
 
 final case class NodePoolName(value: String) extends KubernetesNameValidation
 
-final case class NodePoolConfig(initialNodes: Int, name: NodePoolName, autoscalingConfig: ClusterNodePoolAutoscalingConfig = KubernetesConstants.DEFAULT_NODEPOOL_AUTOSCALING)
+final case class NodePoolConfig(initialNodes: Int,
+                                name: NodePoolName,
+                                autoscalingConfig: ClusterNodePoolAutoscalingConfig =
+                                  KubernetesConstants.DEFAULT_NODEPOOL_AUTOSCALING)
 
 final case class KubernetesClusterId(project: GoogleProject, location: Location, clusterName: KubernetesClusterName) {
   def idString: String = s"projects/${project.value}/locations/${location.value}/clusters/${clusterName.value}"
 }
-
 
 // Kubernetes client models //
 sealed trait KubernetesSerializable {
@@ -96,7 +107,7 @@ sealed trait KubernetesSerializable {
 sealed trait KubernetesSerializableName extends KubernetesSerializable with KubernetesNameValidation {
   def value: String
 
-   def getJavaSerialization: V1ObjectMeta = {
+  def getJavaSerialization: V1ObjectMeta = {
     val metadata = new V1ObjectMetaBuilder()
       .withNewName(value)
       .build()
@@ -117,10 +128,13 @@ final case class KubernetesNamespace(name: KubernetesNamespaceName) extends Kube
   }
 }
 
-final case class KubernetesPodName(value: String)  extends KubernetesSerializableName
+final case class KubernetesPodName(value: String) extends KubernetesSerializableName
 
 //consider using a replica set if you would like multiple autoscaling pods https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.12/#replicaset-v1-apps
-final case class KubernetesPod(name: KubernetesPodName, containers: Set[KubernetesContainer], selector: KubernetesSelector) extends KubernetesSerializable {
+final case class KubernetesPod(name: KubernetesPodName,
+                               containers: Set[KubernetesContainer],
+                               selector: KubernetesSelector)
+    extends KubernetesSerializable {
 
   val DEFAULT_POD_KIND = "Pod"
 
@@ -150,7 +164,11 @@ final case class KubernetesContainerName(value: String) extends KubernetesSerial
 final case class Image(uri: String)
 
 //volumes can be added here
-final case class KubernetesContainer(name: KubernetesContainerName, image: Image, ports: Option[Set[ContainerPort]], resourceLimits: Option[Map[String, String]] = None) extends KubernetesSerializable {
+final case class KubernetesContainer(name: KubernetesContainerName,
+                                     image: Image,
+                                     ports: Option[Set[ContainerPort]],
+                                     resourceLimits: Option[Map[String, String]] = None)
+    extends KubernetesSerializable {
   override def getJavaSerialization: V1Container = {
     val v1Container = new V1Container()
     v1Container.setName(name.value)
@@ -161,14 +179,11 @@ final case class KubernetesContainer(name: KubernetesContainerName, image: Image
 //    resourceLimits.setLimits(Map("memory" -> "64Mi", "cpu" -> "500m"))
 //    v1Container.resources(resourceLimits)
 
-    ports.map( ports =>
-      v1Container.setPorts(ports.map(_.getJavaSerialization).toList.asJava)
-    )
+    ports.map(ports => v1Container.setPorts(ports.map(_.getJavaSerialization).toList.asJava))
 
     v1Container
   }
 }
-
 
 final case class KubernetesServiceName(value: String) extends KubernetesSerializableName
 sealed trait KubernetesServiceKind extends KubernetesSerializable {
@@ -189,7 +204,10 @@ sealed trait KubernetesServiceKind extends KubernetesSerializable {
 }
 
 //duplicative of above, but commonalities not fully understood yet
-final case class KubernetesLoadBalancerService(selector: KubernetesSelector, ports: Set[ServicePort], name: KubernetesServiceName) extends KubernetesServiceKind {
+final case class KubernetesLoadBalancerService(selector: KubernetesSelector,
+                                               ports: Set[ServicePort],
+                                               name: KubernetesServiceName)
+    extends KubernetesServiceKind {
   val serviceType = KubernetesServiceType(LOADBALANCER_SERVICE_TYPE)
 
   override def getJavaSerialization: V1Service = {
@@ -224,7 +242,7 @@ final case class ContainerPort(value: Int) extends KubernetesSerializable {
 }
 
 final case class KubernetesSelector(labels: Map[String, String])
-protected final case class KubernetesServiceType(value: String)
+final protected case class KubernetesServiceType(value: String)
 
 final case class KubernetesMasterIP(value: String) {
   val url = s"https://${value}"
