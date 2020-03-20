@@ -44,11 +44,11 @@ object Test {
   def callCreateCluster(clusterId: KubernetesClusterId = clusterId) = createCluster(KubernetesCreateClusterRequest(project, location,
     KubernetesConstants.getDefaultCluster(nodePoolName, clusterName)))
 
-  def callDeleteCluster() =   serviceResource.use { service =>
+  def callDeleteCluster(clusterId: KubernetesClusterId = clusterId) =   serviceResource.use { service =>
     service.deleteCluster(KubernetesClusterId(project, location, clusterName))
   }
 
-  def callGetCluster() = serviceResource.use { service =>
+  def callGetCluster(clusterId: KubernetesClusterId = clusterId) = serviceResource.use { service =>
     service.getCluster(KubernetesClusterId(project, location, clusterName))
   }
 

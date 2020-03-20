@@ -76,7 +76,7 @@ class KubernetesInterpreter[F[_]: Async: StructuredLogger: Timer: ContextShift](
         for {
           cluster <- googleKubernetesService.getCluster(clusterId)
           client <- createClient(cluster, token)
-          _ = clientStore.put(clusterId, client)
+          _ <- Async[F].delay(clientStore.put(clusterId, client))
         } yield new CoreV1Api(client)
     }
   }
