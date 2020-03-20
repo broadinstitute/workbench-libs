@@ -10,6 +10,7 @@ Changed:
 - Upgrade `circe` version to `0.13.0`
 - Bump `http4s` version to `0.21.0`
 - Bump `cats-effect` version to `2.1.2`
+- Bump `scalacheck` version to `1.14.3`
 
 Added:
 - `GoogleComputeService` and `GoogleComputeInterpreter`
