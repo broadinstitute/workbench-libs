@@ -4,7 +4,7 @@ import java.io.ByteArrayInputStream
 
 import cats.effect.concurrent.Semaphore
 import cats.effect.{Async, Blocker, ContextShift, Resource, Timer}
-import io.chrisdavenport.log4cats.StructuredLogger
+import io.chrisdavenport.log4cats.{Logger, StructuredLogger}
 import org.broadinstitute.dsde.workbench.RetryConfig
 import cats.implicits._
 import cats.mtl.ApplicativeAsk
@@ -96,9 +96,10 @@ class KubernetesInterpreter[F[_]: Async: StructuredLogger: Timer: ContextShift](
     blockerBound.withPermit(blocker.blockOn(
       for {
         kubernetesClient <- getClient(clusterId)
-      } yield fa(kubernetesClient)
-    ).onError { //we aren't handling it here, it will be bubbled up, but we want to print a more helpful message
-      case e: ApiException => Async[F].delay(println(e.getResponseBody()))
+        clientCallResult <- fa(kubernetesClient)
+      } yield clientCallResult
+    ).onError { //we aren't handling any errors here, they will be bubbled up, but we want to print a more helpful message that is otherwise obfuscated
+      case e: ApiException => Async[F].delay(StructuredLogger[F].error(e.getResponseBody()))
     })
 
  }
