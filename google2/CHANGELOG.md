@@ -7,11 +7,13 @@ Changed:
 - Renamed `GoogleDataproc` to `GoogleDataprocService`
 - Updated `GoogleDataprocService` methods to take a `GoogleProject`
 - Added `scalafmt` plugin and formatted the `google2` module
+- Upgrade `circe` version to `0.13.0`
+
 Added:
 - `GoogleComputeService` and `GoogleComputeInterpreter`
 - `com.google.cloud" % "google-cloud-compute` SBT dependency
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.7-96ad43c"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.7-TRAVIS-REPLACE-ME"`
 
 ## 0.6
 Changed
