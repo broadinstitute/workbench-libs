@@ -11,7 +11,6 @@ import org.broadinstitute.dsde.workbench.model.google.GoogleProject
 
 //TODO: migrate to a unit test
 //TODO: investigate running minikube in a docker for unit/automation tests https://banzaicloud.com/blog/minikube-ci/
-
 object Test {
   import scala.concurrent.ExecutionContext.global
   implicit val cs = IO.contextShift(global)
@@ -42,7 +41,8 @@ object Test {
     }
   }
 
-  def callCreateCluster(clusterId: KubernetesClusterId = clusterId) = createCluster(KubernetesCreateClusterRequest(clusterId, nodePoolName, None))
+  def callCreateCluster(clusterId: KubernetesClusterId = clusterId) = createCluster(KubernetesCreateClusterRequest(project, location,
+    KubernetesConstants.getDefaultCluster(nodePoolName, clusterName)))
 
   def callDeleteCluster() =   serviceResource.use { service =>
     service.deleteCluster(KubernetesClusterId(project, location, clusterName))

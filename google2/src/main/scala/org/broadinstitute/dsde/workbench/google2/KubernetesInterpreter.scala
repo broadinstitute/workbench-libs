@@ -4,7 +4,7 @@ import java.io.ByteArrayInputStream
 
 import cats.effect.concurrent.Semaphore
 import cats.effect.{Async, Blocker, ContextShift, Resource, Timer}
-import io.chrisdavenport.log4cats.{Logger, StructuredLogger}
+import io.chrisdavenport.log4cats.StructuredLogger
 import org.broadinstitute.dsde.workbench.RetryConfig
 import cats.implicits._
 import cats.mtl.ApplicativeAsk

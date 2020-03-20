@@ -15,7 +15,6 @@ import org.broadinstitute.dsde.workbench.google2.util.RetryPredicates._
 import cats.implicits._
 
 trait GoogleKubernetesService[F[_]] {
-  //should clusters be created per project, or per user for billing?
   def createCluster(kubernetesClusterRequest: KubernetesCreateClusterRequest)
                    (implicit ev: ApplicativeAsk[F, TraceId]): F[Operation]
 

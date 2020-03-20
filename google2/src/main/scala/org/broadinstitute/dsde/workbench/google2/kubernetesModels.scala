@@ -1,5 +1,5 @@
 package org.broadinstitute.dsde.workbench.google2
-import com.google.container.v1.ClusterAutoscaling
+import com.google.container.v1.{Cluster, NodePool, NodePoolAutoscaling}
 
 import collection.JavaConverters._
 import io.kubernetes.client.models.{V1Container, V1ContainerPort, V1Namespace, V1ObjectMeta, V1ObjectMetaBuilder, V1Pod, V1PodSpec, V1Service, V1ServicePort, V1ServiceSpec}
@@ -16,10 +16,31 @@ object KubernetesConstants {
 
   //composite of NodePort and ClusterIP types. Allows external access
   val DEFAULT_LOADBALANCER_PORTS = Set(ServicePort(8080))
-//  val DEFAULT_LOADBALANCER_SERVICE = KubernetesLoadBalancerService(DEFAULT_SERVICE_SELECTOR, Set(ServicePort(8080)), DEFAULT_SERVICE_NAME)
 
   val DEFAULT_NODEPOOL_SIZE: Int = 1
   val DEFAULT_NODEPOOL_AUTOSCALING: ClusterNodePoolAutoscalingConfig = ClusterNodePoolAutoscalingConfig(1, 10)
+
+  def getDefaultCluster(nodePoolName: NodePoolName, clusterName: KubernetesClusterName): Cluster = {
+    Cluster
+      .newBuilder()
+      .setName(clusterName.value) //required
+      .addNodePools(getNodePoolBuilder(NodePoolConfig(DEFAULT_NODEPOOL_SIZE, nodePoolName, DEFAULT_NODEPOOL_AUTOSCALING))) //required
+      .build() //builds recursively
+  }
+
+  def getNodePoolBuilder(config: NodePoolConfig) = {
+    NodePool
+      .newBuilder()
+      .setInitialNodeCount(config.initialNodes)
+      .setName(config.name.value)
+      .setAutoscaling(
+        NodePoolAutoscaling
+          .newBuilder()
+          .setEnabled(true)
+          .setMinNodeCount(config.autoscalingConfig.minimumNodes)
+          .setMaxNodeCount(config.autoscalingConfig.maximumNodes)
+      )
+  }
 }
 
 
@@ -47,13 +68,14 @@ final case class Parent(project: GoogleProject, location: Location) {
   def parentString: String = s"projects/${project.value}/locations/${location.value}"
 }
 
-final case class KubernetesCreateClusterRequest(clusterId: KubernetesClusterId, initialNodePoolName: NodePoolName, clusterOpts: Option[KubernetesClusterOpts])
+//the cluster must have a name, and a com.google.container.v1.NodePool. The NodePool must have an initialNodeCount and a name.
+//see getDefaultCluster for an example of construction with the minimum fields necessary, plus some others you almost certainly want to configure
+final case class KubernetesCreateClusterRequest(project: GoogleProject, location: Location, cluster: com.google.container.v1.Cluster)
 
-//TODO: determine what leo needs here
-final case class KubernetesClusterOpts(autoscaling: ClusterAutoscaling, initialNodePoolSize: Int = KubernetesConstants.DEFAULT_NODEPOOL_SIZE)
 //this is NOT analogous to clusterName in the context of dataproc/GCE. A single cluster can have multiple nodes, pods, services, containers, deployments, etc.
 //clusters should most likely NOT be provisioned per user as they are today. More design/security research is needed
 final case class KubernetesClusterName(value: String) extends KubernetesNameValidation
+
 final case class ClusterNodePoolAutoscalingConfig(minimumNodes: Int, maximumNodes: Int)
 
 final case class NodePoolName(value: String) extends KubernetesNameValidation
@@ -66,8 +88,6 @@ final case class KubernetesClusterId(project: GoogleProject, location: Location,
 
 
 // Kubernetes client models //
-
-
 sealed trait KubernetesSerializable {
   def getJavaSerialization: Any
 }
