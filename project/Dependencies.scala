@@ -7,7 +7,7 @@ object Dependencies {
   val googleV       = "1.22.0"
   val scalaLoggingV = "3.7.2"
   val scalaTestV    = "3.0.1"
-  val circeVersion = "0.12.2"
+  val circeVersion = "0.13.0"
   val http4sVersion = "0.21.0-M5"
 
   def excludeGuavaJDK5(m: ModuleID): ModuleID = m.exclude("com.google.guava", "guava-jdk5")
@@ -63,7 +63,7 @@ object Dependencies {
   val circeCore: ModuleID = "io.circe" %% "circe-core" % circeVersion
   val circeParser: ModuleID = "io.circe" %% "circe-parser" % circeVersion
   val circeGeneric: ModuleID = "io.circe" %% "circe-generic" % circeVersion % "test"
-  val circeFs2: ModuleID = "io.circe" %% "circe-fs2" % "0.12.0"
+  val circeFs2: ModuleID = "io.circe" %% "circe-fs2" % circeVersion
   val cats: ModuleID = "org.typelevel" %% "cats-core" % "2.0.0"
   val log4cats = "io.chrisdavenport" %% "log4cats-slf4j"   % "1.0.0"
   val catsMtl = "org.typelevel" %% "cats-mtl-core" % "0.7.0"
