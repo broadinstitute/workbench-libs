@@ -8,7 +8,7 @@ object Dependencies {
   val scalaLoggingV = "3.7.2"
   val scalaTestV    = "3.0.1"
   val circeVersion = "0.13.0"
-  val http4sVersion = "0.21.0-M5"
+  val http4sVersion = "0.21.0"
 
   def excludeGuavaJDK5(m: ModuleID): ModuleID = m.exclude("com.google.guava", "guava-jdk5")
 
@@ -28,7 +28,7 @@ object Dependencies {
 
   val selenium: ModuleID = "org.seleniumhq.selenium" % "selenium-java" % "3.11.0" % "test"
 
-  val catsEffect: ModuleID = "org.typelevel" %% "cats-effect" % "2.0.0"
+  val catsEffect: ModuleID = "org.typelevel" %% "cats-effect" % "2.1.2"
 
   // metrics-scala transitively pulls in io.dropwizard.metrics:metrics-core
   val metricsScala: ModuleID =      "nl.grons"              %% "metrics-scala"    % "3.5.6"
