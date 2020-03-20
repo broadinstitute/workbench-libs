@@ -39,14 +39,14 @@ class GoogleKubernetesInterpreter[F[_]: Async: StructuredLogger: Timer: ContextS
      )
   }
 
-  override def getCluster(clusterId: KubernetesClusterIdentifier)
+  override def getCluster(clusterId: KubernetesClusterId)
                          (implicit ev: ApplicativeAsk[F, TraceId]): F[Cluster] =
     tracedGoogleRetryWithBlocker(
       Async[F].delay(clusterManagerClient.getCluster(clusterId.idString)),
       f"com.google.cloud.container.v1.ClusterManagerClient.getCluster(${clusterId.idString})"
     )
 
-  override def deleteCluster(clusterId: KubernetesClusterIdentifier)
+  override def deleteCluster(clusterId: KubernetesClusterId)
                             (implicit ev: ApplicativeAsk[F, TraceId]): F[Operation] =
     tracedGoogleRetryWithBlocker(
       Async[F].delay(clusterManagerClient.deleteCluster(clusterId.idString)),

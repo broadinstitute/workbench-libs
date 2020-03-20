@@ -3,6 +3,7 @@ import com.google.container.v1.ClusterAutoscaling
 
 import collection.JavaConverters._
 import io.kubernetes.client.models.{V1Container, V1ContainerPort, V1Namespace, V1ObjectMeta, V1ObjectMetaBuilder, V1Pod, V1PodSpec, V1Service, V1ServicePort, V1ServiceSpec}
+import org.apache.commons.codec.binary.Base64
 import org.broadinstitute.dsde.workbench.model.WorkbenchException
 import org.broadinstitute.dsde.workbench.model.google.GoogleProject
 
@@ -14,7 +15,7 @@ object KubernetesConstants {
   val DEFAULT_SERVICE_NAME = "default-service"
 
   //composite of NodePort and ClusterIP types. Allows external access
-  val DEFAULT_LOADBANCER_PORTS = Set(ServicePort(8080))
+  val DEFAULT_LOADBALANCER_PORTS = Set(ServicePort(8080))
 //  val DEFAULT_LOADBALANCER_SERVICE = KubernetesLoadBalancerService(DEFAULT_SERVICE_SELECTOR, Set(ServicePort(8080)), DEFAULT_SERVICE_NAME)
 
   val DEFAULT_NODEPOOL_SIZE: Int = 1
@@ -46,7 +47,7 @@ final case class Parent(project: GoogleProject, location: Location) {
   def parentString: String = s"projects/${project.value}/locations/${location.value}"
 }
 
-final case class KubernetesCreateClusterRequest(clusterId: KubernetesClusterIdentifier, initialNodePoolName: NodePoolName, clusterOpts: Option[KubernetesClusterOpts])
+final case class KubernetesCreateClusterRequest(clusterId: KubernetesClusterId, initialNodePoolName: NodePoolName, clusterOpts: Option[KubernetesClusterOpts])
 
 //TODO: determine what leo needs here
 final case class KubernetesClusterOpts(autoscaling: ClusterAutoscaling, initialNodePoolSize: Int = KubernetesConstants.DEFAULT_NODEPOOL_SIZE)
@@ -59,7 +60,7 @@ final case class NodePoolName(value: String) extends KubernetesNameValidation
 
 final case class NodePoolConfig(initialNodes: Int, name: NodePoolName, autoscalingConfig: ClusterNodePoolAutoscalingConfig = KubernetesConstants.DEFAULT_NODEPOOL_AUTOSCALING)
 
-final case class KubernetesClusterIdentifier(project: GoogleProject, location: Location, clusterName: KubernetesClusterName) {
+final case class KubernetesClusterId(project: GoogleProject, location: Location, clusterName: KubernetesClusterName) {
   def idString: String = s"projects/${project.value}/locations/${location.value}/clusters/${clusterName.value}"
 }
 
@@ -204,3 +205,11 @@ final case class ContainerPort(value: Int) extends KubernetesSerializable {
 
 final case class KubernetesSelector(labels: Map[String, String])
 protected final case class KubernetesServiceType(value: String)
+
+final case class KubernetesMasterIP(value: String) {
+  val url = s"https://${value}"
+}
+
+final case class KubernetesClusterCaCert(value: String) {
+  val base64Cert = Base64.decodeBase64(value)
+}
