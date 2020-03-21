@@ -7,13 +7,15 @@ import com.google.api.gax.core.FixedCredentialsProvider
 import com.google.api.services.compute.ComputeScopes
 import com.google.auth.oauth2.GoogleCredentials
 import com.google.cloud.compute.v1._
-import io.chrisdavenport.log4cats.StructuredLogger
+import fs2._
+import _root_.io.chrisdavenport.log4cats.StructuredLogger
 import org.broadinstitute.dsde.workbench.RetryConfig
 import org.broadinstitute.dsde.workbench.google2.util.RetryPredicates
 import org.broadinstitute.dsde.workbench.model.google.GoogleProject
 import org.broadinstitute.dsde.workbench.model.{TraceId, WorkbenchEmail}
 
 import scala.collection.JavaConverters._
+import scala.concurrent.duration.FiniteDuration
 
 /**
  * Algebra for Google Compute access.
@@ -86,6 +88,14 @@ trait GoogleComputeService[F[_]] {
   def createSubnetwork(project: GoogleProject, region: RegionName, subnetwork: Subnetwork)(
     implicit ev: ApplicativeAsk[F, TraceId]
   ): F[Operation]
+
+  def getOperation(project: GoogleProject, operation: Operation)(
+    implicit ev: ApplicativeAsk[F, TraceId]
+  ): F[Operation]
+
+  def pollOperation(project: GoogleProject, operation: Operation, delay: FiniteDuration, maxAttempts: Int)(
+    implicit ev: ApplicativeAsk[F, TraceId]
+  ): Stream[F, Operation]
 }
 
 object GoogleComputeService {
@@ -137,6 +147,18 @@ object GoogleComputeService {
       .newBuilder()
       .setCredentialsProvider(credentialsProvider)
       .build()
+    val zoneOperationSettings = ZoneOperationSettings
+      .newBuilder()
+      .setCredentialsProvider(credentialsProvider)
+      .build()
+    val regionOperationSettings = RegionOperationSettings
+      .newBuilder()
+      .setCredentialsProvider(credentialsProvider)
+      .build()
+    val globalOperationSettings = GlobalOperationSettings
+      .newBuilder()
+      .setCredentialsProvider(credentialsProvider)
+      .build()
 
     for {
       instanceClient <- resourceF(InstanceClient.create(instanceSettings))
@@ -146,6 +168,9 @@ object GoogleComputeService {
       machineTypeClient <- resourceF(MachineTypeClient.create(machineTypeSettings))
       networkClient <- resourceF(NetworkClient.create(networkSettings))
       subnetworkClient <- resourceF(SubnetworkClient.create(subnetworkSettings))
+      zoneOperationClient <- resourceF(ZoneOperationClient.create(zoneOperationSettings))
+      regionOperationClient <- resourceF(RegionOperationClient.create(regionOperationSettings))
+      globalOperationClient <- resourceF(GlobalOperationClient.create(globalOperationSettings))
     } yield new GoogleComputeInterpreter[F](instanceClient,
                                             firewallClient,
                                             diskClient,
@@ -153,6 +178,9 @@ object GoogleComputeService {
                                             machineTypeClient,
                                             networkClient,
                                             subnetworkClient,
+                                            zoneOperationClient,
+                                            regionOperationClient,
+                                            globalOperationClient,
                                             retryConfig,
                                             blocker,
                                             blockerBound)

@@ -6,12 +6,14 @@ import cats.effect.{Async, Blocker, ContextShift, Timer}
 import cats.implicits._
 import cats.mtl.ApplicativeAsk
 import com.google.cloud.compute.v1._
-import io.chrisdavenport.log4cats.StructuredLogger
+import fs2._
+import _root_.io.chrisdavenport.log4cats.StructuredLogger
 import org.broadinstitute.dsde.workbench.google2.util.RetryPredicates._
 import org.broadinstitute.dsde.workbench.model.google.GoogleProject
 import org.broadinstitute.dsde.workbench.model.{TraceId, WorkbenchException}
 
 import scala.collection.JavaConverters._
+import scala.concurrent.duration.FiniteDuration
 
 private[google2] class GoogleComputeInterpreter[F[_]: Async: StructuredLogger: Timer: ContextShift](
   instanceClient: InstanceClient,
@@ -21,6 +23,9 @@ private[google2] class GoogleComputeInterpreter[F[_]: Async: StructuredLogger: T
   machineTypeClient: MachineTypeClient,
   networkClient: NetworkClient,
   subnetworkClient: SubnetworkClient,
+  zoneOperationClient: ZoneOperationClient,
+  regionOperationClient: RegionOperationClient,
+  globalOperationClient: GlobalOperationClient,
   retryConfig: RetryConfig,
   blocker: Blocker,
   blockerBound: Semaphore[F]
@@ -139,7 +144,7 @@ private[google2] class GoogleComputeInterpreter[F[_]: Async: StructuredLogger: T
     val request =
       ProjectGlobalFirewallName.newBuilder().setProject(project.value).setFirewall(firewallRuleName.value).build
     retryF(
-      Async[F].delay(firewallClient.deleteFirewall(request)),
+      recoverF(Async[F].delay(firewallClient.deleteFirewall(request)), whenStatusCode(404)),
       s"com.google.cloud.compute.v1.FirewallClient.deleteFirewall(${project.value}, ${firewallRuleName.value})"
     ).void
   }
@@ -235,6 +240,47 @@ private[google2] class GoogleComputeInterpreter[F[_]: Async: StructuredLogger: T
       s"com.google.cloud.compute.v1.SubnetworkClient.insertSubnetwork(${projectRegionName.toString}, ${subnetwork.getName})"
     )
   }
+
+  override def getOperation(project: GoogleProject,
+                            operation: Operation)(implicit ev: ApplicativeAsk[F, TraceId]): F[Operation] =
+    (Option(operation.getZone), Option(operation.getRegion)) match {
+      case (Some(zone), _) =>
+        val request = ProjectZoneOperationName
+          .newBuilder()
+          .setProject(project.value)
+          .setZone(zone)
+          .setOperation(operation.getName)
+          .build
+        retryF(
+          Async[F].delay(zoneOperationClient.getZoneOperation(request)),
+          s"com.google.cloud.compute.v1.ZoneOperationClient.getZoneOperation(${request.toString})"
+        )
+      case (None, Some(region)) =>
+        val request = ProjectRegionOperationName
+          .newBuilder()
+          .setProject(project.value)
+          .setRegion(region)
+          .setOperation(operation.getName)
+          .build
+        retryF(
+          Async[F].delay(regionOperationClient.getRegionOperation(request)),
+          s"com.google.cloud.compute.v1.regionOperationClient.getRegionOperation(${request.toString})"
+        )
+      case (None, None) =>
+        val request =
+          ProjectGlobalOperationName.newBuilder().setProject(project.value).setOperation(operation.getName).build
+        retryF(
+          Async[F].delay(globalOperationClient.getGlobalOperation(request)),
+          s"com.google.cloud.compute.v1.globalOperationClient.getGlobalOperation(${request.toString})"
+        )
+    }
+
+  override def pollOperation(project: GoogleProject, operation: Operation, delay: FiniteDuration, maxAttempts: Int)(
+    implicit ev: ApplicativeAsk[F, TraceId]
+  ): Stream[F, Operation] =
+    (Stream.eval(getOperation(project, operation)) ++ Stream.sleep_(delay))
+      .repeatN(maxAttempts)
+      .takeThrough(_.getStatus == "DONE")
 
   private def buildMachineTypeUri(zone: ZoneName, machineTypeName: MachineTypeName): String =
     s"zones/${zone.value}/machineTypes/${machineTypeName.value}"
