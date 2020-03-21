@@ -119,11 +119,11 @@ private[google2] class GoogleComputeInterpreter[F[_]: Async: StructuredLogger: T
   }
 
   override def addFirewallRule(project: GoogleProject,
-                               firewall: Firewall)(implicit ev: ApplicativeAsk[F, TraceId]): F[Unit] =
+                               firewall: Firewall)(implicit ev: ApplicativeAsk[F, TraceId]): F[Operation] =
     retryF(
       Async[F].delay(firewallClient.insertFirewall(project.value, firewall)),
       s"com.google.cloud.compute.v1.FirewallClient.insertFirewall(${project.value}, ${firewall.getName})"
-    ).void
+    )
 
   override def getFirewallRule(project: GoogleProject, firewallRuleName: FirewallRuleName)(
     implicit ev: ApplicativeAsk[F, TraceId]

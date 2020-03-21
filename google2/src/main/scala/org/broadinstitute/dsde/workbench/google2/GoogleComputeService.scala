@@ -46,7 +46,7 @@ trait GoogleComputeService[F[_]] {
                           instanceName: InstanceName,
                           metadata: Map[String, String])(implicit ev: ApplicativeAsk[F, TraceId]): F[Unit]
 
-  def addFirewallRule(project: GoogleProject, firewall: Firewall)(implicit ev: ApplicativeAsk[F, TraceId]): F[Unit]
+  def addFirewallRule(project: GoogleProject, firewall: Firewall)(implicit ev: ApplicativeAsk[F, TraceId]): F[Operation]
 
   def getFirewallRule(project: GoogleProject, firewallRuleName: FirewallRuleName)(
     implicit ev: ApplicativeAsk[F, TraceId]
