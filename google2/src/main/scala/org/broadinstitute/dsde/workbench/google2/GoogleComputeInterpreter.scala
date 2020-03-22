@@ -277,10 +277,11 @@ private[google2] class GoogleComputeInterpreter[F[_]: Async: StructuredLogger: T
 
   override def pollOperation(project: GoogleProject, operation: Operation, delay: FiniteDuration, maxAttempts: Int)(
     implicit ev: ApplicativeAsk[F, TraceId]
-  ): Stream[F, Operation] =
+  ): Stream[F, PollOperation] =
     (Stream.eval(getOperation(project, operation)) ++ Stream.sleep_(delay))
       .repeatN(maxAttempts)
-      .takeThrough(_.getStatus == "DONE")
+      .map(op => PollOperation(op, op.getStatus == "DONE"))
+      .takeThrough(!_.isDone)
 
   private def buildMachineTypeUri(zone: ZoneName, machineTypeName: MachineTypeName): String =
     s"zones/${zone.value}/machineTypes/${machineTypeName.value}"
