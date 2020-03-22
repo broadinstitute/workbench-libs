@@ -196,3 +196,7 @@ final case class RegionName(value: String) extends AnyVal
 final case class NetworkName(value: String) extends AnyVal
 final case class SubnetworkName(value: String) extends AnyVal
 final case class PollOperation(op: Operation, isDone: Boolean)
+object PollOperation {
+  def fromOperation(op: Operation): PollOperation =
+    PollOperation(op, op.getStatus == "DONE")
+}
