@@ -89,7 +89,15 @@ trait GoogleComputeService[F[_]] {
     implicit ev: ApplicativeAsk[F, TraceId]
   ): F[Operation]
 
-  def getOperation(project: GoogleProject, operation: Operation)(
+  def getZoneOperation(project: GoogleProject, zoneName: ZoneName, operationName: OperationName)(
+    implicit ev: ApplicativeAsk[F, TraceId]
+  ): F[Operation]
+
+  def getRegionOperation(project: GoogleProject, regionName: RegionName, operationName: OperationName)(
+    implicit ev: ApplicativeAsk[F, TraceId]
+  ): F[Operation]
+
+  def getGlobalOperation(project: GoogleProject, operationName: OperationName)(
     implicit ev: ApplicativeAsk[F, TraceId]
   ): F[Operation]
 
@@ -195,8 +203,7 @@ final case class MachineTypeName(value: String) extends AnyVal
 final case class RegionName(value: String) extends AnyVal
 final case class NetworkName(value: String) extends AnyVal
 final case class SubnetworkName(value: String) extends AnyVal
-final case class PollOperation(op: Operation, isDone: Boolean)
-object PollOperation {
-  def fromOperation(op: Operation): PollOperation =
-    PollOperation(op, op.getStatus == "DONE")
+final case class OperationName(value: String) extends AnyVal
+final case class PollOperation(op: Operation) {
+  def isDone = op.getStatus == "DONE"
 }

@@ -241,47 +241,65 @@ private[google2] class GoogleComputeInterpreter[F[_]: Async: StructuredLogger: T
     )
   }
 
-  override def getOperation(project: GoogleProject,
-                            operation: Operation)(implicit ev: ApplicativeAsk[F, TraceId]): F[Operation] =
-    (getZoneName(operation.getZone), getRegionName(operation.getRegion)) match {
-      case (Some(zone), _) =>
-        val request = ProjectZoneOperationName
-          .newBuilder()
-          .setProject(project.value)
-          .setZone(zone.value)
-          .setOperation(operation.getName)
-          .build
-        retryF(
-          Async[F].delay(zoneOperationClient.getZoneOperation(request)),
-          s"com.google.cloud.compute.v1.ZoneOperationClient.getZoneOperation(${request.toString})"
-        )
-      case (None, Some(region)) =>
-        val request = ProjectRegionOperationName
-          .newBuilder()
-          .setProject(project.value)
-          .setRegion(region.value)
-          .setOperation(operation.getName)
-          .build
-        retryF(
-          Async[F].delay(regionOperationClient.getRegionOperation(request)),
-          s"com.google.cloud.compute.v1.regionOperationClient.getRegionOperation(${request.toString})"
-        )
-      case (None, None) =>
-        val request =
-          ProjectGlobalOperationName.newBuilder().setProject(project.value).setOperation(operation.getName).build
-        retryF(
-          Async[F].delay(globalOperationClient.getGlobalOperation(request)),
-          s"com.google.cloud.compute.v1.globalOperationClient.getGlobalOperation(${request.toString})"
-        )
-    }
+  override def getZoneOperation(project: GoogleProject, zoneName: ZoneName, operationName: OperationName)(
+    implicit ev: ApplicativeAsk[F, TraceId]
+  ): F[Operation] = {
+    val request = ProjectZoneOperationName
+      .newBuilder()
+      .setProject(project.value)
+      .setZone(zoneName.value)
+      .setOperation(operationName.value)
+      .build
+    retryF(
+      Async[F].delay(zoneOperationClient.getZoneOperation(request)),
+      s"com.google.cloud.compute.v1.ZoneOperationClient.getZoneOperation(${request.toString})"
+    )
+  }
+
+  override def getRegionOperation(project: GoogleProject, regionName: RegionName, operationName: OperationName)(
+    implicit ev: ApplicativeAsk[F, TraceId]
+  ): F[Operation] = {
+    val request = ProjectRegionOperationName
+      .newBuilder()
+      .setProject(project.value)
+      .setRegion(regionName.value)
+      .setOperation(operationName.value)
+      .build
+    retryF(
+      Async[F].delay(regionOperationClient.getRegionOperation(request)),
+      s"com.google.cloud.compute.v1.regionOperationClient.getRegionOperation(${request.toString})"
+    )
+  }
+
+  override def getGlobalOperation(project: GoogleProject, operationName: OperationName)(
+    implicit ev: ApplicativeAsk[F, TraceId]
+  ): F[Operation] = {
+    val request =
+      ProjectGlobalOperationName.newBuilder().setProject(project.value).setOperation(operationName.value).build
+    retryF(
+      Async[F].delay(globalOperationClient.getGlobalOperation(request)),
+      s"com.google.cloud.compute.v1.globalOperationClient.getGlobalOperation(${request.toString})"
+    )
+  }
 
   override def pollOperation(project: GoogleProject, operation: Operation, delay: FiniteDuration, maxAttempts: Int)(
     implicit ev: ApplicativeAsk[F, TraceId]
-  ): Stream[F, PollOperation] =
-    (Stream.eval(getOperation(project, operation)) ++ Stream.sleep_(delay))
+  ): Stream[F, PollOperation] = {
+    // TODO: once a newer version of the Java Compute SDK is released investigate using
+    // the operation `wait` API instead of polling `get`. See:
+    // https://cloud.google.com/compute/docs/reference/rest/v1/zoneOperations/wait
+    // https://github.com/googleapis/java-compute/commit/50cb4a98cb36fcd3bf4bdd5d16ab17f9d391bf98
+    val getOp = (getZoneName(operation.getZone), getRegionName(operation.getRegion)) match {
+      case (Some(zone), _)      => getZoneOperation(project, zone, OperationName(operation.getName))
+      case (None, Some(region)) => getRegionOperation(project, region, OperationName(operation.getName))
+      case (None, None)         => getGlobalOperation(project, OperationName(operation.getName))
+    }
+
+    (Stream.eval(getOp) ++ Stream.sleep_(delay))
       .repeatN(maxAttempts)
-      .map(PollOperation.fromOperation)
+      .map(PollOperation)
       .takeThrough(!_.isDone)
+  }
 
   private def buildMachineTypeUri(zone: ZoneName, machineTypeName: MachineTypeName): String =
     s"zones/${zone.value}/machineTypes/${machineTypeName.value}"
