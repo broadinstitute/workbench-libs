@@ -243,12 +243,12 @@ private[google2] class GoogleComputeInterpreter[F[_]: Async: StructuredLogger: T
 
   override def getOperation(project: GoogleProject,
                             operation: Operation)(implicit ev: ApplicativeAsk[F, TraceId]): F[Operation] =
-    (Option(operation.getZone), Option(operation.getRegion)) match {
+    (getZoneName(operation.getZone), getRegionName(operation.getRegion)) match {
       case (Some(zone), _) =>
         val request = ProjectZoneOperationName
           .newBuilder()
           .setProject(project.value)
-          .setZone(zone)
+          .setZone(zone.value)
           .setOperation(operation.getName)
           .build
         retryF(
@@ -259,7 +259,7 @@ private[google2] class GoogleComputeInterpreter[F[_]: Async: StructuredLogger: T
         val request = ProjectRegionOperationName
           .newBuilder()
           .setProject(project.value)
-          .setRegion(region)
+          .setRegion(region.value)
           .setOperation(operation.getName)
           .build
         retryF(
@@ -288,6 +288,12 @@ private[google2] class GoogleComputeInterpreter[F[_]: Async: StructuredLogger: T
 
   private def buildRegionUri(googleProject: GoogleProject, regionName: RegionName): String =
     s"https://www.googleapis.com/compute/v1/projects/${googleProject.value}/regions/${regionName.value}"
+
+  private def getRegionName(regionUrl: String): Option[RegionName] =
+    Option(regionUrl).flatMap(_.split("/").lastOption).map(RegionName)
+
+  private def getZoneName(zoneUrl: String): Option[ZoneName] =
+    Option(zoneUrl).flatMap(_.split("/").lastOption).map(ZoneName)
 
   private def retryF[A](fa: F[A], loggingMsg: String)(implicit ev: ApplicativeAsk[F, TraceId]): F[A] =
     tracedRetryGoogleF(retryConfig)(blockerBound.withPermit(blocker.blockOn(fa)), loggingMsg).compile.lastOrError
