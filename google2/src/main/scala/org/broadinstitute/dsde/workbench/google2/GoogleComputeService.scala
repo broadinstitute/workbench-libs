@@ -7,13 +7,15 @@ import com.google.api.gax.core.FixedCredentialsProvider
 import com.google.api.services.compute.ComputeScopes
 import com.google.auth.oauth2.GoogleCredentials
 import com.google.cloud.compute.v1._
-import io.chrisdavenport.log4cats.StructuredLogger
+import fs2._
+import _root_.io.chrisdavenport.log4cats.StructuredLogger
 import org.broadinstitute.dsde.workbench.RetryConfig
 import org.broadinstitute.dsde.workbench.google2.util.RetryPredicates
 import org.broadinstitute.dsde.workbench.model.google.GoogleProject
 import org.broadinstitute.dsde.workbench.model.{TraceId, WorkbenchEmail}
 
 import scala.collection.JavaConverters._
+import scala.concurrent.duration.FiniteDuration
 
 /**
  * Algebra for Google Compute access.
@@ -44,11 +46,15 @@ trait GoogleComputeService[F[_]] {
                           instanceName: InstanceName,
                           metadata: Map[String, String])(implicit ev: ApplicativeAsk[F, TraceId]): F[Unit]
 
-  def addFirewallRule(project: GoogleProject, firewall: Firewall)(implicit ev: ApplicativeAsk[F, TraceId]): F[Unit]
+  def addFirewallRule(project: GoogleProject, firewall: Firewall)(implicit ev: ApplicativeAsk[F, TraceId]): F[Operation]
 
   def getFirewallRule(project: GoogleProject, firewallRuleName: FirewallRuleName)(
     implicit ev: ApplicativeAsk[F, TraceId]
   ): F[Option[Firewall]]
+
+  def deleteFirewallRule(project: GoogleProject, firewallRuleName: FirewallRuleName)(
+    implicit ev: ApplicativeAsk[F, TraceId]
+  ): F[Unit]
 
   def getComputeEngineDefaultServiceAccount(projectNumber: Long): WorkbenchEmail =
     // Service account email format documented in:
@@ -68,6 +74,36 @@ trait GoogleComputeService[F[_]] {
   ): F[Unit]
 
   def getZones(project: GoogleProject, regionName: RegionName)(implicit ev: ApplicativeAsk[F, TraceId]): F[List[Zone]]
+
+  def getNetwork(project: GoogleProject, networkName: NetworkName)(
+    implicit ev: ApplicativeAsk[F, TraceId]
+  ): F[Option[Network]]
+
+  def createNetwork(project: GoogleProject, network: Network)(implicit ev: ApplicativeAsk[F, TraceId]): F[Operation]
+
+  def getSubnetwork(project: GoogleProject, region: RegionName, subnetwork: SubnetworkName)(
+    implicit ev: ApplicativeAsk[F, TraceId]
+  ): F[Option[Subnetwork]]
+
+  def createSubnetwork(project: GoogleProject, region: RegionName, subnetwork: Subnetwork)(
+    implicit ev: ApplicativeAsk[F, TraceId]
+  ): F[Operation]
+
+  def getZoneOperation(project: GoogleProject, zoneName: ZoneName, operationName: OperationName)(
+    implicit ev: ApplicativeAsk[F, TraceId]
+  ): F[Operation]
+
+  def getRegionOperation(project: GoogleProject, regionName: RegionName, operationName: OperationName)(
+    implicit ev: ApplicativeAsk[F, TraceId]
+  ): F[Operation]
+
+  def getGlobalOperation(project: GoogleProject, operationName: OperationName)(
+    implicit ev: ApplicativeAsk[F, TraceId]
+  ): F[Operation]
+
+  def pollOperation(project: GoogleProject, operation: Operation, delay: FiniteDuration, maxAttempts: Int)(
+    implicit ev: ApplicativeAsk[F, TraceId]
+  ): Stream[F, PollOperation]
 }
 
 object GoogleComputeService {
@@ -111,6 +147,26 @@ object GoogleComputeService {
       .newBuilder()
       .setCredentialsProvider(credentialsProvider)
       .build()
+    val networkSettings = NetworkSettings
+      .newBuilder()
+      .setCredentialsProvider(credentialsProvider)
+      .build()
+    val subnetworkSettings = SubnetworkSettings
+      .newBuilder()
+      .setCredentialsProvider(credentialsProvider)
+      .build()
+    val zoneOperationSettings = ZoneOperationSettings
+      .newBuilder()
+      .setCredentialsProvider(credentialsProvider)
+      .build()
+    val regionOperationSettings = RegionOperationSettings
+      .newBuilder()
+      .setCredentialsProvider(credentialsProvider)
+      .build()
+    val globalOperationSettings = GlobalOperationSettings
+      .newBuilder()
+      .setCredentialsProvider(credentialsProvider)
+      .build()
 
     for {
       instanceClient <- resourceF(InstanceClient.create(instanceSettings))
@@ -118,11 +174,21 @@ object GoogleComputeService {
       diskClient <- resourceF(DiskClient.create(diskSettings))
       zoneClient <- resourceF(ZoneClient.create(zoneSettings))
       machineTypeClient <- resourceF(MachineTypeClient.create(machineTypeSettings))
+      networkClient <- resourceF(NetworkClient.create(networkSettings))
+      subnetworkClient <- resourceF(SubnetworkClient.create(subnetworkSettings))
+      zoneOperationClient <- resourceF(ZoneOperationClient.create(zoneOperationSettings))
+      regionOperationClient <- resourceF(RegionOperationClient.create(regionOperationSettings))
+      globalOperationClient <- resourceF(GlobalOperationClient.create(globalOperationSettings))
     } yield new GoogleComputeInterpreter[F](instanceClient,
                                             firewallClient,
                                             diskClient,
                                             zoneClient,
                                             machineTypeClient,
+                                            networkClient,
+                                            subnetworkClient,
+                                            zoneOperationClient,
+                                            regionOperationClient,
+                                            globalOperationClient,
                                             retryConfig,
                                             blocker,
                                             blockerBound)
@@ -135,3 +201,9 @@ final case class ZoneName(value: String) extends AnyVal
 final case class FirewallRuleName(value: String) extends AnyVal
 final case class MachineTypeName(value: String) extends AnyVal
 final case class RegionName(value: String) extends AnyVal
+final case class NetworkName(value: String) extends AnyVal
+final case class SubnetworkName(value: String) extends AnyVal
+final case class OperationName(value: String) extends AnyVal
+final case class PollOperation(op: Operation) {
+  def isDone = op.getStatus == "DONE"
+}
