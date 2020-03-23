@@ -203,7 +203,6 @@ sealed trait KubernetesServiceKind extends KubernetesSerializable {
   }
 }
 
-//duplicative of above, but commonalities not fully understood yet
 final case class KubernetesLoadBalancerService(selector: KubernetesSelector,
                                                ports: Set[ServicePort],
                                                name: KubernetesServiceName)
