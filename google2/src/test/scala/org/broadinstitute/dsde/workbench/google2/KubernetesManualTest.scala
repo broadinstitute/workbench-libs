@@ -1,11 +1,15 @@
 package org.broadinstitute.dsde.workbench.google2
 
+import java.nio.file.Paths
 import java.util.UUID
 
 import cats.effect.{Blocker, IO}
 import cats.effect.concurrent.Semaphore
 import cats.mtl.ApplicativeAsk
 import io.chrisdavenport.log4cats.slf4j.Slf4jLogger
+import org.broadinstitute.dsde.workbench.google2.GKEModels._
+import org.broadinstitute.dsde.workbench.google2.KubernetesClientModels._
+import org.broadinstitute.dsde.workbench.google2.KubernetesSerializableName._
 import org.broadinstitute.dsde.workbench.model.TraceId
 import org.broadinstitute.dsde.workbench.model.google.GoogleProject
 
@@ -31,7 +35,8 @@ object Test {
   val clusterId = KubernetesClusterId(project, location, clusterName)
 
   val credPath = "/Users/jcanas/Downloads/kube-broad-dsde-dev-key.json"
-  val serviceResource = GoogleKubernetesService.resource(credPath, blocker, semaphore)
+  val p = Paths.get(credPath)
+  val serviceResource = GKEService.resource(p, blocker, semaphore)
 
   def makeClusterId(name: String) = KubernetesClusterId(project, location, KubernetesClusterName(name))
 
@@ -53,13 +58,22 @@ object Test {
   }
 
   val kubeService = for {
-    gs <- GoogleKubernetesService.resource(credPath, blocker, semaphore)
-    ks <-  KubernetesService.resource(credPath, gs, blocker, semaphore)
+    gs <- GKEService.resource(p, blocker, semaphore)
+    ks <-  KubernetesService.resource(p, gs, blocker, semaphore)
   } yield ks
 
   def callCreateNamespace(clusterId: KubernetesClusterId = clusterId, namespace: KubernetesNamespace = KubernetesNamespace(defaultNamespaceName)) = {
     kubeService.use { k =>
       k.createNamespace(clusterId, namespace)
+    }
+  }
+
+  def testGetClient(clusterId: KubernetesClusterId = clusterId) = {
+    kubeService.use { k =>
+      for {
+        _ <- k.createNamespace(clusterId, KubernetesNamespace(KubernetesNamespaceName("diff1")))
+        _ <- k.createNamespace(clusterId, KubernetesNamespace(KubernetesNamespaceName("diff2")))
+      } yield ()
     }
   }
 
@@ -72,7 +86,7 @@ object Test {
     kubeService.use { k =>
       k.createService(
         clusterId,
-        KubernetesLoadBalancerService(
+        KubernetesServiceKind.KubernetesLoadBalancerService(
           DEFAULT_SERVICE_SELECTOR,
           KubernetesConstants.DEFAULT_LOADBALANCER_PORTS,
           KubernetesServiceName("s2")

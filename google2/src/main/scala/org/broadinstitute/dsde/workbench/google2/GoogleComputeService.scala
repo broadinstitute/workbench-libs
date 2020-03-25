@@ -182,16 +182,16 @@ object GoogleComputeService {
       .build()
 
     for {
-      instanceClient <- resourceF(InstanceClient.create(instanceSettings))
-      firewallClient <- resourceF(FirewallClient.create(firewallSettings))
-      diskClient <- resourceF(DiskClient.create(diskSettings))
-      zoneClient <- resourceF(ZoneClient.create(zoneSettings))
-      machineTypeClient <- resourceF(MachineTypeClient.create(machineTypeSettings))
-      networkClient <- resourceF(NetworkClient.create(networkSettings))
-      subnetworkClient <- resourceF(SubnetworkClient.create(subnetworkSettings))
-      zoneOperationClient <- resourceF(ZoneOperationClient.create(zoneOperationSettings))
-      regionOperationClient <- resourceF(RegionOperationClient.create(regionOperationSettings))
-      globalOperationClient <- resourceF(GlobalOperationClient.create(globalOperationSettings))
+      instanceClient <- backgroundResourceF(InstanceClient.create(instanceSettings))
+      firewallClient <- backgroundResourceF(FirewallClient.create(firewallSettings))
+      diskClient <- backgroundResourceF(DiskClient.create(diskSettings))
+      zoneClient <- backgroundResourceF(ZoneClient.create(zoneSettings))
+      machineTypeClient <- backgroundResourceF(MachineTypeClient.create(machineTypeSettings))
+      networkClient <- backgroundResourceF(NetworkClient.create(networkSettings))
+      subnetworkClient <- backgroundResourceF(SubnetworkClient.create(subnetworkSettings))
+      zoneOperationClient <- backgroundResourceF(ZoneOperationClient.create(zoneOperationSettings))
+      regionOperationClient <- backgroundResourceF(RegionOperationClient.create(regionOperationSettings))
+      globalOperationClient <- backgroundResourceF(GlobalOperationClient.create(globalOperationSettings))
     } yield new GoogleComputeInterpreter[F](instanceClient,
                                             firewallClient,
                                             diskClient,

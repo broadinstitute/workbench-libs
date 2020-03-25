@@ -82,7 +82,10 @@ package object google2 {
       credential <- Resource.liftF(Sync[F].delay(ServiceAccountCredentials.fromStream(credentialFile)))
     } yield credential
 
-  def resourceF[F[_]: Sync, A <: BackgroundResource](resource: => A): Resource[F, A] =
+  def backgroundResourceF[F[_]: Sync, A <: BackgroundResource](resource: => A): Resource[F, A] =
+    Resource.make(Sync[F].delay(resource))(c => Sync[F].delay(c.shutdown()) >> Sync[F].delay(c.close()))
+
+  def autoClosableResourceF[F[_]: Sync, A <: AutoCloseable](resource: => A): Resource[F, A] =
     Resource.make(Sync[F].delay(resource))(c => Sync[F].delay(c.close()))
 
   // Recovers a F[A] to an F[Option[A]] depending on predicate

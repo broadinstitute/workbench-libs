@@ -2,19 +2,11 @@ package org.broadinstitute.dsde.workbench.google2
 import com.google.container.v1.{Cluster, NodePool, NodePoolAutoscaling}
 
 import collection.JavaConverters._
-import io.kubernetes.client.models.{
-  V1Container,
-  V1ContainerPort,
-  V1Namespace,
-  V1ObjectMeta,
-  V1ObjectMetaBuilder,
-  V1Pod,
-  V1PodSpec,
-  V1Service,
-  V1ServicePort,
-  V1ServiceSpec
-}
+import io.kubernetes.client.models.{V1Container, V1ContainerPort, V1Namespace, V1ObjectMeta, V1ObjectMetaBuilder, V1Pod, V1PodSpec, V1Service, V1ServicePort, V1ServiceSpec}
 import org.apache.commons.codec.binary.Base64
+import org.broadinstitute.dsde.workbench.google2.GKEModels._
+import org.broadinstitute.dsde.workbench.google2.KubernetesClientModels.ServicePort
+import org.broadinstitute.dsde.workbench.google2.KubernetesSerializableName._
 import org.broadinstitute.dsde.workbench.model.WorkbenchException
 import org.broadinstitute.dsde.workbench.model.google.GoogleProject
 
@@ -56,6 +48,7 @@ object KubernetesConstants {
 // Common kubernetes models //
 
 final case class KubernetesException(message: String) extends WorkbenchException
+final case class KubernetesClusterNotFoundException(message: String) extends WorkbenchException
 
 trait KubernetesNameValidation {
   def value: String
@@ -69,37 +62,40 @@ trait KubernetesNameValidation {
 }
 
 // Google kubernetes client models //
+object GKEModels {
 
-//"us-central1" is an example of a valid location.
-final case class Parent(project: GoogleProject, location: Location) {
-  def parentString: String = s"projects/${project.value}/locations/${location.value}"
-}
+  //"us-central1" is an example of a valid location.
+  final case class Parent(project: GoogleProject, location: Location) {
+    def parentString: String = s"projects/${project.value}/locations/${location.value}"
+  }
 
-//the cluster must have a name, and a com.google.container.v1.NodePool. The NodePool must have an initialNodeCount and a name.
-//see getDefaultCluster for an example of construction with the minimum fields necessary, plus some others you almost certainly want to configure
-final case class KubernetesCreateClusterRequest(project: GoogleProject,
-                                                location: Location,
-                                                cluster: com.google.container.v1.Cluster)
+  //the cluster must have a name, and a com.google.container.v1.NodePool. The NodePool must have an initialNodeCount and a name.
+  //see getDefaultCluster for an example of construction with the minimum fields necessary, plus some others you almost certainly want to configure
+  final case class KubernetesCreateClusterRequest(project: GoogleProject,
+                                                  location: Location,
+                                                  cluster: com.google.container.v1.Cluster)
 
-//this is NOT analogous to clusterName in the context of dataproc/GCE. A single cluster can have multiple nodes, pods, services, containers, deployments, etc.
-//clusters should most likely NOT be provisioned per user as they are today. More design/security research is needed
-final case class KubernetesClusterName(value: String) extends KubernetesNameValidation
+  //this is NOT analogous to clusterName in the context of dataproc/GCE. A single cluster can have multiple nodes, pods, services, containers, deployments, etc.
+  //clusters should most likely NOT be provisioned per user as they are today. More design/security research is needed
+  final case class KubernetesClusterName(value: String) extends KubernetesNameValidation
 
-final case class ClusterNodePoolAutoscalingConfig(minimumNodes: Int, maximumNodes: Int)
+  final case class ClusterNodePoolAutoscalingConfig(minimumNodes: Int, maximumNodes: Int)
 
-final case class NodePoolName(value: String) extends KubernetesNameValidation
+  final case class NodePoolName(value: String) extends KubernetesNameValidation
 
-final case class NodePoolConfig(initialNodes: Int,
-                                name: NodePoolName,
-                                autoscalingConfig: ClusterNodePoolAutoscalingConfig =
+  final case class NodePoolConfig(initialNodes: Int,
+                                  name: NodePoolName,
+                                  autoscalingConfig: ClusterNodePoolAutoscalingConfig =
                                   KubernetesConstants.DEFAULT_NODEPOOL_AUTOSCALING)
 
-final case class KubernetesClusterId(project: GoogleProject, location: Location, clusterName: KubernetesClusterName) {
-  def idString: String = s"projects/${project.value}/locations/${location.value}/clusters/${clusterName.value}"
+  final case class KubernetesClusterId(project: GoogleProject, location: Location, clusterName: KubernetesClusterName) {
+    def idString: String = s"projects/${project.value}/locations/${location.value}/clusters/${clusterName.value}"
+  }
+
 }
 
-// Kubernetes client models //
-sealed trait KubernetesSerializable {
+// Kubernetes client models and traits //
+sealed trait KubernetesSerializable extends Product with Serializable {
   def getJavaSerialization: Any
 }
 
@@ -116,137 +112,153 @@ sealed trait KubernetesSerializableName extends KubernetesSerializable with Kube
   }
 }
 
-//this nesting is necessary to prevent duplicating the code achieved by KubernetesSerializableName and KubernetesSerializable
-//namespaces also have criteria other than their name
-final case class KubernetesNamespaceName(value: String) extends KubernetesSerializableName
-
-final case class KubernetesNamespace(name: KubernetesNamespaceName) extends KubernetesSerializable {
-  override def getJavaSerialization: V1Namespace = {
-    val v1Namespace = new V1Namespace()
-    v1Namespace.metadata(name.getJavaSerialization)
-    v1Namespace
-  }
+object KubernetesSerializableName {
+  //this nesting is necessary to prevent duplicating the code achieved by KubernetesSerializableName and KubernetesSerializable
+  //namespaces also have criteria other than their name
+  final case class KubernetesNamespaceName(value: String) extends KubernetesSerializableName
+  final case class KubernetesServiceName(value: String) extends KubernetesSerializableName
+  final case class KubernetesContainerName(value: String) extends KubernetesSerializableName
+  final case class KubernetesPodName(value: String) extends KubernetesSerializableName
 }
 
-final case class KubernetesPodName(value: String) extends KubernetesSerializableName
+object KubernetesClientModels {
 
-//consider using a replica set if you would like multiple autoscaling pods https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.12/#replicaset-v1-apps
-final case class KubernetesPod(name: KubernetesPodName,
-                               containers: Set[KubernetesContainer],
-                               selector: KubernetesSelector)
+  final case class KubernetesNamespace(name: KubernetesNamespaceName) extends KubernetesSerializable {
+    override def getJavaSerialization: V1Namespace = {
+      val v1Namespace = new V1Namespace()
+      v1Namespace.metadata(name.getJavaSerialization)
+      v1Namespace
+    }
+  }
+
+  //consider using a replica set if you would like multiple autoscaling pods https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.12/#replicaset-v1-apps
+  final case class KubernetesPod(name: KubernetesPodName,
+                                 containers: Set[KubernetesContainer],
+                                 selector: KubernetesSelector)
     extends KubernetesSerializable {
 
-  val DEFAULT_POD_KIND = "Pod"
+    val DEFAULT_POD_KIND = "Pod"
 
-  override def getJavaSerialization: V1Pod = {
-    val v1Pod = new V1Pod()
-    val podMetadata = name.getJavaSerialization
-    podMetadata.labels(
-      selector.labels.asJava
-    )
+    override def getJavaSerialization: V1Pod = {
+      val v1Pod = new V1Pod()
+      val podMetadata = name.getJavaSerialization
+      podMetadata.labels(
+        selector.labels.asJava
+      )
 
-    val podSpec = new V1PodSpec()
-    podSpec.containers(
-      containers.map(_.getJavaSerialization).toList.asJava
-    )
+      val podSpec = new V1PodSpec()
+      podSpec.containers(
+        containers.map(_.getJavaSerialization).toList.asJava
+      )
 
-    v1Pod.getSpec
+      v1Pod.getSpec
 
-    v1Pod.metadata(podMetadata)
-    v1Pod.spec(podSpec)
-    v1Pod.kind(DEFAULT_POD_KIND)
+      v1Pod.metadata(podMetadata)
+      v1Pod.spec(podSpec)
+      v1Pod.kind(DEFAULT_POD_KIND)
 
-    v1Pod
+      v1Pod
+    }
   }
-}
 
-final case class KubernetesContainerName(value: String) extends KubernetesSerializableName
-final case class Image(uri: String)
+  final case class Image(uri: String)
 
-//volumes can be added here
-final case class KubernetesContainer(name: KubernetesContainerName,
-                                     image: Image,
-                                     ports: Option[Set[ContainerPort]],
-                                     resourceLimits: Option[Map[String, String]] = None)
+  //volumes can be added here
+  final case class KubernetesContainer(name: KubernetesContainerName,
+                                       image: Image,
+                                       ports: Option[Set[ContainerPort]],
+                                       resourceLimits: Option[Map[String, String]] = None)
     extends KubernetesSerializable {
-  override def getJavaSerialization: V1Container = {
-    val v1Container = new V1Container()
-    v1Container.setName(name.value)
-    v1Container.setImage(image.uri)
+    override def getJavaSerialization: V1Container = {
+      val v1Container = new V1Container()
+      v1Container.setName(name.value)
+      v1Container.setImage(image.uri)
 
-// example on leo use case to set resource limits, https://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/
-//    val resourceLimits = new V1ResourceRequirements()
-//    resourceLimits.setLimits(Map("memory" -> "64Mi", "cpu" -> "500m"))
-//    v1Container.resources(resourceLimits)
+      // example on leo use case to set resource limits, https://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/
+      //    val resourceLimits = new V1ResourceRequirements()
+      //    resourceLimits.setLimits(Map("memory" -> "64Mi", "cpu" -> "500m"))
+      //    v1Container.resources(resourceLimits)
 
-    ports.map(ports => v1Container.setPorts(ports.map(_.getJavaSerialization).toList.asJava))
+      ports.map(ports => v1Container.setPorts(ports.map(_.getJavaSerialization).toList.asJava))
 
-    v1Container
+      v1Container
+    }
   }
-}
 
-final case class KubernetesServiceName(value: String) extends KubernetesSerializableName
-sealed trait KubernetesServiceKind extends KubernetesSerializable {
-  val NODEPORT_SERVICE_TYPE = "NodePort"
-  val LOADBALANCER_SERVICE_TYPE = "LoadBalancer"
-  val SERVICE_KIND = "Service"
+  sealed trait KubernetesServiceKind extends KubernetesSerializable {
+    val SERVICE_TYPE_NODEPORT = "NodePort"
+    val SERVICE_TYPE_LOADBALANCER = "LoadBalancer"
+    val SERVICE_KIND = "Service"
+    //for session affinity, see https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.12/#service-v1-core
+    val STICKY_SESSION_AFFINITY = "ClientIP"
 
-  def serviceType: KubernetesServiceType
-  def name: KubernetesServiceName
+    def serviceType: KubernetesServiceType
 
-  override def getJavaSerialization: V1Service = {
-    val v1Service = new V1Service()
-    v1Service.setKind(SERVICE_KIND) //may not be necessary
-    v1Service.setMetadata(name.getJavaSerialization)
+    def name: KubernetesServiceName
 
-    v1Service
+    override def getJavaSerialization: V1Service = {
+      val v1Service = new V1Service()
+      v1Service.setKind(SERVICE_KIND) //may not be necessary
+      v1Service.setMetadata(name.getJavaSerialization)
+
+      v1Service
+    }
   }
-}
 
-final case class KubernetesLoadBalancerService(selector: KubernetesSelector,
-                                               ports: Set[ServicePort],
-                                               name: KubernetesServiceName)
-    extends KubernetesServiceKind {
-  val serviceType = KubernetesServiceType(LOADBALANCER_SERVICE_TYPE)
+  object KubernetesServiceKind {
 
-  override def getJavaSerialization: V1Service = {
-    val v1Service = super.getJavaSerialization
+    final case class KubernetesLoadBalancerService(selector: KubernetesSelector,
+                                                   ports: Set[ServicePort],
+                                                   name: KubernetesServiceName)
+      extends KubernetesServiceKind {
+      val serviceType = KubernetesServiceType(SERVICE_TYPE_LOADBALANCER)
 
-    val serviceSpec = new V1ServiceSpec()
+      override def getJavaSerialization: V1Service = {
+        val v1Service = super.getJavaSerialization
 
-    serviceSpec.ports(ports.map(_.getJavaSerialization).toList.asJava)
-    serviceSpec.selector(selector.labels.asJava)
-    serviceSpec.setType(serviceType.value)
-    v1Service.setSpec(serviceSpec)
+        val serviceSpec = new V1ServiceSpec()
 
-    v1Service
+        serviceSpec.ports(ports.map(_.getJavaSerialization).toList.asJava)
+        serviceSpec.selector(selector.labels.asJava)
+        serviceSpec.setType(serviceType.value)
+        //if we ever enter a scenario where the service acts as a load-balancer to multiple pods, this ensures that clients stick with the container that they initially connected with
+        serviceSpec.setSessionAffinity(STICKY_SESSION_AFFINITY)
+        v1Service.setSpec(serviceSpec)
+
+        v1Service
+      }
+    }
+
   }
-}
 
-final case class ServicePort(value: Int) extends KubernetesSerializable {
-  override def getJavaSerialization: V1ServicePort = {
-    val v1Port = new V1ServicePort()
-    v1Port.port(value)
 
-    v1Port
+  final case class ServicePort(value: Int) extends KubernetesSerializable {
+    override def getJavaSerialization: V1ServicePort = {
+      val v1Port = new V1ServicePort()
+      v1Port.port(value)
+
+      v1Port
+    }
   }
-}
 
-//container ports are primarily informational, not specifying them does  not prevent them from being exposed
-final case class ContainerPort(value: Int) extends KubernetesSerializable {
-  override def getJavaSerialization: V1ContainerPort = {
-    val v1Port = new V1ContainerPort()
-    v1Port.containerPort(value)
+  //container ports are primarily informational, not specifying them does  not prevent them from being exposed
+  final case class ContainerPort(value: Int) extends KubernetesSerializable {
+    override def getJavaSerialization: V1ContainerPort = {
+      val v1Port = new V1ContainerPort()
+      v1Port.containerPort(value)
+    }
   }
-}
 
-final case class KubernetesSelector(labels: Map[String, String])
-final protected case class KubernetesServiceType(value: String)
+  final case class KubernetesSelector(labels: Map[String, String])
 
-final case class KubernetesMasterIP(value: String) {
-  val url = s"https://${value}"
-}
+  final protected case class KubernetesServiceType(value: String)
 
-final case class KubernetesClusterCaCert(value: String) {
-  val base64Cert = Base64.decodeBase64(value)
+  final case class KubernetesMasterIP(value: String) {
+    val url = s"https://${value}"
+  }
+
+  final case class KubernetesClusterCaCert(value: String) {
+    val base64Cert = Base64.decodeBase64(value)
+  }
+
 }
