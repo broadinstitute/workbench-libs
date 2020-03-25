@@ -8,7 +8,7 @@ import cats.effect.concurrent.Semaphore
 import cats.mtl.ApplicativeAsk
 import io.chrisdavenport.log4cats.slf4j.Slf4jLogger
 import org.broadinstitute.dsde.workbench.google2.GKEModels._
-import org.broadinstitute.dsde.workbench.google2.KubernetesClientModels._
+import org.broadinstitute.dsde.workbench.google2.KubernetesModels._
 import org.broadinstitute.dsde.workbench.google2.KubernetesSerializableName._
 import org.broadinstitute.dsde.workbench.model.TraceId
 import org.broadinstitute.dsde.workbench.model.google.GoogleProject
@@ -89,7 +89,7 @@ object Test {
         KubernetesServiceKind.KubernetesLoadBalancerService(
           DEFAULT_SERVICE_SELECTOR,
           KubernetesConstants.DEFAULT_LOADBALANCER_PORTS,
-          KubernetesServiceName("s2")
+          KubernetesServiceName("s3")
         ),
         KubernetesNamespace(defaultNamespaceName)
       )

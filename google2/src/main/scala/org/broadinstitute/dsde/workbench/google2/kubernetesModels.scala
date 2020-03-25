@@ -5,7 +5,7 @@ import collection.JavaConverters._
 import io.kubernetes.client.models.{V1Container, V1ContainerPort, V1Namespace, V1ObjectMeta, V1ObjectMetaBuilder, V1Pod, V1PodSpec, V1Service, V1ServicePort, V1ServiceSpec}
 import org.apache.commons.codec.binary.Base64
 import org.broadinstitute.dsde.workbench.google2.GKEModels._
-import org.broadinstitute.dsde.workbench.google2.KubernetesClientModels.ServicePort
+import org.broadinstitute.dsde.workbench.google2.KubernetesModels.ServicePort
 import org.broadinstitute.dsde.workbench.google2.KubernetesSerializableName._
 import org.broadinstitute.dsde.workbench.model.WorkbenchException
 import org.broadinstitute.dsde.workbench.model.google.GoogleProject
@@ -13,8 +13,6 @@ import org.broadinstitute.dsde.workbench.model.google.GoogleProject
 object KubernetesConstants {
   //this default namespace is initialized automatically with a kubernetes environment, and we do not create it
   val DEFAULT_NAMESPACE = "default"
-  //this is a default service you must create in your environment. This is mostly used for testing, and should possibly be initialized with createCluster if you wish to use it.
-  val DEFAULT_SERVICE_NAME = "default-service"
 
   //composite of NodePort and ClusterIP types. Allows external access
   val DEFAULT_LOADBALANCER_PORTS = Set(ServicePort(8080))
@@ -121,7 +119,8 @@ object KubernetesSerializableName {
   final case class KubernetesPodName(value: String) extends KubernetesSerializableName
 }
 
-object KubernetesClientModels {
+// Models for the kubernetes client not related to GKE
+object KubernetesModels {
 
   final case class KubernetesNamespace(name: KubernetesNamespaceName) extends KubernetesSerializable {
     override def getJavaSerialization: V1Namespace = {
@@ -193,13 +192,22 @@ object KubernetesClientModels {
     val STICKY_SESSION_AFFINITY = "ClientIP"
 
     def serviceType: KubernetesServiceType
-
     def name: KubernetesServiceName
+    def selector: KubernetesSelector
+    def ports: Set[ServicePort]
 
     override def getJavaSerialization: V1Service = {
       val v1Service = new V1Service()
       v1Service.setKind(SERVICE_KIND) //may not be necessary
       v1Service.setMetadata(name.getJavaSerialization)
+
+      val serviceSpec = new V1ServiceSpec()
+      serviceSpec.ports(ports.map(_.getJavaSerialization).toList.asJava)
+      serviceSpec.selector(selector.labels.asJava)
+      serviceSpec.setType(serviceType.value)
+      //if we ever enter a scenario where the service acts as a load-balancer to multiple pods, this ensures that clients stick with the container that they initially connected with
+      serviceSpec.setSessionAffinity(STICKY_SESSION_AFFINITY)
+      v1Service.setSpec(serviceSpec)
 
       v1Service
     }
@@ -212,21 +220,13 @@ object KubernetesClientModels {
                                                    name: KubernetesServiceName)
       extends KubernetesServiceKind {
       val serviceType = KubernetesServiceType(SERVICE_TYPE_LOADBALANCER)
+    }
 
-      override def getJavaSerialization: V1Service = {
-        val v1Service = super.getJavaSerialization
-
-        val serviceSpec = new V1ServiceSpec()
-
-        serviceSpec.ports(ports.map(_.getJavaSerialization).toList.asJava)
-        serviceSpec.selector(selector.labels.asJava)
-        serviceSpec.setType(serviceType.value)
-        //if we ever enter a scenario where the service acts as a load-balancer to multiple pods, this ensures that clients stick with the container that they initially connected with
-        serviceSpec.setSessionAffinity(STICKY_SESSION_AFFINITY)
-        v1Service.setSpec(serviceSpec)
-
-        v1Service
-      }
+    final case class KubernetesNodePortService(selector: KubernetesSelector,
+                                                   ports: Set[ServicePort],
+                                                   name: KubernetesServiceName)
+      extends KubernetesServiceKind {
+      val serviceType = KubernetesServiceType(SERVICE_TYPE_NODEPORT)
     }
 
   }

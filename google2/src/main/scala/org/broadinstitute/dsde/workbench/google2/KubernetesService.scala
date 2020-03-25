@@ -10,7 +10,7 @@ import com.google.api.services.container.ContainerScopes
 import io.chrisdavenport.log4cats.StructuredLogger
 import org.broadinstitute.dsde.workbench.RetryConfig
 import org.broadinstitute.dsde.workbench.google2.GKEModels.KubernetesClusterId
-import org.broadinstitute.dsde.workbench.google2.KubernetesClientModels._
+import org.broadinstitute.dsde.workbench.google2.KubernetesModels._
 import org.broadinstitute.dsde.workbench.google2.util.RetryPredicates
 
 trait KubernetesService[F[_]] {
