@@ -2,7 +2,18 @@ package org.broadinstitute.dsde.workbench.google2
 import com.google.container.v1.{Cluster, NodePool, NodePoolAutoscaling}
 
 import collection.JavaConverters._
-import io.kubernetes.client.models.{V1Container, V1ContainerPort, V1Namespace, V1ObjectMeta, V1ObjectMetaBuilder, V1Pod, V1PodSpec, V1Service, V1ServicePort, V1ServiceSpec}
+import io.kubernetes.client.models.{
+  V1Container,
+  V1ContainerPort,
+  V1Namespace,
+  V1ObjectMeta,
+  V1ObjectMetaBuilder,
+  V1Pod,
+  V1PodSpec,
+  V1Service,
+  V1ServicePort,
+  V1ServiceSpec
+}
 import org.apache.commons.codec.binary.Base64
 import org.broadinstitute.dsde.workbench.google2.GKEModels._
 import org.broadinstitute.dsde.workbench.google2.KubernetesModels.ServicePort
@@ -84,7 +95,7 @@ object GKEModels {
   final case class NodePoolConfig(initialNodes: Int,
                                   name: NodePoolName,
                                   autoscalingConfig: ClusterNodePoolAutoscalingConfig =
-                                  KubernetesConstants.DEFAULT_NODEPOOL_AUTOSCALING)
+                                    KubernetesConstants.DEFAULT_NODEPOOL_AUTOSCALING)
 
   final case class KubernetesClusterId(project: GoogleProject, location: Location, clusterName: KubernetesClusterName) {
     def idString: String = s"projects/${project.value}/locations/${location.value}/clusters/${clusterName.value}"
@@ -134,7 +145,7 @@ object KubernetesModels {
   final case class KubernetesPod(name: KubernetesPodName,
                                  containers: Set[KubernetesContainer],
                                  selector: KubernetesSelector)
-    extends KubernetesSerializable {
+      extends KubernetesSerializable {
 
     val DEFAULT_POD_KIND = "Pod"
 
@@ -167,7 +178,7 @@ object KubernetesModels {
                                        image: Image,
                                        ports: Option[Set[ContainerPort]],
                                        resourceLimits: Option[Map[String, String]] = None)
-    extends KubernetesSerializable {
+      extends KubernetesSerializable {
     override def getJavaSerialization: V1Container = {
       val v1Container = new V1Container()
       v1Container.setName(name.value)
@@ -218,19 +229,18 @@ object KubernetesModels {
     final case class KubernetesLoadBalancerService(selector: KubernetesSelector,
                                                    ports: Set[ServicePort],
                                                    name: KubernetesServiceName)
-      extends KubernetesServiceKind {
+        extends KubernetesServiceKind {
       val serviceType = KubernetesServiceType(SERVICE_TYPE_LOADBALANCER)
     }
 
     final case class KubernetesNodePortService(selector: KubernetesSelector,
-                                                   ports: Set[ServicePort],
-                                                   name: KubernetesServiceName)
-      extends KubernetesServiceKind {
+                                               ports: Set[ServicePort],
+                                               name: KubernetesServiceName)
+        extends KubernetesServiceKind {
       val serviceType = KubernetesServiceType(SERVICE_TYPE_NODEPORT)
     }
 
   }
-
 
   final case class ServicePort(value: Int) extends KubernetesSerializable {
     override def getJavaSerialization: V1ServicePort = {

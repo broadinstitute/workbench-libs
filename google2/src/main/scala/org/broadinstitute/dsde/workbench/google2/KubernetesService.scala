@@ -21,7 +21,9 @@ trait KubernetesService[F[_]] {
   def createPod(clusterId: KubernetesClusterId, pod: KubernetesPod, namespace: KubernetesNamespace): F[Unit]
 
   //certain services allow us to expose various containers via a matching selector
-  def createService(clusterId: KubernetesClusterId, service: KubernetesServiceKind, namespace: KubernetesNamespace): F[Unit]
+  def createService(clusterId: KubernetesClusterId,
+                    service: KubernetesServiceKind,
+                    namespace: KubernetesNamespace): F[Unit]
 }
 
 // This kubernetes service requires a GKEService because it needs to call getCluster
@@ -33,12 +35,12 @@ trait KubernetesService[F[_]] {
 
 object KubernetesService {
   def resource[F[_]: StructuredLogger: Async: Effect: Timer: ContextShift](
-                                                                    pathToCredential: Path,
-                                                                    gkeService: GKEService[F],
-                                                                    blocker: Blocker,
-                                                                    blockerBound: Semaphore[F],
-                                                                    //This is not used anywhere yet, there should be a custom kube one
-                                                                    retryConfig: RetryConfig = RetryPredicates.standardRetryConfig
+    pathToCredential: Path,
+    gkeService: GKEService[F],
+    blocker: Blocker,
+    blockerBound: Semaphore[F],
+    //This is not used anywhere yet, there should be a custom kube one
+    retryConfig: RetryConfig = RetryPredicates.standardRetryConfig
   ): Resource[F, KubernetesService[F]] =
     for {
       credentials <- credentialResource(pathToCredential.toString)

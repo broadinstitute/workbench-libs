@@ -22,15 +22,16 @@ import org.broadinstitute.dsde.workbench.google2.KubernetesModels._
 // It is highly recommended to use the kubernetes API docs here https://kubernetes.io/docs/reference/generated/kubernetes-api as opposed to the client library docs
 
 class KubernetesInterpreter[F[_]: Async: StructuredLogger: Effect: Timer: ContextShift](
-                                                                                 credentials: GoogleCredentials,
-                                                                                 gkeService: GKEService[F],
-                                                                                 blocker: Blocker,
-                                                                                 blockerBound: Semaphore[F],
-                                                                                 retryConfig: RetryConfig
+  credentials: GoogleCredentials,
+  gkeService: GKEService[F],
+  blocker: Blocker,
+  blockerBound: Semaphore[F],
+  retryConfig: RetryConfig
 ) extends KubernetesService[F] {
 
   //We cache a kubernetes client for each cluster
-  val cache = CacheBuilder.newBuilder()
+  val cache = CacheBuilder
+    .newBuilder()
     // We expect calls to be batched, such as when a user's environment within a cluster is created/deleted/stopped.
     // This may need configuration
     .expireAfterWrite(2, TimeUnit.HOURS)
@@ -38,10 +39,18 @@ class KubernetesInterpreter[F[_]: Async: StructuredLogger: Effect: Timer: Contex
       new CacheLoader[KubernetesClusterId, ApiClient] {
         def load(clusterId: KubernetesClusterId): ApiClient = {
           val res = for {
-            _ <- StructuredLogger[F].info(s"Determined that there is no cached client for kubernetes cluster ${clusterId}. Creating a client")
+            _ <- StructuredLogger[F]
+              .info(s"Determined that there is no cached client for kubernetes cluster ${clusterId}. Creating a client")
             cluster <- gkeService.getCluster(clusterId)
             token <- getToken
-            client <- createClient(cluster.getOrElse(throw KubernetesClusterNotFoundException(s"Could not create client for cluster ${clusterId} because it does not exist in google")), token)
+            client <- createClient(
+              cluster.getOrElse(
+                throw KubernetesClusterNotFoundException(
+                  s"Could not create client for cluster ${clusterId} because it does not exist in google"
+                )
+              ),
+              token
+            )
           } yield client
 
           res.toIO.unsafeRunSync()
@@ -70,8 +79,7 @@ class KubernetesInterpreter[F[_]: Async: StructuredLogger: Effect: Timer: Contex
       }
     )
 
-  override def createNamespace(clusterId: KubernetesClusterId,
-                               namespace: KubernetesNamespace): F[Unit] =
+  override def createNamespace(clusterId: KubernetesClusterId, namespace: KubernetesNamespace): F[Unit] =
     blockingClientProvider(clusterId, { kubernetesClient =>
       Async[F].delay(kubernetesClient.createNamespace(namespace.getJavaSerialization, null, null, null))
     })
@@ -115,8 +123,7 @@ class KubernetesInterpreter[F[_]: Async: StructuredLogger: Effect: Timer: Contex
   }
 
   //TODO: retry once we know what kubernetes codes are applicable
-  private def blockingClientProvider[A](clusterId: KubernetesClusterId,
-                                        fa: CoreV1Api => F[A]): F[A] =
+  private def blockingClientProvider[A](clusterId: KubernetesClusterId, fa: CoreV1Api => F[A]): F[A] =
     blockerBound.withPermit(
       blocker
         .blockOn(

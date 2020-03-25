@@ -31,10 +31,10 @@ trait GKEService[F[_]] {
 object GKEService {
 
   def resource[F[_]: StructuredLogger: Async: Timer: ContextShift](
-                                                                    pathToCredential: Path,
-                                                                    blocker: Blocker,
-                                                                    blockerBound: Semaphore[F],
-                                                                    retryConfig: RetryConfig = RetryPredicates.retryConfigWithPredicates(whenStatusCode(404))
+    pathToCredential: Path,
+    blocker: Blocker,
+    blockerBound: Semaphore[F],
+    retryConfig: RetryConfig = RetryPredicates.retryConfigWithPredicates(whenStatusCode(404))
   )(implicit ev: ApplicativeAsk[F, TraceId]): Resource[F, GKEService[F]] =
     for {
       credential <- credentialResource(pathToCredential.toString)

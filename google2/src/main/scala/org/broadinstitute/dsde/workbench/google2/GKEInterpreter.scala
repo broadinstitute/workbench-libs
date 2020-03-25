@@ -16,7 +16,8 @@ class GKEInterpreter[F[_]: Async: StructuredLogger: Timer: ContextShift](
   blocker: Blocker,
   blockerBound: Semaphore[F],
   retryConfig: RetryConfig
-)(implicit ev: ApplicativeAsk[F, TraceId]) extends GKEService[F] {
+)(implicit ev: ApplicativeAsk[F, TraceId])
+    extends GKEService[F] {
 
   override def createCluster(
     kubernetesClusterRequest: KubernetesCreateClusterRequest
@@ -51,10 +52,9 @@ class GKEInterpreter[F[_]: Async: StructuredLogger: Timer: ContextShift](
     )
 
   private def tracedGoogleRetryWithBlocker[A](fa: F[A], action: String): F[A] =
-    tracedRetryGoogleF(retryConfig)(
-      blockerBound.withPermit(
-        blocker.blockOn(fa)
-      ),
-      action).compile.lastOrError
+    tracedRetryGoogleF(retryConfig)(blockerBound.withPermit(
+                                      blocker.blockOn(fa)
+                                    ),
+                                    action).compile.lastOrError
 
 }
