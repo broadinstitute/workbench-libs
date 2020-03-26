@@ -55,19 +55,14 @@ object KubernetesConstants {
 }
 
 // Common kubernetes models //
-
-final case class KubernetesException(message: String) extends WorkbenchException
 final case class KubernetesClusterNotFoundException(message: String) extends WorkbenchException
 
 trait KubernetesNameValidation {
   def value: String
-
   val regex = "(?:[a-z](?:[-a-z0-9]{0,38}[a-z0-9])?)".r //this is taken directly from the google error message if you have an invalid nodepool name. Its not in the docs anywhere
   val isValidName: Boolean = regex.pattern.matcher(value).matches()
-  if (!isValidName) {
-    //the throwing of this exception here is assuming that leo will be the one controlling nodepool names, not users, and is to sanitize the data in this case class at construction as opposed to downstream
-    throw KubernetesException(s"The name ${value} must match the regex ${regex}")
-  }
+  
+  require(isValidName, s"The name ${value} must match the regex ${regex}")
 }
 
 // Google kubernetes client models //
@@ -126,7 +121,7 @@ sealed trait KubernetesSerializableName extends KubernetesSerializable with Kube
 }
 
 object KubernetesSerializableName {
-  //this nesting is necessary to prevent duplicating the code achieved by KubernetesSerializableName and KubernetesSerializable
+  //this nesting of NamespaceName is necessary to prevent duplicating the code achieved by KubernetesSerializableName and KubernetesSerializable
   //namespaces also have criteria other than their name
   final case class KubernetesNamespaceName(value: String) extends KubernetesSerializableName
   final case class KubernetesServiceName(value: String) extends KubernetesSerializableName
