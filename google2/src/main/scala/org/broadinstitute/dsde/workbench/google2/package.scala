@@ -92,8 +92,10 @@ package object google2 {
   def recoverF[F[_]: Sync, A](fa: F[A], pred: Throwable => Boolean): F[Option[A]] =
     fa.map(Option(_)).recover { case e if pred(e) => None }
 
-
-  def streamFUntilDone[F[_]: Timer, A, B <: DoneCheckable](fa: F[A], doneWrapper: A => B, maxAttempts: Int, delay: FiniteDuration): Stream[F, B] =
+  def streamFUntilDone[F[_]: Timer, A, B <: DoneCheckable](fa: F[A],
+                                                           doneWrapper: A => B,
+                                                           maxAttempts: Int,
+                                                           delay: FiniteDuration): Stream[F, B] =
     (Stream.eval(fa) ++ Stream.sleep_(delay))
       .repeatN(maxAttempts)
       .map(doneWrapper)

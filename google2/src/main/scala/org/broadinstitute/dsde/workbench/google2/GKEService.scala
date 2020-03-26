@@ -26,7 +26,9 @@ trait GKEService[F[_]] {
 
   def getCluster(clusterId: KubernetesClusterId): F[Option[Cluster]]
 
-  def pollOperation(operationId: KubernetesOperationId, delay: FiniteDuration, maxAttempts: Int): Stream[F, GKEPollOperation]
+  def pollOperation(operationId: KubernetesOperationId,
+                    delay: FiniteDuration,
+                    maxAttempts: Int): Stream[F, GKEPollOperation]
 }
 
 // The credentials passed to this object should have the permissions:

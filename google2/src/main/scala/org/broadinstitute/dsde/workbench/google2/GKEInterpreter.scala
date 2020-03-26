@@ -55,10 +55,13 @@ class GKEInterpreter[F[_]: Async: StructuredLogger: Timer: ContextShift](
     )
 
   //delete and create operations take around ~5mins with simple tests, could be longer for larger clusters
-  override def pollOperation(operationId: KubernetesOperationId, delay: FiniteDuration, maxAttempts: Int): Stream[F, GKEPollOperation] = {
+  override def pollOperation(operationId: KubernetesOperationId,
+                             delay: FiniteDuration,
+                             maxAttempts: Int): Stream[F, GKEPollOperation] = {
     val opString = operationId.idString
 
-    val request = GetOperationRequest.newBuilder()
+    val request = GetOperationRequest
+      .newBuilder()
       .setName(operationId.idString)
       .build()
 
