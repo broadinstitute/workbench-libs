@@ -91,6 +91,13 @@ package object google2 {
   // Recovers a F[A] to an F[Option[A]] depending on predicate
   def recoverF[F[_]: Sync, A](fa: F[A], pred: Throwable => Boolean): F[Option[A]] =
     fa.map(Option(_)).recover { case e if pred(e) => None }
+
+
+  def streamFUntilDone[F[_]: Timer, A, B <: DoneCheckable](fa: F[A], doneWrapper: A => B, maxAttempts: Int, delay: FiniteDuration): Stream[F, B] =
+    (Stream.eval(fa) ++ Stream.sleep_(delay))
+      .repeatN(maxAttempts)
+      .map(doneWrapper)
+      .takeThrough(!_.isDone)
 }
 
 final case class RetryConfig(retryInitialDelay: FiniteDuration,
@@ -98,3 +105,9 @@ final case class RetryConfig(retryInitialDelay: FiniteDuration,
                              maxAttempts: Int,
                              retryable: Throwable => Boolean = scala.util.control.NonFatal.apply)
 final case class LoggableGoogleCall(response: Option[String], result: String)
+
+// trait used in conjunction with streamFUntilDone
+// implement isDone on a class extending this to poll if F[A] is done
+trait DoneCheckable {
+  def isDone: Boolean
+}

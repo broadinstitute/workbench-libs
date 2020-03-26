@@ -1,19 +1,8 @@
 package org.broadinstitute.dsde.workbench.google2
-import com.google.container.v1.{Cluster, NodePool, NodePoolAutoscaling}
+import com.google.container.v1.{Cluster, NodePool, NodePoolAutoscaling, Operation}
 
 import collection.JavaConverters._
-import io.kubernetes.client.models.{
-  V1Container,
-  V1ContainerPort,
-  V1Namespace,
-  V1ObjectMeta,
-  V1ObjectMetaBuilder,
-  V1Pod,
-  V1PodSpec,
-  V1Service,
-  V1ServicePort,
-  V1ServiceSpec
-}
+import io.kubernetes.client.models.{V1Container, V1ContainerPort, V1Namespace, V1ObjectMeta, V1ObjectMetaBuilder, V1Pod, V1PodSpec, V1Service, V1ServicePort, V1ServiceSpec}
 import org.apache.commons.codec.binary.Base64
 import org.broadinstitute.dsde.workbench.google2.GKEModels._
 import org.broadinstitute.dsde.workbench.google2.KubernetesModels.ServicePort
@@ -99,6 +88,10 @@ object GKEModels {
 
   final case class KubernetesClusterId(project: GoogleProject, location: Location, clusterName: KubernetesClusterName) {
     def idString: String = s"projects/${project.value}/locations/${location.value}/clusters/${clusterName.value}"
+  }
+
+  final case class KubernetesOperationId(project: GoogleProject, location: Location, operation: Operation) {
+    def idString: String = s"projects/${project.value}/locations/${location.value}/operations/${operation.getName}"
   }
 
 }

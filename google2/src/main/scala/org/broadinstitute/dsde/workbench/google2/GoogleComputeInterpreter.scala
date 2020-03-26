@@ -307,10 +307,7 @@ private[google2] class GoogleComputeInterpreter[F[_]: Async: StructuredLogger: T
       case (None, None)         => getGlobalOperation(project, OperationName(operation.getName))
     }
 
-    (Stream.eval(getOp) ++ Stream.sleep_(delay))
-      .repeatN(maxAttempts)
-      .map(PollOperation)
-      .takeThrough(!_.isDone)
+    streamFUntilDone(getOp, PollOperation.apply, maxAttempts, delay)
   }
 
   private def buildMachineTypeUri(zone: ZoneName, machineTypeName: MachineTypeName): String =

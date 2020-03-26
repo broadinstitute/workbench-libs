@@ -9,12 +9,15 @@ import com.google.container.v1.Cluster
 import com.google.api.gax.core.FixedCredentialsProvider
 import com.google.cloud.container.v1.{ClusterManagerClient, ClusterManagerSettings}
 import com.google.container.v1.Operation
+import fs2.Stream
 import io.chrisdavenport.log4cats.StructuredLogger
-import org.broadinstitute.dsde.workbench.RetryConfig
+import org.broadinstitute.dsde.workbench.{DoneCheckable, RetryConfig}
 import org.broadinstitute.dsde.workbench.google2.GKEModels._
 import org.broadinstitute.dsde.workbench.google2.util.RetryPredicates
 import org.broadinstitute.dsde.workbench.model.TraceId
 import org.broadinstitute.dsde.workbench.google2.util.RetryPredicates._
+
+import scala.concurrent.duration.FiniteDuration
 
 trait GKEService[F[_]] {
   def createCluster(kubernetesClusterRequest: KubernetesCreateClusterRequest): F[Operation]
@@ -22,6 +25,8 @@ trait GKEService[F[_]] {
   def deleteCluster(clusterId: KubernetesClusterId): F[Operation]
 
   def getCluster(clusterId: KubernetesClusterId): F[Option[Cluster]]
+
+  def pollOperation(operationId: KubernetesOperationId, delay: FiniteDuration, maxAttempts: Int): Stream[F, GKEPollOperation]
 }
 
 // The credentials passed to this object should have the permissions:
@@ -46,4 +51,8 @@ object GKEService {
       clusterManager <- backgroundResourceF(ClusterManagerClient.create(clusterManagerSettings))
     } yield new GKEInterpreter[F](clusterManager, blocker, blockerBound, retryConfig)
 
+}
+
+final case class GKEPollOperation(op: Operation) extends DoneCheckable {
+  def isDone = op.getStatus == Operation.Status.DONE
 }

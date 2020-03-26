@@ -9,7 +9,7 @@ import com.google.auth.oauth2.GoogleCredentials
 import com.google.cloud.compute.v1._
 import fs2._
 import _root_.io.chrisdavenport.log4cats.StructuredLogger
-import org.broadinstitute.dsde.workbench.RetryConfig
+import org.broadinstitute.dsde.workbench.{DoneCheckable, RetryConfig}
 import org.broadinstitute.dsde.workbench.google2.util.RetryPredicates
 import org.broadinstitute.dsde.workbench.model.google.GoogleProject
 import org.broadinstitute.dsde.workbench.model.{TraceId, WorkbenchEmail}
@@ -217,6 +217,6 @@ final case class RegionName(value: String) extends AnyVal
 final case class NetworkName(value: String) extends AnyVal
 final case class SubnetworkName(value: String) extends AnyVal
 final case class OperationName(value: String) extends AnyVal
-final case class PollOperation(op: Operation) {
+final case class PollOperation(op: Operation) extends DoneCheckable {
   def isDone = op.getStatus == "DONE"
 }

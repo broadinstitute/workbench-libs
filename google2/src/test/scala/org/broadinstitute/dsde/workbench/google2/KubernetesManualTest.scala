@@ -2,10 +2,11 @@ package org.broadinstitute.dsde.workbench.google2
 
 import java.nio.file.Paths
 import java.util.UUID
-
+import scala.concurrent.duration._
 import cats.effect.{Blocker, IO}
 import cats.effect.concurrent.Semaphore
 import cats.mtl.ApplicativeAsk
+import com.google.container.v1.Operation
 import io.chrisdavenport.log4cats.slf4j.Slf4jLogger
 import org.broadinstitute.dsde.workbench.google2.GKEModels._
 import org.broadinstitute.dsde.workbench.google2.KubernetesModels._
@@ -27,7 +28,7 @@ object Test {
   val project = GoogleProject("broad-dsde-dev")
   val location =  Location("us-central1")
   val parent = Parent(project, location)
-  val clusterName = KubernetesClusterName("c1")
+  val clusterName = KubernetesClusterName("c3")
   val nodePoolName = NodePoolName("nodepool1")
 
   val defaultNamespaceName = KubernetesNamespaceName("n2")
@@ -105,4 +106,14 @@ object Test {
     }
   }
 
+  def testPolling(operation: Operation) = {
+    serviceResource.use { s =>
+      for {
+        lastOp <- s.pollOperation(KubernetesOperationId(project, location, operation), 5 seconds, 200)
+            .compile
+            .lastOrError
+        _ <- if (lastOp.isDone) IO(println(s"operation is done, initial operation: ${operation}")) else IO(s"operation errored, initial operation: ${operation}")
+      } yield ()
+    }
+  }
 }
