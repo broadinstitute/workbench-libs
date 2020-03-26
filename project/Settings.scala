@@ -96,6 +96,10 @@ object Settings {
     crossScalaVersions := List("2.12.10")
   )
 
+  val cross212and213 = Seq(
+    crossScalaVersions := List("2.12.10", "2.13.1")
+  )
+
   //sbt assembly settings
   val commonAssemblySettings = Seq(
     assemblyMergeStrategy in assembly := customMergeStrategy((assemblyMergeStrategy in assembly).value),
@@ -105,7 +109,7 @@ object Settings {
   //common settings for all sbt subprojects
   val commonSettings = commonBuildSettings ++ commonAssemblySettings ++ commonTestSettings ++ List(
     organization  := "org.broadinstitute.dsde.workbench",
-    scalaVersion  := "2.12.8",
+    scalaVersion  := "2.12.10",
     resolvers ++= commonResolvers,
     commonCompilerSettings
   )
@@ -151,6 +155,12 @@ object Settings {
     name := "workbench-newrelic",
     libraryDependencies ++= newrelicDependencies,
     version := createVersion("0.3")
+  ) ++ publishSettings
+
+  val openTelemetrySettings = cross212and213 ++ commonSettings ++ List(
+    name := "workbench-openTelemetry",
+    libraryDependencies ++= openTelemetryDependencies,
+    version := createVersion("0.1")
   ) ++ publishSettings
 
   val serviceTestSettings = only212 ++ commonSettings ++ List(
