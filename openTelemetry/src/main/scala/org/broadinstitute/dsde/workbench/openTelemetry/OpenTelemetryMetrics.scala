@@ -11,16 +11,20 @@ import io.circe.fs2.{byteStreamParser, decoder}
 import io.opencensus.exporter.stats.stackdriver.{StackdriverStatsConfiguration, StackdriverStatsExporter}
 
 import scala.collection.JavaConverters._
-import scala.concurrent.duration.Duration
+import scala.concurrent.duration.FiniteDuration
 
 trait OpenTelemetryMetrics[F[_]] {
-  def time[A](name: String)(fa: F[A])(implicit timer: Timer[F], ae: ApplicativeError[F, Throwable]): F[A]
+  def time[A](name: String,
+              histoBuckets: List[Double],
+              tags: Map[String, String] = Map.empty)(fa: F[A])(implicit timer: Timer[F], ae: ApplicativeError[F, Throwable]): F[A]
 
-  def gauge[A](name: String, value: Double): F[Unit]
+  def gauge[A](name: String, value: Double, tags: Map[String, String] = Map.empty): F[Unit]
 
-  def incrementCounter[A](name: String, count: Long = 1): F[Unit]
+  def incrementCounter[A](name: String, count: Long = 1, tags: Map[String, String] = Map.empty): F[Unit]
 
-  def recordDuration(name: String, duration: Duration)(implicit timer: Timer[F]): F[Unit]
+  def recordDuration(name: String,
+                     duration: FiniteDuration,
+                     histoBuckets: List[Double], tags: Map[String, String] = Map.empty)(implicit timer: Timer[F]): F[Unit]
 }
 
 object OpenTelemetryMetrics {
