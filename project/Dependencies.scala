@@ -51,7 +51,7 @@ object Dependencies {
   val googleGuava: ModuleID = "com.google.guava"  % "guava" % "22.0"
   val googleRpc: ModuleID =               "io.grpc" % "grpc-core" % "1.16.1" //old google libraries relies on older version of grpc
 
-  val googleRpc2: ModuleID =               "io.grpc" % "grpc-core" % "1.24.0" //google2 may depends on newer version of grpc
+  val googleRpc2: ModuleID =               "io.grpc" % "grpc-core" % "1.28.0"
   val googleFirestore: ModuleID = "com.google.cloud" % "google-cloud-firestore" % "0.71.0-beta"
   val googleStorageNew: ModuleID = "com.google.cloud" % "google-cloud-storage" % "1.100.0"
   val googleStorageLocal: ModuleID = "com.google.cloud" % "google-cloud-nio" % "0.111.0-alpha" % "test"
@@ -138,7 +138,7 @@ object Dependencies {
   ).map(excludeGuavaJDK5)
 
   val google2Dependencies = commonDependencies ++ Seq(
-    googleRpc,
+    googleRpc2,
     googleFirestore,
     googleStorageNew,
     googleStorageLocal,

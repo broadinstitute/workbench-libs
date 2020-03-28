@@ -11,12 +11,13 @@ Changed:
 - Bump `http4s` version to `0.21.0`
 - Bump `cats-effect` version to `2.1.2`
 - Bump `scalacheck` version to `1.14.3`
+- Bump "io.grpc" % "grpc-core" to `1.28.0`
 
 Added:
 - `GoogleComputeService` and `GoogleComputeInterpreter`
 - `com.google.cloud" % "google-cloud-compute` SBT dependency
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.7-f3b5a5a"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.7-TRAVIS-REPLACE-ME"`
 
 ## 0.6
 Changed
