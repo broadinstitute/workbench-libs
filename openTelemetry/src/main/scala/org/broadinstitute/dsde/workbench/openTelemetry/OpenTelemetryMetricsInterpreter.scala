@@ -1,6 +1,5 @@
 package org.broadinstitute.dsde.workbench.openTelemetry
 
-import java.util
 import java.util.concurrent.TimeUnit
 
 import cats.ApplicativeError
@@ -29,8 +28,8 @@ class OpenTelemetryMetricsInterpreter[F[_]](appName: String)(implicit F: Async[F
 
   // Aggregation doc: https://opencensus.io/stats/view/#aggregations
   def time[A](name: String, histoBuckets: List[Double], tags: Map[String, String] = Map.empty)(fa: F[A])(implicit timer: Timer[F], ae: ApplicativeError[F, Throwable]): F[A] = {
-    val latencySuccess =  MeasureDouble.create(s"$name/success", "The successful io latency in milliseconds", "ms")
-    val countFailure =  MeasureLong.create(s"$name", s"count of ${name}", "1")
+    val latencySuccess =  MeasureDouble.create(s"${name}_success_latency", "The successful io latency in milliseconds", "ms")
+    val countFailure =  MeasureLong.create(s"${name}_failure_count", s"count of ${name}", "1")
 
     val latencyDistribution =
       Distribution.create(
@@ -47,7 +46,7 @@ class OpenTelemetryMetricsInterpreter[F[_]](appName: String)(implicit F: Async[F
         latencyDistribution,
         (List(appTagKey)++tagKvs.keys).asJava)
 
-    val viewFailureName = Name.create(s"$appName/${name}_count_failure")
+    val viewFailureName = Name.create(s"$appName/${name}_failure_count")
     val viewFailure = View.create(
         viewFailureName,
         s"The count of ${name} failure",
@@ -73,7 +72,7 @@ class OpenTelemetryMetricsInterpreter[F[_]](appName: String)(implicit F: Async[F
   }
 
   def gauge[A](name: String, value: Double, tags: Map[String, String] = Map.empty): F[Unit] = {
-    val gauge =  MeasureDouble.create(s"$name", s"Current value of ${name}", "1")
+    val gauge =  MeasureDouble.create(s"${name}_gauge", s"Current value of ${name}", "1")
     val tagKvs = tags.map {case (k, v) => (TagKey.create(k), TagValue.create(v))}
     val tc = getTagContext(tagKvs)
     val view = View.create(
@@ -89,7 +88,7 @@ class OpenTelemetryMetricsInterpreter[F[_]](appName: String)(implicit F: Async[F
   }
 
   def incrementCounter[A](name: String, count: Long = 1, tags: Map[String, String] = Map.empty): F[Unit] = {
-    val counter =  MeasureLong.create(s"$name", s"count of ${name}", "1")
+    val counter =  MeasureLong.create(s"${name}_count", s"count of ${name}", "1")
     val tagKvs = tags.map {case (k, v) => (TagKey.create(k), TagValue.create(v))}
     val tc = getTagContext(tagKvs)
     val view = View.create(
@@ -105,7 +104,7 @@ class OpenTelemetryMetricsInterpreter[F[_]](appName: String)(implicit F: Async[F
   }
 
   def recordDuration(name: String, duration: FiniteDuration, histoBuckets: List[Double], tags: Map[String, String] = Map.empty)(implicit timer: Timer[F]): F[Unit] = {
-    val latency =  MeasureDouble.create(s"$name", s"The latency of ${name} in milliseconds", "ms")
+    val latency =  MeasureDouble.create(s"${name}_duration", s"The latency of ${name} in milliseconds", "ms")
 
     val latencyDistribution =
       Distribution.create(
@@ -115,7 +114,7 @@ class OpenTelemetryMetricsInterpreter[F[_]](appName: String)(implicit F: Async[F
     val tc = getTagContext(tagKvs)
     val view = View.create(
       Name.create(s"$appName/${name}_duration"),
-      s"The distribution of ${name} success",
+      s"The distribution of ${name} duration",
       latency,
       latencyDistribution,
       (List(appTagKey)++tagKvs.keys).asJava)
