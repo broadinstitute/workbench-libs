@@ -87,7 +87,7 @@ object Settings {
         "-language:postfixOps"
       )
     case Some((2, 13)) => Seq(
-      "-deprecation", // Emit warning and location for usages of deprecated APIs.
+//      "-deprecation", // Emit warning and location for usages of deprecated APIs. TODO: enable this when we migrate off of 2.12
       "-explaintypes", // Explain type errors in more detail.
       "-feature", // Emit warning and location for usages of features that should be imported explicitly.
       "-language:existentials", // Existential types (besides wildcard types) can be written and inferred
@@ -114,7 +114,7 @@ object Settings {
       "-Xlint:type-parameter-shadow", // A local type parameter shadows a type already in scope.
       "-Ywarn-dead-code", // Warn when dead code is identified.
       "-Ywarn-extra-implicit", // Warn when more than one implicit parameter section is defined.
-      "-Ywarn-numeric-widen", // Warn when numerics are widened.
+//      "-Ywarn-numeric-widen", // Warn when numerics are widened.
       "-Ywarn-unused:implicits", // Warn if an implicit parameter is unused.
       "-Ywarn-unused:imports", // Warn if an import selector is not referenced.
       "-Ywarn-unused:locals", // Warn if a local definition is unused.
@@ -125,6 +125,7 @@ object Settings {
       "-Ybackend-parallelism", "8", // Enable paralellisation — change to desired number!
       "-Ycache-plugin-class-loader:last-modified", // Enables caching of classloaders for compiler plugins
       "-Ycache-macro-class-loader:last-modified", // and macro definitions. This can lead to performance improvements.
+      "-language:postfixOps"
     )
   })
 
