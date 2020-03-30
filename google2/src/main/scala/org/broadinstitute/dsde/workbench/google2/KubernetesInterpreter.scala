@@ -46,14 +46,17 @@ class KubernetesInterpreter[F[_]: Async: StructuredLogger: Effect: Timer: Contex
           val res = for {
             _ <- StructuredLogger[F]
               .info(s"Determined that there is no cached client for kubernetes cluster ${clusterId}. Creating a client")
-            cluster <- gkeService.getCluster(clusterId)
-            token <- getToken
-            client <- createClient(
-              cluster.getOrElse(
-                throw KubernetesClusterNotFoundException(
+            clusterOpt <- gkeService.getCluster(clusterId)
+            cluster <- Async[F].fromEither(
+              clusterOpt.toRight(
+                KubernetesClusterNotFoundException(
                   s"Could not create client for cluster ${clusterId} because it does not exist in google"
                 )
-              ),
+              )
+            )
+            token <- getToken
+            client <- createClient(
+              cluster,
               token
             )
           } yield client
