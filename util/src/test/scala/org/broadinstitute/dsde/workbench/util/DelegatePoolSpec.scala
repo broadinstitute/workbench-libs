@@ -3,9 +3,11 @@ package org.broadinstitute.dsde.workbench.util
 import java.util.UUID
 
 import cats.data.NonEmptyList
-import org.scalatest.{BeforeAndAfterAll, FlatSpec, Matchers}
+import org.scalatest.BeforeAndAfterAll
+import org.scalatest.flatspec.AnyFlatSpecLike
+import org.scalatest.matchers.should.Matchers
 
-class DelegatePoolSpec extends FlatSpec with BeforeAndAfterAll with Matchers {
+class DelegatePoolSpec extends AnyFlatSpecLike with BeforeAndAfterAll with Matchers {
   "DelegatePool" should "delegate" in {
     val poolSize = 10
     val trials = 1000

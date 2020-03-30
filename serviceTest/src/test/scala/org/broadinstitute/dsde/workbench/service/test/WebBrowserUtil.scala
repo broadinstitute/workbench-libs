@@ -2,7 +2,7 @@ package org.broadinstitute.dsde.workbench.service.test
 
 import org.openqa.selenium.support.ui.WebDriverWait
 import org.openqa.selenium.{StaleElementReferenceException, WebDriver}
-import org.scalatest.selenium.WebBrowser
+import org.scalatestplus.selenium.WebBrowser
 import scala.collection.JavaConverters._
 
 /**

@@ -6,14 +6,17 @@ object Dependencies {
   val jacksonV      = "2.9.0"
   val googleV       = "1.22.0"
   val scalaLoggingV = "3.7.2"
-  val scalaTestV    = "3.0.1"
+  val scalaTestV    = "3.1.1"
   val circeVersion = "0.13.0"
   val http4sVersion = "0.21.0"
 
   def excludeGuavaJDK5(m: ModuleID): ModuleID = m.exclude("com.google.guava", "guava-jdk5")
 
   val scalaLogging: ModuleID = "com.typesafe.scala-logging"    %% "scala-logging" % "3.9.2"  % "provided"
-  val scalatest: ModuleID =    "org.scalatest"                 %% "scalatest"     % "3.0.5"  % "test"
+  val scalatest: ModuleID =    "org.scalatest"                 %% "scalatest"     % scalaTestV  % "test"
+  val scalaTestScalaCheck = "org.scalatestplus" %% "scalatestplus-scalacheck" % "3.1.0.0-RC2" % Test //Since scalatest 3.1.0, scalacheck support is moved to `scalatestplus`
+  val scalaTestMockito = "org.scalatestplus" %% "scalatestplus-mockito" % "1.0.0-M2" % Test //Since scalatest 3.1.0, mockito support is moved to `scalatestplus`
+  val scalaTestSelenium =  "org.scalatestplus" %% "scalatestplus-selenium" % "1.0.0-M2" % Test //Since scalatest 3.1.0, selenium support is moved to `scalatestplus`
   val mockito: ModuleID =      "org.mockito"                   %  "mockito-core"  % "2.8.47" % "test"
 
   val akkaActor: ModuleID =         "com.typesafe.akka" %% "akka-actor"           % akkaV     % "provided"
@@ -75,7 +78,6 @@ object Dependencies {
   val fs2Io: ModuleID = "co.fs2" %% "fs2-io" % "2.0.1"
   val rawlsModel: ModuleID = "org.broadinstitute.dsde" %% "rawls-model" % "0.1-0d02c8ce-SNAP" exclude("com.typesafe.scala-logging", "scala-logging_2.11") exclude("com.typesafe.akka", "akka-stream_2.11")
   val newRelic: ModuleID = "com.newrelic.agent.java" % "newrelic-api" % "5.0.0"
-//  val openTelemetry: ModuleID = "io.opentelemetry" % "opentelemetry-sdk" % "0.2.4"
   val openCensusApi: ModuleID = "io.opencensus" % "opencensus-api" % "0.26.0"
   val openCensusImpl: ModuleID = "io.opencensus" % "opencensus-impl" % "0.26.0"
   val openCensusStackDriver: ModuleID = "io.opencensus" % "opencensus-exporter-stats-stackdriver" % "0.26.0"
@@ -87,7 +89,8 @@ object Dependencies {
 
   val commonDependencies = Seq(
     scalatest,
-    scalaCheck
+    scalaCheck,
+    scalaTestScalaCheck
   )
 
   val utilDependencies = commonDependencies ++ Seq(
@@ -96,6 +99,7 @@ object Dependencies {
     akkaHttpSprayJson,
     akkaTestkit,
     mockito,
+    scalaTestMockito,
     cats
   )
 
@@ -113,7 +117,8 @@ object Dependencies {
     akkaHttp,
     akkaTestkit,
     akkaHttpTestkit,
-    mockito
+    mockito,
+    scalaTestMockito
   )
 
   val googleDependencies = commonDependencies ++ Seq(
@@ -190,7 +195,8 @@ object Dependencies {
     akkaTestkit,
     jacksonModule,
     rawlsModel,
-    selenium
+    selenium,
+    scalaTestSelenium
   )
 
   val notificationsDependencies = commonDependencies ++ Seq(

@@ -1,12 +1,14 @@
 package org.broadinstitute.dsde.workbench.model
 
 import akka.http.scaladsl.model.StatusCodes
-import org.scalatest.{BeforeAndAfterAll, FlatSpecLike, Matchers}
+import org.scalatest.BeforeAndAfterAll
 import spray.json._
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.flatspec.AnyFlatSpecLike
 
 import ErrorReportJsonSupport._
 
-class ErrorReportSpec extends FlatSpecLike with BeforeAndAfterAll with Matchers {
+class ErrorReportSpec extends AnyFlatSpecLike with BeforeAndAfterAll with Matchers {
   implicit val errorReportSource = ErrorReportSource("test")
 
   "json serialization" should "roundtrip" in {

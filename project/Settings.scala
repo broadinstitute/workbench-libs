@@ -86,6 +86,11 @@ object Settings {
 //        "-Ywarn-value-discard",               // Warn when non-Unit expression results are unused.
         "-language:postfixOps"
       )
+    case Some((2, 13)) => Seq(
+      "-deprecation",                      // Emit warning and location for usages of deprecated APIs.
+      "-encoding",
+      "utf-8"
+    )
   })
 
   val commonCrossCompileSettings = Seq(
@@ -166,7 +171,7 @@ object Settings {
   val serviceTestSettings = only212 ++ commonSettings ++ List(
     name := "workbench-service-test",
     libraryDependencies ++= serviceTestDependencies,
-    version := createVersion("0.17")
+    version := createVersion("0.18")
   ) ++ publishSettings
 
   val notificationsSettings = only212 ++ commonSettings ++ List(
