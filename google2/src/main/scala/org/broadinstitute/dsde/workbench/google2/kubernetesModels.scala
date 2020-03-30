@@ -64,15 +64,6 @@ object KubernetesConstants {
 final case class KubernetesClusterNotFoundException(message: String) extends WorkbenchException
 final case class KubernetesInvalidNameException(message: String) extends WorkbenchException
 
-//trait KubernetesNameValidation {
-//  def value: String
-//  val regex = "(?:[a-z](?:[-a-z0-9]{0,38}[a-z0-9])?)".r //this is taken directly from the google error message if you have an invalid nodepool name. Its not in the docs anywhere
-//  val isValidName: Boolean = regex.pattern.matcher(value).matches()
-//
-//
-//  require(isValidName, s"The name ${value} must match the regex ${regex}")
-//}
-
 object KubernetesName {
   def withValidation[A](str: String, apply: String => A): Either[Throwable, A] = {
     val regex = "(?:[a-z](?:[-a-z0-9]{0,38}[a-z0-9])?)".r //this is taken directly from the google error message if you have an invalid nodepool name. Its not in the docs anywhere
