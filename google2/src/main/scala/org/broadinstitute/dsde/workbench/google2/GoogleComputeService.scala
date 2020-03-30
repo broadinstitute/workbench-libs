@@ -115,7 +115,8 @@ trait GoogleComputeService[F[_]] {
   ): F[Operation]
 
   def pollOperation(project: GoogleProject, operation: Operation, delay: FiniteDuration, maxAttempts: Int)(
-    implicit ev: ApplicativeAsk[F, TraceId], doneEv: DoneCheckable[Operation]
+    implicit ev: ApplicativeAsk[F, TraceId],
+    doneEv: DoneCheckable[Operation]
   ): Stream[F, Operation]
 }
 

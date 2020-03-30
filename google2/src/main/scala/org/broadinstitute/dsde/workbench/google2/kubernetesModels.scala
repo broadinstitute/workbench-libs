@@ -81,7 +81,11 @@ object KubernetesName {
     if (isValidName) {
       Right(apply(str))
     } else {
-      Left(KubernetesInvalidNameException(s"Kubernetes names must adhere to the following regex: ${regex}, you passed: ${str}."))
+      Left(
+        KubernetesInvalidNameException(
+          s"Kubernetes names must adhere to the following regex: ${regex}, you passed: ${str}."
+        )
+      )
     }
   }
 }
@@ -139,7 +143,6 @@ object KubernetesSerializableName {
   final case class KubernetesPodName(value: String) extends KubernetesSerializableName
 }
 
-
 trait JavaSerializable[A, B] {
   def getJavaSerialization(a: A): B
 }
@@ -166,11 +169,11 @@ object JavaSerializableInstances {
   }
 
   implicit val kubernetesContainerNameSerializable = new JavaSerializable[KubernetesContainerName, V1ObjectMeta] {
-     def getJavaSerialization(name: KubernetesContainerName): V1ObjectMeta = getNameSerialization(name)
+    def getJavaSerialization(name: KubernetesContainerName): V1ObjectMeta = getNameSerialization(name)
   }
 
   implicit val kubernetesServiceNameSerializable = new JavaSerializable[KubernetesServiceName, V1ObjectMeta] {
-     def getJavaSerialization(name: KubernetesServiceName): V1ObjectMeta = getNameSerialization(name)
+    def getJavaSerialization(name: KubernetesServiceName): V1ObjectMeta = getNameSerialization(name)
   }
 
   implicit val kubernetesNamespaceSerializable = new JavaSerializable[KubernetesNamespace, V1Namespace] {
@@ -256,16 +259,14 @@ object JavaSerializableInstances {
   }
 }
 
-
 final case class JavaSerializableOps[A, B](a: A)(implicit ev: JavaSerializable[A, B]) {
   def getJavaSerialization: B = ev.getJavaSerialization(a)
 }
 
 object JavaSerializableSyntax {
-  implicit def javaSerializableSyntax[A, B](a: A)(implicit ev: JavaSerializable[A, B]): JavaSerializableOps[A,B] = JavaSerializableOps[A,B](a)
+  implicit def javaSerializableSyntax[A, B](a: A)(implicit ev: JavaSerializable[A, B]): JavaSerializableOps[A, B] =
+    JavaSerializableOps[A, B](a)
 }
-
-
 
 // Models for the kubernetes client not related to GKE
 object KubernetesModels {

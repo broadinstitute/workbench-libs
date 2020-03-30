@@ -20,15 +20,18 @@ import org.broadinstitute.dsde.workbench.google2.util.RetryPredicates._
 import scala.concurrent.duration.FiniteDuration
 
 trait GKEService[F[_]] {
-  def createCluster(kubernetesClusterRequest: KubernetesCreateClusterRequest)(implicit ev: ApplicativeAsk[F, TraceId]): F[Operation]
+  def createCluster(kubernetesClusterRequest: KubernetesCreateClusterRequest)(
+    implicit ev: ApplicativeAsk[F, TraceId]
+  ): F[Operation]
 
   def deleteCluster(clusterId: KubernetesClusterId)(implicit ev: ApplicativeAsk[F, TraceId]): F[Operation]
 
   def getCluster(clusterId: KubernetesClusterId)(implicit ev: ApplicativeAsk[F, TraceId]): F[Option[Cluster]]
 
-  def pollOperation(operationId: KubernetesOperationId,
-                    delay: FiniteDuration,
-                    maxAttempts: Int)(implicit ev: ApplicativeAsk[F, TraceId], doneEv: DoneCheckable[Operation]): Stream[F, Operation]
+  def pollOperation(operationId: KubernetesOperationId, delay: FiniteDuration, maxAttempts: Int)(
+    implicit ev: ApplicativeAsk[F, TraceId],
+    doneEv: DoneCheckable[Operation]
+  ): Stream[F, Operation]
 }
 
 // The credentials passed to this object should have the permissions:

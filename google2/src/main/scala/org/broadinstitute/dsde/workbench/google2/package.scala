@@ -93,12 +93,10 @@ package object google2 {
   def recoverF[F[_]: Sync, A](fa: F[A], pred: Throwable => Boolean): F[Option[A]] =
     fa.map(Option(_)).recover { case e if pred(e) => None }
 
-            def streamFUntilDone[F[_]: Timer, A: DoneCheckable](fa: F[A],
-                                                             maxAttempts: Int,
-                                                             delay: FiniteDuration): Stream[F, A] =
-      (Stream.eval(fa) ++ Stream.sleep_(delay))
-        .repeatN(maxAttempts)
-        .takeThrough(!_.isDone)
+  def streamFUntilDone[F[_]: Timer, A: DoneCheckable](fa: F[A], maxAttempts: Int, delay: FiniteDuration): Stream[F, A] =
+    (Stream.eval(fa) ++ Stream.sleep_(delay))
+      .repeatN(maxAttempts)
+      .takeThrough(!_.isDone)
 }
 
 final case class RetryConfig(retryInitialDelay: FiniteDuration,
@@ -112,10 +110,11 @@ trait DoneCheckable[A] {
 }
 
 object DoneCheckableInstances {
-  implicit val containerDoneCheckable = new DoneCheckable[com.google.container.v1.Operation]{
-    def isDone(op: com.google.container.v1.Operation): Boolean = op.getStatus == com.google.container.v1.Operation.Status.DONE
+  implicit val containerDoneCheckable = new DoneCheckable[com.google.container.v1.Operation] {
+    def isDone(op: com.google.container.v1.Operation): Boolean =
+      op.getStatus == com.google.container.v1.Operation.Status.DONE
   }
-  implicit val computeDoneCheckable = new DoneCheckable[com.google.cloud.compute.v1.Operation]{
+  implicit val computeDoneCheckable = new DoneCheckable[com.google.cloud.compute.v1.Operation] {
     def isDone(op: com.google.cloud.compute.v1.Operation): Boolean = op.getStatus == "DONE"
   }
 }

@@ -22,10 +22,10 @@ private[google2] class GoogleDataprocInterpreter[F[_]: Async: StructuredLogger: 
 ) extends GoogleDataprocService[F] {
 
   override def createCluster(
-                              project: GoogleProject,
-                              region: RegionName,
-                              clusterName: DataprocClusterName,
-                              createClusterConfig: Option[CreateClusterConfig]
+    project: GoogleProject,
+    region: RegionName,
+    clusterName: DataprocClusterName,
+    createClusterConfig: Option[CreateClusterConfig]
   )(implicit ev: ApplicativeAsk[F, TraceId]): F[CreateClusterResponse] = {
     val config: ClusterConfig = createClusterConfig
       .map(

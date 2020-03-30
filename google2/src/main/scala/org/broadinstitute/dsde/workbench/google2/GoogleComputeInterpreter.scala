@@ -295,7 +295,8 @@ private[google2] class GoogleComputeInterpreter[F[_]: Async: StructuredLogger: T
   }
 
   override def pollOperation(project: GoogleProject, operation: Operation, delay: FiniteDuration, maxAttempts: Int)(
-    implicit ev: ApplicativeAsk[F, TraceId], doneEv: DoneCheckable[Operation]
+    implicit ev: ApplicativeAsk[F, TraceId],
+    doneEv: DoneCheckable[Operation]
   ): Stream[F, Operation] = {
     // TODO: once a newer version of the Java Compute SDK is released investigate using
     // the operation `wait` API instead of polling `get`. See:

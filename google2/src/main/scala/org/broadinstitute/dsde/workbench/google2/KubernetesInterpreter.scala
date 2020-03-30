@@ -31,7 +31,8 @@ class KubernetesInterpreter[F[_]: Async: StructuredLogger: Effect: Timer: Contex
   blocker: Blocker,
   blockerBound: Semaphore[F],
   retryConfig: RetryConfig
-)(implicit ev: ApplicativeAsk[F, TraceId]) extends KubernetesService[F] {
+)(implicit ev: ApplicativeAsk[F, TraceId])
+    extends KubernetesService[F] {
 
   //We cache a kubernetes client for each cluster
   val cache = CacheBuilder
@@ -69,7 +70,6 @@ class KubernetesInterpreter[F[_]: Async: StructuredLogger: Effect: Timer: Contex
         kubernetesClient.createNamespacedPod(namespace.name.value, pod.getJavaSerialization, null, null, null)
       )
     })
-
 
   //why we use a service over a deployment https://matthewpalmer.net/kubernetes-app-developer/articles/service-kubernetes-example-tutorial.html
   //services can be applied to pods/containers, while deployments are for pre-creating pods/containers

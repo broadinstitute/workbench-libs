@@ -23,10 +23,10 @@ import scala.language.higherKinds
  */
 trait GoogleDataprocService[F[_]] {
   def createCluster(
-                     project: GoogleProject,
-                     region: RegionName,
-                     clusterName: DataprocClusterName,
-                     createClusterConfig: Option[CreateClusterConfig]
+    project: GoogleProject,
+    region: RegionName,
+    clusterName: DataprocClusterName,
+    createClusterConfig: Option[CreateClusterConfig]
   )(implicit ev: ApplicativeAsk[F, TraceId]): F[CreateClusterResponse]
 
   def deleteCluster(project: GoogleProject, region: RegionName, clusterName: DataprocClusterName)(
