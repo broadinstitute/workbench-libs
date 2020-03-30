@@ -28,12 +28,13 @@ object Test {
   val project = GoogleProject("broad-dsde-dev")
   val location =  Location("us-central1")
   val parent = Parent(project, location)
-  val clusterName = KubernetesClusterName("c3")
-  val nodePoolName = NodePoolName("nodepool1")
+  val clusterName = KubernetesName.withValidation[KubernetesClusterName]("c3", KubernetesClusterName.apply)
+//  KubernetesName.fromString("c3", KubernetesClusterName.apply)
+  val nodePoolName = KubernetesName.withValidation[NodePoolName]("nodepool1",NodePoolName.apply)
 
-  val defaultNamespaceName = KubernetesNamespaceName("n2")
+  val defaultNamespaceName = KubernetesName.withValidation[KubernetesNamespaceName]("n2", KubernetesNamespaceName.apply)
 
-  val clusterId = KubernetesClusterId(project, location, clusterName)
+  val clusterId = KubernetesClusterId(project, location, clusterName.right.get)
 
   val credPath = "/Users/jcanas/Downloads/kube-broad-dsde-dev-key.json"
   val p = Paths.get(credPath)
@@ -48,14 +49,14 @@ object Test {
   }
 
   def callCreateCluster(clusterId: KubernetesClusterId = clusterId) = createCluster(KubernetesCreateClusterRequest(project, location,
-    KubernetesConstants.getDefaultCluster(nodePoolName, clusterName)))
+    KubernetesConstants.getDefaultCluster(nodePoolName.right.get, clusterName.right.get)))
 
   def callDeleteCluster(clusterId: KubernetesClusterId = clusterId) =   serviceResource.use { service =>
-    service.deleteCluster(KubernetesClusterId(project, location, clusterName))
+    service.deleteCluster(KubernetesClusterId(project, location, clusterName.right.get))
   }
 
   def callGetCluster(clusterId: KubernetesClusterId = clusterId) = serviceResource.use { service =>
-    service.getCluster(KubernetesClusterId(project, location, clusterName))
+    service.getCluster(KubernetesClusterId(project, location, clusterName.right.get))
   }
 
   val kubeService = for {
@@ -63,7 +64,7 @@ object Test {
     ks <-  KubernetesService.resource(p, gs, blocker, semaphore)
   } yield ks
 
-  def callCreateNamespace(clusterId: KubernetesClusterId = clusterId, namespace: KubernetesNamespace = KubernetesNamespace(defaultNamespaceName)) = {
+  def callCreateNamespace(clusterId: KubernetesClusterId = clusterId, namespace: KubernetesNamespace = KubernetesNamespace(defaultNamespaceName.right.get)) = {
     kubeService.use { k =>
       k.createNamespace(clusterId, namespace)
     }
@@ -92,7 +93,7 @@ object Test {
           KubernetesConstants.DEFAULT_LOADBALANCER_PORTS,
           KubernetesServiceName("s3")
         ),
-        KubernetesNamespace(defaultNamespaceName)
+        KubernetesNamespace(defaultNamespaceName.right.get)
       )
     }
   }
@@ -102,10 +103,12 @@ object Test {
       k.createPod(
         clusterId,
         pod,
-        KubernetesNamespace(defaultNamespaceName))
+        KubernetesNamespace(defaultNamespaceName.right.get))
     }
   }
 
+  import org.broadinstitute.dsde.workbench.DoneCheckableSyntax._
+  import org.broadinstitute.dsde.workbench.DoneCheckableInstances._
   def testPolling(operation: Operation) = {
     serviceResource.use { s =>
       for {

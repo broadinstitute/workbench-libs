@@ -2,6 +2,7 @@ package org.broadinstitute.dsde.workbench
 
 import java.util.concurrent.TimeUnit
 
+import DoneCheckableSyntax._
 import cats.implicits._
 import cats.effect.{Resource, Sync, Timer}
 import cats.mtl.ApplicativeAsk
@@ -91,15 +92,13 @@ package object google2 {
   // Recovers a F[A] to an F[Option[A]] depending on predicate
   def recoverF[F[_]: Sync, A](fa: F[A], pred: Throwable => Boolean): F[Option[A]] =
     fa.map(Option(_)).recover { case e if pred(e) => None }
-
-  def streamFUntilDone[F[_]: Timer, A, B <: DoneCheckable](fa: F[A],
-                                                           doneWrapper: A => B,
-                                                           maxAttempts: Int,
-                                                           delay: FiniteDuration): Stream[F, B] =
-    (Stream.eval(fa) ++ Stream.sleep_(delay))
-      .repeatN(maxAttempts)
-      .map(doneWrapper)
-      .takeThrough(!_.isDone)
+  \
+            def streamFUntilDone[F[_]: Timer, A: DoneCheckable](fa: F[A],
+                                                             maxAttempts: Int,
+                                                             delay: FiniteDuration): Stream[F, A] =
+      (Stream.eval(fa) ++ Stream.sleep_(delay))
+        .repeatN(maxAttempts)
+        .takeThrough(!_.isDone)
 }
 
 final case class RetryConfig(retryInitialDelay: FiniteDuration,
@@ -108,8 +107,23 @@ final case class RetryConfig(retryInitialDelay: FiniteDuration,
                              retryable: Throwable => Boolean = scala.util.control.NonFatal.apply)
 final case class LoggableGoogleCall(response: Option[String], result: String)
 
-// trait used in conjunction with streamFUntilDone
-// implement isDone on a class extending this to poll if F[A] is done
-trait DoneCheckable {
-  def isDone: Boolean
+trait DoneCheckable[A] {
+  def isDone(a: A): Boolean
+}
+
+object DoneCheckableInstances {
+  implicit val containerDoneCheckable = new DoneCheckable[com.google.container.v1.Operation]{
+    def isDone(op: com.google.container.v1.Operation): Boolean = op.getStatus == "DONE"
+  }
+  implicit val computeDoneCheckable = new DoneCheckable[com.google.cloud.compute.v1.Operation]{
+    def isDone(op: com.google.cloud.compute.v1.Operation): Boolean = op.getStatus == "DONE"
+  }
+}
+
+final case class DoneCheckableOps[A](a: A)(implicit ev: DoneCheckable[A]) {
+  def isDone: Boolean = ev.isDone(a)
+}
+
+object DoneCheckableSyntax {
+  implicit def doneCheckableSyntax[A](a: A)(implicit ev: DoneCheckable[A]): DoneCheckableOps[A] = DoneCheckableOps(a)
 }

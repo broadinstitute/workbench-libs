@@ -20,15 +20,15 @@ import org.broadinstitute.dsde.workbench.google2.util.RetryPredicates._
 import scala.concurrent.duration.FiniteDuration
 
 trait GKEService[F[_]] {
-  def createCluster(kubernetesClusterRequest: KubernetesCreateClusterRequest): F[Operation]
+  def createCluster(kubernetesClusterRequest: KubernetesCreateClusterRequest)(implicit ev: ApplicativeAsk[F, TraceId]): F[Operation]
 
-  def deleteCluster(clusterId: KubernetesClusterId): F[Operation]
+  def deleteCluster(clusterId: KubernetesClusterId)(implicit ev: ApplicativeAsk[F, TraceId]): F[Operation]
 
-  def getCluster(clusterId: KubernetesClusterId): F[Option[Cluster]]
+  def getCluster(clusterId: KubernetesClusterId)(implicit ev: ApplicativeAsk[F, TraceId]): F[Option[Cluster]]
 
   def pollOperation(operationId: KubernetesOperationId,
                     delay: FiniteDuration,
-                    maxAttempts: Int): Stream[F, GKEPollOperation]
+                    maxAttempts: Int)(implicit ev: ApplicativeAsk[F, TraceId], doneEv: DoneCheckable[Operation]): Stream[F, Operation]
 }
 
 // The credentials passed to this object should have the permissions:
@@ -42,7 +42,7 @@ object GKEService {
     blocker: Blocker,
     blockerBound: Semaphore[F],
     retryConfig: RetryConfig = RetryPredicates.retryConfigWithPredicates(whenStatusCode(404))
-  )(implicit ev: ApplicativeAsk[F, TraceId]): Resource[F, GKEService[F]] =
+  ): Resource[F, GKEService[F]] =
     for {
       credential <- credentialResource(pathToCredential.toString)
       credentialsProvider = FixedCredentialsProvider.create(credential)
@@ -53,8 +53,4 @@ object GKEService {
       clusterManager <- backgroundResourceF(ClusterManagerClient.create(clusterManagerSettings))
     } yield new GKEInterpreter[F](clusterManager, blocker, blockerBound, retryConfig)
 
-}
-
-final case class GKEPollOperation(op: Operation) extends DoneCheckable {
-  def isDone = op.getStatus == Operation.Status.DONE
 }

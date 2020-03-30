@@ -2,6 +2,19 @@
 
 This file documents changes to the `workbench-google2` library, including notes on how to upgrade to new versions.
 
+## 0.8
+Changed: 
+- Renamed `ClusterName` to `DataprocClusterName`
+- `pollOperation` in `GoogleComputeService` now returns `Stream[F, Operation]`  
+
+Added:
+- `GKEInterpreter`, `GKEService`, `KubernetesService`, and `KubernetesInterpreter`
+- `com.google.cloud` % `google-cloud-container` SBT Dependency
+- `com.google.apis` % `google-api-services-container` SBT Dependency
+- `io.kubernetes` % `client-java` SBT Dependency
+
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.8-TRAVIS-REPLACE-ME"`
+
 ## 0.7
 Changed:
 - Renamed `GoogleDataproc` to `GoogleDataprocService`

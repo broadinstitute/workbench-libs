@@ -115,8 +115,8 @@ trait GoogleComputeService[F[_]] {
   ): F[Operation]
 
   def pollOperation(project: GoogleProject, operation: Operation, delay: FiniteDuration, maxAttempts: Int)(
-    implicit ev: ApplicativeAsk[F, TraceId]
-  ): Stream[F, PollOperation]
+    implicit ev: ApplicativeAsk[F, TraceId], doneEv: DoneCheckable[Operation]
+  ): Stream[F, Operation]
 }
 
 object GoogleComputeService {
@@ -217,6 +217,3 @@ final case class RegionName(value: String) extends AnyVal
 final case class NetworkName(value: String) extends AnyVal
 final case class SubnetworkName(value: String) extends AnyVal
 final case class OperationName(value: String) extends AnyVal
-final case class PollOperation(op: Operation) extends DoneCheckable {
-  def isDone = op.getStatus == "DONE"
-}
