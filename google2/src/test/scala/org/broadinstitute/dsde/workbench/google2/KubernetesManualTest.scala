@@ -28,7 +28,7 @@ object Test {
   val project = GoogleProject("broad-dsde-dev")
   val location =  Location("us-central1")
   val parent = Parent(project, location)
-  val clusterName = KubernetesName.withValidation[KubernetesClusterName]("c3", KubernetesClusterName.apply)
+  val clusterName = KubernetesName.withValidation[KubernetesClusterName]("c4", KubernetesClusterName.apply)
 //  KubernetesName.fromString("c3", KubernetesClusterName.apply)
   val nodePoolName = KubernetesName.withValidation[NodePoolName]("nodepool1",NodePoolName.apply)
 
@@ -112,7 +112,7 @@ object Test {
   def testPolling(operation: Operation) = {
     serviceResource.use { s =>
       for {
-        lastOp <- s.pollOperation(KubernetesOperationId(project, location, operation), 5 seconds, 200)
+        lastOp <- s.pollOperation(KubernetesOperationId(project, location, operation), 5 seconds, 72)
             .compile
             .lastOrError
         _ <- if (lastOp.isDone) IO(println(s"operation is done, initial operation: ${operation}")) else IO(s"operation errored, initial operation: ${operation}")
