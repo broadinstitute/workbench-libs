@@ -15,7 +15,7 @@ import scala.concurrent.duration.FiniteDuration
 
 trait OpenTelemetryMetrics[F[_]] {
   def time[A](name: String,
-              distributionBucket: List[Double],
+              distributionBucket: List[FiniteDuration],
               tags: Map[String, String] = Map.empty)(fa: F[A])(implicit timer: Timer[F], ae: ApplicativeError[F, Throwable]): F[A]
 
   def gauge[A](name: String, value: Double, tags: Map[String, String] = Map.empty): F[Unit]
@@ -24,7 +24,7 @@ trait OpenTelemetryMetrics[F[_]] {
 
   def recordDuration(name: String,
                      duration: FiniteDuration,
-                     distributionBucket: List[Double], tags: Map[String, String] = Map.empty)(implicit timer: Timer[F]): F[Unit]
+                     distributionBucket: List[FiniteDuration], tags: Map[String, String] = Map.empty)(implicit timer: Timer[F]): F[Unit]
 }
 
 object OpenTelemetryMetrics {
