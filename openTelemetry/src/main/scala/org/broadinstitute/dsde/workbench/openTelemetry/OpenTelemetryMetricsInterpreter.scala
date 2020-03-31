@@ -27,13 +27,13 @@ class OpenTelemetryMetricsInterpreter[F[_]](appName: String)(implicit F: Async[F
     .build()
 
   // Aggregation doc: https://opencensus.io/stats/view/#aggregations
-  def time[A](name: String, histoBuckets: List[Double], tags: Map[String, String] = Map.empty)(fa: F[A])(implicit timer: Timer[F], ae: ApplicativeError[F, Throwable]): F[A] = {
+  def time[A](name: String, distributionBucket: List[Double], tags: Map[String, String] = Map.empty)(fa: F[A])(implicit timer: Timer[F], ae: ApplicativeError[F, Throwable]): F[A] = {
     val latencySuccess =  MeasureDouble.create(s"${name}_success_latency", "The successful io latency in milliseconds", "ms")
     val countFailure =  MeasureLong.create(s"${name}_failure_count", s"count of ${name}", "1")
 
     val latencyDistribution =
       Distribution.create(
-        BucketBoundaries.create(histoBuckets.map(Double.box).asJava))
+        BucketBoundaries.create(distributionBucket.map(Double.box).asJava))
 
     val tagKvs = tags.map {case (k, v) => (TagKey.create(k), TagValue.create(v))}
     val tc = getTagContext(tagKvs)
@@ -103,12 +103,12 @@ class OpenTelemetryMetricsInterpreter[F[_]](appName: String)(implicit F: Async[F
     } yield ()
   }
 
-  def recordDuration(name: String, duration: FiniteDuration, histoBuckets: List[Double], tags: Map[String, String] = Map.empty)(implicit timer: Timer[F]): F[Unit] = {
+  def recordDuration(name: String, duration: FiniteDuration, distributionBucket: List[Double], tags: Map[String, String] = Map.empty)(implicit timer: Timer[F]): F[Unit] = {
     val latency =  MeasureDouble.create(s"${name}_duration", s"The latency of ${name} in milliseconds", "ms")
 
     val latencyDistribution =
       Distribution.create(
-        BucketBoundaries.create(histoBuckets.map(Double.box).asJava))
+        BucketBoundaries.create(distributionBucket.map(Double.box).asJava))
 
     val tagKvs = tags.map {case (k, v) => (TagKey.create(k), TagValue.create(v))}
     val tc = getTagContext(tagKvs)
