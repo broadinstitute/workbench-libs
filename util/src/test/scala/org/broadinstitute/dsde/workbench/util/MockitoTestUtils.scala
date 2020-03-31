@@ -1,8 +1,7 @@
 package org.broadinstitute.dsde.workbench.util
 
 import org.mockito.ArgumentCaptor
-import org.scalatest.mockito.MockitoSugar
-
+import org.scalatestplus.mockito.MockitoSugar
 import scala.reflect.{ClassTag, classTag}
 
 /**

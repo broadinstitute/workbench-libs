@@ -3,8 +3,7 @@ package org.broadinstitute.dsde.test.util
 import akka.http.scaladsl.model.StatusCodes
 import org.broadinstitute.dsde.workbench.auth.AuthToken
 import org.broadinstitute.dsde.workbench.service.{Rawls, RestException}
-import org.scalatest.Matchers
-import org.scalatest.MustMatchers.convertToAnyMustWrapper
+import org.scalatest.matchers.must.Matchers
 import org.scalatest.concurrent.Eventually
 import org.scalatest.time.{Seconds, Span}
 

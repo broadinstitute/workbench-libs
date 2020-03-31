@@ -40,6 +40,11 @@ lazy val workbenchNewrelic = project.in(file("newrelic"))
   .settings(newrelicSettings:_*)
   .withTestSettings
 
+lazy val workbenchOpenTelemetry = project.in(file("openTelemetry"))
+  .settings(openTelemetrySettings:_*)
+  .dependsOn(workbenchUtil2 % testAndCompile)
+  .withTestSettings
+
 lazy val workbenchServiceTest = project.in(file("serviceTest"))
   .settings(serviceTestSettings:_*)
   .dependsOn(workbenchModel % testAndCompile)
@@ -65,11 +70,11 @@ lazy val workbenchLibs = project.in(file("."))
   .aggregate(workbenchModel)
   .aggregate(workbenchMetrics)
   .aggregate(workbenchNewrelic)
+  .aggregate(workbenchOpenTelemetry)
   .aggregate(workbenchGoogle)
   .aggregate(workbenchGoogle2)
   .aggregate(workbenchServiceTest)
   .aggregate(workbenchNotifications)
-  .settings(crossScalaVersions := List())
 
 Revolver.settings
 

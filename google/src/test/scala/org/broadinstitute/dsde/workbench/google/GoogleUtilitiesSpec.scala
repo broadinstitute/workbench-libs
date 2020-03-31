@@ -10,7 +10,9 @@ import com.google.api.client.http._
 import org.broadinstitute.dsde.workbench.google.GoogleUtilities.RetryPredicates._
 import org.broadinstitute.dsde.workbench.metrics.{Histogram, StatsDTestUtils}
 import org.broadinstitute.dsde.workbench.util.MockitoTestUtils
-import org.scalatest.{BeforeAndAfterAll, FlatSpecLike, Matchers}
+import org.scalatest.BeforeAndAfterAll
+import org.scalatest.flatspec.AnyFlatSpecLike
+import org.scalatest.matchers.should.Matchers
 import org.scalatest.concurrent.{Eventually, ScalaFutures}
 import spray.json._
 
@@ -22,7 +24,7 @@ import scala.concurrent.duration._
 //When we remove that function, we should remove this annotation too.
 import com.github.ghik.silencer.silent
 @silent("deprecated")
-class GoogleUtilitiesSpec extends TestKit(ActorSystem("MySpec")) with GoogleUtilities with FlatSpecLike with BeforeAndAfterAll with Matchers with ScalaFutures with Eventually with MockitoTestUtils with StatsDTestUtils {
+class GoogleUtilitiesSpec extends TestKit(ActorSystem("MySpec")) with GoogleUtilities with AnyFlatSpecLike with BeforeAndAfterAll with Matchers with ScalaFutures with Eventually with MockitoTestUtils with StatsDTestUtils {
   implicit val executionContext = ExecutionContext.global
   implicit def histo: Histogram = ExpandedMetricBuilder.empty.asHistogram("histo")
 
@@ -275,7 +277,7 @@ class GoogleUtilitiesSpec extends TestKit(ActorSystem("MySpec")) with GoogleUtil
   }
 }
 
-class GoogleJsonSpec extends FlatSpecLike with Matchers {
+class GoogleJsonSpec extends AnyFlatSpecLike with Matchers {
   "GoogleRequest" should "roundtrip json" in {
     import GoogleRequestJsonSupport._
     val gooRq = GoogleRequest("GET", "www.thegoogle.hooray", Some(JsString("you did a search")), 400, Some(200), None)

@@ -8,12 +8,13 @@ import akka.testkit.TestKit
 import akka.util.Timeout
 import org.broadinstitute.dsde.workbench.util.health.Subsystems.Agora
 import org.broadinstitute.dsde.workbench.model.WorkbenchException
-import org.scalatest.{BeforeAndAfterAll, FlatSpecLike, Matchers}
-
+import org.scalatest.BeforeAndAfterAll
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.flatspec.AnyFlatSpecLike
 import scala.concurrent.{Await, Future}
 import scala.concurrent.duration._
 
-class HealthMonitorSpec extends TestKit(ActorSystem("HealthMonitorSpec")) with FlatSpecLike with BeforeAndAfterAll with Matchers {
+class HealthMonitorSpec extends TestKit(ActorSystem("HealthMonitorSpec")) with AnyFlatSpecLike with BeforeAndAfterAll with Matchers {
   override def afterAll: Unit =  {
     TestKit.shutdownActorSystem(system)
   }

@@ -4,11 +4,12 @@ import io.circe.parser._
 import org.broadinstitute.dsde.workbench.google2.Generators._
 import org.broadinstitute.dsde.workbench.google2.GoogleServiceHttpInterpreter._
 import org.broadinstitute.dsde.workbench.util2.{PropertyBasedTesting, WorkbenchTestSuite}
-import org.scalatest.{FlatSpec, Matchers}
 import io.circe.syntax._
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.flatspec.AnyFlatSpecLike
 
 class GoogleStorageNotificationCreatorInterpreterSpec
-    extends FlatSpec
+    extends AnyFlatSpecLike
     with Matchers
     with WorkbenchTestSuite
     with PropertyBasedTesting {
