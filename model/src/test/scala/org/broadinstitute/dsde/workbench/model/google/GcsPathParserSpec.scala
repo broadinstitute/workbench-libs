@@ -1,8 +1,10 @@
 package org.broadinstitute.dsde.workbench.model.google
 
-import org.scalatest.{EitherValues, FlatSpecLike, Matchers}
+import org.scalatest.EitherValues
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.flatspec.AnyFlatSpecLike
 
-class GcsPathParserSpec extends FlatSpecLike with Matchers with EitherValues {
+class GcsPathParserSpec extends AnyFlatSpecLike with Matchers with EitherValues {
 
   "gcs" should "generate valid bucket names" in {
     generateUniqueBucketName("myCluster").value should startWith ("mycluster-")

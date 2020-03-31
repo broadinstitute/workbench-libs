@@ -6,9 +6,10 @@ import akka.http.scaladsl.server.Directives.{complete, get, pathEndOrSingleSlash
 import akka.http.scaladsl.testkit.ScalatestRouteTest
 import org.broadinstitute.dsde.workbench.util.MockitoTestUtils
 import org.scalatest.concurrent.Eventually
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.flatspec.AnyFlatSpecLike
+import org.scalatest.matchers.should.Matchers
 
-class InstrumentationDirectivesSpec extends FlatSpec with InstrumentationDirectives with Matchers with StatsDTestUtils with ScalatestRouteTest with Eventually with MockitoTestUtils {
+class InstrumentationDirectivesSpec extends AnyFlatSpecLike with InstrumentationDirectives with Matchers with StatsDTestUtils with ScalatestRouteTest with Eventually with MockitoTestUtils {
 
   override val workbenchMetricBaseName = "test"
 

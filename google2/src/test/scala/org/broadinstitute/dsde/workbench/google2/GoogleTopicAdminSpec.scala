@@ -10,9 +10,10 @@ import io.grpc.ManagedChannelBuilder
 import org.broadinstitute.dsde.workbench.google2.Generators._
 import org.broadinstitute.dsde.workbench.google2.GoogleTopicAdminSpec._
 import org.broadinstitute.dsde.workbench.util2.{PropertyBasedTesting, WorkbenchTestSuite}
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.flatspec.AnyFlatSpecLike
 
-class GoogleTopicAdminSpec extends FlatSpec with Matchers with WorkbenchTestSuite with PropertyBasedTesting {
+class GoogleTopicAdminSpec extends AnyFlatSpecLike with Matchers with WorkbenchTestSuite with PropertyBasedTesting {
   "GoogleTopicAdminInterpreter" should "be able to create topic" in {
     forAll { (topic: ProjectTopicName) =>
       val result = localTopicAdmin.use { topicAdmin =>

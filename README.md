@@ -76,6 +76,14 @@ Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-newrel
 
 [Changelog](newrelic/CHANGELOG.md)
 
+## workbench-openTelemetry
+
+Contains utility functions for publishing custom metrics using openTelemetry (openCensus and openTracing). 
+
+Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-openTelemetry" % "0.1-TAVIS-REPLACE-ME"`
+
+[Changelog](newrelic/CHANGELOG.md)
+
 ## workbench-service-test
 
 Contains common classes and utilities for writing tests against Workbench REST web services.

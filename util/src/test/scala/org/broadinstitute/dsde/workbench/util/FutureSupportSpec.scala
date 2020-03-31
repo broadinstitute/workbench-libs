@@ -1,6 +1,8 @@
 package org.broadinstitute.dsde.workbench.util
 
-import org.scalatest.{BeforeAndAfterAll, FlatSpecLike, Matchers}
+import org.scalatest.BeforeAndAfterAll
+import org.scalatest.flatspec.AnyFlatSpecLike
+import org.scalatest.matchers.should.Matchers
 import org.scalatest.TryValues._
 import org.scalatest.concurrent.ScalaFutures
 
@@ -11,7 +13,7 @@ import FutureSupport._
 import akka.actor.{ActorSystem, Scheduler}
 import akka.testkit.TestKit
 
-class FutureSupportSpec extends TestKit(ActorSystem("FutureSupportSpec")) with FlatSpecLike with BeforeAndAfterAll with Matchers with ScalaFutures {
+class FutureSupportSpec extends TestKit(ActorSystem("FutureSupportSpec")) with AnyFlatSpecLike with BeforeAndAfterAll with Matchers with ScalaFutures {
   import system.dispatcher
   implicit val scheduler: Scheduler = system.scheduler
 

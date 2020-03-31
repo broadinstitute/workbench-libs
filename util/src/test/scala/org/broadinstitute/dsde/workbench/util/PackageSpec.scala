@@ -1,9 +1,10 @@
 package org.broadinstitute.dsde.workbench.util
 
-import org.scalatest.{FlatSpecLike, Matchers}
+import org.scalatest.flatspec.AnyFlatSpecLike
+import org.scalatest.matchers.should.Matchers
 import scala.concurrent.duration._
 
-class PackageSpec extends FlatSpecLike with Matchers {
+class PackageSpec extends AnyFlatSpecLike with Matchers {
 
   "addJitter" should "not add more than 10% jitter" in {
     addJitter(0.5 seconds) shouldBe <= (0.55 seconds)
