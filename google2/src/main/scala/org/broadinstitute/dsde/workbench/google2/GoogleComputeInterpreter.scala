@@ -84,21 +84,7 @@ private[google2] class GoogleComputeInterpreter[F[_]: Async: StructuredLogger: T
     )
   }
 
-  override def addInstanceMetadata(
-    project: GoogleProject,
-    zone: ZoneName,
-    instanceName: InstanceName,
-    metadata: Map[String, String]
-  )(implicit ev: ApplicativeAsk[F, TraceId]): F[Unit] =
-    modifyInstanceMetadata(project, zone, instanceName, metadata, Set.empty)
-
-  override def removeInstanceMetadata(project: GoogleProject,
-                                      zone: ZoneName,
-                                      instanceName: InstanceName,
-                                      metadataToRemove: Set[String])(implicit ev: ApplicativeAsk[F, TraceId]): F[Unit] =
-    modifyInstanceMetadata(project, zone, instanceName, Map.empty, metadataToRemove)
-
-  private[google2] def modifyInstanceMetadata(
+  override def modifyInstanceMetadata(
     project: GoogleProject,
     zone: ZoneName,
     instanceName: InstanceName,
