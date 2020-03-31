@@ -44,7 +44,7 @@ trait GoogleComputeService[F[_]] {
   def addInstanceMetadata(project: GoogleProject,
                           zone: ZoneName,
                           instanceName: InstanceName,
-                          metadataToAdd: Map[String, String])(implicit ev: ApplicativeAsk[F, TraceId]): F[Unit]
+                          metadata: Map[String, String])(implicit ev: ApplicativeAsk[F, TraceId]): F[Unit]
 
   def removeInstanceMetadata(project: GoogleProject,
                              zone: ZoneName,
