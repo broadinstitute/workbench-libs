@@ -108,7 +108,7 @@ class OpenTelemetryMetricsInterpreter[F[_]](appName: String)(implicit F: Async[F
 
     val latencyDistribution =
       Distribution.create(
-        BucketBoundaries.create(distributionBucket.map(Double.box).asJava))
+        BucketBoundaries.create(distributionBucket.map(x => Double.box(x.toMillis)).asJava))
 
     val tagKvs = tags.map {case (k, v) => (TagKey.create(k), TagValue.create(v))}
     val tc = getTagContext(tagKvs)
