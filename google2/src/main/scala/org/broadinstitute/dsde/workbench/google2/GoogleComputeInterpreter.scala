@@ -84,31 +84,43 @@ private[google2] class GoogleComputeInterpreter[F[_]: Async: StructuredLogger: T
     )
   }
 
-  override def addInstanceMetadata(project: GoogleProject,
-                                   zone: ZoneName,
-                                   instanceName: InstanceName,
-                                   metadata: Map[String, String])(implicit ev: ApplicativeAsk[F, TraceId]): F[Unit] = {
+  override def modifyInstanceMetadata(
+    project: GoogleProject,
+    zone: ZoneName,
+    instanceName: InstanceName,
+    metadataToAdd: Map[String, String],
+    metadataToRemove: Set[String]
+  )(implicit ev: ApplicativeAsk[F, TraceId]): F[Unit] = {
     val projectZoneInstanceName = ProjectZoneInstanceName.of(instanceName.value, project.value, zone.value)
     val readAndUpdate = for {
       instanceOpt <- recoverF(Async[F].delay(instanceClient.getInstance(projectZoneInstanceName)), whenStatusCode(404))
-      instance <- instanceOpt.fold(
-        Async[F]
-          .raiseError[Instance](new WorkbenchException(s"Instance not found: ${projectZoneInstanceName.toString}"))
-      )(Async[F].pure)
+      instance <- Async[F].fromEither(
+        instanceOpt.toRight(new WorkbenchException(s"Instance not found: ${projectZoneInstanceName.toString}"))
+      )
       curMetadataOpt = Option(instance.getMetadata)
 
       fingerprint = curMetadataOpt.map(_.getFingerprint).orNull
       curItems = curMetadataOpt.flatMap(m => Option(m.getItemsList)).map(_.asScala).getOrElse(List.empty)
-      newMetadata = Metadata
-        .newBuilder()
-        .setFingerprint(fingerprint)
-        .addAllItems((curItems.filterNot(i => metadata.contains(i.getKey)) ++ metadata.toList.map {
-          case (k, v) =>
-            Items.newBuilder().setKey(k).setValue(v).build()
-        }).asJava)
-        .build
-
-      _ <- Async[F].delay(instanceClient.setMetadataInstance(projectZoneInstanceName, newMetadata))
+      filteredItems = curItems.filterNot { i =>
+        metadataToRemove.contains(i.getKey) || metadataToAdd.contains(i.getKey)
+      }
+      newItems = filteredItems ++ metadataToAdd.toList.map {
+        case (k, v) =>
+          Items.newBuilder().setKey(k).setValue(v).build()
+      }
+      // Only make google call if there is a change
+      _ <- if (!newItems.equals(curItems)) {
+        Async[F]
+          .delay(
+            instanceClient.setMetadataInstance(projectZoneInstanceName,
+                                               Metadata
+                                                 .newBuilder()
+                                                 .setFingerprint(fingerprint)
+                                                 .addAllItems(newItems.asJava)
+                                                 .build)
+          )
+          .void
+      } else Async[F].unit
     } yield ()
 
     // block and retry the read-modify-write as an atomic unit
