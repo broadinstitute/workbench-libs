@@ -101,12 +101,13 @@ private[google2] class GoogleComputeInterpreter[F[_]: Async: StructuredLogger: T
 
       fingerprint = curMetadataOpt.map(_.getFingerprint).orNull
       curItems = curMetadataOpt.flatMap(m => Option(m.getItemsList)).map(_.asScala).getOrElse(List.empty)
-      newItems = curItems
-        .filterNot(i => metadataToRemove.contains(i.getKey) || metadataToAdd.contains(i.getKey)) ++ metadataToAdd.toList
-        .map {
-          case (k, v) =>
-            Items.newBuilder().setKey(k).setValue(v).build()
-        }
+      filteredItems = curItems.filterNot { i =>
+        metadataToRemove.contains(i.getKey) || metadataToAdd.contains(i.getKey)
+      }
+      newItems = filteredItems ++ metadataToAdd.toList.map {
+        case (k, v) =>
+          Items.newBuilder().setKey(k).setValue(v).build()
+      }
       // Only make google call if there is a change
       _ <- if (!newItems.equals(curItems)) {
         Async[F]
