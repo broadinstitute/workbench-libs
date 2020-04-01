@@ -10,4 +10,4 @@ This file documents changes to the `workbench-openTelemetry` library, including 
 ### Changed
 - Bump `scalatest` to `3.1.1`
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-openTelemetry" % "0.1-73d6a64"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-opentelemetry" % "0.1-73d6a64"`

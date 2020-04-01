@@ -80,7 +80,7 @@ Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-newrel
 
 Contains utility functions for publishing custom metrics using openTelemetry (openCensus and openTracing). 
 
-Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-openTelemetry" % "0.1-TAVIS-REPLACE-ME"`
+Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-opentelemetry" % "0.1-73d6a64"`
 
 [Changelog](newrelic/CHANGELOG.md)
 
