@@ -44,7 +44,20 @@ trait GoogleComputeService[F[_]] {
   def addInstanceMetadata(project: GoogleProject,
                           zone: ZoneName,
                           instanceName: InstanceName,
-                          metadata: Map[String, String])(implicit ev: ApplicativeAsk[F, TraceId]): F[Unit]
+                          metadata: Map[String, String])(implicit ev: ApplicativeAsk[F, TraceId]): F[Unit] =
+    modifyInstanceMetadata(project, zone, instanceName, metadata, Set.empty)
+
+  def removeInstanceMetadata(project: GoogleProject,
+                             zone: ZoneName,
+                             instanceName: InstanceName,
+                             metadataToRemove: Set[String])(implicit ev: ApplicativeAsk[F, TraceId]): F[Unit] =
+    modifyInstanceMetadata(project, zone, instanceName, Map.empty, metadataToRemove)
+
+  def modifyInstanceMetadata(project: GoogleProject,
+                             zone: ZoneName,
+                             instanceName: InstanceName,
+                             metadataToAdd: Map[String, String],
+                             metadataToRemove: Set[String])(implicit ev: ApplicativeAsk[F, TraceId]): F[Unit]
 
   def addFirewallRule(project: GoogleProject, firewall: Firewall)(implicit ev: ApplicativeAsk[F, TraceId]): F[Operation]
 
