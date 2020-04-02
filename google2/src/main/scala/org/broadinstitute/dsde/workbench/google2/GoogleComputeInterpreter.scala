@@ -295,8 +295,9 @@ private[google2] class GoogleComputeInterpreter[F[_]: Async: StructuredLogger: T
   }
 
   override def pollOperation(project: GoogleProject, operation: Operation, delay: FiniteDuration, maxAttempts: Int)(
-    implicit ev: ApplicativeAsk[F, TraceId]
-  ): Stream[F, PollOperation] = {
+    implicit ev: ApplicativeAsk[F, TraceId],
+    doneEv: DoneCheckable[Operation]
+  ): Stream[F, Operation] = {
     // TODO: once a newer version of the Java Compute SDK is released investigate using
     // the operation `wait` API instead of polling `get`. See:
     // https://cloud.google.com/compute/docs/reference/rest/v1/zoneOperations/wait
@@ -306,11 +307,7 @@ private[google2] class GoogleComputeInterpreter[F[_]: Async: StructuredLogger: T
       case (None, Some(region)) => getRegionOperation(project, region, OperationName(operation.getName))
       case (None, None)         => getGlobalOperation(project, OperationName(operation.getName))
     }
-
-    (Stream.eval(getOp) ++ Stream.sleep_(delay))
-      .repeatN(maxAttempts)
-      .map(PollOperation)
-      .takeThrough(!_.isDone)
+    streamFUntilDone(getOp, maxAttempts, delay)
   }
 
   private def buildMachineTypeUri(zone: ZoneName, machineTypeName: MachineTypeName): String =

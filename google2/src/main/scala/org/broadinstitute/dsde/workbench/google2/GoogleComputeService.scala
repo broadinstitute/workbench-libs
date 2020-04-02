@@ -9,7 +9,7 @@ import com.google.auth.oauth2.GoogleCredentials
 import com.google.cloud.compute.v1._
 import fs2._
 import _root_.io.chrisdavenport.log4cats.StructuredLogger
-import org.broadinstitute.dsde.workbench.RetryConfig
+import org.broadinstitute.dsde.workbench.{DoneCheckable, RetryConfig}
 import org.broadinstitute.dsde.workbench.google2.util.RetryPredicates
 import org.broadinstitute.dsde.workbench.model.google.GoogleProject
 import org.broadinstitute.dsde.workbench.model.{TraceId, WorkbenchEmail}
@@ -115,8 +115,9 @@ trait GoogleComputeService[F[_]] {
   ): F[Operation]
 
   def pollOperation(project: GoogleProject, operation: Operation, delay: FiniteDuration, maxAttempts: Int)(
-    implicit ev: ApplicativeAsk[F, TraceId]
-  ): Stream[F, PollOperation]
+    implicit ev: ApplicativeAsk[F, TraceId],
+    doneEv: DoneCheckable[Operation]
+  ): Stream[F, Operation]
 }
 
 object GoogleComputeService {
@@ -182,16 +183,16 @@ object GoogleComputeService {
       .build()
 
     for {
-      instanceClient <- resourceF(InstanceClient.create(instanceSettings))
-      firewallClient <- resourceF(FirewallClient.create(firewallSettings))
-      diskClient <- resourceF(DiskClient.create(diskSettings))
-      zoneClient <- resourceF(ZoneClient.create(zoneSettings))
-      machineTypeClient <- resourceF(MachineTypeClient.create(machineTypeSettings))
-      networkClient <- resourceF(NetworkClient.create(networkSettings))
-      subnetworkClient <- resourceF(SubnetworkClient.create(subnetworkSettings))
-      zoneOperationClient <- resourceF(ZoneOperationClient.create(zoneOperationSettings))
-      regionOperationClient <- resourceF(RegionOperationClient.create(regionOperationSettings))
-      globalOperationClient <- resourceF(GlobalOperationClient.create(globalOperationSettings))
+      instanceClient <- backgroundResourceF(InstanceClient.create(instanceSettings))
+      firewallClient <- backgroundResourceF(FirewallClient.create(firewallSettings))
+      diskClient <- backgroundResourceF(DiskClient.create(diskSettings))
+      zoneClient <- backgroundResourceF(ZoneClient.create(zoneSettings))
+      machineTypeClient <- backgroundResourceF(MachineTypeClient.create(machineTypeSettings))
+      networkClient <- backgroundResourceF(NetworkClient.create(networkSettings))
+      subnetworkClient <- backgroundResourceF(SubnetworkClient.create(subnetworkSettings))
+      zoneOperationClient <- backgroundResourceF(ZoneOperationClient.create(zoneOperationSettings))
+      regionOperationClient <- backgroundResourceF(RegionOperationClient.create(regionOperationSettings))
+      globalOperationClient <- backgroundResourceF(GlobalOperationClient.create(globalOperationSettings))
     } yield new GoogleComputeInterpreter[F](instanceClient,
                                             firewallClient,
                                             diskClient,
@@ -217,6 +218,3 @@ final case class RegionName(value: String) extends AnyVal
 final case class NetworkName(value: String) extends AnyVal
 final case class SubnetworkName(value: String) extends AnyVal
 final case class OperationName(value: String) extends AnyVal
-final case class PollOperation(op: Operation) {
-  def isDone = op.getStatus == "DONE"
-}

@@ -51,6 +51,7 @@ object Dependencies {
   val googleServicemanagement: ModuleID =    "com.google.apis"       % "google-api-services-servicemanagement"    % s"v1-rev359-$googleV"
   val googleIam: ModuleID =                  "com.google.apis"       % "google-api-services-iam"                  % s"v1-rev215-$googleV"
   val googleBigQuery: ModuleID =             "com.google.apis"       % "google-api-services-bigquery"             % s"v2-rev377-$googleV"
+
   val googleGuava: ModuleID = "com.google.guava"  % "guava" % "22.0"
   val googleRpc: ModuleID =               "io.grpc" % "grpc-core" % "1.16.1" //old google libraries relies on older version of grpc
 
@@ -62,6 +63,11 @@ object Dependencies {
   val googleKms: ModuleID = "com.google.cloud" % "google-cloud-kms" % "0.77.0-beta"
   val googleDataproc: ModuleID =    "com.google.cloud" % "google-cloud-dataproc" % "0.111.0"
   val googleComputeNew: ModuleID = "com.google.cloud" % "google-cloud-compute" % "0.117.0-alpha"
+  val googleContainer: ModuleID = "com.google.cloud" % "google-cloud-container" % "1.0.0"
+  val kubernetesClient: ModuleID = "io.kubernetes" % "client-java" % "5.0.0" % "compile"
+  //the below v1 module is a dependency for v2 because it contains the OAuth scopes necessary to created scoped credentials
+  val googleContainerV1: ModuleID = "com.google.apis" % "google-api-services-container" % s"v1-rev74-$googleV"
+
 
   val circeCore: ModuleID = "io.circe" %% "circe-core" % circeVersion
   val circeParser: ModuleID = "io.circe" %% "circe-parser" % circeVersion
@@ -160,7 +166,10 @@ object Dependencies {
     http4sDsl,
     log4cats,
     circeFs2,
-    catsMtl
+    catsMtl,
+    googleContainer,
+    kubernetesClient,
+    googleContainerV1
   )
 
   val newrelicDependencies = Seq(

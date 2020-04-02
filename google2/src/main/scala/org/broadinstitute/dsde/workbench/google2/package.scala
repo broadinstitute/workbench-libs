@@ -2,6 +2,7 @@ package org.broadinstitute.dsde.workbench
 
 import java.util.concurrent.TimeUnit
 
+import DoneCheckableSyntax._
 import cats.implicits._
 import cats.effect.{Resource, Sync, Timer}
 import cats.mtl.ApplicativeAsk
@@ -82,12 +83,20 @@ package object google2 {
       credential <- Resource.liftF(Sync[F].delay(ServiceAccountCredentials.fromStream(credentialFile)))
     } yield credential
 
-  def resourceF[F[_]: Sync, A <: BackgroundResource](resource: => A): Resource[F, A] =
+  def backgroundResourceF[F[_]: Sync, A <: BackgroundResource](resource: => A): Resource[F, A] =
+    Resource.make(Sync[F].delay(resource))(c => Sync[F].delay(c.shutdown()) >> Sync[F].delay(c.close()))
+
+  def autoClosableResourceF[F[_]: Sync, A <: AutoCloseable](resource: => A): Resource[F, A] =
     Resource.make(Sync[F].delay(resource))(c => Sync[F].delay(c.close()))
 
   // Recovers a F[A] to an F[Option[A]] depending on predicate
   def recoverF[F[_]: Sync, A](fa: F[A], pred: Throwable => Boolean): F[Option[A]] =
     fa.map(Option(_)).recover { case e if pred(e) => None }
+
+  def streamFUntilDone[F[_]: Timer, A: DoneCheckable](fa: F[A], maxAttempts: Int, delay: FiniteDuration): Stream[F, A] =
+    (Stream.eval(fa) ++ Stream.sleep_(delay))
+      .repeatN(maxAttempts)
+      .takeThrough(!_.isDone)
 }
 
 final case class RetryConfig(retryInitialDelay: FiniteDuration,
@@ -95,3 +104,25 @@ final case class RetryConfig(retryInitialDelay: FiniteDuration,
                              maxAttempts: Int,
                              retryable: Throwable => Boolean = scala.util.control.NonFatal.apply)
 final case class LoggableGoogleCall(response: Option[String], result: String)
+
+trait DoneCheckable[A] {
+  def isDone(a: A): Boolean
+}
+
+object DoneCheckableInstances {
+  implicit val containerDoneCheckable = new DoneCheckable[com.google.container.v1.Operation] {
+    def isDone(op: com.google.container.v1.Operation): Boolean =
+      op.getStatus == com.google.container.v1.Operation.Status.DONE
+  }
+  implicit val computeDoneCheckable = new DoneCheckable[com.google.cloud.compute.v1.Operation] {
+    def isDone(op: com.google.cloud.compute.v1.Operation): Boolean = op.getStatus == "DONE"
+  }
+}
+
+final case class DoneCheckableOps[A](a: A)(implicit ev: DoneCheckable[A]) {
+  def isDone: Boolean = ev.isDone(a)
+}
+
+object DoneCheckableSyntax {
+  implicit def doneCheckableSyntax[A](a: A)(implicit ev: DoneCheckable[A]): DoneCheckableOps[A] = DoneCheckableOps(a)
+}

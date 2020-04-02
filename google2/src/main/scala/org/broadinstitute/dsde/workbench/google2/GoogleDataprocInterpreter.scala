@@ -24,7 +24,7 @@ private[google2] class GoogleDataprocInterpreter[F[_]: Async: StructuredLogger: 
   override def createCluster(
     project: GoogleProject,
     region: RegionName,
-    clusterName: ClusterName,
+    clusterName: DataprocClusterName,
     createClusterConfig: Option[CreateClusterConfig]
   )(implicit ev: ApplicativeAsk[F, TraceId]): F[CreateClusterResponse] = {
     val config: ClusterConfig = createClusterConfig
@@ -79,7 +79,7 @@ private[google2] class GoogleDataprocInterpreter[F[_]: Async: StructuredLogger: 
     } yield result
   }
 
-  override def deleteCluster(project: GoogleProject, region: RegionName, clusterName: ClusterName)(
+  override def deleteCluster(project: GoogleProject, region: RegionName, clusterName: DataprocClusterName)(
     implicit ev: ApplicativeAsk[F, TraceId]
   ): F[DeleteClusterResponse] = {
     val request = DeleteClusterRequest
@@ -116,7 +116,7 @@ private[google2] class GoogleDataprocInterpreter[F[_]: Async: StructuredLogger: 
     } yield result
   }
 
-  override def getCluster(project: GoogleProject, region: RegionName, clusterName: ClusterName)(
+  override def getCluster(project: GoogleProject, region: RegionName, clusterName: DataprocClusterName)(
     implicit ev: ApplicativeAsk[F, TraceId]
   ): F[Option[Cluster]] =
     retryF(
