@@ -25,15 +25,15 @@ trait GoogleDataprocService[F[_]] {
   def createCluster(
     project: GoogleProject,
     region: RegionName,
-    clusterName: ClusterName,
+    clusterName: DataprocClusterName,
     createClusterConfig: Option[CreateClusterConfig]
   )(implicit ev: ApplicativeAsk[F, TraceId]): F[CreateClusterResponse]
 
-  def deleteCluster(project: GoogleProject, region: RegionName, clusterName: ClusterName)(
+  def deleteCluster(project: GoogleProject, region: RegionName, clusterName: DataprocClusterName)(
     implicit ev: ApplicativeAsk[F, TraceId]
   ): F[DeleteClusterResponse]
 
-  def getCluster(project: GoogleProject, region: RegionName, clusterName: ClusterName)(
+  def getCluster(project: GoogleProject, region: RegionName, clusterName: DataprocClusterName)(
     implicit ev: ApplicativeAsk[F, TraceId]
   ): F[Option[Cluster]]
 }
@@ -63,12 +63,12 @@ object GoogleDataprocService {
       .build()
 
     for {
-      client <- resourceF(ClusterControllerClient.create(settings))
+      client <- backgroundResourceF(ClusterControllerClient.create(settings))
     } yield new GoogleDataprocInterpreter[F](client, blocker, blockerBound, retryConfig)
   }
 }
 
-final case class ClusterName(value: String) extends AnyVal
+final case class DataprocClusterName(value: String) extends AnyVal
 final case class ClusterErrorDetails(code: Int, message: Option[String])
 
 sealed abstract class CreateClusterResponse
