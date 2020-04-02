@@ -13,7 +13,7 @@ Added:
 - `com.google.apis` % `google-api-services-container` SBT Dependency
 - `io.kubernetes` % `client-java` SBT Dependency
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.8-TRAVIS-REPLACE-ME"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.8-fdf838b"`
 
 ## 0.7
 Changed:
