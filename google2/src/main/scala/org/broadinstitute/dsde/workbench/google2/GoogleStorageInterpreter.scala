@@ -10,13 +10,14 @@ import cats.effect.concurrent.Semaphore
 import cats.implicits._
 import com.google.auth.oauth2.ServiceAccountCredentials
 import com.google.cloud.storage.BucketInfo.LifecycleRule
-import com.google.cloud.storage.Storage.{BlobListOption, BlobSourceOption, BlobTargetOption}
+import com.google.cloud.storage.Storage.{BlobListOption, BlobSourceOption, BlobTargetOption, BucketSourceOption}
 import com.google.cloud.storage.{Acl, Blob, BlobId, BlobInfo, BucketInfo, Storage, StorageOptions}
 import com.google.cloud.{Identity, Policy, Role}
-import fs2.{text, Stream}
+import fs2.{Stream, text}
 import io.chrisdavenport.log4cats.StructuredLogger
 import io.circe.Decoder
 import io.circe.fs2._
+import org.broadinstitute.dsde.workbench.google2.util.RetryPredicates.standardRetryConfig
 import org.broadinstitute.dsde.workbench.model.{TraceId, WorkbenchException}
 import org.broadinstitute.dsde.workbench.model.google.{GcsBucketName, GcsObjectName, GoogleProject}
 
@@ -272,6 +273,19 @@ private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer: Async
       createBucket,
       traceId,
       s"com.google.cloud.storage.Storage.create($bucketInfo, ${googleProject.value})"
+    )
+  }
+
+  override def deleteBucket(googleProject: GoogleProject,
+                   bucketName: GcsBucketName,
+                   bucketSourceOptions: List[BucketSourceOption] = List.empty,
+                   traceId: Option[TraceId] = None,
+                   retryConfig: RetryConfig = standardRetryConfig): Stream[F, Boolean] = {
+    val deleteBucket = Async[F].delay(db.delete(bucketName.value, bucketSourceOptions: _*))
+    retryGoogleF(retryConfig)(
+      deleteBucket,
+      traceId,
+      s"com.google.cloud.storage.Storage.delete(${bucketName.value}, ${bucketSourceOptions})"
     )
   }
 
