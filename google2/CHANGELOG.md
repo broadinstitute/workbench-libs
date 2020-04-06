@@ -14,7 +14,7 @@ Added:
 - `io.kubernetes` % `client-java` SBT Dependency
 - add `deleteBucket` to `GoogleStorageService`
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.8-TRAVIS-REPLACE-ME"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.8-e191f58"`
 
 ## 0.7
 Changed:
