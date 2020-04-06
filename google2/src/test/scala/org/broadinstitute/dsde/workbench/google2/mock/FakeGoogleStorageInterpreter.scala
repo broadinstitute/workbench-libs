@@ -8,9 +8,11 @@ import com.google.cloud.storage.{Acl, Blob, BlobId, BucketInfo}
 import org.broadinstitute.dsde.workbench.model.google.{GcsBucketName, GcsObjectName, GoogleProject}
 import GoogleStorageInterpreterSpec._
 import cats.data.NonEmptyList
+import com.google.cloud.storage.Storage.BucketSourceOption
 import com.google.cloud.{Identity, Policy}
 import fs2.Stream
 import org.broadinstitute.dsde.workbench.RetryConfig
+import org.broadinstitute.dsde.workbench.google2.util.RetryPredicates.standardRetryConfig
 import org.broadinstitute.dsde.workbench.model.TraceId
 
 class BaseFakeGoogleStorage extends GoogleStorageService[IO] {
@@ -84,6 +86,12 @@ class BaseFakeGoogleStorage extends GoogleStorageService[IO] {
                             bucketPolicyOnlyEnabled: Boolean = false,
                             logBucket: Option[GcsBucketName] = None,
                             retryConfig: RetryConfig): Stream[IO, Unit] = Stream.empty
+
+  override def deleteBucket(googleProject: GoogleProject,
+                   bucketName: GcsBucketName,
+                   bucketSourceOptions: List[BucketSourceOption] = List.empty,
+                   traceId: Option[TraceId] = None,
+                   retryConfig: RetryConfig = standardRetryConfig): Stream[IO, Boolean] = Stream.emit(true).covary[IO]
 
   override def setBucketPolicyOnly(bucketName: GcsBucketName,
                                    bucketOnlyPolicyEnabled: Boolean,
