@@ -12,8 +12,9 @@ Added:
 - `com.google.cloud` % `google-cloud-container` SBT Dependency
 - `com.google.apis` % `google-api-services-container` SBT Dependency
 - `io.kubernetes` % `client-java` SBT Dependency
+- add `deleteBucket` to `GoogleStorageService`
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.8-fdf838b"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.8-TRAVIS-REPLACE-ME"`
 
 ## 0.7
 Changed:

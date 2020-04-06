@@ -10,6 +10,7 @@ import com.google.cloud.{Identity, Policy}
 import com.google.auth.oauth2.{AccessToken, GoogleCredentials}
 import com.google.cloud.storage.{Acl, Blob, BlobId, StorageOptions}
 import com.google.cloud.storage.BucketInfo.LifecycleRule
+import com.google.cloud.storage.Storage.BucketSourceOption
 import fs2.Stream
 import io.chrisdavenport.log4cats.StructuredLogger
 import org.broadinstitute.dsde.workbench.RetryConfig
@@ -203,6 +204,17 @@ trait GoogleStorageService[F[_]] {
                    bucketPolicyOnlyEnabled: Boolean = false,
                    logBucket: Option[GcsBucketName] = None,
                    retryConfig: RetryConfig = standardRetryConfig): Stream[F, Unit]
+
+  /**
+   * @param googleProject The name of the Google project to create the bucket in
+   * @param traceId uuid for tracing a unique call flow in logging
+   * Return {@code true} if bucket was deleted, {@code false} if it was not found
+   */
+  def deleteBucket(googleProject: GoogleProject,
+                   bucketName: GcsBucketName,
+                   bucketSourceOptions: List[BucketSourceOption] = List.empty,
+                   traceId: Option[TraceId] = None,
+                   retryConfig: RetryConfig = standardRetryConfig): Stream[F, Boolean]
 
   /**
    * @param traceId uuid for tracing a unique call flow in logging
