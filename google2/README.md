@@ -24,9 +24,12 @@ import io.chrisdavenport.log4cats.slf4j.Slf4jLogger
 import cats.effect.IO
 import org.broadinstitute.dsde.workbench.model.google.GcsBucketName
 import org.broadinstitute.dsde.workbench.google2.GcsBlobName
+import cats.effect.Blocker
 implicit val cs = IO.contextShift(global)
 implicit val t = IO.timer(global)
-implicit def logger = Slf4jLogger.getLogger[IO]  
+implicit def logger = Slf4jLogger.getLogger[IO]
+import org.broadinstitute.dsde.workbench.model.google.GoogleProject
+val blocker = Blocker.liftExecutionContext(global)
 ```
 
 `scala> GoogleStorageService.resource[IO]("credentials.json")`

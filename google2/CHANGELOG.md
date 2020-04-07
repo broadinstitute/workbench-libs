@@ -5,7 +5,8 @@ This file documents changes to the `workbench-google2` library, including notes 
 ## 0.8
 Changed: 
 - Renamed `ClusterName` to `DataprocClusterName`
-- `pollOperation` in `GoogleComputeService` now returns `Stream[F, Operation]`  
+- `pollOperation` in `GoogleComputeService` now returns `Stream[F, Operation]`
+- bug fix in `deleteBucket`
 
 Added:
 - `GKEInterpreter`, `GKEService`, `KubernetesService`, and `KubernetesInterpreter`
@@ -14,7 +15,7 @@ Added:
 - `io.kubernetes` % `client-java` SBT Dependency
 - add `deleteBucket` to `GoogleStorageService`
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.8-c8b5b15"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.8-TRAVIS-REPLACE-ME"`
 
 ## 0.7
 Changed:

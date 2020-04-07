@@ -89,6 +89,7 @@ class BaseFakeGoogleStorage extends GoogleStorageService[IO] {
 
   override def deleteBucket(googleProject: GoogleProject,
                    bucketName: GcsBucketName,
+                   isRecursive: Boolean,
                    bucketSourceOptions: List[BucketSourceOption] = List.empty,
                    traceId: Option[TraceId] = None,
                    retryConfig: RetryConfig = standardRetryConfig): Stream[IO, Boolean] = Stream.emit(true).covary[IO]

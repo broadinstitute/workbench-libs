@@ -277,16 +277,46 @@ private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer: Async
   }
 
   override def deleteBucket(googleProject: GoogleProject,
-                            bucketName: GcsBucketName,
-                            bucketSourceOptions: List[BucketSourceOption] = List.empty,
-                            traceId: Option[TraceId] = None,
-                            retryConfig: RetryConfig = standardRetryConfig): Stream[F, Boolean] = {
-    val deleteBucket = Async[F].delay(db.delete(bucketName.value, bucketSourceOptions: _*))
-    retryGoogleF(retryConfig)(
-      deleteBucket,
-      traceId,
-      s"com.google.cloud.storage.Storage.delete(${bucketName.value}, ${bucketSourceOptions})"
-    )
+                   bucketName: GcsBucketName,
+                   isRecursive: Boolean,
+                   bucketSourceOptions: List[BucketSourceOption] = List.empty,
+                   traceId: Option[TraceId] = None,
+                   retryConfig: RetryConfig = standardRetryConfig): Stream[F, Boolean] = {
+    val dbForProject = db.getOptions.toBuilder.setProjectId(googleProject.value).build().getService
+
+    val allBlobs = for {
+      firstPage <- retryGoogleF(retryConfig)(
+        blockingF(Async[F].delay(db.list(bucketName.value))),
+        traceId,
+        s"com.google.cloud.storage.Storage.list($bucketName)")
+      page <- Stream.unfoldEval(firstPage) { currentPage =>
+        Option(currentPage).traverse { p =>
+          val fetchNext = retryGoogleF(retryConfig)(
+            blockingF(Async[F].delay(p.getNextPage)),
+            traceId,
+            s"com.google.api.gax.paging.Page.getNextPage"
+          )
+          fetchNext.compile.lastOrError.map(next => (p, next))
+        }
+      }
+      blobId <- Stream.fromIterator[F](page.getValues.iterator().asScala).map(b => Option(b)).unNone.map(_.getBlobId)
+    } yield blobId
+
+    for {
+      _ <- if (isRecursive) {
+        val r = for {
+          allBlobs <- allBlobs.compile.toList
+          r <- Async[F].delay(db.delete(allBlobs.asJava))
+        } yield ()
+        Stream.eval(r)
+      } else Stream.eval(Async[F].unit)
+      deleteBucket = Async[F].delay(dbForProject.delete(bucketName.value, bucketSourceOptions: _*))
+      r <- retryGoogleF(retryConfig)(
+        deleteBucket,
+        traceId,
+        s"com.google.cloud.storage.Storage.delete(${bucketName.value}, ${bucketSourceOptions})"
+      )
+    } yield r
   }
 
   override def setBucketPolicyOnly(bucketName: GcsBucketName,
