@@ -1,26 +1,14 @@
 package org.broadinstitute.dsde.workbench.google2
-import com.google.container.v1.{Cluster, NodePool, NodePoolAutoscaling, Operation}
+import com.google.container.v1.{Cluster, NetworkConfig, NetworkPolicy, NodePool, NodePoolAutoscaling, Operation}
 
 import collection.JavaConverters._
-import io.kubernetes.client.models.{
-  V1Container,
-  V1ContainerPort,
-  V1Namespace,
-  V1ObjectMeta,
-  V1ObjectMetaBuilder,
-  V1Pod,
-  V1PodSpec,
-  V1Service,
-  V1ServicePort,
-  V1ServiceSpec
-}
+import io.kubernetes.client.models.{V1Container, V1ContainerPort, V1Namespace, V1ObjectMeta, V1ObjectMetaBuilder, V1Pod, V1PodSpec, V1Service, V1ServicePort, V1ServiceSpec}
 import org.apache.commons.codec.binary.Base64
 import org.broadinstitute.dsde.workbench.google2.GKEModels._
 import org.broadinstitute.dsde.workbench.google2.KubernetesModels.ServicePort
 import org.broadinstitute.dsde.workbench.google2.KubernetesSerializableName._
 import org.broadinstitute.dsde.workbench.model.WorkbenchException
 import org.broadinstitute.dsde.workbench.model.google.GoogleProject
-
 import cats.implicits._
 
 object KubernetesConstants {
@@ -36,6 +24,21 @@ object KubernetesConstants {
 
   val DEFAULT_NODEPOOL_SIZE: Int = 1
   val DEFAULT_NODEPOOL_AUTOSCALING: ClusterNodePoolAutoscalingConfig = ClusterNodePoolAutoscalingConfig(1, 10)
+
+  val DEFAULT_NETWORK_NAME = NetworkName("kube-test")
+
+  def getDefaultNetwork(project: GoogleProject): NetworkConfig = {
+
+    val network: String = KubernetesNetwork(project, DEFAULT_NETWORK_NAME).idString
+    NetworkConfig.newBuilder()
+      .setNetwork(network)
+      .build()
+  }
+
+  def getDefaultNetworkPolicy(): NetworkPolicy = NetworkPolicy
+    .newBuilder()
+    .setEnabled(true)
+    .build()
 
   def getDefaultCluster(nodePoolName: NodePoolName, clusterName: KubernetesClusterName): Cluster =
     Cluster
@@ -114,6 +117,16 @@ object GKEModels {
 
   final case class KubernetesOperationId(project: GoogleProject, location: Location, operation: Operation) {
     val idString: String = s"projects/${project.value}/locations/${location.value}/operations/${operation.getName}"
+  }
+
+
+
+  final case class KubernetesNetwork(project: GoogleProject, name: NetworkName) {
+    val idString: String = s"projects/${project.value}/global/networks/${name.value}"
+  }
+
+  final case class KubernetesSubNetwork(project: GoogleProject, location: Location, name: SubnetworkName) {
+    val idString: String = s"projects/${project.value}/regions/${location.value}/subnetworks/${name.value}"
   }
 
 }

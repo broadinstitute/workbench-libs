@@ -2,6 +2,7 @@ package org.broadinstitute.dsde.workbench.google2
 
 import java.nio.file.Paths
 import java.util.UUID
+
 import scala.concurrent.duration._
 import cats.effect.{Blocker, IO}
 import cats.effect.concurrent.Semaphore
@@ -9,6 +10,7 @@ import cats.mtl.ApplicativeAsk
 import com.google.container.v1.Operation
 import io.chrisdavenport.log4cats.slf4j.Slf4jLogger
 import org.broadinstitute.dsde.workbench.google2.GKEModels._
+import org.broadinstitute.dsde.workbench.google2.KubernetesConstants.DEFAULT_NETWORK_NAME
 import org.broadinstitute.dsde.workbench.google2.KubernetesModels._
 import org.broadinstitute.dsde.workbench.google2.KubernetesSerializableName._
 import org.broadinstitute.dsde.workbench.model.TraceId
@@ -28,7 +30,7 @@ object Test {
   val project = GoogleProject("broad-dsde-dev")
   val location =  Location("us-central1")
   val parent = Parent(project, location)
-  val clusterName = KubernetesName.withValidation[KubernetesClusterName]("c4", KubernetesClusterName.apply)
+  val clusterName = KubernetesName.withValidation[KubernetesClusterName]("c2", KubernetesClusterName.apply)
 //  KubernetesName.fromString("c3", KubernetesClusterName.apply)
   val nodePoolName = KubernetesName.withValidation[NodePoolName]("nodepool1",NodePoolName.apply)
 
@@ -48,8 +50,17 @@ object Test {
     }
   }
 
-  def callCreateCluster(clusterId: KubernetesClusterId = clusterId) = createCluster(KubernetesCreateClusterRequest(project, location,
-    KubernetesConstants.getDefaultCluster(nodePoolName.right.get, clusterName.right.get)))
+  def callCreateCluster(clusterId: KubernetesClusterId = clusterId) =  {
+    val network: String = KubernetesNetwork(project, DEFAULT_NETWORK_NAME).idString
+    val cluster = KubernetesConstants.getDefaultCluster(nodePoolName.right.get, clusterName.right.get)
+      .toBuilder
+      .setNetwork(network)
+      .setSubnetwork(KubernetesSubNetwork(project, location, SubnetworkName("kube-test")).idString)
+//      .setNetworkConfig(KubernetesConstants.getDefaultNetwork(project))
+      .setNetworkPolicy(KubernetesConstants.getDefaultNetworkPolicy())
+      .build()
+       createCluster(KubernetesCreateClusterRequest(project, location, cluster))
+    }
 
   def callDeleteCluster(clusterId: KubernetesClusterId = clusterId) =   serviceResource.use { service =>
     service.deleteCluster(KubernetesClusterId(project, location, clusterName.right.get))
