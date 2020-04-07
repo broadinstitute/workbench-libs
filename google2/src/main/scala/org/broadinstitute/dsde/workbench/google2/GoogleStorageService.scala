@@ -212,6 +212,7 @@ trait GoogleStorageService[F[_]] {
    */
   def deleteBucket(googleProject: GoogleProject,
                    bucketName: GcsBucketName,
+                   isRecursive: Boolean = false,
                    bucketSourceOptions: List[BucketSourceOption] = List.empty,
                    traceId: Option[TraceId] = None,
                    retryConfig: RetryConfig = standardRetryConfig): Stream[F, Boolean]
