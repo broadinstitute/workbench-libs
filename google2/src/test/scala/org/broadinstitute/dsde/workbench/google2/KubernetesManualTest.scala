@@ -56,6 +56,7 @@ object Test {
       .setSubnetwork(KubernetesSubNetwork(project, RegionName("us-central1"), SubnetworkName("kube-test")).idString)
       .setNetworkPolicy(KubernetesConstants.getDefaultNetworkPolicy()) //needed for security
       .build()
+    
        createCluster(KubernetesCreateClusterRequest(project, location, cluster))
     }
 
