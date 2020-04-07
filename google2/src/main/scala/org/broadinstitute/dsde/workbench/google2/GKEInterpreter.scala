@@ -26,15 +26,12 @@ class GKEInterpreter[F[_]: Async: StructuredLogger: Timer: ContextShift](
   )(implicit ev: ApplicativeAsk[F, TraceId]): F[Operation] = {
     val parent = Parent(kubernetesClusterRequest.project, kubernetesClusterRequest.location)
 
-    println(s"network: ${kubernetesClusterRequest.cluster.getNetworkConfig.getNetwork}")
-
     val createClusterRequest: CreateClusterRequest = CreateClusterRequest
       .newBuilder()
       .setParent(parent.parentString)
       .setCluster(
-        kubernetesClusterRequest.cluster
-          .toBuilder
-          .setIpAllocationPolicy( //it uses the legacy one, which is insecure, otherwise. See https://cloud.google.com/kubernetes-engine/docs/how-to/alias-ips
+        kubernetesClusterRequest.cluster.toBuilder
+          .setIpAllocationPolicy( //otherwise it uses the legacy one, which is insecure. See https://cloud.google.com/kubernetes-engine/docs/how-to/alias-ips
             IPAllocationPolicy
               .newBuilder()
               .setUseIpAliases(true)

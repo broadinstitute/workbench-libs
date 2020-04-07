@@ -1,8 +1,19 @@
 package org.broadinstitute.dsde.workbench.google2
-import com.google.container.v1.{Cluster, NetworkConfig, NetworkPolicy, NodePool, NodePoolAutoscaling, Operation}
+import com.google.container.v1.{Cluster, NetworkPolicy, NodeManagement, NodePool, NodePoolAutoscaling, Operation}
 
 import collection.JavaConverters._
-import io.kubernetes.client.models.{V1Container, V1ContainerPort, V1Namespace, V1ObjectMeta, V1ObjectMetaBuilder, V1Pod, V1PodSpec, V1Service, V1ServicePort, V1ServiceSpec}
+import io.kubernetes.client.models.{
+  V1Container,
+  V1ContainerPort,
+  V1Namespace,
+  V1ObjectMeta,
+  V1ObjectMetaBuilder,
+  V1Pod,
+  V1PodSpec,
+  V1Service,
+  V1ServicePort,
+  V1ServiceSpec
+}
 import org.apache.commons.codec.binary.Base64
 import org.broadinstitute.dsde.workbench.google2.GKEModels._
 import org.broadinstitute.dsde.workbench.google2.KubernetesModels.ServicePort
@@ -25,20 +36,11 @@ object KubernetesConstants {
   val DEFAULT_NODEPOOL_SIZE: Int = 1
   val DEFAULT_NODEPOOL_AUTOSCALING: ClusterNodePoolAutoscalingConfig = ClusterNodePoolAutoscalingConfig(1, 10)
 
-  val DEFAULT_NETWORK_NAME = NetworkName("kube-test")
-
-  def getDefaultNetwork(project: GoogleProject): NetworkConfig = {
-
-    val network: String = KubernetesNetwork(project, DEFAULT_NETWORK_NAME).idString
-    NetworkConfig.newBuilder()
-      .setNetwork(network)
+  def getDefaultNetworkPolicy(): NetworkPolicy =
+    NetworkPolicy
+      .newBuilder()
+      .setEnabled(true)
       .build()
-  }
-
-  def getDefaultNetworkPolicy(): NetworkPolicy = NetworkPolicy
-    .newBuilder()
-    .setEnabled(true)
-    .build()
 
   def getDefaultCluster(nodePoolName: NodePoolName, clusterName: KubernetesClusterName): Cluster =
     Cluster
@@ -54,6 +56,12 @@ object KubernetesConstants {
       .newBuilder()
       .setInitialNodeCount(config.initialNodes)
       .setName(config.name.value)
+      .setManagement(
+        NodeManagement
+          .newBuilder()
+          .setAutoUpgrade(true)
+          .setAutoRepair(true)
+      )
       .setAutoscaling(
         NodePoolAutoscaling
           .newBuilder()
@@ -93,6 +101,8 @@ object GKEModels {
   }
 
   //the cluster must have a name, and a com.google.container.v1.NodePool. The NodePool must have an initialNodeCount and a name.
+  //the cluster must also have a network and subnetwork. See KubernetesManual test for how to specify these.
+  //Location can either contain a zone or not, ex: "us-central1" or "us-central1-a". The former will create the nodepool you specify in multiple zones, the latter a single nodepool
   //see getDefaultCluster for an example of construction with the minimum fields necessary, plus some others you almost certainly want to configure
   final case class KubernetesCreateClusterRequest(project: GoogleProject,
                                                   location: Location,
@@ -119,14 +129,12 @@ object GKEModels {
     val idString: String = s"projects/${project.value}/locations/${location.value}/operations/${operation.getName}"
   }
 
-
-
   final case class KubernetesNetwork(project: GoogleProject, name: NetworkName) {
     val idString: String = s"projects/${project.value}/global/networks/${name.value}"
   }
 
-  final case class KubernetesSubNetwork(project: GoogleProject, location: Location, name: SubnetworkName) {
-    val idString: String = s"projects/${project.value}/regions/${location.value}/subnetworks/${name.value}"
+  final case class KubernetesSubNetwork(project: GoogleProject, region: RegionName, name: SubnetworkName) {
+    val idString: String = s"projects/${project.value}/regions/${region.value}/subnetworks/${name.value}"
   }
 
 }

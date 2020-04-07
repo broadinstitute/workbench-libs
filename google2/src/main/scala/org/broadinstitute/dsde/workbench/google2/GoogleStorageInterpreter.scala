@@ -13,7 +13,7 @@ import com.google.cloud.storage.BucketInfo.LifecycleRule
 import com.google.cloud.storage.Storage.{BlobListOption, BlobSourceOption, BlobTargetOption, BucketSourceOption}
 import com.google.cloud.storage.{Acl, Blob, BlobId, BlobInfo, BucketInfo, Storage, StorageOptions}
 import com.google.cloud.{Identity, Policy, Role}
-import fs2.{Stream, text}
+import fs2.{text, Stream}
 import io.chrisdavenport.log4cats.StructuredLogger
 import io.circe.Decoder
 import io.circe.fs2._
@@ -277,10 +277,10 @@ private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer: Async
   }
 
   override def deleteBucket(googleProject: GoogleProject,
-                   bucketName: GcsBucketName,
-                   bucketSourceOptions: List[BucketSourceOption] = List.empty,
-                   traceId: Option[TraceId] = None,
-                   retryConfig: RetryConfig = standardRetryConfig): Stream[F, Boolean] = {
+                            bucketName: GcsBucketName,
+                            bucketSourceOptions: List[BucketSourceOption] = List.empty,
+                            traceId: Option[TraceId] = None,
+                            retryConfig: RetryConfig = standardRetryConfig): Stream[F, Boolean] = {
     val deleteBucket = Async[F].delay(db.delete(bucketName.value, bucketSourceOptions: _*))
     retryGoogleF(retryConfig)(
       deleteBucket,
