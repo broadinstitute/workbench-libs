@@ -7,7 +7,7 @@ import scala.concurrent.duration._
 import cats.effect.{Blocker, IO}
 import cats.effect.concurrent.Semaphore
 import cats.mtl.ApplicativeAsk
-import com.google.container.v1.{MaintenancePolicy, Operation}
+import com.google.container.v1.Operation
 import io.chrisdavenport.log4cats.slf4j.Slf4jLogger
 import org.broadinstitute.dsde.workbench.google2.GKEModels._
 import org.broadinstitute.dsde.workbench.google2.KubernetesModels._
