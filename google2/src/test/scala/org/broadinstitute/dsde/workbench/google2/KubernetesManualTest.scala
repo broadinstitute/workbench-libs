@@ -7,7 +7,7 @@ import scala.concurrent.duration._
 import cats.effect.{Blocker, IO}
 import cats.effect.concurrent.Semaphore
 import cats.mtl.ApplicativeAsk
-import com.google.container.v1.Operation
+import com.google.container.v1.{Cluster, Operation}
 import io.chrisdavenport.log4cats.slf4j.Slf4jLogger
 import org.broadinstitute.dsde.workbench.google2.GKEModels._
 import org.broadinstitute.dsde.workbench.google2.KubernetesModels._
@@ -42,13 +42,13 @@ object Test {
 
   def makeClusterId(name: String) = KubernetesClusterId(project, location, KubernetesClusterName(name))
 
-  def createCluster(kubernetesClusterRequest: KubernetesCreateClusterRequest) = {
+  def createCluster(kubernetesClusterRequest: KubernetesCreateClusterRequest): IO[Operation] = {
     serviceResource.use { service =>
       service.createCluster(kubernetesClusterRequest)
     }
   }
 
-  def callCreateCluster(clusterId: KubernetesClusterId = clusterId) =  {
+  def callCreateCluster(clusterId: KubernetesClusterId = clusterId): IO[Operation] =  {
     val network: String = KubernetesNetwork(project, NetworkName("kube-test")).idString
     val cluster = KubernetesConstants.getDefaultCluster(nodePoolName.right.get, clusterName.right.get)
       .toBuilder
@@ -56,15 +56,15 @@ object Test {
       .setSubnetwork(KubernetesSubNetwork(project, RegionName("us-central1"), SubnetworkName("kube-test")).idString)
       .setNetworkPolicy(KubernetesConstants.getDefaultNetworkPolicy()) //needed for security
       .build()
-    
+
        createCluster(KubernetesCreateClusterRequest(project, location, cluster))
     }
 
-  def callDeleteCluster(clusterId: KubernetesClusterId = clusterId) =   serviceResource.use { service =>
+  def callDeleteCluster(clusterId: KubernetesClusterId = clusterId): IO[Operation] =   serviceResource.use { service =>
     service.deleteCluster(KubernetesClusterId(project, location, clusterName.right.get))
   }
 
-  def callGetCluster(clusterId: KubernetesClusterId = clusterId) = serviceResource.use { service =>
+  def callGetCluster(clusterId: KubernetesClusterId = clusterId): IO[Option[Cluster]] = serviceResource.use { service =>
     service.getCluster(KubernetesClusterId(project, location, clusterName.right.get))
   }
 
@@ -73,13 +73,13 @@ object Test {
     ks <-  KubernetesService.resource(p, gs, blocker, semaphore)
   } yield ks
 
-  def callCreateNamespace(clusterId: KubernetesClusterId = clusterId, namespace: KubernetesNamespace = KubernetesNamespace(defaultNamespaceName.right.get)) = {
+  def callCreateNamespace(clusterId: KubernetesClusterId = clusterId, namespace: KubernetesNamespace = KubernetesNamespace(defaultNamespaceName.right.get)): IO[Unit] = {
     kubeService.use { k =>
       k.createNamespace(clusterId, namespace)
     }
   }
 
-  def testGetClient(clusterId: KubernetesClusterId = clusterId) = {
+  def testGetClient(clusterId: KubernetesClusterId = clusterId): IO[Unit] = {
     kubeService.use { k =>
       for {
         _ <- k.createNamespace(clusterId, KubernetesNamespace(KubernetesNamespaceName("diff1")))
@@ -93,7 +93,7 @@ object Test {
   val containers = Set(KubernetesContainer(KubernetesContainerName("container1"), Image("gcr.io/google-samples/node-hello:1.0"), None))
   val pod = KubernetesPod(KubernetesPodName("pod1"), containers, DEFAULT_SERVICE_SELECTOR)
 
-  def callCreateService(clusterId: KubernetesClusterId = clusterId) = {
+  def callCreateService(clusterId: KubernetesClusterId = clusterId): IO[Unit] = {
     kubeService.use { k =>
       k.createService(
         clusterId,
@@ -107,7 +107,7 @@ object Test {
     }
   }
 
-  def callCreatePod(clusterId: KubernetesClusterId = clusterId) = {
+  def callCreatePod(clusterId: KubernetesClusterId = clusterId): IO[Unit] = {
     kubeService.use { k =>
       k.createPod(
         clusterId,
@@ -118,7 +118,7 @@ object Test {
 
   import org.broadinstitute.dsde.workbench.DoneCheckableSyntax._
   import org.broadinstitute.dsde.workbench.DoneCheckableInstances._
-  def testPolling(operation: Operation) = {
+  def testPolling(operation: Operation): IO[Unit] = {
     serviceResource.use { s =>
       for {
         lastOp <- s.pollOperation(KubernetesOperationId(project, location, operation), 5 seconds, 72)
