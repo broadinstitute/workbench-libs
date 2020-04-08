@@ -1,5 +1,5 @@
 package org.broadinstitute.dsde.workbench.google2
-import com.google.container.v1.{Cluster, NodePool, NodePoolAutoscaling, Operation}
+import com.google.container.v1.{Cluster, NetworkPolicy, NodeManagement, NodePool, NodePoolAutoscaling, Operation}
 
 import collection.JavaConverters._
 import io.kubernetes.client.models.{
@@ -20,7 +20,6 @@ import org.broadinstitute.dsde.workbench.google2.KubernetesModels.ServicePort
 import org.broadinstitute.dsde.workbench.google2.KubernetesSerializableName._
 import org.broadinstitute.dsde.workbench.model.WorkbenchException
 import org.broadinstitute.dsde.workbench.model.google.GoogleProject
-
 import cats.implicits._
 
 object KubernetesConstants {
@@ -37,6 +36,12 @@ object KubernetesConstants {
   val DEFAULT_NODEPOOL_SIZE: Int = 1
   val DEFAULT_NODEPOOL_AUTOSCALING: ClusterNodePoolAutoscalingConfig = ClusterNodePoolAutoscalingConfig(1, 10)
 
+  def getDefaultNetworkPolicy(): NetworkPolicy =
+    NetworkPolicy
+      .newBuilder()
+      .setEnabled(true)
+      .build()
+
   def getDefaultCluster(nodePoolName: NodePoolName, clusterName: KubernetesClusterName): Cluster =
     Cluster
       .newBuilder()
@@ -51,6 +56,12 @@ object KubernetesConstants {
       .newBuilder()
       .setInitialNodeCount(config.initialNodes)
       .setName(config.name.value)
+      .setManagement(
+        NodeManagement
+          .newBuilder()
+          .setAutoUpgrade(true)
+          .setAutoRepair(true)
+      )
       .setAutoscaling(
         NodePoolAutoscaling
           .newBuilder()
@@ -90,6 +101,8 @@ object GKEModels {
   }
 
   //the cluster must have a name, and a com.google.container.v1.NodePool. The NodePool must have an initialNodeCount and a name.
+  //the cluster must also have a network and subnetwork. See KubernetesManual test for how to specify these.
+  //Location can either contain a zone or not, ex: "us-central1" or "us-central1-a". The former will create the nodepool you specify in multiple zones, the latter a single nodepool
   //see getDefaultCluster for an example of construction with the minimum fields necessary, plus some others you almost certainly want to configure
   final case class KubernetesCreateClusterRequest(project: GoogleProject,
                                                   location: Location,
@@ -114,6 +127,14 @@ object GKEModels {
 
   final case class KubernetesOperationId(project: GoogleProject, location: Location, operation: Operation) {
     val idString: String = s"projects/${project.value}/locations/${location.value}/operations/${operation.getName}"
+  }
+
+  final case class KubernetesNetwork(project: GoogleProject, name: NetworkName) {
+    val idString: String = s"projects/${project.value}/global/networks/${name.value}"
+  }
+
+  final case class KubernetesSubNetwork(project: GoogleProject, region: RegionName, name: SubnetworkName) {
+    val idString: String = s"projects/${project.value}/regions/${region.value}/subnetworks/${name.value}"
   }
 
 }

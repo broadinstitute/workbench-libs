@@ -4,13 +4,14 @@ import cats.effect.concurrent.Semaphore
 import cats.effect.{Async, Blocker, ContextShift, Timer}
 import cats.mtl.ApplicativeAsk
 import com.google.cloud.container.v1.ClusterManagerClient
-import com.google.container.v1.{Cluster, CreateClusterRequest, GetOperationRequest, Operation}
+import com.google.container.v1.{Cluster, CreateClusterRequest, GetOperationRequest, IPAllocationPolicy, Operation}
 import fs2.Stream
 import io.chrisdavenport.log4cats.StructuredLogger
 import org.broadinstitute.dsde.workbench.{DoneCheckable, RetryConfig}
 import org.broadinstitute.dsde.workbench.google2.GKEModels._
 import org.broadinstitute.dsde.workbench.google2.util.RetryPredicates._
 import org.broadinstitute.dsde.workbench.model.TraceId
+
 import scala.concurrent.duration.FiniteDuration
 
 class GKEInterpreter[F[_]: Async: StructuredLogger: Timer: ContextShift](
@@ -28,7 +29,14 @@ class GKEInterpreter[F[_]: Async: StructuredLogger: Timer: ContextShift](
     val createClusterRequest: CreateClusterRequest = CreateClusterRequest
       .newBuilder()
       .setParent(parent.parentString)
-      .setCluster(kubernetesClusterRequest.cluster)
+      .setCluster(
+        kubernetesClusterRequest.cluster.toBuilder
+          .setIpAllocationPolicy( //otherwise it uses the legacy one, which is insecure. See https://cloud.google.com/kubernetes-engine/docs/how-to/alias-ips
+            IPAllocationPolicy
+              .newBuilder()
+              .setUseIpAliases(true)
+          )
+      )
       .build()
 
     tracedGoogleRetryWithBlocker(
