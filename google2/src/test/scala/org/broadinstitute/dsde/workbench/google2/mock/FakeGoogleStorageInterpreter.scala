@@ -54,7 +54,7 @@ class BaseFakeGoogleStorage extends GoogleStorageService[IO] {
                        blobName: GcsBlobName,
                        credentials: Option[Credentials] = None,
                        traceId: Option[TraceId] = None,
-                       retryConfig: RetryConfig): Stream[IO, Blob] = localStorage.getBlob(bucketName, blobName, traceId)
+                       retryConfig: RetryConfig): Stream[IO, Blob] = localStorage.getBlob(bucketName, blobName, credentials, traceId)
 
   override def downloadObject(blobId: BlobId,
                               path: Path,
