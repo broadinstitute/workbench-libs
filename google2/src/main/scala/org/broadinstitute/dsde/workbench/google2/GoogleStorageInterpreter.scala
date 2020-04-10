@@ -306,17 +306,17 @@ private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer: Async
       _ <- if (isRecursive) {
         val r = for {
           allBlobs <- allBlobs.compile.toList
-          r <- Async[F].delay(db.delete(allBlobs.asJava))
+          _ <- Async[F].delay(db.delete(allBlobs.asJava))
         } yield ()
         Stream.eval(r)
       } else Stream.eval(Async[F].unit)
       deleteBucket = Async[F].delay(dbForProject.delete(bucketName.value, bucketSourceOptions: _*))
-      r <- retryGoogleF(retryConfig)(
+      res <- retryGoogleF(retryConfig)(
         deleteBucket,
         traceId,
         s"com.google.cloud.storage.Storage.delete(${bucketName.value}, ${bucketSourceOptions})"
       )
-    } yield r
+    } yield res
   }
 
   override def setBucketPolicyOnly(bucketName: GcsBucketName,
