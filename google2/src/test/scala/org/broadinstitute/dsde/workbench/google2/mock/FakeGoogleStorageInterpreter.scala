@@ -8,6 +8,7 @@ import com.google.cloud.storage.{Acl, Blob, BlobId, BucketInfo}
 import org.broadinstitute.dsde.workbench.model.google.{GcsBucketName, GcsObjectName, GoogleProject}
 import GoogleStorageInterpreterSpec._
 import cats.data.NonEmptyList
+import com.google.auth.Credentials
 import com.google.cloud.storage.Storage.BucketSourceOption
 import com.google.cloud.{Identity, Policy}
 import fs2.Stream
@@ -51,6 +52,7 @@ class BaseFakeGoogleStorage extends GoogleStorageService[IO] {
 
   override def getBlob(bucketName: GcsBucketName,
                        blobName: GcsBlobName,
+                       credentials: Option[Credentials] = None,
                        traceId: Option[TraceId] = None,
                        retryConfig: RetryConfig): Stream[IO, Blob] = localStorage.getBlob(bucketName, blobName, traceId)
 

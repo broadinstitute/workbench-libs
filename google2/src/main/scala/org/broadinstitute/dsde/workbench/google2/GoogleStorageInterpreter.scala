@@ -20,6 +20,7 @@ import io.circe.fs2._
 import org.broadinstitute.dsde.workbench.google2.util.RetryPredicates.standardRetryConfig
 import org.broadinstitute.dsde.workbench.model.{TraceId, WorkbenchException}
 import org.broadinstitute.dsde.workbench.model.google.{GcsBucketName, GcsObjectName, GoogleProject}
+import com.google.auth.Credentials
 
 import scala.collection.JavaConverters._
 
@@ -107,9 +108,15 @@ private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer: Async
 
   override def getBlob(bucketName: GcsBucketName,
                        blobName: GcsBlobName,
+                       credentials: Option[Credentials] = None,
                        traceId: Option[TraceId] = None,
                        retryConfig: RetryConfig): Stream[F, Blob] = {
-    val getBlobs = blockingF(Async[F].delay(db.get(BlobId.of(bucketName.value, blobName.value)))).map(Option(_))
+    val dbForCredential = credentials match {
+      case Some(c) => db.getOptions.toBuilder.setCredentials(c).build().getService
+      case None => db
+    }
+
+    val getBlobs = blockingF(Async[F].delay(dbForCredential.get(BlobId.of(bucketName.value, blobName.value)))).map(Option(_))
 
     retryGoogleF(retryConfig)(
       getBlobs,
