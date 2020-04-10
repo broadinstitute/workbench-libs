@@ -14,6 +14,7 @@ Added:
 - `com.google.apis` % `google-api-services-container` SBT Dependency
 - `io.kubernetes` % `client-java` SBT Dependency
 - add `deleteBucket` to `GoogleStorageService`
+- add optional `credentials` parameter to `GoogleStorageService.getBlob`
 
 SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.8-TRAVIS-REPLACE-ME"`
 
