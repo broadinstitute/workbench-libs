@@ -8,6 +8,7 @@ import com.google.cloud.storage.{Acl, Blob, BlobId, BucketInfo}
 import org.broadinstitute.dsde.workbench.model.google.{GcsBucketName, GcsObjectName, GoogleProject}
 import GoogleStorageInterpreterSpec._
 import cats.data.NonEmptyList
+import com.google.auth.Credentials
 import com.google.cloud.storage.Storage.BucketSourceOption
 import com.google.cloud.{Identity, Policy}
 import fs2.Stream
@@ -51,8 +52,9 @@ class BaseFakeGoogleStorage extends GoogleStorageService[IO] {
 
   override def getBlob(bucketName: GcsBucketName,
                        blobName: GcsBlobName,
+                       credentials: Option[Credentials] = None,
                        traceId: Option[TraceId] = None,
-                       retryConfig: RetryConfig): Stream[IO, Blob] = localStorage.getBlob(bucketName, blobName, traceId)
+                       retryConfig: RetryConfig): Stream[IO, Blob] = localStorage.getBlob(bucketName, blobName, credentials, traceId)
 
   override def downloadObject(blobId: BlobId,
                               path: Path,
@@ -89,6 +91,7 @@ class BaseFakeGoogleStorage extends GoogleStorageService[IO] {
 
   override def deleteBucket(googleProject: GoogleProject,
                    bucketName: GcsBucketName,
+                   isRecursive: Boolean,
                    bucketSourceOptions: List[BucketSourceOption] = List.empty,
                    traceId: Option[TraceId] = None,
                    retryConfig: RetryConfig = standardRetryConfig): Stream[IO, Boolean] = Stream.emit(true).covary[IO]

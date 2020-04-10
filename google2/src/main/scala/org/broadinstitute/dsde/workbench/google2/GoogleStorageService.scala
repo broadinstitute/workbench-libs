@@ -6,6 +6,7 @@ import cats.data.NonEmptyList
 import cats.implicits._
 import cats.effect._
 import cats.effect.concurrent.Semaphore
+import com.google.auth.Credentials
 import com.google.cloud.{Identity, Policy}
 import com.google.auth.oauth2.{AccessToken, GoogleCredentials}
 import com.google.cloud.storage.{Acl, Blob, BlobId, StorageOptions}
@@ -141,6 +142,7 @@ trait GoogleStorageService[F[_]] {
    */
   def getBlob(bucketName: GcsBucketName,
               blobName: GcsBlobName,
+              credential: Option[Credentials] = None,
               traceId: Option[TraceId] = None,
               retryConfig: RetryConfig = standardRetryConfig): Stream[F, Blob]
 
@@ -212,6 +214,7 @@ trait GoogleStorageService[F[_]] {
    */
   def deleteBucket(googleProject: GoogleProject,
                    bucketName: GcsBucketName,
+                   isRecursive: Boolean = false,
                    bucketSourceOptions: List[BucketSourceOption] = List.empty,
                    traceId: Option[TraceId] = None,
                    retryConfig: RetryConfig = standardRetryConfig): Stream[F, Boolean]
