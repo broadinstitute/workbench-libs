@@ -17,7 +17,7 @@ Added:
 - add `deleteBucket` to `GoogleStorageService`
 - add optional `credentials` parameter to `GoogleStorageService.getBlob`
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.8-TRAVIS-REPLACE-ME"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.8-f8faa88"`
 
 ## 0.7
 Changed:
