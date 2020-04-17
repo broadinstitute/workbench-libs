@@ -119,7 +119,7 @@ object GKEModels {
   final case class NodePoolConfig(initialNodes: Int,
                                   name: NodePoolName,
                                   autoscalingConfig: ClusterNodePoolAutoscalingConfig =
-                                    KubernetesConstants.DEFAULT_NODEPOOL_AUTOSCALING)
+                                  KubernetesConstants.DEFAULT_NODEPOOL_AUTOSCALING)
 
   final case class KubernetesClusterId(project: GoogleProject, location: Location, clusterName: KubernetesClusterName) {
     val idString: String = s"projects/${project.value}/locations/${location.value}/clusters/${clusterName.value}"
@@ -301,6 +301,7 @@ object KubernetesModels {
   sealed trait KubernetesServiceKind {
     val SERVICE_TYPE_NODEPORT = "NodePort"
     val SERVICE_TYPE_LOADBALANCER = "LoadBalancer"
+    val SERVICE_TYPE_CLUSTERIP = "ClusterIP"
 
     def serviceType: KubernetesServiceType
     def name: KubernetesServiceName
@@ -312,15 +313,22 @@ object KubernetesModels {
     final case class KubernetesLoadBalancerService(selector: KubernetesSelector,
                                                    ports: Set[ServicePort],
                                                    name: KubernetesServiceName)
-        extends KubernetesServiceKind {
+      extends KubernetesServiceKind {
       val serviceType = KubernetesServiceType(SERVICE_TYPE_LOADBALANCER)
     }
 
     final case class KubernetesNodePortService(selector: KubernetesSelector,
                                                ports: Set[ServicePort],
                                                name: KubernetesServiceName)
-        extends KubernetesServiceKind {
+      extends KubernetesServiceKind {
       val serviceType = KubernetesServiceType(SERVICE_TYPE_NODEPORT)
+    }
+
+    final case class KubernetesClusterIPService(selector: KubernetesSelector,
+                                                ports: Set[ServicePort],
+                                                name: KubernetesServiceName)
+      extends KubernetesServiceKind {
+      val serviceType = KubernetesServiceType(SERVICE_TYPE_CLUSTERIP)
     }
 
   }
