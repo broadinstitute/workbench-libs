@@ -7,6 +7,7 @@ Changed:
 - Renamed `ClusterName` to `DataprocClusterName`
 - `pollOperation` in `GoogleComputeService` now returns `Stream[F, Operation]`
 - bug fix in `deleteBucket`
+- Don't throw Not Found when listing objects for empty bucket in `deleteBucket`
 
 Added:
 - `GKEInterpreter`, `GKEService`, `KubernetesService`, and `KubernetesInterpreter`
@@ -16,7 +17,7 @@ Added:
 - add `deleteBucket` to `GoogleStorageService`
 - add optional `credentials` parameter to `GoogleStorageService.getBlob`
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.8-026b2b3"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.8-TRAVIS-REPLACE-ME"`
 
 ## 0.7
 Changed:
