@@ -24,11 +24,11 @@ import com.google.auth.Credentials
 
 import scala.collection.JavaConverters._
 
-private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer: Async: StructuredLogger](
+private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer: Async](
   db: Storage,
   blocker: Blocker,
   blockerBound: Option[Semaphore[F]]
-) extends GoogleStorageService[F] {
+)(implicit logger: StructuredLogger[F]) extends GoogleStorageService[F] {
   override def listObjectsWithPrefix(bucketName: GcsBucketName,
                                      objectNamePrefix: String,
                                      isRecursive: Boolean = false,
@@ -54,22 +54,7 @@ private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer: Async
              BlobListOption.currentDirectory())
 
     val result = for {
-      firstPage <- retryGoogleF(retryConfig)(
-        blockingF(Async[F].delay(db.list(bucketName.value, blobListOptions: _*))),
-        traceId,
-        s"com.google.cloud.storage.Storage.list($bucketName, ${blobListOptions})"
-      )
-      page <- Stream.unfoldEval(firstPage) { currentPage =>
-        Option(currentPage).traverse { p =>
-          val fetchNext = retryGoogleF(retryConfig)(
-            blockingF(Async[F].delay(p.getNextPage)),
-            traceId,
-            s"com.google.api.gax.paging.Page.getNextPage"
-          )
-          fetchNext.compile.lastOrError.map(next => (p, next))
-        }
-      }
-      blob <- Stream.fromIterator[F](page.getValues.iterator().asScala)
+      blob <- listBlobs(db, bucketName, blobListOptions, traceId, retryConfig, true)
     } yield {
       // Remove directory from end result
       // For example, if you have `bucketName/dir1/object1` in GCS, remove `bucketName/dir1/` from the end result
@@ -291,29 +276,19 @@ private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer: Async
                    retryConfig: RetryConfig = standardRetryConfig): Stream[F, Boolean] = {
     val dbForProject = db.getOptions.toBuilder.setProjectId(googleProject.value).build().getService
 
-    val allBlobs = for {
-      firstPage <- retryGoogleF(retryConfig)(
-        blockingF(Async[F].delay(db.list(bucketName.value))),
-        traceId,
-        s"com.google.cloud.storage.Storage.list($bucketName)")
-      page <- Stream.unfoldEval(firstPage) { currentPage =>
-        Option(currentPage).traverse { p =>
-          val fetchNext = retryGoogleF(retryConfig)(
-            blockingF(Async[F].delay(p.getNextPage)),
-            traceId,
-            s"com.google.api.gax.paging.Page.getNextPage"
-          )
-          fetchNext.compile.lastOrError.map(next => (p, next))
-        }
-      }
-      blobId <- Stream.fromIterator[F](page.getValues.iterator().asScala).map(b => Option(b)).unNone.map(_.getBlobId)
-    } yield blobId
+    val allBlobs = listBlobs(dbForProject, bucketName, List.empty, traceId, retryConfig, false).map(_.getBlobId)
 
     for {
       _ <- if (isRecursive) {
         val r = for {
           allBlobs <- allBlobs.compile.toList
-          _ <- Async[F].delay(db.delete(allBlobs.asJava))
+          isSuccess <- if(allBlobs.isEmpty)
+            Async[F].pure(true)
+          else Async[F].delay(dbForProject.delete(allBlobs.asJava).asScala.toList.forall(x => x))
+          _ <- if(isSuccess)
+            logger.info(s"Successfully deleted all objects in ${bucketName.value}")
+          else
+            Async[F].raiseError(new RuntimeException(s"failed to delete all objects in ${bucketName.value}"))
         } yield ()
         Stream.eval(r)
       } else Stream.eval(Async[F].unit)
@@ -406,6 +381,43 @@ private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer: Async
     retryGoogleF(retryConfig)(blockingF(Async[F].delay(db.update(bucketInfo))),
                               traceId,
                               s"com.google.cloud.storage.Storage.update($bucketInfo)").void
+  }
+
+  private def listBlobs(db: Storage,
+                        bucketName: GcsBucketName,
+                        blobListOptions: List[BlobListOption],
+                        traceId: Option[TraceId],
+                        retryConfig: RetryConfig,
+                        ifErrorWhenBucketNotFound: Boolean
+                       ): Stream[F, Blob] = {
+    val listFirstPage = Async[F].delay(db.list(bucketName.value, blobListOptions: _*)).map(p => Option(p)).handleErrorWith {
+      case e: com.google.cloud.storage.StorageException if (e.getCode == 404) =>
+        //This can happen if the bucket doesn't exist
+        if (ifErrorWhenBucketNotFound)
+          Async[F].raiseError(e)
+        else
+          Async[F].pure(None)
+    }
+
+    for {
+      firstPage <- retryGoogleF(retryConfig)(
+        blockingF(listFirstPage),
+        traceId,
+        s"com.google.cloud.storage.Storage.list($bucketName, ${blobListOptions})"
+      )
+        .unNone
+      page <- Stream.unfoldEval(firstPage) { currentPage =>
+        Option(currentPage).traverse { p =>
+          val fetchNext = retryGoogleF(retryConfig)(
+            blockingF(Async[F].delay(p.getNextPage)),
+            traceId,
+            s"com.google.api.gax.paging.Page.getNextPage"
+          )
+          fetchNext.compile.lastOrError.map(next => (p, next))
+        }
+      }
+      blob <- Stream.fromIterator[F](page.getValues.iterator().asScala).map(b => Option(b)).unNone
+    } yield blob
   }
 
   private def blockingF[A](fa: F[A]): F[A] = blockerBound match {
