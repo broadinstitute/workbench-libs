@@ -256,12 +256,12 @@ object JavaSerializableInstances {
     def getJavaSerialization(serviceKind: KubernetesServiceKind): V1Service = {
       val v1Service = new V1Service()
       v1Service.setKind(KubernetesConstants.SERVICE_KIND) //may not be necessary
-      v1Service.setMetadata(serviceKind.name.getJavaSerialization)
+      v1Service.setMetadata(serviceKind.serviceName.getJavaSerialization)
 
       val serviceSpec = new V1ServiceSpec()
       serviceSpec.ports(serviceKind.ports.map(_.getJavaSerialization).toList.asJava)
       serviceSpec.selector(serviceKind.selector.labels.asJava)
-      serviceSpec.setType(serviceKind.serviceType.value)
+      serviceSpec.setType(serviceKind.kindName.value)
       //if we ever enter a scenario where the service acts as a load-balancer to multiple pods, this ensures that clients stick with the container that they initially connected with
       serviceSpec.setSessionAffinity(KubernetesConstants.STICKY_SESSION_AFFINITY)
       v1Service.setSpec(serviceSpec)
@@ -299,12 +299,12 @@ object KubernetesModels {
                                        resourceLimits: Option[Map[String, String]] = None)
 
   sealed trait KubernetesServiceKind extends Product with Serializable {
-    val SERVICE_TYPE_NODEPORT = KubernetesServiceKindName(SERVICE_TYPE_NODEPORT)
-    val SERVICE_TYPE_LOADBALANCER = KubernetesServiceKindName(SERVICE_TYPE_LOADBALANCER)
-    val SERVICE_TYPE_CLUSTERIP =  KubernetesServiceKindName(SERVICE_TYPE_CLUSTERIP)
+    val SERVICE_TYPE_NODEPORT = KubernetesServiceKindName("NodePort")
+    val SERVICE_TYPE_LOADBALANCER = KubernetesServiceKindName("LoadBalancer")
+    val SERVICE_TYPE_CLUSTERIP =  KubernetesServiceKindName("ClusterIP")
 
-    def serviceKind: KubernetesServiceKindName
-    def name: KubernetesServiceName
+    def kindName: KubernetesServiceKindName
+    def serviceName: KubernetesServiceName
     def selector: KubernetesSelector
     def ports: Set[ServicePort]
   }
@@ -312,23 +312,23 @@ object KubernetesModels {
   object KubernetesServiceKind {
     final case class KubernetesLoadBalancerService(selector: KubernetesSelector,
                                                    ports: Set[ServicePort],
-                                                   name: KubernetesServiceName)
+                                                   serviceName: KubernetesServiceName)
         extends KubernetesServiceKind {
-      val serviceKind = SERVICE_TYPE_LOADBALANCER
+      val kindName = SERVICE_TYPE_LOADBALANCER
     }
 
     final case class KubernetesNodePortService(selector: KubernetesSelector,
                                                ports: Set[ServicePort],
-                                               name: KubernetesServiceName)
+                                               serviceName: KubernetesServiceName)
         extends KubernetesServiceKind {
-      val serviceKind = SERVICE_TYPE_NODEPORT
+      val kindName = SERVICE_TYPE_NODEPORT
     }
 
     final case class KubernetesClusterIPService(selector: KubernetesSelector,
                                                 ports: Set[ServicePort],
-                                                name: KubernetesServiceName)
+                                                serviceName: KubernetesServiceName)
         extends KubernetesServiceKind {
-      val serviceKind = SERVICE_TYPE_CLUSTERIP
+      val kindName = SERVICE_TYPE_CLUSTERIP
     }
 
   }
