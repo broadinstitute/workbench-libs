@@ -298,12 +298,12 @@ object KubernetesModels {
                                        ports: Option[Set[ContainerPort]],
                                        resourceLimits: Option[Map[String, String]] = None)
 
-  sealed trait KubernetesServiceKind {
-    val SERVICE_TYPE_NODEPORT = "NodePort"
-    val SERVICE_TYPE_LOADBALANCER = "LoadBalancer"
-    val SERVICE_TYPE_CLUSTERIP = "ClusterIP"
+  sealed trait KubernetesServiceKind extends Product with Serializable {
+    val SERVICE_TYPE_NODEPORT = KubernetesServiceKindName(SERVICE_TYPE_NODEPORT)
+    val SERVICE_TYPE_LOADBALANCER = KubernetesServiceKindName(SERVICE_TYPE_LOADBALANCER)
+    val SERVICE_TYPE_CLUSTERIP =  KubernetesServiceKindName(SERVICE_TYPE_CLUSTERIP)
 
-    def serviceType: KubernetesServiceType
+    def serviceKind: KubernetesServiceKindName
     def name: KubernetesServiceName
     def selector: KubernetesSelector
     def ports: Set[ServicePort]
@@ -314,21 +314,21 @@ object KubernetesModels {
                                                    ports: Set[ServicePort],
                                                    name: KubernetesServiceName)
         extends KubernetesServiceKind {
-      val serviceType = KubernetesServiceType(SERVICE_TYPE_LOADBALANCER)
+      val serviceKind = SERVICE_TYPE_LOADBALANCER
     }
 
     final case class KubernetesNodePortService(selector: KubernetesSelector,
                                                ports: Set[ServicePort],
                                                name: KubernetesServiceName)
         extends KubernetesServiceKind {
-      val serviceType = KubernetesServiceType(SERVICE_TYPE_NODEPORT)
+      val serviceKind = SERVICE_TYPE_NODEPORT
     }
 
     final case class KubernetesClusterIPService(selector: KubernetesSelector,
                                                 ports: Set[ServicePort],
                                                 name: KubernetesServiceName)
         extends KubernetesServiceKind {
-      val serviceType = KubernetesServiceType(SERVICE_TYPE_CLUSTERIP)
+      val serviceKind = SERVICE_TYPE_CLUSTERIP
     }
 
   }
@@ -340,7 +340,7 @@ object KubernetesModels {
 
   final case class KubernetesSelector(labels: Map[String, String])
 
-  final protected case class KubernetesServiceType(value: String)
+  final protected case class KubernetesServiceKindName(value: String)
 
   final case class KubernetesMasterIP(value: String) {
     val url = s"https://${value}"
