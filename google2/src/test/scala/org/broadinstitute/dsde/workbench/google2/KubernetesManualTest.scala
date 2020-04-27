@@ -19,10 +19,11 @@ import org.broadinstitute.dsde.workbench.model.google.GoogleProject
 //TODO: investigate running minikube in a docker for unit/automation tests https://banzaicloud.com/blog/minikube-ci/
 final class Test(credPath: String,
                  projectStr: String = "broad-dsde-dev",
-                 locationStr: String = "us-central1-a",
+                 regionStr: String = "us-central1",
                  clusterNameStr: String = "test-cluster",
                  nodePoolNameStr: String = "test-nodepool",
-                 defaultNamespaceNameStr: String = "test-namespace"
+                 defaultNamespaceNameStr: String = "test-namespace",
+                 networkNameStr: String = "test-network"
                 ) {
   import scala.concurrent.ExecutionContext.global
   implicit val cs = IO.contextShift(global)
@@ -33,18 +34,20 @@ final class Test(credPath: String,
   val semaphore = Semaphore[IO](10).unsafeRunSync
 
   val project = GoogleProject(projectStr)
-  val location =  Location(locationStr)
+  val region =  Location(regionStr)
+  val zoneStr = s"${region}-a"
+  val subnetworkNameStr = networkNameStr
   val clusterName = KubernetesName.withValidation[KubernetesClusterName](clusterNameStr, KubernetesClusterName.apply)
   val nodePoolName = KubernetesName.withValidation[NodePoolName](nodePoolNameStr, NodePoolName.apply)
 
   val defaultNamespaceName = KubernetesName.withValidation[KubernetesNamespaceName](defaultNamespaceNameStr, KubernetesNamespaceName.apply)
 
-  val clusterId = KubernetesClusterId(project, location, clusterName.right.get)
+  val clusterId = KubernetesClusterId(project, region, clusterName.right.get)
 
   val p = Paths.get(credPath)
   val serviceResource = GKEService.resource(p, blocker, semaphore)
 
-  def makeClusterId(name: String) = KubernetesClusterId(project, location, KubernetesClusterName(name))
+  def makeClusterId(name: String) = KubernetesClusterId(project, region, KubernetesClusterName(name))
 
   def createCluster(kubernetesClusterRequest: KubernetesCreateClusterRequest): IO[Operation] = {
     serviceResource.use { service =>
@@ -53,23 +56,23 @@ final class Test(credPath: String,
   }
 
   def callCreateCluster(clusterId: KubernetesClusterId = clusterId): IO[Operation] =  {
-    val network: String = KubernetesNetwork(project, NetworkName("kube-test")).idString
+    val network: String = KubernetesNetwork(project, NetworkName(networkNameStr)).idString
     val cluster = KubernetesConstants.getDefaultCluster(nodePoolName.right.get, clusterName.right.get)
       .toBuilder
       .setNetwork(network) //needs to be a VPC network
-      .setSubnetwork(KubernetesSubNetwork(project, RegionName("us-central1"), SubnetworkName("kube-test")).idString)
+      .setSubnetwork(KubernetesSubNetwork(project, RegionName(regionStr), SubnetworkName(subnetworkNameStr)).idString)
       .setNetworkPolicy(KubernetesConstants.getDefaultNetworkPolicy()) //needed for security
       .build()
 
-       createCluster(KubernetesCreateClusterRequest(project, location, cluster))
+       createCluster(KubernetesCreateClusterRequest(project, region, cluster))
     }
 
   def callDeleteCluster(clusterId: KubernetesClusterId = clusterId): IO[Operation] =   serviceResource.use { service =>
-    service.deleteCluster(KubernetesClusterId(project, location, clusterName.right.get))
+    service.deleteCluster(KubernetesClusterId(project, region, clusterName.right.get))
   }
 
   def callGetCluster(clusterId: KubernetesClusterId = clusterId): IO[Option[Cluster]] = serviceResource.use { service =>
-    service.getCluster(KubernetesClusterId(project, location, clusterName.right.get))
+    service.getCluster(KubernetesClusterId(project, region, clusterName.right.get))
   }
 
   val kubeService = for {
@@ -125,7 +128,7 @@ final class Test(credPath: String,
   def testPolling(operation: Operation): IO[Unit] = {
     serviceResource.use { s =>
       for {
-        lastOp <- s.pollOperation(KubernetesOperationId(project, location, operation), 5 seconds, 72)
+        lastOp <- s.pollOperation(KubernetesOperationId(project, region, operation), 5 seconds, 72)
             .compile
             .lastOrError
         _ <- if (lastOp.isDone) IO(println(s"operation is done, initial operation: ${operation}")) else IO(s"operation errored, initial operation: ${operation}")
