@@ -17,7 +17,13 @@ import org.broadinstitute.dsde.workbench.model.google.GoogleProject
 
 //TODO: migrate to a unit test
 //TODO: investigate running minikube in a docker for unit/automation tests https://banzaicloud.com/blog/minikube-ci/
-object Test {
+final class Test(credPath: String,
+                 projectStr: String = "broad-dsde-dev",
+                 locationStr: String = "us-central1-a",
+                 clusterNameStr: String = "test-cluster",
+                 nodePoolNameStr: String = "test-nodepool",
+                 defaultNamespaceNameStr: String = "test-namespace"
+                ) {
   import scala.concurrent.ExecutionContext.global
   implicit val cs = IO.contextShift(global)
   implicit val t = IO.timer(global)
@@ -26,17 +32,15 @@ object Test {
   val blocker = Blocker.liftExecutionContext(global)
   val semaphore = Semaphore[IO](10).unsafeRunSync
 
-  val project = GoogleProject("broad-dsde-dev")
-  val location =  Location("us-central1-a")
-  val clusterName = KubernetesName.withValidation[KubernetesClusterName]("c3", KubernetesClusterName.apply)
-//  KubernetesName.fromString("c3", KubernetesClusterName.apply)
-  val nodePoolName = KubernetesName.withValidation[NodePoolName]("nodepool1",NodePoolName.apply)
+  val project = GoogleProject(projectStr)
+  val location =  Location(locationStr)
+  val clusterName = KubernetesName.withValidation[KubernetesClusterName](clusterNameStr, KubernetesClusterName.apply)
+  val nodePoolName = KubernetesName.withValidation[NodePoolName](nodePoolNameStr, NodePoolName.apply)
 
-  val defaultNamespaceName = KubernetesName.withValidation[KubernetesNamespaceName]("n2", KubernetesNamespaceName.apply)
+  val defaultNamespaceName = KubernetesName.withValidation[KubernetesNamespaceName](defaultNamespaceNameStr, KubernetesNamespaceName.apply)
 
   val clusterId = KubernetesClusterId(project, location, clusterName.right.get)
 
-  val credPath = "/Users/jcanas/Downloads/kube-broad-dsde-dev-key.json"
   val p = Paths.get(credPath)
   val serviceResource = GKEService.resource(p, blocker, semaphore)
 
