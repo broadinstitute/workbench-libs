@@ -334,7 +334,7 @@ object KubernetesModels {
 
   final protected case class KubernetesServiceType(value: String)
 
-  final case class KubernetesMasterIP(value: String) {
+  final case class KubernetesApiServerIp(value: String) {
     val url = s"https://${value}"
   }
 
