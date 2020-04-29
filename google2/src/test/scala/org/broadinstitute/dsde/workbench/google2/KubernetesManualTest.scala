@@ -70,7 +70,6 @@ final class Test(credPathStr: String,
     serviceResource.use { service =>
       service.createCluster(KubernetesCreateClusterRequest(project, region, cluster))
     }
-  }
 
   def callDeleteCluster(clusterId: KubernetesClusterId = clusterId): IO[Operation] = serviceResource.use { service =>
     service.deleteCluster(KubernetesClusterId(project, region, clusterName.right.get))
@@ -157,7 +156,6 @@ final class Test(credPathStr: String,
         else IO(s"operation errored, initial operation: ${operation}")
       } yield ()
     }
-  }
 }
 
 object KubernetesConstants {

@@ -12,7 +12,7 @@ import org.broadinstitute.dsde.workbench.RetryConfig
 import org.broadinstitute.dsde.workbench.google2.util.RetryPredicates
 import org.broadinstitute.dsde.workbench.model.TraceId
 import org.broadinstitute.dsde.workbench.model.google.{GcsBucketName, GoogleProject}
-
+import ca.mrvisser.sealerate
 import scala.collection.JavaConverters._
 import scala.language.higherKinds
 
@@ -36,6 +36,12 @@ trait GoogleDataprocService[F[_]] {
   def getCluster(project: GoogleProject, region: RegionName, clusterName: DataprocClusterName)(
     implicit ev: ApplicativeAsk[F, TraceId]
   ): F[Option[Cluster]]
+
+  def getClusterInstances(project: GoogleProject, region: RegionName, clusterName: DataprocClusterName)(
+    implicit ev: ApplicativeAsk[F, TraceId]
+  ): F[Map[DataprocRole, Set[InstanceName]]]
+
+  def getClusterError(operationName: OperationName)(implicit ev: ApplicativeAsk[F, TraceId]): F[Option[ClusterError]]
 }
 
 object GoogleDataprocService {
@@ -43,22 +49,25 @@ object GoogleDataprocService {
     pathToCredential: String,
     blocker: Blocker,
     blockerBound: Semaphore[F],
+    regionName: RegionName,
     retryConfig: RetryConfig = RetryPredicates.standardRetryConfig
   ): Resource[F, GoogleDataprocService[F]] =
     for {
       credential <- credentialResource(pathToCredential)
       scopedCredential = credential.createScoped(Seq(ComputeScopes.CLOUD_PLATFORM).asJava)
-      interpreter <- fromCredential(scopedCredential, blocker, blockerBound, retryConfig)
+      interpreter <- fromCredential(scopedCredential, blocker, regionName, blockerBound, retryConfig)
     } yield interpreter
 
   private def fromCredential[F[_]: StructuredLogger: Async: Timer: ContextShift](
     googleCredentials: GoogleCredentials,
     blocker: Blocker,
+    regionName: RegionName,
     blockerBound: Semaphore[F],
     retryConfig: RetryConfig
   ): Resource[F, GoogleDataprocService[F]] = {
     val settings = ClusterControllerSettings
       .newBuilder()
+      .setEndpoint(s"${regionName.value}-dataproc.googleapis.com:443")
       .setCredentialsProvider(FixedCredentialsProvider.create(googleCredentials))
       .build()
 
@@ -90,3 +99,14 @@ object DeleteClusterResponse {
   final case class Success(clusterOperationMetadata: ClusterOperationMetadata) extends DeleteClusterResponse
   case object NotFound extends DeleteClusterResponse
 }
+
+sealed trait DataprocRole extends Product with Serializable
+object DataprocRole {
+  case object Master extends DataprocRole
+  case object Worker extends DataprocRole
+  case object SecondaryWorker extends DataprocRole // alias to Preemptible Worker
+
+  val stringToDataprocRole = sealerate.values[DataprocRole].map(p => (p.toString, p)).toMap
+}
+
+final case class ClusterError(code: Int, message: String)
