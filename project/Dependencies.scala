@@ -8,7 +8,7 @@ object Dependencies {
   val scalaLoggingV = "3.7.2"
   val scalaTestV    = "3.1.1"
   val circeVersion = "0.13.0"
-  val http4sVersion = "0.21.0"
+  val http4sVersion = "0.21.4"
 
   def excludeGuavaJDK5(m: ModuleID): ModuleID = m.exclude("com.google.guava", "guava-jdk5")
 
@@ -61,7 +61,7 @@ object Dependencies {
   val googleStorageLocal: ModuleID = "com.google.cloud" % "google-cloud-nio" % "0.111.0-alpha" % "test"
   val googlePubsubNew: ModuleID = "com.google.cloud" % "google-cloud-pubsub" % "1.62.0"
   val googleKms: ModuleID = "com.google.cloud" % "google-cloud-kms" % "0.77.0-beta"
-  val googleDataproc: ModuleID =    "com.google.cloud" % "google-cloud-dataproc" % "0.111.0"
+  val googleDataproc: ModuleID =    "com.google.cloud" % "google-cloud-dataproc" % "0.122.1"
   val googleComputeNew: ModuleID = "com.google.cloud" % "google-cloud-compute" % "0.117.0-alpha"
   val googleContainer: ModuleID = "com.google.cloud" % "google-cloud-container" % "1.0.0"
   val kubernetesClient: ModuleID = "io.kubernetes" % "client-java" % "5.0.0" % "compile"
@@ -169,7 +169,8 @@ object Dependencies {
     catsMtl,
     googleContainer,
     kubernetesClient,
-    googleContainerV1
+    googleContainerV1,
+    sealerate
   )
 
   val newrelicDependencies = Seq(
