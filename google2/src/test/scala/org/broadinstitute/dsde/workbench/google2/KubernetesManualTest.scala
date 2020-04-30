@@ -53,27 +53,19 @@ final class Test(credPath: String,
 
   def makeClusterId(name: String) = KubernetesClusterId(project, region, KubernetesClusterName(name))
 
-  def createCluster(kubernetesClusterRequest: KubernetesCreateClusterRequest): IO[Operation] =
-    serviceResource.use { service =>
-      service.createCluster(kubernetesClusterRequest)
-    }
-
-  def createNodepool(kubernetesNodepoolRequest: KubernetesCreateNodepoolRequest): IO[Operation] =
-    serviceResource.use { service =>
-      service.createNodepool(kubernetesNodepoolRequest)
-    }
-
   def callCreateCluster(clusterId: KubernetesClusterId = clusterId): IO[Operation] = {
     val network: String = KubernetesNetwork(project, NetworkName(networkNameStr)).idString
     val cluster = KubernetesConstants
       .getDefaultCluster(nodepoolName.right.get, clusterName.right.get)
       .toBuilder
-      .setNetwork(network) //needs to be a VPC network
+      .setNetwork(network) // needs to be a VPC network
       .setSubnetwork(KubernetesSubNetwork(project, RegionName(regionStr), SubnetworkName(subnetworkNameStr)).idString)
-      .setNetworkPolicy(KubernetesConstants.getDefaultNetworkPolicy()) //needed for security
+      .setNetworkPolicy(KubernetesConstants.getDefaultNetworkPolicy()) // needed for security
       .build()
 
-    createCluster(KubernetesCreateClusterRequest(project, region, cluster))
+    serviceResource.use { service =>
+      service.createCluster(KubernetesCreateClusterRequest(project, region, cluster))
+    }
   }
 
   def callDeleteCluster(clusterId: KubernetesClusterId = clusterId): IO[Operation] = serviceResource.use { service =>
@@ -89,7 +81,9 @@ final class Test(credPath: String,
     val nodepoolConfig = NodepoolConfig(DEFAULT_NODEPOOL_SIZE, nodepoolName.right.get, DEFAULT_NODEPOOL_AUTOSCALING)
     val nodepool = KubernetesConstants.getNodepoolBuilder(nodepoolConfig).build()
 
-    createNodepool(KubernetesCreateNodepoolRequest(clusterId, nodepool))
+    serviceResource.use { service =>
+      service.createNodepool(KubernetesCreateNodepoolRequest(clusterId, nodepool))
+    }
   }
 
   val kubeService = for {
