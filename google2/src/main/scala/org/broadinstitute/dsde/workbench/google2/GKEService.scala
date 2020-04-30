@@ -28,6 +28,8 @@ trait GKEService[F[_]] {
 
   def getCluster(clusterId: KubernetesClusterId)(implicit ev: ApplicativeAsk[F, TraceId]): F[Option[Cluster]]
 
+  def createNodepool(clusterId: KubernetesCreateNodepoolRequest)(implicit ev: ApplicativeAsk[F, TraceId]): F[Operation]
+
   def pollOperation(operationId: KubernetesOperationId, delay: FiniteDuration, maxAttempts: Int)(
     implicit ev: ApplicativeAsk[F, TraceId],
     doneEv: DoneCheckable[Operation]

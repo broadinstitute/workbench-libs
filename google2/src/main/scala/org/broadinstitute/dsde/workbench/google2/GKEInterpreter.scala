@@ -4,7 +4,14 @@ import cats.effect.concurrent.Semaphore
 import cats.effect.{Async, Blocker, ContextShift, Timer}
 import cats.mtl.ApplicativeAsk
 import com.google.cloud.container.v1.ClusterManagerClient
-import com.google.container.v1.{Cluster, CreateClusterRequest, GetOperationRequest, IPAllocationPolicy, Operation}
+import com.google.container.v1.{
+  Cluster,
+  CreateClusterRequest,
+  CreateNodePoolRequest,
+  GetOperationRequest,
+  IPAllocationPolicy,
+  Operation
+}
 import fs2.Stream
 import io.chrisdavenport.log4cats.StructuredLogger
 import org.broadinstitute.dsde.workbench.{DoneCheckable, RetryConfig}
@@ -14,7 +21,7 @@ import org.broadinstitute.dsde.workbench.model.TraceId
 
 import scala.concurrent.duration.FiniteDuration
 
-class GKEInterpreter[F[_]: Async: StructuredLogger: Timer: ContextShift](
+final class GKEInterpreter[F[_]: Async: StructuredLogger: Timer: ContextShift](
   clusterManagerClient: ClusterManagerClient,
   blocker: Blocker,
   blockerBound: Semaphore[F],
@@ -28,7 +35,7 @@ class GKEInterpreter[F[_]: Async: StructuredLogger: Timer: ContextShift](
 
     val createClusterRequest: CreateClusterRequest = CreateClusterRequest
       .newBuilder()
-      .setParent(parent.parentString)
+      .setParent(parent.toString)
       .setCluster(
         kubernetesClusterRequest.cluster.toBuilder
           .setIpAllocationPolicy( //otherwise it uses the legacy one, which is insecure. See https://cloud.google.com/kubernetes-engine/docs/how-to/alias-ips
@@ -48,17 +55,32 @@ class GKEInterpreter[F[_]: Async: StructuredLogger: Timer: ContextShift](
   override def getCluster(clusterId: KubernetesClusterId)(implicit ev: ApplicativeAsk[F, TraceId]): F[Option[Cluster]] =
     tracedGoogleRetryWithBlocker(
       recoverF(
-        Async[F].delay(clusterManagerClient.getCluster(clusterId.idString)),
+        Async[F].delay(clusterManagerClient.getCluster(clusterId.toString)),
         whenStatusCode(404)
       ),
-      f"com.google.cloud.container.v1.ClusterManagerClient.getCluster(${clusterId.idString})"
+      f"com.google.cloud.container.v1.ClusterManagerClient.getCluster(${clusterId.toString})"
     )
 
   override def deleteCluster(clusterId: KubernetesClusterId)(implicit ev: ApplicativeAsk[F, TraceId]): F[Operation] =
     tracedGoogleRetryWithBlocker(
-      Async[F].delay(clusterManagerClient.deleteCluster(clusterId.idString)),
-      f"com.google.cloud.container.v1.ClusterManagerClient.deleteCluster(${clusterId.idString})"
+      Async[F].delay(clusterManagerClient.deleteCluster(clusterId.toString)),
+      f"com.google.cloud.container.v1.ClusterManagerClient.deleteCluster(${clusterId.toString})"
     )
+
+  override def createNodepool(
+    kubernetesNodepoolRequest: KubernetesCreateNodepoolRequest
+  )(implicit ev: ApplicativeAsk[F, TraceId]): F[Operation] = {
+    val createNodepoolRequest: CreateNodePoolRequest = CreateNodePoolRequest
+      .newBuilder()
+      .setParent(kubernetesNodepoolRequest.clusterId.toString)
+      .setNodePool(kubernetesNodepoolRequest.nodepool.toBuilder)
+      .build()
+
+    tracedGoogleRetryWithBlocker(
+      Async[F].delay(clusterManagerClient.createNodePool(createNodepoolRequest)),
+      f"com.google.cloud.container.v1.ClusterManagerClient.createCluster(${kubernetesNodepoolRequest})"
+    )
+  }
 
   //delete and create operations take around ~5mins with simple tests, could be longer for larger clusters
   override def pollOperation(operationId: KubernetesOperationId, delay: FiniteDuration, maxAttempts: Int)(

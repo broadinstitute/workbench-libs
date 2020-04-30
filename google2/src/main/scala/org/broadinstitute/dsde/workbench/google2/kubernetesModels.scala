@@ -34,7 +34,7 @@ object KubernetesConstants {
   val DEFAULT_LOADBALANCER_PORTS = Set(ServicePort(8080))
 
   val DEFAULT_NODEPOOL_SIZE: Int = 1
-  val DEFAULT_NODEPOOL_AUTOSCALING: ClusterNodePoolAutoscalingConfig = ClusterNodePoolAutoscalingConfig(1, 10)
+  val DEFAULT_NODEPOOL_AUTOSCALING: NodepoolAutoscalingConfig = NodepoolAutoscalingConfig(1, 10)
 
   def getDefaultNetworkPolicy(): NetworkPolicy =
     NetworkPolicy
@@ -42,16 +42,16 @@ object KubernetesConstants {
       .setEnabled(true)
       .build()
 
-  def getDefaultCluster(nodePoolName: NodePoolName, clusterName: KubernetesClusterName): Cluster =
+  def getDefaultCluster(nodepoolName: NodepoolName, clusterName: KubernetesClusterName): Cluster =
     Cluster
       .newBuilder()
       .setName(clusterName.value) //required
       .addNodePools(
-        getNodePoolBuilder(NodePoolConfig(DEFAULT_NODEPOOL_SIZE, nodePoolName, DEFAULT_NODEPOOL_AUTOSCALING))
+        getNodepoolBuilder(NodepoolConfig(DEFAULT_NODEPOOL_SIZE, nodepoolName, DEFAULT_NODEPOOL_AUTOSCALING))
       ) //required
       .build() //builds recursively
 
-  def getNodePoolBuilder(config: NodePoolConfig) =
+  def getNodepoolBuilder(config: NodepoolConfig): NodePool.Builder =
     NodePool
       .newBuilder()
       .setInitialNodeCount(config.initialNodes)
@@ -97,7 +97,7 @@ object GKEModels {
 
   //"us-central1" is an example of a valid location.
   final case class Parent(project: GoogleProject, location: Location) {
-    val parentString: String = s"projects/${project.value}/locations/${location.value}"
+    override lazy val toString: String = s"projects/${project.value}/locations/${location.value}"
   }
 
   //the cluster must have a name, and a com.google.container.v1.NodePool. The NodePool must have an initialNodeCount and a name.
@@ -108,21 +108,25 @@ object GKEModels {
                                                   location: Location,
                                                   cluster: com.google.container.v1.Cluster)
 
+  final case class KubernetesCreateNodepoolRequest(clusterId: KubernetesClusterId,
+                                                   nodepool: com.google.container.v1.NodePool)
+
   //this is NOT analogous to clusterName in the context of dataproc/GCE. A single cluster can have multiple nodes, pods, services, containers, deployments, etc.
   //clusters should most likely NOT be provisioned per user as they are today. More design/security research is needed
   final case class KubernetesClusterName(value: String)
 
-  final case class ClusterNodePoolAutoscalingConfig(minimumNodes: Int, maximumNodes: Int)
+  final case class NodepoolAutoscalingConfig(minimumNodes: Int, maximumNodes: Int)
 
-  final case class NodePoolName(value: String)
+  final case class NodepoolName(value: String)
 
-  final case class NodePoolConfig(initialNodes: Int,
-                                  name: NodePoolName,
-                                  autoscalingConfig: ClusterNodePoolAutoscalingConfig =
+  final case class NodepoolConfig(initialNodes: Int,
+                                  name: NodepoolName,
+                                  autoscalingConfig: NodepoolAutoscalingConfig =
                                     KubernetesConstants.DEFAULT_NODEPOOL_AUTOSCALING)
 
   final case class KubernetesClusterId(project: GoogleProject, location: Location, clusterName: KubernetesClusterName) {
-    val idString: String = s"projects/${project.value}/locations/${location.value}/clusters/${clusterName.value}"
+    override lazy val toString: String =
+      s"projects/${project.value}/locations/${location.value}/clusters/${clusterName.value}"
   }
 
   final case class KubernetesOperationId(project: GoogleProject, location: Location, operation: Operation) {
