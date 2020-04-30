@@ -78,9 +78,15 @@ final class GKEInterpreter[F[_]: Async: StructuredLogger: Timer: ContextShift](
 
     tracedGoogleRetryWithBlocker(
       Async[F].delay(clusterManagerClient.createNodePool(createNodepoolRequest)),
-      f"com.google.cloud.container.v1.ClusterManagerClient.createCluster(${kubernetesNodepoolRequest})"
+      f"com.google.cloud.container.v1.ClusterManagerClient.createNodepool(${kubernetesNodepoolRequest})"
     )
   }
+
+  override def deleteNodepool(nodepoolId: KubernetesNodepoolId)(implicit ev: ApplicativeAsk[F, TraceId]): F[Operation] =
+    tracedGoogleRetryWithBlocker(
+      Async[F].delay(clusterManagerClient.deleteNodePool(nodepoolId.toString)),
+      f"com.google.cloud.container.v1.ClusterManagerClient.deleteNodepool(${nodepoolId.toString})"
+    )
 
   //delete and create operations take around ~5mins with simple tests, could be longer for larger clusters
   override def pollOperation(operationId: KubernetesOperationId, delay: FiniteDuration, maxAttempts: Int)(

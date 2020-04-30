@@ -113,11 +113,11 @@ object GKEModels {
 
   //this is NOT analogous to clusterName in the context of dataproc/GCE. A single cluster can have multiple nodes, pods, services, containers, deployments, etc.
   //clusters should most likely NOT be provisioned per user as they are today. More design/security research is needed
-  final case class KubernetesClusterName(value: String)
+  final case class KubernetesClusterName(value: String) extends AnyVal
 
   final case class NodepoolAutoscalingConfig(minimumNodes: Int, maximumNodes: Int)
 
-  final case class NodepoolName(value: String)
+  final case class NodepoolName(value: String) extends AnyVal
 
   final case class NodepoolConfig(initialNodes: Int,
                                   name: NodepoolName,
@@ -127,6 +127,14 @@ object GKEModels {
   final case class KubernetesClusterId(project: GoogleProject, location: Location, clusterName: KubernetesClusterName) {
     override lazy val toString: String =
       s"projects/${project.value}/locations/${location.value}/clusters/${clusterName.value}"
+  }
+
+  final case class KubernetesNodepoolId(project: GoogleProject,
+                                        location: Location,
+                                        clusterName: KubernetesClusterName,
+                                        nodepoolName: NodepoolName) {
+    override lazy val toString: String =
+      s"projects/${project.value}/locations/${location.value}/clusters/${clusterName.value}/nodepools/${nodepoolName.value}"
   }
 
   final case class KubernetesOperationId(project: GoogleProject, location: Location, operation: Operation) {

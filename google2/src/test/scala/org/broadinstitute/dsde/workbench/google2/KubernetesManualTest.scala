@@ -86,6 +86,10 @@ final class Test(credPath: String,
     }
   }
 
+  def callDeleteNodepool(nodepoolId: KubernetesNodepoolId): IO[Operation] = serviceResource.use { service =>
+    service.deleteNodepool(nodepoolId)
+  }
+
   val kubeService = for {
     gs <- GKEService.resource(p, blocker, semaphore)
     ks <- KubernetesService.resource(p, gs, blocker, semaphore)
