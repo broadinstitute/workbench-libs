@@ -9,6 +9,7 @@ Changed:
 - bug fix in `deleteBucket`
 - Don't throw Not Found when listing objects for empty bucket in `deleteBucket`
 - Fix a bug in `GoogleDataprocService` where region is not set properly
+- A few minor dependency updates
 
 Added:
 - `GKEInterpreter`, `GKEService`, `KubernetesService`, and `KubernetesInterpreter`
