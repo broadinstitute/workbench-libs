@@ -1,5 +1,5 @@
 package org.broadinstitute.dsde.workbench.google2
-import com.google.container.v1.{Cluster, NetworkPolicy, NodeManagement, NodePool, NodePoolAutoscaling, Operation}
+import com.google.container.v1.Operation
 
 import collection.JavaConverters._
 import io.kubernetes.client.models.{
@@ -15,61 +15,10 @@ import io.kubernetes.client.models.{
   V1ServiceSpec
 }
 import org.apache.commons.codec.binary.Base64
-import org.broadinstitute.dsde.workbench.google2.GKEModels._
-import org.broadinstitute.dsde.workbench.google2.KubernetesModels.ServicePort
 import org.broadinstitute.dsde.workbench.google2.KubernetesSerializableName._
 import org.broadinstitute.dsde.workbench.model.WorkbenchException
-import org.broadinstitute.dsde.workbench.model.google.GoogleProject
+import org.broadinstitute.dsde.workbench.model.google.{GoogleProject, ServiceAccountName}
 import cats.implicits._
-
-object KubernetesConstants {
-  //this default namespace is initialized automatically with a kubernetes environment, and we do not create it
-  val DEFAULT_NAMESPACE = "default"
-  val DEFAULT_POD_KIND = "Pod"
-  val SERVICE_KIND = "Service"
-  //for session affinity, see https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.12/#service-v1-core
-  val STICKY_SESSION_AFFINITY = "ClientIP"
-
-  //composite of NodePort and ClusterIP types. Allows external access
-  val DEFAULT_LOADBALANCER_PORTS = Set(ServicePort(8080))
-
-  val DEFAULT_NODEPOOL_SIZE: Int = 1
-  val DEFAULT_NODEPOOL_AUTOSCALING: ClusterNodePoolAutoscalingConfig = ClusterNodePoolAutoscalingConfig(1, 10)
-
-  def getDefaultNetworkPolicy(): NetworkPolicy =
-    NetworkPolicy
-      .newBuilder()
-      .setEnabled(true)
-      .build()
-
-  def getDefaultCluster(nodePoolName: NodePoolName, clusterName: KubernetesClusterName): Cluster =
-    Cluster
-      .newBuilder()
-      .setName(clusterName.value) //required
-      .addNodePools(
-        getNodePoolBuilder(NodePoolConfig(DEFAULT_NODEPOOL_SIZE, nodePoolName, DEFAULT_NODEPOOL_AUTOSCALING))
-      ) //required
-      .build() //builds recursively
-
-  def getNodePoolBuilder(config: NodePoolConfig) =
-    NodePool
-      .newBuilder()
-      .setInitialNodeCount(config.initialNodes)
-      .setName(config.name.value)
-      .setManagement(
-        NodeManagement
-          .newBuilder()
-          .setAutoUpgrade(true)
-          .setAutoRepair(true)
-      )
-      .setAutoscaling(
-        NodePoolAutoscaling
-          .newBuilder()
-          .setEnabled(true)
-          .setMinNodeCount(config.autoscalingConfig.minimumNodes)
-          .setMaxNodeCount(config.autoscalingConfig.maximumNodes)
-      )
-}
 
 // Common kubernetes models //
 final case class KubernetesClusterNotFoundException(message: String) extends WorkbenchException
@@ -94,10 +43,9 @@ object KubernetesName {
 
 // Google kubernetes client models //
 object GKEModels {
-
   //"us-central1" is an example of a valid location.
   final case class Parent(project: GoogleProject, location: Location) {
-    val parentString: String = s"projects/${project.value}/locations/${location.value}"
+    override lazy val toString: String = s"projects/${project.value}/locations/${location.value}"
   }
 
   //the cluster must have a name, and a com.google.container.v1.NodePool. The NodePool must have an initialNodeCount and a name.
@@ -108,21 +56,34 @@ object GKEModels {
                                                   location: Location,
                                                   cluster: com.google.container.v1.Cluster)
 
+  final case class KubernetesCreateNodepoolRequest(clusterId: KubernetesClusterId,
+                                                   nodepool: com.google.container.v1.NodePool)
+
   //this is NOT analogous to clusterName in the context of dataproc/GCE. A single cluster can have multiple nodes, pods, services, containers, deployments, etc.
   //clusters should most likely NOT be provisioned per user as they are today. More design/security research is needed
-  final case class KubernetesClusterName(value: String)
+  final case class KubernetesClusterName(value: String) extends AnyVal
 
-  final case class ClusterNodePoolAutoscalingConfig(minimumNodes: Int, maximumNodes: Int)
+  final case class NodepoolAutoscalingConfig(minimumNodes: Int, maximumNodes: Int)
 
-  final case class NodePoolName(value: String)
+  final case class NodepoolName(value: String) extends AnyVal
 
-  final case class NodePoolConfig(initialNodes: Int,
-                                  name: NodePoolName,
-                                  autoscalingConfig: ClusterNodePoolAutoscalingConfig =
-                                    KubernetesConstants.DEFAULT_NODEPOOL_AUTOSCALING)
+  final case class NodepoolConfig(
+    initialNodes: Int,
+    name: NodepoolName,
+    machineType: MachineTypeName,
+    diskSize: Int,
+    serviceAccount: ServiceAccountName,
+    autoscalingConfig: NodepoolAutoscalingConfig
+  )
 
   final case class KubernetesClusterId(project: GoogleProject, location: Location, clusterName: KubernetesClusterName) {
-    val idString: String = s"projects/${project.value}/locations/${location.value}/clusters/${clusterName.value}"
+    override lazy val toString: String =
+      s"projects/${project.value}/locations/${location.value}/clusters/${clusterName.value}"
+  }
+
+  final case class NodepoolId(clusterId: KubernetesClusterId, nodepoolName: NodepoolName) {
+    override lazy val toString: String =
+      s"${clusterId}/nodepools/${nodepoolName.value}"
   }
 
   final case class KubernetesOperationId(project: GoogleProject, location: Location, operation: Operation) {
@@ -160,9 +121,13 @@ trait JavaSerializable[A, B] {
 }
 
 object JavaSerializableInstances {
-
   import KubernetesModels._
   import JavaSerializableSyntax._
+
+  val DEFAULT_POD_KIND = "Pod"
+  val SERVICE_KIND = "Service"
+  // For session affinity, see https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.12/#service-v1-core
+  val STICKY_SESSION_AFFINITY = "ClientIP"
 
   private def getNameSerialization(name: KubernetesSerializableName): V1ObjectMeta = {
     val metadata = new V1ObjectMetaBuilder()
@@ -237,7 +202,7 @@ object JavaSerializableInstances {
 
       v1Pod.metadata(podMetadata)
       v1Pod.spec(podSpec)
-      v1Pod.kind(KubernetesConstants.DEFAULT_POD_KIND)
+      v1Pod.kind(DEFAULT_POD_KIND)
 
       v1Pod
     }
@@ -255,7 +220,7 @@ object JavaSerializableInstances {
   implicit val kubernetesServiceKindSerializable = new JavaSerializable[KubernetesServiceKind, V1Service] {
     def getJavaSerialization(serviceKind: KubernetesServiceKind): V1Service = {
       val v1Service = new V1Service()
-      v1Service.setKind(KubernetesConstants.SERVICE_KIND) //may not be necessary
+      v1Service.setKind(SERVICE_KIND) //may not be necessary
       v1Service.setMetadata(serviceKind.serviceName.getJavaSerialization)
 
       val serviceSpec = new V1ServiceSpec()
@@ -263,7 +228,7 @@ object JavaSerializableInstances {
       serviceSpec.selector(serviceKind.selector.labels.asJava)
       serviceSpec.setType(serviceKind.kindName.value)
       //if we ever enter a scenario where the service acts as a load-balancer to multiple pods, this ensures that clients stick with the container that they initially connected with
-      serviceSpec.setSessionAffinity(KubernetesConstants.STICKY_SESSION_AFFINITY)
+      serviceSpec.setSessionAffinity(STICKY_SESSION_AFFINITY)
       v1Service.setSpec(serviceSpec)
 
       v1Service
@@ -301,7 +266,7 @@ object KubernetesModels {
   sealed trait KubernetesServiceKind extends Product with Serializable {
     val SERVICE_TYPE_NODEPORT = KubernetesServiceKindName("NodePort")
     val SERVICE_TYPE_LOADBALANCER = KubernetesServiceKindName("LoadBalancer")
-    val SERVICE_TYPE_CLUSTERIP =  KubernetesServiceKindName("ClusterIP")
+    val SERVICE_TYPE_CLUSTERIP = KubernetesServiceKindName("ClusterIP")
 
     def kindName: KubernetesServiceKindName
     def serviceName: KubernetesServiceName
@@ -335,14 +300,14 @@ object KubernetesModels {
 
   final case class ServicePort(value: Int)
 
-  //container ports are primarily informational, not specifying them does  not prevent them from being exposed
+  //container ports are primarily informational, not specifying them does not prevent them from being exposed
   final case class ContainerPort(value: Int)
 
   final case class KubernetesSelector(labels: Map[String, String])
 
   final protected case class KubernetesServiceKindName(value: String)
 
-  final case class KubernetesMasterIP(value: String) {
+  final case class KubernetesApiServerIp(value: String) {
     val url = s"https://${value}"
   }
 
