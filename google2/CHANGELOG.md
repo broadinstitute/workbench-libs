@@ -16,6 +16,7 @@ Added:
 - `io.kubernetes` % `client-java` SBT Dependency
 - add `deleteBucket` to `GoogleStorageService`
 - add optional `credentials` parameter to `GoogleStorageService.getBlob`
+- `{create,get,delete}Nodepool` to `GKEService`
 
 SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.8-TRAVIS-REPLACE-ME"`
 

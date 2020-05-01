@@ -19,7 +19,7 @@ import org.broadinstitute.dsde.workbench.google2.util.RetryPredicates._
 import scala.concurrent.duration.FiniteDuration
 
 trait GKEService[F[_]] {
-  def createCluster(kubernetesClusterRequest: KubernetesCreateClusterRequest)(
+  def createCluster(request: KubernetesCreateClusterRequest)(
     implicit ev: ApplicativeAsk[F, TraceId]
   ): F[Operation]
 
@@ -27,7 +27,7 @@ trait GKEService[F[_]] {
 
   def getCluster(clusterId: KubernetesClusterId)(implicit ev: ApplicativeAsk[F, TraceId]): F[Option[Cluster]]
 
-  def createNodepool(clusterId: KubernetesCreateNodepoolRequest)(implicit ev: ApplicativeAsk[F, TraceId]): F[Operation]
+  def createNodepool(request: KubernetesCreateNodepoolRequest)(implicit ev: ApplicativeAsk[F, TraceId]): F[Operation]
 
   def getNodepool(nodepoolId: NodepoolId)(implicit ev: ApplicativeAsk[F, TraceId]): F[NodePool]
 

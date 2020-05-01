@@ -30,15 +30,15 @@ final class GKEInterpreter[F[_]: Async: StructuredLogger: Timer: ContextShift](
 ) extends GKEService[F] {
 
   override def createCluster(
-    kubernetesClusterRequest: KubernetesCreateClusterRequest
+    request: KubernetesCreateClusterRequest
   )(implicit ev: ApplicativeAsk[F, TraceId]): F[Operation] = {
-    val parent = Parent(kubernetesClusterRequest.project, kubernetesClusterRequest.location)
+    val parent = Parent(request.project, request.location)
 
     val createClusterRequest: CreateClusterRequest = CreateClusterRequest
       .newBuilder()
       .setParent(parent.toString)
       .setCluster(
-        kubernetesClusterRequest.cluster.toBuilder
+        request.cluster.toBuilder
           .setIpAllocationPolicy( //otherwise it uses the legacy one, which is insecure. See https://cloud.google.com/kubernetes-engine/docs/how-to/alias-ips
             IPAllocationPolicy
               .newBuilder()
@@ -49,7 +49,7 @@ final class GKEInterpreter[F[_]: Async: StructuredLogger: Timer: ContextShift](
 
     tracedGoogleRetryWithBlocker(
       Async[F].delay(clusterManagerClient.createCluster(createClusterRequest)),
-      f"com.google.cloud.container.v1.ClusterManagerClient.createCluster(${kubernetesClusterRequest})"
+      f"com.google.cloud.container.v1.ClusterManagerClient.createCluster(${request})"
     )
   }
 
@@ -69,17 +69,17 @@ final class GKEInterpreter[F[_]: Async: StructuredLogger: Timer: ContextShift](
     )
 
   override def createNodepool(
-    kubernetesNodepoolRequest: KubernetesCreateNodepoolRequest
+    request: KubernetesCreateNodepoolRequest
   )(implicit ev: ApplicativeAsk[F, TraceId]): F[Operation] = {
     val createNodepoolRequest: CreateNodePoolRequest = CreateNodePoolRequest
       .newBuilder()
-      .setParent(kubernetesNodepoolRequest.clusterId.toString)
-      .setNodePool(kubernetesNodepoolRequest.nodepool.toBuilder)
+      .setParent(request.clusterId.toString)
+      .setNodePool(request.nodepool.toBuilder)
       .build()
 
     tracedGoogleRetryWithBlocker(
       Async[F].delay(clusterManagerClient.createNodePool(createNodepoolRequest)),
-      f"com.google.cloud.container.v1.ClusterManagerClient.createNodepool(${kubernetesNodepoolRequest})"
+      f"com.google.cloud.container.v1.ClusterManagerClient.createNodepool(${request})"
     )
   }
 

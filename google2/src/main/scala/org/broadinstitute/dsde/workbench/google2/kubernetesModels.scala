@@ -121,8 +121,6 @@ object KubernetesName {
 
 // Google kubernetes client models //
 object GKEModels {
-  import KubernetesConstants._
-
   //"us-central1" is an example of a valid location.
   final case class Parent(project: GoogleProject, location: Location) {
     override lazy val toString: String = s"projects/${project.value}/locations/${location.value}"
@@ -153,7 +151,7 @@ object GKEModels {
     machineType: MachineTypeName,
     diskSize: Int,
     serviceAccount: ServiceAccountName,
-    autoscalingConfig: NodepoolAutoscalingConfig = DEFAULT_NODEPOOL_AUTOSCALING
+    autoscalingConfig: NodepoolAutoscalingConfig
   )
 
   final case class KubernetesClusterId(project: GoogleProject, location: Location, clusterName: KubernetesClusterName) {
@@ -161,12 +159,9 @@ object GKEModels {
       s"projects/${project.value}/locations/${location.value}/clusters/${clusterName.value}"
   }
 
-  final case class NodepoolId(project: GoogleProject,
-                              location: Location,
-                              clusterName: KubernetesClusterName,
-                              nodepoolName: NodepoolName) {
+  final case class NodepoolId(clusterId: KubernetesClusterId, nodepoolName: NodepoolName) {
     override lazy val toString: String =
-      s"projects/${project.value}/locations/${location.value}/clusters/${clusterName.value}/nodepools/${nodepoolName.value}"
+      s"${clusterId}/nodepools/${nodepoolName.value}"
   }
 
   final case class KubernetesOperationId(project: GoogleProject, location: Location, operation: Operation) {
