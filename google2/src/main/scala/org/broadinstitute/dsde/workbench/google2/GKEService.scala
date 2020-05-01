@@ -5,10 +5,9 @@ import java.nio.file.Path
 import cats.effect.concurrent.Semaphore
 import cats.effect.{Async, Blocker, ContextShift, Resource, Timer}
 import cats.mtl.ApplicativeAsk
-import com.google.container.v1.Cluster
+import com.google.container.v1.{Cluster, NodePool, Operation}
 import com.google.api.gax.core.FixedCredentialsProvider
 import com.google.cloud.container.v1.{ClusterManagerClient, ClusterManagerSettings}
-import com.google.container.v1.Operation
 import fs2.Stream
 import io.chrisdavenport.log4cats.StructuredLogger
 import org.broadinstitute.dsde.workbench.{DoneCheckable, RetryConfig}
@@ -29,6 +28,8 @@ trait GKEService[F[_]] {
   def getCluster(clusterId: KubernetesClusterId)(implicit ev: ApplicativeAsk[F, TraceId]): F[Option[Cluster]]
 
   def createNodepool(clusterId: KubernetesCreateNodepoolRequest)(implicit ev: ApplicativeAsk[F, TraceId]): F[Operation]
+
+  def getNodepool(nodepoolId: KubernetesNodepoolId)(implicit ev: ApplicativeAsk[F, TraceId]): F[NodePool]
 
   def deleteNodepool(nodepoolId: KubernetesNodepoolId)(implicit ev: ApplicativeAsk[F, TraceId]): F[Operation]
 

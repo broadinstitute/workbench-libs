@@ -7,7 +7,7 @@ import scala.concurrent.duration._
 import cats.effect.{Blocker, IO}
 import cats.effect.concurrent.Semaphore
 import cats.mtl.ApplicativeAsk
-import com.google.container.v1.{Cluster, Operation}
+import com.google.container.v1.{Cluster, NodePool, Operation}
 import io.chrisdavenport.log4cats.slf4j.Slf4jLogger
 import org.broadinstitute.dsde.workbench.google2.GKEModels._
 import org.broadinstitute.dsde.workbench.google2.KubernetesConstants.{
@@ -84,6 +84,10 @@ final class Test(credPath: String,
     serviceResource.use { service =>
       service.createNodepool(KubernetesCreateNodepoolRequest(clusterId, nodepool))
     }
+  }
+
+  def callGetNodepool(nodepoolId: KubernetesNodepoolId): IO[NodePool] = serviceResource.use { service =>
+    service.getNodepool(nodepoolId)
   }
 
   def callDeleteNodepool(nodepoolId: KubernetesNodepoolId): IO[Operation] = serviceResource.use { service =>

@@ -10,6 +10,7 @@ import com.google.container.v1.{
   CreateNodePoolRequest,
   GetOperationRequest,
   IPAllocationPolicy,
+  NodePool,
   Operation
 }
 import fs2.Stream
@@ -81,6 +82,12 @@ final class GKEInterpreter[F[_]: Async: StructuredLogger: Timer: ContextShift](
       f"com.google.cloud.container.v1.ClusterManagerClient.createNodepool(${kubernetesNodepoolRequest})"
     )
   }
+
+  override def getNodepool(nodepoolId: KubernetesNodepoolId)(implicit ev: ApplicativeAsk[F, TraceId]): F[NodePool] =
+    tracedGoogleRetryWithBlocker(
+      Async[F].delay(clusterManagerClient.getNodePool(nodepoolId.toString)),
+      f"com.google.cloud.container.v1.ClusterManagerClient.getNodepool(${nodepoolId.toString})"
+    )
 
   override def deleteNodepool(nodepoolId: KubernetesNodepoolId)(implicit ev: ApplicativeAsk[F, TraceId]): F[Operation] =
     tracedGoogleRetryWithBlocker(
