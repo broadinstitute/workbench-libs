@@ -5,10 +5,9 @@ import java.nio.file.Path
 import cats.effect.concurrent.Semaphore
 import cats.effect.{Async, Blocker, ContextShift, Resource, Timer}
 import cats.mtl.ApplicativeAsk
-import com.google.container.v1.Cluster
+import com.google.container.v1.{Cluster, NodePool, Operation}
 import com.google.api.gax.core.FixedCredentialsProvider
 import com.google.cloud.container.v1.{ClusterManagerClient, ClusterManagerSettings}
-import com.google.container.v1.Operation
 import fs2.Stream
 import io.chrisdavenport.log4cats.StructuredLogger
 import org.broadinstitute.dsde.workbench.{DoneCheckable, RetryConfig}
@@ -20,13 +19,19 @@ import org.broadinstitute.dsde.workbench.google2.util.RetryPredicates._
 import scala.concurrent.duration.FiniteDuration
 
 trait GKEService[F[_]] {
-  def createCluster(kubernetesClusterRequest: KubernetesCreateClusterRequest)(
+  def createCluster(request: KubernetesCreateClusterRequest)(
     implicit ev: ApplicativeAsk[F, TraceId]
   ): F[Operation]
 
   def deleteCluster(clusterId: KubernetesClusterId)(implicit ev: ApplicativeAsk[F, TraceId]): F[Operation]
 
   def getCluster(clusterId: KubernetesClusterId)(implicit ev: ApplicativeAsk[F, TraceId]): F[Option[Cluster]]
+
+  def createNodepool(request: KubernetesCreateNodepoolRequest)(implicit ev: ApplicativeAsk[F, TraceId]): F[Operation]
+
+  def getNodepool(nodepoolId: NodepoolId)(implicit ev: ApplicativeAsk[F, TraceId]): F[NodePool]
+
+  def deleteNodepool(nodepoolId: NodepoolId)(implicit ev: ApplicativeAsk[F, TraceId]): F[Operation]
 
   def pollOperation(operationId: KubernetesOperationId, delay: FiniteDuration, maxAttempts: Int)(
     implicit ev: ApplicativeAsk[F, TraceId],
