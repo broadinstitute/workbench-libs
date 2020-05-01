@@ -83,13 +83,13 @@ final class GKEInterpreter[F[_]: Async: StructuredLogger: Timer: ContextShift](
     )
   }
 
-  override def getNodepool(nodepoolId: KubernetesNodepoolId)(implicit ev: ApplicativeAsk[F, TraceId]): F[NodePool] =
+  override def getNodepool(nodepoolId: NodepoolId)(implicit ev: ApplicativeAsk[F, TraceId]): F[NodePool] =
     tracedGoogleRetryWithBlocker(
       Async[F].delay(clusterManagerClient.getNodePool(nodepoolId.toString)),
       f"com.google.cloud.container.v1.ClusterManagerClient.getNodepool(${nodepoolId.toString})"
     )
 
-  override def deleteNodepool(nodepoolId: KubernetesNodepoolId)(implicit ev: ApplicativeAsk[F, TraceId]): F[Operation] =
+  override def deleteNodepool(nodepoolId: NodepoolId)(implicit ev: ApplicativeAsk[F, TraceId]): F[Operation] =
     tracedGoogleRetryWithBlocker(
       Async[F].delay(clusterManagerClient.deleteNodePool(nodepoolId.toString)),
       f"com.google.cloud.container.v1.ClusterManagerClient.deleteNodepool(${nodepoolId.toString})"

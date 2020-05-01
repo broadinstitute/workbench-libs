@@ -1,5 +1,13 @@
 package org.broadinstitute.dsde.workbench.google2
-import com.google.container.v1.{Cluster, NetworkPolicy, NodeManagement, NodePool, NodePoolAutoscaling, Operation}
+import com.google.container.v1.{
+  Cluster,
+  NetworkPolicy,
+  NodeConfig,
+  NodeManagement,
+  NodePool,
+  NodePoolAutoscaling,
+  Operation
+}
 
 import collection.JavaConverters._
 import io.kubernetes.client.models.{
@@ -19,7 +27,7 @@ import org.broadinstitute.dsde.workbench.google2.GKEModels._
 import org.broadinstitute.dsde.workbench.google2.KubernetesModels.ServicePort
 import org.broadinstitute.dsde.workbench.google2.KubernetesSerializableName._
 import org.broadinstitute.dsde.workbench.model.WorkbenchException
-import org.broadinstitute.dsde.workbench.model.google.GoogleProject
+import org.broadinstitute.dsde.workbench.model.google.{GoogleProject, ServiceAccountName}
 import cats.implicits._
 
 object KubernetesConstants {
@@ -33,8 +41,20 @@ object KubernetesConstants {
   //composite of NodePort and ClusterIP types. Allows external access
   val DEFAULT_LOADBALANCER_PORTS = Set(ServicePort(8080))
 
-  val DEFAULT_NODEPOOL_SIZE: Int = 1
+  val DEFAULT_NODEPOOL_SIZE = 1
+  val DEFAULT_NODEPOOL_MACHINE_TYPE = MachineTypeName("n1-standard-1")
+  val DEFAULT_NODEPOOL_DISK_SIZE = 100 // GB
+  val DEFAULT_NODEPOOL_SERVICE_ACCOUNT = ServiceAccountName("default")
   val DEFAULT_NODEPOOL_AUTOSCALING: NodepoolAutoscalingConfig = NodepoolAutoscalingConfig(1, 10)
+
+  def getDefaultNodepoolConfig(nodepoolName: NodepoolName) = NodepoolConfig(
+    DEFAULT_NODEPOOL_SIZE,
+    nodepoolName,
+    DEFAULT_NODEPOOL_MACHINE_TYPE,
+    DEFAULT_NODEPOOL_DISK_SIZE,
+    DEFAULT_NODEPOOL_SERVICE_ACCOUNT,
+    DEFAULT_NODEPOOL_AUTOSCALING
+  )
 
   def getDefaultNetworkPolicy(): NetworkPolicy =
     NetworkPolicy
@@ -47,13 +67,20 @@ object KubernetesConstants {
       .newBuilder()
       .setName(clusterName.value) //required
       .addNodePools(
-        getNodepoolBuilder(NodepoolConfig(DEFAULT_NODEPOOL_SIZE, nodepoolName, DEFAULT_NODEPOOL_AUTOSCALING))
+        getNodepoolBuilder(getDefaultNodepoolConfig(nodepoolName))
       ) //required
       .build() //builds recursively
 
   def getNodepoolBuilder(config: NodepoolConfig): NodePool.Builder =
     NodePool
       .newBuilder()
+      .setConfig(
+        NodeConfig
+          .newBuilder()
+          .setMachineType(config.machineType.value)
+          .setDiskSizeGb(config.diskSize)
+          .setServiceAccount(config.serviceAccount.value)
+      )
       .setInitialNodeCount(config.initialNodes)
       .setName(config.name.value)
       .setManagement(
@@ -94,6 +121,7 @@ object KubernetesName {
 
 // Google kubernetes client models //
 object GKEModels {
+  import KubernetesConstants._
 
   //"us-central1" is an example of a valid location.
   final case class Parent(project: GoogleProject, location: Location) {
@@ -119,20 +147,24 @@ object GKEModels {
 
   final case class NodepoolName(value: String) extends AnyVal
 
-  final case class NodepoolConfig(initialNodes: Int,
-                                  name: NodepoolName,
-                                  autoscalingConfig: NodepoolAutoscalingConfig =
-                                    KubernetesConstants.DEFAULT_NODEPOOL_AUTOSCALING)
+  final case class NodepoolConfig(
+    initialNodes: Int,
+    name: NodepoolName,
+    machineType: MachineTypeName,
+    diskSize: Int,
+    serviceAccount: ServiceAccountName,
+    autoscalingConfig: NodepoolAutoscalingConfig = DEFAULT_NODEPOOL_AUTOSCALING
+  )
 
   final case class KubernetesClusterId(project: GoogleProject, location: Location, clusterName: KubernetesClusterName) {
     override lazy val toString: String =
       s"projects/${project.value}/locations/${location.value}/clusters/${clusterName.value}"
   }
 
-  final case class KubernetesNodepoolId(project: GoogleProject,
-                                        location: Location,
-                                        clusterName: KubernetesClusterName,
-                                        nodepoolName: NodepoolName) {
+  final case class NodepoolId(project: GoogleProject,
+                              location: Location,
+                              clusterName: KubernetesClusterName,
+                              nodepoolName: NodepoolName) {
     override lazy val toString: String =
       s"projects/${project.value}/locations/${location.value}/clusters/${clusterName.value}/nodepools/${nodepoolName.value}"
   }
@@ -313,7 +345,7 @@ object KubernetesModels {
   sealed trait KubernetesServiceKind extends Product with Serializable {
     val SERVICE_TYPE_NODEPORT = KubernetesServiceKindName("NodePort")
     val SERVICE_TYPE_LOADBALANCER = KubernetesServiceKindName("LoadBalancer")
-    val SERVICE_TYPE_CLUSTERIP =  KubernetesServiceKindName("ClusterIP")
+    val SERVICE_TYPE_CLUSTERIP = KubernetesServiceKindName("ClusterIP")
 
     def kindName: KubernetesServiceKindName
     def serviceName: KubernetesServiceName
@@ -347,7 +379,7 @@ object KubernetesModels {
 
   final case class ServicePort(value: Int)
 
-  //container ports are primarily informational, not specifying them does  not prevent them from being exposed
+  //container ports are primarily informational, not specifying them does not prevent them from being exposed
   final case class ContainerPort(value: Int)
 
   final case class KubernetesSelector(labels: Map[String, String])

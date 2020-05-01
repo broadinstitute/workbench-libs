@@ -10,10 +10,6 @@ import cats.mtl.ApplicativeAsk
 import com.google.container.v1.{Cluster, NodePool, Operation}
 import io.chrisdavenport.log4cats.slf4j.Slf4jLogger
 import org.broadinstitute.dsde.workbench.google2.GKEModels._
-import org.broadinstitute.dsde.workbench.google2.KubernetesConstants.{
-  DEFAULT_NODEPOOL_AUTOSCALING,
-  DEFAULT_NODEPOOL_SIZE
-}
 import org.broadinstitute.dsde.workbench.google2.KubernetesModels._
 import org.broadinstitute.dsde.workbench.google2.KubernetesSerializableName._
 import org.broadinstitute.dsde.workbench.model.TraceId
@@ -21,7 +17,7 @@ import org.broadinstitute.dsde.workbench.model.google.GoogleProject
 
 //TODO: migrate to a unit test
 //TODO: investigate running minikube in a docker for unit/automation tests https://banzaicloud.com/blog/minikube-ci/
-final class Test(credPath: String,
+final class Test(credPathStr: String,
                  projectStr: String = "broad-dsde-dev",
                  regionStr: String = "us-central1",
                  clusterNameStr: String = "test-cluster",
@@ -48,8 +44,8 @@ final class Test(credPath: String,
 
   val clusterId = KubernetesClusterId(project, region, clusterName.right.get)
 
-  val p = Paths.get(credPath)
-  val serviceResource = GKEService.resource(p, blocker, semaphore)
+  val credPath = Paths.get(credPathStr)
+  val serviceResource = GKEService.resource(credPath, blocker, semaphore)
 
   def makeClusterId(name: String) = KubernetesClusterId(project, region, KubernetesClusterName(name))
 
@@ -77,26 +73,28 @@ final class Test(credPath: String,
   }
 
   def callCreateNodepool(clusterId: KubernetesClusterId = clusterId, nodepoolNameStr: String): IO[Operation] = {
+    import KubernetesConstants._
+
     val nodepoolName = KubernetesName.withValidation[NodepoolName](nodepoolNameStr, NodepoolName.apply)
-    val nodepoolConfig = NodepoolConfig(DEFAULT_NODEPOOL_SIZE, nodepoolName.right.get, DEFAULT_NODEPOOL_AUTOSCALING)
-    val nodepool = KubernetesConstants.getNodepoolBuilder(nodepoolConfig).build()
+    val nodepoolConfig = getDefaultNodepoolConfig(nodepoolName.right.get)
+    val nodepool = getNodepoolBuilder(nodepoolConfig).build()
 
     serviceResource.use { service =>
       service.createNodepool(KubernetesCreateNodepoolRequest(clusterId, nodepool))
     }
   }
 
-  def callGetNodepool(nodepoolId: KubernetesNodepoolId): IO[NodePool] = serviceResource.use { service =>
+  def callGetNodepool(nodepoolId: NodepoolId): IO[NodePool] = serviceResource.use { service =>
     service.getNodepool(nodepoolId)
   }
 
-  def callDeleteNodepool(nodepoolId: KubernetesNodepoolId): IO[Operation] = serviceResource.use { service =>
+  def callDeleteNodepool(nodepoolId: NodepoolId): IO[Operation] = serviceResource.use { service =>
     service.deleteNodepool(nodepoolId)
   }
 
   val kubeService = for {
-    gs <- GKEService.resource(p, blocker, semaphore)
-    ks <- KubernetesService.resource(p, gs, blocker, semaphore)
+    gs <- GKEService.resource(credPath, blocker, semaphore)
+    ks <- KubernetesService.resource(credPath, gs, blocker, semaphore)
   } yield ks
 
   def callCreateNamespace(
@@ -140,9 +138,10 @@ final class Test(credPath: String,
       k.createPod(clusterId, pod, KubernetesNamespace(defaultNamespaceName.right.get))
     }
 
-  import org.broadinstitute.dsde.workbench.DoneCheckableSyntax._
-  import org.broadinstitute.dsde.workbench.DoneCheckableInstances._
-  def testPolling(operation: Operation): IO[Unit] =
+  def testPolling(operation: Operation): IO[Unit] = {
+    import org.broadinstitute.dsde.workbench.DoneCheckableSyntax._
+    import org.broadinstitute.dsde.workbench.DoneCheckableInstances._
+
     serviceResource.use { s =>
       for {
         lastOp <- s.pollOperation(KubernetesOperationId(project, region, operation), 5 seconds, 72).compile.lastOrError
@@ -150,4 +149,5 @@ final class Test(credPath: String,
         else IO(s"operation errored, initial operation: ${operation}")
       } yield ()
     }
+  }
 }
