@@ -1,13 +1,5 @@
 package org.broadinstitute.dsde.workbench.google2
-import com.google.container.v1.{
-  Cluster,
-  NetworkPolicy,
-  NodeConfig,
-  NodeManagement,
-  NodePool,
-  NodePoolAutoscaling,
-  Operation
-}
+import com.google.container.v1.Operation
 
 import collection.JavaConverters._
 import io.kubernetes.client.models.{
@@ -23,80 +15,10 @@ import io.kubernetes.client.models.{
   V1ServiceSpec
 }
 import org.apache.commons.codec.binary.Base64
-import org.broadinstitute.dsde.workbench.google2.GKEModels._
-import org.broadinstitute.dsde.workbench.google2.KubernetesModels.ServicePort
 import org.broadinstitute.dsde.workbench.google2.KubernetesSerializableName._
 import org.broadinstitute.dsde.workbench.model.WorkbenchException
 import org.broadinstitute.dsde.workbench.model.google.{GoogleProject, ServiceAccountName}
 import cats.implicits._
-
-object KubernetesConstants {
-  //this default namespace is initialized automatically with a kubernetes environment, and we do not create it
-  val DEFAULT_NAMESPACE = "default"
-  val DEFAULT_POD_KIND = "Pod"
-  val SERVICE_KIND = "Service"
-  //for session affinity, see https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.12/#service-v1-core
-  val STICKY_SESSION_AFFINITY = "ClientIP"
-
-  //composite of NodePort and ClusterIP types. Allows external access
-  val DEFAULT_LOADBALANCER_PORTS = Set(ServicePort(8080))
-
-  val DEFAULT_NODEPOOL_SIZE = 1
-  val DEFAULT_NODEPOOL_MACHINE_TYPE = MachineTypeName("n1-standard-1")
-  val DEFAULT_NODEPOOL_DISK_SIZE = 100 // GB
-  val DEFAULT_NODEPOOL_SERVICE_ACCOUNT = ServiceAccountName("default")
-  val DEFAULT_NODEPOOL_AUTOSCALING: NodepoolAutoscalingConfig = NodepoolAutoscalingConfig(1, 10)
-
-  def getDefaultNodepoolConfig(nodepoolName: NodepoolName) = NodepoolConfig(
-    DEFAULT_NODEPOOL_SIZE,
-    nodepoolName,
-    DEFAULT_NODEPOOL_MACHINE_TYPE,
-    DEFAULT_NODEPOOL_DISK_SIZE,
-    DEFAULT_NODEPOOL_SERVICE_ACCOUNT,
-    DEFAULT_NODEPOOL_AUTOSCALING
-  )
-
-  def getDefaultNetworkPolicy(): NetworkPolicy =
-    NetworkPolicy
-      .newBuilder()
-      .setEnabled(true)
-      .build()
-
-  def getDefaultCluster(nodepoolName: NodepoolName, clusterName: KubernetesClusterName): Cluster =
-    Cluster
-      .newBuilder()
-      .setName(clusterName.value) //required
-      .addNodePools(
-        getNodepoolBuilder(getDefaultNodepoolConfig(nodepoolName))
-      ) //required
-      .build() //builds recursively
-
-  def getNodepoolBuilder(config: NodepoolConfig): NodePool.Builder =
-    NodePool
-      .newBuilder()
-      .setConfig(
-        NodeConfig
-          .newBuilder()
-          .setMachineType(config.machineType.value)
-          .setDiskSizeGb(config.diskSize)
-          .setServiceAccount(config.serviceAccount.value)
-      )
-      .setInitialNodeCount(config.initialNodes)
-      .setName(config.name.value)
-      .setManagement(
-        NodeManagement
-          .newBuilder()
-          .setAutoUpgrade(true)
-          .setAutoRepair(true)
-      )
-      .setAutoscaling(
-        NodePoolAutoscaling
-          .newBuilder()
-          .setEnabled(true)
-          .setMinNodeCount(config.autoscalingConfig.minimumNodes)
-          .setMaxNodeCount(config.autoscalingConfig.maximumNodes)
-      )
-}
 
 // Common kubernetes models //
 final case class KubernetesClusterNotFoundException(message: String) extends WorkbenchException
@@ -199,9 +121,13 @@ trait JavaSerializable[A, B] {
 }
 
 object JavaSerializableInstances {
-
   import KubernetesModels._
   import JavaSerializableSyntax._
+
+  val DEFAULT_POD_KIND = "Pod"
+  val SERVICE_KIND = "Service"
+  // For session affinity, see https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.12/#service-v1-core
+  val STICKY_SESSION_AFFINITY = "ClientIP"
 
   private def getNameSerialization(name: KubernetesSerializableName): V1ObjectMeta = {
     val metadata = new V1ObjectMetaBuilder()
@@ -276,7 +202,7 @@ object JavaSerializableInstances {
 
       v1Pod.metadata(podMetadata)
       v1Pod.spec(podSpec)
-      v1Pod.kind(KubernetesConstants.DEFAULT_POD_KIND)
+      v1Pod.kind(DEFAULT_POD_KIND)
 
       v1Pod
     }
@@ -294,7 +220,7 @@ object JavaSerializableInstances {
   implicit val kubernetesServiceKindSerializable = new JavaSerializable[KubernetesServiceKind, V1Service] {
     def getJavaSerialization(serviceKind: KubernetesServiceKind): V1Service = {
       val v1Service = new V1Service()
-      v1Service.setKind(KubernetesConstants.SERVICE_KIND) //may not be necessary
+      v1Service.setKind(SERVICE_KIND) //may not be necessary
       v1Service.setMetadata(serviceKind.serviceName.getJavaSerialization)
 
       val serviceSpec = new V1ServiceSpec()
@@ -302,7 +228,7 @@ object JavaSerializableInstances {
       serviceSpec.selector(serviceKind.selector.labels.asJava)
       serviceSpec.setType(serviceKind.kindName.value)
       //if we ever enter a scenario where the service acts as a load-balancer to multiple pods, this ensures that clients stick with the container that they initially connected with
-      serviceSpec.setSessionAffinity(KubernetesConstants.STICKY_SESSION_AFFINITY)
+      serviceSpec.setSessionAffinity(STICKY_SESSION_AFFINITY)
       v1Service.setSpec(serviceSpec)
 
       v1Service

@@ -7,13 +7,21 @@ import scala.concurrent.duration._
 import cats.effect.{Blocker, IO}
 import cats.effect.concurrent.Semaphore
 import cats.mtl.ApplicativeAsk
-import com.google.container.v1.{Cluster, NodePool, Operation}
+import com.google.container.v1.{
+  Cluster,
+  NetworkPolicy,
+  NodeConfig,
+  NodeManagement,
+  NodePool,
+  NodePoolAutoscaling,
+  Operation
+}
 import io.chrisdavenport.log4cats.slf4j.Slf4jLogger
 import org.broadinstitute.dsde.workbench.google2.GKEModels._
 import org.broadinstitute.dsde.workbench.google2.KubernetesModels._
 import org.broadinstitute.dsde.workbench.google2.KubernetesSerializableName._
 import org.broadinstitute.dsde.workbench.model.TraceId
-import org.broadinstitute.dsde.workbench.model.google.GoogleProject
+import org.broadinstitute.dsde.workbench.model.google.{GoogleProject, ServiceAccountName}
 
 //TODO: migrate to a unit test
 //TODO: investigate running minikube in a docker for unit/automation tests https://banzaicloud.com/blog/minikube-ci/
@@ -150,4 +158,68 @@ final class Test(credPathStr: String,
       } yield ()
     }
   }
+}
+
+object KubernetesConstants {
+  //this default namespace is initialized automatically with a kubernetes environment, and we do not create it
+  val DEFAULT_NAMESPACE = "default"
+
+  //composite of NodePort and ClusterIP types. Allows external access
+  val DEFAULT_LOADBALANCER_PORTS = Set(ServicePort(8080))
+
+  val DEFAULT_NODEPOOL_SIZE = 1
+  val DEFAULT_NODEPOOL_MACHINE_TYPE = MachineTypeName("n1-standard-1")
+  val DEFAULT_NODEPOOL_DISK_SIZE = 100 // GB
+  val DEFAULT_NODEPOOL_SERVICE_ACCOUNT = ServiceAccountName("default")
+  val DEFAULT_NODEPOOL_AUTOSCALING: NodepoolAutoscalingConfig = NodepoolAutoscalingConfig(1, 10)
+
+  def getDefaultNodepoolConfig(nodepoolName: NodepoolName) = NodepoolConfig(
+    DEFAULT_NODEPOOL_SIZE,
+    nodepoolName,
+    DEFAULT_NODEPOOL_MACHINE_TYPE,
+    DEFAULT_NODEPOOL_DISK_SIZE,
+    DEFAULT_NODEPOOL_SERVICE_ACCOUNT,
+    DEFAULT_NODEPOOL_AUTOSCALING
+  )
+
+  def getDefaultNetworkPolicy(): NetworkPolicy =
+    NetworkPolicy
+      .newBuilder()
+      .setEnabled(true)
+      .build()
+
+  def getDefaultCluster(nodepoolName: NodepoolName, clusterName: KubernetesClusterName): Cluster =
+    Cluster
+      .newBuilder()
+      .setName(clusterName.value) //required
+      .addNodePools(
+        getNodepoolBuilder(getDefaultNodepoolConfig(nodepoolName))
+      ) //required
+      .build() //builds recursively
+
+  def getNodepoolBuilder(config: NodepoolConfig): NodePool.Builder =
+    NodePool
+      .newBuilder()
+      .setConfig(
+        NodeConfig
+          .newBuilder()
+          .setMachineType(config.machineType.value)
+          .setDiskSizeGb(config.diskSize)
+          .setServiceAccount(config.serviceAccount.value)
+      )
+      .setInitialNodeCount(config.initialNodes)
+      .setName(config.name.value)
+      .setManagement(
+        NodeManagement
+          .newBuilder()
+          .setAutoUpgrade(true)
+          .setAutoRepair(true)
+      )
+      .setAutoscaling(
+        NodePoolAutoscaling
+          .newBuilder()
+          .setEnabled(true)
+          .setMinNodeCount(config.autoscalingConfig.minimumNodes)
+          .setMaxNodeCount(config.autoscalingConfig.maximumNodes)
+      )
 }
