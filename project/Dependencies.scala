@@ -73,7 +73,6 @@ object Dependencies {
   val circeParser: ModuleID = "io.circe" %% "circe-parser" % circeVersion
   val circeGeneric: ModuleID = "io.circe" %% "circe-generic" % circeVersion % "test"
   val circeFs2: ModuleID = "io.circe" %% "circe-fs2" % circeVersion
-  val cats: ModuleID = "org.typelevel" %% "cats-core" % "2.1.1"
   val log4cats = "io.chrisdavenport" %% "log4cats-slf4j"   % "1.0.1"
   val catsMtl = "org.typelevel" %% "cats-mtl-core" % "0.7.1"
 
@@ -106,7 +105,7 @@ object Dependencies {
     akkaTestkit,
     mockito,
     scalaTestMockito,
-    cats
+    "org.typelevel" %% "cats-core" % "2.0.0" //This is the last version supports scala 2.11, which is use in orchestration
   )
 
   val modelDependencies = commonDependencies ++ Seq(
