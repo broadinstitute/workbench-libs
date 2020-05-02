@@ -4,18 +4,18 @@ import com.google.api.gax.core.NoCredentialsProvider
 import com.google.api.gax.grpc.GrpcTransportChannel
 import com.google.api.gax.rpc.FixedTransportChannelProvider
 import com.google.cloud.pubsub.v1.{TopicAdminClient, TopicAdminSettings}
-import com.google.pubsub.v1.ProjectTopicName
+import com.google.pubsub.v1.TopicName
 import fs2.Stream
 import io.grpc.ManagedChannelBuilder
 import org.broadinstitute.dsde.workbench.google2.Generators._
 import org.broadinstitute.dsde.workbench.google2.GoogleTopicAdminSpec._
 import org.broadinstitute.dsde.workbench.util2.{PropertyBasedTesting, WorkbenchTestSuite}
-import org.scalatest.matchers.should.Matchers
 import org.scalatest.flatspec.AnyFlatSpecLike
+import org.scalatest.matchers.should.Matchers
 
 class GoogleTopicAdminSpec extends AnyFlatSpecLike with Matchers with WorkbenchTestSuite with PropertyBasedTesting {
   "GoogleTopicAdminInterpreter" should "be able to create topic" in {
-    forAll { (topic: ProjectTopicName) =>
+    forAll { (topic: TopicName) =>
       val result = localTopicAdmin.use { topicAdmin =>
         val googleTopicAdmin =
           new GoogleTopicAdminInterpreter[IO](topicAdmin, GoogleTopicAdminInterpreter.defaultRetryConfig)
@@ -32,7 +32,7 @@ class GoogleTopicAdminSpec extends AnyFlatSpecLike with Matchers with WorkbenchT
   }
 
   "GoogleTopicAdminInterpreter" should "be able to delete topic" in {
-    forAll { (topic: ProjectTopicName) =>
+    forAll { (topic: TopicName) =>
       val result = localTopicAdmin.use { topicAdmin =>
         val googleTopicAdmin =
           new GoogleTopicAdminInterpreter[IO](topicAdmin, GoogleTopicAdminInterpreter.defaultRetryConfig)

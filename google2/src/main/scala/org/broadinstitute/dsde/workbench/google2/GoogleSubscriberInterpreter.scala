@@ -125,8 +125,8 @@ object GoogleSubscriberInterpreter {
     subscriberConfig: SubscriberConfig,
     queue: fs2.concurrent.Queue[F, Event[MessageType]]
   ): Resource[F, Subscriber] = {
-    val subscription = ProjectSubscriptionName.of(subscriberConfig.projectTopicName.getProject,
-                                                  subscriberConfig.projectTopicName.getTopic)
+    val subscription =
+      ProjectSubscriptionName.of(subscriberConfig.topicName.getProject, subscriberConfig.topicName.getTopic)
 
     for {
       credential <- credentialResource(subscriberConfig.pathToCredentialJson)
@@ -147,8 +147,8 @@ object GoogleSubscriberInterpreter {
     subscriberConfig: SubscriberConfig,
     queue: fs2.concurrent.Queue[F, Event[String]]
   ): Resource[F, Subscriber] = {
-    val subscription = ProjectSubscriptionName.of(subscriberConfig.projectTopicName.getProject,
-                                                  subscriberConfig.projectTopicName.getTopic)
+    val subscription =
+      ProjectSubscriptionName.of(subscriberConfig.topicName.getProject, subscriberConfig.topicName.getTopic)
 
     for {
       credential <- credentialResource(subscriberConfig.pathToCredentialJson)
@@ -214,7 +214,7 @@ object GoogleSubscriberInterpreter {
       Async[F]
         .delay(
           subscriptionAdminClient.createSubscription(subscription,
-                                                     subsriberConfig.projectTopicName,
+                                                     subsriberConfig.topicName,
                                                      PushConfig.getDefaultInstance,
                                                      subsriberConfig.ackDeadLine.toSeconds.toInt)
         )
@@ -239,7 +239,7 @@ object GoogleSubscriberInterpreter {
 
 final case class FlowControlSettingsConfig(maxOutstandingElementCount: Long, maxOutstandingRequestBytes: Long)
 final case class SubscriberConfig(pathToCredentialJson: String,
-                                  projectTopicName: ProjectTopicName,
+                                  topicName: TopicName,
                                   ackDeadLine: FiniteDuration,
                                   flowControlSettingsConfig: Option[FlowControlSettingsConfig])
 final case class Event[A](msg: A, traceId: Option[TraceId] = None, publishedTime: Timestamp, consumer: AckReplyConsumer)

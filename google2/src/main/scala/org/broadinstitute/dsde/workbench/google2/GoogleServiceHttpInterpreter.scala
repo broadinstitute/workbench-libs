@@ -7,7 +7,7 @@ import cats.implicits._
 import com.google.api.services.storage.StorageScopes
 import com.google.auth.oauth2.{GoogleCredentials, ServiceAccountCredentials}
 import com.google.cloud.Identity
-import com.google.pubsub.v1.ProjectTopicName
+import com.google.pubsub.v1.TopicName
 import io.chrisdavenport.log4cats.Logger
 import io.circe.syntax._
 import io.circe.{Decoder, Encoder}
@@ -20,6 +20,7 @@ import org.http4s.circe.CirceEntityEncoder._
 import org.http4s.client.Client
 import org.http4s.client.dsl.Http4sClientDsl
 import org.http4s.headers.Authorization
+import JsonCodec._
 import org.http4s.{AuthScheme, Credentials, Headers, Method, Request, Response, Status, Uri}
 
 class GoogleServiceHttpInterpreter[F[_]: Sync: Logger](httpClient: Client[F],
@@ -32,7 +33,7 @@ class GoogleServiceHttpInterpreter[F[_]: Sync: Logger](httpClient: Client[F],
   )
 
   // Google api doc https://cloud.google.com/storage/docs/json_api/v1/notifications
-  def createNotification(topic: ProjectTopicName,
+  def createNotification(topic: TopicName,
                          bucketName: GcsBucketName,
                          filters: Filters,
                          traceId: Option[TraceId]): F[Unit] = {
@@ -97,11 +98,6 @@ object GoogleServiceHttpInterpreter {
     "object_name_prefix"
   )(x => NotificationRequest.unapply(x).get)
 
-  implicit val projectTopicNameDecoder: Decoder[ProjectTopicName] = Decoder.decodeString.emap { s =>
-    // topic has this format: '//pubsub.googleapis.com/projects/{project-identifier}/topics/{my-topic}'
-    Either.catchNonFatal(ProjectTopicName.parse(s)).leftMap(t => t.getMessage)
-  }
-
   implicit val notificationDecoder: Decoder[Notification] = Decoder.forProduct1(
     "topic"
   )(Notification.apply)
@@ -128,7 +124,7 @@ object GoogleServiceHttpInterpreter {
       "email_address"
     )(GetProjectServiceAccountResponse)
 
-  implicit val eqProjectTopicName: Eq[ProjectTopicName] =
+  implicit val eqTopicName: Eq[TopicName] =
     Eq.instance((t1, t2) => t1.getProject == t2.getProject && t1.getTopic == t2.getTopic)
 
   def credentialResourceWithScope[F[_]: Sync](pathToCredential: String): Resource[F, GoogleCredentials] =
@@ -159,12 +155,12 @@ object NotificationEventTypes {
 }
 
 final case class Filters(eventTypes: List[NotificationEventTypes], objectNamePrefix: Option[String])
-final private[google2] case class NotificationRequest(topic: ProjectTopicName,
+final private[google2] case class NotificationRequest(topic: TopicName,
                                                       payloadFormat: String,
                                                       eventTypes: List[NotificationEventTypes],
                                                       objectNamePrefix: Option[String])
 final private[google2] case class NotificationResponse(items: Option[NonEmptyList[Notification]])
-final case class Notification(topic: ProjectTopicName)
+final case class Notification(topic: TopicName)
 final case class NotificationCreaterConfig(pathToCredentialJson: String, googleUrl: Uri)
 final case class LoggableErrorResponse(traceId: Option[TraceId], status: Status, body: String)
 final case class GetProjectServiceAccountResponse(serviceAccount: Identity)
