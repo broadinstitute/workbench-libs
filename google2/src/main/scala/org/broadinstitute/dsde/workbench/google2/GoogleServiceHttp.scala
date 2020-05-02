@@ -1,8 +1,8 @@
 package org.broadinstitute.dsde.workbench.google2
 
 import cats.effect.{Concurrent, Resource, Timer}
-import com.google.pubsub.v1.ProjectTopicName
 import com.google.cloud.Identity
+import com.google.pubsub.v1.TopicName
 import io.chrisdavenport.log4cats.Logger
 import org.broadinstitute.dsde.workbench.google2.GoogleServiceHttpInterpreter.credentialResourceWithScope
 import org.broadinstitute.dsde.workbench.model.TraceId
@@ -14,7 +14,7 @@ import scala.concurrent.duration._
 
 // This class provides functions only exposed via rest APIs
 trait GoogleServiceHttp[F[_]] {
-  def createNotification(topic: ProjectTopicName,
+  def createNotification(topic: TopicName,
                          bucketName: GcsBucketName,
                          filters: Filters,
                          traceId: Option[TraceId]): F[Unit]

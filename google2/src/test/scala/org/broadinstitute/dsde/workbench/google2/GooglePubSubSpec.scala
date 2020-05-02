@@ -6,7 +6,7 @@ import com.google.api.gax.core.NoCredentialsProvider
 import com.google.api.gax.grpc.GrpcTransportChannel
 import com.google.api.gax.rpc.FixedTransportChannelProvider
 import com.google.cloud.pubsub.v1._
-import com.google.pubsub.v1.{ProjectSubscriptionName, ProjectTopicName, PushConfig}
+import com.google.pubsub.v1.{ProjectSubscriptionName, PushConfig, TopicName}
 import fs2.Stream
 import fs2.concurrent.SignallingRef
 import io.chrisdavenport.log4cats.StructuredLogger
@@ -17,8 +17,8 @@ import io.grpc.Status.Code
 import org.broadinstitute.dsde.workbench.RetryConfig
 import org.broadinstitute.dsde.workbench.google2.GooglePubSubSpec._
 import org.broadinstitute.dsde.workbench.util2.WorkbenchTestSuite
-import org.scalatest.matchers.should.Matchers
 import org.scalatest.flatspec.AnyFlatSpecLike
+import org.scalatest.matchers.should.Matchers
 
 import scala.concurrent.duration._
 import scala.util.Try
@@ -26,7 +26,7 @@ import scala.util.Try
 class GooglePubSubSpec extends AnyFlatSpecLike with Matchers with WorkbenchTestSuite {
   "GooglePublisherInterpreter" should "be able to publish message successfully" in {
     val people = Generators.genListPerson.sample.get
-    val projectTopicName = Generators.genProjectTopicName.sample.get
+    val projectTopicName = Generators.genTopicName.sample.get
 
     val res = for {
       queue <- fs2.concurrent.Queue.bounded[IO, Event[Person]](10000)
@@ -43,7 +43,7 @@ class GooglePubSubSpec extends AnyFlatSpecLike with Matchers with WorkbenchTestS
 
   "GoogleSubscriberInterpreter" should "be able to subscribe messages successfully" in {
     val people = Generators.genListPerson.sample.get
-    val projectTopicName = Generators.genProjectTopicName.sample.get
+    val projectTopicName = Generators.genTopicName.sample.get
 
     var expectedPeople = people
     val res = for {
@@ -89,7 +89,7 @@ class GooglePubSubSpec extends AnyFlatSpecLike with Matchers with WorkbenchTestS
 }
 
 object GooglePubSubSpec {
-  def localPubsub[A: Decoder](projectTopicName: ProjectTopicName, queue: fs2.concurrent.Queue[IO, Event[A]])(
+  def localPubsub[A: Decoder](projectTopicName: TopicName, queue: fs2.concurrent.Queue[IO, Event[A]])(
     implicit timer: Timer[IO],
     cs: ContextShift[IO],
     logger: StructuredLogger[IO]

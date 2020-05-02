@@ -9,7 +9,7 @@ import com.google.auth.oauth2.ServiceAccountCredentials
 import com.google.cloud.pubsub.v1.{Publisher, TopicAdminClient}
 import com.google.common.util.concurrent.MoreExecutors
 import com.google.protobuf.ByteString
-import com.google.pubsub.v1.{ProjectTopicName, PubsubMessage}
+import com.google.pubsub.v1.{ProjectTopicName, PubsubMessage, TopicName}
 import fs2.{Pipe, Stream}
 import io.chrisdavenport.log4cats.StructuredLogger
 import io.circe.Encoder
@@ -86,7 +86,7 @@ object GooglePublisherInterpreter {
       _ <- createTopic(config.projectTopicName, topicAdminClient)
     } yield publisher
 
-  private def createTopic[F[_]: Sync](topicName: ProjectTopicName, topicAdminClient: TopicAdminClient)(
+  private def createTopic[F[_]: Sync](topicName: TopicName, topicAdminClient: TopicAdminClient)(
     implicit logger: StructuredLogger[F]
   ): Resource[F, Unit] =
     Resource.liftF(

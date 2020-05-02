@@ -2,14 +2,20 @@
 
 This file documents changes to the `workbench-google2` library, including notes on how to upgrade to new versions.
 
+## 0.9
+Changed: 
+- Fix a bug in `GoogleDataprocService` where region is not set properly
+- A few minor dependency updates 
+- Upgade google pubsub library to latest, which deprecated ProjectTopicName in many APIs
+
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.9-TRAVIS-REPLACE-ME"`
+
 ## 0.8
 Changed: 
 - Renamed `ClusterName` to `DataprocClusterName`
 - `pollOperation` in `GoogleComputeService` now returns `Stream[F, Operation]`
 - bug fix in `deleteBucket`
 - Don't throw Not Found when listing objects for empty bucket in `deleteBucket`
-- Fix a bug in `GoogleDataprocService` where region is not set properly
-- A few minor dependency updates
 
 Added:
 - `GKEInterpreter`, `GKEService`, `KubernetesService`, and `KubernetesInterpreter`
@@ -21,7 +27,7 @@ Added:
 - `{create,get,delete}Nodepool` to `GKEService`
 - Add `getClusterInstances` and `getClusterError`
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.8-TRAVIS-REPLACE-ME"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.8-e08439a"`
 
 ## 0.7
 Changed:
