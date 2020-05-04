@@ -87,9 +87,15 @@ trait RestClient extends Retry with LazyLogging {
 
   import scala.reflect.{ClassTag, classTag}
   def parseResponseAs[T: ClassTag](response: HttpResponse): T = {
-    // https://stackoverflow.com/questions/6200253/scala-classof-for-type-parameter
-    val classT: Class[T] = classTag[T].runtimeClass.asInstanceOf[Class[T]]
-    mapper.readValue(parseResponse(response), classT)
+    response.status.isSuccess() match {
+      case true =>
+        // https://stackoverflow.com/questions/6200253/scala-classof-for-type-parameter
+        val classT: Class[T] = classTag[T].runtimeClass.asInstanceOf[Class[T]]
+        mapper.readValue(parseResponse(response), classT)
+      case _ =>
+        logger.error(extractResponseString(response)) // write to test log
+        throwRestException(response)
+    }
   }
 
   // return Some(T) on success, None on failure
