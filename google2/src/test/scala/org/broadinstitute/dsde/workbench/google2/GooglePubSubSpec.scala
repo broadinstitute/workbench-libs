@@ -26,11 +26,11 @@ import scala.util.Try
 class GooglePubSubSpec extends AnyFlatSpecLike with Matchers with WorkbenchTestSuite {
   "GooglePublisherInterpreter" should "be able to publish message successfully" in {
     val people = Generators.genListPerson.sample.get
-    val projectTopicName = Generators.genTopicName.sample.get
+    val topicName = Generators.genTopicName.sample.get
 
     val res = for {
       queue <- fs2.concurrent.Queue.bounded[IO, Event[Person]](10000)
-      _ <- localPubsub[Person](projectTopicName, queue).use {
+      _ <- localPubsub[Person](topicName, queue).use {
         case (pub, _) =>
           val res = Stream.emits(people) through pub.publish
 
