@@ -8,7 +8,7 @@ Changed:
 - A few minor dependency updates 
 - Upgade google pubsub library to latest, which deprecated ProjectTopicName in many APIs
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.9-TRAVIS-REPLACE-ME"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.9-8051635"`
 
 ## 0.8
 Changed: 
