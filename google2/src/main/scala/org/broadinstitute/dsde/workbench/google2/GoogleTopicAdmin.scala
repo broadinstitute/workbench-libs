@@ -3,7 +3,7 @@ package org.broadinstitute.dsde.workbench.google2
 import cats.effect.{Resource, Sync, Timer}
 import com.google.auth.oauth2.ServiceAccountCredentials
 import com.google.cloud.Identity
-import com.google.pubsub.v1.ProjectTopicName
+import com.google.pubsub.v1.TopicName
 import fs2.Stream
 import io.chrisdavenport.log4cats.StructuredLogger
 import org.broadinstitute.dsde.workbench.RetryConfig
@@ -15,9 +15,9 @@ trait GoogleTopicAdmin[F[_]] {
   /**
    * @param traceId uuid for tracing a unique call flow in logging
    */
-  def create(projectTopicName: ProjectTopicName, traceId: Option[TraceId] = None): Stream[F, Unit]
+  def create(projectTopicName: TopicName, traceId: Option[TraceId] = None): Stream[F, Unit]
 
-  def delete(projectTopicName: ProjectTopicName, traceId: Option[TraceId] = None): Stream[F, Unit]
+  def delete(projectTopicName: TopicName, traceId: Option[TraceId] = None): Stream[F, Unit]
 
   /**
    * @param projectTopicName
@@ -36,7 +36,7 @@ trait GoogleTopicAdmin[F[_]] {
    *    users of that domain. For example, `google.com` or `example.com`.
    * @param traceId uuid for tracing a unique call flow in logging
    */
-  def createWithPublisherMembers(projectTopicName: ProjectTopicName,
+  def createWithPublisherMembers(projectTopicName: TopicName,
                                  members: List[Identity],
                                  traceId: Option[TraceId] = None): Stream[F, Unit]
 }

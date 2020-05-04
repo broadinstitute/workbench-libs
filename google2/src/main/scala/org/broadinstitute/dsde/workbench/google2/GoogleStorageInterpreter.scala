@@ -28,7 +28,8 @@ private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer: Async
   db: Storage,
   blocker: Blocker,
   blockerBound: Option[Semaphore[F]]
-)(implicit logger: StructuredLogger[F]) extends GoogleStorageService[F] {
+)(implicit logger: StructuredLogger[F])
+    extends GoogleStorageService[F] {
   override def listObjectsWithPrefix(bucketName: GcsBucketName,
                                      objectNamePrefix: String,
                                      isRecursive: Boolean = false,
@@ -98,10 +99,11 @@ private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer: Async
                        retryConfig: RetryConfig): Stream[F, Blob] = {
     val dbForCredential = credentials match {
       case Some(c) => db.getOptions.toBuilder.setCredentials(c).build().getService
-      case None => db
+      case None    => db
     }
 
-    val getBlobs = blockingF(Async[F].delay(dbForCredential.get(BlobId.of(bucketName.value, blobName.value)))).map(Option(_))
+    val getBlobs =
+      blockingF(Async[F].delay(dbForCredential.get(BlobId.of(bucketName.value, blobName.value)))).map(Option(_))
 
     retryGoogleF(retryConfig)(
       getBlobs,
@@ -269,11 +271,11 @@ private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer: Async
   }
 
   override def deleteBucket(googleProject: GoogleProject,
-                   bucketName: GcsBucketName,
-                   isRecursive: Boolean,
-                   bucketSourceOptions: List[BucketSourceOption] = List.empty,
-                   traceId: Option[TraceId] = None,
-                   retryConfig: RetryConfig = standardRetryConfig): Stream[F, Boolean] = {
+                            bucketName: GcsBucketName,
+                            isRecursive: Boolean,
+                            bucketSourceOptions: List[BucketSourceOption] = List.empty,
+                            traceId: Option[TraceId] = None,
+                            retryConfig: RetryConfig = standardRetryConfig): Stream[F, Boolean] = {
     val dbForProject = db.getOptions.toBuilder.setProjectId(googleProject.value).build().getService
 
     val allBlobs = listBlobs(dbForProject, bucketName, List.empty, traceId, retryConfig, false).map(_.getBlobId)
@@ -282,10 +284,10 @@ private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer: Async
       _ <- if (isRecursive) {
         val r = for {
           allBlobs <- allBlobs.compile.toList
-          isSuccess <- if(allBlobs.isEmpty)
+          isSuccess <- if (allBlobs.isEmpty)
             Async[F].pure(true)
           else Async[F].delay(dbForProject.delete(allBlobs.asJava).asScala.toList.forall(x => x))
-          _ <- if(isSuccess)
+          _ <- if (isSuccess)
             logger.info(s"Successfully deleted all objects in ${bucketName.value}")
           else
             Async[F].raiseError(new RuntimeException(s"failed to delete all objects in ${bucketName.value}"))
@@ -388,24 +390,23 @@ private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer: Async
                         blobListOptions: List[BlobListOption],
                         traceId: Option[TraceId],
                         retryConfig: RetryConfig,
-                        ifErrorWhenBucketNotFound: Boolean
-                       ): Stream[F, Blob] = {
-    val listFirstPage = Async[F].delay(db.list(bucketName.value, blobListOptions: _*)).map(p => Option(p)).handleErrorWith {
-      case e: com.google.cloud.storage.StorageException if (e.getCode == 404) =>
-        //This can happen if the bucket doesn't exist
-        if (ifErrorWhenBucketNotFound)
-          Async[F].raiseError(e)
-        else
-          Async[F].pure(None)
-    }
+                        ifErrorWhenBucketNotFound: Boolean): Stream[F, Blob] = {
+    val listFirstPage =
+      Async[F].delay(db.list(bucketName.value, blobListOptions: _*)).map(p => Option(p)).handleErrorWith {
+        case e: com.google.cloud.storage.StorageException if (e.getCode == 404) =>
+          //This can happen if the bucket doesn't exist
+          if (ifErrorWhenBucketNotFound)
+            Async[F].raiseError(e)
+          else
+            Async[F].pure(None)
+      }
 
     for {
       firstPage <- retryGoogleF(retryConfig)(
         blockingF(listFirstPage),
         traceId,
         s"com.google.cloud.storage.Storage.list($bucketName, ${blobListOptions})"
-      )
-        .unNone
+      ).unNone
       page <- Stream.unfoldEval(firstPage) { currentPage =>
         Option(currentPage).traverse { p =>
           val fetchNext = retryGoogleF(retryConfig)(
