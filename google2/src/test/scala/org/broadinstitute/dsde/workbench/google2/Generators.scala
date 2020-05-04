@@ -4,10 +4,10 @@ import java.nio.charset.Charset
 import java.time.Instant
 
 import cats.data.NonEmptyList
-import com.google.pubsub.v1.ProjectTopicName
+import com.google.pubsub.v1.TopicName
+import org.broadinstitute.dsde.workbench.google2.NotificationEventTypes._
 import org.broadinstitute.dsde.workbench.model.google._
 import org.scalacheck.{Arbitrary, Gen}
-import NotificationEventTypes._
 
 object Generators {
   val utf8Charset = Charset.forName("UTF-8")
@@ -24,11 +24,11 @@ object Generators {
     email <- Gen.alphaStr.map(s => s"email$s")
   } yield Person(name, email)
   val genListPerson = Gen.nonEmptyListOf(genPerson)
-  val genProjectTopicName: Gen[ProjectTopicName] = for {
+  val genTopicName: Gen[TopicName] = for {
     project <- genGoogleProject
     topic <- Gen.alphaStr.map(x => s"topic$x")
-  } yield ProjectTopicName.of(project.value, topic)
-  val genNotificationResponse = Gen.listOf[ProjectTopicName](genProjectTopicName).map { topics =>
+  } yield TopicName.of(project.value, topic)
+  val genNotificationResponse = Gen.listOf[TopicName](genTopicName).map { topics =>
     val notifications = topics.map(t => Notification(t))
     NotificationResponse(NonEmptyList.fromList(notifications))
   }
@@ -41,11 +41,11 @@ object Generators {
     Filters(eventTypes.toList, prefix)
   }
   val genNotificationRequest = for {
-    topic <- genProjectTopicName
+    topic <- genTopicName
     filters <- genFilters
   } yield NotificationRequest(topic, "JSON_API_V1", filters.eventTypes, filters.objectNamePrefix)
 
-  implicit val arbProjectTopicName: Arbitrary[ProjectTopicName] = Arbitrary(genProjectTopicName)
+  implicit val arbProjectTopicName: Arbitrary[TopicName] = Arbitrary(genTopicName)
   implicit val arbNotificationResponse: Arbitrary[NotificationResponse] = Arbitrary(genNotificationResponse)
   implicit val arbNotificationRequest: Arbitrary[NotificationRequest] = Arbitrary(genNotificationRequest)
 

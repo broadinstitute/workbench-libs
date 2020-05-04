@@ -13,6 +13,8 @@ import org.broadinstitute.dsde.workbench.RetryConfig
 import org.broadinstitute.dsde.workbench.google2.util.RetryPredicates._
 import org.broadinstitute.dsde.workbench.model.TraceId
 import org.broadinstitute.dsde.workbench.model.google.GoogleProject
+import org.broadinstitute.dsde.workbench.google2.GoogleDataprocInterpreter._
+import scala.collection.JavaConverters._
 
 private[google2] class GoogleDataprocInterpreter[F[_]: Async: StructuredLogger: Timer: ContextShift](
   clusterControllerClient: ClusterControllerClient,
@@ -125,6 +127,50 @@ private[google2] class GoogleDataprocInterpreter[F[_]: Async: StructuredLogger: 
       s"com.google.cloud.dataproc.v1.ClusterControllerClient.getCluster(${project.value}, ${region.value}, ${clusterName.value})"
     )
 
+  override def getClusterInstances(project: GoogleProject, region: RegionName, clusterName: DataprocClusterName)(
+    implicit ev: ApplicativeAsk[F, TraceId]
+  ): F[Map[DataprocRole, Set[InstanceName]]] =
+    for {
+      cluster <- getCluster(project, region, clusterName)
+    } yield cluster.map(c => getAllInstanceNames(c)).getOrElse(Map.empty)
+
+  override def getClusterError(
+    operationName: OperationName
+  )(implicit ev: ApplicativeAsk[F, TraceId]): F[Option[ClusterError]] =
+    for {
+      error <- retryF(
+        recoverF(
+          Async[F].delay(clusterControllerClient.getOperationsClient().getOperation(operationName.value).getError()),
+          whenStatusCode(404)
+        ),
+        s"com.google.cloud.dataproc.v1.ClusterControllerClient.getOperationsClient.getOperation(${operationName.value})"
+      )
+    } yield error.map(e => ClusterError(e.getCode, e.getMessage))
+
   private def retryF[A](fa: F[A], loggingMsg: String)(implicit ev: ApplicativeAsk[F, TraceId]): F[A] =
     tracedRetryGoogleF(retryConfig)(blockerBound.withPermit(blocker.blockOn(fa)), loggingMsg).compile.lastOrError
+}
+
+object GoogleDataprocInterpreter {
+  def getAllInstanceNames(cluster: Cluster): Map[DataprocRole, Set[InstanceName]] = {
+    def getFromGroup(role: DataprocRole)(group: InstanceGroupConfig): Map[DataprocRole, Set[InstanceName]] =
+      group.getInstanceNamesList
+        .asByteStringList()
+        .asScala
+        .toList
+        .map { byteString =>
+          role -> Set(InstanceName(byteString.toStringUtf8))
+        }
+        .toMap
+
+    val res = Option(cluster.getConfig).flatMap { config =>
+      val master = Option(config.getMasterConfig).map(getFromGroup(DataprocRole.Master))
+      val workers = Option(config.getWorkerConfig).map(getFromGroup(DataprocRole.Worker))
+      val secondaryWorkers = Option(config.getSecondaryWorkerConfig).map(getFromGroup(DataprocRole.SecondaryWorker))
+
+      master |+| workers |+| secondaryWorkers
+    }
+
+    res.getOrElse(Map.empty)
+  }
 }

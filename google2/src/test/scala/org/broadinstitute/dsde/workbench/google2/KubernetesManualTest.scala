@@ -1,4 +1,5 @@
-package org.broadinstitute.dsde.workbench.google2
+package org.broadinstitute.dsde.workbench
+package google2
 
 import java.nio.file.Paths
 import java.util.UUID
@@ -22,6 +23,7 @@ import org.broadinstitute.dsde.workbench.google2.KubernetesModels._
 import org.broadinstitute.dsde.workbench.google2.KubernetesSerializableName._
 import org.broadinstitute.dsde.workbench.model.TraceId
 import org.broadinstitute.dsde.workbench.model.google.{GoogleProject, ServiceAccountName}
+import KubernetesConstants._
 
 //TODO: migrate to a unit test
 //TODO: investigate running minikube in a docker for unit/automation tests https://banzaicloud.com/blog/minikube-ci/
@@ -32,11 +34,15 @@ final class Test(credPathStr: String,
                  nodepoolNameStr: String = "test-nodepool",
                  defaultNamespaceNameStr: String = "test-namespace",
                  networkNameStr: String = "test-network") {
+
   import scala.concurrent.ExecutionContext.global
+
   implicit val cs = IO.contextShift(global)
   implicit val t = IO.timer(global)
   implicit val traceId = ApplicativeAsk.const[IO, TraceId](TraceId(UUID.randomUUID()))
+
   implicit def logger = Slf4jLogger.getLogger[IO]
+
   val blocker = Blocker.liftExecutionContext(global)
   val semaphore = Semaphore[IO](10).unsafeRunSync
 
@@ -59,12 +65,10 @@ final class Test(credPathStr: String,
 
   def callCreateCluster(clusterId: KubernetesClusterId = clusterId): IO[Operation] = {
     val network: String = KubernetesNetwork(project, NetworkName(networkNameStr)).idString
-    val cluster = KubernetesConstants
-      .getDefaultCluster(nodepoolName.right.get, clusterName.right.get)
-      .toBuilder
+    val cluster = getDefaultCluster(nodepoolName.right.get, clusterName.right.get).toBuilder
       .setNetwork(network) // needs to be a VPC network
       .setSubnetwork(KubernetesSubNetwork(project, RegionName(regionStr), SubnetworkName(subnetworkNameStr)).idString)
-      .setNetworkPolicy(KubernetesConstants.getDefaultNetworkPolicy()) // needed for security
+      .setNetworkPolicy(getDefaultNetworkPolicy()) // needed for security
       .build()
 
     serviceResource.use { service =>
@@ -81,8 +85,6 @@ final class Test(credPathStr: String,
   }
 
   def callCreateNodepool(clusterId: KubernetesClusterId = clusterId, nodepoolNameStr: String): IO[Operation] = {
-    import KubernetesConstants._
-
     val nodepoolName = KubernetesName.withValidation[NodepoolName](nodepoolNameStr, NodepoolName.apply)
     val nodepoolConfig = getDefaultNodepoolConfig(nodepoolName.right.get)
     val nodepool = getNodepoolBuilder(nodepoolConfig).build()

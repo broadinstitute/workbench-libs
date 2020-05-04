@@ -2,6 +2,14 @@
 
 This file documents changes to the `workbench-google2` library, including notes on how to upgrade to new versions.
 
+## 0.9
+Changed: 
+- Fix a bug in `GoogleDataprocService` where region is not set properly
+- A few minor dependency updates 
+- Upgade google pubsub library to latest, which deprecated ProjectTopicName in many APIs
+
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.9-TRAVIS-REPLACE-ME"`
+
 ## 0.8
 Changed: 
 - Renamed `ClusterName` to `DataprocClusterName`
@@ -17,6 +25,7 @@ Added:
 - add `deleteBucket` to `GoogleStorageService`
 - add optional `credentials` parameter to `GoogleStorageService.getBlob`
 - `{create,get,delete}Nodepool` to `GKEService`
+- Add `getClusterInstances` and `getClusterError`
 
 SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.8-e08439a"`
 

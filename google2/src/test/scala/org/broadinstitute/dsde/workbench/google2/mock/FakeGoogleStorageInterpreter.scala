@@ -54,7 +54,8 @@ class BaseFakeGoogleStorage extends GoogleStorageService[IO] {
                        blobName: GcsBlobName,
                        credentials: Option[Credentials] = None,
                        traceId: Option[TraceId] = None,
-                       retryConfig: RetryConfig): Stream[IO, Blob] = localStorage.getBlob(bucketName, blobName, credentials, traceId)
+                       retryConfig: RetryConfig): Stream[IO, Blob] =
+    localStorage.getBlob(bucketName, blobName, credentials, traceId)
 
   override def downloadObject(blobId: BlobId,
                               path: Path,
@@ -90,11 +91,12 @@ class BaseFakeGoogleStorage extends GoogleStorageService[IO] {
                             retryConfig: RetryConfig): Stream[IO, Unit] = Stream.empty
 
   override def deleteBucket(googleProject: GoogleProject,
-                   bucketName: GcsBucketName,
-                   isRecursive: Boolean,
-                   bucketSourceOptions: List[BucketSourceOption] = List.empty,
-                   traceId: Option[TraceId] = None,
-                   retryConfig: RetryConfig = standardRetryConfig): Stream[IO, Boolean] = Stream.emit(true).covary[IO]
+                            bucketName: GcsBucketName,
+                            isRecursive: Boolean,
+                            bucketSourceOptions: List[BucketSourceOption] = List.empty,
+                            traceId: Option[TraceId] = None,
+                            retryConfig: RetryConfig = standardRetryConfig): Stream[IO, Boolean] =
+    Stream.emit(true).covary[IO]
 
   override def setBucketPolicyOnly(bucketName: GcsBucketName,
                                    bucketOnlyPolicyEnabled: Boolean,
