@@ -85,7 +85,9 @@ object Dependencies {
   val newRelic: ModuleID = "com.newrelic.agent.java" % "newrelic-api" % "5.0.0"
   val openCensusApi: ModuleID = "io.opencensus" % "opencensus-api" % "0.26.0"
   val openCensusImpl: ModuleID = "io.opencensus" % "opencensus-impl" % "0.26.0"
-  val openCensusStackDriver: ModuleID = "io.opencensus" % "opencensus-exporter-stats-stackdriver" % "0.26.0"
+  val openCensusStatsStackDriver: ModuleID = "io.opencensus" % "opencensus-exporter-stats-stackdriver" % "0.26.0"
+  val openCensusTraceStackDriver: ModuleID = "io.opencensus" % "opencensus-exporter-trace-stackdriver" % "0.26.0"
+  val openCensusTraceLogging: ModuleID = "io.opencensus" % "opencensus-exporter-trace-logging" % "0.26.0"
   val sealerate: ModuleID = "ca.mrvisser" %% "sealerate" % "0.0.5"
 
   val silencerVersion = "1.4.1"
@@ -183,7 +185,8 @@ object Dependencies {
     log4cats,
     openCensusApi,
     openCensusImpl,
-    openCensusStackDriver
+    openCensusStatsStackDriver,
+    openCensusTraceStackDriver
   )
 
   val util2Dependencies = commonDependencies ++ List(
