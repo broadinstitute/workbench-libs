@@ -47,20 +47,20 @@ trait GooglePubSubDAO {
 
   def pullMessages(subscriptionName: String, maxMessages: Int): Future[Seq[PubSubMessage]]
 
-  def withMessage(subscriptionName: String)(op: (String) => Future[AckStatus]): Future[HandledStatus] = {
+  def withMessage(subscriptionName: String)(op: (String) => Future[AckStatus]): Future[HandledStatus] =
     withMessages(subscriptionName, 1) {
       case Seq(msg) => op(msg)
-      case _ => throw new WorkbenchException(s"Unable to process message from subscription ${subscriptionName}")
+      case _        => throw new WorkbenchException(s"Unable to process message from subscription ${subscriptionName}")
     }
-  }
 
-  def withMessages(subscriptionName: String, maxMessages: Int)(op: (Seq[String]) => Future[AckStatus]): Future[HandledStatus] = {
+  def withMessages(subscriptionName: String,
+                   maxMessages: Int)(op: (Seq[String]) => Future[AckStatus]): Future[HandledStatus] =
     pullMessages(subscriptionName, maxMessages) flatMap {
       case Seq() => Future.successful(NoMessage)
-      case messages => op(messages.map(msg => msg.contents)) flatMap {
-        case MessageAcknowledged => acknowledgeMessages(subscriptionName, messages).map(_ => MessageHandled)
-        case MessageNotAcknowledged => Future.successful(MessageNotHandled)
-      }
+      case messages =>
+        op(messages.map(msg => msg.contents)) flatMap {
+          case MessageAcknowledged    => acknowledgeMessages(subscriptionName, messages).map(_ => MessageHandled)
+          case MessageNotAcknowledged => Future.successful(MessageNotHandled)
+        }
     }
-  }
 }

@@ -22,8 +22,8 @@ import scala.sys.SystemProperties
 import scala.util.{Failure, Success, Try}
 
 /**
-  * Base spec for writing FireCloud web browser tests.
-  */
+ * Base spec for writing FireCloud web browser tests.
+ */
 trait WebBrowserSpec extends WebBrowserUtil with ExceptionHandling with LazyLogging { self: Suite =>
 
   lazy val api: Orchestration.type = Orchestration
@@ -32,29 +32,28 @@ trait WebBrowserSpec extends WebBrowserUtil with ExceptionHandling with LazyLogg
   val isHeadless: Boolean = {
     headless match {
       case Some("false") => false
-      case _ => true
+      case _             => true
     }
   }
 
   /**
-    * Executes a test in a fixture with a managed WebDriver. A test that uses
-    * this will get its own WebDriver instance will be destroyed when the test
-    * is complete. This encourages test case isolation.
-    *
-    * @param testCode the test code to run
-    */
-  def withWebDriver(testCode: WebDriver => Any): Unit = {
+   * Executes a test in a fixture with a managed WebDriver. A test that uses
+   * this will get its own WebDriver instance will be destroyed when the test
+   * is complete. This encourages test case isolation.
+   *
+   * @param testCode the test code to run
+   */
+  def withWebDriver(testCode: WebDriver => Any): Unit =
     withWebDriver(s"/app/${System.getProperty("java.io.tmpdir")}")(testCode)
-  }
 
   /**
-    * Executes a test in a fixture with a managed WebDriver. A test that uses
-    * this will get its own WebDriver instance will be destroyed when the test
-    * is complete. This encourages test case isolation.
-    *
-    * @param downloadPath a directory where downloads should be saved
-    * @param testCode the test code to run
-    */
+   * Executes a test in a fixture with a managed WebDriver. A test that uses
+   * this will get its own WebDriver instance will be destroyed when the test
+   * is complete. This encourages test case isolation.
+   *
+   * @param downloadPath a directory where downloads should be saved
+   * @param testCode the test code to run
+   */
   def withWebDriver(downloadPath: String)(testCode: WebDriver => Any): Unit = {
     val options = getChromeIncognitoOption(downloadPath)
     if (isHeadless) {
@@ -84,9 +83,10 @@ trait WebBrowserSpec extends WebBrowserUtil with ExceptionHandling with LazyLogg
     }
 
     // Note that download.prompt_for_download will be ignored if download.default_directory is invalid or doesn't exist
-    options.setExperimentalOption("prefs", Map(
-      "download.default_directory" -> fullDownloadPath,
-      "download.prompt_for_download" -> "false").asJava)
+    options.setExperimentalOption(
+      "prefs",
+      Map("download.default_directory" -> fullDownloadPath, "download.prompt_for_download" -> "false").asJava
+    )
 
     // ChromeDriver log
     val logPref = new LoggingPreferences()
@@ -111,9 +111,12 @@ trait WebBrowserSpec extends WebBrowserUtil with ExceptionHandling with LazyLogg
         testCode(driver)
       }
     } finally {
-      try driver.close() catch nonFatalAndLog
-      try driver.quit() catch nonFatalAndLog
-      try service.stop() catch nonFatalAndLog
+      try driver.close()
+      catch nonFatalAndLog
+      try driver.quit()
+      catch nonFatalAndLog
+      try service.stop()
+      catch nonFatalAndLog
     }
   }
 
@@ -124,8 +127,10 @@ trait WebBrowserSpec extends WebBrowserUtil with ExceptionHandling with LazyLogg
         testCode(driver)
       }
     } finally {
-      try driver.close() catch nonFatalAndLog
-      try driver.quit() catch nonFatalAndLog
+      try driver.close()
+      catch nonFatalAndLog
+      try driver.quit()
+      catch nonFatalAndLog
     }
   }
 
@@ -134,11 +139,11 @@ trait WebBrowserSpec extends WebBrowserUtil with ExceptionHandling with LazyLogg
     val result = tryStart(url, options)
     result match {
       case Failure(_) if trials > 0 =>
-        logger.error(s"Retry start a new Chrome RemoteWebDriver. ${trials-1} more times.")
+        logger.error(s"Retry start a new Chrome RemoteWebDriver. ${trials - 1} more times.")
         Thread.sleep(10000)
-        startRemoteWebdriver(url, options, trials-1)
+        startRemoteWebdriver(url, options, trials - 1)
       case Failure(e) =>
-        logger.error(s"Failed to start a new Chrome RemoteWebDriver.",e)
+        logger.error(s"Failed to start a new Chrome RemoteWebDriver.", e)
         throw e
       case Success(driver) =>
         driver.manage.window.setSize(new org.openqa.selenium.Dimension(2880, 1800))
@@ -147,17 +152,16 @@ trait WebBrowserSpec extends WebBrowserUtil with ExceptionHandling with LazyLogg
     }
   }
 
-  private def tryStart(url: URL, options: ChromeOptions): Try[RemoteWebDriver] = {
+  private def tryStart(url: URL, options: ChromeOptions): Try[RemoteWebDriver] =
     for {
       e <- Try(new RemoteWebDriver(url, options))
     } yield e
-  }
 
   /**
-    * Override of withScreenshot that works with a remote Chrome driver and
-    * lets us control the image file name.
-    */
-  override def withScreenshot[T](f: => T)(implicit driver: WebDriver): T = {
+   * Override of withScreenshot that works with a remote Chrome driver and
+   * lets us control the image file name.
+   */
+  override def withScreenshot[T](f: => T)(implicit driver: WebDriver): T =
     try {
       f
     } catch {
@@ -175,8 +179,8 @@ trait WebBrowserSpec extends WebBrowserUtil with ExceptionHandling with LazyLogg
           }
           val tmpFile = new Augmenter().augment(driver).asInstanceOf[TakesScreenshot].getScreenshotAs(OutputType.FILE)
           logger.error(s"Failure screenshot saved to $fileName")
-          new FileOutputStream(new File(fileName)).getChannel.transferFrom(
-            new FileInputStream(tmpFile).getChannel, 0, Long.MaxValue)
+          new FileOutputStream(new File(fileName)).getChannel
+            .transferFrom(new FileInputStream(tmpFile).getChannel, 0, Long.MaxValue)
 
           val html = tagName("html").element.underlying.getAttribute("outerHTML")
           new FileOutputStream(new File(htmlSourceFileName)).write(html.getBytes)
@@ -188,9 +192,8 @@ trait WebBrowserSpec extends WebBrowserUtil with ExceptionHandling with LazyLogg
 
           logger.error(s"Screenshot ${name}.png Exception. ", t)
         } catch nonFatalAndLog(s"FAILED TO SAVE SCREENSHOT $fileName")
-          throw t
+        throw t
     }
-  }
 
   def createDownloadDirectory(): String = {
     val downloadDir = "chrome/downloads"
@@ -202,9 +205,16 @@ trait WebBrowserSpec extends WebBrowserUtil with ExceptionHandling with LazyLogg
     val path: Path = Files.createTempDirectory(basePath, "temp")
 
     val permissions = Set(
-      PosixFilePermission.OWNER_WRITE, PosixFilePermission.OWNER_READ, PosixFilePermission.OWNER_EXECUTE,
-      PosixFilePermission.GROUP_WRITE, PosixFilePermission.GROUP_READ, PosixFilePermission.GROUP_EXECUTE,
-      PosixFilePermission.OTHERS_WRITE, PosixFilePermission.OTHERS_READ, PosixFilePermission.OTHERS_EXECUTE)
+      PosixFilePermission.OWNER_WRITE,
+      PosixFilePermission.OWNER_READ,
+      PosixFilePermission.OWNER_EXECUTE,
+      PosixFilePermission.GROUP_WRITE,
+      PosixFilePermission.GROUP_READ,
+      PosixFilePermission.GROUP_EXECUTE,
+      PosixFilePermission.OTHERS_WRITE,
+      PosixFilePermission.OTHERS_READ,
+      PosixFilePermission.OTHERS_EXECUTE
+    )
 
     import scala.collection.JavaConverters._
     Files.setPosixFilePermissions(path, permissions.asJava)

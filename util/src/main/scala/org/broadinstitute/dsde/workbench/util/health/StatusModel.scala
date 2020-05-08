@@ -4,47 +4,46 @@ import org.broadinstitute.dsde.workbench.util.health.Subsystems.Subsystem
 import org.broadinstitute.dsde.workbench.model.{ValueObject, ValueObjectFormat}
 
 case class SubsystemStatus(
-                            ok: Boolean,
-                            messages: Option[List[String]]
-                          )
+  ok: Boolean,
+  messages: Option[List[String]]
+)
 
 case class StatusCheckResponse(
-                                ok: Boolean,
-                                systems: Map[Subsystem, SubsystemStatus]
-                              )
+  ok: Boolean,
+  systems: Map[Subsystem, SubsystemStatus]
+)
 
 object Subsystems {
   sealed trait Subsystem extends ValueObject with Product with Serializable {
     override val value: String = this match {
       case Custom(name) => name
-      case _ => this.productPrefix
+      case _            => this.productPrefix
     }
   }
 
-  def withName(name: String): Subsystem = {
+  def withName(name: String): Subsystem =
     name match {
-      case "Agora" => Agora
-      case "Consent" => Consent
-      case "Cromwell" => Cromwell
-      case "Database" => Database
-      case "GoogleBilling" => GoogleBilling
-      case "GoogleBuckets" => GoogleBuckets
+      case "Agora"          => Agora
+      case "Consent"        => Consent
+      case "Cromwell"       => Cromwell
+      case "Database"       => Database
+      case "GoogleBilling"  => GoogleBilling
+      case "GoogleBuckets"  => GoogleBuckets
       case "GoogleDataproc" => GoogleDataproc
       case "GoogleGenomics" => GoogleGenomics
-      case "GoogleGroups" => GoogleGroups
-      case "GoogleIam" => GoogleIam
-      case "GooglePubSub" => GooglePubSub
-      case "Leonardo" => Leonardo
-      case "LibraryIndex" => LibraryIndex
-      case "Mongo" => Mongo
-      case "OntologyIndex" => OntologyIndex
-      case "OpenDJ" => OpenDJ
-      case "Rawls" => Rawls
-      case "Sam" => Sam
-      case "Thurloe" => Thurloe
-      case customName => Custom(customName)
+      case "GoogleGroups"   => GoogleGroups
+      case "GoogleIam"      => GoogleIam
+      case "GooglePubSub"   => GooglePubSub
+      case "Leonardo"       => Leonardo
+      case "LibraryIndex"   => LibraryIndex
+      case "Mongo"          => Mongo
+      case "OntologyIndex"  => OntologyIndex
+      case "OpenDJ"         => OpenDJ
+      case "Rawls"          => Rawls
+      case "Sam"            => Sam
+      case "Thurloe"        => Thurloe
+      case customName       => Custom(customName)
     }
-  }
 
   case object Agora extends Subsystem
   case object Consent extends Subsystem

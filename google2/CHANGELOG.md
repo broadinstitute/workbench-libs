@@ -2,6 +2,12 @@
 
 This file documents changes to the `workbench-google2` library, including notes on how to upgrade to new versions.
 
+## 1.0
+Changed: 
+- Renamed KubernetesSerializableName extension classes
+
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "1.0-TRAVIS-REPLACE-ME"`
+
 ## 0.9
 Changed: 
 - Fix a bug in `GoogleDataprocService` where region is not set properly

@@ -110,10 +110,10 @@ sealed trait KubernetesSerializableName {
 object KubernetesSerializableName {
   //this nesting of NamespaceName is necessary to prevent duplicating the code achieved by KubernetesSerializableName and KubernetesSerializable
   //namespaces also have criteria other than their name
-  final case class KubernetesNamespaceName(value: String) extends KubernetesSerializableName
-  final case class KubernetesServiceName(value: String) extends KubernetesSerializableName
-  final case class KubernetesContainerName(value: String) extends KubernetesSerializableName
-  final case class KubernetesPodName(value: String) extends KubernetesSerializableName
+  final case class NamespaceName(value: String) extends KubernetesSerializableName
+  final case class ServiceName(value: String) extends KubernetesSerializableName
+  final case class ContainerName(value: String) extends KubernetesSerializableName
+  final case class PodName(value: String) extends KubernetesSerializableName
 }
 
 trait JavaSerializable[A, B] {
@@ -137,20 +137,20 @@ object JavaSerializableInstances {
     metadata
   }
 
-  implicit val kubernetesNamespaceNameSerializable = new JavaSerializable[KubernetesNamespaceName, V1ObjectMeta] {
-    def getJavaSerialization(name: KubernetesNamespaceName): V1ObjectMeta = getNameSerialization(name)
+  implicit val kubernetesNamespaceNameSerializable = new JavaSerializable[NamespaceName, V1ObjectMeta] {
+    def getJavaSerialization(name: NamespaceName): V1ObjectMeta = getNameSerialization(name)
   }
 
-  implicit val kubernetesPodNameSerializable = new JavaSerializable[KubernetesPodName, V1ObjectMeta] {
-    def getJavaSerialization(name: KubernetesPodName): V1ObjectMeta = getNameSerialization(name)
+  implicit val kubernetesPodNameSerializable = new JavaSerializable[PodName, V1ObjectMeta] {
+    def getJavaSerialization(name: PodName): V1ObjectMeta = getNameSerialization(name)
   }
 
-  implicit val kubernetesContainerNameSerializable = new JavaSerializable[KubernetesContainerName, V1ObjectMeta] {
-    def getJavaSerialization(name: KubernetesContainerName): V1ObjectMeta = getNameSerialization(name)
+  implicit val kubernetesContainerNameSerializable = new JavaSerializable[ContainerName, V1ObjectMeta] {
+    def getJavaSerialization(name: ContainerName): V1ObjectMeta = getNameSerialization(name)
   }
 
-  implicit val kubernetesServiceNameSerializable = new JavaSerializable[KubernetesServiceName, V1ObjectMeta] {
-    def getJavaSerialization(name: KubernetesServiceName): V1ObjectMeta = getNameSerialization(name)
+  implicit val kubernetesServiceNameSerializable = new JavaSerializable[ServiceName, V1ObjectMeta] {
+    def getJavaSerialization(name: ServiceName): V1ObjectMeta = getNameSerialization(name)
   }
 
   implicit val kubernetesNamespaceSerializable = new JavaSerializable[KubernetesNamespace, V1Namespace] {
@@ -248,17 +248,15 @@ object JavaSerializableSyntax {
 // Models for the kubernetes client not related to GKE
 object KubernetesModels {
 
-  final case class KubernetesNamespace(name: KubernetesNamespaceName)
+  final case class KubernetesNamespace(name: NamespaceName)
 
   //consider using a replica set if you would like multiple autoscaling pods https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.12/#replicaset-v1-apps
-  final case class KubernetesPod(name: KubernetesPodName,
-                                 containers: Set[KubernetesContainer],
-                                 selector: KubernetesSelector)
+  final case class KubernetesPod(name: PodName, containers: Set[KubernetesContainer], selector: KubernetesSelector)
 
   final case class Image(uri: String)
 
   //volumes can be added here
-  final case class KubernetesContainer(name: KubernetesContainerName,
+  final case class KubernetesContainer(name: ContainerName,
                                        image: Image,
                                        ports: Option[Set[ContainerPort]],
                                        resourceLimits: Option[Map[String, String]] = None)
@@ -269,7 +267,7 @@ object KubernetesModels {
     val SERVICE_TYPE_CLUSTERIP = KubernetesServiceKindName("ClusterIP")
 
     def kindName: KubernetesServiceKindName
-    def serviceName: KubernetesServiceName
+    def serviceName: ServiceName
     def selector: KubernetesSelector
     def ports: Set[ServicePort]
   }
@@ -277,21 +275,21 @@ object KubernetesModels {
   object KubernetesServiceKind {
     final case class KubernetesLoadBalancerService(selector: KubernetesSelector,
                                                    ports: Set[ServicePort],
-                                                   serviceName: KubernetesServiceName)
+                                                   serviceName: ServiceName)
         extends KubernetesServiceKind {
       val kindName = SERVICE_TYPE_LOADBALANCER
     }
 
     final case class KubernetesNodePortService(selector: KubernetesSelector,
                                                ports: Set[ServicePort],
-                                               serviceName: KubernetesServiceName)
+                                               serviceName: ServiceName)
         extends KubernetesServiceKind {
       val kindName = SERVICE_TYPE_NODEPORT
     }
 
     final case class KubernetesClusterIPService(selector: KubernetesSelector,
                                                 ports: Set[ServicePort],
-                                                serviceName: KubernetesServiceName)
+                                                serviceName: ServiceName)
         extends KubernetesServiceKind {
       val kindName = SERVICE_TYPE_CLUSTERIP
     }

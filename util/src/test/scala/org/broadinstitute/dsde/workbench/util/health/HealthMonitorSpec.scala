@@ -14,10 +14,13 @@ import org.scalatest.flatspec.AnyFlatSpecLike
 import scala.concurrent.{Await, Future}
 import scala.concurrent.duration._
 
-class HealthMonitorSpec extends TestKit(ActorSystem("HealthMonitorSpec")) with AnyFlatSpecLike with BeforeAndAfterAll with Matchers {
-  override def afterAll: Unit =  {
+class HealthMonitorSpec
+    extends TestKit(ActorSystem("HealthMonitorSpec"))
+    with AnyFlatSpecLike
+    with BeforeAndAfterAll
+    with Matchers {
+  override def afterAll: Unit =
     TestKit.shutdownActorSystem(system)
-  }
 
   import system.dispatcher
   implicit val askTimeout = Timeout(5 seconds)
@@ -47,17 +50,29 @@ class HealthMonitorSpec extends TestKit(ActorSystem("HealthMonitorSpec")) with A
     // setup scheduler to call HealthMonitor.CheckAll
     system.scheduler.schedule(100 milliseconds, 100 milliseconds, healthMonitorRef, HealthMonitor.CheckAll)
 
-    awaitAssert(assertResult(StatusCheckResponse(true, Map(Agora -> HealthMonitor.OkStatus))) {
-      Await.result(healthMonitorRef ? HealthMonitor.GetCurrentStatus, Duration.Inf)
-    }, 1 second, 10 milliseconds)
+    awaitAssert(
+      assertResult(StatusCheckResponse(true, Map(Agora -> HealthMonitor.OkStatus))) {
+        Await.result(healthMonitorRef ? HealthMonitor.GetCurrentStatus, Duration.Inf)
+      },
+      1 second,
+      10 milliseconds
+    )
 
-    awaitAssert(assertResult(StatusCheckResponse(false, Map(Agora -> HealthMonitor.failedStatus("subsystem failed")))) {
-      Await.result(healthMonitorRef ? HealthMonitor.GetCurrentStatus, Duration.Inf)
-    }, 1 second, 10 milliseconds)
+    awaitAssert(
+      assertResult(StatusCheckResponse(false, Map(Agora -> HealthMonitor.failedStatus("subsystem failed")))) {
+        Await.result(healthMonitorRef ? HealthMonitor.GetCurrentStatus, Duration.Inf)
+      },
+      1 second,
+      10 milliseconds
+    )
 
-    awaitAssert(assertResult(StatusCheckResponse(true, Map(Agora -> HealthMonitor.OkStatus))) {
-      Await.result(healthMonitorRef ? HealthMonitor.GetCurrentStatus, Duration.Inf)
-    }, 1 second, 10 milliseconds)
+    awaitAssert(
+      assertResult(StatusCheckResponse(true, Map(Agora -> HealthMonitor.OkStatus))) {
+        Await.result(healthMonitorRef ? HealthMonitor.GetCurrentStatus, Duration.Inf)
+      },
+      1 second,
+      10 milliseconds
+    )
   }
 
   it should "handle timeouts" in {
@@ -76,9 +91,21 @@ class HealthMonitorSpec extends TestKit(ActorSystem("HealthMonitorSpec")) with A
     // just send 1 message - no need for scheduler in this test
     healthMonitorRef ! HealthMonitor.CheckAll
 
-    awaitAssert(assertResult(StatusCheckResponse(false, Map(Agora -> HealthMonitor.failedStatus(s"Timed out after ${futureTimeout.toString} waiting for a response from ${Agora.toString}")))) {
-      Await.result(healthMonitorRef ? HealthMonitor.GetCurrentStatus, Duration.Inf)
-    }, 1 second, 10 milliseconds)
+    awaitAssert(
+      assertResult(
+        StatusCheckResponse(
+          false,
+          Map(
+            Agora -> HealthMonitor
+              .failedStatus(s"Timed out after ${futureTimeout.toString} waiting for a response from ${Agora.toString}")
+          )
+        )
+      ) {
+        Await.result(healthMonitorRef ? HealthMonitor.GetCurrentStatus, Duration.Inf)
+      },
+      1 second,
+      10 milliseconds
+    )
   }
 
   it should "handle stale status" in {
@@ -101,13 +128,21 @@ class HealthMonitorSpec extends TestKit(ActorSystem("HealthMonitorSpec")) with A
     healthMonitorRef ! HealthMonitor.CheckAll
 
     // assert that it switches to ok
-    awaitAssert(assertResult(StatusCheckResponse(true, Map(Agora -> HealthMonitor.OkStatus))) {
-      Await.result(healthMonitorRef ? HealthMonitor.GetCurrentStatus, Duration.Inf)
-    }, 1 second, 10 milliseconds)
+    awaitAssert(
+      assertResult(StatusCheckResponse(true, Map(Agora -> HealthMonitor.OkStatus))) {
+        Await.result(healthMonitorRef ? HealthMonitor.GetCurrentStatus, Duration.Inf)
+      },
+      1 second,
+      10 milliseconds
+    )
 
     // assert that it eventually switches back to unknown since it has not polled anymore so ok state should be stale
-    awaitAssert(assertResult(StatusCheckResponse(false, Map(Agora -> HealthMonitor.UnknownStatus))) {
-      Await.result(healthMonitorRef ? HealthMonitor.GetCurrentStatus, Duration.Inf)
-    }, 1 second, 10 milliseconds)
+    awaitAssert(
+      assertResult(StatusCheckResponse(false, Map(Agora -> HealthMonitor.UnknownStatus))) {
+        Await.result(healthMonitorRef ? HealthMonitor.GetCurrentStatus, Duration.Inf)
+      },
+      1 second,
+      10 milliseconds
+    )
   }
 }

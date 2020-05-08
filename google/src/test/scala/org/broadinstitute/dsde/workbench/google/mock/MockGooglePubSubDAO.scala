@@ -20,14 +20,16 @@ import scala.concurrent.{ExecutionContext, Future}
 class MockGooglePubSubDAO extends GooglePubSubDAO {
   implicit val executionContext: ExecutionContext = ExecutionContext.global
 
-  val topics: concurrent.Map[String, mutable.Set[Subscription]] = new ConcurrentHashMap[String, mutable.Set[Subscription]]().asScala
+  val topics: concurrent.Map[String, mutable.Set[Subscription]] =
+    new ConcurrentHashMap[String, mutable.Set[Subscription]]().asScala
   val subscriptionsByName = collection.concurrent.TrieMap.empty[String, Subscription]
 
   val messageLog = new ConcurrentLinkedQueue[String]
   val acks = new ConcurrentLinkedQueue[String]
 
   def logMessage(topic: String, message: String) = messageLog.add(s"$topic|$message")
-  def receivedMessage(topic: String, message: String, count: Int = 1) = messageLog.toArray.count(_ == s"$topic|$message") == count
+  def receivedMessage(topic: String, message: String, count: Int = 1) =
+    messageLog.toArray.count(_ == s"$topic|$message") == count
 
   override def createTopic(topicName: String): Future[Boolean] = {
     val initialCount = topics.size
@@ -36,15 +38,19 @@ class MockGooglePubSubDAO extends GooglePubSubDAO {
   }
 
   override def pullMessages(subscriptionName: String, maxMessages: Int): Future[Seq[PubSubMessage]] = Future {
-    val subscription = subscriptionsByName.getOrElse(subscriptionName, throw new WorkbenchException(s"no subscription named $subscriptionName"))
+    val subscription =
+      subscriptionsByName.getOrElse(subscriptionName,
+                                    throw new WorkbenchException(s"no subscription named $subscriptionName"))
     (0 until maxMessages).map(_ => Option(subscription.queue.poll())).collect {
       case Some(message) => PubSubMessage(UUID.randomUUID().toString, message)
     }
   }
 
-  override def acknowledgeMessages(subscriptionName: String, messages: Seq[PubSubMessage]): Future[Unit] = Future.successful(messages.foreach(m => acks.add(m.ackId)))
+  override def acknowledgeMessages(subscriptionName: String, messages: Seq[PubSubMessage]): Future[Unit] =
+    Future.successful(messages.foreach(m => acks.add(m.ackId)))
 
-  override def acknowledgeMessagesById(subscriptionName: String, ackIds: Seq[String]): Future[Unit] = Future.successful(ackIds.foreach(acks.add))
+  override def acknowledgeMessagesById(subscriptionName: String, ackIds: Seq[String]): Future[Unit] =
+    Future.successful(ackIds.foreach(acks.add))
 
   override def publishMessages(topicName: String, messages: Seq[String]): Future[Unit] = Future {
     val subscriptions = topics.getOrElse(topicName, throw new WorkbenchException(s"no topic named $topicName"))
@@ -95,17 +101,20 @@ class MockGooglePubSubDAO extends GooglePubSubDAO {
     credential
   }
 
-  override def getTopic(topicName: String)(implicit executionContext: ExecutionContext): Future[Option[Topic]] = Future {
-    if (topics.contains(topicName)) {
-      val topic = new Topic
-      topic.setName(topicName)
-      Some(topic)
-    } else None
-  }
+  override def getTopic(topicName: String)(implicit executionContext: ExecutionContext): Future[Option[Topic]] =
+    Future {
+      if (topics.contains(topicName)) {
+        val topic = new Topic
+        topic.setName(topicName)
+        Some(topic)
+      } else None
+    }
 
-  override def setTopicIamPermissions(topicName: String, permissions: scala.collection.immutable.Map[WorkbenchEmail, String]): Future[Unit] = {
+  override def setTopicIamPermissions(
+    topicName: String,
+    permissions: scala.collection.immutable.Map[WorkbenchEmail, String]
+  ): Future[Unit] =
     Future.successful(())
-  }
 
   case class Subscription(name: String, topic: String, queue: ConcurrentLinkedQueue[String])
 }

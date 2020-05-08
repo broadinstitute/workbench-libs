@@ -13,14 +13,19 @@ case class GoogleProject(value: String) extends ValueObject
 case class ProjectNumber(value: String) extends ValueObject
 
 // Service Accounts
-case class ServiceAccount(subjectId: ServiceAccountSubjectId, email: WorkbenchEmail, displayName: ServiceAccountDisplayName)
+case class ServiceAccount(subjectId: ServiceAccountSubjectId,
+                          email: WorkbenchEmail,
+                          displayName: ServiceAccountDisplayName)
 case class ServiceAccountSubjectId(value: String) extends ValueObject //The SA's Subject ID.
 case class ServiceAccountName(value: String) extends ValueObject //The left half of the SA's email.
 case class ServiceAccountDisplayName(value: String) extends ValueObject //A friendly name.
 
 case class ServiceAccountKeyId(value: String) extends ValueObject
 case class ServiceAccountPrivateKeyData(value: String) extends ValueObject with Base64Support
-case class ServiceAccountKey(id: ServiceAccountKeyId, privateKeyData: ServiceAccountPrivateKeyData, validAfter: Option[Instant], validBefore: Option[Instant])
+case class ServiceAccountKey(id: ServiceAccountKeyId,
+                             privateKeyData: ServiceAccountPrivateKeyData,
+                             validAfter: Option[Instant],
+                             validBefore: Option[Instant])
 
 // Test IAM types.
 case class IamPermission(value: String) extends ValueObject
@@ -39,9 +44,9 @@ object GcsLifecycleTypes {
   case object SetStorageClass extends GcsLifecycleType { val value = "SetStorageClass" }
 
   def withName(name: String): GcsLifecycleType = name.toLowerCase() match {
-    case "delete" => Delete
+    case "delete"          => Delete
     case "setstorageclass" => SetStorageClass
-    case _ => throw new WorkbenchException(s"Invalid lifecycle type: $name")
+    case _                 => throw new WorkbenchException(s"Invalid lifecycle type: $name")
   }
 }
 
@@ -54,8 +59,8 @@ object GcsRoles {
   def withName(name: String): GcsRole = name.toLowerCase() match {
     case "reader" => Reader
     case "writer" => Writer
-    case "owner" => Owner
-    case _ => throw new WorkbenchException(s"Invalid role: $name")
+    case "owner"  => Owner
+    case _        => throw new WorkbenchException(s"Invalid role: $name")
   }
 }
 
@@ -68,8 +73,8 @@ object ProjectTeamTypes {
   def withName(name: String): ProjectTeamType = name.toLowerCase() match {
     case "viewers" => Viewers
     case "editors" => Editors
-    case "owners" => Owners
-    case _ => throw new WorkbenchException(s"Invalid project team type: $name")
+    case "owners"  => Owners
+    case _         => throw new WorkbenchException(s"Invalid project team type: $name")
   }
 }
 
@@ -82,9 +87,9 @@ object GoogleResourceTypes {
 
   def withName(name: String): GoogleResourceType = name.toLowerCase() match {
     case "organization" => Organization
-    case "folder" => Folder
-    case "project" => Project
-    case _ => throw new WorkbenchException(s"Invalid Google resource type: $name")
+    case "folder"       => Folder
+    case "project"      => Project
+    case _              => throw new WorkbenchException(s"Invalid Google resource type: $name")
   }
 }
 
@@ -95,8 +100,8 @@ object GcsEntityTypes {
   case object Project extends GcsEntityType { val value = "project" }
 
   def withName(name: String): GcsEntityType = name.toLowerCase() match {
-    case "user" => User
-    case "group" => Group
+    case "user"    => User
+    case "group"   => Group
     case "project" => Project
   }
 }
@@ -121,13 +126,12 @@ object GoogleModelJsonSupport {
   import WorkbenchIdentityJsonSupport.WorkbenchEmailFormat
 
   implicit object InstantFormat extends RootJsonFormat[Instant] {
-    def write(instant: Instant): JsString = {
+    def write(instant: Instant): JsString =
       JsString(DateTimeFormatter.ISO_INSTANT.format(instant))
-    }
 
     def read(value: JsValue): Instant = value match {
       case JsString(str) => Instant.from(DateTimeFormatter.ISO_INSTANT.parse(str))
-      case _ => throw new WorkbenchException(s"Unable to unmarshal Instant from $value")
+      case _             => throw new WorkbenchException(s"Unable to unmarshal Instant from $value")
     }
   }
 

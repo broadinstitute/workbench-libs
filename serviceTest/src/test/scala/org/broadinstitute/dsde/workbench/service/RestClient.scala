@@ -18,7 +18,6 @@ import scala.concurrent.duration._
 import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.util.Try
 
-
 trait RestClient extends Retry with LazyLogging {
 
   implicit val system = ActorSystem()
@@ -33,25 +32,25 @@ trait RestClient extends Retry with LazyLogging {
     def parseJsonAsMap[A]: Map[String, A] = mapper.readValue(s, classOf[Map[String, A]])
   }
 
-  private def makeAuthHeader(token: AuthToken): Authorization = {
+  private def makeAuthHeader(token: AuthToken): Authorization =
     headers.Authorization(OAuth2BearerToken(token.value))
-  }
 
   def encodeUri(path: String): String = {
-    val pattern = """(https?)?:\/{2}+([\dA-z_.-]+)+(:[\d]+)??(\/[~0-9A-z\#\+\%@\.\/_ -]+)(\?[0-9A-z\+\%@\/&\[\];=_-]+)?""".r
+    val pattern =
+      """(https?)?:\/{2}+([\dA-z_.-]+)+(:[\d]+)??(\/[~0-9A-z\#\+\%@\.\/_ -]+)(\?[0-9A-z\+\%@\/&\[\];=_-]+)?""".r
 
     def toUri(url: String) = url match {
       case pattern(theScheme, theHost, thePort, thePath, theParams) =>
-        val p: Int = Try(thePort.replace(":","").toInt).toOption.getOrElse(0)
-        val qp: Option[String] = Try(theParams.replace("?","")).toOption
+        val p: Int = Try(thePort.replace(":", "").toInt).toOption.getOrElse(0)
+        val qp: Option[String] = Try(theParams.replace("?", "")).toOption
         Uri.from(scheme = theScheme, port = p, host = theHost, path = thePath, queryString = qp)
     }
     toUri(path).toString
   }
 
   private def sendRequest(httpRequest: HttpRequest): HttpResponse = {
-    val responseFuture = retryExponentially() {
-      () => Http().singleRequest(request = httpRequest).map { response =>
+    val responseFuture = retryExponentially() { () =>
+      Http().singleRequest(request = httpRequest).map { response =>
         logger.info(s"API request: ${httpRequest}\nAPI response: ${response}")
         // retry any 401 or 500 errors - this is because we have seen the proxy get backend errors
         // from google querying for token info which causes a 401 if it is at the level if the
@@ -71,7 +70,7 @@ trait RestClient extends Retry with LazyLogging {
     Await.result(responseStringFuture, 5 minutes)
   }
 
-  def parseResponse(response: HttpResponse): String = {
+  def parseResponse(response: HttpResponse): String =
     response.status.isSuccess() match {
       case true =>
         extractResponseString(response)
@@ -79,13 +78,11 @@ trait RestClient extends Retry with LazyLogging {
         logger.error(extractResponseString(response)) // write to test log
         throwRestException(response)
     }
-  }
 
-  private def throwRestException(response: HttpResponse) = {
+  private def throwRestException(response: HttpResponse) =
     throw RestException(extractResponseString(response))
-  }
 
-  import scala.reflect.{ClassTag, classTag}
+  import scala.reflect.{classTag, ClassTag}
   def parseResponseAs[T: ClassTag](response: HttpResponse): T = {
     // https://stackoverflow.com/questions/6200253/scala-classof-for-type-parameter
     val classT: Class[T] = classTag[T].runtimeClass.asInstanceOf[Class[T]]
@@ -93,51 +90,60 @@ trait RestClient extends Retry with LazyLogging {
   }
 
   // return Some(T) on success, None on failure
-  def parseResponseOption[T: ClassTag](response: HttpResponse): Option[T] = {
+  def parseResponseOption[T: ClassTag](response: HttpResponse): Option[T] =
     if (response.status.isSuccess())
       Option(parseResponseAs[T](response))
     else
       None
-  }
 
-  private def requestWithJsonContent(method: HttpMethod, uri: String, content: Any, httpHeaders: List[HttpHeader] = List())(implicit token: AuthToken): String = {
-    val req = HttpRequest(method, encodeUri(uri), List(makeAuthHeader(token)) ++ httpHeaders, HttpEntity(ContentTypes.`application/json`, mapper.writeValueAsString(content)))
+  private def requestWithJsonContent(method: HttpMethod,
+                                     uri: String,
+                                     content: Any,
+                                     httpHeaders: List[HttpHeader] = List())(implicit token: AuthToken): String = {
+    val req = HttpRequest(method,
+                          encodeUri(uri),
+                          List(makeAuthHeader(token)) ++ httpHeaders,
+                          HttpEntity(ContentTypes.`application/json`, mapper.writeValueAsString(content)))
     parseResponse(sendRequest(req))
   }
 
-  def postRequestWithMultipart(uri:String, name: String, content: String)(implicit token: AuthToken): String = {
+  def postRequestWithMultipart(uri: String, name: String, content: String)(implicit token: AuthToken): String = {
     val part = Multipart.FormData.BodyPart.Strict(name, HttpEntity(ByteString(content)))
     val formData = Multipart.FormData(Source.single(part))
     val req = HttpRequest(POST, encodeUri(uri), List(makeAuthHeader(token)), formData.toEntity())
     parseResponse(sendRequest(req))
   }
 
-  private def requestBasic(method: HttpMethod, uri: String, httpHeaders: List[HttpHeader] = List())(implicit token: AuthToken): HttpResponse = {
+  private def requestBasic(method: HttpMethod, uri: String, httpHeaders: List[HttpHeader] = List())(
+    implicit token: AuthToken
+  ): HttpResponse = {
     val req = HttpRequest(method, encodeUri(uri), List(makeAuthHeader(token)) ++ httpHeaders)
     sendRequest(req)
   }
 
-  def patchRequest(uri: String, content: Any, httpHeaders: List[HttpHeader] = List())(implicit token: AuthToken): String = {
+  def patchRequest(uri: String, content: Any, httpHeaders: List[HttpHeader] = List())(
+    implicit token: AuthToken
+  ): String =
     requestWithJsonContent(PATCH, uri, content, httpHeaders)
-  }
 
-  def postRequest(uri: String, content: Any = None, httpHeaders: List[HttpHeader] = List())(implicit token: AuthToken): String = {
+  def postRequest(uri: String, content: Any = None, httpHeaders: List[HttpHeader] = List())(
+    implicit token: AuthToken
+  ): String =
     requestWithJsonContent(POST, uri, content, httpHeaders)
-  }
 
-  def putRequest(uri: String, content: Any = None, httpHeaders: List[HttpHeader] = List())(implicit token: AuthToken): String = {
+  def putRequest(uri: String, content: Any = None, httpHeaders: List[HttpHeader] = List())(
+    implicit token: AuthToken
+  ): String =
     requestWithJsonContent(PUT, uri, content, httpHeaders)
-  }
 
-  def deleteRequest(uri: String, httpHeaders: List[HttpHeader] = List())(implicit token: AuthToken): String = {
+  def deleteRequest(uri: String, httpHeaders: List[HttpHeader] = List())(implicit token: AuthToken): String =
     requestWithJsonContent(DELETE, uri, None, httpHeaders)
-  }
 
-  def deleteRequestWithContent(uri: String, content: Any = None, httpHeaders: List[HttpHeader] = List())(implicit token: AuthToken): String = {
+  def deleteRequestWithContent(uri: String, content: Any = None, httpHeaders: List[HttpHeader] = List())(
+    implicit token: AuthToken
+  ): String =
     requestWithJsonContent(DELETE, uri, content, httpHeaders)
-  }
 
-  def getRequest(uri: String, httpHeaders: List[HttpHeader] = List())(implicit token: AuthToken): HttpResponse = {
+  def getRequest(uri: String, httpHeaders: List[HttpHeader] = List())(implicit token: AuthToken): HttpResponse =
     requestBasic(GET, uri, httpHeaders)
-  }
 }

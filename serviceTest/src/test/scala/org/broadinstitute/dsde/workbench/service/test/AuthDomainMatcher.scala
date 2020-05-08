@@ -9,7 +9,8 @@ import org.scalatest.time.{Seconds, Span}
 
 object AuthDomainMatcher extends Matchers with Eventually {
 
-  implicit override val patienceConfig: PatienceConfig = PatienceConfig(timeout = scaled(Span(150, Seconds)), interval = scaled(Span(5, Seconds)))
+  implicit override val patienceConfig: PatienceConfig =
+    PatienceConfig(timeout = scaled(Span(150, Seconds)), interval = scaled(Span(5, Seconds)))
 
   // NOTE:
   //  NotVisible -> Not found in workspace list
@@ -18,10 +19,12 @@ object AuthDomainMatcher extends Matchers with Eventually {
   val rawlsErrorMsg = "does not exist"
 
   /**
-    * user can see the workspace in workspaces list and
-    *  can see workspace detail and see expected auth-domains
-    */
-  def checkVisibleAndAccessible(projectName: String, workspaceName: String, authDomains: List[String])(implicit token: AuthToken): Unit = {
+   * user can see the workspace in workspaces list and
+   *  can see workspace detail and see expected auth-domains
+   */
+  def checkVisibleAndAccessible(projectName: String, workspaceName: String, authDomains: List[String])(
+    implicit token: AuthToken
+  ): Unit = {
 
     eventually {
       val allWorkspaceNames: Seq[String] = Rawls.workspaces.getWorkspaceNames()
@@ -35,9 +38,9 @@ object AuthDomainMatcher extends Matchers with Eventually {
   }
 
   /**
-    * user can see the workspace in workspaces list BUT
-    *  cannot see workspace detail
-    */
+   * user can see the workspace in workspaces list BUT
+   *  cannot see workspace detail
+   */
   def checkVisibleNotAccessible(projectName: String, workspaceName: String)(implicit token: AuthToken): Unit = {
 
     eventually {
@@ -55,9 +58,9 @@ object AuthDomainMatcher extends Matchers with Eventually {
   }
 
   /**
-    * user cannot see the workspace in workspaces list and
-    *  cannot see workspace detail
-    */
+   * user cannot see the workspace in workspaces list and
+   *  cannot see workspace detail
+   */
   def checkNotVisibleNotAccessible(projectName: String, workspaceName: String)(implicit token: AuthToken): Unit = {
 
     eventually {

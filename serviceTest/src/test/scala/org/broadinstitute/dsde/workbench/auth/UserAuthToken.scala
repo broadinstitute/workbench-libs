@@ -1,7 +1,7 @@
 package org.broadinstitute.dsde.workbench.auth
 
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential
-import org.broadinstitute.dsde.workbench.config.{ServiceTestConfig, Credentials}
+import org.broadinstitute.dsde.workbench.config.{Credentials, ServiceTestConfig}
 
 import scala.collection.JavaConverters._
 

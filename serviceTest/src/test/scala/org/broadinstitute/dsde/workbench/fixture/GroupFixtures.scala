@@ -12,17 +12,18 @@ import org.scalatest.TestSuite
 import scala.util.Try
 
 /**
-  * Fixtures for creating and cleaning up test groups.
-  */
+ * Fixtures for creating and cleaning up test groups.
+ */
 trait GroupFixtures extends ExceptionHandling with LazyLogging with RandomUtil { self: TestSuite =>
 
-  def groupNameToEmail(groupName: String)(implicit token: AuthToken): String = Orchestration.groups.getGroup(groupName).groupEmail
+  def groupNameToEmail(groupName: String)(implicit token: AuthToken): String =
+    Orchestration.groups.getGroup(groupName).groupEmail
 
-  def groupNameToMembersEmails(groupName: String)(implicit token: AuthToken): Seq[String] = Orchestration.groups.getGroup(groupName).membersEmails
+  def groupNameToMembersEmails(groupName: String)(implicit token: AuthToken): Seq[String] =
+    Orchestration.groups.getGroup(groupName).membersEmails
 
-  def withGroup(namePrefix: String, memberEmails: List[String] = List())
-               (testCode: (String) => Any)
-               (implicit token: AuthToken): Unit = {
+  def withGroup(namePrefix: String,
+                memberEmails: List[String] = List())(testCode: (String) => Any)(implicit token: AuthToken): Unit = {
     val groupName = uuidWithPrefix(namePrefix)
 
     val testTrial = Try {

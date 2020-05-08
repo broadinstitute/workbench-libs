@@ -22,52 +22,69 @@ import scala.util.{Failure, Success, Try}
 //noinspection TypeAnnotation,ScalaDocMissingParameterDescription
 trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport with DefaultJsonProtocol with RandomUtil {
 
-  def responseAsList[T](response: String): List[Map[String, T]] = {
+  def responseAsList[T](response: String): List[Map[String, T]] =
     mapper.readValue(response, classOf[List[Map[String, T]]])
-  }
 
-  private def apiUrl(s: String) = {
+  private def apiUrl(s: String) =
     ServiceTestConfig.FireCloud.orchApiUrl + s
-  }
 
   object billing {
 
-    def addUserToBillingProject(projectName: String, email: String, billingProjectRole: BillingProjectRole)(implicit token: AuthToken): Unit = {
+    def addUserToBillingProject(projectName: String, email: String, billingProjectRole: BillingProjectRole)(
+      implicit token: AuthToken
+    ): Unit = {
       logger.info(s"Adding user to billing project: $projectName $email ${billingProjectRole.toString}")
       putRequest(apiUrl(s"api/billing/$projectName/${billingProjectRole.toString}/$email"))
     }
 
-    def removeUserFromBillingProject(projectName: String, email: String, billingProjectRole: BillingProjectRole)(implicit token: AuthToken): Unit = {
+    def removeUserFromBillingProject(projectName: String, email: String, billingProjectRole: BillingProjectRole)(
+      implicit token: AuthToken
+    ): Unit = {
       logger.info(s"Removing user from billing project: $projectName $email ${billingProjectRole.toString}")
       deleteRequest(apiUrl(s"api/billing/$projectName/${billingProjectRole.toString}/$email"))
     }
 
-    def addGoogleRoleToBillingProjectUser(projectName: String, email: String, googleRole: String)(implicit token: AuthToken): Unit = {
+    def addGoogleRoleToBillingProjectUser(projectName: String, email: String, googleRole: String)(
+      implicit token: AuthToken
+    ): Unit = {
       logger.info(s"Adding google role $googleRole to user $email in billing project $projectName")
       putRequest(apiUrl(s"api/billing/$projectName/googleRole/$googleRole/$email"))
     }
 
-    def removeGoogleRoleFromBillingProjectUser(projectName: String, email: String, googleRole: String)(implicit token: AuthToken): Unit = {
+    def removeGoogleRoleFromBillingProjectUser(projectName: String, email: String, googleRole: String)(
+      implicit token: AuthToken
+    ): Unit = {
       logger.info(s"Removing google role $googleRole from user $email in billing project $projectName")
       deleteRequest(apiUrl(s"api/billing/$projectName/googleRole/$googleRole/$email"))
     }
 
     def createBillingProject(projectName: String, billingAccount: String)(implicit token: AuthToken): Unit = {
-      logger.info(s"Creating billing project: $projectName $billingAccount, with start time of ${System.currentTimeMillis}")
+      logger.info(
+        s"Creating billing project: $projectName $billingAccount, with start time of ${System.currentTimeMillis}"
+      )
       postRequest(apiUrl("api/billing"), Map("projectName" -> projectName, "billingAccount" -> billingAccount))
 
       Retry.retry(10.seconds, 20.minutes)({
         Try(responseAsList[String](parseResponse(getRequest(apiUrl("api/profile/billing"))))) match {
-          case Success(response) => response.map { p =>
-            BillingProject(p("projectName"), BillingProjectRole.withName(p("role")), BillingProjectStatus.withName(p("creationStatus")))
-          }.find(p => p.projectName == projectName && BillingProjectStatus.isTerminal(p.creationStatus))
+          case Success(response) =>
+            response
+              .map { p =>
+                BillingProject(p("projectName"),
+                               BillingProjectRole.withName(p("role")),
+                               BillingProjectStatus.withName(p("creationStatus")))
+              }
+              .find(p => p.projectName == projectName && BillingProjectStatus.isTerminal(p.creationStatus))
           case Failure(t) => logger.info(s"Billing project creation encountered an error: ${t.getStackTrace}"); None
         }
       }) match {
         case Some(BillingProject(name, _, BillingProjectStatus.Ready)) =>
-          logger.info(s"Finished creating billing project: $name $billingAccount, with completion time of ${System.currentTimeMillis}")
+          logger.info(
+            s"Finished creating billing project: $name $billingAccount, with completion time of ${System.currentTimeMillis}"
+          )
         case Some(BillingProject(name, _, _)) =>
-          logger.info(s"Encountered an error creating billing project: $name $billingAccount, with final attempt at ${System.currentTimeMillis}")
+          logger.info(
+            s"Encountered an error creating billing project: $name $billingAccount, with final attempt at ${System.currentTimeMillis}"
+          )
           throw new Exception("Billing project creation encountered an error")
         case None => throw new Exception("Billing project creation did not complete")
       }
@@ -124,9 +141,8 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
       deleteRequest(apiUrl(s"api/groups/$groupName/${role.toString}/$email"))
     }
 
-    def getGroup(groupName: String)(implicit token: AuthToken): ManagedGroupWithMembers = {
+    def getGroup(groupName: String)(implicit token: AuthToken): ManagedGroupWithMembers =
       parseResponseAs[ManagedGroupWithMembers](getRequest(apiUrl(s"api/groups/$groupName")))
-    }
   }
 
   /*
@@ -135,26 +151,34 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
 
   object workspaces {
 
-    def create(namespace: String, name: String, authDomain: Set[String] = Set.empty)
-              (implicit token: AuthToken): Unit = {
+    def create(namespace: String, name: String, authDomain: Set[String] = Set.empty)(
+      implicit token: AuthToken
+    ): Unit = {
       logger.info(s"Creating workspace: $namespace/$name authDomain: $authDomain")
 
       val authDomainGroups = authDomain.map(a => Map("membersGroupName" -> a))
 
-      val request = Map("namespace" -> namespace, "name" -> name,
-        "attributes" -> Map.empty, "authorizationDomain" -> authDomainGroups)
+      val request = Map("namespace" -> namespace,
+                        "name" -> name,
+                        "attributes" -> Map.empty,
+                        "authorizationDomain" -> authDomainGroups)
 
       postRequest(apiUrl(s"api/workspaces"), request)
     }
 
-    def clone(originNamespace: String, originName: String, cloneNamespace: String, cloneName: String, authDomain: Set[String] = Set.empty)
-             (implicit token: AuthToken): Unit = {
+    def clone(originNamespace: String,
+              originName: String,
+              cloneNamespace: String,
+              cloneName: String,
+              authDomain: Set[String] = Set.empty)(implicit token: AuthToken): Unit = {
       logger.info(s"Copying workspace: $originNamespace/$originName authDomain: $authDomain")
 
       val authDomainGroups = authDomain.map(a => Map("membersGroupName" -> a))
 
-      val request = Map("namespace" -> cloneNamespace, "name" -> cloneName,
-        "attributes" -> Map.empty, "authorizationDomain" -> authDomainGroups)
+      val request = Map("namespace" -> cloneNamespace,
+                        "name" -> cloneName,
+                        "attributes" -> Map.empty,
+                        "authorizationDomain" -> authDomainGroups)
 
       postRequest(apiUrl(s"api/workspaces/$originNamespace/$originName/clone"), request)
     }
@@ -164,21 +188,30 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
       deleteRequest(apiUrl(s"api/workspaces/$namespace/$name"))
     }
 
-    def updateAcl(namespace: String, name: String, email: String, accessLevel: WorkspaceAccessLevel, canShare: Option[Boolean], canCompute: Option[Boolean])(implicit token: AuthToken): Unit = {
+    def updateAcl(namespace: String,
+                  name: String,
+                  email: String,
+                  accessLevel: WorkspaceAccessLevel,
+                  canShare: Option[Boolean],
+                  canCompute: Option[Boolean])(implicit token: AuthToken): Unit =
       updateAcl(namespace, name, List(AclEntry(email, accessLevel, canCompute, canShare)))
-    }
 
-    def updateAcl(namespace: String, name: String, aclEntries: List[AclEntry] = List())(implicit token: AuthToken): Unit = {
+    def updateAcl(namespace: String, name: String, aclEntries: List[AclEntry] = List())(
+      implicit token: AuthToken
+    ): Unit = {
       logger.info(s"Updating ACLs for workspace: $namespace/$name $aclEntries")
-      patchRequest(apiUrl(s"api/workspaces/$namespace/$name/acl"),
-        aclEntries.map{ e => e.toMap })
+      patchRequest(apiUrl(s"api/workspaces/$namespace/$name/acl"), aclEntries.map { e =>
+        e.toMap
+      })
     }
 
     /*
-    * The values in the attributes map should be either String or Seq[String]. An Either is not used because the object
-    * mapper that converts scala to json represents the either in the json string.
-    */
-    def setAttributes(namespace: String, name: String, attributes: Map[String, Any])(implicit token: AuthToken): Unit = {
+     * The values in the attributes map should be either String or Seq[String]. An Either is not used because the object
+     * mapper that converts scala to json represents the either in the json string.
+     */
+    def setAttributes(namespace: String, name: String, attributes: Map[String, Any])(
+      implicit token: AuthToken
+    ): Unit = {
       logger.info(s"Setting attributes for workspace: $namespace/$name $attributes")
       patchRequest(apiUrl(s"api/workspaces/$namespace/$name/setAttributes"), attributes)
     }
@@ -189,33 +222,35 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
     }
 
     /**
-      * Sometimes access control takes a little while to propagate in google land, use this function to wait
-      * for anything where bucket access is required. Specifically the launch workflow button is disabled
-      * when checkBucketReadAccess returns false.
-      *
-      * @param workspaceNamespace
-      * @param workspaceName
-      * @param token
-      */
+     * Sometimes access control takes a little while to propagate in google land, use this function to wait
+     * for anything where bucket access is required. Specifically the launch workflow button is disabled
+     * when checkBucketReadAccess returns false.
+     *
+     * @param workspaceNamespace
+     * @param workspaceName
+     * @param token
+     */
     def waitForBucketReadAccess(workspaceNamespace: String, workspaceName: String)(implicit token: AuthToken): Unit = {
       logger.info(s"Bucket read access checking on workspace: $workspaceNamespace/$workspaceName")
       Retry.retry(10.seconds, 10.minutes)({
         val response = getRequest(apiUrl(s"api/workspaces/$workspaceNamespace/$workspaceName/checkBucketReadAccess"))
-        if(response.status.isSuccess()) Some("done") else None
+        if (response.status.isSuccess()) Some("done") else None
       }) match {
         case None => throw new Exception(s"workspace $workspaceNamespace/$workspaceName bucket did not become readable")
-        case Some(_) => logger.info(s"Bucket read access check passed: workspace $workspaceNamespace/$workspaceName bucket readable")
+        case Some(_) =>
+          logger.info(s"Bucket read access check passed: workspace $workspaceNamespace/$workspaceName bucket readable")
       }
     }
   }
-
 
   /*
    *  Library requests
    */
 
   object library {
-    def setLibraryAttributes(ns: String, name: String, attributes: Map[String, Any])(implicit token: AuthToken): String = {
+    def setLibraryAttributes(ns: String, name: String, attributes: Map[String, Any])(
+      implicit token: AuthToken
+    ): String = {
       logger.info(s"Setting library attributes for workspace: $ns/$name $attributes")
       putRequest(apiUrl(s"api/library/$ns/$name/metadata"), attributes)
     }
@@ -251,7 +286,7 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
     }
 
     // default researchPurpose in json body.
-    private val researchPurposeDefault = Map[String,Any](
+    private val researchPurposeDefault = Map[String, Any](
       "NMDS" -> false,
       "NCTRL" -> false,
       "NAGR" -> false,
@@ -260,12 +295,20 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
       "DS" -> List.empty
     )
 
-    def searchPublishedLibraryDataset(searchString: String, from: Int = 0, size: Int = 10, sortField: String = "",
-                                      sortDirection: String = "", fieldAggregations: Map[String, Any] = Map.empty,
-                                       filters: Map[String, Any] = Map.empty, researchPurpose: Map[String, Any] = researchPurposeDefault)(implicit token: AuthToken): String = {
+    def searchPublishedLibraryDataset(
+      searchString: String,
+      from: Int = 0,
+      size: Int = 10,
+      sortField: String = "",
+      sortDirection: String = "",
+      fieldAggregations: Map[String, Any] = Map.empty,
+      filters: Map[String, Any] = Map.empty,
+      researchPurpose: Map[String, Any] = researchPurposeDefault
+    )(implicit token: AuthToken): String = {
       logger.info(s"Searching published library dataset")
 
-      val request = Map("searchString" -> searchString,
+      val request = Map(
+        "searchString" -> searchString,
         "filters" -> filters,
         "researchPurpose" -> researchPurpose,
         "fieldAggregations" -> fieldAggregations,
@@ -287,19 +330,44 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
   object methodConfigurations {
 
     //    This only works for method configs, but not methods
-    def copyMethodConfigFromMethodRepo(ns: String, wsName: String, configurationNamespace: String, configurationName: String, configurationSnapshotId: Int, destinationNamespace: String, destinationName: String)(implicit token: AuthToken): String = {
-      logger.info(s"Copying method config from method repo: $ns/$wsName config: $configurationNamespace/$configurationName $configurationSnapshotId destination: $destinationNamespace/$destinationName")
-      postRequest(apiUrl(s"api/workspaces/$ns/$wsName/method_configs/copyFromMethodRepo"),
-        Map("configurationNamespace" -> configurationNamespace, "configurationName" -> configurationName, "configurationSnapshotId" -> configurationSnapshotId, "destinationNamespace" -> destinationNamespace, "destinationName" -> destinationName))
+    def copyMethodConfigFromMethodRepo(ns: String,
+                                       wsName: String,
+                                       configurationNamespace: String,
+                                       configurationName: String,
+                                       configurationSnapshotId: Int,
+                                       destinationNamespace: String,
+                                       destinationName: String)(implicit token: AuthToken): String = {
+      logger.info(
+        s"Copying method config from method repo: $ns/$wsName config: $configurationNamespace/$configurationName $configurationSnapshotId destination: $destinationNamespace/$destinationName"
+      )
+      postRequest(
+        apiUrl(s"api/workspaces/$ns/$wsName/method_configs/copyFromMethodRepo"),
+        Map(
+          "configurationNamespace" -> configurationNamespace,
+          "configurationName" -> configurationName,
+          "configurationSnapshotId" -> configurationSnapshotId,
+          "destinationNamespace" -> destinationNamespace,
+          "destinationName" -> destinationName
+        )
+      )
     }
 
-    def createMethodConfigInWorkspace(wsNs: String, wsName: String, method:Method,
-                                      configNamespace: String, configName: String, methodConfigVersion: Int,
-                                      inputs: Map[String, String], outputs: Map[String, String],
+    def createMethodConfigInWorkspace(wsNs: String,
+                                      wsName: String,
+                                      method: Method,
+                                      configNamespace: String,
+                                      configName: String,
+                                      methodConfigVersion: Int,
+                                      inputs: Map[String, String],
+                                      outputs: Map[String, String],
                                       rootEntityType: String)(implicit token: AuthToken): Unit = {
-      logger.info(s"Creating method config: $wsNs/$wsName $methodConfigVersion method: ${method.methodNamespace}/${method.methodName} config: $configNamespace/$configName")
-      postRequest(apiUrl(s"api/workspaces/$wsNs/$wsName/methodconfigs"),
-        Map("deleted" -> false,
+      logger.info(
+        s"Creating method config: $wsNs/$wsName $methodConfigVersion method: ${method.methodNamespace}/${method.methodName} config: $configNamespace/$configName"
+      )
+      postRequest(
+        apiUrl(s"api/workspaces/$wsNs/$wsName/methodconfigs"),
+        Map(
+          "deleted" -> false,
           "inputs" -> inputs,
           "methodConfigVersion" -> methodConfigVersion,
           "methodRepoMethod" -> method.methodRepoInfo,
@@ -307,63 +375,95 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
           "name" -> configName,
           "outputs" -> outputs,
           "prerequisites" -> Map(),
-          "rootEntityType" -> rootEntityType)
+          "rootEntityType" -> rootEntityType
+        )
       )
     }
 
-    def createDockstoreMethodConfigInWorkspace(wsNs: String, wsName: String, dockstoreMethod: DockstoreMethod,
-                                               configNamespace: String, configName: String)(implicit token: AuthToken): Unit = {
-      logger.info(s"Creating dockstore method config: $wsNs/$wsName method: ${dockstoreMethod.methodPath}${dockstoreMethod.methodVersion} config: $configNamespace/$configName")
-      postRequest(apiUrl(s"api/workspaces/$wsNs/$wsName/methodconfigs"),
-        Map("deleted" -> false,
+    def createDockstoreMethodConfigInWorkspace(wsNs: String,
+                                               wsName: String,
+                                               dockstoreMethod: DockstoreMethod,
+                                               configNamespace: String,
+                                               configName: String)(implicit token: AuthToken): Unit = {
+      logger.info(
+        s"Creating dockstore method config: $wsNs/$wsName method: ${dockstoreMethod.methodPath}${dockstoreMethod.methodVersion} config: $configNamespace/$configName"
+      )
+      postRequest(
+        apiUrl(s"api/workspaces/$wsNs/$wsName/methodconfigs"),
+        Map(
+          "deleted" -> false,
           "inputs" -> Map.empty,
           "methodConfigVersion" -> 1,
           "methodRepoMethod" -> dockstoreMethod.methodRepoInfo,
           "namespace" -> configNamespace,
           "name" -> configName,
           "outputs" -> Map.empty,
-          "prerequisites" -> Map.empty)
+          "prerequisites" -> Map.empty
+        )
       )
     }
 
-    def createMethodConfig(methodConfigData: Map[String,Any])(implicit token: AuthToken): String = {
+    def createMethodConfig(methodConfigData: Map[String, Any])(implicit token: AuthToken): String = {
       logger.info(s"Adding a method config: $methodConfigData")
       postRequest(apiUrl(s"api/configurations"), methodConfigData)
     }
 
-    def editMethodConfig(workspaceNamespace: String, workspaceName: String, methodConfigNamespace: String, methodConfigName: String, methodConfigData: Map[String,Any])(implicit token: AuthToken): String = {
-      logger.info(s"Editing method config $methodConfigNamespace/$methodConfigName in workspace $workspaceNamespace/$workspaceName")
-      postRequest(apiUrl(s"/api/workspaces/$workspaceNamespace/$workspaceName/method_configs/$methodConfigNamespace/$methodConfigName"), methodConfigData)
+    def editMethodConfig(workspaceNamespace: String,
+                         workspaceName: String,
+                         methodConfigNamespace: String,
+                         methodConfigName: String,
+                         methodConfigData: Map[String, Any])(implicit token: AuthToken): String = {
+      logger.info(
+        s"Editing method config $methodConfigNamespace/$methodConfigName in workspace $workspaceNamespace/$workspaceName"
+      )
+      postRequest(
+        apiUrl(
+          s"/api/workspaces/$workspaceNamespace/$workspaceName/method_configs/$methodConfigNamespace/$methodConfigName"
+        ),
+        methodConfigData
+      )
     }
 
-    def deleteMethodConfig(workspaceNamespace: String, workspaceName: String, methodConfigNamespace: String, methodConfigName: String)(implicit token: AuthToken): String = {
-      logger.info(s"Deleting method config $methodConfigNamespace/$methodConfigName in workspace $workspaceNamespace/$workspaceName")
-      deleteRequest(apiUrl(s"/api/workspaces/$workspaceNamespace/$workspaceName/method_configs/$methodConfigNamespace/$methodConfigName"))
+    def deleteMethodConfig(workspaceNamespace: String,
+                           workspaceName: String,
+                           methodConfigNamespace: String,
+                           methodConfigName: String)(implicit token: AuthToken): String = {
+      logger.info(
+        s"Deleting method config $methodConfigNamespace/$methodConfigName in workspace $workspaceNamespace/$workspaceName"
+      )
+      deleteRequest(
+        apiUrl(
+          s"/api/workspaces/$workspaceNamespace/$workspaceName/method_configs/$methodConfigNamespace/$methodConfigName"
+        )
+      )
     }
 
     def getMethodConfigPermission(configNamespace: String)(implicit token: AuthToken): String = {
       logger.info(s"Getting permissions for method config: $configNamespace")
       parseResponse(getRequest(apiUrl(s"api/configurations/$configNamespace/permissions")))
     }
-    def setMethodConfigPermission(configNamespace: String, configName: String, configSnapshotId: Int, user: String, role: String)(implicit token: AuthToken): String = {
-      logger.info(s"Setting permissions for method config: $configNamespace/$configName/$configSnapshotId and user: $user to role: $role")
-      postRequest(apiUrl(s"api/configurations/$configNamespace/$configName/$configSnapshotId/permissions"),
-        Seq(Map("user" -> user,
-        "role" -> role))
+    def setMethodConfigPermission(configNamespace: String,
+                                  configName: String,
+                                  configSnapshotId: Int,
+                                  user: String,
+                                  role: String)(implicit token: AuthToken): String = {
+      logger.info(
+        s"Setting permissions for method config: $configNamespace/$configName/$configSnapshotId and user: $user to role: $role"
       )
+      postRequest(apiUrl(s"api/configurations/$configNamespace/$configName/$configSnapshotId/permissions"),
+                  Seq(Map("user" -> user, "role" -> role)))
     }
   }
 
   object methods {
-    def createMethod(testname:String, method:Method, numSnapshots: Int = 1)
-                    (implicit token: AuthToken): String = {
+    def createMethod(testname: String, method: Method, numSnapshots: Int = 1)(implicit token: AuthToken): String = {
       val methodName = uuidWithPrefix(testname)
       for (_ <- 1 to numSnapshots)
-        createMethod(SimpleMethod.creationAttributes + ("name"->methodName))
+        createMethod(SimpleMethod.creationAttributes + ("name" -> methodName))
       methodName
     }
 
-    def createMethod(methodData: Map[String,Any])(implicit token: AuthToken): Unit = {
+    def createMethod(methodData: Map[String, Any])(implicit token: AuthToken): Unit = {
       logger.info(s"Adding a method: $methodData")
       postRequest(apiUrl(s"api/methods"), methodData)
     }
@@ -373,9 +473,8 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
       parseResponse(getRequest(apiUrl(s"api/configurations/$namespace/$name/$snapshotId")))
     }
 
-    def redact(method: Method)(implicit token: AuthToken): Unit = {
+    def redact(method: Method)(implicit token: AuthToken): Unit =
       redact(method.methodNamespace, method.methodName, method.snapshotId)
-    }
 
     def redact(ns: String, name: String, snapshotId: Int)(implicit token: AuthToken): Unit = {
       logger.info(s"Redacting method: $ns/$name:$snapshotId")
@@ -387,7 +486,9 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
       parseResponse(getRequest(apiUrl(s"api/methods/$ns/$name/$snapshotId/permissions")))
     }
 
-    def setMethodPermissions(ns: String, name: String, snapshotId: Int, userId: String, role: String)(implicit token: AuthToken): Unit = {
+    def setMethodPermissions(ns: String, name: String, snapshotId: Int, userId: String, role: String)(
+      implicit token: AuthToken
+    ): Unit = {
       logger.info(s"Setting method permissions for $ns / $name")
       val request = Seq(Map("user" -> userId, "role" -> role))
       postRequest(apiUrl(s"api/methods/$ns/$name/$snapshotId/permissions"), request)
@@ -443,8 +544,7 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
                        expression: String,
                        useCallCache: Boolean,
                        deleteIntermediateOutputFiles: Boolean,
-                       workflowFailureMode: String = "NoNewCalls"
-                      )(implicit token: AuthToken): String = {
+                       workflowFailureMode: String = "NoNewCalls")(implicit token: AuthToken): String = {
       logger.info(s"Creating a submission: $ns/$wsName config: $methodConfigurationNamespace/$methodConfigurationName")
       postRequest(
         apiUrl(s"api/workspaces/$ns/$wsName/submissions"),
@@ -465,58 +565,52 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
 
   object profile {
     // copied from firecloud-orchestration repo
-    case class BasicProfile (
-                              firstName: String,
-                              lastName: String,
-                              title: String,
-                              contactEmail: Option[String],
-                              institute: String,
-                              institutionalProgram: String,
-                              programLocationCity: String,
-                              programLocationState: String,
-                              programLocationCountry: String,
-                              pi: String,
-                              nonProfitStatus: String
-                            )
-
+    case class BasicProfile(
+      firstName: String,
+      lastName: String,
+      title: String,
+      contactEmail: Option[String],
+      institute: String,
+      institutionalProgram: String,
+      programLocationCity: String,
+      programLocationState: String,
+      programLocationCountry: String,
+      pi: String,
+      nonProfitStatus: String
+    )
 
     def registerUser(profile: BasicProfile)(implicit token: AuthToken): Unit = {
       profile.contactEmail match {
         case Some(email) => logger.info(s"Creating profile for user $email")
-        case _ => logger.info("Creating user profile")
+        case _           => logger.info("Creating user profile")
       }
 
       postRequest(apiUrl(s"register/profile"), profile)
     }
 
-    def getRegisteredUser()(implicit token: AuthToken): String = {
+    def getRegisteredUser()(implicit token: AuthToken): String =
       parseResponse(getRequest(apiUrl(s"register/profile")))
-    }
 
-    def getUser()(implicit token: AuthToken): Map[String, String] = {
+    def getUser()(implicit token: AuthToken): Map[String, String] =
       parseResponseAs[Map[String, String]](getRequest(apiUrl(s"register/profile")))
-    }
 
-    def getUserBillingProjects()(implicit token: AuthToken): List[Map[String, String]] = {
+    def getUserBillingProjects()(implicit token: AuthToken): List[Map[String, String]] =
       parseResponseAs[List[Map[String, String]]](getRequest(apiUrl(s"api/profile/billing")))
-    }
 
-    def getUserBillingProjectStatus(projectName: String)(implicit token: AuthToken): Map[String, String] = {
+    def getUserBillingProjectStatus(projectName: String)(implicit token: AuthToken): Map[String, String] =
       parseResponseAs[Map[String, String]](getRequest(apiUrl(s"api/profile/billing/$projectName")))
-    }
   }
 
-  def importMetaData(ns: String, wsName: String, fileName: String, fileContent: String)(implicit token: AuthToken): String = {
+  def importMetaData(ns: String, wsName: String, fileName: String, fileContent: String)(
+    implicit token: AuthToken
+  ): String = {
     logger.info(s"Importing metadata: $ns/$wsName $fileName, $fileContent")
     postRequestWithMultipart(apiUrl(s"api/workspaces/$ns/$wsName/importEntities"), fileName, fileContent)
   }
 
   object trial {
 
-    case class TrialProjects(unverified: Int,
-                             errored: Int,
-                             available: Int,
-                             claimed: Int)
+    case class TrialProjects(unverified: Int, errored: Int, available: Int, claimed: Int)
 
     case class TrialProjectReport(name: String,
                                   verified: Boolean,
@@ -527,10 +621,10 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
       val successfulResponseKeys = Seq("Success", "NoChangeRequired")
 
       response.parseJson.asJsObject.fields.map {
-        case f@_ if successfulResponseKeys.contains(f._1) =>
+        case f @ _ if successfulResponseKeys.contains(f._1) =>
           logger.info(s"${f._1}: ${f._2.toString()}")
           return
-        case f@_ =>
+        case f @ _ =>
           logger.error(s"${f._1}: ${f._2.toString()}")
           throw new Exception(s"Unable to $update trial user: $userEmail. Error message: $response")
       }
@@ -548,7 +642,11 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
       checkUserStatusUpdate(userEmail, "terminate", terminateResponse)
     }
 
-    @deprecated(message = "This method of free trial project creation has been deprecated. Please use BillingFixtures.withCleanBillingProject and adoptTrialProject instead.", since = "0.11")
+    @deprecated(
+      message =
+        "This method of free trial project creation has been deprecated. Please use BillingFixtures.withCleanBillingProject and adoptTrialProject instead.",
+      since = "0.11"
+    )
     def createTrialProjects(count: Int)(implicit token: AuthToken): Unit = {
       val trialProjects: TrialProjects = countTrialProjects()
       if (trialProjects.available < count) {
@@ -561,10 +659,9 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
             None
         }) match {
           case Some(_) => logger.info("Finished creating free tier project")
-          case None => throw new Exception("Free tier project creation did not complete")
+          case None    => throw new Exception("Free tier project creation did not complete")
         }
-      }
-      else {
+      } else {
         logger.info("Available free tier project(s) already exist")
         // No-op. We have at least one available project to claim.
       }
@@ -613,23 +710,23 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
 
   object storage {
     case class ObjectMetadata(
-                 bucket: String,
-                 crc32c: String,
-                 etag: String,
-                 generation: String,
-                 id: String,
-                 md5Hash: Option[String],
-                 mediaLink: Option[String],
-                 name: String,
-                 size: String,
-                 storageClass: String,
-                 timeCreated: Option[String],
-                 updated: String,
-                 contentDisposition: Option[String],
-                 contentEncoding: Option[String],
-                 contentType: Option[String],
-                 estimatedCostUSD: Option[BigDecimal]
-               )
+      bucket: String,
+      crc32c: String,
+      etag: String,
+      generation: String,
+      id: String,
+      md5Hash: Option[String],
+      mediaLink: Option[String],
+      name: String,
+      size: String,
+      storageClass: String,
+      timeCreated: Option[String],
+      updated: String,
+      contentDisposition: Option[String],
+      contentEncoding: Option[String],
+      contentType: Option[String],
+      estimatedCostUSD: Option[BigDecimal]
+    )
 
     def getObjectMetadata(bucketName: String, objectKey: String)(implicit token: AuthToken): ObjectMetadata = {
       logger.info(s"API getObjectMetadata request: api/storage/$bucketName/$objectKey")
@@ -641,7 +738,7 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
     // returns an HttpResponse which may contain entity data, a redirect, or an http error
     def getObjectDownload(bucketName: String, objectKey: String)(implicit token: AuthToken): HttpResponse = {
       logger.info(s"API getObjectDownload request: cookie-authed/download/b/$bucketName/o/$objectKey")
-      val fctokenCookie = Cookie("FCtoken",token.value)
+      val fctokenCookie = Cookie("FCtoken", token.value)
       getRequest(apiUrl(s"cookie-authed/download/b/$bucketName/o/$objectKey"), List(fctokenCookie))
     }
   }
@@ -650,8 +747,8 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
 object Orchestration extends Orchestration
 
 /**
-  * Dictionary of access level values expected by the web service API.
-  */
+ * Dictionary of access level values expected by the web service API.
+ */
 //noinspection TypeAnnotation
 object WorkspaceAccessLevel extends Enumeration {
   type WorkspaceAccessLevel = Value
@@ -661,16 +758,19 @@ object WorkspaceAccessLevel extends Enumeration {
   val Writer = Value("WRITER")
 }
 
-case class AclEntry(email: String, accessLevel: WorkspaceAccessLevel, canShare: Option[Boolean] = None, canCompute: Option[Boolean] = None) {
-  def toMap: Map[String,Any] = {
-    val resp: Map[String, Any] = Map("email"->email, "accessLevel"->accessLevel.toString)
+case class AclEntry(email: String,
+                    accessLevel: WorkspaceAccessLevel,
+                    canShare: Option[Boolean] = None,
+                    canCompute: Option[Boolean] = None) {
+  def toMap: Map[String, Any] = {
+    val resp: Map[String, Any] = Map("email" -> email, "accessLevel" -> accessLevel.toString)
     val shared = canShare match {
-      case Some(sh) => resp ++ Map("canShare"->sh)
-      case None => resp
+      case Some(sh) => resp ++ Map("canShare" -> sh)
+      case None     => resp
     }
     val compute = canCompute match {
-      case Some(comp) => shared ++ Map("canCompute"->comp)
-      case None => shared
+      case Some(comp) => shared ++ Map("canCompute" -> comp)
+      case None       => shared
     }
     compute
   }

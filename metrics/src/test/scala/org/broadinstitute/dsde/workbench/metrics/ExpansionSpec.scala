@@ -8,8 +8,8 @@ import org.scalatest.flatspec.AnyFlatSpecLike
 import org.scalatest.matchers.should.Matchers
 
 /**
-  * Created by rtitle on 7/16/17.
-  */
+ * Created by rtitle on 7/16/17.
+ */
 class ExpansionSpec extends AnyFlatSpecLike with Matchers {
 
   "the Expansion typeclass" should "expand UUIDs" in {

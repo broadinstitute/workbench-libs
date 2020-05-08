@@ -12,8 +12,8 @@ import scala.collection.JavaConverters._
 import scala.concurrent.duration._
 
 /**
-  * Created by rtitle on 6/29/17.
-  */
+ * Created by rtitle on 6/29/17.
+ */
 trait StatsDTestUtils { this: Eventually with MockitoTestUtils =>
 
   protected val workbenchMetricBaseName = "test"
@@ -22,7 +22,8 @@ trait StatsDTestUtils { this: Eventually with MockitoTestUtils =>
   protected def withStatsD[T](testCode: => T)(verify: Seq[(String, String)] => Unit = _ => ()): T = {
     val statsD = mock[StatsD]
     clearRegistries()
-    val reporter = StatsDReporter.forRegistry(SharedMetricRegistries.getOrCreate("default"))
+    val reporter = StatsDReporter
+      .forRegistry(SharedMetricRegistries.getOrCreate("default"))
       .convertRatesTo(TimeUnit.SECONDS)
       .convertDurationsTo(TimeUnit.MILLISECONDS)
       .build(statsD)
@@ -45,7 +46,10 @@ trait StatsDTestUtils { this: Eventually with MockitoTestUtils =>
     }
   }
 
-  protected def expectedHttpRequestMetrics(method: String, path: String, statusCode: Int, expectedTimes: Int): Set[(String, String)] = {
+  protected def expectedHttpRequestMetrics(method: String,
+                                           path: String,
+                                           statusCode: Int,
+                                           expectedTimes: Int): Set[(String, String)] = {
     val prefix = s"test.httpRequestMethod.$method.httpRequestUri.$path.httpResponseStatusCode.$statusCode"
     val expectedTimesStr = expectedTimes.toString
     Set(

@@ -54,7 +54,7 @@ final class Test(credPathStr: String,
   val nodepoolName = KubernetesName.withValidation[NodepoolName](nodepoolNameStr, NodepoolName.apply)
 
   val defaultNamespaceName =
-    KubernetesName.withValidation[KubernetesNamespaceName](defaultNamespaceNameStr, KubernetesNamespaceName.apply)
+    KubernetesName.withValidation[NamespaceName](defaultNamespaceNameStr, NamespaceName.apply)
 
   val clusterId = KubernetesClusterId(project, region, clusterName.right.get)
 
@@ -118,17 +118,17 @@ final class Test(credPathStr: String,
   def testGetClient(clusterId: KubernetesClusterId = clusterId): IO[Unit] =
     kubeService.use { k =>
       for {
-        _ <- k.createNamespace(clusterId, KubernetesNamespace(KubernetesNamespaceName("diff1")))
-        _ <- k.createNamespace(clusterId, KubernetesNamespace(KubernetesNamespaceName("diff2")))
+        _ <- k.createNamespace(clusterId, KubernetesNamespace(NamespaceName("diff1")))
+        _ <- k.createNamespace(clusterId, KubernetesNamespace(NamespaceName("diff2")))
       } yield ()
     }
 
   val DEFAULT_SERVICE_SELECTOR = KubernetesSelector(Map("user" -> "test-user"))
 
   val containers = Set(
-    KubernetesContainer(KubernetesContainerName("container1"), Image("gcr.io/google-samples/node-hello:1.0"), None)
+    KubernetesContainer(ContainerName("container1"), Image("gcr.io/google-samples/node-hello:1.0"), None)
   )
-  val pod = KubernetesPod(KubernetesPodName("pod1"), containers, DEFAULT_SERVICE_SELECTOR)
+  val pod = KubernetesPod(PodName("pod1"), containers, DEFAULT_SERVICE_SELECTOR)
 
   def callCreateService(clusterId: KubernetesClusterId = clusterId): IO[Unit] =
     kubeService.use { k =>
@@ -137,7 +137,7 @@ final class Test(credPathStr: String,
         KubernetesServiceKind.KubernetesLoadBalancerService(
           DEFAULT_SERVICE_SELECTOR,
           KubernetesConstants.DEFAULT_LOADBALANCER_PORTS,
-          KubernetesServiceName("s3")
+          ServiceName("s3")
         ),
         KubernetesNamespace(defaultNamespaceName.right.get)
       )

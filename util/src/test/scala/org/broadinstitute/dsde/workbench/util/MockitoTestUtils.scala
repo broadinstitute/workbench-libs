@@ -2,11 +2,11 @@ package org.broadinstitute.dsde.workbench.util
 
 import org.mockito.ArgumentCaptor
 import org.scalatestplus.mockito.MockitoSugar
-import scala.reflect.{ClassTag, classTag}
+import scala.reflect.{classTag, ClassTag}
 
 /**
-  * Created by rtitle on 7/14/17.
-  */
+ * Created by rtitle on 7/14/17.
+ */
 trait MockitoTestUtils extends MockitoSugar {
 
   // Scala sugar for Mockitor ArgumentCaptor

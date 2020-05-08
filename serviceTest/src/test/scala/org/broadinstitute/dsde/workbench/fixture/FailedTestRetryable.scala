@@ -5,7 +5,7 @@ import org.scalatest._
 
 trait FailedTestRetryable extends TestSuiteMixin with Retries with LazyLogging { this: TestSuite =>
 
-  abstract override def withFixture(test: NoArgTest): Outcome = {
+  abstract override def withFixture(test: NoArgTest): Outcome =
     if (isRetryable(test)) {
       withRetryOnFailure {
         super.withFixture(test)
@@ -13,6 +13,5 @@ trait FailedTestRetryable extends TestSuiteMixin with Retries with LazyLogging {
     } else {
       super.withFixture(test)
     }
-  }
 
 }

@@ -8,9 +8,9 @@ import org.scalatest.TestSuite
 
 trait MethodFixtures extends ExceptionHandling with RandomUtil { self: TestSuite =>
 
-  def withMethod(testName: String, method: Method, numSnapshots: Int = 1, cleanUp: Boolean = true)
-                (testCode: (String) => Any)
-                (implicit token: AuthToken): Unit = {
+  def withMethod(testName: String, method: Method, numSnapshots: Int = 1, cleanUp: Boolean = true)(
+    testCode: (String) => Any
+  )(implicit token: AuthToken): Unit = {
     // create a method
     val methodName: String = uuidWithPrefix(testName)
     for (i <- 1 to numSnapshots)
@@ -32,9 +32,7 @@ trait MethodFixtures extends ExceptionHandling with RandomUtil { self: TestSuite
 
   }
 
-  def withMethod(prefix: String)
-                (testCode: ((String, String)) => Any)
-                (implicit token: AuthToken): Unit = {
+  def withMethod(prefix: String)(testCode: ((String, String)) => Any)(implicit token: AuthToken): Unit = {
     val name = uuidWithPrefix(prefix)
     val namespace = MethodData.SimpleMethod.creationAttributes.get("namespace").head + randomUuid
     val attributes = MethodData.SimpleMethod.creationAttributes ++ Map("name" -> name, "namespace" -> namespace)

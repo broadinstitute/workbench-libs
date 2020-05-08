@@ -12,8 +12,8 @@ import HealthMonitor._
 import org.broadinstitute.dsde.workbench.util.FutureSupport
 
 /**
-  * Created by rtitle on 5/17/17.
-  */
+ * Created by rtitle on 5/17/17.
+ */
 object HealthMonitor {
   val DefaultFutureTimeout = 1 minute
   val DefaultStaleThreshold = 15 minutes
@@ -25,88 +25,102 @@ object HealthMonitor {
   // Actor API:
 
   sealed trait HealthMonitorMessage
+
   /** Triggers subsystem checking */
   case object CheckAll extends HealthMonitorMessage
+
   /** Stores status for a particular subsystem */
   case class Store(subsystem: Subsystem, status: SubsystemStatus) extends HealthMonitorMessage
+
   /** Retrieves current status and sends back to caller */
   case object GetCurrentStatus extends HealthMonitorMessage
 
-  def props(subsystems: Set[Subsystem], futureTimeout: FiniteDuration = DefaultFutureTimeout, staleThreshold: FiniteDuration = DefaultStaleThreshold)
-           (checkHealth: () => Map[Subsystem, Future[SubsystemStatus]]): Props =
+  def props(
+    subsystems: Set[Subsystem],
+    futureTimeout: FiniteDuration = DefaultFutureTimeout,
+    staleThreshold: FiniteDuration = DefaultStaleThreshold
+  )(checkHealth: () => Map[Subsystem, Future[SubsystemStatus]]): Props =
     Props(new HealthMonitor(subsystems, futureTimeout, staleThreshold)(checkHealth))
 }
 
 /**
-  * This actor periodically checks the health of each subsystem and reports on the results.
-  * It is used for system monitoring.
-  *
-  * For a list of the subsystems, see the [[Subsystems.Subsystem]] enum.
-  *
-  * The actor lifecyle is as follows:
-  * 1. Periodically receives a [[HealthMonitor.CheckAll]] message from the Akka scheduler. Receipt of this message
-  * triggers independent, asynchronous checks of each subsystem. The results of these futures
-  * are piped to self via...
-  *
-  * 2. the [[HealthMonitor.Store]] message. This updates the actor state for the given subsystem status. Note the current
-  * timestamp is also stored to ensure the returned statuses are current (see staleThreshold param).
-  *
-  * 3. [[HealthMonitor.GetCurrentStatus]] looks up the current actor state and sends it back to the caller wrapped in
-  * a [[StatusCheckResponse]] case class. This message is purely for retrieving state; it does not
-  * trigger any asynchronous operations.
-  *
-  * Note we structure status checks in this asynchronous way for a couple of reasons:
-  * - The /status endpoint is unauthenticated - we don't want each call to /status to trigger DB queries,
-  * Google calls, etc. It opens us up to DDoS.
-  *
-  * - The /status endpoint should be reliable, and decoupled from the status checks themselves. For example,
-  * if there is a problem with the DB that is causing hanging queries, that behavior shouldn't leak out to
-  * the /status API call. Instead, the call to /status will return quickly and report there is a problem
-  * with the DB (but not other subsystems because the checks are independent).
-  *
-  * See HealthMonitorSpec for usage examples. Be sure to notice use of system.scheduler.schedule.
-  *
-  * @param subsystems the list of all the subsystems this instance should care about
-  * @param futureTimeout amount of time after which subsystem check futures will time out (default 1 minute)
-  * @param staleThreshold amount of time after which statuses are considered "stale". If a status is stale
-  *                       then it won't be returned to the caller; instead a failing status with an "Unknown"
-  *                       message will be returned. This shouldn't normally happen in practice if we have
-  *                       reasonable future timeouts; however it is still a defensive check in case something
-  *                       unexpected goes wrong. Default 15 minutes.
-  */
-class HealthMonitor private (val subsystems: Set[Subsystem], val futureTimeout: FiniteDuration, val staleThreshold: FiniteDuration)
-                            (checkHealth: () => Map[Subsystem, Future[SubsystemStatus]]) extends Actor with LazyLogging with FutureSupport {
+ * This actor periodically checks the health of each subsystem and reports on the results.
+ * It is used for system monitoring.
+ *
+ * For a list of the subsystems, see the [[Subsystems.Subsystem]] enum.
+ *
+ * The actor lifecyle is as follows:
+ * 1. Periodically receives a [[HealthMonitor.CheckAll]] message from the Akka scheduler. Receipt of this message
+ * triggers independent, asynchronous checks of each subsystem. The results of these futures
+ * are piped to self via...
+ *
+ * 2. the [[HealthMonitor.Store]] message. This updates the actor state for the given subsystem status. Note the current
+ * timestamp is also stored to ensure the returned statuses are current (see staleThreshold param).
+ *
+ * 3. [[HealthMonitor.GetCurrentStatus]] looks up the current actor state and sends it back to the caller wrapped in
+ * a [[StatusCheckResponse]] case class. This message is purely for retrieving state; it does not
+ * trigger any asynchronous operations.
+ *
+ * Note we structure status checks in this asynchronous way for a couple of reasons:
+ * - The /status endpoint is unauthenticated - we don't want each call to /status to trigger DB queries,
+ * Google calls, etc. It opens us up to DDoS.
+ *
+ * - The /status endpoint should be reliable, and decoupled from the status checks themselves. For example,
+ * if there is a problem with the DB that is causing hanging queries, that behavior shouldn't leak out to
+ * the /status API call. Instead, the call to /status will return quickly and report there is a problem
+ * with the DB (but not other subsystems because the checks are independent).
+ *
+ * See HealthMonitorSpec for usage examples. Be sure to notice use of system.scheduler.schedule.
+ *
+ * @param subsystems the list of all the subsystems this instance should care about
+ * @param futureTimeout amount of time after which subsystem check futures will time out (default 1 minute)
+ * @param staleThreshold amount of time after which statuses are considered "stale". If a status is stale
+ *                       then it won't be returned to the caller; instead a failing status with an "Unknown"
+ *                       message will be returned. This shouldn't normally happen in practice if we have
+ *                       reasonable future timeouts; however it is still a defensive check in case something
+ *                       unexpected goes wrong. Default 15 minutes.
+ */
+class HealthMonitor private (
+  val subsystems: Set[Subsystem],
+  val futureTimeout: FiniteDuration,
+  val staleThreshold: FiniteDuration
+)(checkHealth: () => Map[Subsystem, Future[SubsystemStatus]])
+    extends Actor
+    with LazyLogging
+    with FutureSupport {
   // Use the execution context for this actor's dispatcher for all asynchronous operations.
   // We define a separate execution context (a fixed thread pool) for health checking to
   // not interfere with user facing operations.
   import context.dispatcher
 
   /**
-    * Contains each subsystem status along with a timestamp of when the entry was made.
-    * Initialized with unknown status.
-    */
+   * Contains each subsystem status along with a timestamp of when the entry was made.
+   * Initialized with unknown status.
+   */
   private var data: Map[Subsystem, (SubsystemStatus, Long)] = {
     val now = System.currentTimeMillis
     subsystems.map(_ -> (UnknownStatus -> now)).toMap
   }
 
   override def receive: Receive = {
-    case CheckAll => checkAll
+    case CheckAll                 => checkAll
     case Store(subsystem, status) => store(subsystem, status)
-    case GetCurrentStatus => sender ! getCurrentStatus
+    case GetCurrentStatus         => sender ! getCurrentStatus
   }
 
-  private def checkAll(): Unit = {
+  private def checkAll(): Unit =
     checkHealth().foreach(processSubsystemResult)
-  }
 
   private def processSubsystemResult(subsystemAndResult: (Subsystem, Future[SubsystemStatus])): Unit = {
     implicit val scheduler = context.system.scheduler
     val (subsystem, result) = subsystemAndResult
-    result.withTimeout(futureTimeout, s"Timed out after ${futureTimeout.toString} waiting for a response from ${subsystem.toString}")
-    .recover { case NonFatal(ex) =>
-      failedStatus(ex.getMessage)
-    } map {
+    result
+      .withTimeout(futureTimeout,
+                   s"Timed out after ${futureTimeout.toString} waiting for a response from ${subsystem.toString}")
+      .recover {
+        case NonFatal(ex) =>
+          failedStatus(ex.getMessage)
+      } map {
       Store(subsystem, _)
     } pipeTo self
   }
@@ -121,7 +135,7 @@ class HealthMonitor private (val subsystems: Set[Subsystem], val futureTimeout: 
     // Convert any expired statuses to unknown
     val processed = data.mapValues {
       case (_, t) if now - t > staleThreshold.toMillis => UnknownStatus
-      case (status, _) => status
+      case (status, _)                                 => status
     }
     // overall status is ok iff all subsystems are ok
     val overall = processed.forall(_._2.ok)

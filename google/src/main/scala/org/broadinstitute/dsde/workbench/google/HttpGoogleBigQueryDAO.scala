@@ -12,15 +12,17 @@ import org.broadinstitute.dsde.workbench.model.google.GoogleProject
 import scala.collection.JavaConverters._
 import scala.concurrent.{ExecutionContext, Future}
 
-class HttpGoogleBigQueryDAO(appName: String,
-                            googleCredentialMode: GoogleCredentialMode,
-                            workbenchMetricBaseName: String)
-                           (implicit system: ActorSystem, executionContext: ExecutionContext)
-  extends AbstractHttpGoogleDAO(appName, googleCredentialMode, workbenchMetricBaseName) with GoogleBigQueryDAO {
+class HttpGoogleBigQueryDAO(
+  appName: String,
+  googleCredentialMode: GoogleCredentialMode,
+  workbenchMetricBaseName: String
+)(implicit system: ActorSystem, executionContext: ExecutionContext)
+    extends AbstractHttpGoogleDAO(appName, googleCredentialMode, workbenchMetricBaseName)
+    with GoogleBigQueryDAO {
 
   override val scopes = Seq(BigqueryScopes.BIGQUERY)
 
-  override implicit val service = GoogleInstrumentedService.BigQuery
+  implicit override val service = GoogleInstrumentedService.BigQuery
 
   private lazy val bigquery: Bigquery = {
     new Bigquery.Builder(httpTransport, jsonFactory, googleCredential).setApplicationName(appName).build()
@@ -38,22 +40,33 @@ class HttpGoogleBigQueryDAO(appName: String,
 
   override def startQuery(project: GoogleProject, querySql: String): Future[JobReference] = {
     val job = new Job()
-      .setConfiguration(new JobConfiguration()
-        .setQuery(new JobConfigurationQuery()
-          .setQuery(querySql)))
+      .setConfiguration(
+        new JobConfiguration()
+          .setQuery(
+            new JobConfigurationQuery()
+              .setQuery(querySql)
+          )
+      )
 
     submitQuery(project.value, job)
   }
 
-  override def startParameterizedQuery(project: GoogleProject, querySql: String, queryParameters: List[QueryParameter], parameterMode: String): Future[JobReference] = {
+  override def startParameterizedQuery(project: GoogleProject,
+                                       querySql: String,
+                                       queryParameters: List[QueryParameter],
+                                       parameterMode: String): Future[JobReference] = {
     val job = new Job()
-      .setConfiguration(new JobConfiguration()
-        .setQuery(new JobConfigurationQuery()
-          // This defaults to true in current version. Standard SQL is required for query parameters.
-          .setUseLegacySql(false)
-          .setParameterMode(parameterMode)
-          .setQueryParameters(queryParameters.asJava)
-          .setQuery(querySql)))
+      .setConfiguration(
+        new JobConfiguration()
+          .setQuery(
+            new JobConfigurationQuery()
+            // This defaults to true in current version. Standard SQL is required for query parameters.
+              .setUseLegacySql(false)
+              .setParameterMode(parameterMode)
+              .setQueryParameters(queryParameters.asJava)
+              .setQuery(querySql)
+          )
+      )
 
     submitQuery(project.value, job)
   }

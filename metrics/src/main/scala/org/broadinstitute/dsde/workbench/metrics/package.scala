@@ -9,9 +9,14 @@ import com.typesafe.scalalogging.LazyLogging
 import scala.concurrent.duration.Duration
 
 package object metrics extends LazyLogging {
-  def startStatsDReporter(host: String, port: Int, period: Duration, registryName: String = "default", apiKey: Option[String] = None): Unit = {
+  def startStatsDReporter(host: String,
+                          port: Int,
+                          period: Duration,
+                          registryName: String = "default",
+                          apiKey: Option[String] = None): Unit = {
     logger.info(s"Starting statsd reporter writing to [$host:$port] with period [${period.toMillis} ms]")
-    val reporter = StatsDReporter.forRegistry(SharedMetricRegistries.getOrCreate(registryName))
+    val reporter = StatsDReporter
+      .forRegistry(SharedMetricRegistries.getOrCreate(registryName))
       .prefixedWith(apiKey.orNull)
       .convertRatesTo(TimeUnit.SECONDS)
       .convertDurationsTo(TimeUnit.MILLISECONDS)

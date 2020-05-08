@@ -13,19 +13,18 @@ import org.scalatest.time.{Seconds, Span}
 import spray.json._
 
 /**
-  * Sam API service client. This should only be used when Orchestration does
-  * not provide a required endpoint. This should primarily be used for admin
-  * functions.
-  */
-trait Sam extends RestClient with LazyLogging with ScalaFutures{
+ * Sam API service client. This should only be used when Orchestration does
+ * not provide a required endpoint. This should primarily be used for admin
+ * functions.
+ */
+trait Sam extends RestClient with LazyLogging with ScalaFutures {
 
   val url = ServiceTestConfig.FireCloud.samApiUrl
 
   implicit override val patienceConfig: PatienceConfig = PatienceConfig(timeout = scaled(Span(5, Seconds)))
 
-  def removePet(project: String, userInfo: UserStatusDetails): Unit = {
+  def removePet(project: String, userInfo: UserStatusDetails): Unit =
     Sam.admin.deletePetServiceAccount(project, userInfo.userSubjectId)(UserPool.chooseAdmin.makeAuthToken())
-  }
 
   object admin {
 
@@ -34,13 +33,12 @@ trait Sam extends RestClient with LazyLogging with ScalaFutures{
       deleteRequest(url + s"api/admin/user/$subjectId")
     }
 
-    def doesUserExist(subjectId: String)(implicit token: AuthToken): Option[Boolean] = {
+    def doesUserExist(subjectId: String)(implicit token: AuthToken): Option[Boolean] =
       getRequest(url + s"api/admin/user/$subjectId").status match {
-        case StatusCodes.OK => Option(true)
+        case StatusCodes.OK       => Option(true)
         case StatusCodes.NotFound => Option(false)
-        case _ => None
+        case _                    => None
       }
-    }
 
     def deletePetServiceAccount(project: String, userSubjectId: String)(implicit token: AuthToken): Unit = {
       logger.info(s"Deleting pet service account in project $project for user $userSubjectId")
@@ -129,12 +127,15 @@ object Sam extends Sam {
       putRequest(url + s"api/groups/v1/$groupName/$policyName/$memberEmail")
     }
 
-    def removeUserFromPolicy(groupName: String, policyName: String, memberEmail: String)(implicit token: AuthToken): Unit = {
+    def removeUserFromPolicy(groupName: String, policyName: String, memberEmail: String)(
+      implicit token: AuthToken
+    ): Unit = {
       logger.info(s"Removing $memberEmail from $policyName policy in $groupName")
       deleteRequest(url + s"api/groups/v1/$groupName/$policyName/$memberEmail")
     }
 
-    def listResourcePolicies(resourceTypeName: String, resourceId: String)(implicit token: AuthToken): Set[AccessPolicyResponseEntry] = {
+    def listResourcePolicies(resourceTypeName: String,
+                             resourceId: String)(implicit token: AuthToken): Set[AccessPolicyResponseEntry] = {
       logger.info(s"Listing policies for $resourceId")
       val response = parseResponse(getRequest(url + s"api/resources/v1/$resourceTypeName/$resourceId/policies"))
 
@@ -142,22 +143,29 @@ object Sam extends Sam {
       response.parseJson.convertTo[Set[AccessPolicyResponseEntry]](immSetFormat(AccessPolicyResponseEntryFormat))
     }
 
-    def setPolicyMembers(groupName: String, policyName: String, memberEmails: Set[String])(implicit token: AuthToken): Unit = {
+    def setPolicyMembers(groupName: String, policyName: String, memberEmails: Set[String])(
+      implicit token: AuthToken
+    ): Unit = {
       logger.info(s"Overwriting members in $policyName policy of $groupName")
       putRequest(url + s"api/groups/v1/$groupName/$policyName", memberEmails)
     }
 
-    def createResource(resourceTypeName: String, resourceRequest: CreateResourceRequest)(implicit token: AuthToken): Unit = {
+    def createResource(resourceTypeName: String,
+                       resourceRequest: CreateResourceRequest)(implicit token: AuthToken): Unit = {
       logger.info(s"Creating new resource $resourceRequest of type $resourceTypeName")
       postRequest(url + s"api/resources/v1/$resourceTypeName", resourceRequest)
     }
 
-    def syncResourcePolicy(resourceTypeName: String, resourceId: String, policyName: String)(implicit token: AuthToken): Unit = {
+    def syncResourcePolicy(resourceTypeName: String, resourceId: String, policyName: String)(
+      implicit token: AuthToken
+    ): Unit = {
       logger.info(s"Synchronizing $policyName for $resourceId of type $resourceTypeName")
       postRequest(url + s"api/google/v1/resource/$resourceTypeName/$resourceId/$policyName/sync")
     }
 
-    def makeResourcePolicyPublic(resourceTypeName: String, resourceId: String, policyName: String, isPublic: Boolean)(implicit token: AuthToken): Unit = {
+    def makeResourcePolicyPublic(resourceTypeName: String, resourceId: String, policyName: String, isPublic: Boolean)(
+      implicit token: AuthToken
+    ): Unit = {
       logger.info(s"Making $policyName for $resourceId of type $resourceTypeName public")
       putRequest(url + s"api/resources/v1/$resourceTypeName/$resourceId/policies/$policyName/public", isPublic)
     }
@@ -167,7 +175,9 @@ object Sam extends Sam {
       deleteRequest(url + s"api/resources/v1/$resourceTypeName/$resourceId")
     }
 
-    def addUserToResourcePolicy(resourceTypeName: String, resourceId: String, policyName: String, email: String)(implicit token: AuthToken): Unit = {
+    def addUserToResourcePolicy(resourceTypeName: String, resourceId: String, policyName: String, email: String)(
+      implicit token: AuthToken
+    ): Unit = {
       logger.info(s"Adding $email to $policyName for resource $resourceId")
       putRequest(url + s"api/resources/v1/$resourceTypeName/$resourceId/policies/$policyName/memberEmails/$email")
     }
@@ -199,5 +209,7 @@ object SamModel {
 
   final case class AccessPolicyResponseEntry(policyName: String, policy: AccessPolicyMembership, email: WorkbenchEmail)
 
-  final case class CreateResourceRequest(resourceId: String, policies: Map[String, AccessPolicyMembership], authDomain: Set[String])
+  final case class CreateResourceRequest(resourceId: String,
+                                         policies: Map[String, AccessPolicyMembership],
+                                         authDomain: Set[String])
 }
