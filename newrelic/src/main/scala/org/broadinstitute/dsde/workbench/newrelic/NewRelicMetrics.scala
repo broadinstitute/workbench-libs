@@ -7,9 +7,12 @@ import scala.concurrent.duration.Duration
 import scala.concurrent.{ExecutionContext, Future}
 
 trait NewRelicMetrics[F[_]] {
-  def timeIO[A](name: String, reportError: Boolean = false)(fa: F[A])(implicit timer: Timer[F], ae: ApplicativeError[F, Throwable]): F[A]
+  def timeIO[A](name: String, reportError: Boolean = false)(fa: F[A])(implicit timer: Timer[F],
+                                                                      ae: ApplicativeError[F, Throwable]): F[A]
 
-  def timeFuture[A](name: String, reportError: Boolean = false)(futureA: => Future[A])(implicit ec: ExecutionContext): Future[A]
+  def timeFuture[A](name: String, reportError: Boolean = false)(futureA: => Future[A])(
+    implicit ec: ExecutionContext
+  ): Future[A]
 
   def gauge[A](name: String, value: Float): F[Unit]
 

@@ -31,33 +31,29 @@ private[model] object GcsPathParser {
       )?
     """.trim.r
 
-
-  def parseGcsPathFromString(path: String): Either[GcsParseError, GcsPath] = {
+  def parseGcsPathFromString(path: String): Either[GcsParseError, GcsPath] =
     for {
       uri <- parseAsUri(path).right
       _ <- validateScheme(uri).right
       host <- getAndValidateHost(path, uri).right
       relativePath <- getAndValidateRelativePath(uri).right
     } yield GcsPath(host, relativePath)
-  }
 
-  def parseAsUri(path: String): Either[GcsParseError, URI] = {
+  def parseAsUri(path: String): Either[GcsParseError, URI] =
     Try {
       URI.create(UrlEscapers.urlFragmentEscaper().escape(path))
     } match {
-      case Success(uri) => Right[GcsParseError, URI](uri)
+      case Success(uri)    => Right[GcsParseError, URI](uri)
       case Failure(regret) => Left[GcsParseError, URI](GcsParseError(s"Unparseable GCS path: ${regret.getMessage}"))
     }
-  }
 
-  def validateScheme(uri: URI): Either[GcsParseError, Unit] = {
+  def validateScheme(uri: URI): Either[GcsParseError, Unit] =
     // Allow null or gs:// scheme
     if (uri.getScheme == null || uri.getScheme == GCS_SCHEME) {
       Right(())
     } else {
       Left(GcsParseError(s"Invalid scheme: ${uri.getScheme}"))
     }
-  }
 
   def getAndValidateHost(path: String, uri: URI): Either[GcsParseError, GcsBucketName] = {
     // Get the host from the URI if we can, and validate it against GCS_BUCKET_NAME_PATTERN
@@ -76,12 +72,14 @@ private[model] object GcsPathParser {
       } yield g
     }
 
-    parsed.map(GcsBucketName.apply)
+    parsed
+      .map(GcsBucketName.apply)
       .toRight(GcsParseError(s"Could not parse bucket name from path: $path"))
   }
 
-  def getAndValidateRelativePath(uri: URI): Either[GcsParseError, GcsObjectName] = {
-    Option(uri.getPath).map(_.stripPrefix("/")).map(path => GcsObjectName(path))
+  def getAndValidateRelativePath(uri: URI): Either[GcsParseError, GcsObjectName] =
+    Option(uri.getPath)
+      .map(_.stripPrefix("/"))
+      .map(path => GcsObjectName(path))
       .toRight(GcsParseError(s"Could not parse bucket relative path from path: ${uri.toString}"))
-  }
 }

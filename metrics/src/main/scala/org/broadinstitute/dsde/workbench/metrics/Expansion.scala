@@ -5,10 +5,10 @@ import akka.http.scaladsl.model._
 import scala.annotation.implicitNotFound
 
 /**
-  * Typeclass for something that can be converted into a metric name fragment.
-  * Metric name fragments can be combined via ExpandedMetricBuilder to generate an "expanded" metric name.
-  * By default this just calls toString on the object of type A, but this can be overridden.
-  */
+ * Typeclass for something that can be converted into a metric name fragment.
+ * Metric name fragments can be combined via ExpandedMetricBuilder to generate an "expanded" metric name.
+ * By default this just calls toString on the object of type A, but this can be overridden.
+ */
 @implicitNotFound(msg = "Cannot expand instances of type ${A}")
 trait Expansion[A] {
   def makeName(a: A): String = a.toString
@@ -22,22 +22,22 @@ object Expansion {
   // Typeclass instances:
 
   /**
-    * Implicit expansion for UUID using the default makeName.
-    */
+   * Implicit expansion for UUID using the default makeName.
+   */
   implicit object UUIDExpansion extends Expansion[UUID]
 
   /**
-    * Implicit expansion for HttpMethod.
-    */
+   * Implicit expansion for HttpMethod.
+   */
   implicit object HttpMethodExpansion extends Expansion[HttpMethod] {
     override def makeName(m: HttpMethod): String = m.value.toLowerCase
   }
 
   /**
-    * Implicit expansion for Uri.
-    * Statsd doesn't allow slashes in metric names, so we override makeName to override
-    * the default toString based implementation.
-    */
+   * Implicit expansion for Uri.
+   * Statsd doesn't allow slashes in metric names, so we override makeName to override
+   * the default toString based implementation.
+   */
   implicit object UriExpansion extends Expansion[Uri] {
     override def makeName(uri: Uri): String = {
       val path = if (uri.path.startsWithSlash) uri.path.tail.toString else uri.path
@@ -46,8 +46,8 @@ object Expansion {
   }
 
   /**
-    * Implicit expansion for a StatusCode.
-    */
+   * Implicit expansion for a StatusCode.
+   */
   implicit object StatusCodeExpansion extends Expansion[StatusCode] {
     override def makeName(statusCode: StatusCode): String = statusCode.intValue.toString
   }

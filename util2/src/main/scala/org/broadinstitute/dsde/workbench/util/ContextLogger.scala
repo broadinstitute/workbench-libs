@@ -6,10 +6,10 @@ import io.circe.Encoder
 import io.circe.syntax._
 
 /**
-  * Provides syntax extension for `Logger[F]`
-  *
-  * `ctxXXX` logs context `A` together with a given message
-  */
+ * Provides syntax extension for `Logger[F]`
+ *
+ * `ctxXXX` logs context `A` together with a given message
+ */
 final case class ContextLogger[F[_]](log: Logger[F]) extends AnyVal {
   // instances for io.chrisdavenport.log4cats.Logger already check if a specific log level is enabled.
   final def ctxDebug[A: Encoder, B: Encoder](message: B): Kleisli[F, A, Unit] = Kleisli { ctx =>

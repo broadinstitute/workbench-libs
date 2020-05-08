@@ -11,9 +11,8 @@ case class GPAllocProject(projectName: String, cromwellAuthBucketUrl: String)
 
 trait GPAlloc extends RestClient with LazyLogging with SprayJsonSupport with DefaultJsonProtocol {
 
-  private def apiUrl(s: String) = {
+  private def apiUrl(s: String) =
     ServiceTestConfig.FireCloud.gpAllocApiUrl + s
-  }
 
   object projects {
 

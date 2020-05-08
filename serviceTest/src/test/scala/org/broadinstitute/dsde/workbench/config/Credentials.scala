@@ -8,7 +8,7 @@ import org.broadinstitute.dsde.workbench.auth.{AuthToken, AuthTokenScopes, UserA
 
 case class ScopedCredentials(credentials: Credentials, scopes: Seq[String])
 
-case class Credentials (email: String, password: String) extends LazyLogging {
+case class Credentials(email: String, password: String) extends LazyLogging {
   // use this form of override instead of specifying a default for the scopes argument below, because lots of
   // code expects the no-arg signature.
   def makeAuthToken(): AuthToken = makeAuthToken(AuthTokenScopes.userLoginScopes)
@@ -20,13 +20,13 @@ case class Credentials (email: String, password: String) extends LazyLogging {
 }
 
 object Credentials {
-  val cache = CacheBuilder.newBuilder()
+  val cache = CacheBuilder
+    .newBuilder()
     .expireAfterWrite(3600, TimeUnit.SECONDS)
     .build(
       new CacheLoader[ScopedCredentials, AuthToken] {
-        def load(scopedCredentials: ScopedCredentials): AuthToken = {
+        def load(scopedCredentials: ScopedCredentials): AuthToken =
           UserAuthToken(scopedCredentials.credentials, scopedCredentials.scopes)
-        }
       }
     )
 }

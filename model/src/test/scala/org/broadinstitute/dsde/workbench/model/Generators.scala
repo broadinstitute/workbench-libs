@@ -25,17 +25,18 @@ object Generator {
   val genPetEmail: Gen[WorkbenchEmail] = Gen.alphaStr.map(x => WorkbenchEmail(s"t$x@test.iam.gserviceaccount.com"))
   val genGoogleSubjectId: Gen[GoogleSubjectId] = Gen.const(GoogleSubjectId(genRandom(System.currentTimeMillis())))
   val genWorkbenchUserId: Gen[WorkbenchUserId] = Gen.const(WorkbenchUserId(genRandom(System.currentTimeMillis())))
-  val genServiceAccountSubjectId: Gen[ServiceAccountSubjectId] = genGoogleSubjectId.map(x => ServiceAccountSubjectId(x.value))
-  val genOAuth2BearerToken: Gen[OAuth2BearerToken] = Gen.alphaStr.map(x => OAuth2BearerToken("s"+x))
+  val genServiceAccountSubjectId: Gen[ServiceAccountSubjectId] =
+    genGoogleSubjectId.map(x => ServiceAccountSubjectId(x.value))
+  val genOAuth2BearerToken: Gen[OAuth2BearerToken] = Gen.alphaStr.map(x => OAuth2BearerToken("s" + x))
 
-  val genUserInfo = for{
+  val genUserInfo = for {
     token <- genOAuth2BearerToken
     email <- genNonPetEmail
     expires <- Gen.calendar.map(_.getTimeInMillis)
     userId <- genWorkbenchUserId
   } yield UserInfo(token, userId, email, expires)
 
-  val genWorkbenchUser = for{
+  val genWorkbenchUser = for {
     email <- genNonPetEmail
     userId <- genWorkbenchUserId
     googleSubjectId <- Gen.option[GoogleSubjectId](Gen.const(GoogleSubjectId(userId.value)))
@@ -44,11 +45,10 @@ object Generator {
 
   val genWorkbenchGroupName = Gen.alphaStr.map(x => WorkbenchGroupName(s"s$x")) //prepending `s` just so this won't be an empty string
   val genGoogleProject = Gen.alphaStr.map(x => GoogleProject(s"s$x")) //prepending `s` just so this won't be an empty string
-  val genWorkbenchSubject: Gen[WorkbenchSubject] = for{
+  val genWorkbenchSubject: Gen[WorkbenchSubject] = for {
     groupId <- genWorkbenchGroupName
     project <- genGoogleProject
     userId <- genWorkbenchUserId
     res <- Gen.oneOf[WorkbenchSubject](List(userId, groupId, PetServiceAccountId(userId, project)))
-  }yield res
+  } yield res
 }
-

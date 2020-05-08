@@ -17,7 +17,8 @@ object AuthTokenScopes {
   // this should always match exactly what the UI requests, so our tests represent actual user behavior:
   val userLoginScopes = Seq("profile", "email", "openid")
   // the list of scopes needed by service accounts to do their work:
-  val serviceAccountScopes = userLoginScopes ++ Seq("https://www.googleapis.com/auth/devstorage.full_control", "https://www.googleapis.com/auth/cloud-platform")
+  val serviceAccountScopes = userLoginScopes ++ Seq("https://www.googleapis.com/auth/devstorage.full_control",
+                                                    "https://www.googleapis.com/auth/cloud-platform")
   // list of scopes needed to work with billing.
   val billingScopes = userLoginScopes ++ Seq("https://www.googleapis.com/auth/cloud-billing")
 }
@@ -34,19 +35,21 @@ trait AuthToken extends LazyLogging {
     Retry.retry(5.seconds, 1.minute)({
 
       val cred = buildCredential()
-      def baseLogMessage = "Details: \n" +
-        s"Service Account: ${cred.getServiceAccountId} \n" +
-        s"User: ${cred.getServiceAccountUser} \n" +
-        s"Scopes: ${cred.getServiceAccountScopesAsString} \n" +
-        s"Access Token: ${cred.getAccessToken} \n" +
-        s"Token Expires: in ${cred.getExpiresInSeconds} seconds \n" +
-        s"SA Private Key ID: ${cred.getServiceAccountPrivateKeyId}"
+      def baseLogMessage =
+        "Details: \n" +
+          s"Service Account: ${cred.getServiceAccountId} \n" +
+          s"User: ${cred.getServiceAccountUser} \n" +
+          s"Scopes: ${cred.getServiceAccountScopesAsString} \n" +
+          s"Access Token: ${cred.getAccessToken} \n" +
+          s"Token Expires: in ${cred.getExpiresInSeconds} seconds \n" +
+          s"SA Private Key ID: ${cred.getServiceAccountPrivateKeyId}"
 
       try {
         cred.refreshToken()
         Option(cred.getAccessToken)
       } catch {
-        case e: TokenResponseException if Set(StatusCodes.Unauthorized.intValue, StatusCodes.BadRequest.intValue) contains e.getStatusCode =>
+        case e: TokenResponseException
+            if Set(StatusCodes.Unauthorized.intValue, StatusCodes.BadRequest.intValue) contains e.getStatusCode =>
           logger.error(s"Encountered ${e.getStatusCode} error getting access token." + baseLogMessage)
           None
         case f: IOException => {

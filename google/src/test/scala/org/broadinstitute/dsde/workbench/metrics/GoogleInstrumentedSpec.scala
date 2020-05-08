@@ -14,9 +14,15 @@ import org.scalatest.matchers.should.Matchers
 import scala.concurrent.duration._
 
 /**
-  * Created by rtitle on 8/14/17.
-  */
-class GoogleInstrumentedSpec extends GoogleInstrumented with AnyFlatSpecLike with Matchers with Eventually with MockitoTestUtils with StatsDTestUtils {
+ * Created by rtitle on 8/14/17.
+ */
+class GoogleInstrumentedSpec
+    extends GoogleInstrumented
+    with AnyFlatSpecLike
+    with Matchers
+    with Eventually
+    with MockitoTestUtils
+    with StatsDTestUtils {
   override val workbenchMetricBaseName = "test"
 
   val httpTransport = GoogleNetHttpTransport.newTrustedTransport
@@ -26,22 +32,23 @@ class GoogleInstrumentedSpec extends GoogleInstrumented with AnyFlatSpecLike wit
     override def initialize(request: HttpRequest): Unit = ()
   }
 
-  def googleRequest = {
-    new Storage.Builder(httpTransport, jsonFactory, credential).setApplicationName("test").build().buckets().get("aBucket")
-  }
+  def googleRequest =
+    new Storage.Builder(httpTransport, jsonFactory, credential)
+      .setApplicationName("test")
+      .build()
+      .buckets()
+      .get("aBucket")
 
-  def googleResponse = {
+  def googleResponse =
     mockTransport.createRequestFactory().buildGetRequest(HttpTesting.SIMPLE_GENERIC_URL).execute()
-  }
 
-  def googleResponseException = {
+  def googleResponseException =
     try {
       googleRequest.execute()
       new IOException
     } catch {
       case exception: HttpResponseException => exception // return the exception
     }
-  }
 
   "GoogleInstrumented" should "get counters from a request/response" in {
     GoogleInstrumentedService.values.foreach { implicit service =>
@@ -54,8 +61,12 @@ class GoogleInstrumentedSpec extends GoogleInstrumented with AnyFlatSpecLike wit
         timer.count shouldBe 1
         timer.max shouldBe 5
       } { capturedMetrics =>
-        capturedMetrics should contain (s"test.googleService.$service.httpRequestMethod.get.httpResponseStatusCode.200.request" -> "1")
-        capturedMetrics should contain (s"test.googleService.$service.httpRequestMethod.get.httpResponseStatusCode.200.latency.samples" -> "1")
+        capturedMetrics should contain(
+          s"test.googleService.$service.httpRequestMethod.get.httpResponseStatusCode.200.request" -> "1"
+        )
+        capturedMetrics should contain(
+          s"test.googleService.$service.httpRequestMethod.get.httpResponseStatusCode.200.latency.samples" -> "1"
+        )
       }
     }
   }
@@ -71,8 +82,12 @@ class GoogleInstrumentedSpec extends GoogleInstrumented with AnyFlatSpecLike wit
         timer.count shouldBe 1
         timer.max shouldBe 5
       } { capturedMetrics =>
-        capturedMetrics should contain (s"test.googleService.$service.httpRequestMethod.get.httpResponseStatusCode.400.request" -> "1")
-        capturedMetrics should contain (s"test.googleService.$service.httpRequestMethod.get.httpResponseStatusCode.400.latency.samples" -> "1")
+        capturedMetrics should contain(
+          s"test.googleService.$service.httpRequestMethod.get.httpResponseStatusCode.400.request" -> "1"
+        )
+        capturedMetrics should contain(
+          s"test.googleService.$service.httpRequestMethod.get.httpResponseStatusCode.400.latency.samples" -> "1"
+        )
       }
     }
   }
@@ -89,8 +104,8 @@ class GoogleInstrumentedSpec extends GoogleInstrumented with AnyFlatSpecLike wit
         timer.max shouldBe 5
       } { capturedMetrics =>
         // no status code
-        capturedMetrics should contain (s"test.googleService.$service.httpRequestMethod.get.request" -> "1")
-        capturedMetrics should contain (s"test.googleService.$service.httpRequestMethod.get.latency.samples" -> "1")
+        capturedMetrics should contain(s"test.googleService.$service.httpRequestMethod.get.request" -> "1")
+        capturedMetrics should contain(s"test.googleService.$service.httpRequestMethod.get.latency.samples" -> "1")
       }
     }
   }

@@ -10,7 +10,8 @@ trait InstrumentationDirectives extends WorkbenchInstrumented {
     val timeStamp = System.currentTimeMillis
     mapResponse { response =>
       httpRequestCounter(ExpandedMetricBuilder.empty)(request, response).inc()
-      httpRequestTimer(ExpandedMetricBuilder.empty)(request, response).update(System.currentTimeMillis - timeStamp, MILLISECONDS)
+      httpRequestTimer(ExpandedMetricBuilder.empty)(request, response)
+        .update(System.currentTimeMillis - timeStamp, MILLISECONDS)
       response
     }
   }

@@ -9,36 +9,34 @@ import com.typesafe.scalalogging.LazyLogging
 import scala.util.Random
 
 /**
-  */
+ */
 object Util extends LazyLogging {
 
-  def appendUnderscore(string: String): String = {
+  def appendUnderscore(string: String): String =
     string match {
       case "" => ""
-      case s => s + "_"
+      case s  => s + "_"
     }
-  }
 
-  def appendDelimiter(string: String, delimiter: String): String = {
+  def appendDelimiter(string: String, delimiter: String): String =
     string + delimiter
-  }
 
-  @deprecated("Please use RandomUtil makeRandomId or randomIdWithPrefix instead.", "workbench-libs/workbench-service-tests 0.8")
-  def makeRandomId(length: Int = 7): String = {
+  @deprecated("Please use RandomUtil makeRandomId or randomIdWithPrefix instead.",
+              "workbench-libs/workbench-service-tests 0.8")
+  def makeRandomId(length: Int = 7): String =
     Random.alphanumeric.take(length).mkString
-  }
 
-  @deprecated("Please use RandomUtil randomUuid or uuidWithPrefix instead.", "workbench-libs/workbench-service-tests 0.8")
-  def makeUuid: String = {
+  @deprecated("Please use RandomUtil randomUuid or uuidWithPrefix instead.",
+              "workbench-libs/workbench-service-tests 0.8")
+  def makeUuid: String =
     UUID.randomUUID().toString
-  }
 
   /**
-    * Move a file, making sure the destination directory exists.
-    *
-    * @param sourcePath path to source file
-    * @param destPath path to desired destination file
-    */
+   * Move a file, making sure the destination directory exists.
+   *
+   * @param sourcePath path to source file
+   * @param destPath path to desired destination file
+   */
   def moveFile(sourcePath: String, destPath: String): Unit = {
     val destFile = new File(destPath)
     if (!destFile.getParentFile.exists()) {
