@@ -18,5 +18,7 @@ trait WorkbenchTestSuite {
 }
 
 trait PropertyBasedTesting extends ScalaCheckPropertyChecks with Configuration {
-  implicit override val generatorDrivenConfig: PropertyCheckConfiguration = PropertyCheckConfiguration(minSuccessful = 3)
+  implicit override val generatorDrivenConfig: PropertyCheckConfiguration = PropertyCheckConfiguration(
+    minSuccessful = 3
+  )
 }

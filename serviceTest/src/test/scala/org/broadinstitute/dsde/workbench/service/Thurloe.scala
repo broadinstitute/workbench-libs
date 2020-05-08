@@ -8,9 +8,8 @@ import org.broadinstitute.dsde.workbench.auth.AuthToken
 import scala.util.Try
 
 /**
-  */
+ */
 trait Thurloe extends RestClient with LazyLogging {
-
 
   val url = ServiceTestConfig.FireCloud.thurloeApiUrl
   val fireCloudId = ServiceTestConfig.FireCloud.fireCloudId
@@ -45,8 +44,8 @@ trait Thurloe extends RestClient with LazyLogging {
     def set(subjectId: String, key: String, value: String)(implicit token: AuthToken): Unit = {
       logger.info(s"Setting $key as $value for $subjectId")
       postRequest(url + s"api/thurloe",
-        Map("userId" -> subjectId, "keyValuePairs" -> List(Map("key" -> key, "value" -> value))),
-        thurloeHeaders)
+                  Map("userId" -> subjectId, "keyValuePairs" -> List(Map("key" -> key, "value" -> value))),
+                  thurloeHeaders)
     }
 
     def getAll(subjectId: String)(implicit token: AuthToken): Map[String, String] = {
@@ -54,7 +53,7 @@ trait Thurloe extends RestClient with LazyLogging {
       def extractTupleFromKeyValueMap(m: Map[String, String]): Option[(String, String)] =
         (m.get("key"), m.get("value")) match {
           case (Some(k), Some(v)) => Some(k -> v)
-          case _ => None
+          case _                  => None
         }
 
       val response: String = parseResponse(getRequest(url + s"api/thurloe/$subjectId", thurloeHeaders))
@@ -75,7 +74,7 @@ trait Thurloe extends RestClient with LazyLogging {
        */
       response.fromJsonMapAs[List[Map[String, String]]]("keyValuePairs") match {
         case Some(maps) => maps.flatMap(m => extractTupleFromKeyValueMap(m)).toMap
-        case None => Map()
+        case None       => Map()
       }
     }
   }

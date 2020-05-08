@@ -14,46 +14,56 @@ import scala.collection.concurrent.TrieMap
 import scala.concurrent.{ExecutionContext, Future}
 
 /**
-  * Created by mbemis on 1/12/18.
-  */
-class MockGoogleStorageDAO(  implicit val executionContext: ExecutionContext ) extends GoogleStorageDAO {
+ * Created by mbemis on 1/12/18.
+ */
+class MockGoogleStorageDAO(implicit val executionContext: ExecutionContext) extends GoogleStorageDAO {
   val buckets: TrieMap[GcsBucketName, Set[(GcsObjectName, ByteArrayInputStream)]] = TrieMap()
 
-  override def createBucket(billingProject: GoogleProject, bucketName: GcsBucketName, readers: List[GcsEntity] = List.empty, owners: List[GcsEntity] = List.empty): Future[GcsBucketName] = {
+  override def createBucket(billingProject: GoogleProject,
+                            bucketName: GcsBucketName,
+                            readers: List[GcsEntity] = List.empty,
+                            owners: List[GcsEntity] = List.empty): Future[GcsBucketName] = {
     buckets.putIfAbsent(bucketName, Set.empty)
     Future.successful(bucketName)
   }
 
-  override def getBucket(bucketName: GcsBucketName): Future[Bucket] = {
+  override def getBucket(bucketName: GcsBucketName): Future[Bucket] =
     Future.successful(new Bucket().setName(bucketName.value))
-  }
 
   override def deleteBucket(bucketName: GcsBucketName, recurse: Boolean): Future[Unit] = {
     buckets.remove(bucketName)
     Future.successful(())
   }
 
-  override def bucketExists(bucketName: GcsBucketName): Future[Boolean] = {
+  override def bucketExists(bucketName: GcsBucketName): Future[Boolean] =
     Future.successful(buckets.contains(bucketName))
-  }
 
-  override def storeObject(bucketName: GcsBucketName, objectName: GcsObjectName, objectContents: ByteArrayInputStream, objectType: String = "text/plain"): Future[Unit] = {
+  override def storeObject(bucketName: GcsBucketName,
+                           objectName: GcsObjectName,
+                           objectContents: ByteArrayInputStream,
+                           objectType: String = "text/plain"): Future[Unit] = {
     val current = buckets.get(bucketName)
 
     current match {
       case Some(objects) => buckets.put(bucketName, objects ++ Set((objectName, objectContents)))
-      case None => buckets.put(bucketName, Set((objectName, objectContents)))
+      case None          => buckets.put(bucketName, Set((objectName, objectContents)))
     }
 
     Future.successful(())
   }
 
-  override def storeObject(bucketName: GcsBucketName, objectName: GcsObjectName, objectContents: File, objectType: String): Future[Unit] = {
+  override def storeObject(bucketName: GcsBucketName,
+                           objectName: GcsObjectName,
+                           objectContents: File,
+                           objectType: String): Future[Unit] = {
     val current = buckets.get(bucketName)
 
     current match {
-      case Some(objects) => buckets.put(bucketName, objects ++ Set((objectName, new ByteArrayInputStream(Files.readAllBytes(objectContents.toPath)))))
-      case None => buckets.put(bucketName, Set((objectName, new ByteArrayInputStream(Files.readAllBytes(objectContents.toPath)))))
+      case Some(objects) =>
+        buckets.put(bucketName,
+                    objects ++ Set((objectName, new ByteArrayInputStream(Files.readAllBytes(objectContents.toPath)))))
+      case None =>
+        buckets.put(bucketName, Set((objectName, new ByteArrayInputStream(Files.readAllBytes(objectContents.toPath)))))
     }
 
     Future.successful(())
@@ -69,7 +79,8 @@ class MockGoogleStorageDAO(  implicit val executionContext: ExecutionContext ) e
     Future.successful(())
   }
 
-  override def getObject(bucketName: GcsBucketName, objectName: GcsObjectName): Future[Option[ByteArrayOutputStream]] = {
+  override def getObject(bucketName: GcsBucketName,
+                         objectName: GcsObjectName): Future[Option[ByteArrayOutputStream]] = {
     val current = buckets.get(bucketName)
     val response = new ByteArrayOutputStream()
 
@@ -92,24 +103,26 @@ class MockGoogleStorageDAO(  implicit val executionContext: ExecutionContext ) e
     }
   }
 
-  override def objectExists(bucketName: GcsBucketName, objectName: GcsObjectName): Future[Boolean] = {
+  override def objectExists(bucketName: GcsBucketName, objectName: GcsObjectName): Future[Boolean] =
     Future.successful {
       buckets.get(bucketName) match {
         case Some(objects) => objects.map(_._1).contains(objectName)
-        case None => false
+        case None          => false
       }
     }
-  }
 
-  override def setBucketLifecycle(bucketName: GcsBucketName, lifecycleAge: Int, lifecycleType: GcsLifecycleType = Delete): Future[Unit] = {
+  override def setBucketLifecycle(bucketName: GcsBucketName,
+                                  lifecycleAge: Int,
+                                  lifecycleType: GcsLifecycleType = Delete): Future[Unit] =
     Future.successful(())
-  }
 
-  override def setObjectChangePubSubTrigger(bucketName: GcsBucketName, topicName: String, eventTypes: List[String]): Future[Unit] = {
+  override def setObjectChangePubSubTrigger(bucketName: GcsBucketName,
+                                            topicName: String,
+                                            eventTypes: List[String]): Future[Unit] =
     Future.successful(())
-  }
 
-  override def listObjectsWithPrefix(bucketName: GcsBucketName, objectNamePrefix: String): Future[List[GcsObjectName]] = {
+  override def listObjectsWithPrefix(bucketName: GcsBucketName,
+                                     objectNamePrefix: String): Future[List[GcsObjectName]] = {
     val current = buckets.get(bucketName)
 
     val objects = current match {
@@ -121,36 +134,38 @@ class MockGoogleStorageDAO(  implicit val executionContext: ExecutionContext ) e
     Future.successful(objects)
   }
 
-  override def copyObject(srcBucketName: GcsBucketName, srcObjectName: GcsObjectName, destBucketName: GcsBucketName, destObjectName: GcsObjectName): Future[Unit] = Future.successful(())
+  override def copyObject(srcBucketName: GcsBucketName,
+                          srcObjectName: GcsObjectName,
+                          destBucketName: GcsBucketName,
+                          destObjectName: GcsObjectName): Future[Unit] = Future.successful(())
 
-  override def setBucketAccessControl(bucketName: GcsBucketName, entity: GcsEntity, role: GcsRole): Future[Unit] = {
+  override def setBucketAccessControl(bucketName: GcsBucketName, entity: GcsEntity, role: GcsRole): Future[Unit] =
     Future.successful(())
-  }
 
-  override def removeBucketAccessControl(bucketName: GcsBucketName, entity: GcsEntity): Future[Unit] = {
+  override def removeBucketAccessControl(bucketName: GcsBucketName, entity: GcsEntity): Future[Unit] =
     Future.successful(())
-  }
 
-  override def setObjectAccessControl(bucketName: GcsBucketName, objectName: GcsObjectName, entity: GcsEntity, role: GcsRole): Future[Unit] = {
+  override def setObjectAccessControl(bucketName: GcsBucketName,
+                                      objectName: GcsObjectName,
+                                      entity: GcsEntity,
+                                      role: GcsRole): Future[Unit] =
     Future.successful(())
-  }
 
-  override def removeObjectAccessControl(bucketName: GcsBucketName, objectName: GcsObjectName, entity: GcsEntity): Future[Unit] = {
+  override def removeObjectAccessControl(bucketName: GcsBucketName,
+                                         objectName: GcsObjectName,
+                                         entity: GcsEntity): Future[Unit] =
     Future.successful(())
-  }
 
-  override def setDefaultObjectAccessControl(bucketName: GcsBucketName, entity: GcsEntity, role: GcsRole): Future[Unit] = {
+  override def setDefaultObjectAccessControl(bucketName: GcsBucketName,
+                                             entity: GcsEntity,
+                                             role: GcsRole): Future[Unit] =
     Future.successful(())
-  }
 
-  override def removeDefaultObjectAccessControl(bucketName: GcsBucketName, entity: GcsEntity): Future[Unit] = {
+  override def removeDefaultObjectAccessControl(bucketName: GcsBucketName, entity: GcsEntity): Future[Unit] =
     Future.successful(())
-  }
 
-  override def getBucketAccessControls(bucketName: GcsBucketName): Future[BucketAccessControls] = {
+  override def getBucketAccessControls(bucketName: GcsBucketName): Future[BucketAccessControls] =
     Future.successful(new BucketAccessControls())
-  }
-  override def getDefaultObjectAccessControls(bucketName: GcsBucketName): Future[ObjectAccessControls] = {
+  override def getDefaultObjectAccessControls(bucketName: GcsBucketName): Future[ObjectAccessControls] =
     Future.successful(new ObjectAccessControls())
-  }
 }
