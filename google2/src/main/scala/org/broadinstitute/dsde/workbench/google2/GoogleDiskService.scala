@@ -29,7 +29,7 @@ trait GoogleDiskService[F[_]] {
 
   def listDisks(project: GoogleProject, zone: ZoneName)(
     implicit ev: ApplicativeAsk[F, TraceId]
-  ): F[Operation]
+  ): F[List[Disk]]
 
   def resizeDisk(project: GoogleProject, zone: ZoneName, diskName: DiskName, newSizeGb: Int)(
     implicit ev: ApplicativeAsk[F, TraceId]
