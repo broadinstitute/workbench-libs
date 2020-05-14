@@ -57,9 +57,6 @@ private[google2] class GoogleDiskInterpreter[F[_]: Async: StructuredLogger: Time
     )
   }
 
-  private def getZoneName(zoneUrl: String): Option[ZoneName] =
-    Option(zoneUrl).flatMap(_.split("/").lastOption).map(ZoneName)
-
   private def retryF[A](fa: F[A], loggingMsg: String)(implicit ev: ApplicativeAsk[F, TraceId]): F[A] =
     tracedRetryGoogleF(retryConfig)(blockerBound.withPermit(blocker.blockOn(fa)), loggingMsg).compile.lastOrError
 
