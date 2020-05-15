@@ -8,6 +8,7 @@ import com.google.api.services.compute.ComputeScopes
 import com.google.auth.oauth2.GoogleCredentials
 import org.broadinstitute.dsde.workbench.model.google.GoogleProject
 import com.google.cloud.compute.v1._
+import fs2.Stream
 import io.chrisdavenport.log4cats.StructuredLogger
 import org.broadinstitute.dsde.workbench.RetryConfig
 import org.broadinstitute.dsde.workbench.google2.util.RetryPredicates
@@ -29,11 +30,11 @@ trait GoogleDiskService[F[_]] {
 
   def listDisks(project: GoogleProject, zone: ZoneName)(
     implicit ev: ApplicativeAsk[F, TraceId]
-  ): F[List[Disk]]
+  ): Stream[F, Disk]
 
   def resizeDisk(project: GoogleProject, zone: ZoneName, diskName: DiskName, newSizeGb: Int)(
     implicit ev: ApplicativeAsk[F, TraceId]
-  ): F[Unit]
+  ): F[Operation]
 }
 
 object GoogleDiskService {
