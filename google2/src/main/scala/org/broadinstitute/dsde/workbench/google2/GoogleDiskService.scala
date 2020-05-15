@@ -74,4 +74,3 @@ object GoogleDiskService {
 }
 
 final case class DiskName(value: String) extends AnyVal
-final case class ZoneName(value: String) extends AnyVal
