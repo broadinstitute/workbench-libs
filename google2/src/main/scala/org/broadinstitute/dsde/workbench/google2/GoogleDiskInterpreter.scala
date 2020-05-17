@@ -49,16 +49,20 @@ private[google2] class GoogleDiskInterpreter[F[_]: Async: StructuredLogger: Time
         Async[F].delay(diskClient.listDisks(projectZone)),
         s"com.google.cloud.compute.v1.DiskClient.listDisks(${projectZone.toString})"
       )
+      zoneString = s"${project.value}/zones/${zone.value}"
+      _ = println(firstPageResults.toString)
       nextPage <- Stream.unfoldEval(firstPageResults) { currentPage =>
+        println(currentPage.getNextPageToken)
         Option(currentPage).traverse { p =>
           val request = ListDisksHttpRequest.newBuilder()
-            .setZone(zone.value)
+            .setZone(zoneString)
             .setPageToken(p.getNextPageToken)
             .build()
-          val response: Stream[F, DiskClient.ListDisksPagedResponse] = retryF(
+          val response = retryF(
             Async[F].delay(diskClient.listDisks(request)),
             s"com.google.cloud.compute.v1.DiskClient.listDisks(${p.getNextPageToken})"
           )
+          println(response.toString())
           response.compile.lastOrError.map(next => (p, next))
         }
       }
