@@ -2,7 +2,7 @@
 
 This file documents changes to the `workbench-google2` library, including notes on how to upgrade to new versions.
 
-## 1.1
+## 0.10
 Changed:
 - Move `resizeDisk` from `GoogleComputeService` to `GoogleDiskService`
 
@@ -10,7 +10,7 @@ Added:
 - Add `GoogleDiskService` and `GoogleDiskInterpreter`
 - Add `{create,delete}Disk` and `listDisks` to `GoogleDiskService`
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "1.1-TRAVIS-REPLACE-ME"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.10-TRAVIS-REPLACE-ME"`
 
 ## 1.0
 Changed: 
