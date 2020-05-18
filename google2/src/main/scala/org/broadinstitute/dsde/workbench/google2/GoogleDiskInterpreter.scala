@@ -49,26 +49,10 @@ private[google2] class GoogleDiskInterpreter[F[_]: Async: StructuredLogger: Time
         Async[F].delay(diskClient.listDisks(projectZone)),
         s"com.google.cloud.compute.v1.DiskClient.listDisks(${projectZone.toString})"
       )
-      zoneString = s"${project.value}/zones/${zone.value}"
-      _ = println("firstPage: " + firstPageResults.toString)
-      nextPage <- Stream.unfoldEval(firstPageResults) { currentPage =>
-        println("currentPage: " + currentPage.getNextPageToken)
-        val tokenOpt = if (currentPage.getNextPageToken.isEmpty) None else Some(currentPage.getNextPageToken)
-        tokenOpt.traverse { token =>
-          val request = ListDisksHttpRequest.newBuilder()
-            .setZone(zoneString)
-            .setPageToken(token)
-            .build()
-          val response = retryF(
-            Async[F].delay(diskClient.listDisks(request)),
-            s"com.google.cloud.compute.v1.DiskClient.listDisks(${token})"
-          )
-          println("response: " + response.toString())
-          response.compile.lastOrError.map(next => (currentPage, next))
-        }
-      }
-      res <- Stream.fromIterator[F](nextPage.iterateAll().iterator().asScala)
-      _ = println("res: " + res.toString)
+
+      page <- Stream.fromIterator[F](firstPageResults.iteratePages().iterator().asScala)
+
+      res <- Stream.fromIterator[F](page.iterateAll().iterator().asScala)
     } yield res
   }
 
