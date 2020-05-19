@@ -10,7 +10,7 @@ Added:
 - Add `GoogleDiskService` and `GoogleDiskInterpreter`
 - Add `{create,delete}Disk` and `listDisks` to `GoogleDiskService`
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.10-TRAVIS-REPLACE-ME"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.10-b09d90f"`
 
 ## 1.0
 Changed: 
