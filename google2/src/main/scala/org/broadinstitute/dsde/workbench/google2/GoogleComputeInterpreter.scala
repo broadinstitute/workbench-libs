@@ -18,7 +18,6 @@ import scala.concurrent.duration.FiniteDuration
 private[google2] class GoogleComputeInterpreter[F[_]: Async: StructuredLogger: Timer: ContextShift](
   instanceClient: InstanceClient,
   firewallClient: FirewallClient,
-  diskClient: DiskClient,
   zoneClient: ZoneClient,
   machineTypeClient: MachineTypeClient,
   networkClient: NetworkClient,
@@ -171,17 +170,6 @@ private[google2] class GoogleComputeInterpreter[F[_]: Async: StructuredLogger: T
     retryF(
       Async[F].delay(instanceClient.setMachineTypeInstance(projectZoneInstanceName, request)),
       s"com.google.cloud.compute.v1.InstanceClient.setMachineTypeInstance(${projectZoneInstanceName.toString}, ${machineTypeName.value})"
-    )
-  }
-
-  override def resizeDisk(project: GoogleProject, zone: ZoneName, diskName: DiskName, newSizeGb: Int)(
-    implicit ev: ApplicativeAsk[F, TraceId]
-  ): F[Unit] = {
-    val projectZoneDiskName = ProjectZoneDiskName.of(diskName.value, project.value, zone.value)
-    val request = DisksResizeRequest.newBuilder().setSizeGb(newSizeGb.toString).build()
-    retryF(
-      Async[F].delay(diskClient.resizeDisk(projectZoneDiskName, request)),
-      s"com.google.cloud.compute.v1.DiskClient.resizeDisk(${projectZoneDiskName.toString}, $newSizeGb)"
     )
   }
 

@@ -25,10 +25,14 @@ import cats.effect.IO
 import org.broadinstitute.dsde.workbench.model.google.GcsBucketName
 import org.broadinstitute.dsde.workbench.google2.GcsBlobName
 import org.broadinstitute.dsde.workbench.model.google.GoogleProject
+import cats.mtl.ApplicativeAsk
+import java.util.UUID
+import org.broadinstitute.dsde.workbench.model.TraceId
 import cats.effect.Blocker
 implicit val cs = IO.contextShift(global)
 implicit val t = IO.timer(global)
 implicit def logger = Slf4jLogger.getLogger[IO]
+implicit val traceId = ApplicativeAsk.const[IO, TraceId](TraceId(UUID.randomUUID()))
 val blocker = Blocker.liftExecutionContext(global)
 ```
 

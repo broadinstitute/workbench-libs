@@ -82,10 +82,6 @@ trait GoogleComputeService[F[_]] {
     implicit ev: ApplicativeAsk[F, TraceId]
   ): F[Option[MachineType]]
 
-  def resizeDisk(project: GoogleProject, zone: ZoneName, diskName: DiskName, newSizeGb: Int)(
-    implicit ev: ApplicativeAsk[F, TraceId]
-  ): F[Unit]
-
   def getZones(project: GoogleProject, regionName: RegionName)(implicit ev: ApplicativeAsk[F, TraceId]): F[List[Zone]]
 
   def getNetwork(project: GoogleProject, networkName: NetworkName)(
@@ -149,10 +145,6 @@ object GoogleComputeService {
       .newBuilder()
       .setCredentialsProvider(credentialsProvider)
       .build()
-    val diskSettings = DiskSettings
-      .newBuilder()
-      .setCredentialsProvider(credentialsProvider)
-      .build()
     val zoneSettings = ZoneSettings
       .newBuilder()
       .setCredentialsProvider(credentialsProvider)
@@ -185,7 +177,6 @@ object GoogleComputeService {
     for {
       instanceClient <- backgroundResourceF(InstanceClient.create(instanceSettings))
       firewallClient <- backgroundResourceF(FirewallClient.create(firewallSettings))
-      diskClient <- backgroundResourceF(DiskClient.create(diskSettings))
       zoneClient <- backgroundResourceF(ZoneClient.create(zoneSettings))
       machineTypeClient <- backgroundResourceF(MachineTypeClient.create(machineTypeSettings))
       networkClient <- backgroundResourceF(NetworkClient.create(networkSettings))
@@ -195,7 +186,6 @@ object GoogleComputeService {
       globalOperationClient <- backgroundResourceF(GlobalOperationClient.create(globalOperationSettings))
     } yield new GoogleComputeInterpreter[F](instanceClient,
                                             firewallClient,
-                                            diskClient,
                                             zoneClient,
                                             machineTypeClient,
                                             networkClient,
@@ -210,7 +200,6 @@ object GoogleComputeService {
 }
 
 final case class InstanceName(value: String) extends AnyVal
-final case class DiskName(value: String) extends AnyVal
 final case class ZoneName(value: String) extends AnyVal
 final case class FirewallRuleName(value: String) extends AnyVal
 final case class MachineTypeName(value: String) extends AnyVal
