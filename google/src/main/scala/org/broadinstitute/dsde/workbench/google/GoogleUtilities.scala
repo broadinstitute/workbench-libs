@@ -32,15 +32,15 @@ object GoogleUtilities {
 
     def whenUsageLimited(throwable: Throwable): Boolean = throwable match {
       case t: GoogleJsonResponseException =>
-        (t.getStatusCode == 403 || t.getStatusCode == 429) && t.getDetails.getErrors.asScala.head.getDomain
-          .equalsIgnoreCase("usageLimits")
+        (t.getStatusCode == 403 || t.getStatusCode == 429) &&
+          compareErrorDomain(t)(_.equalsIgnoreCase("usageLimits"))
       case _ => false
     }
 
     def whenGlobalUsageLimited(throwable: Throwable): Boolean = throwable match {
       case t: GoogleJsonResponseException =>
-        (t.getStatusCode == 403 || t.getStatusCode == 429) && t.getDetails.getErrors.asScala.head.getDomain
-          .equalsIgnoreCase("global")
+        (t.getStatusCode == 403 || t.getStatusCode == 429) &&
+          compareErrorDomain(t)(_.equalsIgnoreCase("global"))
       case _ => false
     }
 
@@ -51,7 +51,8 @@ object GoogleUtilities {
 
     def whenInvalidValueOnBucketCreation(throwable: Throwable): Boolean = throwable match {
       case t: GoogleJsonResponseException =>
-        t.getStatusCode == 400 && t.getDetails.getErrors.asScala.head.getReason.equalsIgnoreCase("invalid")
+        t.getStatusCode == 400 &&
+          compareErrorReason(t)(_.equalsIgnoreCase("invalid"))
       case _ => false
     }
 
@@ -87,6 +88,26 @@ object GoogleUtilities {
     def when409(throwable: Throwable): Boolean = throwable match {
       case t: GoogleHttpResponseException => t.getStatusCode == 409
       case _                              => false
+    }
+
+    private def compareErrorDomain(ex: GoogleJsonResponseException)(fn: String => Boolean): Boolean = {
+      val res = for {
+        details <- Option(ex.getDetails)
+        errors <- Option(details.getErrors).map(_.asScala)
+        headError <- errors.headOption
+        domain <- Option(headError.getDomain)
+      } yield fn(domain)
+      res.getOrElse(false)
+    }
+
+    private def compareErrorReason(ex: GoogleJsonResponseException)(fn: String => Boolean): Boolean = {
+      val res = for {
+        details <- Option(ex.getDetails)
+        errors <- Option(details.getErrors).map(_.asScala)
+        headError <- errors.headOption
+        reason <- Option(headError.getReason)
+      } yield fn(reason)
+      res.getOrElse(false)
     }
   }
 }
