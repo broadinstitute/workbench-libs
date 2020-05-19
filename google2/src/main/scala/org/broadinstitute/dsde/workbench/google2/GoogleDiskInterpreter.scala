@@ -3,8 +3,7 @@ package org.broadinstitute.dsde.workbench.google2
 import cats.effect.concurrent.Semaphore
 import cats.effect.{Async, Blocker, ContextShift, Timer}
 import cats.mtl.ApplicativeAsk
-import cats.implicits._
-import com.google.cloud.compute.v1.{Disk, DiskClient, DisksResizeRequest, ListDisksHttpRequest, Operation, ProjectZoneDiskName, ProjectZoneName}
+import com.google.cloud.compute.v1.{Disk, DiskClient, DisksResizeRequest, Operation, ProjectZoneDiskName, ProjectZoneName}
 import fs2.Stream
 import io.chrisdavenport.log4cats.StructuredLogger
 import org.broadinstitute.dsde.workbench.RetryConfig
@@ -45,14 +44,12 @@ private[google2] class GoogleDiskInterpreter[F[_]: Async: StructuredLogger: Time
   ): Stream[F, Disk] = {
     val projectZone = ProjectZoneName.of(project.value, zone.value)
     for {
-      firstPageResults <- retryF(
+      pagedResults <- retryF(
         Async[F].delay(diskClient.listDisks(projectZone)),
         s"com.google.cloud.compute.v1.DiskClient.listDisks(${projectZone.toString})"
       )
 
-      page <- Stream.fromIterator[F](firstPageResults.iteratePages().iterator().asScala)
-
-      res <- Stream.fromIterator[F](page.iterateAll().iterator().asScala)
+      res <- Stream.fromIterator[F](pagedResults.iterateAll().iterator().asScala)
     } yield res
   }
 

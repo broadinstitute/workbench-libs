@@ -303,7 +303,7 @@ object KubernetesModels {
 
   final case class KubernetesSelector(labels: Map[String, String])
 
-  final protected case class KubernetesServiceKindName(value: String)
+  final case class KubernetesServiceKindName(value: String)
 
   final case class KubernetesApiServerIp(value: String) {
     val url = s"https://${value}"
