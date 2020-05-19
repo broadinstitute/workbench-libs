@@ -4,7 +4,7 @@ This file documents changes to the `workbench-google` library, including notes o
 
 ## 0.21
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.21-890a74f"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.21-TRAVIS-REPLACE-ME"`
 
 ### Added
 
@@ -21,6 +21,7 @@ SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.
     indicating whether an update was made.
   - These methods now retry 409s, indicating concurrent modifications to the policy. We retry the entire
     read-modify-write operation as recommended by Google.
+- Made `RetryPredicates` handle `null`s more safely
 
 ## 0.20
 
