@@ -30,7 +30,18 @@ package object google2 {
   def retryGoogleF[F[_]: Sync: Timer: RaiseThrowable, A](
     retryConfig: RetryConfig
   )(fa: F[A], traceId: Option[TraceId], action: String)(implicit logger: StructuredLogger[F]): Stream[F, A] = {
-    val faWithLogging = for {
+    val faWithLogging = withLogging(fa, traceId, action)
+
+    Stream.retry[F, A](faWithLogging,
+                       retryConfig.retryInitialDelay,
+                       retryConfig.retryNextDelay,
+                       retryConfig.maxAttempts,
+                       retryConfig.retryable)
+  }
+
+  def withLogging[F[_]: Sync: Timer, A](fa: F[A], traceId: Option[TraceId], action: String)
+                                       (implicit logger: StructuredLogger[F]): F[A] =
+    for {
       startTime <- Timer[F].clock.realTime(TimeUnit.MILLISECONDS)
       attempted <- fa.attempt
       endTime <- Timer[F].clock.realTime(TimeUnit.MILLISECONDS)
@@ -54,13 +65,6 @@ package object google2 {
       }
       result <- Sync[F].fromEither(attempted)
     } yield result
-
-    Stream.retry[F, A](faWithLogging,
-                       retryConfig.retryInitialDelay,
-                       retryConfig.retryNextDelay,
-                       retryConfig.maxAttempts,
-                       retryConfig.retryable)
-  }
 
   def tracedRetryGoogleF[F[_]: Sync: Timer: RaiseThrowable: StructuredLogger, A](
     retryConfig: RetryConfig
