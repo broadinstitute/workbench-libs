@@ -5,9 +5,8 @@ import com.google.cloud.bigquery.{BigQuery, JobId, QueryJobConfiguration, TableR
 import io.chrisdavenport.log4cats.StructuredLogger
 
 
-private[google2] class GoogleBigQueryInterpreter[F[_]: Sync: ContextShift: Timer](client: BigQuery,
-                                                                                  blocker: Blocker)
-                                                                                 (implicit logger: StructuredLogger[F])
+private[google2] class GoogleBigQueryInterpreter[F[_]: Sync: ContextShift: Timer: StructuredLogger](client: BigQuery,
+                                                                                                    blocker: Blocker)
   extends GoogleBigQueryService[F] {
 
   override def query(queryJobConfiguration: QueryJobConfiguration, options: BigQuery.JobOption*): F[TableResult] = {
