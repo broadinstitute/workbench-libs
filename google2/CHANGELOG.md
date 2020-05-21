@@ -5,18 +5,13 @@ This file documents changes to the `workbench-google2` library, including notes 
 ## 0.10
 Changed:
 - Move `resizeDisk` from `GoogleComputeService` to `GoogleDiskService`
+- Renamed KubernetesSerializableName extension classes
 
 Added:
 - Add `GoogleDiskService` and `GoogleDiskInterpreter`
 - Add `{create,delete}Disk` and `listDisks` to `GoogleDiskService`
 
 SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.10-b09d90f"`
-
-## 1.0
-Changed: 
-- Renamed KubernetesSerializableName extension classes
-
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "1.0-e66171c"`
 
 ## 0.9
 Changed: 
