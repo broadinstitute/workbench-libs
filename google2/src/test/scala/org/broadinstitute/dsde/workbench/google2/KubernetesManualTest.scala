@@ -33,7 +33,7 @@ final class Test(credPathStr: String,
                  clusterNameStr: String = "test-cluster",
                  nodepoolNameStr: String = "test-nodepool",
                  defaultNamespaceNameStr: String = "test-namespace",
-                 networkNameStr: String = "test-network") {
+                 networkNameStr: String = "kube-test") {
 
   import scala.concurrent.ExecutionContext.global
 
@@ -167,7 +167,7 @@ object KubernetesConstants {
   val DEFAULT_NAMESPACE = "default"
 
   //composite of NodePort and ClusterIP types. Allows external access
-  val DEFAULT_LOADBALANCER_PORTS = Set(ServicePort(8080))
+  val DEFAULT_LOADBALANCER_PORTS = Set(ServicePort(PortNum(8080), KubernetesName.withValidation("testport", PortName).right.get, TargetPortNum(8080), Protocol("TCP")))
 
   val DEFAULT_NODEPOOL_SIZE = 1
   val DEFAULT_NODEPOOL_MACHINE_TYPE = MachineTypeName("n1-standard-1")
