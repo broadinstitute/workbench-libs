@@ -2,23 +2,13 @@ package org.broadinstitute.dsde.workbench.google2
 import com.google.container.v1.Operation
 
 import collection.JavaConverters._
-import io.kubernetes.client.models.{
-  V1Container,
-  V1ContainerPort,
-  V1Namespace,
-  V1ObjectMeta,
-  V1ObjectMetaBuilder,
-  V1Pod,
-  V1PodSpec,
-  V1Service,
-  V1ServicePort,
-  V1ServiceSpec
-}
+import io.kubernetes.client.models.{V1Container, V1ContainerPort, V1Namespace, V1ObjectMeta, V1ObjectMetaBuilder, V1Pod, V1PodSpec, V1Service, V1ServicePort, V1ServiceSpec}
 import org.apache.commons.codec.binary.Base64
 import org.broadinstitute.dsde.workbench.google2.KubernetesSerializableName._
 import org.broadinstitute.dsde.workbench.model.WorkbenchException
 import org.broadinstitute.dsde.workbench.model.google.{GoogleProject, ServiceAccountName}
 import cats.implicits._
+import io.kubernetes.client.custom.IntOrString
 
 // Common kubernetes models //
 final case class KubernetesClusterNotFoundException(message: String) extends WorkbenchException
@@ -210,8 +200,14 @@ object JavaSerializableInstances {
 
   implicit val servicePortSerializable = new JavaSerializable[ServicePort, V1ServicePort] {
     def getJavaSerialization(servicePort: ServicePort): V1ServicePort = {
+
       val v1Port = new V1ServicePort()
-      v1Port.port(servicePort.value)
+      val intOrString: IntOrString = new IntOrString(servicePort.targetPort.value)
+
+      v1Port.port(servicePort.num.value)
+      v1Port.setName(servicePort.name.value)
+      v1Port.setProtocol(servicePort.protocol.value)
+      v1Port.setTargetPort(intOrString)
 
       v1Port
     }
@@ -296,7 +292,12 @@ object KubernetesModels {
 
   }
 
-  final case class ServicePort(value: Int)
+  final case class ServicePort(num: PortNum, name: PortName, targetPort: TargetPortNum, protocol: Protocol)
+
+  final case class PortNum(value: Int) extends AnyVal
+  final case class TargetPortNum(value: Int) extends AnyVal
+  final case class PortName(value: String) extends AnyVal
+  final case class Protocol(value: String) extends AnyVal
 
   //container ports are primarily informational, not specifying them does not prevent them from being exposed
   final case class ContainerPort(value: Int)
