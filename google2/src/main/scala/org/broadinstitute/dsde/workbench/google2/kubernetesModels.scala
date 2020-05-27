@@ -294,10 +294,10 @@ object KubernetesModels {
 
   final case class ServicePort(num: PortNum, name: PortName, targetPort: TargetPortNum, protocol: Protocol)
 
-  case class PortNum(value: Int) extends AnyVal
-  case class TargetPortNum(value: Int) extends AnyVal
-  case class PortName(value: String)
-  case class Protocol(value: String)
+  final case class PortNum(value: Int) extends AnyVal
+  final case class TargetPortNum(value: Int) extends AnyVal
+  final case class PortName(value: String) extends AnyVal
+  final case class Protocol(value: String) extends AnyVal
 
   //container ports are primarily informational, not specifying them does not prevent them from being exposed
   final case class ContainerPort(value: Int)
