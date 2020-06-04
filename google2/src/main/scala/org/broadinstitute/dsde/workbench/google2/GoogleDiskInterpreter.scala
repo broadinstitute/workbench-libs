@@ -3,7 +3,14 @@ package org.broadinstitute.dsde.workbench.google2
 import cats.effect.concurrent.Semaphore
 import cats.effect.{Async, Blocker, ContextShift, Timer}
 import cats.mtl.ApplicativeAsk
-import com.google.cloud.compute.v1.{Disk, DiskClient, DisksResizeRequest, Operation, ProjectZoneDiskName, ProjectZoneName}
+import com.google.cloud.compute.v1.{
+  Disk,
+  DiskClient,
+  DisksResizeRequest,
+  Operation,
+  ProjectZoneDiskName,
+  ProjectZoneName
+}
 import fs2.Stream
 import io.chrisdavenport.log4cats.StructuredLogger
 import org.broadinstitute.dsde.workbench.RetryConfig
@@ -12,21 +19,31 @@ import org.broadinstitute.dsde.workbench.model.google.GoogleProject
 
 import scala.collection.JavaConverters._
 
-private[google2] class GoogleDiskInterpreter[F[_]: Async: StructuredLogger: Timer: ContextShift] (
+private[google2] class GoogleDiskInterpreter[F[_]: Async: StructuredLogger: Timer: ContextShift](
   diskClient: DiskClient,
   retryConfig: RetryConfig,
   blocker: Blocker,
   blockerBound: Semaphore[F]
 ) extends GoogleDiskService[F] {
 
-  override def createDisk(project: GoogleProject, zone: ZoneName, disk: Disk)
-    (implicit ev: ApplicativeAsk[F, TraceId]
+  override def createDisk(project: GoogleProject, zone: ZoneName, disk: Disk)(
+    implicit ev: ApplicativeAsk[F, TraceId]
   ): F[Operation] = {
     val projectZone = ProjectZoneName.of(project.value, zone.value)
     retryF(
       Async[F].delay(diskClient.insertDisk(projectZone, disk)),
       s"com.google.cloud.compute.v1DiskClient.insertDisk(${projectZone.toString}, ${disk.getName})"
     ).compile.lastOrError
+  }
+
+  def getDisk(project: GoogleProject, zone: ZoneName, diskName: DiskName)(
+    implicit ev: ApplicativeAsk[F, TraceId]
+  ): Stream[F, Disk] = {
+    val projectZoneDiskName = ProjectZoneDiskName.of(diskName.value, project.value, zone.value)
+    retryF(
+      Async[F].delay(diskClient.getDisk(projectZoneDiskName)),
+      s"com.google.cloud.compute.v1DiskClient.getDisk(${projectZoneDiskName})"
+    )
   }
 
   override def deleteDisk(project: GoogleProject, zone: ZoneName, diskName: DiskName)(
