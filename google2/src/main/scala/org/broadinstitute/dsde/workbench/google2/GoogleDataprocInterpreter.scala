@@ -153,22 +153,27 @@ private[google2] class GoogleDataprocInterpreter[F[_]: Async: StructuredLogger: 
 
 object GoogleDataprocInterpreter {
   def getAllInstanceNames(cluster: Cluster): Map[DataprocRole, Set[InstanceName]] = {
-    def getFromGroup(role: DataprocRole)(group: InstanceGroupConfig): Map[DataprocRole, Set[InstanceName]] =
-      group.getInstanceNamesList
+    def getFromGroup(role: DataprocRole, group: InstanceGroupConfig): Map[DataprocRole, Set[InstanceName]] = {
+      val instances = group.getInstanceNamesList
         .asByteStringList()
         .asScala
         .toList
-        .map { byteString =>
-          role -> Set(InstanceName(byteString.toStringUtf8))
-        }
-        .toMap
+        .map(byteString => InstanceName(byteString.toStringUtf8))
+        .toSet
 
-    val res = Option(cluster.getConfig).flatMap { config =>
-      val master = Option(config.getMasterConfig).map(getFromGroup(DataprocRole.Master))
-      val workers = Option(config.getWorkerConfig).map(getFromGroup(DataprocRole.Worker))
-      val secondaryWorkers = Option(config.getSecondaryWorkerConfig).map(getFromGroup(DataprocRole.SecondaryWorker))
+      Map(role -> instances)
+    }
 
-      master |+| workers |+| secondaryWorkers
+    val res = Option(cluster.getConfig).map { config =>
+      val master =
+        Option(config.getMasterConfig).map(config => getFromGroup(DataprocRole.Master, config)).getOrElse(Map.empty)
+      val workers =
+        Option(config.getWorkerConfig).map(config => getFromGroup(DataprocRole.Worker, config)).getOrElse(Map.empty)
+      val secondaryWorkers = Option(config.getSecondaryWorkerConfig)
+        .map(config => getFromGroup(DataprocRole.SecondaryWorker, config))
+        .getOrElse(Map.empty)
+
+      master ++ workers ++ secondaryWorkers
     }
 
     res.getOrElse(Map.empty)
