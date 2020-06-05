@@ -28,6 +28,10 @@ trait GoogleDiskService[F[_]] {
     implicit ev: ApplicativeAsk[F, TraceId]
   ): F[Operation]
 
+  def getDisk(project: GoogleProject, zone: ZoneName, diskName: DiskName)(
+    implicit ev: ApplicativeAsk[F, TraceId]
+  ): Stream[F, Disk]
+
   def listDisks(project: GoogleProject, zone: ZoneName)(
     implicit ev: ApplicativeAsk[F, TraceId]
   ): Stream[F, Disk]
@@ -42,7 +46,8 @@ object GoogleDiskService {
     pathToCredential: String,
     blocker: Blocker,
     blockerBound: Semaphore[F],
-    retryConfig: RetryConfig = RetryPredicates.standardRetryConfig): Resource[F, GoogleDiskService[F]] =
+    retryConfig: RetryConfig = RetryPredicates.standardRetryConfig
+  ): Resource[F, GoogleDiskService[F]] =
     for {
       credential <- credentialResource(pathToCredential)
       scopedCredential = credential.createScoped(Seq(ComputeScopes.COMPUTE).asJava)

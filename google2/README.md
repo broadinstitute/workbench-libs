@@ -29,11 +29,13 @@ import cats.mtl.ApplicativeAsk
 import java.util.UUID
 import org.broadinstitute.dsde.workbench.model.TraceId
 import cats.effect.Blocker
+import cats.effect.concurrent.Semaphore
 implicit val cs = IO.contextShift(global)
 implicit val t = IO.timer(global)
 implicit def logger = Slf4jLogger.getLogger[IO]
 implicit val traceId = ApplicativeAsk.const[IO, TraceId](TraceId(UUID.randomUUID()))
 val blocker = Blocker.liftExecutionContext(global)
+val blockerBound = Semaphore[IO](10).unsafeRunSync
 ```
 
 `scala> GoogleStorageService.resource[IO]("credentials.json")`
