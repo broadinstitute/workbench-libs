@@ -13,7 +13,7 @@ Added:
 - Add `{create,delete}Disk` and `listDisks` to `GoogleDiskService`
 - refactor parameters for kubernetes service entity
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.10-TRAVIS-REPLACE-ME"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.10-93b852f"`
 
 ## 0.9
 Changed: 
