@@ -58,6 +58,19 @@ object GoogleDataprocService {
       interpreter <- fromCredential(scopedCredential, blocker, regionName, blockerBound, retryConfig)
     } yield interpreter
 
+  def resourceFromUserCredential[F[_]: StructuredLogger: Async: Timer: ContextShift](
+    pathToCredential: String,
+    blocker: Blocker,
+    blockerBound: Semaphore[F],
+    regionName: RegionName,
+    retryConfig: RetryConfig = RetryPredicates.standardRetryConfig
+  ): Resource[F, GoogleDataprocService[F]] =
+    for {
+      credential <- userCredentials(pathToCredential)
+      scopedCredential = credential.createScoped(Seq(ComputeScopes.CLOUD_PLATFORM).asJava)
+      interpreter <- fromCredential(scopedCredential, blocker, regionName, blockerBound, retryConfig)
+    } yield interpreter
+
   private def fromCredential[F[_]: StructuredLogger: Async: Timer: ContextShift](
     googleCredentials: GoogleCredentials,
     blocker: Blocker,
