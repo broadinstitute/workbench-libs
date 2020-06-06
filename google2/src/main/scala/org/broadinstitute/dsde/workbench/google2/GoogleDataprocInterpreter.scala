@@ -152,6 +152,9 @@ private[google2] class GoogleDataprocInterpreter[F[_]: Async: StructuredLogger: 
 }
 
 object GoogleDataprocInterpreter {
+  // WARNING: Be very careful refactoring this function and make sure you test this out in console.
+  // Incorrectness in this function can cause leonardo fail to stop all instances for a Dataproc cluster, which
+  // incurs compute cost for users
   def getAllInstanceNames(cluster: Cluster): Map[DataprocRole, Set[InstanceName]] = {
     def getFromGroup(role: DataprocRole, group: InstanceGroupConfig): Map[DataprocRole, Set[InstanceName]] = {
       val instances = group.getInstanceNamesList
