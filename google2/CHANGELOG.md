@@ -14,7 +14,7 @@ Added:
 - refactor parameters for kubernetes service entity
 - Add `BigQuery`
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.10-TRAVIS-REPLACE-ME"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.10-deddc42"`
 
 ## 0.9
 Changed: 
