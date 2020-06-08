@@ -129,6 +129,18 @@ object GoogleComputeService {
       interpreter <- fromCredential(scopedCredential, blocker, blockerBound, retryConfig)
     } yield interpreter
 
+  def resourceFromUserCredential[F[_]: StructuredLogger: Async: Timer: ContextShift](
+    pathToCredential: String,
+    blocker: Blocker,
+    blockerBound: Semaphore[F],
+    retryConfig: RetryConfig = RetryPredicates.standardRetryConfig
+  ): Resource[F, GoogleComputeService[F]] =
+    for {
+      credential <- userCredentials(pathToCredential)
+      scopedCredential = credential.createScoped(Seq(ComputeScopes.COMPUTE).asJava)
+      interpreter <- fromCredential(scopedCredential, blocker, blockerBound, retryConfig)
+    } yield interpreter
+
   private def fromCredential[F[_]: StructuredLogger: Async: Timer: ContextShift](
     googleCredentials: GoogleCredentials,
     blocker: Blocker,
