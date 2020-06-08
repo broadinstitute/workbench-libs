@@ -164,7 +164,7 @@ object GoogleDataprocInterpreter {
         .map(byteString => InstanceName(byteString.toStringUtf8))
         .toSet
 
-      Map(role -> instances)
+      if (instances.isEmpty) Map.empty else Map(role -> instances)
     }
 
     val res = Option(cluster.getConfig).map { config =>
