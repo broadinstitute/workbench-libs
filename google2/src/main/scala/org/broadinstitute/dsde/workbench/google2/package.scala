@@ -8,7 +8,7 @@ import cats.effect.{Resource, Sync, Timer}
 import cats.mtl.ApplicativeAsk
 import com.google.api.core.ApiFutureCallback
 import com.google.api.gax.core.BackgroundResource
-import com.google.auth.oauth2.ServiceAccountCredentials
+import com.google.auth.oauth2.{ServiceAccountCredentials, UserCredentials}
 import fs2.{RaiseThrowable, Stream}
 import io.chrisdavenport.log4cats.StructuredLogger
 import io.circe.Encoder
@@ -39,8 +39,9 @@ package object google2 {
                        retryConfig.retryable)
   }
 
-  def withLogging[F[_]: Sync: Timer, A](fa: F[A], traceId: Option[TraceId], action: String)
-                                       (implicit logger: StructuredLogger[F]): F[A] =
+  def withLogging[F[_]: Sync: Timer, A](fa: F[A], traceId: Option[TraceId], action: String)(
+    implicit logger: StructuredLogger[F]
+  ): F[A] =
     for {
       startTime <- Timer[F].clock.realTime(TimeUnit.MILLISECONDS)
       attempted <- fa.attempt
@@ -85,6 +86,12 @@ package object google2 {
     for {
       credentialFile <- org.broadinstitute.dsde.workbench.util2.readFile(pathToCredential)
       credential <- Resource.liftF(Sync[F].delay(ServiceAccountCredentials.fromStream(credentialFile)))
+    } yield credential
+
+  def userCredentials[F[_]: Sync](pathToCredential: String): Resource[F, UserCredentials] =
+    for {
+      credentialFile <- org.broadinstitute.dsde.workbench.util2.readFile(pathToCredential)
+      credential <- Resource.liftF(Sync[F].delay(UserCredentials.fromStream(credentialFile)))
     } yield credential
 
   def backgroundResourceF[F[_]: Sync, A <: BackgroundResource](resource: => A): Resource[F, A] =

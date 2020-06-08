@@ -4,55 +4,65 @@ import sbt.addCompilerPlugin
 
 val testAndCompile = "test->test;compile->compile"
 
-lazy val workbenchUtil = project.in(file("util"))
-  .settings(utilSettings:_*)
+lazy val workbenchUtil = project
+  .in(file("util"))
+  .settings(utilSettings: _*)
   .dependsOn(workbenchModel)
   .withTestSettings
 
-lazy val workbenchUtil2 = project.in(file("util2"))
-  .settings(util2Settings:_*)
+lazy val workbenchUtil2 = project
+  .in(file("util2"))
+  .settings(util2Settings: _*)
   .withTestSettings
 
-lazy val workbenchModel = project.in(file("model"))
-  .settings(modelSettings:_*)
+lazy val workbenchModel = project
+  .in(file("model"))
+  .settings(modelSettings: _*)
   .withTestSettings
 
-lazy val workbenchMetrics = project.in(file("metrics"))
-  .settings(metricsSettings:_*)
+lazy val workbenchMetrics = project
+  .in(file("metrics"))
+  .settings(metricsSettings: _*)
   .dependsOn(workbenchUtil % testAndCompile)
   .withTestSettings
 
-lazy val workbenchGoogle = project.in(file("google"))
-  .settings(googleSettings:_*)
+lazy val workbenchGoogle = project
+  .in(file("google"))
+  .settings(googleSettings: _*)
   .dependsOn(workbenchUtil % testAndCompile)
   .dependsOn(workbenchUtil2 % testAndCompile)
   .dependsOn(workbenchModel)
   .dependsOn(workbenchMetrics % testAndCompile)
   .withTestSettings
 
-lazy val workbenchGoogle2 = project.in(file("google2"))
-  .settings(google2Settings:_*)
+lazy val workbenchGoogle2 = project
+  .in(file("google2"))
+  .settings(google2Settings: _*)
   .dependsOn(workbenchUtil2 % testAndCompile)
   .dependsOn(workbenchModel)
   .withTestSettings
 
-lazy val workbenchNewrelic = project.in(file("newrelic"))
-  .settings(newrelicSettings:_*)
+lazy val workbenchNewrelic = project
+  .in(file("newrelic"))
+  .settings(newrelicSettings: _*)
   .withTestSettings
 
-lazy val workbenchOpenTelemetry = project.in(file("openTelemetry"))
-  .settings(openTelemetrySettings:_*)
+lazy val workbenchOpenTelemetry = project
+  .in(file("openTelemetry"))
+  .settings(openTelemetrySettings: _*)
   .dependsOn(workbenchUtil2 % testAndCompile)
   .withTestSettings
 
-lazy val workbenchServiceTest = project.in(file("serviceTest"))
-  .settings(serviceTestSettings:_*)
+lazy val workbenchServiceTest = project
+  .in(file("serviceTest"))
+  .settings(serviceTestSettings: _*)
   .dependsOn(workbenchModel % testAndCompile)
   .dependsOn(workbenchGoogle)
   .withTestSettings
 
-lazy val workbenchNotifications = project.in(file("notifications"))
-  .settings(notificationsSettings:_*)
+lazy val workbenchNotifications = project
+  .in(file("notifications"))
+  .settings(notificationsSettings: _*)
   .dependsOn(workbenchModel % testAndCompile)
   .dependsOn(workbenchGoogle)
   .withTestSettings
@@ -61,10 +71,11 @@ lazy val workbenchNotifications = project.in(file("notifications"))
 lazy val workbenchUiTest = project.in(file("uiTest"))
   .settings(uiTestSettings)
   .withTestSettings
-*/
+ */
 
-lazy val workbenchLibs = project.in(file("."))
-  .settings(rootSettings:_*)
+lazy val workbenchLibs = project
+  .in(file("."))
+  .settings(rootSettings: _*)
   .aggregate(workbenchUtil)
   .aggregate(workbenchUtil2)
   .aggregate(workbenchModel)
