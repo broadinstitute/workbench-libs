@@ -2,11 +2,23 @@ package org.broadinstitute.dsde.workbench.google2
 import com.google.container.v1.Operation
 
 import collection.JavaConverters._
-import io.kubernetes.client.models.{V1Container, V1ContainerPort, V1Namespace, V1ObjectMeta, V1ObjectMetaBuilder, V1Pod, V1PodSpec, V1Service, V1ServicePort, V1ServiceSpec}
+import io.kubernetes.client.models.{
+  V1Container,
+  V1ContainerPort,
+  V1Namespace,
+  V1ObjectMeta,
+  V1ObjectMetaBuilder,
+  V1Pod,
+  V1PodSpec,
+  V1Service,
+  V1ServiceAccount,
+  V1ServicePort,
+  V1ServiceSpec
+}
 import org.apache.commons.codec.binary.Base64
 import org.broadinstitute.dsde.workbench.google2.KubernetesSerializableName._
 import org.broadinstitute.dsde.workbench.model.WorkbenchException
-import org.broadinstitute.dsde.workbench.model.google.{GoogleProject, ServiceAccountName}
+import org.broadinstitute.dsde.workbench.model.google.GoogleProject
 import cats.implicits._
 import io.kubernetes.client.custom.IntOrString
 
@@ -101,6 +113,7 @@ object KubernetesSerializableName {
   //this nesting of NamespaceName is necessary to prevent duplicating the code achieved by KubernetesSerializableName and KubernetesSerializable
   //namespaces also have criteria other than their name
   final case class NamespaceName(value: String) extends KubernetesSerializableName
+  final case class ServiceAccountName(value: String) extends KubernetesSerializableName
   final case class ServiceName(value: String) extends KubernetesSerializableName
   final case class ContainerName(value: String) extends KubernetesSerializableName
   final case class PodName(value: String) extends KubernetesSerializableName
@@ -131,6 +144,10 @@ object JavaSerializableInstances {
     def getJavaSerialization(name: NamespaceName): V1ObjectMeta = getNameSerialization(name)
   }
 
+  implicit val kubernetesServiceAccountNameSerializable = new JavaSerializable[ServiceAccountName, V1ObjectMeta] {
+    def getJavaSerialization(name: ServiceAccountName): V1ObjectMeta = getNameSerialization(name)
+  }
+
   implicit val kubernetesPodNameSerializable = new JavaSerializable[PodName, V1ObjectMeta] {
     def getJavaSerialization(name: PodName): V1ObjectMeta = getNameSerialization(name)
   }
@@ -148,6 +165,14 @@ object JavaSerializableInstances {
       val v1Namespace = new V1Namespace()
       v1Namespace.metadata(kubernetesName.name.getJavaSerialization)
       v1Namespace
+    }
+  }
+
+  implicit val kubernetesServiceAccountSerializable = new JavaSerializable[KubernetesServiceAccount, V1ServiceAccount] {
+    def getJavaSerialization(kubernetesServiceAccount: KubernetesServiceAccount): V1ServiceAccount = {
+      val v1ServiceAccount = new V1ServiceAccount()
+      v1ServiceAccount.metadata(kubernetesServiceAccount.name.getJavaSerialization)
+      v1ServiceAccount
     }
   }
 
@@ -243,8 +268,8 @@ object JavaSerializableSyntax {
 
 // Models for the kubernetes client not related to GKE
 object KubernetesModels {
-
   final case class KubernetesNamespace(name: NamespaceName)
+  final case class KubernetesServiceAccount(name: ServiceAccountName)
 
   //consider using a replica set if you would like multiple autoscaling pods https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.12/#replicaset-v1-apps
   final case class KubernetesPod(name: PodName, containers: Set[KubernetesContainer], selector: KubernetesSelector)

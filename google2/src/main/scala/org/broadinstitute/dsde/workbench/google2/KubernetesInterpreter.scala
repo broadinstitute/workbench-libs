@@ -38,7 +38,7 @@ class KubernetesInterpreter[F[_]: Async: StructuredLogger: Effect: Timer: Contex
   val cache = CacheBuilder
     .newBuilder()
     // We expect calls to be batched, such as when a user's environment within a cluster is created/deleted/stopped.
-    // This may need configuration
+    // TODO: Unhardcode expiration time
     .expireAfterWrite(2, TimeUnit.HOURS)
     .build(
       new CacheLoader[KubernetesClusterId, ApiClient] {
@@ -92,6 +92,22 @@ class KubernetesInterpreter[F[_]: Async: StructuredLogger: Effect: Timer: Contex
       Async[F].delay(kubernetesClient.createNamespace(namespace.getJavaSerialization, null, null, null))
     })
 
+  override def createServiceAccount(clusterId: KubernetesClusterId,
+                                    serviceAccount: KubernetesServiceAccount,
+                                    namespace: KubernetesNamespace): F[Unit] =
+    blockingClientProvider(
+      clusterId, { kubernetesClient =>
+        Async[F].delay(
+          // TODO: Handle ApiException to make error message more user-friendly, especially when namespace is NOT FOUND
+          kubernetesClient.createNamespacedServiceAccount(namespace.name.value,
+                                                          serviceAccount.getJavaSerialization,
+                                                          null,
+                                                          null,
+                                                          null)
+        )
+      }
+    )
+
   //DO NOT QUERY THE CACHE DIRECTLY
   //There is a wrapper method that is necessary to ensure the token is refreshed
   //we never make the entry stale, because we always need to refresh the token (see comment above getToken)
@@ -140,12 +156,12 @@ class KubernetesInterpreter[F[_]: Async: StructuredLogger: Effect: Timer: Contex
         .blockOn(
           for {
             kubernetesClient <- getClient(clusterId)
-            clientCallResult <- fa(kubernetesClient).onError { //we aren't handling any errors here, they will be bubbled up, but we want to print a more helpful message that is otherwise obfuscated
-              case e: ApiException =>  Async[F].delay(StructuredLogger[F].info(e.getResponseBody()))
-            }
+            clientCallResult <- fa(kubernetesClient)
+              .onError { //we aren't handling any errors here, they will be bubbled up, but we want to print a more helpful message that is otherwise obfuscated
+                case e: ApiException => Async[F].delay(StructuredLogger[F].info(e.getResponseBody()))
+              }
           } yield clientCallResult
         )
-
     )
 
 }

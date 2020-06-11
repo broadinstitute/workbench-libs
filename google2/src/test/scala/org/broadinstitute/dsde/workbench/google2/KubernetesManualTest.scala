@@ -22,7 +22,7 @@ import org.broadinstitute.dsde.workbench.google2.GKEModels._
 import org.broadinstitute.dsde.workbench.google2.KubernetesModels._
 import org.broadinstitute.dsde.workbench.google2.KubernetesSerializableName._
 import org.broadinstitute.dsde.workbench.model.TraceId
-import org.broadinstitute.dsde.workbench.model.google.{GoogleProject, ServiceAccountName}
+import org.broadinstitute.dsde.workbench.model.google.GoogleProject
 import KubernetesConstants._
 
 //TODO: migrate to a unit test
@@ -115,6 +115,19 @@ final class Test(credPathStr: String,
       k.createNamespace(clusterId, namespace)
     }
 
+  def callCreateServiceAccount(
+    clusterId: KubernetesClusterId = clusterId,
+    ksaStr: String = "test-service-account",
+    namespace: KubernetesNamespace = KubernetesNamespace(defaultNamespaceName.right.get)
+  ): IO[Unit] = {
+    val ksa = KubernetesServiceAccount(
+      KubernetesName.withValidation[ServiceAccountName](ksaStr, ServiceAccountName.apply).right.get
+    )
+    kubeService.use { k =>
+      k.createServiceAccount(clusterId, ksa, namespace)
+    }
+  }
+
   def testGetClient(clusterId: KubernetesClusterId = clusterId): IO[Unit] =
     kubeService.use { k =>
       for {
@@ -167,7 +180,12 @@ object KubernetesConstants {
   val DEFAULT_NAMESPACE = "default"
 
   //composite of NodePort and ClusterIP types. Allows external access
-  val DEFAULT_LOADBALANCER_PORTS = Set(ServicePort(PortNum(8080), KubernetesName.withValidation("testport", PortName).right.get, TargetPortNum(8080), Protocol("TCP")))
+  val DEFAULT_LOADBALANCER_PORTS = Set(
+    ServicePort(PortNum(8080),
+                KubernetesName.withValidation("testport", PortName).right.get,
+                TargetPortNum(8080),
+                Protocol("TCP"))
+  )
 
   val DEFAULT_NODEPOOL_SIZE = 1
   val DEFAULT_NODEPOOL_MACHINE_TYPE = MachineTypeName("n1-standard-1")
