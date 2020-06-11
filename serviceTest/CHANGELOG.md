@@ -2,15 +2,11 @@
 
 This file documents changes to the `workbench-service-test` library, including notes on how to upgrade to new versions.
 
-## 0.18
+## 0.17
 Changed
 - Bump selenium version
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "0.18-TRAVIS-REPLACE-ME"`
-
-## 0.17
-
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "0.17-d8123e1"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "0.17-TRAVIS-REPLACE-ME"`
 
 ###
 
