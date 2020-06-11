@@ -29,7 +29,7 @@ object Dependencies {
 
   val jacksonModule: ModuleID =   "com.fasterxml.jackson.module" %% "jackson-module-scala"   % jacksonV % "test"
 
-  val selenium: ModuleID = "org.seleniumhq.selenium" % "selenium-java" % "3.11.0" % "test"
+  val selenium: ModuleID = "org.seleniumhq.selenium" % "selenium-java" % "4.0.0-alpha-6" % "test"
 
   val catsEffect: ModuleID = "org.typelevel" %% "cats-effect" % "2.1.3"
 
