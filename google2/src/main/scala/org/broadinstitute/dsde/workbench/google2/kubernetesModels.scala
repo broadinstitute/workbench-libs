@@ -169,10 +169,11 @@ object JavaSerializableInstances {
   }
 
   implicit val kubernetesServiceAccountSerializable = new JavaSerializable[KubernetesServiceAccount, V1ServiceAccount] {
-    def getJavaSerialization(kubernetesServiceAccount: KubernetesServiceAccount): V1ServiceAccount = {
-      val v1ServiceAccount = new V1ServiceAccount()
-      v1ServiceAccount.metadata(kubernetesServiceAccount.name.getJavaSerialization)
-      v1ServiceAccount
+    def getJavaSerialization(sa: KubernetesServiceAccount): V1ServiceAccount = {
+      val metadata = sa.name.getJavaSerialization
+      metadata.annotations(sa.annotations.asJava)
+
+      new V1ServiceAccount().metadata(metadata)
     }
   }
 
@@ -269,7 +270,7 @@ object JavaSerializableSyntax {
 // Models for the kubernetes client not related to GKE
 object KubernetesModels {
   final case class KubernetesNamespace(name: NamespaceName)
-  final case class KubernetesServiceAccount(name: ServiceAccountName)
+  final case class KubernetesServiceAccount(name: ServiceAccountName, annotations: Map[String, String])
 
   //consider using a replica set if you would like multiple autoscaling pods https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.12/#replicaset-v1-apps
   final case class KubernetesPod(name: PodName, containers: Set[KubernetesContainer], selector: KubernetesSelector)

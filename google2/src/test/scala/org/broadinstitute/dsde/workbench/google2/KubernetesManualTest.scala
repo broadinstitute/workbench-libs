@@ -118,11 +118,11 @@ final class Test(credPathStr: String,
   def callCreateServiceAccount(
     clusterId: KubernetesClusterId = clusterId,
     ksaStr: String = "test-service-account",
+    ksaAnnotations: Map[String, String] = Map("ksa" -> "gsa", "foo" -> "bar"),
     namespace: KubernetesNamespace = KubernetesNamespace(defaultNamespaceName.right.get)
   ): IO[Unit] = {
-    val ksa = KubernetesServiceAccount(
-      KubernetesName.withValidation[ServiceAccountName](ksaStr, ServiceAccountName.apply).right.get
-    )
+    val ksaName = KubernetesName.withValidation[ServiceAccountName](ksaStr, ServiceAccountName.apply).right.get
+    val ksa = KubernetesServiceAccount(ksaName, ksaAnnotations)
     kubeService.use { k =>
       k.createServiceAccount(clusterId, ksa, namespace)
     }
