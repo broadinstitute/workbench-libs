@@ -222,7 +222,12 @@ trait WebBrowserSpec extends WebBrowserUtil with ExceptionHandling with LazyLogg
   }
 
   private def saveLog(logtype: String, filePrefix: String)(implicit driver: WebDriver): Unit = {
-    val logLines = driver.manage().logs().get(logtype).getAll.iterator().asScala.toList
+    val chromeLogs = driver.manage().logs()
+    val availableLogs = chromeLogs.getAvailableLogTypes.asScala
+    val logLines =
+      if (availableLogs.contains(logtype))
+        chromeLogs.get(logtype).getAll.iterator().asScala.toList
+      else List.empty
     if (logLines.nonEmpty) {
       val logString = logLines.map(_.toString).mkString("\n")
       new FileOutputStream(new File(s"$filePrefix-$logtype.txt")).write(logString.getBytes)
