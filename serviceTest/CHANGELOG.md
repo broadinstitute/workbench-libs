@@ -7,7 +7,7 @@ Changed
 - Bump selenium version
 - Check if log type is available before trying to get the log
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "0.18-TRAVIS-REPLACE-ME"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "0.18-d57f8a6"`
 
 ## 0.17
 
