@@ -16,7 +16,7 @@ Added:
 - Add `BigQuery`
 - Add Generator for `DiskName`
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.10-7ef36a6"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.10-TRAVIS-REPLACE-ME"`
 
 ## 0.9
 Changed: 

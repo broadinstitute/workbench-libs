@@ -46,7 +46,7 @@ object Generators {
   } yield NotificationRequest(topic, "JSON_API_V1", filters.eventTypes, filters.objectNamePrefix)
   val genDiskName = alphaLowerStrOfLength(10).map(DiskName)
 
-  def alphaLowerStrOfLength(n: Int): Gen[String] = Gen.listOfN(n, Gen.alphaChar).map(_.mkString)
+  def alphaLowerStrOfLength(n: Int): Gen[String] = Gen.listOfN(n, Gen.alphaLowerChar).map(_.mkString)
 
   implicit val arbProjectTopicName: Arbitrary[TopicName] = Arbitrary(genTopicName)
   implicit val arbNotificationResponse: Arbitrary[NotificationResponse] = Arbitrary(genNotificationResponse)
