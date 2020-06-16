@@ -44,7 +44,7 @@ object Generators {
     topic <- genTopicName
     filters <- genFilters
   } yield NotificationRequest(topic, "JSON_API_V1", filters.eventTypes, filters.objectNamePrefix)
-  val genDiskName = Gen.alphaLowerStr.map(x => DiskName(x.take(30)))
+  val genDiskName = Gen.alphaLowerStr.map(x => DiskName(x.take(30) + "disk"))
 
   implicit val arbProjectTopicName: Arbitrary[TopicName] = Arbitrary(genTopicName)
   implicit val arbNotificationResponse: Arbitrary[NotificationResponse] = Arbitrary(genNotificationResponse)
