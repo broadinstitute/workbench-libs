@@ -7,14 +7,16 @@ Changed:
 - Move `resizeDisk` from `GoogleComputeService` to `GoogleDiskService`
 - Renamed KubernetesSerializableName extension classes
 - Add `getDisk`
+- Make `genDiskName` non-empty
 
 Added:
 - Add `GoogleDiskService` and `GoogleDiskInterpreter`
 - Add `{create,delete}Disk` and `listDisks` to `GoogleDiskService`
 - refactor parameters for kubernetes service entity
 - Add `BigQuery`
+- Add Generator for `DiskName`
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.10-deddc42"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.10-85d499a"`
 
 ## 0.9
 Changed: 

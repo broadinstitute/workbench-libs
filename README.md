@@ -60,7 +60,7 @@ To depend on the `MockGoogle*` classes, additionally depend on:
 
 Contains utility functions for talking to Google APIs via com.google.cloud client library (more recent) via gRPC. 
 
-Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.10-deddc42"`
+Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.10-85d499a"`
 
 To start the Google PubSub emulator for unit testing:
 
@@ -88,7 +88,7 @@ Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-opente
 
 Contains common classes and utilities for writing tests against Workbench REST web services.
 
-Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "0.17-e66171c" % "test" classifier "tests"`
+Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "0.18-d57f8a6" % "test" classifier "tests"`
 
 [Changelog](serviceTest/CHANGELOG.md)
 

@@ -3,8 +3,11 @@
 This file documents changes to the `workbench-service-test` library, including notes on how to upgrade to new versions.
 
 ## 0.18
+Changed
+- Bump selenium version
+- Check if log type is available before trying to get the log
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "0.18-73d6a64"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "0.18-d57f8a6"`
 
 ## 0.17
 

@@ -1,8 +1,10 @@
 package org.broadinstitute.dsde.workbench.service.test
 
+import java.time.Duration
 import org.openqa.selenium.support.ui.WebDriverWait
 import org.openqa.selenium.{StaleElementReferenceException, WebDriver}
 import org.scalatestplus.selenium.WebBrowser
+
 import scala.collection.JavaConverters._
 
 /**
@@ -144,7 +146,8 @@ trait WebBrowserUtil extends WebBrowser {
       }
 
     private def withWaitForCondition(timeOutInSeconds: Long)(f: => Boolean)(implicit webDriver: WebDriver): Boolean = {
-      val wait = new WebDriverWait(webDriver, timeOutInSeconds)
+      val duration = Duration.ofSeconds(timeOutInSeconds)
+      val wait = new WebDriverWait(webDriver, duration)
       wait until new java.util.function.Function[WebDriver, Boolean] {
         override def apply(d: WebDriver): Boolean =
           try {
@@ -156,7 +159,8 @@ trait WebBrowserUtil extends WebBrowser {
     }
 
     private def withWaitForElement(timeOutInSeconds: Long)(f: => Element)(implicit webDriver: WebDriver): Element = {
-      val wait = new WebDriverWait(webDriver, timeOutInSeconds)
+      val duration = Duration.ofSeconds(timeOutInSeconds, 0)
+      val wait = new WebDriverWait(webDriver, duration)
       wait until new java.util.function.Function[WebDriver, Element] {
         override def apply(d: WebDriver): Element =
           try {
@@ -219,7 +223,6 @@ trait WebBrowserUtil extends WebBrowser {
    * TODO: this is currently untested
    *
    * @param text the text to search for
-   * @param webDriver implicit WebDriver for the WebDriverWait
    * @return a Query for the text
    */
   def text(text: String): Query =
@@ -229,7 +232,6 @@ trait WebBrowserUtil extends WebBrowser {
    * Creates a Query for an element with a title attribute.
    *
    * @param title the expected title
-   * @param webDriver implicit WebDriver for the WebDriverWait
    * @return a Query for the title
    */
   def title(title: String): Query =
