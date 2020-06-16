@@ -5,8 +5,9 @@ This file documents changes to the `workbench-service-test` library, including n
 ## 0.18
 Changed
 - Bump selenium version
+- Check if log type is available before trying to get the log
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "0.18-39f6c39"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "0.18-TRAVIS-REPLACE-ME"`
 
 ## 0.17
 
