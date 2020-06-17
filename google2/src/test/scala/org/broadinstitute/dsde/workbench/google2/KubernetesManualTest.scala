@@ -24,6 +24,7 @@ import org.broadinstitute.dsde.workbench.google2.KubernetesSerializableName._
 import org.broadinstitute.dsde.workbench.model.TraceId
 import org.broadinstitute.dsde.workbench.model.google.GoogleProject
 import KubernetesConstants._
+import io.kubernetes.client.models.V1PolicyRule
 
 //TODO: migrate to a unit test
 //TODO: investigate running minikube in a docker for unit/automation tests https://banzaicloud.com/blog/minikube-ci/
@@ -125,6 +126,22 @@ final class Test(credPathStr: String,
     val ksa = KubernetesServiceAccount(ksaName, ksaAnnotations)
     kubeService.use { k =>
       k.createServiceAccount(clusterId, ksa, namespace)
+    }
+  }
+
+  def callCreateRole(
+    clusterId: KubernetesClusterId = clusterId,
+    roleStr: String = "test-role",
+    ksaStr: String = "test-service-account",
+    ksaAnnotations: Map[String, String] = Map("ksa" -> "gsa", "foo" -> "bar"),
+    namespace: KubernetesNamespace = KubernetesNamespace(defaultNamespaceName.right.get)
+  ): IO[Unit] = {
+    val roleName = KubernetesName.withValidation[RoleName](roleStr, RoleName.apply).right.get
+    val rules: List[V1PolicyRule] = ???
+    val role = KubernetesRole(roleName, List.empty)
+
+    kubeService.use { k =>
+      k.createRole(clusterId, role, namespace)
     }
   }
 

@@ -10,10 +10,15 @@ import io.kubernetes.client.models.{
   V1ObjectMetaBuilder,
   V1Pod,
   V1PodSpec,
+  V1PolicyRule,
+  V1Role,
+  V1RoleBinding,
+  V1RoleRef,
   V1Service,
   V1ServiceAccount,
   V1ServicePort,
-  V1ServiceSpec
+  V1ServiceSpec,
+  V1Subject
 }
 import org.apache.commons.codec.binary.Base64
 import org.broadinstitute.dsde.workbench.google2.KubernetesSerializableName._
@@ -114,6 +119,8 @@ object KubernetesSerializableName {
   //namespaces also have criteria other than their name
   final case class NamespaceName(value: String) extends KubernetesSerializableName
   final case class ServiceAccountName(value: String) extends KubernetesSerializableName
+  final case class RoleName(value: String) extends KubernetesSerializableName
+  final case class RoleBindingName(value: String) extends KubernetesSerializableName
   final case class ServiceName(value: String) extends KubernetesSerializableName
   final case class ContainerName(value: String) extends KubernetesSerializableName
   final case class PodName(value: String) extends KubernetesSerializableName
@@ -148,6 +155,14 @@ object JavaSerializableInstances {
     def getJavaSerialization(name: ServiceAccountName): V1ObjectMeta = getNameSerialization(name)
   }
 
+  implicit val kubernetesRoleNameSerializable = new JavaSerializable[RoleName, V1ObjectMeta] {
+    def getJavaSerialization(name: RoleName): V1ObjectMeta = getNameSerialization(name)
+  }
+
+  implicit val kubernetesRoleBindingNameSerializable = new JavaSerializable[RoleBindingName, V1ObjectMeta] {
+    def getJavaSerialization(name: RoleBindingName): V1ObjectMeta = getNameSerialization(name)
+  }
+
   implicit val kubernetesPodNameSerializable = new JavaSerializable[PodName, V1ObjectMeta] {
     def getJavaSerialization(name: PodName): V1ObjectMeta = getNameSerialization(name)
   }
@@ -175,6 +190,25 @@ object JavaSerializableInstances {
 
       new V1ServiceAccount().metadata(metadata)
     }
+  }
+
+  implicit val kubernetesRoleSerializable = new JavaSerializable[KubernetesRole, V1Role] {
+    def getJavaSerialization(role: KubernetesRole): V1Role = {
+      val metadata = role.name.getJavaSerialization
+
+      new V1Role()
+        .rules(role.rules.asJava)
+        .metadata(metadata)
+    }
+  }
+
+  implicit val kubernetesRoleBindingSerializable = new JavaSerializable[KubernetesRoleBinding, V1RoleBinding] {
+    def getJavaSerialization(rb: KubernetesRoleBinding): V1RoleBinding =
+//      val metadata = rb.name.getJavaSerialization
+//      metadata.annotations(rb.annotations.asJava)
+//
+//      new V1RoleBinding().metadata(metadata)
+      new V1RoleBinding()
   }
 
   implicit val containerPortSerializable = new JavaSerializable[ContainerPort, V1ContainerPort] {
@@ -271,6 +305,8 @@ object JavaSerializableSyntax {
 object KubernetesModels {
   final case class KubernetesNamespace(name: NamespaceName)
   final case class KubernetesServiceAccount(name: ServiceAccountName, annotations: Map[String, String])
+  final case class KubernetesRole(name: RoleName, rules: List[V1PolicyRule])
+  final case class KubernetesRoleBinding(name: RoleBindingName, roleRef: V1RoleRef, subjects: List[V1Subject])
 
   //consider using a replica set if you would like multiple autoscaling pods https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.12/#replicaset-v1-apps
   final case class KubernetesPod(name: PodName, containers: Set[KubernetesContainer], selector: KubernetesSelector)

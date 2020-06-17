@@ -9,6 +9,7 @@ import cats.mtl.ApplicativeAsk
 import scala.collection.JavaConverters._
 import com.google.api.services.container.ContainerScopes
 import io.chrisdavenport.log4cats.StructuredLogger
+import io.kubernetes.client.models.V1Role
 import org.broadinstitute.dsde.workbench.RetryConfig
 import org.broadinstitute.dsde.workbench.google2.GKEModels.KubernetesClusterId
 import org.broadinstitute.dsde.workbench.google2.KubernetesModels._
@@ -32,6 +33,8 @@ trait KubernetesService[F[_]] {
   def createService(clusterId: KubernetesClusterId,
                     service: KubernetesServiceKind,
                     namespace: KubernetesNamespace): F[Unit]
+
+  def createRole(clusterId: KubernetesClusterId, role: V1Role, namespace: KubernetesNamespace): F[Unit]
 }
 
 // This kubernetes service requires a GKEService because it needs to call getCluster
