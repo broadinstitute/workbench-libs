@@ -2,7 +2,18 @@ package org.broadinstitute.dsde.workbench.google2
 import com.google.container.v1.Operation
 
 import collection.JavaConverters._
-import io.kubernetes.client.models.{V1Container, V1ContainerPort, V1Namespace, V1ObjectMeta, V1ObjectMetaBuilder, V1Pod, V1PodSpec, V1Service, V1ServicePort, V1ServiceSpec}
+import io.kubernetes.client.models.{
+  V1Container,
+  V1ContainerPort,
+  V1Namespace,
+  V1ObjectMeta,
+  V1ObjectMetaBuilder,
+  V1Pod,
+  V1PodSpec,
+  V1Service,
+  V1ServicePort,
+  V1ServiceSpec
+}
 import org.apache.commons.codec.binary.Base64
 import org.broadinstitute.dsde.workbench.google2.KubernetesSerializableName._
 import org.broadinstitute.dsde.workbench.model.WorkbenchException
