@@ -140,12 +140,12 @@ class KubernetesInterpreter[F[_]: Async: StructuredLogger: Effect: Timer: Contex
         .blockOn(
           for {
             kubernetesClient <- getClient(clusterId)
-            clientCallResult <- fa(kubernetesClient).onError { //we aren't handling any errors here, they will be bubbled up, but we want to print a more helpful message that is otherwise obfuscated
-              case e: ApiException =>  Async[F].delay(StructuredLogger[F].info(e.getResponseBody()))
-            }
+            clientCallResult <- fa(kubernetesClient)
+              .onError { //we aren't handling any errors here, they will be bubbled up, but we want to print a more helpful message that is otherwise obfuscated
+                case e: ApiException => Async[F].delay(StructuredLogger[F].info(e.getResponseBody()))
+              }
           } yield clientCallResult
         )
-
     )
 
 }
