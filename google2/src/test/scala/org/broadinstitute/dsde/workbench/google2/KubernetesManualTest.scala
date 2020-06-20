@@ -132,13 +132,11 @@ final class Test(credPathStr: String,
   def callCreateRole(
     clusterId: KubernetesClusterId = clusterId,
     roleStr: String = "test-role",
-    ksaStr: String = "test-service-account",
-    ksaAnnotations: Map[String, String] = Map("ksa" -> "gsa", "foo" -> "bar"),
     namespace: KubernetesNamespace = KubernetesNamespace(defaultNamespaceName.right.get)
   ): IO[Unit] = {
     val roleName = KubernetesName.withValidation[RoleName](roleStr, RoleName.apply).right.get
-    val rules: List[V1PolicyRule] = ???
-    val role = KubernetesRole(roleName, List.empty)
+    val rules: List[V1PolicyRule] = List.empty
+    val role = KubernetesRole(roleName, rules)
 
     kubeService.use { k =>
       k.createRole(clusterId, role, namespace)

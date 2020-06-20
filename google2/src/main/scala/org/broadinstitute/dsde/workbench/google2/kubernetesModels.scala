@@ -195,9 +195,16 @@ object JavaSerializableInstances {
   implicit val kubernetesRoleSerializable = new JavaSerializable[KubernetesRole, V1Role] {
     def getJavaSerialization(role: KubernetesRole): V1Role = {
       val metadata = role.name.getJavaSerialization
+      val v1PolicyRule =
+        new V1PolicyRule()
+          .apiGroups(List("*").asJava)
+          .resources(List("*").asJava)
+          .verbs(List("*").asJava)
 
       new V1Role()
-        .rules(role.rules.asJava)
+        .apiVersion("rbac.authorization.k8s.io/v1")
+//        .rules(role.rules.asJava)
+        .rules(List(v1PolicyRule).asJava)
         .metadata(metadata)
     }
   }
