@@ -111,6 +111,7 @@ class KubernetesInterpreter[F[_]: Async: StructuredLogger: Effect: Timer: Contex
   override def createRole(clusterId: KubernetesClusterId,
                           role: KubernetesRole,
                           namespace: KubernetesNamespace): F[Unit] = {
+    // TODO Factor out
     def getClient(clusterId: KubernetesClusterId): F[RbacAuthorizationV1Api] =
       for {
         client <- Async[F].delay(cache.get(clusterId))
@@ -118,6 +119,7 @@ class KubernetesInterpreter[F[_]: Async: StructuredLogger: Effect: Timer: Contex
         _ <- Async[F].delay(client.setApiKey(token.getTokenValue))
       } yield new RbacAuthorizationV1Api(client)
 
+    // TODO Factor out
     def blockingClientProvider[A](clusterId: KubernetesClusterId, fa: RbacAuthorizationV1Api => F[A]): F[A] =
       blockerBound.withPermit(
         blocker

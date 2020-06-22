@@ -119,11 +119,18 @@ object KubernetesSerializableName {
   //namespaces also have criteria other than their name
   final case class NamespaceName(value: String) extends KubernetesSerializableName
   final case class ServiceAccountName(value: String) extends KubernetesSerializableName
-  final case class RoleName(value: String) extends KubernetesSerializableName
-  final case class RoleBindingName(value: String) extends KubernetesSerializableName
   final case class ServiceName(value: String) extends KubernetesSerializableName
   final case class ContainerName(value: String) extends KubernetesSerializableName
   final case class PodName(value: String) extends KubernetesSerializableName
+
+  final case class ApiGroupName(value: String) extends KubernetesSerializableName
+  final case class ResourceName(value: String) extends KubernetesSerializableName
+  final case class VerbName(value: String) extends KubernetesSerializableName
+  final case class RoleName(value: String) extends KubernetesSerializableName
+
+  final case class SubjectName(value: String) extends KubernetesSerializableName
+  final case class RoleRefName(value: String) extends KubernetesSerializableName
+  final case class RoleBindingName(value: String) extends KubernetesSerializableName
 }
 
 trait JavaSerializable[A, B] {
@@ -147,20 +154,13 @@ object JavaSerializableInstances {
     metadata
   }
 
+  /** Serializable name objects */
   implicit val kubernetesNamespaceNameSerializable = new JavaSerializable[NamespaceName, V1ObjectMeta] {
     def getJavaSerialization(name: NamespaceName): V1ObjectMeta = getNameSerialization(name)
   }
 
   implicit val kubernetesServiceAccountNameSerializable = new JavaSerializable[ServiceAccountName, V1ObjectMeta] {
     def getJavaSerialization(name: ServiceAccountName): V1ObjectMeta = getNameSerialization(name)
-  }
-
-  implicit val kubernetesRoleNameSerializable = new JavaSerializable[RoleName, V1ObjectMeta] {
-    def getJavaSerialization(name: RoleName): V1ObjectMeta = getNameSerialization(name)
-  }
-
-  implicit val kubernetesRoleBindingNameSerializable = new JavaSerializable[RoleBindingName, V1ObjectMeta] {
-    def getJavaSerialization(name: RoleBindingName): V1ObjectMeta = getNameSerialization(name)
   }
 
   implicit val kubernetesPodNameSerializable = new JavaSerializable[PodName, V1ObjectMeta] {
@@ -175,6 +175,35 @@ object JavaSerializableInstances {
     def getJavaSerialization(name: ServiceName): V1ObjectMeta = getNameSerialization(name)
   }
 
+  implicit val kubernetesApiGroupNameSerializable = new JavaSerializable[ApiGroupName, V1ObjectMeta] {
+    def getJavaSerialization(name: ApiGroupName): V1ObjectMeta = getNameSerialization(name)
+  }
+
+  implicit val kubernetesResourceNameSerializable = new JavaSerializable[ResourceName, V1ObjectMeta] {
+    def getJavaSerialization(name: ResourceName): V1ObjectMeta = getNameSerialization(name)
+  }
+
+  implicit val kubernetesVerbNameSerializable = new JavaSerializable[VerbName, V1ObjectMeta] {
+    def getJavaSerialization(name: VerbName): V1ObjectMeta = getNameSerialization(name)
+  }
+
+  implicit val kubernetesRoleNameSerializable = new JavaSerializable[RoleName, V1ObjectMeta] {
+    def getJavaSerialization(name: RoleName): V1ObjectMeta = getNameSerialization(name)
+  }
+
+  implicit val kubernetesSubjectNameSerializable = new JavaSerializable[SubjectName, V1ObjectMeta] {
+    def getJavaSerialization(name: SubjectName): V1ObjectMeta = getNameSerialization(name)
+  }
+
+  implicit val kubernetesRoleRefNameSerializable = new JavaSerializable[RoleRefName, V1ObjectMeta] {
+    def getJavaSerialization(name: RoleRefName): V1ObjectMeta = getNameSerialization(name)
+  }
+
+  implicit val kubernetesRoleBindingNameSerializable = new JavaSerializable[RoleBindingName, V1ObjectMeta] {
+    def getJavaSerialization(name: RoleBindingName): V1ObjectMeta = getNameSerialization(name)
+  }
+
+  /** Serializable container objects corresponding to the names above */
   implicit val kubernetesNamespaceSerializable = new JavaSerializable[KubernetesNamespace, V1Namespace] {
     def getJavaSerialization(kubernetesName: KubernetesNamespace): V1Namespace = {
       val v1Namespace = new V1Namespace()
@@ -190,32 +219,6 @@ object JavaSerializableInstances {
 
       new V1ServiceAccount().metadata(metadata)
     }
-  }
-
-  implicit val kubernetesRoleSerializable = new JavaSerializable[KubernetesRole, V1Role] {
-    def getJavaSerialization(role: KubernetesRole): V1Role = {
-      val metadata = role.name.getJavaSerialization
-      val v1PolicyRule =
-        new V1PolicyRule()
-          .apiGroups(List("*").asJava)
-          .resources(List("*").asJava)
-          .verbs(List("*").asJava)
-
-      new V1Role()
-        .apiVersion("rbac.authorization.k8s.io/v1")
-//        .rules(role.rules.asJava)
-        .rules(List(v1PolicyRule).asJava)
-        .metadata(metadata)
-    }
-  }
-
-  implicit val kubernetesRoleBindingSerializable = new JavaSerializable[KubernetesRoleBinding, V1RoleBinding] {
-    def getJavaSerialization(rb: KubernetesRoleBinding): V1RoleBinding =
-//      val metadata = rb.name.getJavaSerialization
-//      metadata.annotations(rb.annotations.asJava)
-//
-//      new V1RoleBinding().metadata(metadata)
-      new V1RoleBinding()
   }
 
   implicit val containerPortSerializable = new JavaSerializable[ContainerPort, V1ContainerPort] {
@@ -297,6 +300,32 @@ object JavaSerializableInstances {
       v1Service
     }
   }
+
+  implicit val kubernetesPolicyRuleSerializable = new JavaSerializable[KubernetesPolicyRule, V1PolicyRule] {
+    def getJavaSerialization(policyRule: KubernetesPolicyRule): V1PolicyRule =
+      new V1PolicyRule()
+        .apiGroups(policyRule.apiGroups.map(_.name).map(_.value).asJava)
+        .resources(policyRule.resources.map(_.name).map(_.value).asJava)
+        .verbs(policyRule.verbs.map(_.name).map(_.value).asJava)
+  }
+
+  implicit val kubernetesRoleSerializable = new JavaSerializable[KubernetesRole, V1Role] {
+    def getJavaSerialization(role: KubernetesRole): V1Role = {
+      val metadata = role.name.getJavaSerialization
+      new V1Role()
+        .metadata(metadata)
+        .rules(role.rules.map(_.getJavaSerialization).asJava)
+    }
+  }
+
+  implicit val kubernetesRoleBindingSerializable = new JavaSerializable[KubernetesRoleBinding, V1RoleBinding] {
+    def getJavaSerialization(rb: KubernetesRoleBinding): V1RoleBinding =
+      //      val metadata = rb.name.getJavaSerialization
+      //      metadata.annotations(rb.annotations.asJava)
+      //
+      //      new V1RoleBinding().metadata(metadata)
+      new V1RoleBinding()
+  }
 }
 
 final case class JavaSerializableOps[A, B](a: A)(implicit ev: JavaSerializable[A, B]) {
@@ -312,8 +341,6 @@ object JavaSerializableSyntax {
 object KubernetesModels {
   final case class KubernetesNamespace(name: NamespaceName)
   final case class KubernetesServiceAccount(name: ServiceAccountName, annotations: Map[String, String])
-  final case class KubernetesRole(name: RoleName, rules: List[V1PolicyRule])
-  final case class KubernetesRoleBinding(name: RoleBindingName, roleRef: V1RoleRef, subjects: List[V1Subject])
 
   //consider using a replica set if you would like multiple autoscaling pods https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.12/#replicaset-v1-apps
   final case class KubernetesPod(name: PodName, containers: Set[KubernetesContainer], selector: KubernetesSelector)
@@ -383,4 +410,13 @@ object KubernetesModels {
     val base64Cert = Either.catchNonFatal(Base64.decodeBase64(value))
   }
 
+  final case class KubernetesApiGroup(name: ApiGroupName)
+  final case class KubernetesResource(name: ResourceName)
+  final case class KubernetesVerb(name: VerbName)
+  final case class KubernetesPolicyRule(apiGroups: List[KubernetesApiGroup],
+                                        resources: List[KubernetesResource],
+                                        verbs: List[KubernetesVerb])
+  final case class KubernetesRole(name: RoleName, rules: List[KubernetesPolicyRule])
+
+  final case class KubernetesRoleBinding(name: RoleBindingName, roleRef: V1RoleRef, subjects: List[V1Subject])
 }
