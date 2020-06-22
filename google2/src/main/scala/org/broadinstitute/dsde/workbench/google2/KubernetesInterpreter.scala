@@ -144,6 +144,46 @@ class KubernetesInterpreter[F[_]: Async: StructuredLogger: Effect: Timer: Contex
     )
   }
 
+  override def createRoleBinding(clusterId: KubernetesClusterId,
+                                 roleBinding: KubernetesRoleBinding,
+                                 namespace: KubernetesNamespace): F[Unit] = {
+    // TODO Factor out
+    def getClient(clusterId: KubernetesClusterId): F[RbacAuthorizationV1Api] =
+      for {
+        client <- Async[F].delay(cache.get(clusterId))
+        token <- getToken()
+        _ <- Async[F].delay(client.setApiKey(token.getTokenValue))
+      } yield new RbacAuthorizationV1Api(client)
+
+    // TODO Factor out
+    def blockingClientProvider[A](clusterId: KubernetesClusterId, fa: RbacAuthorizationV1Api => F[A]): F[A] =
+      blockerBound.withPermit(
+        blocker
+          .blockOn(
+            for {
+              kubernetesClient <- getClient(clusterId)
+              clientCallResult <- fa(kubernetesClient)
+                .onError { //we aren't handling any errors here, they will be bubbled up, but we want to print a more helpful message that is otherwise obfuscated
+                  case e: ApiException => Async[F].delay(StructuredLogger[F].info(e.getResponseBody()))
+                }
+            } yield clientCallResult
+          )
+      )
+
+    blockingClientProvider(
+      clusterId, { kubernetesClient =>
+        Async[F].delay(
+          // TODO: Handle ApiException to make error message more user-friendly, especially when namespace is NOT FOUND
+          kubernetesClient.createNamespacedRoleBinding(namespace.name.value,
+                                                       roleBinding.getJavaSerialization,
+                                                       null,
+                                                       null,
+                                                       null)
+        )
+      }
+    )
+  }
+
   //DO NOT QUERY THE CACHE DIRECTLY
   //There is a wrapper method that is necessary to ensure the token is refreshed
   //we never make the entry stale, because we always need to refresh the token (see comment above getToken)

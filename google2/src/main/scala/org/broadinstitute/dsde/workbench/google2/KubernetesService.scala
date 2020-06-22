@@ -34,6 +34,10 @@ trait KubernetesService[F[_]] {
                     namespace: KubernetesNamespace): F[Unit]
 
   def createRole(clusterId: KubernetesClusterId, role: KubernetesRole, namespace: KubernetesNamespace): F[Unit]
+
+  def createRoleBinding(clusterId: KubernetesClusterId,
+                        roleBinding: KubernetesRoleBinding,
+                        namespace: KubernetesNamespace): F[Unit]
 }
 
 // This kubernetes service requires a GKEService because it needs to call getCluster

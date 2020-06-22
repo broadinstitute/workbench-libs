@@ -142,6 +142,22 @@ final class Test(credPathStr: String,
     }
   }
 
+  def callCreateRoleBinding(
+    clusterId: KubernetesClusterId = clusterId,
+    roleBindingStr: String = "test-role-binding",
+    namespace: KubernetesNamespace = KubernetesNamespace(defaultNamespaceName.right.get)
+  ): IO[Unit] = {
+    val roleBindingName =
+      KubernetesName.withValidation[RoleBindingName](roleBindingStr, RoleBindingName.apply).right.get
+    val subjects = ???
+    val roleRef = ???
+    val roleBinding = KubernetesRoleBinding(roleBindingName, roleRef, subjects)
+
+    kubeService.use { k =>
+      k.createRoleBinding(clusterId, roleBinding, namespace)
+    }
+  }
+
   def testGetClient(clusterId: KubernetesClusterId = clusterId): IO[Unit] =
     kubeService.use { k =>
       for {

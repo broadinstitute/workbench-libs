@@ -127,9 +127,7 @@ object KubernetesSerializableName {
   final case class ResourceName(value: String) extends KubernetesSerializableName
   final case class VerbName(value: String) extends KubernetesSerializableName
   final case class RoleName(value: String) extends KubernetesSerializableName
-
-  final case class SubjectName(value: String) extends KubernetesSerializableName
-  final case class RoleRefName(value: String) extends KubernetesSerializableName
+  final case class SubjectKindName(value: String) extends KubernetesSerializableName
   final case class RoleBindingName(value: String) extends KubernetesSerializableName
 }
 
@@ -191,12 +189,8 @@ object JavaSerializableInstances {
     def getJavaSerialization(name: RoleName): V1ObjectMeta = getNameSerialization(name)
   }
 
-  implicit val kubernetesSubjectNameSerializable = new JavaSerializable[SubjectName, V1ObjectMeta] {
-    def getJavaSerialization(name: SubjectName): V1ObjectMeta = getNameSerialization(name)
-  }
-
-  implicit val kubernetesRoleRefNameSerializable = new JavaSerializable[RoleRefName, V1ObjectMeta] {
-    def getJavaSerialization(name: RoleRefName): V1ObjectMeta = getNameSerialization(name)
+  implicit val kubernetesSubjectKindNameSerializable = new JavaSerializable[SubjectKindName, V1ObjectMeta] {
+    def getJavaSerialization(name: SubjectKindName): V1ObjectMeta = getNameSerialization(name)
   }
 
   implicit val kubernetesRoleBindingNameSerializable = new JavaSerializable[RoleBindingName, V1ObjectMeta] {
@@ -318,13 +312,28 @@ object JavaSerializableInstances {
     }
   }
 
+  implicit val kubernetesSubjectSerializable = new JavaSerializable[KubernetesSubject, V1Subject] {
+    def getJavaSerialization(subject: KubernetesSubject): V1Subject =
+      new V1Subject()
+        .kind(subject.kind.toString)
+        .name(subject.kindName.value)
+        .namespace(subject.namespaceName.value)
+  }
+
+  implicit val kubernetesRoleRefSerializable = new JavaSerializable[KubernetesRoleRef, V1RoleRef] {
+    def getJavaSerialization(roleRef: KubernetesRoleRef): V1RoleRef =
+      new V1RoleRef()
+        .apiGroup(roleRef.apiGroupName.value)
+        .kind(roleRef.roleRefKind.toString)
+        .name(roleRef.roleName.value)
+  }
+
   implicit val kubernetesRoleBindingSerializable = new JavaSerializable[KubernetesRoleBinding, V1RoleBinding] {
-    def getJavaSerialization(rb: KubernetesRoleBinding): V1RoleBinding =
-      //      val metadata = rb.name.getJavaSerialization
-      //      metadata.annotations(rb.annotations.asJava)
-      //
-      //      new V1RoleBinding().metadata(metadata)
+    def getJavaSerialization(roleBinding: KubernetesRoleBinding): V1RoleBinding =
       new V1RoleBinding()
+        .metadata(roleBinding.name.getJavaSerialization)
+        .subjects(roleBinding.subjects.map(_.getJavaSerialization).asJava)
+        .roleRef(roleBinding.roleRef.getJavaSerialization)
   }
 }
 
@@ -418,5 +427,22 @@ object KubernetesModels {
                                         verbs: List[KubernetesVerb])
   final case class KubernetesRole(name: RoleName, rules: List[KubernetesPolicyRule])
 
-  final case class KubernetesRoleBinding(name: RoleBindingName, roleRef: V1RoleRef, subjects: List[V1Subject])
+  sealed trait KubernetesSubjectKind extends Product with Serializable
+  object KubernetesSubjectKind {
+    case object User extends KubernetesSubjectKind
+    case object Group extends KubernetesSubjectKind
+    case object ServiceAccount extends KubernetesSubjectKind
+  }
+  sealed trait KubernetesRoleRefKind extends Product with Serializable
+  object KubernetesRoleRefKind {
+    case object Role extends KubernetesRoleRefKind
+    case object ClusterRole extends KubernetesRoleRefKind
+  }
+  final case class KubernetesSubject(kind: KubernetesSubjectKind,
+                                     kindName: SubjectKindName,
+                                     namespaceName: NamespaceName)
+  final case class KubernetesRoleRef(apiGroupName: ApiGroupName, roleRefKind: KubernetesRoleRefKind, roleName: RoleName)
+  final case class KubernetesRoleBinding(name: RoleBindingName,
+                                         roleRef: KubernetesRoleRef,
+                                         subjects: List[KubernetesSubject])
 }
