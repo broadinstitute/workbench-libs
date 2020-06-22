@@ -59,7 +59,7 @@ class KubernetesInterpreter[F[_]: Async: StructuredLogger: Effect: Timer: Contex
               cluster,
               token
             )
-          } yield client.setDebugging(true)
+          } yield client.setDebugging(true) // TODO Optionally set debug flag
 
           res.toIO.unsafeRunSync()
         }

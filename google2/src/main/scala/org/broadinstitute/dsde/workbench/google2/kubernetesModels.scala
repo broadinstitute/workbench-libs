@@ -304,12 +304,10 @@ object JavaSerializableInstances {
   }
 
   implicit val kubernetesRoleSerializable = new JavaSerializable[KubernetesRole, V1Role] {
-    def getJavaSerialization(role: KubernetesRole): V1Role = {
-      val metadata = role.name.getJavaSerialization
+    def getJavaSerialization(role: KubernetesRole): V1Role =
       new V1Role()
-        .metadata(metadata)
+        .metadata(role.name.getJavaSerialization)
         .rules(role.rules.map(_.getJavaSerialization).asJava)
-    }
   }
 
   implicit val kubernetesSubjectSerializable = new JavaSerializable[KubernetesSubject, V1Subject] {
