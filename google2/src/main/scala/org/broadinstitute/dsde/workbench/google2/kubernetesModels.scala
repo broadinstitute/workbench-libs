@@ -27,7 +27,7 @@ import org.broadinstitute.dsde.workbench.model.google.GoogleProject
 import cats.implicits._
 import io.kubernetes.client.custom.IntOrString
 
-// Common kubernetes models //
+/** Common Kubernetes models */
 final case class KubernetesClusterNotFoundException(message: String) extends WorkbenchException
 final case class KubernetesInvalidNameException(message: String) extends WorkbenchException
 
