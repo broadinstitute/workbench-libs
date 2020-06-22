@@ -117,11 +117,11 @@ final class Test(credPathStr: String,
 
   def callCreateServiceAccount(
     clusterId: KubernetesClusterId = clusterId,
-    ksaStr: String = "test-service-account",
+    ksaNameStr: String = "test-service-account",
     ksaAnnotations: Map[String, String] = Map("ksa" -> "gsa", "foo" -> "bar"),
     namespace: KubernetesNamespace = KubernetesNamespace(defaultNamespaceName.right.get)
   ): IO[Unit] = {
-    val ksaName = KubernetesName.withValidation[ServiceAccountName](ksaStr, ServiceAccountName.apply).right.get
+    val ksaName = KubernetesName.withValidation[ServiceAccountName](ksaNameStr, ServiceAccountName.apply).right.get
     val ksa = KubernetesServiceAccount(ksaName, ksaAnnotations)
     kubeService.use { k =>
       k.createServiceAccount(clusterId, ksa, namespace)
@@ -130,10 +130,10 @@ final class Test(credPathStr: String,
 
   def callCreateRole(
     clusterId: KubernetesClusterId = clusterId,
-    roleStr: String = "test-role",
+    roleNameStr: String = "test-role",
     namespace: KubernetesNamespace = KubernetesNamespace(defaultNamespaceName.right.get)
   ): IO[Unit] = {
-    val roleName = KubernetesName.withValidation[RoleName](roleStr, RoleName.apply).right.get
+    val roleName = KubernetesName.withValidation[RoleName](roleNameStr, RoleName.apply).right.get
     val rules = getDefaultRules()
     val role = KubernetesRole(roleName, rules)
 
@@ -144,13 +144,18 @@ final class Test(credPathStr: String,
 
   def callCreateRoleBinding(
     clusterId: KubernetesClusterId = clusterId,
-    roleBindingStr: String = "test-role-binding",
+    roleBindingNameStr: String = "test-role-binding",
+    roleNameStr: String = "test-role",
+    ksaNameStr: String = "test-service-account",
     namespace: KubernetesNamespace = KubernetesNamespace(defaultNamespaceName.right.get)
   ): IO[Unit] = {
     val roleBindingName =
-      KubernetesName.withValidation[RoleBindingName](roleBindingStr, RoleBindingName.apply).right.get
-    val subjects = ???
-    val roleRef = ???
+      KubernetesName.withValidation[RoleBindingName](roleBindingNameStr, RoleBindingName.apply).right.get
+    val subjects = List(
+      KubernetesSubject(KubernetesSubjectKind.ServiceAccount, SubjectKindName(ksaNameStr), namespace.name)
+    )
+    val roleRef =
+      KubernetesRoleRef(ApiGroupName("rbac.authorization.k8s.io"), KubernetesRoleRefKind.Role, RoleName(roleNameStr))
     val roleBinding = KubernetesRoleBinding(roleBindingName, roleRef, subjects)
 
     kubeService.use { k =>
