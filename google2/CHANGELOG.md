@@ -5,24 +5,25 @@ This file documents changes to the `workbench-google2` library, including notes 
 ## 0.10
 Changed:
 - Move `resizeDisk` from `GoogleComputeService` to `GoogleDiskService`
-- Renamed KubernetesSerializableName extension classes
+- Rename KubernetesSerializableName extension classes
 - Add `getDisk`
 - Make `genDiskName` non-empty
 
 Added:
 - Add `GoogleDiskService` and `GoogleDiskInterpreter`
 - Add `{create,delete}Disk` and `listDisks` to `GoogleDiskService`
-- refactor parameters for kubernetes service entity
+- Refactor parameters for Kubernetes service entity
 - Add `BigQuery`
 - Add Generator for `DiskName`
+- Add Kubernetes client APIs for creating service accounts, roles and role bindings
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.10-956a642"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.10-TRAVIS-REPLACE-ME"`
 
 ## 0.9
 Changed: 
 - Fix a bug in `GoogleDataprocService` where region is not set properly
 - A few minor dependency updates 
-- Upgade google pubsub library to latest, which deprecated ProjectTopicName in many APIs
+- Upgrade Google PubSub library to latest, which deprecated ProjectTopicName in many APIs
 
 SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.9-8051635"`
 
