@@ -17,27 +17,37 @@ import org.broadinstitute.dsde.workbench.model.TraceId
 
 trait KubernetesService[F[_]] {
   // namespaces group resources, and allow our list/get/update API calls to be segmented. This can be used on a per-user basis, for example
-  def createNamespace(clusterId: KubernetesClusterId, namespace: KubernetesNamespace): F[Unit]
+  def createNamespace(clusterId: KubernetesClusterId, namespace: KubernetesNamespace)(
+    implicit ev: ApplicativeAsk[F, TraceId]
+  ): F[Unit]
 
   // A Kubernetes service account is an automatically enabled authenticator that uses signed bearer tokens to verify requests.
   // NB: It is distinct from Google service accounts.
   def createServiceAccount(clusterId: KubernetesClusterId,
                            serviceAccount: KubernetesServiceAccount,
-                           namespaceName: KubernetesNamespace): F[Unit]
+                           namespaceName: KubernetesNamespace)(
+    implicit ev: ApplicativeAsk[F, TraceId]
+  ): F[Unit]
 
   // pods represent a set of containers
-  def createPod(clusterId: KubernetesClusterId, pod: KubernetesPod, namespace: KubernetesNamespace): F[Unit]
+  def createPod(clusterId: KubernetesClusterId, pod: KubernetesPod, namespace: KubernetesNamespace)(
+    implicit ev: ApplicativeAsk[F, TraceId]
+  ): F[Unit]
 
   // certain services allow us to expose various containers via a matching selector
-  def createService(clusterId: KubernetesClusterId,
-                    service: KubernetesServiceKind,
-                    namespace: KubernetesNamespace): F[Unit]
+  def createService(clusterId: KubernetesClusterId, service: KubernetesServiceKind, namespace: KubernetesNamespace)(
+    implicit ev: ApplicativeAsk[F, TraceId]
+  ): F[Unit]
 
-  def createRole(clusterId: KubernetesClusterId, role: KubernetesRole, namespace: KubernetesNamespace): F[Unit]
+  def createRole(clusterId: KubernetesClusterId, role: KubernetesRole, namespace: KubernetesNamespace)(
+    implicit ev: ApplicativeAsk[F, TraceId]
+  ): F[Unit]
 
   def createRoleBinding(clusterId: KubernetesClusterId,
                         roleBinding: KubernetesRoleBinding,
-                        namespace: KubernetesNamespace): F[Unit]
+                        namespace: KubernetesNamespace)(
+    implicit ev: ApplicativeAsk[F, TraceId]
+  ): F[Unit]
 }
 
 // This kubernetes service requires a GKEService because it needs to call getCluster
