@@ -110,7 +110,6 @@ class KubernetesInterpreter[F[_]: Async: StructuredLogger: Effect: Timer: Contex
       clusterId,
       client => new CoreV1Api(client), { kubernetesClient =>
         Async[F].delay(
-          // TODO: Handle ApiException to make error message more user-friendly, especially when namespace is NOT FOUND
           kubernetesClient.createNamespacedServiceAccount(namespace.name.value,
                                                           serviceAccount.getJavaSerialization,
                                                           null,
@@ -127,7 +126,6 @@ class KubernetesInterpreter[F[_]: Async: StructuredLogger: Effect: Timer: Contex
       clusterId,
       client => new RbacAuthorizationV1Api(client), { kubernetesClient =>
         Async[F].delay(
-          // TODO: Handle ApiException to make error message more user-friendly, especially when namespace is NOT FOUND
           kubernetesClient.createNamespacedRole(namespace.name.value, role.getJavaSerialization, null, "true", null)
         )
       }
@@ -140,7 +138,6 @@ class KubernetesInterpreter[F[_]: Async: StructuredLogger: Effect: Timer: Contex
       clusterId,
       client => new RbacAuthorizationV1Api(client), { kubernetesClient =>
         Async[F].delay(
-          // TODO: Handle ApiException to make error message more user-friendly, especially when namespace is NOT FOUND
           kubernetesClient.createNamespacedRoleBinding(namespace.name.value,
                                                        roleBinding.getJavaSerialization,
                                                        null,
@@ -199,7 +196,8 @@ class KubernetesInterpreter[F[_]: Async: StructuredLogger: Effect: Timer: Contex
           for {
             kubernetesClient <- getClient(clusterId, fa)
             clientCallResult <- fb(kubernetesClient)
-              .onError { //we aren't handling any errors here, they will be bubbled up, but we want to print a more helpful message that is otherwise obfuscated
+              .onError { // We aren't handling any errors here, they will be bubbled up, but we want to print a more helpful message that is otherwise obfuscated
+                // TODO: e.getResponseBody() doesn't seem to get printed out. Find out why and fix.
                 case e: ApiException => Async[F].delay(StructuredLogger[F].info(e.getResponseBody()))
               }
           } yield clientCallResult
