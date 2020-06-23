@@ -22,7 +22,7 @@ import org.broadinstitute.dsde.workbench.google2.GKEModels._
 import org.broadinstitute.dsde.workbench.google2.KubernetesModels._
 import org.broadinstitute.dsde.workbench.google2.KubernetesSerializableName._
 import org.broadinstitute.dsde.workbench.model.TraceId
-import org.broadinstitute.dsde.workbench.model.google.{GoogleProject, ServiceAccountName}
+import org.broadinstitute.dsde.workbench.model.google.GoogleProject
 import KubernetesConstants._
 
 //TODO: migrate to a unit test
@@ -114,6 +114,54 @@ final class Test(credPathStr: String,
     kubeService.use { k =>
       k.createNamespace(clusterId, namespace)
     }
+
+  def callCreateServiceAccount(
+    clusterId: KubernetesClusterId = clusterId,
+    ksaNameStr: String = "test-service-account",
+    ksaAnnotations: Map[String, String] = Map("ksa" -> "gsa", "foo" -> "bar"),
+    namespace: KubernetesNamespace = KubernetesNamespace(defaultNamespaceName.right.get)
+  ): IO[Unit] = {
+    val ksaName = KubernetesName.withValidation[ServiceAccountName](ksaNameStr, ServiceAccountName.apply).right.get
+    val ksa = KubernetesServiceAccount(ksaName, ksaAnnotations)
+    kubeService.use { k =>
+      k.createServiceAccount(clusterId, ksa, namespace)
+    }
+  }
+
+  def callCreateRole(
+    clusterId: KubernetesClusterId = clusterId,
+    roleNameStr: String = "test-role",
+    namespace: KubernetesNamespace = KubernetesNamespace(defaultNamespaceName.right.get)
+  ): IO[Unit] = {
+    val roleName = KubernetesName.withValidation[RoleName](roleNameStr, RoleName.apply).right.get
+    val rules = getDefaultRules()
+    val role = KubernetesRole(roleName, rules)
+
+    kubeService.use { k =>
+      k.createRole(clusterId, role, namespace)
+    }
+  }
+
+  def callCreateRoleBinding(
+    clusterId: KubernetesClusterId = clusterId,
+    roleBindingNameStr: String = "test-role-binding",
+    roleNameStr: String = "test-role",
+    ksaNameStr: String = "test-service-account",
+    namespace: KubernetesNamespace = KubernetesNamespace(defaultNamespaceName.right.get)
+  ): IO[Unit] = {
+    val roleBindingName =
+      KubernetesName.withValidation[RoleBindingName](roleBindingNameStr, RoleBindingName.apply).right.get
+    val subjects = List(
+      KubernetesSubject(KubernetesSubjectKind.ServiceAccount, SubjectKindName(ksaNameStr), namespace.name)
+    )
+    val roleRef =
+      KubernetesRoleRef(ApiGroupName("rbac.authorization.k8s.io"), KubernetesRoleRefKind.Role, RoleName(roleNameStr))
+    val roleBinding = KubernetesRoleBinding(roleBindingName, roleRef, subjects)
+
+    kubeService.use { k =>
+      k.createRoleBinding(clusterId, roleBinding, namespace)
+    }
+  }
 
   def testGetClient(clusterId: KubernetesClusterId = clusterId): IO[Unit] =
     kubeService.use { k =>
@@ -229,4 +277,20 @@ object KubernetesConstants {
           .setMinNodeCount(config.autoscalingConfig.minimumNodes)
           .setMaxNodeCount(config.autoscalingConfig.maximumNodes)
       )
+
+  def getDefaultRules(): List[KubernetesPolicyRule] = {
+    // Rule 1 allows all
+    val apiGroups1 = Set(KubernetesApiGroup(ApiGroupName("*")))
+    val resources1 = Set(KubernetesResource(ResourceName("*")))
+    val verbs1 = Set(KubernetesVerb(VerbName("*")))
+    val rule1 = KubernetesPolicyRule(apiGroups1, resources1, verbs1)
+
+    // Rule 2 is more specific
+    val apiGroups2 = Set(KubernetesApiGroup(ApiGroupName("extensions")), KubernetesApiGroup(ApiGroupName("app")))
+    val resources2 = Set(KubernetesResource(ResourceName("jobs")), KubernetesResource(ResourceName("ingresses")))
+    val verbs2 = Set(KubernetesVerb(VerbName("get")), KubernetesVerb(VerbName("update")))
+    val rule2 = KubernetesPolicyRule(apiGroups2, resources2, verbs2)
+
+    List(rule1, rule2)
+  }
 }

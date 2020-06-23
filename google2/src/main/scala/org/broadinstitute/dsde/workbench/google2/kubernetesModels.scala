@@ -10,18 +10,24 @@ import io.kubernetes.client.models.{
   V1ObjectMetaBuilder,
   V1Pod,
   V1PodSpec,
+  V1PolicyRule,
+  V1Role,
+  V1RoleBinding,
+  V1RoleRef,
   V1Service,
+  V1ServiceAccount,
   V1ServicePort,
-  V1ServiceSpec
+  V1ServiceSpec,
+  V1Subject
 }
 import org.apache.commons.codec.binary.Base64
 import org.broadinstitute.dsde.workbench.google2.KubernetesSerializableName._
 import org.broadinstitute.dsde.workbench.model.WorkbenchException
-import org.broadinstitute.dsde.workbench.model.google.{GoogleProject, ServiceAccountName}
+import org.broadinstitute.dsde.workbench.model.google.GoogleProject
 import cats.implicits._
 import io.kubernetes.client.custom.IntOrString
 
-// Common kubernetes models //
+/** Common Kubernetes models */
 final case class KubernetesClusterNotFoundException(message: String) extends WorkbenchException
 final case class KubernetesInvalidNameException(message: String) extends WorkbenchException
 
@@ -112,9 +118,17 @@ object KubernetesSerializableName {
   //this nesting of NamespaceName is necessary to prevent duplicating the code achieved by KubernetesSerializableName and KubernetesSerializable
   //namespaces also have criteria other than their name
   final case class NamespaceName(value: String) extends KubernetesSerializableName
+  final case class ServiceAccountName(value: String) extends KubernetesSerializableName
   final case class ServiceName(value: String) extends KubernetesSerializableName
   final case class ContainerName(value: String) extends KubernetesSerializableName
   final case class PodName(value: String) extends KubernetesSerializableName
+
+  final case class ApiGroupName(value: String) extends KubernetesSerializableName
+  final case class ResourceName(value: String) extends KubernetesSerializableName
+  final case class VerbName(value: String) extends KubernetesSerializableName
+  final case class RoleName(value: String) extends KubernetesSerializableName
+  final case class SubjectKindName(value: String) extends KubernetesSerializableName
+  final case class RoleBindingName(value: String) extends KubernetesSerializableName
 }
 
 trait JavaSerializable[A, B] {
@@ -138,8 +152,13 @@ object JavaSerializableInstances {
     metadata
   }
 
+  /** Serializable name objects */
   implicit val kubernetesNamespaceNameSerializable = new JavaSerializable[NamespaceName, V1ObjectMeta] {
     def getJavaSerialization(name: NamespaceName): V1ObjectMeta = getNameSerialization(name)
+  }
+
+  implicit val kubernetesServiceAccountNameSerializable = new JavaSerializable[ServiceAccountName, V1ObjectMeta] {
+    def getJavaSerialization(name: ServiceAccountName): V1ObjectMeta = getNameSerialization(name)
   }
 
   implicit val kubernetesPodNameSerializable = new JavaSerializable[PodName, V1ObjectMeta] {
@@ -154,11 +173,45 @@ object JavaSerializableInstances {
     def getJavaSerialization(name: ServiceName): V1ObjectMeta = getNameSerialization(name)
   }
 
+  implicit val kubernetesApiGroupNameSerializable = new JavaSerializable[ApiGroupName, V1ObjectMeta] {
+    def getJavaSerialization(name: ApiGroupName): V1ObjectMeta = getNameSerialization(name)
+  }
+
+  implicit val kubernetesResourceNameSerializable = new JavaSerializable[ResourceName, V1ObjectMeta] {
+    def getJavaSerialization(name: ResourceName): V1ObjectMeta = getNameSerialization(name)
+  }
+
+  implicit val kubernetesVerbNameSerializable = new JavaSerializable[VerbName, V1ObjectMeta] {
+    def getJavaSerialization(name: VerbName): V1ObjectMeta = getNameSerialization(name)
+  }
+
+  implicit val kubernetesRoleNameSerializable = new JavaSerializable[RoleName, V1ObjectMeta] {
+    def getJavaSerialization(name: RoleName): V1ObjectMeta = getNameSerialization(name)
+  }
+
+  implicit val kubernetesSubjectKindNameSerializable = new JavaSerializable[SubjectKindName, V1ObjectMeta] {
+    def getJavaSerialization(name: SubjectKindName): V1ObjectMeta = getNameSerialization(name)
+  }
+
+  implicit val kubernetesRoleBindingNameSerializable = new JavaSerializable[RoleBindingName, V1ObjectMeta] {
+    def getJavaSerialization(name: RoleBindingName): V1ObjectMeta = getNameSerialization(name)
+  }
+
+  /** Serializable container objects corresponding to the names above */
   implicit val kubernetesNamespaceSerializable = new JavaSerializable[KubernetesNamespace, V1Namespace] {
     def getJavaSerialization(kubernetesName: KubernetesNamespace): V1Namespace = {
       val v1Namespace = new V1Namespace()
       v1Namespace.metadata(kubernetesName.name.getJavaSerialization)
       v1Namespace
+    }
+  }
+
+  implicit val kubernetesServiceAccountSerializable = new JavaSerializable[KubernetesServiceAccount, V1ServiceAccount] {
+    def getJavaSerialization(sa: KubernetesServiceAccount): V1ServiceAccount = {
+      val metadata = sa.name.getJavaSerialization
+      metadata.annotations(sa.annotations.asJava)
+
+      new V1ServiceAccount().metadata(metadata)
     }
   }
 
@@ -241,6 +294,45 @@ object JavaSerializableInstances {
       v1Service
     }
   }
+
+  implicit val kubernetesPolicyRuleSerializable = new JavaSerializable[KubernetesPolicyRule, V1PolicyRule] {
+    def getJavaSerialization(policyRule: KubernetesPolicyRule): V1PolicyRule =
+      new V1PolicyRule()
+        .apiGroups(policyRule.apiGroups.toList.map(_.name).map(_.value).asJava)
+        .resources(policyRule.resources.toList.map(_.name).map(_.value).asJava)
+        .verbs(policyRule.verbs.toList.map(_.name).map(_.value).asJava)
+  }
+
+  implicit val kubernetesRoleSerializable = new JavaSerializable[KubernetesRole, V1Role] {
+    def getJavaSerialization(role: KubernetesRole): V1Role =
+      new V1Role()
+        .metadata(role.name.getJavaSerialization)
+        .rules(role.rules.map(_.getJavaSerialization).asJava)
+  }
+
+  implicit val kubernetesSubjectSerializable = new JavaSerializable[KubernetesSubject, V1Subject] {
+    def getJavaSerialization(subject: KubernetesSubject): V1Subject =
+      new V1Subject()
+        .kind(subject.kind.toString)
+        .name(subject.kindName.value)
+        .namespace(subject.namespaceName.value)
+  }
+
+  implicit val kubernetesRoleRefSerializable = new JavaSerializable[KubernetesRoleRef, V1RoleRef] {
+    def getJavaSerialization(roleRef: KubernetesRoleRef): V1RoleRef =
+      new V1RoleRef()
+        .apiGroup(roleRef.apiGroupName.value)
+        .kind(roleRef.roleRefKind.toString)
+        .name(roleRef.roleName.value)
+  }
+
+  implicit val kubernetesRoleBindingSerializable = new JavaSerializable[KubernetesRoleBinding, V1RoleBinding] {
+    def getJavaSerialization(roleBinding: KubernetesRoleBinding): V1RoleBinding =
+      new V1RoleBinding()
+        .metadata(roleBinding.name.getJavaSerialization)
+        .subjects(roleBinding.subjects.map(_.getJavaSerialization).asJava)
+        .roleRef(roleBinding.roleRef.getJavaSerialization)
+  }
 }
 
 final case class JavaSerializableOps[A, B](a: A)(implicit ev: JavaSerializable[A, B]) {
@@ -254,8 +346,8 @@ object JavaSerializableSyntax {
 
 // Models for the kubernetes client not related to GKE
 object KubernetesModels {
-
   final case class KubernetesNamespace(name: NamespaceName)
+  final case class KubernetesServiceAccount(name: ServiceAccountName, annotations: Map[String, String])
 
   //consider using a replica set if you would like multiple autoscaling pods https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.12/#replicaset-v1-apps
   final case class KubernetesPod(name: PodName, containers: Set[KubernetesContainer], selector: KubernetesSelector)
@@ -325,4 +417,30 @@ object KubernetesModels {
     val base64Cert = Either.catchNonFatal(Base64.decodeBase64(value))
   }
 
+  final case class KubernetesApiGroup(name: ApiGroupName)
+  final case class KubernetesResource(name: ResourceName)
+  final case class KubernetesVerb(name: VerbName)
+  final case class KubernetesPolicyRule(apiGroups: Set[KubernetesApiGroup],
+                                        resources: Set[KubernetesResource],
+                                        verbs: Set[KubernetesVerb])
+  final case class KubernetesRole(name: RoleName, rules: List[KubernetesPolicyRule])
+
+  sealed trait KubernetesSubjectKind extends Product with Serializable
+  object KubernetesSubjectKind {
+    case object User extends KubernetesSubjectKind
+    case object Group extends KubernetesSubjectKind
+    case object ServiceAccount extends KubernetesSubjectKind
+  }
+  sealed trait KubernetesRoleRefKind extends Product with Serializable
+  object KubernetesRoleRefKind {
+    case object Role extends KubernetesRoleRefKind
+    case object ClusterRole extends KubernetesRoleRefKind
+  }
+  final case class KubernetesSubject(kind: KubernetesSubjectKind,
+                                     kindName: SubjectKindName,
+                                     namespaceName: NamespaceName)
+  final case class KubernetesRoleRef(apiGroupName: ApiGroupName, roleRefKind: KubernetesRoleRefKind, roleName: RoleName)
+  final case class KubernetesRoleBinding(name: RoleBindingName,
+                                         roleRef: KubernetesRoleRef,
+                                         subjects: List[KubernetesSubject])
 }
