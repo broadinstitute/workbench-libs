@@ -13,8 +13,8 @@ import cats.mtl.ApplicativeAsk
 import com.google.auth.oauth2.{AccessToken, GoogleCredentials}
 import com.google.common.cache.{CacheBuilder, CacheLoader}
 import com.google.container.v1.Cluster
-import io.kubernetes.client.{ApiClient, ApiException}
-import io.kubernetes.client.apis.CoreV1Api
+import io.kubernetes.client.ApiClient
+import io.kubernetes.client.apis.{CoreV1Api, RbacAuthorizationV1Api}
 import io.kubernetes.client.util.Config
 import org.broadinstitute.dsde.workbench.google2.GKEModels.KubernetesClusterId
 import org.broadinstitute.dsde.workbench.google2.KubernetesModels._
@@ -38,7 +38,7 @@ class KubernetesInterpreter[F[_]: Async: StructuredLogger: Effect: Timer: Contex
   val cache = CacheBuilder
     .newBuilder()
     // We expect calls to be batched, such as when a user's environment within a cluster is created/deleted/stopped.
-    // This may need configuration
+    // TODO: Unhardcode expiration time
     .expireAfterWrite(2, TimeUnit.HOURS)
     .build(
       new CacheLoader[KubernetesClusterId, ApiClient] {
@@ -67,41 +67,136 @@ class KubernetesInterpreter[F[_]: Async: StructuredLogger: Effect: Timer: Contex
     )
 
   // https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.12/#podspec-v1-core
-  override def createPod(clusterId: KubernetesClusterId, pod: KubernetesPod, namespace: KubernetesNamespace): F[Unit] =
-    blockingClientProvider(clusterId, { kubernetesClient =>
-      Async[F].delay(
-        kubernetesClient.createNamespacedPod(namespace.name.value, pod.getJavaSerialization, null, null, null)
+  override def createPod(clusterId: KubernetesClusterId, pod: KubernetesPod, namespace: KubernetesNamespace)(
+    implicit ev: ApplicativeAsk[F, TraceId]
+  ): F[Unit] =
+    for {
+      traceId <- ev.ask
+      client <- blockingF(getClient(clusterId, new CoreV1Api(_)))
+      call = blockingF(
+        Async[F].delay(
+          client.createNamespacedPod(namespace.name.value, pod.getJavaSerialization, null, "true", null)
+        )
       )
-    })
+      _ <- withLogging(
+        call,
+        Some(traceId),
+        s"io.kubernetes.client.apis.CoreV1Api.createNamespacedPod(${namespace.name.value}, ${pod.name.value}, null, true, null)"
+      )
+    } yield ()
 
-  //why we use a service over a deployment https://matthewpalmer.net/kubernetes-app-developer/articles/service-kubernetes-example-tutorial.html
-  //services can be applied to pods/containers, while deployments are for pre-creating pods/containers
+  // Why we use a service over a deployment: https://matthewpalmer.net/kubernetes-app-developer/articles/service-kubernetes-example-tutorial.html
+  // Services can be applied to pods/containers, while deployments are for pre-creating pods/containers.
   override def createService(clusterId: KubernetesClusterId,
                              service: KubernetesServiceKind,
-                             namespace: KubernetesNamespace): F[Unit] =
-    blockingClientProvider(
-      clusterId, { kubernetesClient =>
+                             namespace: KubernetesNamespace)(
+    implicit ev: ApplicativeAsk[F, TraceId]
+  ): F[Unit] =
+    for {
+      traceId <- ev.ask
+      client <- blockingF(getClient(clusterId, new CoreV1Api(_)))
+      call = blockingF(
         Async[F].delay(
-          kubernetesClient.createNamespacedService(namespace.name.value, service.getJavaSerialization, null, null, null)
+          client.createNamespacedService(namespace.name.value, service.getJavaSerialization, null, "true", null)
         )
-      }
-    )
+      )
+      _ <- withLogging(
+        call,
+        Some(traceId),
+        s"io.kubernetes.client.apis.CoreV1Api.createNamespacedService(${namespace.name.value}, ${service.serviceName.value}, null, true, null)"
+      )
+    } yield ()
 
-  override def createNamespace(clusterId: KubernetesClusterId, namespace: KubernetesNamespace): F[Unit] =
-    blockingClientProvider(clusterId, { kubernetesClient =>
-      Async[F].delay(kubernetesClient.createNamespace(namespace.getJavaSerialization, null, null, null))
-    })
+  override def createNamespace(clusterId: KubernetesClusterId, namespace: KubernetesNamespace)(
+    implicit ev: ApplicativeAsk[F, TraceId]
+  ): F[Unit] =
+    for {
+      traceId <- ev.ask
+      client <- blockingF(getClient(clusterId, new CoreV1Api(_)))
+      call = blockingF(
+        Async[F].delay(
+          client.createNamespace(namespace.getJavaSerialization, null, "true", null)
+        )
+      )
+      _ <- withLogging(
+        call,
+        Some(traceId),
+        s"io.kubernetes.client.apis.CoreV1Api.createNamespace(${namespace.getJavaSerialization}, null, true, null)"
+      )
+    } yield ()
+
+  override def createServiceAccount(clusterId: KubernetesClusterId,
+                                    serviceAccount: KubernetesServiceAccount,
+                                    namespace: KubernetesNamespace)(
+    implicit ev: ApplicativeAsk[F, TraceId]
+  ): F[Unit] =
+    for {
+      traceId <- ev.ask
+      client <- blockingF(getClient(clusterId, new CoreV1Api(_)))
+      call = blockingF(
+        Async[F].delay(
+          client.createNamespacedServiceAccount(namespace.name.value,
+                                                serviceAccount.getJavaSerialization,
+                                                null,
+                                                "true",
+                                                null)
+        )
+      )
+      _ <- withLogging(
+        call,
+        Some(traceId),
+        s"io.kubernetes.client.apis.CoreV1Api.createNamespacedServiceAccount(${namespace.name.value}, ${serviceAccount.name.value}, null, true, null)"
+      )
+    } yield ()
+
+  override def createRole(clusterId: KubernetesClusterId, role: KubernetesRole, namespace: KubernetesNamespace)(
+    implicit ev: ApplicativeAsk[F, TraceId]
+  ): F[Unit] =
+    for {
+      traceId <- ev.ask
+      client <- blockingF(getClient(clusterId, new RbacAuthorizationV1Api(_)))
+      call = blockingF(
+        Async[F].delay(
+          client.createNamespacedRole(namespace.name.value, role.getJavaSerialization, null, "true", null)
+        )
+      )
+      _ <- withLogging(
+        call,
+        Some(traceId),
+        s"io.kubernetes.client.apis.RbacAuthorizationV1Api.createNamespacedRole(${namespace.name.value}, ${role.name.value}, null, true, null)"
+      )
+    } yield ()
+
+  override def createRoleBinding(clusterId: KubernetesClusterId,
+                                 roleBinding: KubernetesRoleBinding,
+                                 namespace: KubernetesNamespace)(
+    implicit ev: ApplicativeAsk[F, TraceId]
+  ): F[Unit] =
+    for {
+      traceId <- ev.ask
+      client <- blockingF(getClient(clusterId, new RbacAuthorizationV1Api(_)))
+      call = blockingF(
+        Async[F].delay(
+          client.createNamespacedRoleBinding(namespace.name.value, roleBinding.getJavaSerialization, null, "true", null)
+        )
+      )
+      _ <- withLogging(
+        call,
+        Some(traceId),
+        s"io.kubernetes.client.apis.RbacAuthorizationV1Api.createNamespacedRoleBinding(${namespace.name.value}, ${roleBinding.name.value}, null, true, null)"
+      )
+    } yield ()
 
   //DO NOT QUERY THE CACHE DIRECTLY
   //There is a wrapper method that is necessary to ensure the token is refreshed
   //we never make the entry stale, because we always need to refresh the token (see comment above getToken)
   //if we did stale the entry we would have to unnecessarily re-do the google call
-  private def getClient(clusterId: KubernetesClusterId): F[CoreV1Api] =
+  private def getClient[A](clusterId: KubernetesClusterId, fa: ApiClient => A): F[A] =
     for {
       client <- Async[F].delay(cache.get(clusterId))
-      token <- getToken
+      token <- getToken()
       _ <- Async[F].delay(client.setApiKey(token.getTokenValue))
-    } yield new CoreV1Api(client)
+    } yield fa(client)
 
   //we always update the token, even for existing clients, so we don't have to maintain a reference to the last time each client was updated
   //unfortunately, the kubernetes client does not implement a gcp authenticator, so we must do this ourselves.
@@ -130,22 +225,9 @@ class KubernetesInterpreter[F[_]: Async: StructuredLogger: Effect: Timer: Contex
             .setSslCaCert(certStream)
         )
       }
-    } yield (apiClient)
+    } yield (apiClient) // appending here a .setDebugging(true) prints out useful API request/response info for development
   }
 
-  //TODO: retry once we know what kubernetes codes are applicable
-  private def blockingClientProvider[A](clusterId: KubernetesClusterId, fa: CoreV1Api => F[A]): F[A] =
-    blockerBound.withPermit(
-      blocker
-        .blockOn(
-          for {
-            kubernetesClient <- getClient(clusterId)
-            clientCallResult <- fa(kubernetesClient)
-              .onError { //we aren't handling any errors here, they will be bubbled up, but we want to print a more helpful message that is otherwise obfuscated
-                case e: ApiException => Async[F].delay(StructuredLogger[F].info(e.getResponseBody()))
-              }
-          } yield clientCallResult
-        )
-    )
-
+  // TODO: Retry once we know what Kubernetes error codes are applicable
+  private def blockingF[A](fa: F[A]): F[A] = blockerBound.withPermit(blocker.blockOn(fa))
 }
