@@ -68,19 +68,23 @@ class KubernetesInterpreter[F[_]: Async: StructuredLogger: Effect: Timer: Contex
 
   // https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.12/#podspec-v1-core
   override def createPod(clusterId: KubernetesClusterId, pod: KubernetesPod, namespace: KubernetesNamespace): F[Unit] =
-    blockingClientProvider(clusterId, { kubernetesClient =>
-      Async[F].delay(
-        kubernetesClient.createNamespacedPod(namespace.name.value, pod.getJavaSerialization, null, null, null)
-      )
-    })
+    blockingClientProvider[CoreV1Api, Unit](
+      clusterId,
+      client => new CoreV1Api(client), { kubernetesClient =>
+        Async[F].delay(
+          kubernetesClient.createNamespacedPod(namespace.name.value, pod.getJavaSerialization, null, null, null)
+        )
+      }
+    )
 
   //why we use a service over a deployment https://matthewpalmer.net/kubernetes-app-developer/articles/service-kubernetes-example-tutorial.html
   //services can be applied to pods/containers, while deployments are for pre-creating pods/containers
   override def createService(clusterId: KubernetesClusterId,
                              service: KubernetesServiceKind,
                              namespace: KubernetesNamespace): F[Unit] =
-    blockingClientProvider(
-      clusterId, { kubernetesClient =>
+    blockingClientProvider[CoreV1Api, Unit](
+      clusterId,
+      client => new CoreV1Api(client), { kubernetesClient =>
         Async[F].delay(
           kubernetesClient.createNamespacedService(namespace.name.value, service.getJavaSerialization, null, null, null)
         )
@@ -88,15 +92,19 @@ class KubernetesInterpreter[F[_]: Async: StructuredLogger: Effect: Timer: Contex
     )
 
   override def createNamespace(clusterId: KubernetesClusterId, namespace: KubernetesNamespace): F[Unit] =
-    blockingClientProvider(clusterId, { kubernetesClient =>
-      Async[F].delay(kubernetesClient.createNamespace(namespace.getJavaSerialization, null, null, null))
-    })
+    blockingClientProvider[CoreV1Api, Unit](
+      clusterId,
+      client => new CoreV1Api(client), { kubernetesClient =>
+        Async[F].delay(kubernetesClient.createNamespace(namespace.getJavaSerialization, null, null, null))
+      }
+    )
 
   override def createServiceAccount(clusterId: KubernetesClusterId,
                                     serviceAccount: KubernetesServiceAccount,
                                     namespace: KubernetesNamespace): F[Unit] =
-    blockingClientProvider(
-      clusterId, { kubernetesClient =>
+    blockingClientProvider[CoreV1Api, Unit](
+      clusterId,
+      client => new CoreV1Api(client), { kubernetesClient =>
         Async[F].delay(
           // TODO: Handle ApiException to make error message more user-friendly, especially when namespace is NOT FOUND
           kubernetesClient.createNamespacedServiceAccount(namespace.name.value,
@@ -110,68 +118,23 @@ class KubernetesInterpreter[F[_]: Async: StructuredLogger: Effect: Timer: Contex
 
   override def createRole(clusterId: KubernetesClusterId,
                           role: KubernetesRole,
-                          namespace: KubernetesNamespace): F[Unit] = {
-    // TODO Factor out
-    def getClient(clusterId: KubernetesClusterId): F[RbacAuthorizationV1Api] =
-      for {
-        client <- Async[F].delay(cache.get(clusterId))
-        token <- getToken()
-        _ <- Async[F].delay(client.setApiKey(token.getTokenValue))
-      } yield new RbacAuthorizationV1Api(client)
-
-    // TODO Factor out
-    def blockingClientProvider[A](clusterId: KubernetesClusterId, fa: RbacAuthorizationV1Api => F[A]): F[A] =
-      blockerBound.withPermit(
-        blocker
-          .blockOn(
-            for {
-              kubernetesClient <- getClient(clusterId)
-              clientCallResult <- fa(kubernetesClient)
-                .onError { //we aren't handling any errors here, they will be bubbled up, but we want to print a more helpful message that is otherwise obfuscated
-                  case e: ApiException => Async[F].delay(StructuredLogger[F].info(e.getResponseBody()))
-                }
-            } yield clientCallResult
-          )
-      )
-
-    blockingClientProvider(
-      clusterId, { kubernetesClient =>
+                          namespace: KubernetesNamespace): F[Unit] =
+    blockingClientProvider[RbacAuthorizationV1Api, Unit](
+      clusterId,
+      client => new RbacAuthorizationV1Api(client), { kubernetesClient =>
         Async[F].delay(
           // TODO: Handle ApiException to make error message more user-friendly, especially when namespace is NOT FOUND
           kubernetesClient.createNamespacedRole(namespace.name.value, role.getJavaSerialization, null, null, null)
         )
       }
     )
-  }
 
   override def createRoleBinding(clusterId: KubernetesClusterId,
                                  roleBinding: KubernetesRoleBinding,
-                                 namespace: KubernetesNamespace): F[Unit] = {
-    // TODO Factor out
-    def getClient(clusterId: KubernetesClusterId): F[RbacAuthorizationV1Api] =
-      for {
-        client <- Async[F].delay(cache.get(clusterId))
-        token <- getToken()
-        _ <- Async[F].delay(client.setApiKey(token.getTokenValue))
-      } yield new RbacAuthorizationV1Api(client)
-
-    // TODO Factor out
-    def blockingClientProvider[A](clusterId: KubernetesClusterId, fa: RbacAuthorizationV1Api => F[A]): F[A] =
-      blockerBound.withPermit(
-        blocker
-          .blockOn(
-            for {
-              kubernetesClient <- getClient(clusterId)
-              clientCallResult <- fa(kubernetesClient)
-                .onError { //we aren't handling any errors here, they will be bubbled up, but we want to print a more helpful message that is otherwise obfuscated
-                  case e: ApiException => Async[F].delay(StructuredLogger[F].info(e.getResponseBody()))
-                }
-            } yield clientCallResult
-          )
-      )
-
-    blockingClientProvider(
-      clusterId, { kubernetesClient =>
+                                 namespace: KubernetesNamespace): F[Unit] =
+    blockingClientProvider[RbacAuthorizationV1Api, Unit](
+      clusterId,
+      client => new RbacAuthorizationV1Api(client), { kubernetesClient =>
         Async[F].delay(
           // TODO: Handle ApiException to make error message more user-friendly, especially when namespace is NOT FOUND
           kubernetesClient.createNamespacedRoleBinding(namespace.name.value,
@@ -182,18 +145,17 @@ class KubernetesInterpreter[F[_]: Async: StructuredLogger: Effect: Timer: Contex
         )
       }
     )
-  }
 
   //DO NOT QUERY THE CACHE DIRECTLY
   //There is a wrapper method that is necessary to ensure the token is refreshed
   //we never make the entry stale, because we always need to refresh the token (see comment above getToken)
   //if we did stale the entry we would have to unnecessarily re-do the google call
-  private def getClient(clusterId: KubernetesClusterId): F[CoreV1Api] =
+  private def getClient[A](clusterId: KubernetesClusterId, fa: ApiClient => A): F[A] =
     for {
       client <- Async[F].delay(cache.get(clusterId))
       token <- getToken()
       _ <- Async[F].delay(client.setApiKey(token.getTokenValue))
-    } yield new CoreV1Api(client)
+    } yield fa(client)
 
   //we always update the token, even for existing clients, so we don't have to maintain a reference to the last time each client was updated
   //unfortunately, the kubernetes client does not implement a gcp authenticator, so we must do this ourselves.
@@ -225,14 +187,14 @@ class KubernetesInterpreter[F[_]: Async: StructuredLogger: Effect: Timer: Contex
     } yield (apiClient)
   }
 
-  //TODO: retry once we know what kubernetes codes are applicable
-  private def blockingClientProvider[A](clusterId: KubernetesClusterId, fa: CoreV1Api => F[A]): F[A] =
+  //TODO: retry once we know what Kubernetes error codes are applicable
+  private def blockingClientProvider[A, B](clusterId: KubernetesClusterId, fa: ApiClient => A, fb: A => F[B]): F[B] =
     blockerBound.withPermit(
       blocker
         .blockOn(
           for {
-            kubernetesClient <- getClient(clusterId)
-            clientCallResult <- fa(kubernetesClient)
+            kubernetesClient <- getClient(clusterId, fa)
+            clientCallResult <- fb(kubernetesClient)
               .onError { //we aren't handling any errors here, they will be bubbled up, but we want to print a more helpful message that is otherwise obfuscated
                 case e: ApiException => Async[F].delay(StructuredLogger[F].info(e.getResponseBody()))
               }
