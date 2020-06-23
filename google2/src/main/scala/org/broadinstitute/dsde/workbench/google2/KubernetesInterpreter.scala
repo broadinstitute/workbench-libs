@@ -59,7 +59,7 @@ class KubernetesInterpreter[F[_]: Async: StructuredLogger: Effect: Timer: Contex
               cluster,
               token
             )
-          } yield client.setDebugging(true) // TODO Optionally set debug flag
+          } yield client
 
           res.toIO.unsafeRunSync()
         }
@@ -72,7 +72,7 @@ class KubernetesInterpreter[F[_]: Async: StructuredLogger: Effect: Timer: Contex
       clusterId,
       client => new CoreV1Api(client), { kubernetesClient =>
         Async[F].delay(
-          kubernetesClient.createNamespacedPod(namespace.name.value, pod.getJavaSerialization, null, null, null)
+          kubernetesClient.createNamespacedPod(namespace.name.value, pod.getJavaSerialization, null, "true", null)
         )
       }
     )
@@ -86,7 +86,11 @@ class KubernetesInterpreter[F[_]: Async: StructuredLogger: Effect: Timer: Contex
       clusterId,
       client => new CoreV1Api(client), { kubernetesClient =>
         Async[F].delay(
-          kubernetesClient.createNamespacedService(namespace.name.value, service.getJavaSerialization, null, null, null)
+          kubernetesClient.createNamespacedService(namespace.name.value,
+                                                   service.getJavaSerialization,
+                                                   null,
+                                                   "true",
+                                                   null)
         )
       }
     )
@@ -95,7 +99,7 @@ class KubernetesInterpreter[F[_]: Async: StructuredLogger: Effect: Timer: Contex
     blockingClientProvider[CoreV1Api, Unit](
       clusterId,
       client => new CoreV1Api(client), { kubernetesClient =>
-        Async[F].delay(kubernetesClient.createNamespace(namespace.getJavaSerialization, null, null, null))
+        Async[F].delay(kubernetesClient.createNamespace(namespace.getJavaSerialization, null, "true", null))
       }
     )
 
@@ -110,7 +114,7 @@ class KubernetesInterpreter[F[_]: Async: StructuredLogger: Effect: Timer: Contex
           kubernetesClient.createNamespacedServiceAccount(namespace.name.value,
                                                           serviceAccount.getJavaSerialization,
                                                           null,
-                                                          null,
+                                                          "true",
                                                           null)
         )
       }
@@ -124,7 +128,7 @@ class KubernetesInterpreter[F[_]: Async: StructuredLogger: Effect: Timer: Contex
       client => new RbacAuthorizationV1Api(client), { kubernetesClient =>
         Async[F].delay(
           // TODO: Handle ApiException to make error message more user-friendly, especially when namespace is NOT FOUND
-          kubernetesClient.createNamespacedRole(namespace.name.value, role.getJavaSerialization, null, null, null)
+          kubernetesClient.createNamespacedRole(namespace.name.value, role.getJavaSerialization, null, "true", null)
         )
       }
     )
@@ -140,7 +144,7 @@ class KubernetesInterpreter[F[_]: Async: StructuredLogger: Effect: Timer: Contex
           kubernetesClient.createNamespacedRoleBinding(namespace.name.value,
                                                        roleBinding.getJavaSerialization,
                                                        null,
-                                                       null,
+                                                       "true",
                                                        null)
         )
       }
@@ -187,7 +191,7 @@ class KubernetesInterpreter[F[_]: Async: StructuredLogger: Effect: Timer: Contex
     } yield (apiClient)
   }
 
-  //TODO: retry once we know what Kubernetes error codes are applicable
+  // TODO: retry once we know what Kubernetes error codes are applicable
   private def blockingClientProvider[A, B](clusterId: KubernetesClusterId, fa: ApiClient => A, fb: A => F[B]): F[B] =
     blockerBound.withPermit(
       blocker
