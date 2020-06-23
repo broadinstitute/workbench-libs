@@ -280,15 +280,15 @@ object KubernetesConstants {
 
   def getDefaultRules(): List[KubernetesPolicyRule] = {
     // Rule 1 allows all
-    val apiGroups1 = List(KubernetesApiGroup(ApiGroupName("*")))
-    val resources1 = List(KubernetesResource(ResourceName("*")))
-    val verbs1 = List(KubernetesVerb(VerbName("*")))
+    val apiGroups1 = Set(KubernetesApiGroup(ApiGroupName("*")))
+    val resources1 = Set(KubernetesResource(ResourceName("*")))
+    val verbs1 = Set(KubernetesVerb(VerbName("*")))
     val rule1 = KubernetesPolicyRule(apiGroups1, resources1, verbs1)
 
     // Rule 2 is more specific
-    val apiGroups2 = List(KubernetesApiGroup(ApiGroupName("extensions")), KubernetesApiGroup(ApiGroupName("app")))
-    val resources2 = List(KubernetesResource(ResourceName("jobs")), KubernetesResource(ResourceName("ingresses")))
-    val verbs2 = List(KubernetesVerb(VerbName("get")), KubernetesVerb(VerbName("update")))
+    val apiGroups2 = Set(KubernetesApiGroup(ApiGroupName("extensions")), KubernetesApiGroup(ApiGroupName("app")))
+    val resources2 = Set(KubernetesResource(ResourceName("jobs")), KubernetesResource(ResourceName("ingresses")))
+    val verbs2 = Set(KubernetesVerb(VerbName("get")), KubernetesVerb(VerbName("update")))
     val rule2 = KubernetesPolicyRule(apiGroups2, resources2, verbs2)
 
     List(rule1, rule2)

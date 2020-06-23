@@ -298,9 +298,9 @@ object JavaSerializableInstances {
   implicit val kubernetesPolicyRuleSerializable = new JavaSerializable[KubernetesPolicyRule, V1PolicyRule] {
     def getJavaSerialization(policyRule: KubernetesPolicyRule): V1PolicyRule =
       new V1PolicyRule()
-        .apiGroups(policyRule.apiGroups.map(_.name).map(_.value).asJava)
-        .resources(policyRule.resources.map(_.name).map(_.value).asJava)
-        .verbs(policyRule.verbs.map(_.name).map(_.value).asJava)
+        .apiGroups(policyRule.apiGroups.toList.map(_.name).map(_.value).asJava)
+        .resources(policyRule.resources.toList.map(_.name).map(_.value).asJava)
+        .verbs(policyRule.verbs.toList.map(_.name).map(_.value).asJava)
   }
 
   implicit val kubernetesRoleSerializable = new JavaSerializable[KubernetesRole, V1Role] {
@@ -420,9 +420,9 @@ object KubernetesModels {
   final case class KubernetesApiGroup(name: ApiGroupName)
   final case class KubernetesResource(name: ResourceName)
   final case class KubernetesVerb(name: VerbName)
-  final case class KubernetesPolicyRule(apiGroups: List[KubernetesApiGroup],
-                                        resources: List[KubernetesResource],
-                                        verbs: List[KubernetesVerb])
+  final case class KubernetesPolicyRule(apiGroups: Set[KubernetesApiGroup],
+                                        resources: Set[KubernetesResource],
+                                        verbs: Set[KubernetesVerb])
   final case class KubernetesRole(name: RoleName, rules: List[KubernetesPolicyRule])
 
   sealed trait KubernetesSubjectKind extends Product with Serializable
