@@ -185,7 +185,7 @@ class KubernetesInterpreter[F[_]: Async: StructuredLogger: Effect: Timer: Contex
             .setSslCaCert(certStream)
         )
       }
-    } yield (apiClient)
+    } yield (apiClient) // appending here a .setDebugging(true) prints out useful API request/response info for development
   }
 
   // TODO: retry once we know what Kubernetes error codes are applicable
@@ -196,9 +196,10 @@ class KubernetesInterpreter[F[_]: Async: StructuredLogger: Effect: Timer: Contex
           for {
             kubernetesClient <- getClient(clusterId, fa)
             clientCallResult <- fb(kubernetesClient)
-              .onError { // We aren't handling any errors here, they will be bubbled up, but we want to print a more helpful message that is otherwise obfuscated
-                // TODO: e.getResponseBody() doesn't seem to get printed out. Find out why and fix.
-                case e: ApiException => Async[F].delay(StructuredLogger[F].info(e.getResponseBody()))
+              .onError {
+                // We aren't handling any errors here. They will be bubbled up. We do however want to
+                // print a more helpful message that is otherwise obfuscated.
+                case e: ApiException => StructuredLogger[F].info(e.getResponseBody())
               }
           } yield clientCallResult
         )
