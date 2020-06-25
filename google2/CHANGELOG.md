@@ -11,6 +11,8 @@ Changed:
 - Bump `http4s` version to `0.21.5`, `scalatest` to `3.1.2`, `fs2-io` to `2.4.2`
 - Add `autoDeleteDiskDeviceName: Set[DeviceName]` to `deleteInstance` method
 - get nodepool returns an option
+- Bump `grpc-core` to `1.28.1`
+- Bump `com.google.cloud:google-cloud-firestore` to `1.35.0`
 
 Added:
 - Add `GoogleDiskService` and `GoogleDiskInterpreter`
@@ -20,7 +22,7 @@ Added:
 - Add Generator for `DiskName`
 - Add Kubernetes client APIs for creating service accounts, roles and role bindings
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.10-a133da6"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.10-TRAVIS-REPLACE-ME"`
 
 ## 0.9
 Changed: 
