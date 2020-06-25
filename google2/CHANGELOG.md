@@ -8,6 +8,7 @@ Changed:
 - Rename KubernetesSerializableName extension classes
 - Add `getDisk`
 - Make `genDiskName` non-empty
+- Bump `http4s` version to `0.21.5`, `scalatest` to `3.1.2`, `fs2-io` to `2.4.2`
 
 Added:
 - Add `GoogleDiskService` and `GoogleDiskInterpreter`
@@ -17,7 +18,7 @@ Added:
 - Add Generator for `DiskName`
 - Add Kubernetes client APIs for creating service accounts, roles and role bindings
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.10-1603b32"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.10-TRAVIS-REPLACE-ME"`
 
 ## 0.9
 Changed: 
