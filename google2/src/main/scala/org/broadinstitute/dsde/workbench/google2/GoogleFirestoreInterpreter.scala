@@ -66,7 +66,6 @@ object GoogleFirestoreInterpreter {
         sf.delay(
           FirestoreOptions
             .newBuilder()
-            .setTimestampsInSnapshotsEnabled(true)
             .setCredentials(ServiceAccountCredentials.fromStream(credential))
             .build()
             .getService
