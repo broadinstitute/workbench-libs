@@ -6,9 +6,9 @@ object Dependencies {
   val jacksonV      = "2.9.0"
   val googleV       = "1.22.0"
   val scalaLoggingV = "3.7.2"
-  val scalaTestV    = "3.1.1"
+  val scalaTestV    = "3.1.2"
   val circeVersion = "0.13.0"
-  val http4sVersion = "0.21.4"
+  val http4sVersion = "0.21.5"
 
   def excludeGuavaJDK5(m: ModuleID): ModuleID = m.exclude("com.google.guava", "guava-jdk5")
 
@@ -81,7 +81,7 @@ object Dependencies {
   val http4sBlazeClient = "org.http4s" %% "http4s-blaze-client" % http4sVersion
   val http4sDsl = "org.http4s"      %% "http4s-dsl"          % http4sVersion
 
-  val fs2Io: ModuleID = "co.fs2" %% "fs2-io" % "2.3.0"
+  val fs2Io: ModuleID = "co.fs2" %% "fs2-io" % "2.4.2"
   val rawlsModel: ModuleID = "org.broadinstitute.dsde" %% "rawls-model" % "0.1-0d02c8ce-SNAP" exclude("com.typesafe.scala-logging", "scala-logging_2.11") exclude("com.typesafe.akka", "akka-stream_2.11")
   val newRelic: ModuleID = "com.newrelic.agent.java" % "newrelic-api" % "5.0.0"
   val openCensusApi: ModuleID = "io.opencensus" % "opencensus-api" % "0.26.0"
