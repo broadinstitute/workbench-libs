@@ -45,18 +45,18 @@ private[google2] class GoogleComputeInterpreter[F[_]: Async: Parallel: Structure
   override def deleteInstance(project: GoogleProject,
                               zone: ZoneName,
                               instanceName: InstanceName,
-                              autoDeleteDiskDeviceName: Set[DeviceName] = Set.empty)(
+                              autoDeleteDisks: Set[DiskName] = Set.empty)(
     implicit ev: ApplicativeAsk[F, TraceId]
   ): F[Operation] = {
     val projectZoneInstanceName = ProjectZoneInstanceName.of(instanceName.value, project.value, zone.value)
 
     for {
       traceId <- ev.ask
-      fa = autoDeleteDiskDeviceName.toList.parTraverse { deviceName =>
+      fa = autoDeleteDisks.toList.parTraverse { diskName =>
         withLogging(
-          Async[F].delay(instanceClient.setDiskAutoDeleteInstance(projectZoneInstanceName, true, deviceName.asString)),
+          Async[F].delay(instanceClient.setDiskAutoDeleteInstance(projectZoneInstanceName, true, diskName.value)),
           Some(traceId),
-          s"com.google.cloud.compute.v1.InstanceClient.setDiskAutoDeleteInstance(${projectZoneInstanceName.toString}, true, ${deviceName.asString})"
+          s"com.google.cloud.compute.v1.InstanceClient.setDiskAutoDeleteInstance(${projectZoneInstanceName.toString}, true, ${diskName.value})"
         )
       }
       _ <- streamFUntilDone(fa, 5, 2 seconds).compile.drain
@@ -331,5 +331,3 @@ private[google2] class GoogleComputeInterpreter[F[_]: Async: Parallel: Structure
     tracedRetryGoogleF(retryConfig)(blockerBound.withPermit(blocker.blockOn(fa)), loggingMsg).compile.lastOrError
 
 }
-
-final case class DeviceName(asString: String) extends AnyVal
