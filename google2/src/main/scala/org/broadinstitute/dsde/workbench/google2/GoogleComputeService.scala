@@ -9,6 +9,7 @@ import com.google.auth.oauth2.GoogleCredentials
 import com.google.cloud.compute.v1._
 import fs2._
 import _root_.io.chrisdavenport.log4cats.StructuredLogger
+import cats.Parallel
 import org.broadinstitute.dsde.workbench.{DoneCheckable, RetryConfig}
 import org.broadinstitute.dsde.workbench.google2.util.RetryPredicates
 import org.broadinstitute.dsde.workbench.model.google.GoogleProject
@@ -25,7 +26,14 @@ trait GoogleComputeService[F[_]] {
     implicit ev: ApplicativeAsk[F, TraceId]
   ): F[Operation]
 
-  def deleteInstance(project: GoogleProject, zone: ZoneName, instanceName: InstanceName)(
+  /**
+   * @param autoDeleteDiskDeviceName Set of disk device names that should be marked as auto deletable when runtime is deleted
+   * @return
+   */
+  def deleteInstance(project: GoogleProject,
+                     zone: ZoneName,
+                     instanceName: InstanceName,
+                     autoDeleteDiskDeviceName: Set[DeviceName] = Set.empty)(
     implicit ev: ApplicativeAsk[F, TraceId]
   ): F[Operation]
 
@@ -117,7 +125,7 @@ trait GoogleComputeService[F[_]] {
 }
 
 object GoogleComputeService {
-  def resource[F[_]: StructuredLogger: Async: Timer: ContextShift](
+  def resource[F[_]: StructuredLogger: Async: Parallel: Timer: ContextShift](
     pathToCredential: String,
     blocker: Blocker,
     blockerBound: Semaphore[F],
@@ -129,7 +137,7 @@ object GoogleComputeService {
       interpreter <- fromCredential(scopedCredential, blocker, blockerBound, retryConfig)
     } yield interpreter
 
-  def resourceFromUserCredential[F[_]: StructuredLogger: Async: Timer: ContextShift](
+  def resourceFromUserCredential[F[_]: StructuredLogger: Async: Parallel: Timer: ContextShift](
     pathToCredential: String,
     blocker: Blocker,
     blockerBound: Semaphore[F],
@@ -141,7 +149,7 @@ object GoogleComputeService {
       interpreter <- fromCredential(scopedCredential, blocker, blockerBound, retryConfig)
     } yield interpreter
 
-  private def fromCredential[F[_]: StructuredLogger: Async: Timer: ContextShift](
+  private def fromCredential[F[_]: StructuredLogger: Async: Parallel: Timer: ContextShift](
     googleCredentials: GoogleCredentials,
     blocker: Blocker,
     blockerBound: Semaphore[F],

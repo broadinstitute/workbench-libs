@@ -128,6 +128,9 @@ object DoneCheckableInstances {
   implicit val computeDoneCheckable = new DoneCheckable[com.google.cloud.compute.v1.Operation] {
     def isDone(op: com.google.cloud.compute.v1.Operation): Boolean = op.getStatus == "DONE"
   }
+  implicit val listComputeDoneCheckable = new DoneCheckable[List[com.google.cloud.compute.v1.Operation]] {
+    def isDone(ops: List[com.google.cloud.compute.v1.Operation]): Boolean = ops.forall(op => op.getStatus == "DONE")
+  }
 }
 
 final case class DoneCheckableOps[A](a: A)(implicit ev: DoneCheckable[A]) {

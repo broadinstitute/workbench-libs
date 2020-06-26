@@ -8,14 +8,16 @@ import cats.mtl.ApplicativeAsk
 import com.google.cloud.compute.v1._
 import fs2._
 import _root_.io.chrisdavenport.log4cats.StructuredLogger
+import cats.Parallel
 import org.broadinstitute.dsde.workbench.google2.util.RetryPredicates._
 import org.broadinstitute.dsde.workbench.model.google.GoogleProject
 import org.broadinstitute.dsde.workbench.model.{TraceId, WorkbenchException}
-
+import org.broadinstitute.dsde.workbench.DoneCheckableInstances.listComputeDoneCheckable
 import scala.collection.JavaConverters._
+import scala.concurrent.duration._
 import scala.concurrent.duration.FiniteDuration
 
-private[google2] class GoogleComputeInterpreter[F[_]: Async: StructuredLogger: Timer: ContextShift](
+private[google2] class GoogleComputeInterpreter[F[_]: Async: Parallel: StructuredLogger: Timer: ContextShift](
   instanceClient: InstanceClient,
   firewallClient: FirewallClient,
   zoneClient: ZoneClient,
@@ -40,14 +42,29 @@ private[google2] class GoogleComputeInterpreter[F[_]: Async: StructuredLogger: T
     )
   }
 
-  override def deleteInstance(project: GoogleProject, zone: ZoneName, instanceName: InstanceName)(
+  override def deleteInstance(project: GoogleProject,
+                              zone: ZoneName,
+                              instanceName: InstanceName,
+                              autoDeleteDiskDeviceName: Set[DeviceName] = Set.empty)(
     implicit ev: ApplicativeAsk[F, TraceId]
   ): F[Operation] = {
     val projectZoneInstanceName = ProjectZoneInstanceName.of(instanceName.value, project.value, zone.value)
-    retryF(
-      Async[F].delay(instanceClient.deleteInstance(projectZoneInstanceName)),
-      s"com.google.cloud.compute.v1.InstanceClient.deleteInstance(${projectZoneInstanceName.toString})"
-    )
+
+    for {
+      traceId <- ev.ask
+      fa = autoDeleteDiskDeviceName.toList.parTraverse { deviceName =>
+        withLogging(
+          Async[F].delay(instanceClient.setDiskAutoDeleteInstance(projectZoneInstanceName, true, deviceName.asString)),
+          Some(traceId),
+          s"com.google.cloud.compute.v1.InstanceClient.setDiskAutoDeleteInstance(${projectZoneInstanceName.toString}, true, ${deviceName.asString})"
+        )
+      }
+      _ <- streamFUntilDone(fa, 5, 2 seconds).compile.drain
+      deleteOp <- retryF(
+        Async[F].delay(instanceClient.deleteInstance(projectZoneInstanceName)),
+        s"com.google.cloud.compute.v1.InstanceClient.deleteInstance(${projectZoneInstanceName.toString})"
+      )
+    } yield deleteOp
   }
 
   override def getInstance(project: GoogleProject, zone: ZoneName, instanceName: InstanceName)(
@@ -314,3 +331,5 @@ private[google2] class GoogleComputeInterpreter[F[_]: Async: StructuredLogger: T
     tracedRetryGoogleF(retryConfig)(blockerBound.withPermit(blocker.blockOn(fa)), loggingMsg).compile.lastOrError
 
 }
+
+final case class DeviceName(asString: String) extends AnyVal
