@@ -2,6 +2,15 @@
 
 This file documents changes to the `workbench-google2` library, including notes on how to upgrade to new versions.
 
+## 0.11
+Changed:
+- Update `pollOperation` signature
+
+Added:
+- Add `detachDisk`
+
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.11-TRAVIS-REPLACE-ME"`
+
 ## 0.10
 Changed:
 - Move `resizeDisk` from `GoogleComputeService` to `GoogleDiskService`
