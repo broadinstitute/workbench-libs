@@ -1,21 +1,20 @@
 package org.broadinstitute.dsde.workbench
 package google2
 
+import _root_.io.chrisdavenport.log4cats.StructuredLogger
+import cats.Parallel
 import cats.effect.concurrent.Semaphore
 import cats.effect.{Async, Blocker, ContextShift, Timer}
 import cats.implicits._
 import cats.mtl.ApplicativeAsk
 import com.google.cloud.compute.v1._
-import fs2._
-import _root_.io.chrisdavenport.log4cats.StructuredLogger
-import cats.Parallel
 import org.broadinstitute.dsde.workbench.google2.util.RetryPredicates._
 import org.broadinstitute.dsde.workbench.model.google.GoogleProject
 import org.broadinstitute.dsde.workbench.model.{TraceId, WorkbenchException}
-import org.broadinstitute.dsde.workbench.DoneCheckableInstances.listComputeDoneCheckable
+
 import scala.collection.JavaConverters._
+import scala.concurrent.TimeoutException
 import scala.concurrent.duration._
-import scala.concurrent.duration.FiniteDuration
 
 private[google2] class GoogleComputeInterpreter[F[_]: Async: Parallel: StructuredLogger: Timer: ContextShift](
   instanceClient: InstanceClient,
@@ -24,9 +23,6 @@ private[google2] class GoogleComputeInterpreter[F[_]: Async: Parallel: Structure
   machineTypeClient: MachineTypeClient,
   networkClient: NetworkClient,
   subnetworkClient: SubnetworkClient,
-  zoneOperationClient: ZoneOperationClient,
-  regionOperationClient: RegionOperationClient,
-  globalOperationClient: GlobalOperationClient,
   retryConfig: RetryConfig,
   blocker: Blocker,
   blockerBound: Semaphore[F]
@@ -42,29 +38,69 @@ private[google2] class GoogleComputeInterpreter[F[_]: Async: Parallel: Structure
     )
   }
 
-  override def deleteInstance(project: GoogleProject,
-                              zone: ZoneName,
-                              instanceName: InstanceName,
-                              autoDeleteDisks: Set[DiskName] = Set.empty)(
+  override def deleteInstanceWithAutoDeleteDisk(project: GoogleProject,
+                                                zone: ZoneName,
+                                                instanceName: InstanceName,
+                                                autoDeleteDisks: Set[DiskName])(
+    implicit ev: ApplicativeAsk[F, TraceId],
+    computePollOperation: ComputePollOperation[F]
+  ): F[Operation] = {
+    val projectZoneInstanceName = ProjectZoneInstanceName.of(instanceName.value, project.value, zone.value)
+
+    for {
+      traceId <- ev.ask
+      _ <- autoDeleteDisks.toList.parTraverse { diskName =>
+        for {
+          operation <- withLogging(
+            Async[F].delay(instanceClient.setDiskAutoDeleteInstance(projectZoneInstanceName, true, diskName.value)),
+            Some(traceId),
+            s"com.google.cloud.compute.v1.InstanceClient.setDiskAutoDeleteInstance(${projectZoneInstanceName.toString}, true, ${diskName.value})"
+          )
+          _ <- computePollOperation.pollZoneOperation(project,
+                                                      zone,
+                                                      OperationName(operation.getName),
+                                                      1 seconds,
+                                                      5,
+                                                      None)(
+            Async[F].unit,
+            Async[F].raiseError[Unit](
+              new TimeoutException(s"Fail to setDiskAutoDeleteInstance for ${diskName} in a timely manner")
+            ),
+            Async[F].unit
+          )
+        } yield ()
+      }
+      deleteOp <- retryF(
+        Async[F].delay(instanceClient.deleteInstance(projectZoneInstanceName)),
+        s"com.google.cloud.compute.v1.InstanceClient.deleteInstance(${projectZoneInstanceName.toString})"
+      )
+    } yield deleteOp
+  }
+
+  override def deleteInstance(project: GoogleProject, zone: ZoneName, instanceName: InstanceName)(
+    implicit ev: ApplicativeAsk[F, TraceId]
+  ): F[Operation] = {
+    val projectZoneInstanceName = ProjectZoneInstanceName.of(instanceName.value, project.value, zone.value)
+
+    retryF(
+      Async[F].delay(instanceClient.deleteInstance(projectZoneInstanceName)),
+      s"com.google.cloud.compute.v1.InstanceClient.deleteInstance(${projectZoneInstanceName.toString})"
+    )
+  }
+
+  override def detachDisk(project: GoogleProject, zone: ZoneName, instanceName: InstanceName, diskName: DiskName)(
     implicit ev: ApplicativeAsk[F, TraceId]
   ): F[Operation] = {
     val projectZoneInstanceName = ProjectZoneInstanceName.of(instanceName.value, project.value, zone.value)
 
     for {
       traceId <- ev.ask
-      fa = autoDeleteDisks.toList.parTraverse { diskName =>
-        withLogging(
-          Async[F].delay(instanceClient.setDiskAutoDeleteInstance(projectZoneInstanceName, true, diskName.value)),
-          Some(traceId),
-          s"com.google.cloud.compute.v1.InstanceClient.setDiskAutoDeleteInstance(${projectZoneInstanceName.toString}, true, ${diskName.value})"
-        )
-      }
-      _ <- streamFUntilDone(fa, 5, 2 seconds).compile.drain
-      deleteOp <- retryF(
-        Async[F].delay(instanceClient.deleteInstance(projectZoneInstanceName)),
-        s"com.google.cloud.compute.v1.InstanceClient.deleteInstance(${projectZoneInstanceName.toString})"
+      op <- withLogging(
+        Async[F].delay(instanceClient.detachDiskInstance(projectZoneInstanceName, diskName.value)),
+        Some(traceId),
+        s"com.google.cloud.compute.v1.InstanceClient.detachDiskInstance(${projectZoneInstanceName.toString}, ${diskName.value})"
       )
-    } yield deleteOp
+    } yield op
   }
 
   override def getInstance(project: GoogleProject, zone: ZoneName, instanceName: InstanceName)(
@@ -258,74 +294,11 @@ private[google2] class GoogleComputeInterpreter[F[_]: Async: Parallel: Structure
     )
   }
 
-  override def getZoneOperation(project: GoogleProject, zoneName: ZoneName, operationName: OperationName)(
-    implicit ev: ApplicativeAsk[F, TraceId]
-  ): F[Operation] = {
-    val request = ProjectZoneOperationName
-      .newBuilder()
-      .setProject(project.value)
-      .setZone(zoneName.value)
-      .setOperation(operationName.value)
-      .build
-    retryF(
-      Async[F].delay(zoneOperationClient.getZoneOperation(request)),
-      s"com.google.cloud.compute.v1.ZoneOperationClient.getZoneOperation(${request.toString})"
-    )
-  }
-
-  override def getRegionOperation(project: GoogleProject, regionName: RegionName, operationName: OperationName)(
-    implicit ev: ApplicativeAsk[F, TraceId]
-  ): F[Operation] = {
-    val request = ProjectRegionOperationName
-      .newBuilder()
-      .setProject(project.value)
-      .setRegion(regionName.value)
-      .setOperation(operationName.value)
-      .build
-    retryF(
-      Async[F].delay(regionOperationClient.getRegionOperation(request)),
-      s"com.google.cloud.compute.v1.regionOperationClient.getRegionOperation(${request.toString})"
-    )
-  }
-
-  override def getGlobalOperation(project: GoogleProject, operationName: OperationName)(
-    implicit ev: ApplicativeAsk[F, TraceId]
-  ): F[Operation] = {
-    val request =
-      ProjectGlobalOperationName.newBuilder().setProject(project.value).setOperation(operationName.value).build
-    retryF(
-      Async[F].delay(globalOperationClient.getGlobalOperation(request)),
-      s"com.google.cloud.compute.v1.globalOperationClient.getGlobalOperation(${request.toString})"
-    )
-  }
-
-  override def pollOperation(project: GoogleProject, operation: Operation, delay: FiniteDuration, maxAttempts: Int)(
-    implicit ev: ApplicativeAsk[F, TraceId],
-    doneEv: DoneCheckable[Operation]
-  ): Stream[F, Operation] = {
-    // TODO: once a newer version of the Java Compute SDK is released investigate using
-    // the operation `wait` API instead of polling `get`. See:
-    // https://cloud.google.com/compute/docs/reference/rest/v1/zoneOperations/wait
-    // https://github.com/googleapis/java-compute/commit/50cb4a98cb36fcd3bf4bdd5d16ab17f9d391bf98
-    val getOp = (getZoneName(operation.getZone), getRegionName(operation.getRegion)) match {
-      case (Some(zone), _)      => getZoneOperation(project, zone, OperationName(operation.getName))
-      case (None, Some(region)) => getRegionOperation(project, region, OperationName(operation.getName))
-      case (None, None)         => getGlobalOperation(project, OperationName(operation.getName))
-    }
-    streamFUntilDone(getOp, maxAttempts, delay)
-  }
-
   private def buildMachineTypeUri(zone: ZoneName, machineTypeName: MachineTypeName): String =
     s"zones/${zone.value}/machineTypes/${machineTypeName.value}"
 
   private def buildRegionUri(googleProject: GoogleProject, regionName: RegionName): String =
     s"https://www.googleapis.com/compute/v1/projects/${googleProject.value}/regions/${regionName.value}"
-
-  private def getRegionName(regionUrl: String): Option[RegionName] =
-    Option(regionUrl).flatMap(_.split("/").lastOption).map(RegionName)
-
-  private def getZoneName(zoneUrl: String): Option[ZoneName] =
-    Option(zoneUrl).flatMap(_.split("/").lastOption).map(ZoneName)
 
   private def retryF[A](fa: F[A], loggingMsg: String)(implicit ev: ApplicativeAsk[F, TraceId]): F[A] =
     tracedRetryGoogleF(retryConfig)(blockerBound.withPermit(blocker.blockOn(fa)), loggingMsg).compile.lastOrError
