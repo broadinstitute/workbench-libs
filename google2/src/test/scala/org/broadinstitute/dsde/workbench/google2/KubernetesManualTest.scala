@@ -94,7 +94,7 @@ final class Test(credPathStr: String,
     }
   }
 
-  def callGetNodepool(nodepoolId: NodepoolId): IO[NodePool] = serviceResource.use { service =>
+  def callGetNodepool(nodepoolId: NodepoolId): IO[Option[NodePool]] = serviceResource.use { service =>
     service.getNodepool(nodepoolId)
   }
 

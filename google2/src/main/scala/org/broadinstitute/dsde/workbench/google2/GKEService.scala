@@ -29,7 +29,7 @@ trait GKEService[F[_]] {
 
   def createNodepool(request: KubernetesCreateNodepoolRequest)(implicit ev: ApplicativeAsk[F, TraceId]): F[Operation]
 
-  def getNodepool(nodepoolId: NodepoolId)(implicit ev: ApplicativeAsk[F, TraceId]): F[NodePool]
+  def getNodepool(nodepoolId: NodepoolId)(implicit ev: ApplicativeAsk[F, TraceId]): F[Option[NodePool]]
 
   def deleteNodepool(nodepoolId: NodepoolId)(implicit ev: ApplicativeAsk[F, TraceId]): F[Operation]
 

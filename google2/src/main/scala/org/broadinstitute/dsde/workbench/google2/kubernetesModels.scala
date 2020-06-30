@@ -29,7 +29,9 @@ import io.kubernetes.client.custom.IntOrString
 
 /** Common Kubernetes models */
 final case class KubernetesClusterNotFoundException(message: String) extends WorkbenchException
-final case class KubernetesInvalidNameException(message: String) extends WorkbenchException
+final case class KubernetesInvalidNameException(message: String) extends WorkbenchException {
+  override def getMessage: String = message
+}
 
 object KubernetesName {
   def withValidation[A](str: String, apply: String => A): Either[Throwable, A] = {
