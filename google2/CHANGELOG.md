@@ -22,7 +22,7 @@ Added:
 - Add Generator for `DiskName`
 - Add Kubernetes client APIs for creating service accounts, roles and role bindings
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.10-TRAVIS-REPLACE-ME"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.10-5c4e637"`
 
 ## 0.9
 Changed: 
