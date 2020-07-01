@@ -74,12 +74,16 @@ trait WebBrowserSpec extends WebBrowserUtil with ExceptionHandling with LazyLogg
     options.addArguments("--lang=en-US")
     options.addArguments("--disable-setuid-sandbox")
     options.addArguments("--disable-extensions")
-    options.addArguments("--disable-dev-shm-usage")
+    //options.addArguments("--disable-dev-shm-usage")
     options.addArguments("--window-size=2880,1800")
     options.setExperimentalOption("useAutomationExtension", false)
 
     if (java.lang.Boolean.parseBoolean(System.getProperty("burp.proxy"))) {
       options.addArguments("--proxy-server=http://127.0.0.1:8080")
+    }
+
+    if(isHeadless){
+      options.addArguments("--headless")
     }
 
     // Note that download.prompt_for_download will be ignored if download.default_directory is invalid or doesn't exist
