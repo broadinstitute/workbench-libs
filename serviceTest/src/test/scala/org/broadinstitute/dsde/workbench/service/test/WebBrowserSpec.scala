@@ -82,7 +82,7 @@ trait WebBrowserSpec extends WebBrowserUtil with ExceptionHandling with LazyLogg
       options.addArguments("--proxy-server=http://127.0.0.1:8080")
     }
 
-    if(isHeadless){
+    if (isHeadless) {
       options.addArguments("--headless")
     }
 
@@ -150,7 +150,13 @@ trait WebBrowserSpec extends WebBrowserUtil with ExceptionHandling with LazyLogg
         logger.error(s"Failed to start a new Chrome RemoteWebDriver.", e)
         throw e
       case Success(driver) =>
-        driver.manage.window.setSize(new org.openqa.selenium.Dimension(2880, 1800))
+        Try(driver.manage.window.setSize(new org.openqa.selenium.Dimension(2880, 1800))) match {
+          case Failure(e) =>
+            logger.error(s"Fail to set window size", e)
+            Thread.sleep(10000)
+            startRemoteWebdriver(url, options, trials - 1)
+          case Success(_) => ()
+        }
         driver.setFileDetector(new LocalFileDetector())
         driver
     }
