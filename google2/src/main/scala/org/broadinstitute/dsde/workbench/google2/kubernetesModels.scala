@@ -478,7 +478,7 @@ object KubernetesModels {
       override def toString: String = "tls"
     }
   }
-  case class KubernetesSecret(namespaceName: NamespaceName,
+  final case class KubernetesSecret(namespaceName: NamespaceName,
                               name: SecretName,
                               secrets: Map[SecretKey, Array[Byte]],
                               secretType: KubernetesSecretType)
