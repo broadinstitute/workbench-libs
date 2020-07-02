@@ -1,5 +1,7 @@
 package org.broadinstitute.dsde.workbench.google2
 
+import _root_.io.chrisdavenport.log4cats.StructuredLogger
+import cats.Parallel
 import cats.effect._
 import cats.effect.concurrent.Semaphore
 import cats.mtl.ApplicativeAsk
@@ -7,16 +9,12 @@ import com.google.api.gax.core.FixedCredentialsProvider
 import com.google.api.services.compute.ComputeScopes
 import com.google.auth.oauth2.GoogleCredentials
 import com.google.cloud.compute.v1._
-import fs2._
-import _root_.io.chrisdavenport.log4cats.StructuredLogger
-import cats.Parallel
-import org.broadinstitute.dsde.workbench.{DoneCheckable, RetryConfig}
+import org.broadinstitute.dsde.workbench.RetryConfig
 import org.broadinstitute.dsde.workbench.google2.util.RetryPredicates
 import org.broadinstitute.dsde.workbench.model.google.GoogleProject
 import org.broadinstitute.dsde.workbench.model.{TraceId, WorkbenchEmail}
 
 import scala.collection.JavaConverters._
-import scala.concurrent.duration.FiniteDuration
 
 /**
  * Algebra for Google Compute access.
@@ -26,14 +24,23 @@ trait GoogleComputeService[F[_]] {
     implicit ev: ApplicativeAsk[F, TraceId]
   ): F[Operation]
 
+  def deleteInstance(project: GoogleProject, zone: ZoneName, instanceName: InstanceName)(
+    implicit ev: ApplicativeAsk[F, TraceId]
+  ): F[Operation]
+
   /**
    * @param autoDeleteDisks Set of disk device names that should be marked as auto deletable when runtime is deleted
    * @return
    */
-  def deleteInstance(project: GoogleProject,
-                     zone: ZoneName,
-                     instanceName: InstanceName,
-                     autoDeleteDisks: Set[DiskName] = Set.empty)(
+  def deleteInstanceWithAutoDeleteDisk(project: GoogleProject,
+                                       zone: ZoneName,
+                                       instanceName: InstanceName,
+                                       autoDeleteDisks: Set[DiskName])(
+    implicit ev: ApplicativeAsk[F, TraceId],
+    computePollOperation: ComputePollOperation[F]
+  ): F[Operation]
+
+  def detachDisk(project: GoogleProject, zone: ZoneName, instanceName: InstanceName, diskName: DiskName)(
     implicit ev: ApplicativeAsk[F, TraceId]
   ): F[Operation]
 
@@ -105,23 +112,6 @@ trait GoogleComputeService[F[_]] {
   def createSubnetwork(project: GoogleProject, region: RegionName, subnetwork: Subnetwork)(
     implicit ev: ApplicativeAsk[F, TraceId]
   ): F[Operation]
-
-  def getZoneOperation(project: GoogleProject, zoneName: ZoneName, operationName: OperationName)(
-    implicit ev: ApplicativeAsk[F, TraceId]
-  ): F[Operation]
-
-  def getRegionOperation(project: GoogleProject, regionName: RegionName, operationName: OperationName)(
-    implicit ev: ApplicativeAsk[F, TraceId]
-  ): F[Operation]
-
-  def getGlobalOperation(project: GoogleProject, operationName: OperationName)(
-    implicit ev: ApplicativeAsk[F, TraceId]
-  ): F[Operation]
-
-  def pollOperation(project: GoogleProject, operation: Operation, delay: FiniteDuration, maxAttempts: Int)(
-    implicit ev: ApplicativeAsk[F, TraceId],
-    doneEv: DoneCheckable[Operation]
-  ): Stream[F, Operation]
 }
 
 object GoogleComputeService {
@@ -201,18 +191,12 @@ object GoogleComputeService {
       machineTypeClient <- backgroundResourceF(MachineTypeClient.create(machineTypeSettings))
       networkClient <- backgroundResourceF(NetworkClient.create(networkSettings))
       subnetworkClient <- backgroundResourceF(SubnetworkClient.create(subnetworkSettings))
-      zoneOperationClient <- backgroundResourceF(ZoneOperationClient.create(zoneOperationSettings))
-      regionOperationClient <- backgroundResourceF(RegionOperationClient.create(regionOperationSettings))
-      globalOperationClient <- backgroundResourceF(GlobalOperationClient.create(globalOperationSettings))
     } yield new GoogleComputeInterpreter[F](instanceClient,
                                             firewallClient,
                                             zoneClient,
                                             machineTypeClient,
                                             networkClient,
                                             subnetworkClient,
-                                            zoneOperationClient,
-                                            regionOperationClient,
-                                            globalOperationClient,
                                             retryConfig,
                                             blocker,
                                             blockerBound)

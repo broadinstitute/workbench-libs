@@ -1,7 +1,6 @@
 package org.broadinstitute.dsde.workbench.util2
 
 import cats.effect.{ContextShift, IO, Timer}
-import io.chrisdavenport.log4cats.slf4j.Slf4jLogger
 import org.scalatest.Assertion
 import org.scalatest.prop.Configuration
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
@@ -12,7 +11,7 @@ import scala.concurrent.ExecutionContext.global
 trait WorkbenchTestSuite {
   implicit val timer: Timer[IO] = IO.timer(global)
   implicit val cs: ContextShift[IO] = IO.contextShift(global)
-  implicit val logger = Slf4jLogger.getLogger[IO]
+  implicit val logger = new ConsoleLogger("unit_test", LogLevel(true, true, true, true))
 
   def ioAssertion(test: => IO[Assertion]): Future[Assertion] = test.unsafeToFuture()
 }

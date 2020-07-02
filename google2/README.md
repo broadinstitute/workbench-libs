@@ -20,7 +20,6 @@ Type in expressions for evaluation. Or try :help.
 // copy+paste to import all these 
 import org.broadinstitute.dsde.workbench.google2.GoogleStorageService
 import scala.concurrent.ExecutionContext.global
-import io.chrisdavenport.log4cats.slf4j.Slf4jLogger
 import cats.effect.IO
 import org.broadinstitute.dsde.workbench.model.google.GcsBucketName
 import org.broadinstitute.dsde.workbench.google2.GcsBlobName
@@ -29,10 +28,11 @@ import cats.mtl.ApplicativeAsk
 import java.util.UUID
 import org.broadinstitute.dsde.workbench.model.TraceId
 import cats.effect.Blocker
+import org.broadinstitute.dsde.workbench.util2.{ConsoleLogger, LogLevel}
 import cats.effect.concurrent.Semaphore
 implicit val cs = IO.contextShift(global)
 implicit val t = IO.timer(global)
-implicit def logger = Slf4jLogger.getLogger[IO]
+implicit def logger = new ConsoleLogger("prefix-you-like", LogLevel(true, true, true, true))
 implicit val traceId = ApplicativeAsk.const[IO, TraceId](TraceId(UUID.randomUUID()))
 val blocker = Blocker.liftExecutionContext(global)
 val blockerBound = Semaphore[IO](10).unsafeRunSync
