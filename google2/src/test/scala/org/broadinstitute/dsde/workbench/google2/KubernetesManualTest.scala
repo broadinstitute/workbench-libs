@@ -61,6 +61,9 @@ final class Test(credPathStr: String,
   val credPath = Paths.get(credPathStr)
   val serviceResource = GKEService.resource(credPath, blocker, semaphore)
 
+  val secrets: Map[SecretKey, Array[Byte]] = Map(SecretKey("example-secret") -> "supersecretsecretsaresecretive".getBytes())
+  val kubeSecret = KubernetesSecret(defaultNamespaceName.right.get, SecretName("secret1"), secrets, KubernetesSecretType.Generic)
+
   def makeClusterId(name: String) = KubernetesClusterId(project, region, KubernetesClusterName(name))
 
   def callCreateCluster(clusterId: KubernetesClusterId = clusterId): IO[Operation] = {
@@ -139,6 +142,12 @@ final class Test(credPathStr: String,
 
     kubeService.use { k =>
       k.createRole(clusterId, role, namespace)
+    }
+  }
+
+  def callCreateSecret(clusterId: KubernetesClusterId = clusterId, secret: KubernetesSecret = kubeSecret, namespace: KubernetesNamespace = KubernetesNamespace(defaultNamespaceName.right.get)): IO[Unit]  = {
+    kubeService.use { k =>
+      k.createSecret(clusterId, namespace, secret)
     }
   }
 

@@ -48,6 +48,10 @@ trait KubernetesService[F[_]] {
                         namespace: KubernetesNamespace)(
     implicit ev: ApplicativeAsk[F, TraceId]
   ): F[Unit]
+
+  def createSecret(clusterId: KubernetesClusterId, namespace: KubernetesNamespace, secret: KubernetesSecret)(
+  implicit ev: ApplicativeAsk[F, TraceId]
+  ): F[Unit]
 }
 
 // This kubernetes service requires a GKEService because it needs to call getCluster
