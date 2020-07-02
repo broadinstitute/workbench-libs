@@ -2,7 +2,25 @@ package org.broadinstitute.dsde.workbench.google2
 import com.google.container.v1.Operation
 
 import collection.JavaConverters._
-import io.kubernetes.client.models.{V1Container, V1ContainerPort, V1Namespace, V1ObjectMeta, V1ObjectMetaBuilder, V1Pod, V1PodSpec, V1PolicyRule, V1Role, V1RoleBinding, V1RoleRef, V1Secret, V1Service, V1ServiceAccount, V1ServicePort, V1ServiceSpec, V1Subject}
+import io.kubernetes.client.models.{
+  V1Container,
+  V1ContainerPort,
+  V1Namespace,
+  V1ObjectMeta,
+  V1ObjectMetaBuilder,
+  V1Pod,
+  V1PodSpec,
+  V1PolicyRule,
+  V1Role,
+  V1RoleBinding,
+  V1RoleRef,
+  V1Secret,
+  V1Service,
+  V1ServiceAccount,
+  V1ServicePort,
+  V1ServiceSpec,
+  V1Subject
+}
 import org.apache.commons.codec.binary.Base64
 import org.broadinstitute.dsde.workbench.google2.KubernetesSerializableName._
 import org.broadinstitute.dsde.workbench.model.WorkbenchException
@@ -198,14 +216,14 @@ object JavaSerializableInstances {
   }
 
   implicit val kuberrnetesSecretSerializable = new JavaSerializable[KubernetesSecret, V1Secret] {
-     def getJavaSerialization(a: KubernetesSecret): V1Secret = {
-       val v1Secret = new V1Secret()
-       v1Secret.setMetadata(a.name.getJavaSerialization)
-       v1Secret.setData(a.secrets.map {case (k, v) => (k.value, v)}.asJava)
-       v1Secret.setType(a.secretType.toString)
+    def getJavaSerialization(a: KubernetesSecret): V1Secret = {
+      val v1Secret = new V1Secret()
+      v1Secret.setMetadata(a.name.getJavaSerialization)
+      v1Secret.setData(a.secrets.map { case (k, v) => (k.value, v) }.asJava)
+      v1Secret.setType(a.secretType.toString)
 
-       v1Secret
-     }
+      v1Secret
+    }
   }
 
   implicit val kubernetesServiceAccountSerializable = new JavaSerializable[KubernetesServiceAccount, V1ServiceAccount] {
@@ -446,7 +464,6 @@ object KubernetesModels {
                                          roleRef: KubernetesRoleRef,
                                          subjects: List[KubernetesSubject])
 
-
   sealed trait KubernetesSecretType extends Product with Serializable
   object KubernetesSecretType {
     case object Generic extends KubernetesSecretType {
@@ -461,6 +478,9 @@ object KubernetesModels {
       override def toString: String = "tls"
     }
   }
-  case class KubernetesSecret(namespaceName: NamespaceName, name: SecretName, secrets: Map[SecretKey, Array[Byte]], secretType: KubernetesSecretType)
+  case class KubernetesSecret(namespaceName: NamespaceName,
+                              name: SecretName,
+                              secrets: Map[SecretKey, Array[Byte]],
+                              secretType: KubernetesSecretType)
 
 }

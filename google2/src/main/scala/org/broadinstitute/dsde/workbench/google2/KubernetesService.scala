@@ -50,7 +50,7 @@ trait KubernetesService[F[_]] {
   ): F[Unit]
 
   def createSecret(clusterId: KubernetesClusterId, namespace: KubernetesNamespace, secret: KubernetesSecret)(
-  implicit ev: ApplicativeAsk[F, TraceId]
+    implicit ev: ApplicativeAsk[F, TraceId]
   ): F[Unit]
 }
 

@@ -127,7 +127,7 @@ class KubernetesInterpreter[F[_]: Async: StructuredLogger: Effect: Timer: Contex
 
   override def createSecret(clusterId: KubernetesClusterId, namespace: KubernetesNamespace, secret: KubernetesSecret)(
     implicit ev: ApplicativeAsk[F, TraceId]
-  ): F[Unit] = {
+  ): F[Unit] =
     for {
       traceId <- ev.ask
       client <- blockingF(getClient(clusterId, new CoreV1Api(_)))
@@ -137,12 +137,11 @@ class KubernetesInterpreter[F[_]: Async: StructuredLogger: Effect: Timer: Contex
         )
       )
       _ <- withLogging(
-                   call,
-                   Some(traceId),
-                   s"io.kubernetes.client.apis.CoreV1Api.createNamespacedSecret(${namespace.name.value}, ${secret.name.value}, null, true, null)"
-                   )
+        call,
+        Some(traceId),
+        s"io.kubernetes.client.apis.CoreV1Api.createNamespacedSecret(${namespace.name.value}, ${secret.name.value}, null, true, null)"
+      )
     } yield ()
-  }
 
   override def createServiceAccount(clusterId: KubernetesClusterId,
                                     serviceAccount: KubernetesServiceAccount,
@@ -185,7 +184,6 @@ class KubernetesInterpreter[F[_]: Async: StructuredLogger: Effect: Timer: Contex
         s"io.kubernetes.client.apis.RbacAuthorizationV1Api.createNamespacedRole(${namespace.name.value}, ${role.name.value}, null, true, null)"
       )
     } yield ()
-
 
   override def createRoleBinding(clusterId: KubernetesClusterId,
                                  roleBinding: KubernetesRoleBinding,
