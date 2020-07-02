@@ -74,16 +74,24 @@ trait WebBrowserSpec extends WebBrowserUtil with ExceptionHandling with LazyLogg
     options.addArguments("--lang=en-US")
     options.addArguments("--disable-setuid-sandbox")
     options.addArguments("--disable-extensions")
-    //options.addArguments("--disable-dev-shm-usage")
+    options.addArguments("--disable-dev-shm-usage")
     options.addArguments("--window-size=2880,1800")
+    options.addArguments("--disable-background-timer-throttling")
+    options.addArguments("--disable-backgrounding-occluded-windows")
+    options.addArguments("--disable-breakpad")
+    options.addArguments("--disable-component-extensions-with-background-pages")
+    options.addArguments("--disable-features=TranslateUIBlinkGenPropertyTrees")
+    options.addArguments("--disable-ipc-flooding-protection")
+    options.addArguments("--disable-renderer-backgrounding")
+    options.addArguments("--enable-features=NetworkServiceNetworkServiceInProcess")
+    options.addArguments("--force-color-profile=srgb")
+    options.addArguments("--hide-scrollbars")
+    options.addArguments("--metrics-recording-only")
+    options.addArguments("--mute-audio")
     options.setExperimentalOption("useAutomationExtension", false)
 
     if (java.lang.Boolean.parseBoolean(System.getProperty("burp.proxy"))) {
       options.addArguments("--proxy-server=http://127.0.0.1:8080")
-    }
-
-    if (isHeadless) {
-      options.addArguments("--headless")
     }
 
     // Note that download.prompt_for_download will be ignored if download.default_directory is invalid or doesn't exist
@@ -150,13 +158,6 @@ trait WebBrowserSpec extends WebBrowserUtil with ExceptionHandling with LazyLogg
         logger.error(s"Failed to start a new Chrome RemoteWebDriver.", e)
         throw e
       case Success(driver) =>
-        Try(driver.manage.window.setSize(new org.openqa.selenium.Dimension(2880, 1800))) match {
-          case Failure(e) =>
-            logger.error(s"Fail to set window size", e)
-            Thread.sleep(10000)
-            startRemoteWebdriver(url, options, trials - 1)
-          case Success(_) => ()
-        }
         driver.setFileDetector(new LocalFileDetector())
         driver
     }
