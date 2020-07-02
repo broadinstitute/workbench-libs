@@ -67,6 +67,15 @@ package object google2 {
       result <- Sync[F].fromEither(attempted)
     } yield result
 
+  def tracedLogging[F[_]: Sync: Timer, A](fa: F[A], action: String)(
+    implicit logger: StructuredLogger[F],
+    ev: ApplicativeAsk[F, TraceId]
+  ): F[A] =
+    for {
+      traceId <- ev.ask
+      result <- withLogging(fa, Some(traceId), action)
+    } yield result
+
   def tracedRetryGoogleF[F[_]: Sync: Timer: RaiseThrowable: StructuredLogger, A](
     retryConfig: RetryConfig
   )(fa: F[A], action: String)(implicit ev: ApplicativeAsk[F, TraceId]): Stream[F, A] =
@@ -105,7 +114,7 @@ package object google2 {
     fa.map(Option(_)).recover { case e if pred(e) => None }
 
   def streamFUntilDone[F[_]: Timer, A: DoneCheckable](fa: F[A], maxAttempts: Int, delay: FiniteDuration): Stream[F, A] =
-    (Stream.eval(fa) ++ Stream.sleep_(delay))
+    (Stream.sleep_(delay) ++ Stream.eval(fa))
       .repeatN(maxAttempts)
       .takeThrough(!_.isDone)
 }
@@ -127,9 +136,6 @@ object DoneCheckableInstances {
   }
   implicit val computeDoneCheckable = new DoneCheckable[com.google.cloud.compute.v1.Operation] {
     def isDone(op: com.google.cloud.compute.v1.Operation): Boolean = op.getStatus == "DONE"
-  }
-  implicit val listComputeDoneCheckable = new DoneCheckable[List[com.google.cloud.compute.v1.Operation]] {
-    def isDone(ops: List[com.google.cloud.compute.v1.Operation]): Boolean = ops.forall(op => op.getStatus == "DONE")
   }
 }
 
