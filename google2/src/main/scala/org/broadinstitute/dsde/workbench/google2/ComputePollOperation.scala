@@ -129,7 +129,9 @@ trait ComputePollOperation[F[_]] {
           streamFUntilDone[F, Operation](op, maxAttempts, delay).compile.lastOrError
       }
       res <- if (op.isDone) {
-        whenDone
+        if (op.getError == null)
+          whenDone
+        else F.raiseError(new RuntimeException("Operation failed due to: " + op.getError.toString))
       } else {
         haltWhenTrue match {
           case Some(signal) =>
