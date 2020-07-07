@@ -18,6 +18,7 @@ import org.openqa.selenium.{OutputType, TakesScreenshot, WebDriver}
 import org.scalatest.Suite
 
 import scala.collection.JavaConverters._
+import scala.collection.mutable
 import scala.sys.SystemProperties
 import scala.util.{Failure, Success, Try}
 
@@ -66,6 +67,11 @@ trait WebBrowserSpec extends WebBrowserUtil with ExceptionHandling with LazyLogg
   private def getChromeIncognitoOption(downloadPath: String): ChromeOptions = {
     val fullDownloadPath = new File(downloadPath).getAbsolutePath
 
+    import org.openqa.selenium.chrome.ChromeOptions
+    val prefs = new mutable.HashMap[String, Any]()
+    prefs.put("profile.default_content_settings.cookies", 1)
+    prefs.put("profile.block_third_party_cookies", false)
+
     val options = new ChromeOptions
     options.addArguments("--incognito")
     options.addArguments("--no-experiments")
@@ -88,7 +94,7 @@ trait WebBrowserSpec extends WebBrowserUtil with ExceptionHandling with LazyLogg
     options.addArguments("--hide-scrollbars")
     options.addArguments("--metrics-recording-only")
     options.addArguments("--mute-audio")
-    options.setExperimentalOption("useAutomationExtension", false)
+    options.setExperimentalOption("prefs", prefs)
 
     if (java.lang.Boolean.parseBoolean(System.getProperty("burp.proxy"))) {
       options.addArguments("--proxy-server=http://127.0.0.1:8080")
@@ -152,10 +158,12 @@ trait WebBrowserSpec extends WebBrowserUtil with ExceptionHandling with LazyLogg
     result match {
       case Failure(_) if trials > 0 =>
         logger.error(s"Retry start a new Chrome RemoteWebDriver. ${trials - 1} more times.")
+        logger.error(_);
         Thread.sleep(10000)
         startRemoteWebdriver(url, options, trials - 1)
       case Failure(e) =>
         logger.error(s"Failed to start a new Chrome RemoteWebDriver.", e)
+        logger.error(e.getMessage)
         throw e
       case Success(driver) =>
         driver.setFileDetector(new LocalFileDetector())
