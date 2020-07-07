@@ -11,7 +11,7 @@ import scala.concurrent.ExecutionContext.global
 trait WorkbenchTestSuite {
   implicit val timer: Timer[IO] = IO.timer(global)
   implicit val cs: ContextShift[IO] = IO.contextShift(global)
-  implicit val logger = new ConsoleLogger("unit_test", LogLevel(true, true, true, true))
+  implicit val logger = new ConsoleLogger("unit_test", LogLevel(false, false, false, true))
 
   def ioAssertion(test: => IO[Assertion]): Future[Assertion] = test.unsafeToFuture()
 }
