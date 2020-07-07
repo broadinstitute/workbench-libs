@@ -40,7 +40,7 @@ trait GoogleComputeService[F[_]] {
     computePollOperation: ComputePollOperation[F]
   ): F[Operation]
 
-  def detachDisk(project: GoogleProject, zone: ZoneName, instanceName: InstanceName, diskName: DiskName)(
+  def detachDisk(project: GoogleProject, zone: ZoneName, instanceName: InstanceName, deviceName: DeviceName)(
     implicit ev: ApplicativeAsk[F, TraceId]
   ): F[Operation]
 
