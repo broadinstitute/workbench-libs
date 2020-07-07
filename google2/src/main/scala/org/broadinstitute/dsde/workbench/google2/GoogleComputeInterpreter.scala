@@ -88,7 +88,7 @@ private[google2] class GoogleComputeInterpreter[F[_]: Async: Parallel: Structure
     )
   }
 
-  override def detachDisk(project: GoogleProject, zone: ZoneName, instanceName: InstanceName, diskName: DiskName)(
+  override def detachDisk(project: GoogleProject, zone: ZoneName, instanceName: InstanceName, deviceName: DeviceName)(
     implicit ev: ApplicativeAsk[F, TraceId]
   ): F[Operation] = {
     val projectZoneInstanceName = ProjectZoneInstanceName.of(instanceName.value, project.value, zone.value)
@@ -96,9 +96,9 @@ private[google2] class GoogleComputeInterpreter[F[_]: Async: Parallel: Structure
     for {
       traceId <- ev.ask
       op <- withLogging(
-        Async[F].delay(instanceClient.detachDiskInstance(projectZoneInstanceName, diskName.value)),
+        Async[F].delay(instanceClient.detachDiskInstance(projectZoneInstanceName, deviceName.asString)),
         Some(traceId),
-        s"com.google.cloud.compute.v1.InstanceClient.detachDiskInstance(${projectZoneInstanceName.toString}, ${diskName.value})"
+        s"com.google.cloud.compute.v1.InstanceClient.detachDiskInstance(${projectZoneInstanceName.toString}, ${deviceName.asString})"
       )
     } yield op
   }
@@ -304,3 +304,6 @@ private[google2] class GoogleComputeInterpreter[F[_]: Async: Parallel: Structure
     tracedRetryGoogleF(retryConfig)(blockerBound.withPermit(blocker.blockOn(fa)), loggingMsg).compile.lastOrError
 
 }
+
+// device name that's known to the instance (same device name when you create runtime)
+final case class DeviceName(asString: String) extends AnyVal

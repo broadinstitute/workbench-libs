@@ -5,11 +5,12 @@ This file documents changes to the `workbench-google2` library, including notes 
 ## 0.11
 Changed:
 - Update `pollOperation` signature
+- Fix a bug for `detachDisk` function
 
 Added:
 - Add `detachDisk`
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.11-df50246"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.11-TRAVIS-REPLACE-ME"`
 
 ## 0.10
 Changed:
