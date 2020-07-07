@@ -97,7 +97,12 @@ trait WebBrowserSpec extends WebBrowserUtil with ExceptionHandling with LazyLogg
     // Note that download.prompt_for_download will be ignored if download.default_directory is invalid or doesn't exist
     options.setExperimentalOption(
       "prefs",
-      Map("download.default_directory" -> fullDownloadPath, "download.prompt_for_download" -> "false").asJava
+      Map(
+        "download.default_directory" -> fullDownloadPath,
+        "download.prompt_for_download" -> "false",
+        "profile.default_content_settings.cookies" -> 1,
+        "profile.block_third_party_cookies" -> false
+      ).asJava
     )
 
     // ChromeDriver log

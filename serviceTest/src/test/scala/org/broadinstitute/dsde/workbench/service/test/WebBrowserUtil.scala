@@ -1,6 +1,5 @@
 package org.broadinstitute.dsde.workbench.service.test
 
-import java.time.Duration
 import org.openqa.selenium.support.ui.WebDriverWait
 import org.openqa.selenium.{StaleElementReferenceException, WebDriver}
 import org.scalatestplus.selenium.WebBrowser
