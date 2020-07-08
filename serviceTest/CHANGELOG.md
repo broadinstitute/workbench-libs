@@ -8,7 +8,7 @@ Changed
 - Check if log type is available before trying to get the log
 - Add a few more helful chrome option
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "0.18-TRAVIS-REPLACE-ME"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "0.18-61887ce"`
 
 ## 0.17
 
