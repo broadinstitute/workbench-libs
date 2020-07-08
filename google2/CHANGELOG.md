@@ -6,11 +6,12 @@ This file documents changes to the `workbench-google2` library, including notes 
 Changed:
 - Update `pollOperation` signature
 - Fix a bug for `detachDisk` function
+- Add `createSecret` to `KubernetesService`
 
 Added:
 - Add `detachDisk`
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.11-f0a2ce1"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.11-TRAVIS-REPLACE-ME"`
 
 ## 0.10
 Changed:

@@ -14,6 +14,7 @@ import io.kubernetes.client.models.{
   V1Role,
   V1RoleBinding,
   V1RoleRef,
+  V1Secret,
   V1Service,
   V1ServiceAccount,
   V1ServicePort,
@@ -131,6 +132,8 @@ object KubernetesSerializableName {
   final case class RoleName(value: String) extends KubernetesSerializableName
   final case class SubjectKindName(value: String) extends KubernetesSerializableName
   final case class RoleBindingName(value: String) extends KubernetesSerializableName
+  final case class SecretName(value: String) extends KubernetesSerializableName
+  final case class SecretKey(value: String) extends KubernetesSerializableName
 }
 
 trait JavaSerializable[A, B] {
@@ -165,6 +168,10 @@ object JavaSerializableInstances {
 
   implicit val kubernetesPodNameSerializable = new JavaSerializable[PodName, V1ObjectMeta] {
     def getJavaSerialization(name: PodName): V1ObjectMeta = getNameSerialization(name)
+  }
+
+  implicit val kubernetesSecretNameSerializable = new JavaSerializable[SecretName, V1ObjectMeta] {
+    def getJavaSerialization(name: SecretName): V1ObjectMeta = getNameSerialization(name)
   }
 
   implicit val kubernetesContainerNameSerializable = new JavaSerializable[ContainerName, V1ObjectMeta] {
@@ -205,6 +212,17 @@ object JavaSerializableInstances {
       val v1Namespace = new V1Namespace()
       v1Namespace.metadata(kubernetesName.name.getJavaSerialization)
       v1Namespace
+    }
+  }
+
+  implicit val kuberrnetesSecretSerializable = new JavaSerializable[KubernetesSecret, V1Secret] {
+    def getJavaSerialization(a: KubernetesSecret): V1Secret = {
+      val v1Secret = new V1Secret()
+      v1Secret.setMetadata(a.name.getJavaSerialization)
+      v1Secret.setData(a.secrets.map { case (k, v) => (k.value, v) }.asJava)
+      v1Secret.setType(a.secretType.toString)
+
+      v1Secret
     }
   }
 
@@ -445,4 +463,24 @@ object KubernetesModels {
   final case class KubernetesRoleBinding(name: RoleBindingName,
                                          roleRef: KubernetesRoleRef,
                                          subjects: List[KubernetesSubject])
+
+  sealed trait KubernetesSecretType extends Product with Serializable
+  object KubernetesSecretType {
+    case object Generic extends KubernetesSecretType {
+      override def toString: String = "generic"
+    }
+
+    case object DockerRegistry extends KubernetesSecretType {
+      override def toString: String = "docker-registry"
+    }
+
+    case object TLS extends KubernetesSecretType {
+      override def toString: String = "tls"
+    }
+  }
+  final case class KubernetesSecret(namespaceName: NamespaceName,
+                                    name: SecretName,
+                                    secrets: Map[SecretKey, Array[Byte]],
+                                    secretType: KubernetesSecretType)
+
 }

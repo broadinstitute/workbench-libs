@@ -125,6 +125,24 @@ class KubernetesInterpreter[F[_]: Async: StructuredLogger: Effect: Timer: Contex
       )
     } yield ()
 
+  override def createSecret(clusterId: KubernetesClusterId, namespace: KubernetesNamespace, secret: KubernetesSecret)(
+    implicit ev: ApplicativeAsk[F, TraceId]
+  ): F[Unit] =
+    for {
+      traceId <- ev.ask
+      client <- blockingF(getClient(clusterId, new CoreV1Api(_)))
+      call = blockingF(
+        Async[F].delay(
+          client.createNamespacedSecret(namespace.name.value, secret.getJavaSerialization, null, "true", null)
+        )
+      )
+      _ <- withLogging(
+        call,
+        Some(traceId),
+        s"io.kubernetes.client.apis.CoreV1Api.createNamespacedSecret(${namespace.name.value}, ${secret.name.value}, null, true, null)"
+      )
+    } yield ()
+
   override def createServiceAccount(clusterId: KubernetesClusterId,
                                     serviceAccount: KubernetesServiceAccount,
                                     namespace: KubernetesNamespace)(
