@@ -479,8 +479,8 @@ object KubernetesModels {
     }
   }
   final case class KubernetesSecret(namespaceName: NamespaceName,
-                              name: SecretName,
-                              secrets: Map[SecretKey, Array[Byte]],
-                              secretType: KubernetesSecretType)
+                                    name: SecretName,
+                                    secrets: Map[SecretKey, Array[Byte]],
+                                    secretType: KubernetesSecretType)
 
 }
