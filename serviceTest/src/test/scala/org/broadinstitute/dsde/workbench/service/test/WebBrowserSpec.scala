@@ -76,6 +76,18 @@ trait WebBrowserSpec extends WebBrowserUtil with ExceptionHandling with LazyLogg
     options.addArguments("--disable-extensions")
     options.addArguments("--disable-dev-shm-usage")
     options.addArguments("--window-size=2880,1800")
+    options.addArguments("--disable-background-timer-throttling")
+    options.addArguments("--disable-backgrounding-occluded-windows")
+    options.addArguments("--disable-breakpad")
+    options.addArguments("--disable-component-extensions-with-background-pages")
+    options.addArguments("--disable-features=TranslateUIBlinkGenPropertyTrees")
+    options.addArguments("--disable-ipc-flooding-protection")
+    options.addArguments("--disable-renderer-backgrounding")
+    options.addArguments("--enable-features=NetworkServiceNetworkServiceInProcess")
+    options.addArguments("--force-color-profile=srgb")
+    options.addArguments("--hide-scrollbars")
+    options.addArguments("--metrics-recording-only")
+    options.addArguments("--mute-audio")
     options.setExperimentalOption("useAutomationExtension", false)
 
     if (java.lang.Boolean.parseBoolean(System.getProperty("burp.proxy"))) {
@@ -85,7 +97,12 @@ trait WebBrowserSpec extends WebBrowserUtil with ExceptionHandling with LazyLogg
     // Note that download.prompt_for_download will be ignored if download.default_directory is invalid or doesn't exist
     options.setExperimentalOption(
       "prefs",
-      Map("download.default_directory" -> fullDownloadPath, "download.prompt_for_download" -> "false").asJava
+      Map(
+        "download.default_directory" -> fullDownloadPath,
+        "download.prompt_for_download" -> "false",
+        "profile.default_content_settings.cookies" -> 1,
+        "profile.block_third_party_cookies" -> false
+      ).asJava
     )
 
     // ChromeDriver log
@@ -146,7 +163,6 @@ trait WebBrowserSpec extends WebBrowserUtil with ExceptionHandling with LazyLogg
         logger.error(s"Failed to start a new Chrome RemoteWebDriver.", e)
         throw e
       case Success(driver) =>
-        driver.manage.window.setSize(new org.openqa.selenium.Dimension(2880, 1800))
         driver.setFileDetector(new LocalFileDetector())
         driver
     }
