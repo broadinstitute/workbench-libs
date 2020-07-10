@@ -8,15 +8,7 @@ import scala.concurrent.duration._
 import cats.effect.{Blocker, IO}
 import cats.effect.concurrent.Semaphore
 import cats.mtl.ApplicativeAsk
-import com.google.container.v1.{
-  Cluster,
-  NetworkPolicy,
-  NodeConfig,
-  NodeManagement,
-  NodePool,
-  NodePoolAutoscaling,
-  Operation
-}
+import com.google.container.v1.{Cluster, MasterAuthorizedNetworksConfig, NetworkPolicy, NodeConfig, NodeManagement, NodePool, NodePoolAutoscaling, Operation}
 import io.chrisdavenport.log4cats.slf4j.Slf4jLogger
 import org.broadinstitute.dsde.workbench.google2.GKEModels._
 import org.broadinstitute.dsde.workbench.google2.KubernetesModels._
@@ -24,6 +16,7 @@ import org.broadinstitute.dsde.workbench.google2.KubernetesSerializableName._
 import org.broadinstitute.dsde.workbench.model.TraceId
 import org.broadinstitute.dsde.workbench.model.google.GoogleProject
 import KubernetesConstants._
+import com.google.container.v1.MasterAuthorizedNetworksConfig.CidrBlock
 
 //TODO: migrate to a unit test
 //TODO: investigate running minikube in a docker for unit/automation tests https://banzaicloud.com/blog/minikube-ci/
@@ -70,12 +63,19 @@ final class Test(credPathStr: String,
   def makeClusterId(name: String) = KubernetesClusterId(project, region, KubernetesClusterName(name))
 
   def callCreateCluster(clusterId: KubernetesClusterId = clusterId): IO[Operation] = {
+    import collection.JavaConverters._
+    val ips = List("69.173.127.0/25", "69.173.124.0/23")
     val network: String = KubernetesNetwork(project, NetworkName(networkNameStr)).idString
     val cluster = getDefaultCluster(nodepoolName.right.get, clusterName.right.get).toBuilder
       .setNetwork(network) // needs to be a VPC network
       .setSubnetwork(KubernetesSubNetwork(project, RegionName(regionStr), SubnetworkName(subnetworkNameStr)).idString)
       .setNetworkPolicy(getDefaultNetworkPolicy()) // needed for security
+      .setMasterAuthorizedNetworksConfig(MasterAuthorizedNetworksConfig.newBuilder()
+          .setEnabled(true)
+        .addAllCidrBlocks(ips.map(ip => CidrBlock.newBuilder().setCidrBlock(ip).build()).asJava
+        ))
       .build()
+
 
     serviceResource.use { service =>
       service.createCluster(KubernetesCreateClusterRequest(project, region, cluster))
