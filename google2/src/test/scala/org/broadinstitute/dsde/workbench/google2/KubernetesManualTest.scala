@@ -8,7 +8,16 @@ import scala.concurrent.duration._
 import cats.effect.{Blocker, IO}
 import cats.effect.concurrent.Semaphore
 import cats.mtl.ApplicativeAsk
-import com.google.container.v1.{Cluster, MasterAuthorizedNetworksConfig, NetworkPolicy, NodeConfig, NodeManagement, NodePool, NodePoolAutoscaling, Operation}
+import com.google.container.v1.{
+  Cluster,
+  MasterAuthorizedNetworksConfig,
+  NetworkPolicy,
+  NodeConfig,
+  NodeManagement,
+  NodePool,
+  NodePoolAutoscaling,
+  Operation
+}
 import io.chrisdavenport.log4cats.slf4j.Slf4jLogger
 import org.broadinstitute.dsde.workbench.google2.GKEModels._
 import org.broadinstitute.dsde.workbench.google2.KubernetesModels._
@@ -70,12 +79,13 @@ final class Test(credPathStr: String,
       .setNetwork(network) // needs to be a VPC network
       .setSubnetwork(KubernetesSubNetwork(project, RegionName(regionStr), SubnetworkName(subnetworkNameStr)).idString)
       .setNetworkPolicy(getDefaultNetworkPolicy()) // needed for security
-      .setMasterAuthorizedNetworksConfig(MasterAuthorizedNetworksConfig.newBuilder()
+      .setMasterAuthorizedNetworksConfig(
+        MasterAuthorizedNetworksConfig
+          .newBuilder()
           .setEnabled(true)
-        .addAllCidrBlocks(ips.map(ip => CidrBlock.newBuilder().setCidrBlock(ip).build()).asJava
-        ))
+          .addAllCidrBlocks(ips.map(ip => CidrBlock.newBuilder().setCidrBlock(ip).build()).asJava)
+      )
       .build()
-
 
     serviceResource.use { service =>
       service.createCluster(KubernetesCreateClusterRequest(project, region, cluster))

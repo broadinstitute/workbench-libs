@@ -150,7 +150,7 @@ class KubernetesInterpreter[F[_]: Async: StructuredLogger: Effect: Timer: Contex
     delete.handleErrorWith {
       case _: com.google.gson.JsonSyntaxException =>
         Async[F].unit
-      case e: Exception => Async[F].raiseError(e)
+      case e: Throwable => Async[F].raiseError(e)
     }
   }
 

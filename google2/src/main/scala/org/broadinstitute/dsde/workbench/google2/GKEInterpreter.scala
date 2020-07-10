@@ -111,9 +111,10 @@ final class GKEInterpreter[F[_]: Async: StructuredLogger: Timer: ContextShift](
 
     val getOperation = for {
       op <- Async[F].delay(clusterManagerClient.getOperation(request))
-      _ <- if (op.getStatusMessage.isEmpty) Async[F].unit else Async[F].raiseError[Unit](new RuntimeException("Operation failed due to: " + op.getStatusMessage))
+      _ <- if (op.getStatusMessage.isEmpty) Async[F].unit
+      else Async[F].raiseError[Unit](new RuntimeException("Operation failed due to: " + op.getStatusMessage))
     } yield op
-    
+
     streamFUntilDone(getOperation, maxAttempts, delay)
   }
 
