@@ -8,6 +8,7 @@ Changed:
 - Fix a bug for `detachDisk` function
 - Add `createSecret` to `KubernetesService`
 - remove ApplicativeAsk implicit param from `KubernetesService` creation
+- add deleteNamespace to `KubernetesService`
 
 Added:
 - Add `detachDisk`
