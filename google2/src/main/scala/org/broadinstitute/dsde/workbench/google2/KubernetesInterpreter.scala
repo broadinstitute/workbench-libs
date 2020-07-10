@@ -1,10 +1,11 @@
 package org.broadinstitute.dsde.workbench.google2
 
 import java.io.ByteArrayInputStream
+import java.util.UUID
 import java.util.concurrent.TimeUnit
 
 import cats.effect.concurrent.Semaphore
-import cats.effect.{Async, Blocker, ContextShift, Effect, Timer}
+import cats.effect.{Async, Blocker, ContextShift, Effect, IO, Timer}
 import io.chrisdavenport.log4cats.StructuredLogger
 import org.broadinstitute.dsde.workbench.RetryConfig
 import cats.implicits._
@@ -31,8 +32,7 @@ class KubernetesInterpreter[F[_]: Async: StructuredLogger: Effect: Timer: Contex
   blocker: Blocker,
   blockerBound: Semaphore[F],
   retryConfig: RetryConfig
-)(implicit ev: ApplicativeAsk[F, TraceId])
-    extends KubernetesService[F] {
+) extends KubernetesService[F] {
 
   //We cache a kubernetes client for each cluster
   val cache = CacheBuilder
@@ -43,6 +43,8 @@ class KubernetesInterpreter[F[_]: Async: StructuredLogger: Effect: Timer: Contex
     .build(
       new CacheLoader[KubernetesClusterId, ApiClient] {
         def load(clusterId: KubernetesClusterId): ApiClient = {
+          //we do not want to have to specify this at resource (class) creation time, so we create one on each load here
+          implicit val traceId = ApplicativeAsk.const[F, TraceId](TraceId(UUID.randomUUID()))
           val res = for {
             _ <- StructuredLogger[F]
               .info(s"Determined that there is no cached client for kubernetes cluster ${clusterId}. Creating a client")
