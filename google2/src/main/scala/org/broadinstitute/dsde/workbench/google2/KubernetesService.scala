@@ -69,7 +69,7 @@ object KubernetesService {
     blockerBound: Semaphore[F],
     //This is not used anywhere yet, there should be a custom kube one
     retryConfig: RetryConfig = RetryPredicates.standardRetryConfig
-  )(implicit ev: ApplicativeAsk[F, TraceId]): Resource[F, KubernetesService[F]] =
+  ): Resource[F, KubernetesService[F]] =
     for {
       credentials <- credentialResource(pathToCredential.toString)
       scopedCredential = credentials.createScoped(Seq(ContainerScopes.CLOUD_PLATFORM).asJava)

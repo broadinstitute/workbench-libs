@@ -5,7 +5,7 @@ import java.util.UUID
 import java.util.concurrent.TimeUnit
 
 import cats.effect.concurrent.Semaphore
-import cats.effect.{Async, Blocker, ContextShift, Effect, IO, Timer}
+import cats.effect.{Async, Blocker, ContextShift, Effect, Timer}
 import io.chrisdavenport.log4cats.StructuredLogger
 import org.broadinstitute.dsde.workbench.RetryConfig
 import cats.implicits._
