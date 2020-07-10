@@ -121,6 +121,14 @@ final class Test(credPathStr: String,
       k.createNamespace(clusterId, namespace)
     }
 
+  def callDeleteNamespace(
+    clusterId: KubernetesClusterId = clusterId,
+    namespace: KubernetesNamespace = KubernetesNamespace(defaultNamespaceName.right.get)
+  ): IO[Unit] =
+    kubeService.use { k =>
+      k.deleteNamespace(clusterId, namespace)
+    }
+
   def callCreateServiceAccount(
     clusterId: KubernetesClusterId = clusterId,
     ksaNameStr: String = "test-service-account",

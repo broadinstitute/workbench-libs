@@ -127,6 +127,33 @@ class KubernetesInterpreter[F[_]: Async: StructuredLogger: Effect: Timer: Contex
       )
     } yield ()
 
+  override def deleteNamespace(clusterId: KubernetesClusterId, namespace: KubernetesNamespace)(
+    implicit ev: ApplicativeAsk[F, TraceId]
+  ): F[Unit] = {
+    val delete = for {
+      traceId <- ev.ask
+      client <- blockingF(getClient(clusterId, new CoreV1Api(_)))
+      call = blockingF(
+        Async[F].delay(
+          client.deleteNamespace(namespace.name.value, null, null, null, null, null, null)
+        )
+      )
+      _ <- withLogging(
+        call,
+        Some(traceId),
+        s"io.kubernetes.client.apis.CoreV1Api.deleteNamespace(${namespace.name.value}, null, null, null, null, null, null)"
+      )
+    } yield ()
+
+    // There is a known bug with the client lib json decoding.  `com.google.gson.JsonSyntaxException` occurs every time.
+    // See https://github.com/kubernetes-client/java/issues/86
+    delete.handleErrorWith {
+      case _: com.google.gson.JsonSyntaxException =>
+        Async[F].unit
+      case e: Exception => Async[F].raiseError(e)
+    }
+  }
+
   override def createSecret(clusterId: KubernetesClusterId, namespace: KubernetesNamespace, secret: KubernetesSecret)(
     implicit ev: ApplicativeAsk[F, TraceId]
   ): F[Unit] =
