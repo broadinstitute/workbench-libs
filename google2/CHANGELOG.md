@@ -13,7 +13,7 @@ Changed:
 Added:
 - Add `detachDisk`
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.11-TRAVIS-REPLACE-ME"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.11-a9d31ea"`
 
 ## 0.10
 Changed:
