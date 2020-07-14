@@ -1,6 +1,7 @@
 package org.broadinstitute.dsde.workbench.google2
 
 import java.io.ByteArrayInputStream
+import java.util.UUID
 import java.util.concurrent.TimeUnit
 
 import cats.effect.concurrent.Semaphore
@@ -31,8 +32,7 @@ class KubernetesInterpreter[F[_]: Async: StructuredLogger: Effect: Timer: Contex
   blocker: Blocker,
   blockerBound: Semaphore[F],
   retryConfig: RetryConfig
-)(implicit ev: ApplicativeAsk[F, TraceId])
-    extends KubernetesService[F] {
+) extends KubernetesService[F] {
 
   //We cache a kubernetes client for each cluster
   val cache = CacheBuilder
@@ -43,6 +43,8 @@ class KubernetesInterpreter[F[_]: Async: StructuredLogger: Effect: Timer: Contex
     .build(
       new CacheLoader[KubernetesClusterId, ApiClient] {
         def load(clusterId: KubernetesClusterId): ApiClient = {
+          //we do not want to have to specify this at resource (class) creation time, so we create one on each load here
+          implicit val traceId = ApplicativeAsk.const[F, TraceId](TraceId(UUID.randomUUID()))
           val res = for {
             _ <- StructuredLogger[F]
               .info(s"Determined that there is no cached client for kubernetes cluster ${clusterId}. Creating a client")
@@ -124,6 +126,33 @@ class KubernetesInterpreter[F[_]: Async: StructuredLogger: Effect: Timer: Contex
         s"io.kubernetes.client.apis.CoreV1Api.createNamespace(${namespace.getJavaSerialization}, null, true, null)"
       )
     } yield ()
+
+  override def deleteNamespace(clusterId: KubernetesClusterId, namespace: KubernetesNamespace)(
+    implicit ev: ApplicativeAsk[F, TraceId]
+  ): F[Unit] = {
+    val delete = for {
+      traceId <- ev.ask
+      client <- blockingF(getClient(clusterId, new CoreV1Api(_)))
+      call = blockingF(
+        Async[F].delay(
+          client.deleteNamespace(namespace.name.value, null, null, null, null, null, null)
+        )
+      )
+      _ <- withLogging(
+        call,
+        Some(traceId),
+        s"io.kubernetes.client.apis.CoreV1Api.deleteNamespace(${namespace.name.value}, null, null, null, null, null, null)"
+      )
+    } yield ()
+
+    // There is a known bug with the client lib json decoding.  `com.google.gson.JsonSyntaxException` occurs every time.
+    // See https://github.com/kubernetes-client/java/issues/86
+    delete.handleErrorWith {
+      case _: com.google.gson.JsonSyntaxException =>
+        Async[F].unit
+      case e: Throwable => Async[F].raiseError(e)
+    }
+  }
 
   override def createSecret(clusterId: KubernetesClusterId, namespace: KubernetesNamespace, secret: KubernetesSecret)(
     implicit ev: ApplicativeAsk[F, TraceId]

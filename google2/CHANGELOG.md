@@ -7,11 +7,13 @@ Changed:
 - Update `pollOperation` signature
 - Fix a bug for `detachDisk` function
 - Add `createSecret` to `KubernetesService`
+- remove ApplicativeAsk implicit param from `KubernetesService` creation
+- add deleteNamespace to `KubernetesService`
 
 Added:
 - Add `detachDisk`
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.11-9c03abb"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.11-TRAVIS-REPLACE-ME"`
 
 ## 0.10
 Changed:

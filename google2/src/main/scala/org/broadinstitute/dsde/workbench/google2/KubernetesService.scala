@@ -21,6 +21,10 @@ trait KubernetesService[F[_]] {
     implicit ev: ApplicativeAsk[F, TraceId]
   ): F[Unit]
 
+  def deleteNamespace(clusterId: KubernetesClusterId, namespace: KubernetesNamespace)(
+    implicit ev: ApplicativeAsk[F, TraceId]
+  ): F[Unit]
+
   // A Kubernetes service account is an automatically enabled authenticator that uses signed bearer tokens to verify requests.
   // NB: It is distinct from Google service accounts.
   def createServiceAccount(clusterId: KubernetesClusterId,
@@ -69,7 +73,7 @@ object KubernetesService {
     blockerBound: Semaphore[F],
     //This is not used anywhere yet, there should be a custom kube one
     retryConfig: RetryConfig = RetryPredicates.standardRetryConfig
-  )(implicit ev: ApplicativeAsk[F, TraceId]): Resource[F, KubernetesService[F]] =
+  ): Resource[F, KubernetesService[F]] =
     for {
       credentials <- credentialResource(pathToCredential.toString)
       scopedCredential = credentials.createScoped(Seq(ContainerScopes.CLOUD_PLATFORM).asJava)

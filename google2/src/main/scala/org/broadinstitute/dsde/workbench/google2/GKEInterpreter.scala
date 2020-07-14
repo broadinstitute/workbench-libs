@@ -19,6 +19,7 @@ import org.broadinstitute.dsde.workbench.{DoneCheckable, RetryConfig}
 import org.broadinstitute.dsde.workbench.google2.GKEModels._
 import org.broadinstitute.dsde.workbench.google2.util.RetryPredicates._
 import org.broadinstitute.dsde.workbench.model.TraceId
+import cats.implicits._
 
 import scala.concurrent.duration.FiniteDuration
 
@@ -108,7 +109,12 @@ final class GKEInterpreter[F[_]: Async: StructuredLogger: Timer: ContextShift](
       .setName(operationId.idString)
       .build()
 
-    val getOperation = Async[F].delay(clusterManagerClient.getOperation(request))
+    val getOperation = for {
+      op <- Async[F].delay(clusterManagerClient.getOperation(request))
+      _ <- if (op.getStatusMessage.isEmpty) Async[F].unit
+      else Async[F].raiseError[Unit](new RuntimeException("Operation failed due to: " + op.getStatusMessage))
+    } yield op
+
     streamFUntilDone(getOperation, maxAttempts, delay)
   }
 

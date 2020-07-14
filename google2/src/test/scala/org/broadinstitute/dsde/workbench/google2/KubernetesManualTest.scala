@@ -10,6 +10,7 @@ import cats.effect.concurrent.Semaphore
 import cats.mtl.ApplicativeAsk
 import com.google.container.v1.{
   Cluster,
+  MasterAuthorizedNetworksConfig,
   NetworkPolicy,
   NodeConfig,
   NodeManagement,
@@ -24,6 +25,7 @@ import org.broadinstitute.dsde.workbench.google2.KubernetesSerializableName._
 import org.broadinstitute.dsde.workbench.model.TraceId
 import org.broadinstitute.dsde.workbench.model.google.GoogleProject
 import KubernetesConstants._
+import com.google.container.v1.MasterAuthorizedNetworksConfig.CidrBlock
 
 //TODO: migrate to a unit test
 //TODO: investigate running minikube in a docker for unit/automation tests https://banzaicloud.com/blog/minikube-ci/
@@ -70,11 +72,19 @@ final class Test(credPathStr: String,
   def makeClusterId(name: String) = KubernetesClusterId(project, region, KubernetesClusterName(name))
 
   def callCreateCluster(clusterId: KubernetesClusterId = clusterId): IO[Operation] = {
+    import collection.JavaConverters._
+    val ips = List("69.173.127.0/25", "69.173.124.0/23")
     val network: String = KubernetesNetwork(project, NetworkName(networkNameStr)).idString
     val cluster = getDefaultCluster(nodepoolName.right.get, clusterName.right.get).toBuilder
       .setNetwork(network) // needs to be a VPC network
       .setSubnetwork(KubernetesSubNetwork(project, RegionName(regionStr), SubnetworkName(subnetworkNameStr)).idString)
       .setNetworkPolicy(getDefaultNetworkPolicy()) // needed for security
+      .setMasterAuthorizedNetworksConfig(
+        MasterAuthorizedNetworksConfig
+          .newBuilder()
+          .setEnabled(true)
+          .addAllCidrBlocks(ips.map(ip => CidrBlock.newBuilder().setCidrBlock(ip).build()).asJava)
+      )
       .build()
 
     serviceResource.use { service =>
@@ -119,6 +129,14 @@ final class Test(credPathStr: String,
   ): IO[Unit] =
     kubeService.use { k =>
       k.createNamespace(clusterId, namespace)
+    }
+
+  def callDeleteNamespace(
+    clusterId: KubernetesClusterId = clusterId,
+    namespace: KubernetesNamespace = KubernetesNamespace(defaultNamespaceName.right.get)
+  ): IO[Unit] =
+    kubeService.use { k =>
+      k.deleteNamespace(clusterId, namespace)
     }
 
   def callCreateServiceAccount(
