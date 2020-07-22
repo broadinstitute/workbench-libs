@@ -1,8 +1,8 @@
-package org.broadinstitute.dsde.workbench.google2.mock
+package org.broadinstitute.dsde.workbench.google2
+package mock
 
 import cats.effect.IO
 import cats.mtl.ApplicativeAsk
-import org.broadinstitute.dsde.workbench.google2.{GKEModels, KubernetesModels}
 import org.broadinstitute.dsde.workbench.model.TraceId
 
 class MockKubernetesService extends org.broadinstitute.dsde.workbench.google2.KubernetesService[IO] {

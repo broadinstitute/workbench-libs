@@ -1,10 +1,10 @@
-package org.broadinstitute.dsde.workbench.google2.mock
+package org.broadinstitute.dsde.workbench.google2
+package mock
 
 import cats.effect.IO
 import cats.mtl.ApplicativeAsk
 import com.google.container.v1.{Cluster, NodePool, Operation}
 import org.broadinstitute.dsde.workbench.DoneCheckable
-import org.broadinstitute.dsde.workbench.google2.{GKEModels, GKEService}
 import org.broadinstitute.dsde.workbench.model.TraceId
 
 import scala.concurrent.duration.FiniteDuration
