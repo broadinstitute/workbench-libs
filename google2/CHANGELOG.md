@@ -9,6 +9,7 @@ Changed:
 - Add `createSecret` to `KubernetesService`
 - remove ApplicativeAsk implicit param from `KubernetesService` creation
 - add deleteNamespace to `KubernetesService`
+- added mocks for `GKEService` and `KubernetesService`
 
 Added:
 - Add `detachDisk`
