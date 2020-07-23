@@ -29,7 +29,10 @@ import cats.implicits._
 import io.kubernetes.client.custom.IntOrString
 
 /** Common Kubernetes models */
-final case class KubernetesClusterNotFoundException(message: String) extends WorkbenchException
+final case class KubernetesClusterNotFoundException(message: String) extends WorkbenchException {
+  override def getMessage: String = message
+}
+
 final case class KubernetesInvalidNameException(message: String) extends WorkbenchException {
   override def getMessage: String = message
 }
