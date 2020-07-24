@@ -30,7 +30,7 @@ class GoogleStorageInterpreterSpec extends AsyncFlatSpec with Matchers with Work
       .map(x => x.isRight shouldBe (true))
   }
 
-  "ioStorage unsafeGetObject" should "be able to retrieve an object" in ioAssertion {
+  "ioStorage unsafeGetBlobBody" should "be able to retrieve an object" in ioAssertion {
     val bucketName = genGcsBucketName.sample.get
     val blobName = genGcsBlobName.sample.get
     val objectBody = genGcsObjectBody.sample.get
@@ -39,6 +39,18 @@ class GoogleStorageInterpreterSpec extends AsyncFlatSpec with Matchers with Work
       r <- localStorage.unsafeGetBlobBody(bucketName, blobName)
     } yield {
       r.get.getBytes(Generators.utf8Charset) shouldBe (objectBody)
+    }
+  }
+
+  "ioStorage getBlobBody" should "be able to retrieve an object's stream" in ioAssertion {
+    val bucketName = genGcsBucketName.sample.get
+    val blobName = genGcsBlobName.sample.get
+    val objectBody = genGcsObjectBody.sample.get
+    for {
+      _ <- localStorage.createBlob(bucketName, blobName, objectBody, objectType).compile.drain
+      stream <- localStorage.getBlobBody(bucketName, blobName).compile.toList
+    } yield {
+      stream.take(5) shouldBe (objectBody.take(5))
     }
   }
 

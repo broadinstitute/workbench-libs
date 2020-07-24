@@ -89,7 +89,7 @@ private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer: Async
       r <- blobOpt match {
         case Some(blob) =>
           // implementation based on fs-blobstore
-          fs2.io.unsafeReadInputStream(
+          fs2.io.readInputStream(
             Channels
               .newInputStream {
                 val reader = blob.reader()
