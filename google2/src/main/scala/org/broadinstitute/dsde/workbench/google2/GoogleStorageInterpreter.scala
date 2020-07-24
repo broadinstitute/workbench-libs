@@ -14,7 +14,7 @@ import com.google.cloud.storage.BucketInfo.LifecycleRule
 import com.google.cloud.storage.Storage.{BlobListOption, BlobSourceOption, BlobTargetOption, BucketSourceOption}
 import com.google.cloud.storage.{Acl, Blob, BlobId, BlobInfo, BucketInfo, Storage, StorageOptions}
 import com.google.cloud.{Identity, Policy, Role}
-import fs2.{Stream, text}
+import fs2.{text, Stream}
 import io.chrisdavenport.log4cats.StructuredLogger
 import io.circe.Decoder
 import io.circe.fs2._
@@ -90,16 +90,18 @@ private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer: Async
         case Some(blob) =>
           // implementation based on fs-blobstore
           fs2.io.unsafeReadInputStream(
-            Channels.newInputStream {
-              val reader = blob.reader()
-              reader.setChunkSize(chunkSize)
-              reader
-            }.pure[F],
+            Channels
+              .newInputStream {
+                val reader = blob.reader()
+                reader.setChunkSize(chunkSize)
+                reader
+              }
+              .pure[F],
             chunkSize,
             blocker,
             closeAfterUse = true
           )
-        case None       => Stream.empty
+        case None => Stream.empty
       }
     } yield r
   }
