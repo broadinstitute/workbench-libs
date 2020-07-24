@@ -10,11 +10,12 @@ Changed:
 - remove ApplicativeAsk implicit param from `KubernetesService` creation
 - add deleteNamespace to `KubernetesService`
 - added mocks for `GKEService` and `KubernetesService`
+- optimized implementation of `GoogleStorageInterpreter.getBlobBody` to fully use streams
 
 Added:
 - Add `detachDisk`
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.11-38d83bd"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.11-TRAVIS-REPLACE-ME"`
 
 ## 0.10
 Changed:
