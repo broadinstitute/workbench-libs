@@ -11,11 +11,12 @@ Changed:
 - add deleteNamespace to `KubernetesService`
 - added mocks for `GKEService` and `KubernetesService`
 - optimized implementation of `GoogleStorageInterpreter.getBlobBody` to fully use streams
+- log only result row count for BigQuery queries
 
 Added:
 - Add `detachDisk`
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.11-0d87698"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.11-TRAVIS-REPLACE-ME"`
 
 ## 0.10
 Changed:
