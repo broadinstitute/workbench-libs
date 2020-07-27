@@ -3,6 +3,7 @@ package org.broadinstitute.dsde.workbench
 import java.util.concurrent.TimeUnit
 
 import DoneCheckableSyntax._
+import cats.Show
 import cats.implicits._
 import cats.effect.{Resource, Sync, Timer}
 import cats.mtl.ApplicativeAsk
@@ -39,7 +40,11 @@ package object google2 {
                        retryConfig.retryable)
   }
 
-  def withLogging[F[_]: Sync: Timer, A](fa: F[A], traceId: Option[TraceId], action: String)(
+  def withLogging[F[_]: Sync: Timer, A](fa: F[A],
+                                        traceId: Option[TraceId],
+                                        action: String,
+                                        resultFormatter: Show[A] =
+                                          Show.show(a => if (a == null) "null" else a.toString.take(1024)))(
     implicit logger: StructuredLogger[F]
   ): F[A] =
     for {
@@ -59,8 +64,8 @@ package object google2 {
           // Duplicate MDC context in regular logging until log formats can be changed in apps
           logger.error(loggingCtx, e)(msg.noSpaces)
         case Right(r) =>
-          val response = if (r == null) "null" else r.toString.take(1024)
-          val loggableGoogleCall = LoggableGoogleCall(Some(response), "Succeeded")
+          val response = Option(Show(resultFormatter).show(r))
+          val loggableGoogleCall = LoggableGoogleCall(response, "Succeeded")
           val msg = loggingCtx.asJson.deepMerge(loggableGoogleCall.asJson)
           logger.info(loggingCtx)(msg.noSpaces)
       }
