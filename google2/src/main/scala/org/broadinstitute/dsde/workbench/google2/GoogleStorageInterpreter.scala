@@ -1,6 +1,7 @@
 package org.broadinstitute.dsde.workbench
 package google2
 
+import java.nio.channels.Channels
 import java.nio.file.{Path, Paths}
 import java.time.Instant
 
@@ -86,8 +87,21 @@ private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer: Async
         s"com.google.cloud.storage.Storage.get(${BlobId.of(bucketName.value, blobName.value)})"
       )
       r <- blobOpt match {
-        case Some(blob) => Stream.emits(blob.getContent()).covary[F]
-        case None       => Stream.empty
+        case Some(blob) =>
+          // implementation based on fs-blobstore
+          fs2.io.readInputStream(
+            Channels
+              .newInputStream {
+                val reader = blob.reader()
+                reader.setChunkSize(chunkSize)
+                reader
+              }
+              .pure[F],
+            chunkSize,
+            blocker,
+            closeAfterUse = true
+          )
+        case None => Stream.empty
       }
     } yield r
   }
@@ -425,6 +439,8 @@ private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer: Async
     case None    => blocker.blockOn(fa)
     case Some(s) => s.withPermit(blocker.blockOn(fa))
   }
+
+  private val chunkSize = 1024 * 1024 * 2 // com.google.cloud.storage.BlobReadChannel.DEFAULT_CHUNK_SIZE
 }
 
 object GoogleStorageInterpreter {
