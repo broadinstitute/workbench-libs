@@ -44,7 +44,7 @@ package object google2 {
                                         traceId: Option[TraceId],
                                         action: String,
                                         resultFormatter: Show[A] =
-                                          Show.show(a => if (a == null) "null" else a.toString.take(1024)))(
+                                          Show.show((a: A) => if (a == null) "null" else a.toString.take(1024)))(
     implicit logger: StructuredLogger[F]
   ): F[A] =
     for {
