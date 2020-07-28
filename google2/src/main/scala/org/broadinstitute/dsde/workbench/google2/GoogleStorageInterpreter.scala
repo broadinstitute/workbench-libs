@@ -25,11 +25,11 @@ import com.google.auth.Credentials
 
 import scala.collection.JavaConverters._
 
-private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer: Async](
+private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer](
   db: Storage,
   blocker: Blocker,
   blockerBound: Option[Semaphore[F]]
-)(implicit logger: StructuredLogger[F])
+)(implicit logger: StructuredLogger[F], F: Async[F])
     extends GoogleStorageService[F] {
   override def listObjectsWithPrefix(bucketName: GcsBucketName,
                                      objectNamePrefix: String,
@@ -78,7 +78,7 @@ private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer: Async
                            blobName: GcsBlobName,
                            traceId: Option[TraceId] = None,
                            retryConfig: RetryConfig): Stream[F, Byte] = {
-    val getBlobs = blockingF(Async[F].delay(db.get(BlobId.of(bucketName.value, blobName.value)))).map(Option(_))
+    val getBlobs = blockingF(F.delay(db.get(BlobId.of(bucketName.value, blobName.value)))).map(Option(_))
 
     for {
       blobOpt <- retryGoogleF(retryConfig)(
@@ -90,13 +90,14 @@ private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer: Async
         case Some(blob) =>
           // implementation based on fs-blobstore
           fs2.io.readInputStream(
-            Channels
-              .newInputStream {
-                val reader = blob.reader()
-                reader.setChunkSize(chunkSize)
-                reader
-              }
-              .pure[F],
+            F.delay(
+              Channels
+                .newInputStream {
+                  val reader = blob.reader()
+                  reader.setChunkSize(chunkSize)
+                  reader
+                }
+            ),
             chunkSize,
             blocker,
             closeAfterUse = true
