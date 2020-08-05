@@ -134,7 +134,7 @@ class BaseFakeGoogleStorage extends GoogleStorageService[IO] {
                                 generation: Option[Long],
                                 overwrite: Boolean,
                                 traceId: Option[TraceId]): Pipe[IO, Byte, Unit] =
-    localStorage.streamUploadBlob(bucketName, objectName, objectType, metadata, generation, overwrite, traceId)
+    localStorage.streamUploadBlob(bucketName, objectName, metadata, generation, overwrite, traceId)
 }
 
 object FakeGoogleStorageInterpreter extends BaseFakeGoogleStorage
