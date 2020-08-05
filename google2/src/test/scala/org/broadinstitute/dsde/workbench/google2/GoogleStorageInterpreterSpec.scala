@@ -30,6 +30,27 @@ class GoogleStorageInterpreterSpec extends AsyncFlatSpec with Matchers with Work
       .map(x => x.isRight shouldBe (true))
   }
 
+  "ioStorage streamUploadBlob" should "be able to streamUpload an object" in ioAssertion {
+    val bucketName = genGcsBucketName.sample.get
+    val objectName = genGcsBlobName.sample.get
+    val objectBody = genGcsObjectBody.sample.get
+    localStorage
+      .createBlob(bucketName, objectName, objectBody, objectType)
+      .compile
+      .drain
+      .attempt
+      .map(x => x.isRight shouldBe (true))
+
+    for {
+      _ <- (Stream
+        .emits(objectBody)
+        .covary[IO] through localStorage.streamUploadBlob(bucketName, objectName)).compile.drain
+      blob <- localStorage.getBlobBody(bucketName, objectName).compile.to(Array)
+    } yield {
+      blob shouldBe (objectBody)
+    }
+  }
+
   "ioStorage unsafeGetBlobBody" should "be able to retrieve an object" in ioAssertion {
     val bucketName = genGcsBucketName.sample.get
     val blobName = genGcsBlobName.sample.get

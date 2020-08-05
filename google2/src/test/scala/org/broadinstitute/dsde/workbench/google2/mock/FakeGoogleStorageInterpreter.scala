@@ -11,7 +11,7 @@ import cats.data.NonEmptyList
 import com.google.auth.Credentials
 import com.google.cloud.storage.Storage.BucketSourceOption
 import com.google.cloud.{Identity, Policy}
-import fs2.Stream
+import fs2.{Pipe, Stream}
 import org.broadinstitute.dsde.workbench.RetryConfig
 import org.broadinstitute.dsde.workbench.google2.util.RetryPredicates.standardRetryConfig
 import org.broadinstitute.dsde.workbench.model.TraceId
@@ -127,6 +127,14 @@ class BaseFakeGoogleStorage extends GoogleStorageService[IO] {
                             traceId: Option[TraceId],
                             retryConfig: RetryConfig): Stream[IO, Policy] =
     localStorage.getIamPolicy(bucketName, traceId)
+
+  override def streamUploadBlob(bucketName: GcsBucketName,
+                                objectName: GcsBlobName,
+                                metadata: Map[String, String],
+                                generation: Option[Long],
+                                overwrite: Boolean,
+                                traceId: Option[TraceId]): Pipe[IO, Byte, Unit] =
+    localStorage.streamUploadBlob(bucketName, objectName, metadata, generation, overwrite, traceId)
 }
 
 object FakeGoogleStorageInterpreter extends BaseFakeGoogleStorage

@@ -12,7 +12,7 @@ import com.google.auth.oauth2.{AccessToken, GoogleCredentials}
 import com.google.cloud.storage.{Acl, Blob, BlobId, StorageOptions}
 import com.google.cloud.storage.BucketInfo.LifecycleRule
 import com.google.cloud.storage.Storage.BucketSourceOption
-import fs2.Stream
+import fs2.{Pipe, Stream}
 import io.chrisdavenport.log4cats.StructuredLogger
 import org.broadinstitute.dsde.workbench.RetryConfig
 import org.broadinstitute.dsde.workbench.model.TraceId
@@ -68,6 +68,7 @@ trait GoogleStorageService[F[_]] {
   /**
    * @param traceId uuid for tracing a unique call flow in logging
    */
+  @deprecated("Use streamBlob instead", "0.11")
   def createBlob(bucketName: GcsBucketName,
                  objectName: GcsBlobName,
                  objectContents: Array[Byte],
@@ -76,6 +77,13 @@ trait GoogleStorageService[F[_]] {
                  generation: Option[Long] = None,
                  traceId: Option[TraceId] = None,
                  retryConfig: RetryConfig = standardRetryConfig): Stream[F, Blob]
+
+  def streamUploadBlob(bucketName: GcsBucketName,
+                       objectName: GcsBlobName,
+                       metadata: Map[String, String] = Map.empty,
+                       generation: Option[Long] = None,
+                       overwrite: Boolean = true,
+                       traceId: Option[TraceId] = None): Pipe[F, Byte, Unit]
 
   /**
    * @param traceId uuid for tracing a unique call flow in logging
