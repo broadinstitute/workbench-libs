@@ -11,10 +11,16 @@ import cats.effect.concurrent.Semaphore
 import cats.implicits._
 import com.google.auth.oauth2.ServiceAccountCredentials
 import com.google.cloud.storage.BucketInfo.LifecycleRule
-import com.google.cloud.storage.Storage.{BlobListOption, BlobSourceOption, BlobTargetOption, BucketSourceOption}
+import com.google.cloud.storage.Storage.{
+  BlobListOption,
+  BlobSourceOption,
+  BlobTargetOption,
+  BlobWriteOption,
+  BucketSourceOption
+}
 import com.google.cloud.storage.{Acl, Blob, BlobId, BlobInfo, BucketInfo, Storage, StorageOptions}
 import com.google.cloud.{Identity, Policy, Role}
-import fs2.{text, Stream}
+import fs2.{text, Pipe, Stream}
 import io.chrisdavenport.log4cats.StructuredLogger
 import io.circe.Decoder
 import io.circe.fs2._
@@ -176,6 +182,37 @@ private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer](
     retryGoogleF(retryConfig)(metadataUpdate,
                               traceId,
                               s"com.google.cloud.storage.Storage.update($bucketName/${objectName.value})").void
+  }
+
+  override def streamUploadBlob(bucketName: GcsBucketName,
+                                objectName: GcsBlobName,
+                                metadata: Map[String, String] = Map.empty,
+                                generation: Option[Long] = None,
+                                overwrite: Boolean = true,
+                                traceId: Option[TraceId] = None): Pipe[F, Byte, Unit] = {
+    val (blobInfo, generationOption) = generation match {
+      case Some(g) =>
+        val blobId = BlobId.of(bucketName.value, objectName.value, g)
+        (BlobInfo
+           .newBuilder(blobId)
+           .setMetadata(metadata.asJava)
+           .build(),
+         List(BlobWriteOption.generationMatch()))
+      case None =>
+        val blobId = BlobId.of(bucketName.value, objectName.value)
+        (BlobInfo
+           .newBuilder(blobId)
+           .setMetadata(metadata.asJava)
+           .build(),
+         List.empty[BlobWriteOption])
+    }
+
+    val outputStream = F.delay {
+      val options = if (overwrite) generationOption else List(BlobWriteOption.doesNotExist()) ++ generationOption
+      val writer = db.writer(blobInfo, options: _*)
+      Channels.newOutputStream(writer)
+    }
+    fs2.io.writeOutputStream(outputStream, blocker, closeAfterUse = true)
   }
 
   override def createBlob(bucketName: GcsBucketName,

@@ -16,7 +16,7 @@ import scala.collection.JavaConverters._
 import scala.concurrent.TimeoutException
 import scala.concurrent.duration._
 
-private[google2] class GoogleComputeInterpreter[F[_]: Async: Parallel: StructuredLogger: Timer: ContextShift](
+private[google2] class GoogleComputeInterpreter[F[_]: Parallel: StructuredLogger: Timer: ContextShift](
   instanceClient: InstanceClient,
   firewallClient: FirewallClient,
   zoneClient: ZoneClient,
@@ -26,14 +26,15 @@ private[google2] class GoogleComputeInterpreter[F[_]: Async: Parallel: Structure
   retryConfig: RetryConfig,
   blocker: Blocker,
   blockerBound: Semaphore[F]
-) extends GoogleComputeService[F] {
+)(implicit F: Async[F])
+    extends GoogleComputeService[F] {
 
   override def createInstance(project: GoogleProject, zone: ZoneName, instance: Instance)(
     implicit ev: ApplicativeAsk[F, TraceId]
   ): F[Operation] = {
     val projectZone = ProjectZoneName.of(project.value, zone.value)
     retryF(
-      Async[F].delay(instanceClient.insertInstance(projectZone, instance)),
+      F.delay(instanceClient.insertInstance(projectZone, instance)),
       s"com.google.cloud.compute.v1.InstanceClient.insertInstance(${projectZone.toString}, ${instance.getName})"
     )
   }
@@ -52,7 +53,7 @@ private[google2] class GoogleComputeInterpreter[F[_]: Async: Parallel: Structure
       _ <- autoDeleteDisks.toList.parTraverse { diskName =>
         for {
           operation <- withLogging(
-            Async[F].delay(instanceClient.setDiskAutoDeleteInstance(projectZoneInstanceName, true, diskName.value)),
+            F.delay(instanceClient.setDiskAutoDeleteInstance(projectZoneInstanceName, true, diskName.value)),
             Some(traceId),
             s"com.google.cloud.compute.v1.InstanceClient.setDiskAutoDeleteInstance(${projectZoneInstanceName.toString}, true, ${diskName.value})"
           )
@@ -62,18 +63,15 @@ private[google2] class GoogleComputeInterpreter[F[_]: Async: Parallel: Structure
                                                       1 seconds,
                                                       5,
                                                       None)(
-            Async[F].unit,
-            Async[F].raiseError[Unit](
+            F.unit,
+            F.raiseError[Unit](
               new TimeoutException(s"Fail to setDiskAutoDeleteInstance for ${diskName} in a timely manner")
             ),
-            Async[F].unit
+            F.unit
           )
         } yield ()
       }
-      deleteOp <- retryF(
-        Async[F].delay(instanceClient.deleteInstance(projectZoneInstanceName)),
-        s"com.google.cloud.compute.v1.InstanceClient.deleteInstance(${projectZoneInstanceName.toString})"
-      )
+      deleteOp <- deleteInstance(project, zone, instanceName)
     } yield deleteOp
   }
 
@@ -83,7 +81,7 @@ private[google2] class GoogleComputeInterpreter[F[_]: Async: Parallel: Structure
     val projectZoneInstanceName = ProjectZoneInstanceName.of(instanceName.value, project.value, zone.value)
 
     retryF(
-      Async[F].delay(instanceClient.deleteInstance(projectZoneInstanceName)),
+      F.delay(instanceClient.deleteInstance(projectZoneInstanceName)),
       s"com.google.cloud.compute.v1.InstanceClient.deleteInstance(${projectZoneInstanceName.toString})"
     )
   }
@@ -96,7 +94,7 @@ private[google2] class GoogleComputeInterpreter[F[_]: Async: Parallel: Structure
     for {
       traceId <- ev.ask
       op <- withLogging(
-        Async[F].delay(instanceClient.detachDiskInstance(projectZoneInstanceName, deviceName.asString)),
+        F.delay(instanceClient.detachDiskInstance(projectZoneInstanceName, deviceName.asString)),
         Some(traceId),
         s"com.google.cloud.compute.v1.InstanceClient.detachDiskInstance(${projectZoneInstanceName.toString}, ${deviceName.asString})"
       )
@@ -109,7 +107,7 @@ private[google2] class GoogleComputeInterpreter[F[_]: Async: Parallel: Structure
     val projectZoneInstanceName = ProjectZoneInstanceName.of(instanceName.value, project.value, zone.value)
     retryF(
       recoverF(
-        Async[F].delay(instanceClient.getInstance(projectZoneInstanceName)),
+        F.delay(instanceClient.getInstance(projectZoneInstanceName)),
         whenStatusCode(404)
       ),
       s"com.google.cloud.compute.v1.InstanceClient.getInstance(${projectZoneInstanceName.toString})"
@@ -121,7 +119,7 @@ private[google2] class GoogleComputeInterpreter[F[_]: Async: Parallel: Structure
   ): F[Operation] = {
     val projectZoneInstanceName = ProjectZoneInstanceName.of(instanceName.value, project.value, zone.value)
     retryF(
-      Async[F].delay(instanceClient.stopInstance(projectZoneInstanceName)),
+      F.delay(instanceClient.stopInstance(projectZoneInstanceName)),
       s"com.google.cloud.compute.v1.InstanceClient.stopInstance(${projectZoneInstanceName.toString})"
     )
   }
@@ -131,7 +129,7 @@ private[google2] class GoogleComputeInterpreter[F[_]: Async: Parallel: Structure
   ): F[Operation] = {
     val projectZoneInstanceName = ProjectZoneInstanceName.of(instanceName.value, project.value, zone.value)
     retryF(
-      Async[F].delay(instanceClient.startInstance(projectZoneInstanceName)),
+      F.delay(instanceClient.startInstance(projectZoneInstanceName)),
       s"com.google.cloud.compute.v1.InstanceClient.startInstance(${projectZoneInstanceName.toString})"
     )
   }
@@ -145,8 +143,8 @@ private[google2] class GoogleComputeInterpreter[F[_]: Async: Parallel: Structure
   )(implicit ev: ApplicativeAsk[F, TraceId]): F[Unit] = {
     val projectZoneInstanceName = ProjectZoneInstanceName.of(instanceName.value, project.value, zone.value)
     val readAndUpdate = for {
-      instanceOpt <- recoverF(Async[F].delay(instanceClient.getInstance(projectZoneInstanceName)), whenStatusCode(404))
-      instance <- Async[F].fromEither(
+      instanceOpt <- recoverF(F.delay(instanceClient.getInstance(projectZoneInstanceName)), whenStatusCode(404))
+      instance <- F.fromEither(
         instanceOpt.toRight(new WorkbenchException(s"Instance not found: ${projectZoneInstanceName.toString}"))
       )
       curMetadataOpt = Option(instance.getMetadata)
@@ -162,8 +160,7 @@ private[google2] class GoogleComputeInterpreter[F[_]: Async: Parallel: Structure
       }
       // Only make google call if there is a change
       _ <- if (!newItems.equals(curItems)) {
-        Async[F]
-          .delay(
+        F.delay(
             instanceClient.setMetadataInstance(projectZoneInstanceName,
                                                Metadata
                                                  .newBuilder()
@@ -172,7 +169,7 @@ private[google2] class GoogleComputeInterpreter[F[_]: Async: Parallel: Structure
                                                  .build)
           )
           .void
-      } else Async[F].unit
+      } else F.unit
     } yield ()
 
     // block and retry the read-modify-write as an atomic unit
@@ -185,7 +182,7 @@ private[google2] class GoogleComputeInterpreter[F[_]: Async: Parallel: Structure
   override def addFirewallRule(project: GoogleProject,
                                firewall: Firewall)(implicit ev: ApplicativeAsk[F, TraceId]): F[Operation] =
     retryF(
-      Async[F].delay(firewallClient.insertFirewall(project.value, firewall)),
+      F.delay(firewallClient.insertFirewall(project.value, firewall)),
       s"com.google.cloud.compute.v1.FirewallClient.insertFirewall(${project.value}, ${firewall.getName})"
     )
 
@@ -195,7 +192,7 @@ private[google2] class GoogleComputeInterpreter[F[_]: Async: Parallel: Structure
     val projectFirewallRuleName = ProjectGlobalFirewallName.of(firewallRuleName.value, project.value)
     retryF(
       recoverF(
-        Async[F].delay(firewallClient.getFirewall(projectFirewallRuleName)),
+        F.delay(firewallClient.getFirewall(projectFirewallRuleName)),
         whenStatusCode(404)
       ),
       s"com.google.cloud.compute.v1.FirewallClient.insertFirewall(${project.value}, ${firewallRuleName.value})"
@@ -208,7 +205,7 @@ private[google2] class GoogleComputeInterpreter[F[_]: Async: Parallel: Structure
     val request =
       ProjectGlobalFirewallName.newBuilder().setProject(project.value).setFirewall(firewallRuleName.value).build
     retryF(
-      recoverF(Async[F].delay(firewallClient.deleteFirewall(request)), whenStatusCode(404)),
+      recoverF(F.delay(firewallClient.deleteFirewall(request)), whenStatusCode(404)),
       s"com.google.cloud.compute.v1.FirewallClient.deleteFirewall(${project.value}, ${firewallRuleName.value})"
     ).void
   }
@@ -221,7 +218,7 @@ private[google2] class GoogleComputeInterpreter[F[_]: Async: Parallel: Structure
     val request =
       InstancesSetMachineTypeRequest.newBuilder().setMachineType(buildMachineTypeUri(zone, machineTypeName)).build()
     retryF(
-      Async[F].delay(instanceClient.setMachineTypeInstance(projectZoneInstanceName, request)),
+      F.delay(instanceClient.setMachineTypeInstance(projectZoneInstanceName, request)),
       s"com.google.cloud.compute.v1.InstanceClient.setMachineTypeInstance(${projectZoneInstanceName.toString}, ${machineTypeName.value})"
     )
   }
@@ -235,7 +232,7 @@ private[google2] class GoogleComputeInterpreter[F[_]: Async: Parallel: Structure
       .build()
 
     retryF(
-      Async[F].delay(zoneClient.listZones(request)),
+      F.delay(zoneClient.listZones(request)),
       s"com.google.cloud.compute.v1.ZoneClient.listZones(${project.value}, ${regionName.value})"
     ).map(_.iterateAll.asScala.toList)
   }
@@ -245,7 +242,7 @@ private[google2] class GoogleComputeInterpreter[F[_]: Async: Parallel: Structure
   ): F[Option[MachineType]] = {
     val projectZoneMachineTypeName = ProjectZoneMachineTypeName.of(machineTypeName.value, project.value, zone.value)
     retryF(
-      recoverF(Async[F].delay(machineTypeClient.getMachineType(projectZoneMachineTypeName)), whenStatusCode(404)),
+      recoverF(F.delay(machineTypeClient.getMachineType(projectZoneMachineTypeName)), whenStatusCode(404)),
       s"com.google.cloud.compute.v1.MachineTypeClient.getMachineType(${projectZoneMachineTypeName.toString})"
     )
   }
@@ -255,7 +252,7 @@ private[google2] class GoogleComputeInterpreter[F[_]: Async: Parallel: Structure
     val projectNetworkName =
       ProjectGlobalNetworkName.newBuilder().setProject(project.value).setNetwork(networkName.value).build
     retryF(
-      recoverF(Async[F].delay(networkClient.getNetwork(projectNetworkName)), whenStatusCode(404)),
+      recoverF(F.delay(networkClient.getNetwork(projectNetworkName)), whenStatusCode(404)),
       s"com.google.cloud.compute.v1.NetworkClient.getNetwork(${projectNetworkName.toString})"
     )
   }
@@ -264,7 +261,7 @@ private[google2] class GoogleComputeInterpreter[F[_]: Async: Parallel: Structure
                              network: Network)(implicit ev: ApplicativeAsk[F, TraceId]): F[Operation] = {
     val projectName = ProjectName.newBuilder().setProject(project.value).build
     retryF(
-      Async[F].delay(networkClient.insertNetwork(projectName, network)),
+      F.delay(networkClient.insertNetwork(projectName, network)),
       s"com.google.cloud.compute.v1.NetworkClient.insertNetwork(${projectName.toString}, ${network.getName})"
     )
   }
@@ -279,7 +276,7 @@ private[google2] class GoogleComputeInterpreter[F[_]: Async: Parallel: Structure
       .setSubnetwork(subnetwork.value)
       .build
     retryF(
-      recoverF(Async[F].delay(subnetworkClient.getSubnetwork(projectRegionSubnetworkName)), whenStatusCode(404)),
+      recoverF(F.delay(subnetworkClient.getSubnetwork(projectRegionSubnetworkName)), whenStatusCode(404)),
       s"com.google.cloud.compute.v1.SubnetworkClient.getSubnetwork(${projectRegionSubnetworkName.toString})"
     )
   }
@@ -289,7 +286,7 @@ private[google2] class GoogleComputeInterpreter[F[_]: Async: Parallel: Structure
   ): F[Operation] = {
     val projectRegionName = ProjectRegionName.newBuilder().setProject(project.value).setRegion(region.value).build
     retryF(
-      Async[F].delay(subnetworkClient.insertSubnetwork(projectRegionName, subnetwork)),
+      F.delay(subnetworkClient.insertSubnetwork(projectRegionName, subnetwork)),
       s"com.google.cloud.compute.v1.SubnetworkClient.insertSubnetwork(${projectRegionName.toString}, ${subnetwork.getName})"
     )
   }
