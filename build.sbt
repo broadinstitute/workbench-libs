@@ -53,6 +53,12 @@ lazy val workbenchOpenTelemetry = project
   .dependsOn(workbenchUtil2 % testAndCompile)
   .withTestSettings
 
+lazy val workbenchErrorReporting = project
+  .in(file("errorReporting"))
+  .settings(errorReportingSettings: _*)
+  .dependsOn(workbenchUtil2 % testAndCompile)
+  .withTestSettings
+
 lazy val workbenchServiceTest = project
   .in(file("serviceTest"))
   .settings(serviceTestSettings: _*)

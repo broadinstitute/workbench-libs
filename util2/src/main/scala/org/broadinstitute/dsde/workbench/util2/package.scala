@@ -26,6 +26,9 @@ package object util2 {
   def readFile[F[_]](path: String)(implicit sf: Sync[F]): Resource[F, FileInputStream] =
     Resource.make(sf.delay(new FileInputStream(path)))(f => sf.delay(f.close()))
 
+  def readPath[F[_]](path: Path)(implicit sf: Sync[F]): Resource[F, FileInputStream] =
+    Resource.make(sf.delay(new FileInputStream(path.toString)))(f => sf.delay(f.close()))
+
   /*
    * Example:
    * scala> org.broadinstitute.dsde.workbench.util.readJsonFileToA[IO, List[String]](java.nio.file.Paths.get("/tmp/list"), None).compile.lastOrError.unsafeRunSync
