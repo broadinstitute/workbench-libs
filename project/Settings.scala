@@ -207,6 +207,12 @@ object Settings {
     version := createVersion("0.1")
   ) ++ publishSettings
 
+  val errorReportingSettings = cross212and213 ++ commonSettings ++ List(
+    name := "workbench-errorReporting",
+    libraryDependencies ++= errorReportingDependencies,
+    version := createVersion("0.1")
+  ) ++ publishSettings
+
   val serviceTestSettings = only212 ++ commonSettings ++ List(
     name := "workbench-service-test",
     libraryDependencies ++= serviceTestDependencies,

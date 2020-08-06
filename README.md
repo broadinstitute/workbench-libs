@@ -82,7 +82,15 @@ Contains utility functions for publishing custom metrics using openTelemetry (op
 
 Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-opentelemetry" % "0.1-e66171c"`
 
-[Changelog](newrelic/CHANGELOG.md)
+[Changelog](openTelemetry/CHANGELOG.md)
+
+## workbench-errorReporting
+
+Contains utility functions for publishing custom metrics using openTelemetry (openCensus and openTracing). 
+
+Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-errorReporting" % "0.1-TRAVIS-REPLACE-ME"`
+
+[Changelog](errorReporting/CHANGELOG.md)
 
 ## workbench-service-test
 
