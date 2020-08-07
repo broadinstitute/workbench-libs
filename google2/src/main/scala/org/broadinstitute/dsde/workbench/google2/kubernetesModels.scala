@@ -471,8 +471,8 @@ object KubernetesModels {
                                          subjects: List[KubernetesSubject])
 
   //Kubernetes pod phase is what we'll use to map to KubernetesPodStatus - phases include Pending, Running, Succeeded, Failed, Unknown (https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/#pod-phase)
-  // Pending will map to Creating, Running/Succeeded maps to Ready, Failed maps to Error
-  // an app is Ready when all pods return Ready status
+  // When all pods are Running or Succeeded, an app is considered Ready in Leonardo.
+  // If a pod returns type Failed, then an app is status Error in Leo. If at least one pod returns Pending, then an app is in Creating status in Leo.
   sealed trait PodStatus extends Product with Serializable {
     def asString: String
   }
