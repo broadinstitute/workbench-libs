@@ -44,6 +44,7 @@ trait KubernetesService[F[_]] {
     implicit ev: ApplicativeAsk[F, TraceId]
   ): F[List[KubernetesPod]]
 
+  //Tested this k8s client method because it seemed more usable but turns out if returns the entire Pod object and not just the status :( will be removing
   def getPodStatus(clusterId: KubernetesClusterId, name: PodName, namespace: KubernetesNamespace)(
     implicit ev: ApplicativeAsk[F, TraceId]
   ): F[V1Pod]

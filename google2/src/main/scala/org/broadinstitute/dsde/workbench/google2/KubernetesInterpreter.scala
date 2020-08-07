@@ -107,7 +107,8 @@ class KubernetesInterpreter[F[_]: Async: StructuredLogger: Effect: Timer: Contex
         Some(traceId),
         s"io.kubernetes.client.apis.CoreV1Api.listNamespacedPod(${namespace.name.value}, null, true, null, null, null, null, null, null, null)"
       )
-      //TODO: add phase to KubernetesPod
+      //TODO: add status to KubernetesPod
+      //Kubernetes pod phase is what we'll use to map to KubernetesPodStatus - phases include Pending, Running, Succeeded, Failed, Unknown (https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/#pod-phase)
       listPods = response.getItems.asScala.toList.map(v1Pod => convertToKubernetesPod(v1Pod))
       _ = println(listPods)
     } yield (listPods)
@@ -320,6 +321,8 @@ class KubernetesInterpreter[F[_]: Async: StructuredLogger: Effect: Timer: Contex
   }
 
   private def convertToKubernetesPod(pod: V1Pod): KubernetesPod = {
+    // Open question - not sure if this is the right approach. all other wb-lib services return the google object and don't convert it to our leo data model. figured it
+    // would be good to do the conversion in this case because the k8s listPods response has a lot of information we don't need. is this a good way/place to do the conversion?
     //TODO: split this into more conversion helper function ie convertToKubernetesContainer and convertToContainerPort
     val podName = PodName(pod.getMetadata.getName)
     val v1Containers: List[V1Container] = pod.getSpec.getContainers.asScala.toList
