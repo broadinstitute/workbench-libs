@@ -88,6 +88,7 @@ lazy val workbenchLibs = project
   .aggregate(workbenchMetrics)
   .aggregate(workbenchNewrelic)
   .aggregate(workbenchOpenTelemetry)
+  .aggregate(workbenchErrorReporting)
   .aggregate(workbenchGoogle)
   .aggregate(workbenchGoogle2)
   .aggregate(workbenchServiceTest)

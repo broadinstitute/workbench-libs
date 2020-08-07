@@ -24,16 +24,23 @@ class ErrorReportingInterpreter[F[_]](appName: String, projectName: ProjectName,
   }
 
   override def reportError(t: Throwable): F[Unit] = {
-    val sw = new StringWriter
-    val pw = new PrintWriter(sw)
-    for {
-      _ <- F.delay(t.printStackTrace(pw))
-      errorEvent = ReportedErrorEvent
-        .newBuilder()
-        .setMessage(sw.toString)
-        .setServiceContext(serviceContext)
-        .build()
-      _ <- F.delay(client.reportErrorEvent(projectName, errorEvent))
-    } yield ()
+    val stackTraceWriter = cats.effect.Resource.make {
+      val sw = new StringWriter
+      F.delay(StackTraceWriter(sw, new PrintWriter(sw)))
+    }(sw => F.delay(sw.printWriter.close()) >> F.delay(sw.stringWriter.close()))
+
+    stackTraceWriter.use { w =>
+      for {
+        _ <- F.delay(t.printStackTrace(w.printWriter))
+        errorEvent = ReportedErrorEvent
+          .newBuilder()
+          .setMessage(w.stringWriter.toString)
+          .setServiceContext(serviceContext)
+          .build()
+        _ <- F.delay(client.reportErrorEvent(projectName, errorEvent))
+      } yield ()
+    }
   }
 }
+
+final private case class StackTraceWriter(stringWriter: StringWriter, printWriter: PrintWriter)
