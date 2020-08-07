@@ -467,18 +467,18 @@ object KubernetesModels {
                                          roleRef: KubernetesRoleRef,
                                          subjects: List[KubernetesSubject])
 
-  sealed trait KubernetesPodPhase extends Product with Serializable
-  object KubernetesPodPhase {
-    case object Pending extends KubernetesPodPhase {
-      override def toString: String = "Pending"
+  sealed trait KubernetesPodStatus extends Product with Serializable
+  object KubernetesPodStatus {
+    case object Creating extends KubernetesPodStatus {
+      override def toString: String = "Creating"
     }
 
-    case object Running extends KubernetesPodPhase {
-      override def toString: String = "Running"
+    case object Ready extends KubernetesPodStatus {
+      override def toString: String = "Ready"
     }
 
-    case object Succeeded extends KubernetesPodPhase {
-      override def toString: String = "Succeeded"
+    case object Error extends KubernetesPodStatus {
+      override def toString: String = "Error"
     }
   }
 
