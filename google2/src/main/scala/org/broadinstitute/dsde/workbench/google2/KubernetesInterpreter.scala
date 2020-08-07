@@ -107,6 +107,7 @@ class KubernetesInterpreter[F[_]: Async: StructuredLogger: Effect: Timer: Contex
         Some(traceId),
         s"io.kubernetes.client.apis.CoreV1Api.listNamespacedPod(${namespace.name.value}, null, true, null, null, null, null, null, null, null)"
       )
+      //TODO: add phase to KubernetesPod
       listPods = response.getItems.asScala.toList.map(v1Pod => convertToKubernetesPod(v1Pod))
       _ = println(listPods)
     } yield (listPods)
@@ -319,6 +320,7 @@ class KubernetesInterpreter[F[_]: Async: StructuredLogger: Effect: Timer: Contex
   }
 
   private def convertToKubernetesPod(pod: V1Pod): KubernetesPod = {
+    //TODO: split this into more conversion helper function ie convertToKubernetesContainer and convertToContainerPort
     val podName = PodName(pod.getMetadata.getName)
     val v1Containers: List[V1Container] = pod.getSpec.getContainers.asScala.toList
     val v1PortsSet: Set[V1ContainerPort] = v1Containers.flatMap(container => container.getPorts.asScala).toSet
