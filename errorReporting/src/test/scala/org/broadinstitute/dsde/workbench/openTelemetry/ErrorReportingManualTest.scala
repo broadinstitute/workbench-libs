@@ -13,7 +13,7 @@ object ErrorReportingManualTest {
 
   private def test(reporting: ErrorReporting[IO]): IO[Unit] =
     for {
-      _ <- reporting.reportError(CustomException("eeee"))
+      _ <- reporting.reportError(new Exception("eeee2"))
       _ <- reporting.reportError(
         "error2",
         SourceLocation
