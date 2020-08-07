@@ -109,6 +109,8 @@ class KubernetesInterpreter[F[_]: Async: StructuredLogger: Effect: Timer: Contex
       )
       //TODO: add status to KubernetesPod
       //Kubernetes pod phase is what we'll use to map to KubernetesPodStatus - phases include Pending, Running, Succeeded, Failed, Unknown (https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/#pod-phase)
+      // Pending will map to Creating, Running/Succeeded maps to Ready, Failed maps to Error
+      // an app is Ready when all pods return Ready status
       listPods = response.getItems.asScala.toList.map(v1Pod => convertToKubernetesPod(v1Pod))
       _ = println(listPods)
     } yield (listPods)
