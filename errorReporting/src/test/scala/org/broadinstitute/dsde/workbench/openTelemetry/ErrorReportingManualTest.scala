@@ -20,7 +20,7 @@ object ErrorReportingManualTest {
           .newBuilder()
           .setFunctionName("qi-function")
           .setFilePath(this.getClass.getName)
-          .setLineNumber(10)
+//          .setLineNumber(10)
           .build()
       )
     } yield ()
