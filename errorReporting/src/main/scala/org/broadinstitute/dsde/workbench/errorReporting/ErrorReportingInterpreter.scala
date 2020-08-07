@@ -1,6 +1,6 @@
 package org.broadinstitute.dsde.workbench.errorReporting
 
-import cats.effect.Sync
+import cats.effect.{Resource, Sync}
 import cats.implicits._
 import com.google.cloud.errorreporting.v1beta1.ReportErrorsServiceClient
 import com.google.devtools.clouderrorreporting.v1beta1._
@@ -24,7 +24,7 @@ class ErrorReportingInterpreter[F[_]](appName: String, projectName: ProjectName,
   }
 
   override def reportError(t: Throwable): F[Unit] = {
-    val stackTraceWriter = cats.effect.Resource.make {
+    val stackTraceWriter = Resource.make {
       val sw = new StringWriter
       F.delay(StackTraceWriter(sw, new PrintWriter(sw)))
     }(sw => F.delay(sw.printWriter.close()) >> F.delay(sw.stringWriter.close()))
