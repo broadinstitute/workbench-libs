@@ -22,7 +22,7 @@ Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util" 
 Contains utility functions and classes. Util2 is added because util needs to support 2.11 for `firecloud-orchestration`,
 but many libraries start to drop 2.11 support. Util2 doesn't support 2.11.
 
-Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util2" % "0.1-TRAVIS-REPLACE-ME"`
+Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util2" % "0.1-92fcd96"`
 
 [Changelog](util2/CHANGELOG.md)
 
@@ -88,7 +88,7 @@ Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-opente
 
 Contains utility functions for publishing custom metrics using openTelemetry (openCensus and openTracing). 
 
-Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-error-reporting" % "0.1-TRAVIS-REPLACE-ME"`
+Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-error-reporting" % "0.1-92fcd96"`
 
 [Changelog](errorReporting/CHANGELOG.md)
 
