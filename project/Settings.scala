@@ -208,7 +208,7 @@ object Settings {
   ) ++ publishSettings
 
   val errorReportingSettings = cross212and213 ++ commonSettings ++ List(
-    name := "workbench-errorReporting",
+    name := "workbench-error-reporting",
     libraryDependencies ++= errorReportingDependencies,
     version := createVersion("0.1")
   ) ++ publishSettings

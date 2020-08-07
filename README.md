@@ -88,7 +88,7 @@ Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-opente
 
 Contains utility functions for publishing custom metrics using openTelemetry (openCensus and openTracing). 
 
-Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-errorReporting" % "0.1-TRAVIS-REPLACE-ME"`
+Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-error-reporting" % "0.1-TRAVIS-REPLACE-ME"`
 
 [Changelog](errorReporting/CHANGELOG.md)
 

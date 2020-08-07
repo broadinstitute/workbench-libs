@@ -8,4 +8,4 @@ This file documents changes to the `workbench-errorReporting` library, including
 - Add `OpenTelemetryMetrics`
 - Add `registerTracing`
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-opentelemetry" % "0.1-TRAVIS-REPLACE-ME"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-error-reporting" % "0.1-TRAVIS-REPLACE-ME"`
