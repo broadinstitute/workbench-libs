@@ -27,6 +27,7 @@ import org.broadinstitute.dsde.workbench.model.WorkbenchException
 import org.broadinstitute.dsde.workbench.model.google.GoogleProject
 import cats.implicits._
 import io.kubernetes.client.custom.IntOrString
+import ca.mrvisser.sealerate
 
 /** Common Kubernetes models */
 final case class KubernetesClusterNotFoundException(message: String) extends WorkbenchException {
@@ -469,19 +470,35 @@ object KubernetesModels {
                                          roleRef: KubernetesRoleRef,
                                          subjects: List[KubernetesSubject])
 
-  sealed trait PodStatus extends Product with Serializable
+  //Kubernetes pod phase is what we'll use to map to KubernetesPodStatus - phases include Pending, Running, Succeeded, Failed, Unknown (https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/#pod-phase)
+  // Pending will map to Creating, Running/Succeeded maps to Ready, Failed maps to Error
+  // an app is Ready when all pods return Ready status
+  sealed trait PodStatus extends Product with Serializable {
+    def asString: String
+  }
   object PodStatus {
-    case object Creating extends PodStatus {
-      override def toString: String = "Creating"
+    case object Pending extends PodStatus {
+      val asString = "Pending"
     }
 
-    case object Ready extends PodStatus {
-      override def toString: String = "Ready"
+    case object Running extends PodStatus {
+      val asString = "Running"
     }
 
-    case object Error extends PodStatus {
-      override def toString: String = "Error"
+    case object Succeeded extends PodStatus {
+      val asString = "Succeeded"
     }
+
+    case object Failed extends PodStatus {
+      val asString = "Failed"
+    }
+
+    case object Unknown extends PodStatus {
+      val asString = "Unknown"
+    }
+
+    val stringToPodStatus: Map[String, PodStatus] =
+      sealerate.collect[PodStatus].map(p => (p.asString, p)).toMap
   }
 
   sealed trait KubernetesSecretType extends Product with Serializable

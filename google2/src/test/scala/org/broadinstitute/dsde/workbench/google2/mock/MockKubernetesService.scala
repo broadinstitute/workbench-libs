@@ -4,6 +4,7 @@ package mock
 import cats.effect.IO
 import cats.mtl.ApplicativeAsk
 import org.broadinstitute.dsde.workbench.google2.KubernetesModels.KubernetesPodStatus
+import org.broadinstitute.dsde.workbench.google2.KubernetesSerializableName.PodName
 import org.broadinstitute.dsde.workbench.model.TraceId
 
 class MockKubernetesService extends org.broadinstitute.dsde.workbench.google2.KubernetesService[IO] {
@@ -31,7 +32,8 @@ class MockKubernetesService extends org.broadinstitute.dsde.workbench.google2.Ku
 
   override def listPodStatus(clusterId: GKEModels.KubernetesClusterId, namespace: KubernetesModels.KubernetesNamespace)(
     implicit ev: ApplicativeAsk[IO, TraceId]
-  ): IO[List[KubernetesModels.KubernetesPodStatus]] = IO(List(KubernetesModels.KubernetesPodStatus))
+  ): IO[List[KubernetesModels.KubernetesPodStatus]] =
+    IO(List(KubernetesPodStatus.apply(PodName("test"), KubernetesModels.PodStatus.Running)))
 
   override def createService(
     clusterId: GKEModels.KubernetesClusterId,

@@ -107,20 +107,21 @@ class KubernetesInterpreter[F[_]: Async: StructuredLogger: Effect: Timer: Contex
         s"io.kubernetes.client.apis.CoreV1Api.listNamespacedPod(${namespace.name.value}, null, true, null, null, null, null, null, null, null)"
       )
 
-      //Kubernetes pod phase is what we'll use to map to KubernetesPodStatus - phases include Pending, Running, Succeeded, Failed, Unknown (https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/#pod-phase)
-      // Pending will map to Creating, Running/Succeeded maps to Ready, Failed maps to Error
-      // an app is Ready when all pods return Ready status
-      listPodStatus = response.getItems.asScala.toList
-        .map(v1Pod => KubernetesPodStatus(PodName(v1Pod.getMetadata.getName), getPodStatus(v1Pod.getStatus.getPhase)))
-      _ = println(listPodStatus)
-    } yield listPodStatus
+      listPodStatus = Option(response.getItems)
+        .map { l =>
+          val statuses = l.asScala.toList.map(
+            v1Pod =>
+              PodStatus.stringToPodStatus
+                .get(v1Pod.getStatus.getPhase)
+                .map(s => List(KubernetesPodStatus(PodName(v1Pod.getMetadata.getName), s)))
+                .toRight(new RuntimeException(s"Unknown Google status ${v1Pod.getStatus.getPhase}"))
+          )
+          statuses.combineAll
+        }
+        .getOrElse(Nil.asRight[RuntimeException])
 
-  private def getPodStatus(podPhase: String): PodStatus =
-    podPhase match {
-      case "Pending"               => PodStatus.Creating
-      case "Succeeded" | "Running" => PodStatus.Ready
-      case "Failed"                => PodStatus.Error
-    }
+      res <- Async[F].fromEither(listPodStatus)
+    } yield res
 
   // Why we use a service over a deployment: https://matthewpalmer.net/kubernetes-app-developer/articles/service-kubernetes-example-tutorial.html
   // Services can be applied to pods/containers, while deployments are for pre-creating pods/containers.
