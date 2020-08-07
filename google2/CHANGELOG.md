@@ -2,6 +2,14 @@
 
 This file documents changes to the `workbench-google2` library, including notes on how to upgrade to new versions.
 
+## 0.12
+Added:
+- `listPodStatus` to list statuses for all pods that belong to a kubernetes cluster
+- `PodStatus` which can be `Creating`, `Ready`, or `Error`
+- `KubernetesPodStatus` object contains `PodName` and `PodStatus`
+
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.12-TRAVIS-REPLACE-ME"`
+
 ## 0.11
 Changed:
 - Update `pollOperation` signature
