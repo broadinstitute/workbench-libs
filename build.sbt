@@ -53,6 +53,12 @@ lazy val workbenchOpenTelemetry = project
   .dependsOn(workbenchUtil2 % testAndCompile)
   .withTestSettings
 
+lazy val workbenchErrorReporting = project
+  .in(file("errorReporting"))
+  .settings(errorReportingSettings: _*)
+  .dependsOn(workbenchUtil2 % testAndCompile)
+  .withTestSettings
+
 lazy val workbenchServiceTest = project
   .in(file("serviceTest"))
   .settings(serviceTestSettings: _*)
@@ -82,6 +88,7 @@ lazy val workbenchLibs = project
   .aggregate(workbenchMetrics)
   .aggregate(workbenchNewrelic)
   .aggregate(workbenchOpenTelemetry)
+  .aggregate(workbenchErrorReporting)
   .aggregate(workbenchGoogle)
   .aggregate(workbenchGoogle2)
   .aggregate(workbenchServiceTest)
