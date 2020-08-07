@@ -22,8 +22,7 @@ import org.broadinstitute.dsde.workbench.google2.KubernetesModels._
 import org.broadinstitute.dsde.workbench.model.TraceId
 import JavaSerializableSyntax._
 import JavaSerializableInstances._
-import io.kubernetes.client.models.{V1Container, V1ContainerPort, V1Pod}
-import org.broadinstitute.dsde.workbench.google2.KubernetesSerializableName.{ContainerName, PodName}
+import org.broadinstitute.dsde.workbench.google2.KubernetesSerializableName.PodName
 
 import scala.collection.JavaConverters._
 
@@ -91,9 +90,9 @@ class KubernetesInterpreter[F[_]: Async: StructuredLogger: Effect: Timer: Contex
       )
     } yield ()
 
-  override def listPods(clusterId: KubernetesClusterId, namespace: KubernetesNamespace)(
+  override def listPodStatus(clusterId: KubernetesClusterId, namespace: KubernetesNamespace)(
     implicit ev: ApplicativeAsk[F, TraceId]
-  ): F[List[KubernetesPod]] =
+  ): F[List[KubernetesPodStatus]] =
     for {
       traceId <- ev.ask
       client <- blockingF(getClient(clusterId, new CoreV1Api(_)))
@@ -107,32 +106,21 @@ class KubernetesInterpreter[F[_]: Async: StructuredLogger: Effect: Timer: Contex
         Some(traceId),
         s"io.kubernetes.client.apis.CoreV1Api.listNamespacedPod(${namespace.name.value}, null, true, null, null, null, null, null, null, null)"
       )
-      //TODO: add status to KubernetesPod
+
       //Kubernetes pod phase is what we'll use to map to KubernetesPodStatus - phases include Pending, Running, Succeeded, Failed, Unknown (https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/#pod-phase)
       // Pending will map to Creating, Running/Succeeded maps to Ready, Failed maps to Error
       // an app is Ready when all pods return Ready status
-      listPods = response.getItems.asScala.toList.map(v1Pod => convertToKubernetesPod(v1Pod))
-      _ = println(listPods)
-    } yield (listPods)
+      listPodStatus = response.getItems.asScala.toList
+        .map(v1Pod => KubernetesPodStatus(PodName(v1Pod.getMetadata.getName), getPodStatus(v1Pod.getStatus.getPhase)))
+      _ = println(listPodStatus)
+    } yield listPodStatus
 
-  override def getPodStatus(clusterId: KubernetesClusterId, name: PodName, namespace: KubernetesNamespace)(
-    implicit ev: ApplicativeAsk[F, TraceId]
-  ): F[V1Pod] =
-    for {
-      traceId <- ev.ask
-      client <- blockingF(getClient(clusterId, new CoreV1Api(_)))
-      call = blockingF(
-        Async[F].delay(
-          client.readNamespacedPodStatus(name.value, namespace.name.value, "true")
-        )
-      )
-      response <- withLogging(
-        call,
-        Some(traceId),
-        s"io.kubernetes.client.apis.CoreV1Api.readNamespacedPodStatus(${name.value}, ${namespace.name.value}, true)"
-      )
-      _ = println(response)
-    } yield (response)
+  private def getPodStatus(podPhase: String): PodStatus =
+    podPhase match {
+      case "Pending"               => PodStatus.Creating
+      case "Succeeded" | "Running" => PodStatus.Ready
+      case "Failed"                => PodStatus.Error
+    }
 
   // Why we use a service over a deployment: https://matthewpalmer.net/kubernetes-app-developer/articles/service-kubernetes-example-tutorial.html
   // Services can be applied to pods/containers, while deployments are for pre-creating pods/containers.
@@ -320,22 +308,6 @@ class KubernetesInterpreter[F[_]: Async: StructuredLogger: Effect: Timer: Contex
         )
       }
     } yield (apiClient) // appending here a .setDebugging(true) prints out useful API request/response info for development
-  }
-
-  private def convertToKubernetesPod(pod: V1Pod): KubernetesPod = {
-    // Open question - not sure if this is the right approach. all other wb-lib services return the google object and don't convert it to our leo data model. figured it
-    // would be good to do the conversion in this case because the k8s listPods response has a lot of information we don't need. is this a good way/place to do the conversion?
-    //TODO: split this into more conversion helper function ie convertToKubernetesContainer and convertToContainerPort
-    val podName = PodName(pod.getMetadata.getName)
-    val v1Containers: List[V1Container] = pod.getSpec.getContainers.asScala.toList
-    val v1PortsSet: Set[V1ContainerPort] = v1Containers.flatMap(container => container.getPorts.asScala).toSet
-    val portsSet: Set[ContainerPort] = v1PortsSet.map(port => ContainerPort(port.getContainerPort))
-    val portsOpt = if (portsSet.isEmpty) Option.empty else Option(portsSet)
-    val kubernetesContainers = v1Containers.map(
-      container => KubernetesContainer(ContainerName(container.getName), Image(container.getImage), portsOpt)
-    )
-
-    KubernetesPod(podName, kubernetesContainers.toSet, KubernetesSelector(pod.getMetadata.getLabels.asScala.toMap))
   }
 
   // TODO: Retry once we know what Kubernetes error codes are applicable

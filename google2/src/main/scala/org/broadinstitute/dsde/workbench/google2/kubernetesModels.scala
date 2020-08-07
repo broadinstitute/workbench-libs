@@ -375,6 +375,8 @@ object KubernetesModels {
   //consider using a replica set if you would like multiple autoscaling pods https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.12/#replicaset-v1-apps
   final case class KubernetesPod(name: PodName, containers: Set[KubernetesContainer], selector: KubernetesSelector)
 
+  final case class KubernetesPodStatus(name: PodName, podStatus: PodStatus)
+
   final case class Image(uri: String)
 
   //volumes can be added here
@@ -467,17 +469,17 @@ object KubernetesModels {
                                          roleRef: KubernetesRoleRef,
                                          subjects: List[KubernetesSubject])
 
-  sealed trait KubernetesPodStatus extends Product with Serializable
-  object KubernetesPodStatus {
-    case object Creating extends KubernetesPodStatus {
+  sealed trait PodStatus extends Product with Serializable
+  object PodStatus {
+    case object Creating extends PodStatus {
       override def toString: String = "Creating"
     }
 
-    case object Ready extends KubernetesPodStatus {
+    case object Ready extends PodStatus {
       override def toString: String = "Ready"
     }
 
-    case object Error extends KubernetesPodStatus {
+    case object Error extends PodStatus {
       override def toString: String = "Error"
     }
   }
