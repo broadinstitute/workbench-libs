@@ -467,6 +467,21 @@ object KubernetesModels {
                                          roleRef: KubernetesRoleRef,
                                          subjects: List[KubernetesSubject])
 
+  sealed trait KubernetesPodPhase extends Product with Serializable
+  object KubernetesPodPhase {
+    case object Pending extends KubernetesPodPhase {
+      override def toString: String = "Pending"
+    }
+
+    case object Running extends KubernetesPodPhase {
+      override def toString: String = "Running"
+    }
+
+    case object Succeeded extends KubernetesPodPhase {
+      override def toString: String = "Succeeded"
+    }
+  }
+
   sealed trait KubernetesSecretType extends Product with Serializable
   object KubernetesSecretType {
     case object Generic extends KubernetesSecretType {

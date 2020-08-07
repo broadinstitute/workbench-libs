@@ -9,9 +9,11 @@ import cats.mtl.ApplicativeAsk
 import scala.collection.JavaConverters._
 import com.google.api.services.container.ContainerScopes
 import io.chrisdavenport.log4cats.StructuredLogger
+import io.kubernetes.client.models.V1Pod
 import org.broadinstitute.dsde.workbench.RetryConfig
 import org.broadinstitute.dsde.workbench.google2.GKEModels.KubernetesClusterId
 import org.broadinstitute.dsde.workbench.google2.KubernetesModels._
+import org.broadinstitute.dsde.workbench.google2.KubernetesSerializableName.PodName
 import org.broadinstitute.dsde.workbench.google2.util.RetryPredicates
 import org.broadinstitute.dsde.workbench.model.TraceId
 
@@ -38,9 +40,13 @@ trait KubernetesService[F[_]] {
     implicit ev: ApplicativeAsk[F, TraceId]
   ): F[Unit]
 
-  def listPods(clusterId: KubernetesClusterId)(
+  def listPods(clusterId: KubernetesClusterId, namespace: KubernetesNamespace)(
     implicit ev: ApplicativeAsk[F, TraceId]
   ): F[List[KubernetesPod]]
+
+  def getPodStatus(clusterId: KubernetesClusterId, name: PodName, namespace: KubernetesNamespace)(
+    implicit ev: ApplicativeAsk[F, TraceId]
+  ): F[V1Pod]
 
   // certain services allow us to expose various containers via a matching selector
   def createService(clusterId: KubernetesClusterId, service: KubernetesServiceKind, namespace: KubernetesNamespace)(
