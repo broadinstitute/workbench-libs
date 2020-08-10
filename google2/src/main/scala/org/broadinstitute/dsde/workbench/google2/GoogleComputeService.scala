@@ -139,7 +139,7 @@ object GoogleComputeService {
       interpreter <- fromCredential(scopedCredential, blocker, blockerBound, retryConfig)
     } yield interpreter
 
-  private def fromCredential[F[_]: StructuredLogger: Async: Parallel: Timer: ContextShift](
+  def fromCredential[F[_]: StructuredLogger: Async: Parallel: Timer: ContextShift](
     googleCredentials: GoogleCredentials,
     blocker: Blocker,
     blockerBound: Semaphore[F],
@@ -168,18 +168,6 @@ object GoogleComputeService {
       .setCredentialsProvider(credentialsProvider)
       .build()
     val subnetworkSettings = SubnetworkSettings
-      .newBuilder()
-      .setCredentialsProvider(credentialsProvider)
-      .build()
-    val zoneOperationSettings = ZoneOperationSettings
-      .newBuilder()
-      .setCredentialsProvider(credentialsProvider)
-      .build()
-    val regionOperationSettings = RegionOperationSettings
-      .newBuilder()
-      .setCredentialsProvider(credentialsProvider)
-      .build()
-    val globalOperationSettings = GlobalOperationSettings
       .newBuilder()
       .setCredentialsProvider(credentialsProvider)
       .build()
