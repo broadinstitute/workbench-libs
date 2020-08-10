@@ -248,5 +248,5 @@ final case class SubscriberConfig(pathToCredentialJson: String,
                                   ackDeadLine: FiniteDuration,
                                   maxRetries: MaxRetries,
                                   flowControlSettingsConfig: Option[FlowControlSettingsConfig])
-final case class MaxRetries(value: Int)
+final case class MaxRetries(value: Int) extends AnyVal
 final case class Event[A](msg: A, traceId: Option[TraceId] = None, publishedTime: Timestamp, consumer: AckReplyConsumer)
