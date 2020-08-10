@@ -109,14 +109,13 @@ class KubernetesInterpreter[F[_]: Async: StructuredLogger: Effect: Timer: Contex
 
       listPodStatus = Option(response.getItems)
         .map { l =>
-          val statuses = l.asScala.toList.map(
+          l.asScala.toList.foldMap(
             v1Pod =>
               PodStatus.stringToPodStatus
                 .get(v1Pod.getStatus.getPhase)
                 .map(s => List(KubernetesPodStatus(PodName(v1Pod.getMetadata.getName), s)))
                 .toRight(new RuntimeException(s"Unknown Google status ${v1Pod.getStatus.getPhase}"))
           )
-          statuses.combineAll
         }
         .getOrElse(Nil.asRight[RuntimeException])
 
