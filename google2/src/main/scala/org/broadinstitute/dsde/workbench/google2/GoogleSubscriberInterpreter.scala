@@ -5,7 +5,6 @@ import cats.effect.implicits._
 import cats.implicits._
 import com.google.api.core.ApiService
 import com.google.api.gax.batching.FlowControlSettings
-import com.google.api.gax.batching.FlowController.LimitExceededBehavior
 import com.google.api.gax.core.FixedCredentialsProvider
 import com.google.api.gax.rpc.AlreadyExistsException
 import com.google.auth.oauth2.ServiceAccountCredentials
@@ -179,7 +178,7 @@ object GoogleSubscriberInterpreter {
           .setCredentialsProvider(FixedCredentialsProvider.create(credential))
       )
       builderWithFlowControlSetting <- flowControlSettings.traverse { fcs =>
-        Sync[F].delay(builder.setFlowControlSettings(fcs.toBuilder.setLimitExceededBehavior(LimitExceededBehavior)))
+        Sync[F].delay(builder.setFlowControlSettings(fcs))
       }
     } yield builderWithFlowControlSetting.getOrElse(builder).build()
 
@@ -209,12 +208,13 @@ object GoogleSubscriberInterpreter {
   private def createSubscription[F[_]: Effect: Logger](
     subsriberConfig: SubscriberConfig,
     subscription: ProjectSubscriptionName,
-    subscriptionAdminClient: SubscriptionAdminClient,
+    subscriptionAdminClient: SubscriptionAdminClient
   ): Resource[F, Unit] = {
-    val sub = Subscription.newBuilder()
+    val sub = Subscription
+      .newBuilder()
       .setName(subscription.toString)
       .setTopic(subsriberConfig.topicName.toString)
-      .setPushConfig( PushConfig.getDefaultInstance)
+      .setPushConfig(PushConfig.getDefaultInstance)
       .setAckDeadlineSeconds(subsriberConfig.ackDeadLine.toSeconds.toInt)
       .setDeadLetterPolicy(DeadLetterPolicy.newBuilder().setMaxDeliveryAttempts(subsriberConfig.maxRetries.value))
     Resource.liftF(
