@@ -189,6 +189,11 @@ object Dependencies {
     openCensusTraceStackDriver
   )
 
+  val errorReportingDependencies = List(
+    catsEffect,
+    "com.google.cloud" % "google-cloud-errorreporting" % "0.120.0-beta"
+  )
+
   val util2Dependencies = commonDependencies ++ List(
     catsEffect,
     log4cats,
