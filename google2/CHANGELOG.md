@@ -12,12 +12,13 @@ Changed:
 - added mocks for `GKEService` and `KubernetesService`
 - optimized implementation of `GoogleStorageInterpreter.getBlobBody` to fully use streams
 - log only result row count for BigQuery queries
+- Added max retries to `SubscriberConfig`
 
 Added:
 - Add `detachDisk`
 - Add `streamUploadBlob`
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.11-cac8af4"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.11-TRAVIS-REPLACE-ME"`
 
 ## 0.10
 Changed:
