@@ -209,20 +209,25 @@ object GoogleSubscriberInterpreter {
     subsriberConfig: SubscriberConfig,
     subscription: ProjectSubscriptionName,
     subscriptionAdminClient: SubscriptionAdminClient
-  ): Resource[F, Unit] =
+  ): Resource[F, Unit] = {
+    val sub = Subscription
+      .newBuilder()
+      .setName(subscription.toString)
+      .setTopic(subsriberConfig.topicName.toString)
+      .setPushConfig(PushConfig.getDefaultInstance)
+      .setAckDeadlineSeconds(subsriberConfig.ackDeadLine.toSeconds.toInt)
+      .setDeadLetterPolicy(DeadLetterPolicy.newBuilder().setMaxDeliveryAttempts(subsriberConfig.maxRetries.value))
     Resource.liftF(
       Async[F]
         .delay(
-          subscriptionAdminClient.createSubscription(subscription,
-                                                     subsriberConfig.topicName,
-                                                     PushConfig.getDefaultInstance,
-                                                     subsriberConfig.ackDeadLine.toSeconds.toInt)
+          subscriptionAdminClient.createSubscription(sub.build())
         )
         .void
         .recover {
           case _: AlreadyExistsException => Logger[F].info(s"subscription ${subscription} already exists")
         }
     )
+  }
 
   private def subscriptionAdminClientResource[F[_]: Effect: Logger](credential: ServiceAccountCredentials) =
     Resource.make[F, SubscriptionAdminClient](
@@ -241,5 +246,7 @@ final case class FlowControlSettingsConfig(maxOutstandingElementCount: Long, max
 final case class SubscriberConfig(pathToCredentialJson: String,
                                   topicName: TopicName,
                                   ackDeadLine: FiniteDuration,
+                                  maxRetries: MaxRetries,
                                   flowControlSettingsConfig: Option[FlowControlSettingsConfig])
+final case class MaxRetries(value: Int) extends AnyVal
 final case class Event[A](msg: A, traceId: Option[TraceId] = None, publishedTime: Timestamp, consumer: AckReplyConsumer)
