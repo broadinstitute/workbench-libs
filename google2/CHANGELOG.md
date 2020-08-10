@@ -18,7 +18,7 @@ Added:
 - Add `detachDisk`
 - Add `streamUploadBlob`
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.11-TRAVIS-REPLACE-ME"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.11-d2aff88"`
 
 ## 0.10
 Changed:
