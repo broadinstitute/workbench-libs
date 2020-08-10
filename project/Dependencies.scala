@@ -53,16 +53,16 @@ object Dependencies {
   val googleGuava: ModuleID = "com.google.guava"  % "guava" % "22.0"
   val googleRpc: ModuleID =               "io.grpc" % "grpc-core" % "1.16.1" //old google libraries relies on older version of grpc
 
-  val googleRpc2: ModuleID =               "io.grpc" % "grpc-core" % "1.28.1"
+  val googleRpc2: ModuleID =               "io.grpc" % "grpc-core" % "1.30.2"
   val googleFirestore: ModuleID = "com.google.cloud" % "google-cloud-firestore" % "1.33.0"
   val googleStorageNew: ModuleID = "com.google.cloud" % "google-cloud-storage" % "1.107.0"
   val googleStorageLocal: ModuleID = "com.google.cloud" % "google-cloud-nio" % "0.111.0-alpha" % "test"
   val googlePubsubNew: ModuleID = "com.google.cloud" % "google-cloud-pubsub" % "1.105.0"
   val googleKms: ModuleID = "com.google.cloud" % "google-cloud-kms" % "0.77.0-beta"
-  val googleDataproc: ModuleID =    "com.google.cloud" % "google-cloud-dataproc" % "0.122.1"
+  val googleDataproc: ModuleID =    "com.google.cloud" % "google-cloud-dataproc" % "1.0.0"
   val googleComputeNew: ModuleID = "com.google.cloud" % "google-cloud-compute" % "0.118.0-alpha"
   val googleContainer: ModuleID = "com.google.cloud" % "google-cloud-container" % "1.0.4"
-  val kubernetesClient: ModuleID = "io.kubernetes" % "client-java" % "5.0.0" % "compile"
+  val kubernetesClient: ModuleID = "io.kubernetes" % "client-java" % "9.0.0" % "compile"
   val googleBigQueryNew: ModuleID = "com.google.cloud" % "google-cloud-bigquery" % "1.114.0"
   //the below v1 module is a dependency for v2 because it contains the OAuth scopes necessary to created scoped credentials
   val googleContainerV1: ModuleID = "com.google.apis" % "google-api-services-container" % s"v1-rev74-$googleV"
@@ -87,7 +87,7 @@ object Dependencies {
   val openCensusStatsStackDriver: ModuleID = "io.opencensus" % "opencensus-exporter-stats-stackdriver" % "0.26.0"
   val openCensusTraceStackDriver: ModuleID = "io.opencensus" % "opencensus-exporter-trace-stackdriver" % "0.26.0"
   val openCensusTraceLogging: ModuleID = "io.opencensus" % "opencensus-exporter-trace-logging" % "0.26.0"
-  val sealerate: ModuleID = "ca.mrvisser" %% "sealerate" % "0.0.5"
+  val sealerate: ModuleID = "ca.mrvisser" %% "sealerate" % "0.0.6"
 
   val silencerVersion = "1.4.1"
   val silencer: ModuleID = compilerPlugin("com.github.ghik" %% "silencer-plugin" % silencerVersion)
