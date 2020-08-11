@@ -38,6 +38,10 @@ trait KubernetesService[F[_]] {
     implicit ev: ApplicativeAsk[F, TraceId]
   ): F[Unit]
 
+  def listPodStatus(clusterId: KubernetesClusterId, namespace: KubernetesNamespace)(
+    implicit ev: ApplicativeAsk[F, TraceId]
+  ): F[List[KubernetesPodStatus]]
+
   // certain services allow us to expose various containers via a matching selector
   def createService(clusterId: KubernetesClusterId, service: KubernetesServiceKind, namespace: KubernetesNamespace)(
     implicit ev: ApplicativeAsk[F, TraceId]

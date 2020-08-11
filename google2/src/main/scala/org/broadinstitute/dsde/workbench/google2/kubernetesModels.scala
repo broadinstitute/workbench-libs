@@ -27,6 +27,7 @@ import org.broadinstitute.dsde.workbench.model.WorkbenchException
 import org.broadinstitute.dsde.workbench.model.google.GoogleProject
 import cats.implicits._
 import io.kubernetes.client.custom.IntOrString
+import ca.mrvisser.sealerate
 
 /** Common Kubernetes models */
 final case class KubernetesClusterNotFoundException(message: String) extends WorkbenchException {
@@ -375,6 +376,8 @@ object KubernetesModels {
   //consider using a replica set if you would like multiple autoscaling pods https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.12/#replicaset-v1-apps
   final case class KubernetesPod(name: PodName, containers: Set[KubernetesContainer], selector: KubernetesSelector)
 
+  final case class KubernetesPodStatus(name: PodName, podStatus: PodStatus)
+
   final case class Image(uri: String)
 
   //volumes can be added here
@@ -466,6 +469,37 @@ object KubernetesModels {
   final case class KubernetesRoleBinding(name: RoleBindingName,
                                          roleRef: KubernetesRoleRef,
                                          subjects: List[KubernetesSubject])
+
+  //Kubernetes pod phase is what we'll use to map to KubernetesPodStatus - phases include Pending, Running, Succeeded, Failed, Unknown (https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/#pod-phase)
+  // When all pods are Running or Succeeded, an app is considered Ready in Leonardo.
+  // If a pod returns type Failed, then an app is status Error in Leo. If at least one pod returns Pending, then an app is in Creating status in Leo.
+  sealed trait PodStatus extends Product with Serializable {
+    def asString: String
+  }
+  object PodStatus {
+    case object Pending extends PodStatus {
+      val asString = "Pending"
+    }
+
+    case object Running extends PodStatus {
+      val asString = "Running"
+    }
+
+    case object Succeeded extends PodStatus {
+      val asString = "Succeeded"
+    }
+
+    case object Failed extends PodStatus {
+      val asString = "Failed"
+    }
+
+    case object Unknown extends PodStatus {
+      val asString = "Unknown"
+    }
+
+    val stringToPodStatus: Map[String, PodStatus] =
+      sealerate.collect[PodStatus].map(p => (p.asString, p)).toMap
+  }
 
   sealed trait KubernetesSecretType extends Product with Serializable
   object KubernetesSecretType {
