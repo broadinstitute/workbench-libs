@@ -21,7 +21,7 @@ Added:
 - Add `streamUploadBlob`
 - Add `listPodStatus` to `KubernetesService`, returns statuses of all pods belonging to a k8s cluster
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.11-TRAVIS-REPLACE-ME"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.11-12e0924"`
 
 ## 0.10
 Changed:
