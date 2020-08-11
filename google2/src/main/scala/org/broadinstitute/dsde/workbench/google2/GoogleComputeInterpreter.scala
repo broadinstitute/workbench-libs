@@ -11,6 +11,8 @@ import com.google.cloud.compute.v1._
 import org.broadinstitute.dsde.workbench.google2.util.RetryPredicates._
 import org.broadinstitute.dsde.workbench.model.google.GoogleProject
 import org.broadinstitute.dsde.workbench.model.{TraceId, WorkbenchException}
+import cats.Show
+import com.google.api.gax.rpc.ApiException
 
 import scala.collection.JavaConverters._
 import scala.concurrent.TimeoutException
@@ -105,13 +107,21 @@ private[google2] class GoogleComputeInterpreter[F[_]: Parallel: StructuredLogger
     implicit ev: ApplicativeAsk[F, TraceId]
   ): F[Option[Instance]] = {
     val projectZoneInstanceName = ProjectZoneInstanceName.of(instanceName.value, project.value, zone.value)
-    retryF(
-      recoverF(
-        F.delay(instanceClient.getInstance(projectZoneInstanceName)),
-        whenStatusCode(404)
-      ),
-      s"com.google.cloud.compute.v1.InstanceClient.getInstance(${projectZoneInstanceName.toString})"
-    )
+
+    ev.ask
+      .flatMap { traceId =>
+        withLogging(
+          F.delay(instanceClient.getInstance(projectZoneInstanceName)),
+          Some(traceId),
+          s"com.google.cloud.compute.v1.InstanceClient.getInstance(${projectZoneInstanceName.toString})",
+          Show.show[Instance](c => s"${c.getStatus.toString}")
+        )
+      }
+      .map(Option(_))
+      .handleErrorWith {
+        case e: ApiException if e.getStatusCode.getCode.getHttpStatusCode == 404 => F.pure(none[Instance])
+        case e                                                                   => F.raiseError[Option[Instance]](e)
+      }
   }
 
   override def stopInstance(project: GoogleProject, zone: ZoneName, instanceName: InstanceName)(
