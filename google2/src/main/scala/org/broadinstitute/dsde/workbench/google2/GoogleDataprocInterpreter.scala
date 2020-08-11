@@ -1,10 +1,12 @@
 package org.broadinstitute.dsde.workbench.google2
 
+import cats.Show
 import cats.effect._
 import cats.effect.concurrent.Semaphore
 import cats.implicits._
 import cats.mtl.ApplicativeAsk
 import com.google.api.core.ApiFutures
+import com.google.api.gax.rpc.ApiException
 import com.google.api.gax.rpc.StatusCode.Code
 import com.google.cloud.dataproc.v1._
 import com.google.common.util.concurrent.MoreExecutors
@@ -14,14 +16,16 @@ import org.broadinstitute.dsde.workbench.google2.util.RetryPredicates._
 import org.broadinstitute.dsde.workbench.model.TraceId
 import org.broadinstitute.dsde.workbench.model.google.GoogleProject
 import org.broadinstitute.dsde.workbench.google2.GoogleDataprocInterpreter._
+
 import scala.collection.JavaConverters._
 
-private[google2] class GoogleDataprocInterpreter[F[_]: Async: StructuredLogger: Timer: ContextShift](
+private[google2] class GoogleDataprocInterpreter[F[_]: StructuredLogger: Timer: ContextShift](
   clusterControllerClient: ClusterControllerClient,
   blocker: Blocker,
   blockerBound: Semaphore[F],
   retryConfig: RetryConfig
-) extends GoogleDataprocService[F] {
+)(implicit F: Async[F])
+    extends GoogleDataprocService[F] {
 
   override def createCluster(
     project: GoogleProject,
@@ -120,12 +124,25 @@ private[google2] class GoogleDataprocInterpreter[F[_]: Async: StructuredLogger: 
 
   override def getCluster(project: GoogleProject, region: RegionName, clusterName: DataprocClusterName)(
     implicit ev: ApplicativeAsk[F, TraceId]
-  ): F[Option[Cluster]] =
-    retryF(
-      recoverF(Async[F].delay(clusterControllerClient.getCluster(project.value, region.value, clusterName.value)),
-               whenStatusCode(404)),
-      s"com.google.cloud.dataproc.v1.ClusterControllerClient.getCluster(${project.value}, ${region.value}, ${clusterName.value})"
-    )
+  ): F[Option[Cluster]] = {
+    val fa =
+      F.delay(clusterControllerClient.getCluster(project.value, region.value, clusterName.value))
+
+    ev.ask
+      .flatMap { traceId =>
+        withLogging(
+          fa,
+          Some(traceId),
+          s"com.google.cloud.dataproc.v1.ClusterControllerClient.getCluster(${project.value}, ${region.value}, ${clusterName.value})",
+          Show.show[Cluster](c => s"${c.getStatus.toString}")
+        )
+      }
+      .map(Option(_))
+      .handleErrorWith {
+        case e: ApiException if e.getStatusCode.getCode.getHttpStatusCode == 404 => F.pure(none[Cluster])
+        case e                                                                   => F.raiseError[Option[Cluster]](e)
+      }
+  }
 
   override def getClusterInstances(project: GoogleProject, region: RegionName, clusterName: DataprocClusterName)(
     implicit ev: ApplicativeAsk[F, TraceId]

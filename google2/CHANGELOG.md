@@ -14,13 +14,14 @@ Changed:
 - log only result row count for BigQuery queries
 - Expose `GoogleComputeService.fromCredential`
 - Added max retries to `SubscriberConfig`
+- Update `getCluster`, `getInstance`'s logging to cluster's status
 
 Added:
 - Add `detachDisk`
 - Add `streamUploadBlob`
 - Add `listPodStatus` to `KubernetesService`, returns statuses of all pods belonging to a k8s cluster
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.11-966c4cc"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.11-TRAVIS-REPLACE-ME"`
 
 ## 0.10
 Changed:
