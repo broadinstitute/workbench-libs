@@ -14,7 +14,7 @@ Changed:
 - log only result row count for BigQuery queries
 - Expose `GoogleComputeService.fromCredential`
 - Added max retries to `SubscriberConfig`
-- Update `getCluster`'s logging to cluster's status
+- Update `getCluster`, `getInstance`'s logging to cluster's status
 
 Added:
 - Add `detachDisk`

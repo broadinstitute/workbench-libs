@@ -114,7 +114,7 @@ private[google2] class GoogleComputeInterpreter[F[_]: Parallel: StructuredLogger
           F.delay(instanceClient.getInstance(projectZoneInstanceName)),
           Some(traceId),
           s"com.google.cloud.compute.v1.InstanceClient.getInstance(${projectZoneInstanceName.toString})",
-          Show.show[Instance](c => s"${c.getStatus.toString}")
+          Show.show[Instance](c => s"${c.getStatus}")
         )
       }
       .map(Option(_))
