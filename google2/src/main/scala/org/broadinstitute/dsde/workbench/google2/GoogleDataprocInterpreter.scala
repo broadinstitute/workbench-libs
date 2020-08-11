@@ -126,19 +126,22 @@ private[google2] class GoogleDataprocInterpreter[F[_]: StructuredLogger: Timer: 
     implicit ev: ApplicativeAsk[F, TraceId]
   ): F[Option[Cluster]] = {
     val fa =
-      F.delay(clusterControllerClient.getCluster(project.value, region.value, clusterName.value)).handleErrorWith {
-        case e: ApiException if e.getStatusCode.getCode.getHttpStatusCode == 404 => F.pure(none[Cluster])
-        case e                                                                   => F.raiseError(e)
-      }
+      F.delay(clusterControllerClient.getCluster(project.value, region.value, clusterName.value))
 
-    ev.ask.flatMap { traceId =>
-      withLogging(
-        fa,
-        Some(traceId),
-        s"com.google.cloud.dataproc.v1.ClusterControllerClient.getCluster(${project.value}, ${region.value}, ${clusterName.value})",
-        Show.show[Cluster](c => s"${c.getStatus.toString}")
-      )
-    }
+    ev.ask
+      .flatMap { traceId =>
+        withLogging(
+          fa,
+          Some(traceId),
+          s"com.google.cloud.dataproc.v1.ClusterControllerClient.getCluster(${project.value}, ${region.value}, ${clusterName.value})",
+          Show.show[Cluster](c => s"${c.getStatus.toString}")
+        )
+      }
+      .map(Option(_))
+      .handleErrorWith {
+        case e: ApiException if e.getStatusCode.getCode.getHttpStatusCode == 404 => F.pure(none[Cluster])
+        case e                                                                   => F.raiseError[Option[Cluster]](e)
+      }
   }
 
   override def getClusterInstances(project: GoogleProject, region: RegionName, clusterName: DataprocClusterName)(
