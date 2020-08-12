@@ -160,7 +160,7 @@ private[google2] class GoogleDataprocInterpreter[F[_]: StructuredLogger: Timer: 
           Async[F].delay(clusterControllerClient.getOperationsClient().getOperation(operationName.value).getError()),
           whenStatusCode(404)
         ),
-        s"com.google.cloud.dataproc.v1.ClusterControllerClient.getOperationsClient.getOperation(${operationName.value})"
+        s"com.google.cloud.dataproc.v1.ClusterControllerClient.getOperationsClient.getOperation(${operationName.value}).getError()"
       )
     } yield error.map(e => ClusterError(e.getCode, e.getMessage))
 
