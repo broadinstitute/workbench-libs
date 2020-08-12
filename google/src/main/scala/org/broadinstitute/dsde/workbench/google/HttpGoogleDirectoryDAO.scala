@@ -112,9 +112,9 @@ class HttpGoogleDirectoryDAO(appName: String,
                             whenUsageLimited,
                             when404,
                             whenInvalidValueOnBucketCreation,
-                            whenNonHttpIOException)(() => {
+                            whenNonHttpIOException) { () =>
         executeGoogleRequest(inserter)
-      }) {
+      } {
         case t: Throwable if when5xx(t) =>
           // sometimes creating a group errors with a 5xx error and partially creates the group
           // when this happens some group apis (create, list members and delete group) say the group exists
