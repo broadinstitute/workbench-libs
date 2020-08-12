@@ -216,11 +216,15 @@ object GoogleSubscriberInterpreter {
       .setTopic(subsriberConfig.topicName.toString)
       .setPushConfig(PushConfig.getDefaultInstance)
       .setAckDeadlineSeconds(subsriberConfig.ackDeadLine.toSeconds.toInt)
-      .setDeadLetterPolicy(DeadLetterPolicy.newBuilder().setMaxDeliveryAttempts(subsriberConfig.maxRetries.value))
+//   Comment this out since this causes this error: INVALID_ARGUMENT: Invalid resource name given (name=). Refer to https://cloud.google.com/pubsub/docs/admin#resource_names for more information
+//      .setDeadLetterPolicy(
+//        DeadLetterPolicy.newBuilder().setMaxDeliveryAttempts(subsriberConfig.maxRetries.value).build()
+//      )
+      .build()
     Resource.liftF(
       Async[F]
         .delay(
-          subscriptionAdminClient.createSubscription(sub.build())
+          subscriptionAdminClient.createSubscription(sub)
         )
         .void
         .recover {
