@@ -20,23 +20,23 @@ import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Try
 
 /**
-  * Created by mbemis on 8/17/17.
-  */
+ * Created by mbemis on 8/17/17.
+ */
 class HttpGoogleDirectoryDAO(appName: String,
                              googleCredentialMode: GoogleCredentialMode,
                              workbenchMetricBaseName: String,
                              maxPageSize: Int = 200)(implicit system: ActorSystem, executionContext: ExecutionContext)
-  extends AbstractHttpGoogleDAO(appName, googleCredentialMode, workbenchMetricBaseName)
+    extends AbstractHttpGoogleDAO(appName, googleCredentialMode, workbenchMetricBaseName)
     with GoogleDirectoryDAO {
 
   /**
-    * This is a nested class because the scopes need to be different and having one credential with scopes for both
-    * DirectoryScopes.ADMIN_DIRECTORY_GROUP and GroupssettingsScopes.APPS_GROUPS_SETTINGS results in a 401 error
-    * getting a token. It does not feel right to expose this as a top level class. I don't know why google decided
-    * to split out this api but I feel like it should be bundled.
-    */
+   * This is a nested class because the scopes need to be different and having one credential with scopes for both
+   * DirectoryScopes.ADMIN_DIRECTORY_GROUP and GroupssettingsScopes.APPS_GROUPS_SETTINGS results in a 401 error
+   * getting a token. It does not feel right to expose this as a top level class. I don't know why google decided
+   * to split out this api but I feel like it should be bundled.
+   */
   private class GroupSettingsDAO()
-    extends AbstractHttpGoogleDAO(appName, googleCredentialMode, workbenchMetricBaseName) {
+      extends AbstractHttpGoogleDAO(appName, googleCredentialMode, workbenchMetricBaseName) {
     implicit override val service = GoogleInstrumentedService.Groups
     override val scopes = Seq(GroupssettingsScopes.APPS_GROUPS_SETTINGS)
     private lazy val settingsClient =
@@ -63,9 +63,9 @@ class HttpGoogleDirectoryDAO(appName: String,
            workbenchMetricBaseName: String,
            maxPageSize: Int)(implicit system: ActorSystem, executionContext: ExecutionContext) = {
     this(appName,
-      Pem(WorkbenchEmail(serviceAccountClientId), new File(pemFile), Some(WorkbenchEmail(ubEmail))),
-      workbenchMetricBaseName,
-      maxPageSize)
+         Pem(WorkbenchEmail(serviceAccountClientId), new File(pemFile), Some(WorkbenchEmail(ubEmail))),
+         workbenchMetricBaseName,
+         maxPageSize)
   }
 
   @deprecated(
@@ -79,12 +79,12 @@ class HttpGoogleDirectoryDAO(appName: String,
            appName: String,
            workbenchMetricBaseName: String)(implicit system: ActorSystem, executionContext: ExecutionContext) = {
     this(appName,
-      Pem(
-        WorkbenchEmail(clientSecrets.getDetails.get("client_email").toString),
-        new File(pemFile),
-        Some(WorkbenchEmail(clientSecrets.getDetails.get("sub_email").toString))
-      ),
-      workbenchMetricBaseName)
+         Pem(
+           WorkbenchEmail(clientSecrets.getDetails.get("client_email").toString),
+           new File(pemFile),
+           Some(WorkbenchEmail(clientSecrets.getDetails.get("sub_email").toString))
+         ),
+         workbenchMetricBaseName)
   }
 
   override val scopes = Seq(DirectoryScopes.ADMIN_DIRECTORY_GROUP)
@@ -108,7 +108,11 @@ class HttpGoogleDirectoryDAO(appName: String,
     val inserter = groups.insert(group)
 
     for {
-      _ <- retryWithRecover(when5xx, whenUsageLimited, when404, whenInvalidValueOnBucketCreation, whenNonHttpIOException)(() => {
+      _ <- retryWithRecover(when5xx,
+                            whenUsageLimited,
+                            when404,
+                            whenInvalidValueOnBucketCreation,
+                            whenNonHttpIOException)(() => {
         executeGoogleRequest(inserter)
       }) {
         case t: Throwable if when5xx(t) =>
@@ -120,7 +124,7 @@ class HttpGoogleDirectoryDAO(appName: String,
           throw t
       }
       _ <- groupSettings match {
-        case None => Future.successful(())
+        case None           => Future.successful(())
         case Some(settings) => new GroupSettingsDAO().updateGroupSettings(groupEmail, settings)
       }
     } yield ()
@@ -131,11 +135,11 @@ class HttpGoogleDirectoryDAO(appName: String,
     val deleter = groups.delete(groupEmail.value)
 
     retryWithRecover(when5xx,
-      whenUsageLimited,
-      when404,
-      whenInvalidValueOnBucketCreation,
-      whenPreconditionFailed,
-      whenNonHttpIOException)(() => {
+                     whenUsageLimited,
+                     when404,
+                     whenInvalidValueOnBucketCreation,
+                     whenPreconditionFailed,
+                     whenNonHttpIOException)(() => {
       executeGoogleRequest(deleter)
       ()
     }) {
@@ -173,9 +177,9 @@ class HttpGoogleDirectoryDAO(appName: String,
       case e: HttpResponseException if e.getStatusCode == StatusCodes.NotFound.intValue =>
         () //if the member is already absent, then don't keep trying to delete them
       case e: GoogleJsonResponseException
-        if e.getStatusCode == StatusCodes.BadRequest.intValue && e.getDetails.getMessage.equals(
-          "Missing required field: memberKey"
-        ) =>
+          if e.getStatusCode == StatusCodes.BadRequest.intValue && e.getDetails.getMessage.equals(
+            "Missing required field: memberKey"
+          ) =>
         () //this means the member does not exist
     }
   }
@@ -203,9 +207,9 @@ class HttpGoogleDirectoryDAO(appName: String,
     ) {
       case e: HttpResponseException if e.getStatusCode == StatusCodes.NotFound.intValue => false
       case e: GoogleJsonResponseException
-        if e.getStatusCode == StatusCodes.BadRequest.intValue && e.getDetails.getMessage.equals(
-          "Missing required field: memberKey"
-        ) =>
+          if e.getStatusCode == StatusCodes.BadRequest.intValue && e.getDetails.getMessage.equals(
+            "Missing required field: memberKey"
+          ) =>
         false //this means the member does not exist
     }
   }
@@ -218,7 +222,7 @@ class HttpGoogleDirectoryDAO(appName: String,
       pagesOption.map { pages =>
         pages.flatMap { page =>
           Option(page.getMembers.asScala) match {
-            case None => Seq.empty
+            case None          => Seq.empty
             case Some(members) => members.map(_.getEmail)
           }
         }
@@ -227,18 +231,18 @@ class HttpGoogleDirectoryDAO(appName: String,
   }
 
   /**
-    * recursive because the call to list all members is paginated.
-    *
-    * @param fetcher
-    * @param accumulated the accumulated Members objects, 1 for each page, the head element is the last prior request
-    *                    for easy retrieval. The initial state is Some(Nil). This is what is eventually returned. This
-    *                    is None when the group does not exist.
-    * @return None if the group does not exist or a Members object for each page.
-    */
+   * recursive because the call to list all members is paginated.
+   *
+   * @param fetcher
+   * @param accumulated the accumulated Members objects, 1 for each page, the head element is the last prior request
+   *                    for easy retrieval. The initial state is Some(Nil). This is what is eventually returned. This
+   *                    is None when the group does not exist.
+   * @return None if the group does not exist or a Members object for each page.
+   */
   private def listGroupMembersRecursive(
-                                         fetcher: Directory#Members#List,
-                                         accumulated: Option[List[Members]] = Some(Nil)
-                                       ): Future[Option[List[Members]]] = {
+    fetcher: Directory#Members#List,
+    accumulated: Option[List[Members]] = Some(Nil)
+  ): Future[Option[List[Members]]] = {
     implicit val service = GoogleInstrumentedService.Groups
     accumulated match {
       // when accumulated has a Nil list then this must be the first request
