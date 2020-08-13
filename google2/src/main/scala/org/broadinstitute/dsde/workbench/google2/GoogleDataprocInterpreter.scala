@@ -139,8 +139,8 @@ private[google2] class GoogleDataprocInterpreter[F[_]: StructuredLogger: Timer: 
       }
       .map(Option(_))
       .handleErrorWith {
-        case e: ApiException if e.getStatusCode.getCode.getHttpStatusCode == 404 => F.pure(none[Cluster])
-        case e                                                                   => F.raiseError[Option[Cluster]](e)
+        case e: com.google.api.gax.rpc.NotFoundException => F.pure(none[Cluster])
+        case e                                           => F.raiseError[Option[Cluster]](e)
       }
   }
 
