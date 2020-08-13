@@ -9,14 +9,15 @@ import com.google.api.client.googleapis.json.GoogleJsonResponseException
 import com.google.api.client.http.HttpResponseException
 import com.google.api.services.admin.directory.model.{Group, Member, Members}
 import com.google.api.services.admin.directory.{Directory, DirectoryScopes}
-import com.google.api.services.groupssettings.{Groupssettings, GroupssettingsScopes}
 import com.google.api.services.groupssettings.model.{Groups => GroupSettings}
+import com.google.api.services.groupssettings.{Groupssettings, GroupssettingsScopes}
 import org.broadinstitute.dsde.workbench.google.GoogleCredentialModes._
 import org.broadinstitute.dsde.workbench.google.GoogleUtilities.RetryPredicates._
 import org.broadinstitute.dsde.workbench.metrics.GoogleInstrumentedService
 import org.broadinstitute.dsde.workbench.model._
 
 import scala.concurrent.{ExecutionContext, Future}
+import scala.util.Try
 
 /**
  * Created by mbemis on 8/17/17.
@@ -107,9 +108,24 @@ class HttpGoogleDirectoryDAO(appName: String,
     val inserter = groups.insert(group)
 
     for {
-      _ <- retry(when5xx, whenUsageLimited, when404, whenInvalidValueOnBucketCreation, whenNonHttpIOException)(() => {
+      _ <- retryWithRecover(when5xx,
+                            whenUsageLimited,
+                            when404,
+                            whenInvalidValueOnBucketCreation,
+                            whenNonHttpIOException) { () =>
         executeGoogleRequest(inserter)
-      })
+      } {
+        case t: Throwable if when5xx(t) =>
+          // sometimes creating a group errors with a 5xx error and partially creates the group
+          // when this happens some group apis (create, list members and delete group) say the group exists
+          // while others (add member, get details) say the group does not exist.
+          // calling delete before retrying the create should clean all that up
+          logger.debug(
+            s"Creating Google group ${displayName.take(60)} with email ${groupEmail.value} returned a 5xx error. Deleting partially created group and trying again..."
+          )
+          Try(executeGoogleRequest(groups.delete(groupEmail.value)))
+          throw t
+      }
       _ <- groupSettings match {
         case None           => Future.successful(())
         case Some(settings) => new GroupSettingsDAO().updateGroupSettings(groupEmail, settings)
@@ -175,7 +191,9 @@ class HttpGoogleDirectoryDAO(appName: String,
     val getter = directory.groups().get(groupEmail.value)
 
     retryWithRecover(when5xx, whenUsageLimited, when404, whenInvalidValueOnBucketCreation, whenNonHttpIOException)(
-      () => { Option(executeGoogleRequest(getter)) }
+      () => {
+        Option(executeGoogleRequest(getter))
+      }
     ) {
       case e: HttpResponseException if e.getStatusCode == StatusCodes.NotFound.intValue => None
     }
@@ -217,6 +235,7 @@ class HttpGoogleDirectoryDAO(appName: String,
 
   /**
    * recursive because the call to list all members is paginated.
+   *
    * @param fetcher
    * @param accumulated the accumulated Members objects, 1 for each page, the head element is the last prior request
    *                    for easy retrieval. The initial state is Some(Nil). This is what is eventually returned. This
