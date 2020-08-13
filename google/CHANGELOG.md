@@ -4,7 +4,7 @@ This file documents changes to the `workbench-google` library, including notes o
 
 ## 0.21
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.21-2a218f3"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.21-TRAVIS-REPLACE-ME"`
 
 ### Added
 
@@ -22,6 +22,8 @@ SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.
   - These methods now retry 409s, indicating concurrent modifications to the policy. We retry the entire
     read-modify-write operation as recommended by Google.
 - Made `RetryPredicates` handle `null`s more safely
+- Creating a group sometimes returns a 5xx error code and leaves behind a partially created group which caused problems 
+when we retried creation. Changed to delete the partially created group before retrying
 
 ## 0.20
 
