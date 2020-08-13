@@ -120,7 +120,9 @@ class HttpGoogleDirectoryDAO(appName: String,
           // when this happens some group apis (create, list members and delete group) say the group exists
           // while others (add member, get details) say the group does not exist.
           // calling delete before retrying the create should clean all that up
-          logger.debug(s"Creating Google group ${displayName.take(60)} with email ${groupEmail.value} returned a 5xx error. Deleting partially created group and trying again...")
+          logger.debug(
+            s"Creating Google group ${displayName.take(60)} with email ${groupEmail.value} returned a 5xx error. Deleting partially created group and trying again..."
+          )
           Try(executeGoogleRequest(groups.delete(groupEmail.value)))
           throw t
       }
