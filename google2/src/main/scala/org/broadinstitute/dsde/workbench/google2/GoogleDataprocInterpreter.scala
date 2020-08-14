@@ -6,7 +6,6 @@ import cats.effect.concurrent.Semaphore
 import cats.implicits._
 import cats.mtl.ApplicativeAsk
 import com.google.api.core.ApiFutures
-import com.google.api.gax.rpc.ApiException
 import com.google.api.gax.rpc.StatusCode.Code
 import com.google.cloud.dataproc.v1._
 import com.google.common.util.concurrent.MoreExecutors
@@ -139,7 +138,7 @@ private[google2] class GoogleDataprocInterpreter[F[_]: StructuredLogger: Timer: 
       }
       .map(Option(_))
       .handleErrorWith {
-        case e: com.google.api.gax.rpc.NotFoundException => F.pure(none[Cluster])
+        case _: com.google.api.gax.rpc.NotFoundException => F.pure(none[Cluster])
         case e                                           => F.raiseError[Option[Cluster]](e)
       }
   }

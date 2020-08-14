@@ -13,9 +13,9 @@ object ErrorReportingManualTest {
 
   private def test(reporting: ErrorReporting[IO]): IO[Unit] =
     for {
-      _ <- reporting.reportError(new Exception("eeee2"))
+      _ <- reporting.reportError(new Exception("sprint review"))
       _ <- reporting.reportError(
-        "error2",
+        "sprint review",
         SourceLocation
           .newBuilder()
           .setFunctionName("qi-function")
