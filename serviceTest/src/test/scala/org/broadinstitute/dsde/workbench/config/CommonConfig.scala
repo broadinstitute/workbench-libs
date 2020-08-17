@@ -1,8 +1,11 @@
 package org.broadinstitute.dsde.workbench.config
 
 import com.typesafe.config.ConfigFactory
+import net.ceedubs.ficus.Ficus._
+import spray.json.DefaultJsonProtocol._
 import spray.json._
-import DefaultJsonProtocol._
+
+import scala.concurrent.duration._
 
 trait CommonConfig {
   protected val config = ConfigFactory.load()
@@ -55,6 +58,12 @@ trait CommonConfig {
     val samApiUrl: String = fireCloudConfig.getString("samApiUrl")
     val thurloeApiUrl: String = fireCloudConfig.getString("thurloeApiUrl")
     val gpAllocApiUrl: String = fireCloudConfig.getString("gpAllocApiUrl")
+
+    val bucketReadTimeout: FiniteDuration = if (fireCloudConfig.hasPath("bucketReadTimeout")) {
+      fireCloudConfig.as[FiniteDuration]("bucketReadTimeout")
+    } else {
+      10.minutes
+    }
   }
 
   trait CommonChromeSettings {

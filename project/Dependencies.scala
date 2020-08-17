@@ -93,6 +93,8 @@ object Dependencies {
   val silencer: ModuleID = compilerPlugin("com.github.ghik" %% "silencer-plugin" % silencerVersion)
   val silencerLib: ModuleID = "com.github.ghik" %% "silencer-lib" % silencerVersion % Provided
 
+  val ficus: ModuleID = "com.iheart" %% "ficus" % "1.4.0"
+
   val commonDependencies = Seq(
     scalatest,
     scalaCheck,
@@ -212,7 +214,8 @@ object Dependencies {
     akkaTestkit,
     jacksonModule,
     rawlsModel,
-    scalaTestSelenium
+    scalaTestSelenium,
+    ficus
   )
 
   val notificationsDependencies = commonDependencies ++ Seq(
