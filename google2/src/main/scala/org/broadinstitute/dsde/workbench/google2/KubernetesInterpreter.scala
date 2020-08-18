@@ -5,23 +5,26 @@ import java.util.UUID
 import java.util.concurrent.TimeUnit
 
 import cats.effect.concurrent.Semaphore
+import cats.effect.implicits._
 import cats.effect.{Async, Blocker, ContextShift, Effect, Timer}
 import io.chrisdavenport.log4cats.StructuredLogger
+import org.broadinstitute.dsde.workbench.RetryConfig
 import cats.implicits._
-import cats.effect.implicits._
 import cats.mtl.ApplicativeAsk
 import com.google.auth.oauth2.{AccessToken, GoogleCredentials}
 import com.google.common.cache.{CacheBuilder, CacheLoader}
 import com.google.container.v1.Cluster
+import io.chrisdavenport.log4cats.StructuredLogger
 import io.kubernetes.client.ApiClient
 import io.kubernetes.client.apis.{CoreV1Api, RbacAuthorizationV1Api}
 import io.kubernetes.client.util.Config
+import org.broadinstitute.dsde.workbench.RetryConfig
 import org.broadinstitute.dsde.workbench.google2.GKEModels.KubernetesClusterId
+import org.broadinstitute.dsde.workbench.google2.JavaSerializableInstances._
+import org.broadinstitute.dsde.workbench.google2.JavaSerializableSyntax._
 import org.broadinstitute.dsde.workbench.google2.KubernetesModels._
+import org.broadinstitute.dsde.workbench.google2.KubernetesSerializableName.{PodName, ServiceName}
 import org.broadinstitute.dsde.workbench.model.TraceId
-import JavaSerializableSyntax._
-import JavaSerializableInstances._
-import org.broadinstitute.dsde.workbench.google2.KubernetesSerializableName.PodName
 
 import scala.collection.JavaConverters._
 
@@ -141,6 +144,34 @@ class KubernetesInterpreter[F[_]: Async: StructuredLogger: Effect: Timer: Contex
         s"io.kubernetes.client.apis.CoreV1Api.createNamespacedService(${namespace.name.value}, ${service.serviceName.value}, null, true, null)"
       )
     } yield ()
+
+  override def getServiceExternalIp(clusterId: KubernetesClusterId,
+                                    namespace: KubernetesNamespace,
+                                    serviceName: ServiceName)(
+    implicit ev: ApplicativeAsk[F, TraceId]
+  ): F[Option[ServiceExternalIp]] =
+    for {
+      traceId <- ev.ask
+      client <- blockingF(getClient(clusterId, new CoreV1Api(_)))
+      call = blockingF(
+        Async[F].delay(
+          client.listNamespacedService(namespace.name.value, null, "true", null, null, null, null, null, null, null)
+        )
+      )
+      response <- withLogging(
+        call,
+        Some(traceId),
+        s"io.kubernetes.client.apis.CoreV1Api.listNamespacedService(${namespace.name.value}, null, true, null, null, null, null, null, null, null)"
+      )
+
+      ipOpt = Option(response.getItems).flatMap { items =>
+        items.asScala
+          .filter(i => i.getMetadata.getName == serviceName.value)
+          .flatMap(i => i.getSpec.getExternalIPs.asScala)
+          .headOption
+          .map(ServiceExternalIp)
+      }
+    } yield ipOpt
 
   override def createNamespace(clusterId: KubernetesClusterId, namespace: KubernetesNamespace)(
     implicit ev: ApplicativeAsk[F, TraceId]

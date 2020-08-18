@@ -1,4 +1,5 @@
 package org.broadinstitute.dsde.workbench.google2
+
 import com.google.container.v1.Operation
 
 import collection.JavaConverters._
@@ -387,10 +388,6 @@ object KubernetesModels {
                                        resourceLimits: Option[Map[String, String]] = None)
 
   sealed trait KubernetesServiceKind extends Product with Serializable {
-    val SERVICE_TYPE_NODEPORT = KubernetesServiceKindName("NodePort")
-    val SERVICE_TYPE_LOADBALANCER = KubernetesServiceKindName("LoadBalancer")
-    val SERVICE_TYPE_CLUSTERIP = KubernetesServiceKindName("ClusterIP")
-
     def kindName: KubernetesServiceKindName
     def serviceName: ServiceName
     def selector: KubernetesSelector
@@ -398,6 +395,10 @@ object KubernetesModels {
   }
 
   object KubernetesServiceKind {
+    val SERVICE_TYPE_NODEPORT = KubernetesServiceKindName("NodePort")
+    val SERVICE_TYPE_LOADBALANCER = KubernetesServiceKindName("LoadBalancer")
+    val SERVICE_TYPE_CLUSTERIP = KubernetesServiceKindName("ClusterIP")
+
     final case class KubernetesLoadBalancerService(selector: KubernetesSelector,
                                                    ports: Set[ServicePort],
                                                    serviceName: ServiceName)
@@ -418,7 +419,6 @@ object KubernetesModels {
         extends KubernetesServiceKind {
       val kindName = SERVICE_TYPE_CLUSTERIP
     }
-
   }
 
   final case class ServicePort(num: PortNum, name: PortName, targetPort: TargetPortNum, protocol: Protocol)
@@ -427,6 +427,8 @@ object KubernetesModels {
   final case class TargetPortNum(value: Int) extends AnyVal
   final case class PortName(value: String) extends AnyVal
   final case class Protocol(value: String) extends AnyVal
+
+  final case class ServiceExternalIp(value: String) extends AnyVal
 
   //container ports are primarily informational, not specifying them does not prevent them from being exposed
   final case class ContainerPort(value: Int)
