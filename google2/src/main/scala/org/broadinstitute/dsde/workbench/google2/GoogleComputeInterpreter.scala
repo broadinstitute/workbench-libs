@@ -111,16 +111,16 @@ private[google2] class GoogleComputeInterpreter[F[_]: Parallel: StructuredLogger
     ev.ask
       .flatMap { traceId =>
         withLogging(
-          F.delay(instanceClient.getInstance(projectZoneInstanceName)),
+          F.delay(instanceClient.getInstance(projectZoneInstanceName))
+            .map(Option(_))
+            .handleErrorWith {
+              case e: ApiException if e.getStatusCode.getCode.getHttpStatusCode == 404 => F.pure(none[Instance])
+              case e                                                                   => F.raiseError[Option[Instance]](e)
+            },
           Some(traceId),
           s"com.google.cloud.compute.v1.InstanceClient.getInstance(${projectZoneInstanceName.toString})",
-          Show.show[Instance](c => s"${c.getStatus}")
+          Show.show[Option[Instance]](c => s"${c.map(_.getStatus).getOrElse("Not Found")}")
         )
-      }
-      .map(Option(_))
-      .handleErrorWith {
-        case e: ApiException if e.getStatusCode.getCode.getHttpStatusCode == 404 => F.pure(none[Instance])
-        case e                                                                   => F.raiseError[Option[Instance]](e)
       }
   }
 
