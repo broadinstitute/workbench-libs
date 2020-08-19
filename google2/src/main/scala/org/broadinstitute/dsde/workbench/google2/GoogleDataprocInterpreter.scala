@@ -94,31 +94,28 @@ private[google2] class GoogleDataprocInterpreter[F[_]: StructuredLogger: Timer: 
       .setClusterName(clusterName.value)
       .build()
 
-    val deleteCluster = Async[F].async[ClusterOperationMetadata] { cb =>
-      ApiFutures.addCallback(
-        clusterControllerClient.deleteClusterAsync(request).getMetadata,
-        callBack(cb),
-        MoreExecutors.directExecutor()
-      )
-    }
+    val deleteCluster = Async[F]
+      .async[ClusterOperationMetadata] { cb =>
+        ApiFutures.addCallback(
+          clusterControllerClient.deleteClusterAsync(request).getMetadata,
+          callBack(cb),
+          MoreExecutors.directExecutor()
+        )
+      }
+      .map(Option(_))
+      .handleErrorWith {
+        case _: com.google.api.gax.rpc.NotFoundException => F.pure(none[ClusterOperationMetadata])
+        case e                                           => F.raiseError[Option[ClusterOperationMetadata]](e)
+      }
 
     for {
-      createCluster <- retryF(
+      traceId <- ev.ask
+      res <- withLogging(
         deleteCluster,
-        "com.google.cloud.dataproc.v1.ClusterControllerClient.deleteClusterAsync(com.google.cloud.dataproc.v1.DeleteClusterRequest)"
-      ).attempt
-
-      result <- createCluster match {
-        case Left(e: com.google.api.gax.rpc.ApiException) =>
-          e.getStatusCode.getCode match {
-            case Code.NOT_FOUND =>
-              Async[F].pure(none[ClusterOperationMetadata])
-            case _ => Async[F].raiseError[Option[ClusterOperationMetadata]](e)
-          }
-        case Left(e)  => Async[F].raiseError[Option[ClusterOperationMetadata]](e)
-        case Right(v) => Async[F].pure(v.some)
-      }
-    } yield result
+        Some(traceId),
+        s"com.google.cloud.dataproc.v1.ClusterControllerClient.deleteClusterAsync(${request})"
+      )
+    } yield res
   }
 
   override def getCluster(project: GoogleProject, region: RegionName, clusterName: DataprocClusterName)(

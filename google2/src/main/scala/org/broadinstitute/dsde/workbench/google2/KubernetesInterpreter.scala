@@ -7,7 +7,6 @@ import java.util.concurrent.TimeUnit
 import cats.effect.concurrent.Semaphore
 import cats.effect.{Async, Blocker, ContextShift, Effect, Timer}
 import io.chrisdavenport.log4cats.StructuredLogger
-import org.broadinstitute.dsde.workbench.RetryConfig
 import cats.implicits._
 import cats.effect.implicits._
 import cats.mtl.ApplicativeAsk
@@ -33,8 +32,7 @@ class KubernetesInterpreter[F[_]: Async: StructuredLogger: Effect: Timer: Contex
   credentials: GoogleCredentials,
   gkeService: GKEService[F],
   blocker: Blocker,
-  blockerBound: Semaphore[F],
-  retryConfig: RetryConfig
+  blockerBound: Semaphore[F]
 ) extends KubernetesService[F] {
 
   //We cache a kubernetes client for each cluster
