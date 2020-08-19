@@ -5,15 +5,13 @@ import java.nio.file.Path
 import cats.effect.concurrent.Semaphore
 import cats.effect.{Async, Blocker, ContextShift, Effect, Resource, Timer}
 import cats.mtl.ApplicativeAsk
-
-import scala.collection.JavaConverters._
 import com.google.api.services.container.ContainerScopes
 import io.chrisdavenport.log4cats.StructuredLogger
-import org.broadinstitute.dsde.workbench.RetryConfig
 import org.broadinstitute.dsde.workbench.google2.GKEModels.KubernetesClusterId
 import org.broadinstitute.dsde.workbench.google2.KubernetesModels._
-import org.broadinstitute.dsde.workbench.google2.util.RetryPredicates
 import org.broadinstitute.dsde.workbench.model.TraceId
+
+import scala.collection.JavaConverters._
 
 trait KubernetesService[F[_]] {
   // namespaces group resources, and allow our list/get/update API calls to be segmented. This can be used on a per-user basis, for example
@@ -74,12 +72,10 @@ object KubernetesService {
     pathToCredential: Path,
     gkeService: GKEService[F],
     blocker: Blocker,
-    blockerBound: Semaphore[F],
-    //This is not used anywhere yet, there should be a custom kube one
-    retryConfig: RetryConfig = RetryPredicates.standardRetryConfig
+    blockerBound: Semaphore[F]
   ): Resource[F, KubernetesService[F]] =
     for {
       credentials <- credentialResource(pathToCredential.toString)
       scopedCredential = credentials.createScoped(Seq(ContainerScopes.CLOUD_PLATFORM).asJava)
-    } yield new KubernetesInterpreter(scopedCredential, gkeService, blocker, blockerBound, retryConfig)
+    } yield new KubernetesInterpreter(scopedCredential, gkeService, blocker, blockerBound)
 }
