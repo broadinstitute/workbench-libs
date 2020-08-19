@@ -86,7 +86,7 @@ private[google2] class GoogleDataprocInterpreter[F[_]: StructuredLogger: Timer: 
 
   override def deleteCluster(project: GoogleProject, region: RegionName, clusterName: DataprocClusterName)(
     implicit ev: ApplicativeAsk[F, TraceId]
-  ): F[DeleteClusterResponse] = {
+  ): F[Option[ClusterOperationMetadata]] = {
     val request = DeleteClusterRequest
       .newBuilder()
       .setRegion(region.value)
@@ -112,11 +112,11 @@ private[google2] class GoogleDataprocInterpreter[F[_]: StructuredLogger: Timer: 
         case Left(e: com.google.api.gax.rpc.ApiException) =>
           e.getStatusCode.getCode match {
             case Code.NOT_FOUND =>
-              Async[F].pure(DeleteClusterResponse.NotFound: DeleteClusterResponse)
-            case _ => Async[F].raiseError(e): F[DeleteClusterResponse]
+              Async[F].pure(none[ClusterOperationMetadata])
+            case _ => Async[F].raiseError[Option[ClusterOperationMetadata]](e)
           }
-        case Left(e)  => Async[F].raiseError(e): F[DeleteClusterResponse]
-        case Right(v) => Async[F].pure(DeleteClusterResponse.Success(v): DeleteClusterResponse)
+        case Left(e)  => Async[F].raiseError[Option[ClusterOperationMetadata]](e)
+        case Right(v) => Async[F].pure(v.some)
       }
     } yield result
   }

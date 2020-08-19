@@ -16,13 +16,14 @@ Changed:
 - Added max retries to `SubscriberConfig`
 - Update `getCluster`, `getInstance`'s logging to cluster's status
 - Don't log as error when `getCluster`, `getInstance` returns NotFound
+- Return `None` if `instance`, `cluster` or `disk` doesn't exist when trying to `deleteInstance`, `deleteCluster` or `deleteDisk`
 
 Added:
 - Add `detachDisk`
 - Add `streamUploadBlob`
 - Add `listPodStatus` to `KubernetesService`, returns statuses of all pods belonging to a k8s cluster
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.11-fbebf09"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.11-TRAVIS-REPLACE-ME"`
 
 ## 0.10
 Changed:

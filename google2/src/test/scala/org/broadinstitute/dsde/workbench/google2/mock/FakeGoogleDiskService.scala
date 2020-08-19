@@ -14,7 +14,8 @@ class MockGoogleDiskService extends GoogleDiskService[IO] {
 
   override def deleteDisk(project: GoogleProject, zone: ZoneName, diskName: DiskName)(
     implicit ev: ApplicativeAsk[IO, TraceId]
-  ): IO[Operation] = IO.pure(Operation.newBuilder().setId("op").setName("opName").setTargetId("target").build())
+  ): IO[Option[Operation]] =
+    IO.pure(Some(Operation.newBuilder().setId("op").setName("opName").setTargetId("target").build()))
 
   override def getDisk(project: GoogleProject, zone: ZoneName, diskName: DiskName)(
     implicit ev: ApplicativeAsk[IO, TraceId]
