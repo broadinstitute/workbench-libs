@@ -26,7 +26,7 @@ trait GoogleDiskService[F[_]] {
 
   def deleteDisk(project: GoogleProject, zone: ZoneName, diskName: DiskName)(
     implicit ev: ApplicativeAsk[F, TraceId]
-  ): F[Operation]
+  ): F[Option[Operation]]
 
   def getDisk(project: GoogleProject, zone: ZoneName, diskName: DiskName)(
     implicit ev: ApplicativeAsk[F, TraceId]

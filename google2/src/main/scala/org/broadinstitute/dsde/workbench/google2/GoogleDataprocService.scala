@@ -31,7 +31,7 @@ trait GoogleDataprocService[F[_]] {
 
   def deleteCluster(project: GoogleProject, region: RegionName, clusterName: DataprocClusterName)(
     implicit ev: ApplicativeAsk[F, TraceId]
-  ): F[DeleteClusterResponse]
+  ): F[Option[ClusterOperationMetadata]]
 
   def getCluster(project: GoogleProject, region: RegionName, clusterName: DataprocClusterName)(
     implicit ev: ApplicativeAsk[F, TraceId]
@@ -106,12 +106,6 @@ final case class CreateClusterConfig(
   stagingBucket: GcsBucketName,
   softwareConfig: SoftwareConfig
 ) //valid properties are https://cloud.google.com/dataproc/docs/concepts/configuring-clusters/cluster-properties
-
-sealed abstract class DeleteClusterResponse
-object DeleteClusterResponse {
-  final case class Success(clusterOperationMetadata: ClusterOperationMetadata) extends DeleteClusterResponse
-  case object NotFound extends DeleteClusterResponse
-}
 
 sealed trait DataprocRole extends Product with Serializable
 object DataprocRole {

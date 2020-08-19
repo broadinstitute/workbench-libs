@@ -47,7 +47,7 @@ private[google2] class GoogleComputeInterpreter[F[_]: Parallel: StructuredLogger
                                                 autoDeleteDisks: Set[DiskName])(
     implicit ev: ApplicativeAsk[F, TraceId],
     computePollOperation: ComputePollOperation[F]
-  ): F[Operation] = {
+  ): F[Option[Operation]] = {
     val projectZoneInstanceName = ProjectZoneInstanceName.of(instanceName.value, project.value, zone.value)
 
     for {
@@ -79,13 +79,25 @@ private[google2] class GoogleComputeInterpreter[F[_]: Parallel: StructuredLogger
 
   override def deleteInstance(project: GoogleProject, zone: ZoneName, instanceName: InstanceName)(
     implicit ev: ApplicativeAsk[F, TraceId]
-  ): F[Operation] = {
+  ): F[Option[Operation]] = {
     val projectZoneInstanceName = ProjectZoneInstanceName.of(instanceName.value, project.value, zone.value)
 
-    retryF(
-      F.delay(instanceClient.deleteInstance(projectZoneInstanceName)),
-      s"com.google.cloud.compute.v1.InstanceClient.deleteInstance(${projectZoneInstanceName.toString})"
-    )
+    val fa = F
+      .delay(instanceClient.deleteInstance(projectZoneInstanceName))
+      .map(Option(_))
+      .handleErrorWith {
+        case _: com.google.api.gax.rpc.NotFoundException => F.pure(none[Operation])
+        case e                                           => F.raiseError[Option[Operation]](e)
+      }
+
+    for {
+      traceId <- ev.ask
+      op <- withLogging(
+        fa,
+        Some(traceId),
+        s"com.google.cloud.compute.v1.InstanceClient.deleteInstance(${projectZoneInstanceName.toString})"
+      )
+    } yield op
   }
 
   override def detachDisk(project: GoogleProject, zone: ZoneName, instanceName: InstanceName, deviceName: DeviceName)(
