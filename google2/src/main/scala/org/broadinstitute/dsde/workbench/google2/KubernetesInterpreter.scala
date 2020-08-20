@@ -164,8 +164,6 @@ class KubernetesInterpreter[F[_]: Async: StructuredLogger: Effect: Timer: Contex
         s"io.kubernetes.client.apis.CoreV1Api.listNamespacedService(${namespace.name.value}, null, true, null, null, null, null, null, null, null)"
       )
 
-      _ = println(response)
-
       // Many of these fields can be null, so null-check everything
       ipOpt = for {
         items <- Option(response.getItems)
