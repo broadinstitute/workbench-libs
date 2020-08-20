@@ -1,9 +1,10 @@
 package org.broadinstitute.dsde.workbench.google2
 package mock
 
+import cats.implicits._
 import cats.effect.IO
 import cats.mtl.ApplicativeAsk
-import com.google.cloud.dataproc.v1.Cluster
+import com.google.cloud.dataproc.v1.{Cluster, ClusterOperationMetadata}
 import org.broadinstitute.dsde.workbench.model.TraceId
 import org.broadinstitute.dsde.workbench.model.google.GoogleProject
 
@@ -17,7 +18,7 @@ class BaseFakeGoogleDataprocService extends GoogleDataprocService[IO] {
 
   override def deleteCluster(project: GoogleProject, region: RegionName, clusterName: DataprocClusterName)(
     implicit ev: ApplicativeAsk[IO, TraceId]
-  ): IO[DeleteClusterResponse] = IO.pure(DeleteClusterResponse.NotFound)
+  ): IO[Option[ClusterOperationMetadata]] = IO.pure(none[ClusterOperationMetadata])
 
   override def getCluster(project: GoogleProject, region: RegionName, clusterName: DataprocClusterName)(
     implicit ev: ApplicativeAsk[IO, TraceId]
