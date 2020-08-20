@@ -26,7 +26,7 @@ trait GoogleComputeService[F[_]] {
 
   def deleteInstance(project: GoogleProject, zone: ZoneName, instanceName: InstanceName)(
     implicit ev: ApplicativeAsk[F, TraceId]
-  ): F[Operation]
+  ): F[Option[Operation]]
 
   /**
    * @param autoDeleteDisks Set of disk device names that should be marked as auto deletable when runtime is deleted
@@ -38,7 +38,7 @@ trait GoogleComputeService[F[_]] {
                                        autoDeleteDisks: Set[DiskName])(
     implicit ev: ApplicativeAsk[F, TraceId],
     computePollOperation: ComputePollOperation[F]
-  ): F[Operation]
+  ): F[Option[Operation]]
 
   def detachDisk(project: GoogleProject, zone: ZoneName, instanceName: InstanceName, deviceName: DeviceName)(
     implicit ev: ApplicativeAsk[F, TraceId]
