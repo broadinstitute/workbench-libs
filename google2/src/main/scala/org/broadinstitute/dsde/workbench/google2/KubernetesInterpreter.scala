@@ -164,13 +164,20 @@ class KubernetesInterpreter[F[_]: Async: StructuredLogger: Effect: Timer: Contex
         s"io.kubernetes.client.apis.CoreV1Api.listNamespacedService(${namespace.name.value}, null, true, null, null, null, null, null, null, null)"
       )
 
-      ipOpt = Option(response.getItems).flatMap { items =>
-        items.asScala
-          .filter(i => i.getMetadata.getName == serviceName.value)
-          .flatMap(i => i.getSpec.getExternalIPs.asScala)
-          .headOption
-          .map(ServiceExternalIp)
-      }
+      _ = println(response)
+
+      // Many of these fields can be null, so null-check everything
+      ipOpt = for {
+        items <- Option(response.getItems)
+        item <- items.asScala.filter(_.getMetadata.getName == serviceName.value).headOption
+        status <- Option(item.getStatus)
+        lb <- Option(status.getLoadBalancer)
+        ingresses <- Option(lb.getIngress)
+        ingress <- ingresses.asScala.headOption
+        ip <- Option(ingress.getIp)
+        res = ServiceExternalIp(ip)
+      } yield res
+
     } yield ipOpt
 
   override def createNamespace(clusterId: KubernetesClusterId, namespace: KubernetesNamespace)(
