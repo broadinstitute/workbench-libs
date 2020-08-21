@@ -48,11 +48,11 @@ Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-metric
 
 Contains utility functions for talking to Google APIs and DAOs for Google PubSub, Google Directory, Google IAM, and Google BigQuery. 
 
-Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.21-296ce50"`
+Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.21-TRAVIS-REPLACE-ME"`
 
 To depend on the `MockGoogle*` classes, additionally depend on:
 
-`"org.broadinstitute.dsde.workbench" %% "workbench-google"  % "0.21-296ce50" % "test" classifier "tests"`
+`"org.broadinstitute.dsde.workbench" %% "workbench-google"  % "0.21-2a218f3" % "test" classifier "tests"`
 
 [Changelog](google/CHANGELOG.md)
 
@@ -60,11 +60,7 @@ To depend on the `MockGoogle*` classes, additionally depend on:
 
 Contains utility functions for talking to Google APIs via com.google.cloud client library (more recent) via gRPC. 
 
-<<<<<<< HEAD
-Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.11-2e155f0"`
-=======
 Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.11-TRAVIS-REPLACE-ME"`
->>>>>>> attempt to publish 2.13 for google2 and newrelic
 
 To start the Google PubSub emulator for unit testing:
 
