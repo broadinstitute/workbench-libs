@@ -106,7 +106,6 @@ object Settings {
         "-Xlint:inaccessible", // Warn about inaccessible types in method signatures.
         "-Xlint:infer-any", // Warn when a type argument is inferred to be `Any`.
         "-Xlint:missing-interpolator", // A string literal appears to be missing an interpolator id.
-        "-Xlint:nullary-override", // Warn when non-nullary `def f()' overrides nullary `def f'.
         "-Xlint:nullary-unit", // Warn when nullary methods return Unit.
         "-Xlint:option-implicit", // Option.apply used implicit view.
         "-Xlint:package-object-classes", // Class or object defined in package object.
@@ -123,7 +122,7 @@ object Settings {
         "-Ywarn-unused:params", // Warn if a value parameter is unused.
         "-Ywarn-unused:patvars", // Warn if a variable bound in a pattern is unused.
         "-Ywarn-unused:privates", // Warn if a private member is unused.
-        "-Ywarn-value-discard", // Warn when non-Unit expression results are unused.
+//        "-Ywarn-value-discard", // Warn when non-Unit expression results are unused.
         "-Ybackend-parallelism",
         "8", // Enable paralellisation — change to desired number!
         "-Ycache-plugin-class-loader:last-modified", // Enables caching of classloaders for compiler plugins
@@ -178,7 +177,7 @@ object Settings {
     version := createVersion("0.5")
   ) ++ publishSettings
 
-  val googleSettings = only212 ++ commonSettings ++ List(
+  val googleSettings = cross212and213 ++ commonSettings ++ List(
     name := "workbench-google",
     libraryDependencies ++= googleDependencies,
     version := createVersion("0.21"),
