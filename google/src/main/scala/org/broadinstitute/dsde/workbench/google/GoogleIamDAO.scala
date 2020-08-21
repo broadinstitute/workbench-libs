@@ -139,6 +139,19 @@ trait GoogleIamDAO {
                      rolesToRemove: Set[String]): Future[Boolean]
 
   /**
+   *
+   * @param serviceAccountProject the google project where serviceAccount lives
+   * @param serviceAccount the service account (i.e. the IAM resource) to which to add the policy binding
+   * @param member the user email address for which to add the roles to
+   * @param rolesToAdd set of roles to add to the member
+   * @return
+   */
+  def addIamPolicyBindingOnServiceAccount(serviceAccountProject: GoogleProject,
+                                          serviceAccount: WorkbenchEmail,
+                                          member: WorkbenchEmail,
+                                          rolesToAdd: Set[String]): Future[Unit]
+
+  /**
    * Adds the Service Account User role for the given users on the given service account.
    * This allows the users to impersonate as the service account.
    * @param serviceAccountProject the project in which to add the roles
