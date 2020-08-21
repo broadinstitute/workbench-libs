@@ -6,7 +6,7 @@ import cats.mtl.ApplicativeAsk
 import com.google.api.gax.core.FixedCredentialsProvider
 import com.google.api.services.compute.ComputeScopes
 import com.google.auth.oauth2.GoogleCredentials
-import com.google.cloud.dataproc.v1._
+import com.google.cloud.dataproc.v1.{RegionName => _, _}
 import io.chrisdavenport.log4cats.StructuredLogger
 import org.broadinstitute.dsde.workbench.RetryConfig
 import org.broadinstitute.dsde.workbench.google2.util.RetryPredicates

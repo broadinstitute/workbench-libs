@@ -25,8 +25,7 @@ object Settings {
     javacOptions ++= Seq("-source", "1.8", "-target", "1.8"),
     scalacOptions in (Compile, console) --= Seq("-Ywarn-unused:imports", "-Xfatal-warnings"),
     scalacOptions in (Test, console) --= Seq("-Ywarn-unused:imports", "-Xfatal-warnings"),
-    scalacOptions in Test -= "-Ywarn-dead-code", // due to https://github.com/mockito/mockito-scala#notes
-    addCompilerPlugin("org.typelevel" %% "kind-projector" % "0.10.3")
+    scalacOptions in Test -= "-Ywarn-dead-code" // due to https://github.com/mockito/mockito-scala#notes
   )
 
   lazy val commonCompilerSettings = scalacOptions ++= (CrossVersion.partialVersion(scalaVersion.value) match {
@@ -116,8 +115,8 @@ object Settings {
         "-Ywarn-dead-code", // Warn when dead code is identified.
         "-Ywarn-extra-implicit", // Warn when more than one implicit parameter section is defined.
 //      "-Ywarn-numeric-widen", // Warn when numerics are widened.
-        "-Ywarn-unused:implicits", // Warn if an implicit parameter is unused.
-        "-Ywarn-unused:imports", // Warn if an import selector is not referenced.
+//        "-Ywarn-unused:implicits", // Warn if an implicit parameter is unused.
+//        "-Ywarn-unused:imports", // Warn if an import selector is not referenced.
         "-Ywarn-unused:locals", // Warn if a local definition is unused.
         "-Ywarn-unused:params", // Warn if a value parameter is unused.
         "-Ywarn-unused:patvars", // Warn if a variable bound in a pattern is unused.
@@ -171,7 +170,7 @@ object Settings {
     version := createVersion("0.14")
   ) ++ publishSettings
 
-  val metricsSettings = only212 ++ commonSettings ++ List(
+  val metricsSettings = cross212and213 ++ commonSettings ++ List(
     name := "workbench-metrics",
     libraryDependencies ++= metricsDependencies,
     version := createVersion("0.5")
