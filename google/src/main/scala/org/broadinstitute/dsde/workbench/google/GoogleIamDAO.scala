@@ -142,8 +142,8 @@ trait GoogleIamDAO {
    *
    * @param serviceAccountProject the google project where serviceAccount lives
    * @param serviceAccount the service account (i.e. the IAM resource) to which to add the policy binding
-   * @param member the user email address for which to add the binding to
-   * @param rolesToAdd Set of roles to add to the serviceAccount
+   * @param member the user email address for which to add the roles to
+   * @param rolesToAdd set of roles to add to the member
    * @return
    */
   def addIamPolicyBindingOnServiceAccount(serviceAccountProject: GoogleProject,

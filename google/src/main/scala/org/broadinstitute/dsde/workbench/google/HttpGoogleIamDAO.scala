@@ -247,11 +247,6 @@ class HttpGoogleIamDAO(appName: String, googleCredentialMode: GoogleCredentialMo
   override def addServiceAccountUserRoleForUser(serviceAccountProject: GoogleProject,
                                                 serviceAccountEmail: WorkbenchEmail,
                                                 userEmail: WorkbenchEmail): Future[Unit] =
-    // Note the project here is the one in which we're adding the IAM roles.
-    // In this case the serviceAccountEmail acts as a resource, not an identity. Therefore the serviceAccountEmail
-    // should live in the provided serviceAccountProject. For more information on service account permissions, see:
-    // - https://cloud.google.com/iam/docs/service-accounts#service_account_permissions
-    // - https://cloud.google.com/iam/docs/service-accounts#the_service_account_user_role
     addIamPolicyBindingOnServiceAccount(serviceAccountProject,
                                         serviceAccountEmail,
                                         userEmail,
