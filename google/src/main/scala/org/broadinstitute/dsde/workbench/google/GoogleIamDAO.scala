@@ -151,6 +151,18 @@ trait GoogleIamDAO {
                                        email: WorkbenchEmail): Future[Unit]
 
   /**
+   * Adds the Workload Identity User role for the given users on the given service account.
+   * This supports making Google Api calls from a Kubernetes Cluster.
+   * @param serviceAccountProject the project in which to add the roles
+   * @param serviceAccountEmail the service account on which to add the Service Account User role
+   *                               (i.e. the IAM resource).
+   * @param email the user email address for which to add Workload Identity to
+   */
+  def addWorkloadIdentityUserRoleForUser(serviceAccountProject: GoogleProject,
+                                         serviceAccountEmail: WorkbenchEmail,
+                                         email: WorkbenchEmail): Future[Unit]
+
+  /**
    * Creates a user-managed key for the given service account.
    * @param serviceAccountProject the google project the service account resides in
    * @param serviceAccountEmail the service account email

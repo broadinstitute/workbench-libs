@@ -243,6 +243,23 @@ class HttpGoogleIamDAO(appName: String, googleCredentialMode: GoogleCredentialMo
       }.void
     }
 
+  override def addWorkloadIdentityUserRoleForUser(serviceAccountProject: GoogleProject,
+                                                  serviceAccountEmail: WorkbenchEmail,
+                                                  email: WorkbenchEmail): Future[Unit] =
+    getServiceAccountPolicy(serviceAccountProject, serviceAccountEmail).flatMap { policy =>
+      val updatedPolicy =
+        updatePolicy(policy, email, MemberType.ServiceAccount, Set("roles/iam.workloadIdentityUser"), Set.empty)
+      val policyRequest = new ServiceAccountSetIamPolicyRequest().setPolicy(updatedPolicy)
+      val request = iam
+        .projects()
+        .serviceAccounts()
+        .setIamPolicy(s"projects/${serviceAccountProject.value}/serviceAccounts/${serviceAccountEmail.value}",
+                      policyRequest)
+      retry(when5xx, whenUsageLimited, when404, whenInvalidValueOnBucketCreation, whenNonHttpIOException) { () =>
+        executeGoogleRequest(request)
+      }.void
+    }
+
   override def createServiceAccountKey(serviceAccountProject: GoogleProject,
                                        serviceAccountEmail: WorkbenchEmail): Future[ServiceAccountKey] = {
     val request = new CreateServiceAccountKeyRequest()
