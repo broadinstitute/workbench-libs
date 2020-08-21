@@ -7,7 +7,7 @@ import cats.implicits._
 import cats.mtl.ApplicativeAsk
 import com.google.api.core.ApiFutures
 import com.google.api.gax.rpc.StatusCode.Code
-import com.google.cloud.dataproc.v1._
+import com.google.cloud.dataproc.v1.{RegionName => _, _}
 import com.google.common.util.concurrent.MoreExecutors
 import io.chrisdavenport.log4cats.StructuredLogger
 import org.broadinstitute.dsde.workbench.RetryConfig

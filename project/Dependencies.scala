@@ -33,7 +33,7 @@ object Dependencies {
   val catsEffect: ModuleID = "org.typelevel" %% "cats-effect" % "2.1.3"
 
   // metrics-scala transitively pulls in io.dropwizard.metrics:metrics-core
-  val metricsScala: ModuleID =      "nl.grons"              %% "metrics-scala"    % "3.5.6"
+  val metricsScala: ModuleID =      "nl.grons"              %% "metrics4-scala"    % "4.1.9"
   val metricsStatsd: ModuleID =     "com.readytalk"         %  "metrics3-statsd"  % "4.2.0"
 
   val googleApiClient: ModuleID =            "com.google.api-client" % "google-api-client"                        % googleV
@@ -87,7 +87,7 @@ object Dependencies {
   val openCensusStatsStackDriver: ModuleID = "io.opencensus" % "opencensus-exporter-stats-stackdriver" % "0.26.0"
   val openCensusTraceStackDriver: ModuleID = "io.opencensus" % "opencensus-exporter-trace-stackdriver" % "0.26.0"
   val openCensusTraceLogging: ModuleID = "io.opencensus" % "opencensus-exporter-trace-logging" % "0.26.0"
-  val sealerate: ModuleID = "ca.mrvisser" %% "sealerate" % "0.0.5"
+  val sealerate: ModuleID = "ca.mrvisser" %% "sealerate" % "0.0.6"
 
   val silencerVersion = "1.4.1"
   val silencer: ModuleID = compilerPlugin("com.github.ghik" %% "silencer-plugin" % silencerVersion)
