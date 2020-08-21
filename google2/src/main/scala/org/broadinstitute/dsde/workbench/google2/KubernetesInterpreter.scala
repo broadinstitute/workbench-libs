@@ -33,7 +33,8 @@ class KubernetesInterpreter[F[_]: StructuredLogger: Effect: Timer: ContextShift]
   gkeService: GKEService[F],
   blocker: Blocker,
   blockerBound: Semaphore[F]
-)(implicit F: Async[F]) extends KubernetesService[F] {
+)(implicit F: Async[F])
+    extends KubernetesService[F] {
 
   //We cache a kubernetes client for each cluster
   val cache = CacheBuilder
@@ -156,7 +157,7 @@ class KubernetesInterpreter[F[_]: StructuredLogger: Effect: Timer: ContextShift]
         )
       ).map(Option(_)).handleErrorWith {
         case e: io.kubernetes.client.ApiException if e.getCode == 404 => F.pure(None)
-        case e: Throwable => F.raiseError(e)
+        case e: Throwable                                             => F.raiseError(e)
       }
       responseOpt <- withLogging(
         call,
