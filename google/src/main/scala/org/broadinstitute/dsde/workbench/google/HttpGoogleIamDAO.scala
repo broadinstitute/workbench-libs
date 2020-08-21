@@ -221,17 +221,13 @@ class HttpGoogleIamDAO(appName: String, googleCredentialMode: GoogleCredentialMo
       }
     }
 
-  override def addServiceAccountUserRoleForUser(serviceAccountProject: GoogleProject,
-                                                serviceAccountEmail: WorkbenchEmail,
-                                                userEmail: WorkbenchEmail): Future[Unit] =
-    // Note the project here is the one in which we're adding the IAM roles.
-    // In this case the serviceAccountEmail acts as a resource, not an identity. Therefore the serviceAccountEmail
-    // should live in the provided serviceAccountProject. For more information on service account permissions, see:
-    // - https://cloud.google.com/iam/docs/service-accounts#service_account_permissions
-    // - https://cloud.google.com/iam/docs/service-accounts#the_service_account_user_role
+  override def addIamPolicyBindingOnServiceAccount(serviceAccountProject: GoogleProject,
+                                                   serviceAccountEmail: WorkbenchEmail,
+                                                   memberEmail: WorkbenchEmail,
+                                                   rolesToAdd: Set[String]): Future[Unit] =
     getServiceAccountPolicy(serviceAccountProject, serviceAccountEmail).flatMap { policy =>
       val updatedPolicy =
-        updatePolicy(policy, userEmail, MemberType.ServiceAccount, Set("roles/iam.serviceAccountUser"), Set.empty)
+        updatePolicy(policy, memberEmail, MemberType.ServiceAccount, rolesToAdd, Set.empty)
       val policyRequest = new ServiceAccountSetIamPolicyRequest().setPolicy(updatedPolicy)
       val request = iam
         .projects()
@@ -243,22 +239,18 @@ class HttpGoogleIamDAO(appName: String, googleCredentialMode: GoogleCredentialMo
       }.void
     }
 
-  override def addWorkloadIdentityUserRoleForUser(serviceAccountProject: GoogleProject,
-                                                  serviceAccountEmail: WorkbenchEmail,
-                                                  email: WorkbenchEmail): Future[Unit] =
-    getServiceAccountPolicy(serviceAccountProject, serviceAccountEmail).flatMap { policy =>
-      val updatedPolicy =
-        updatePolicy(policy, email, MemberType.ServiceAccount, Set("roles/iam.workloadIdentityUser"), Set.empty)
-      val policyRequest = new ServiceAccountSetIamPolicyRequest().setPolicy(updatedPolicy)
-      val request = iam
-        .projects()
-        .serviceAccounts()
-        .setIamPolicy(s"projects/${serviceAccountProject.value}/serviceAccounts/${serviceAccountEmail.value}",
-                      policyRequest)
-      retry(when5xx, whenUsageLimited, when404, whenInvalidValueOnBucketCreation, whenNonHttpIOException) { () =>
-        executeGoogleRequest(request)
-      }.void
-    }
+  override def addServiceAccountUserRoleForUser(serviceAccountProject: GoogleProject,
+                                                serviceAccountEmail: WorkbenchEmail,
+                                                userEmail: WorkbenchEmail): Future[Unit] =
+    // Note the project here is the one in which we're adding the IAM roles.
+    // In this case the serviceAccountEmail acts as a resource, not an identity. Therefore the serviceAccountEmail
+    // should live in the provided serviceAccountProject. For more information on service account permissions, see:
+    // - https://cloud.google.com/iam/docs/service-accounts#service_account_permissions
+    // - https://cloud.google.com/iam/docs/service-accounts#the_service_account_user_role
+    addIamPolicyBindingOnServiceAccount(serviceAccountProject,
+                                        serviceAccountEmail,
+                                        userEmail,
+                                        Set("roles/iam.serviceAccountUser"))
 
   override def createServiceAccountKey(serviceAccountProject: GoogleProject,
                                        serviceAccountEmail: WorkbenchEmail): Future[ServiceAccountKey] = {

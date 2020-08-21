@@ -139,6 +139,19 @@ trait GoogleIamDAO {
                      rolesToRemove: Set[String]): Future[Boolean]
 
   /**
+   *
+   * @param serviceAccountProject the google projecting which we're adding the IAM roles
+   * @param serviceAccountEmail the service account on which to add the roles to (i.e. the IAM resource).
+   * @param memberEmail the user email address for which to add the roles to
+   * @param rolesToAdd Set of roles to add to the serviceAccountEmail
+   * @return
+   */
+  def addIamPolicyBindingOnServiceAccount(serviceAccountProject: GoogleProject,
+                                          serviceAccountEmail: WorkbenchEmail,
+                                          memberEmail: WorkbenchEmail,
+                                          rolesToAdd: Set[String]): Future[Unit]
+
+  /**
    * Adds the Service Account User role for the given users on the given service account.
    * This allows the users to impersonate as the service account.
    * @param serviceAccountProject the project in which to add the roles
@@ -149,18 +162,6 @@ trait GoogleIamDAO {
   def addServiceAccountUserRoleForUser(serviceAccountProject: GoogleProject,
                                        serviceAccountEmail: WorkbenchEmail,
                                        email: WorkbenchEmail): Future[Unit]
-
-  /**
-   * Adds the Workload Identity User role for the given users on the given service account.
-   * This supports making Google Api calls from a Kubernetes Cluster.
-   * @param serviceAccountProject the project in which to add the roles
-   * @param serviceAccountEmail the service account on which to add the Service Account User role
-   *                               (i.e. the IAM resource).
-   * @param email the user email address for which to add Workload Identity to
-   */
-  def addWorkloadIdentityUserRoleForUser(serviceAccountProject: GoogleProject,
-                                         serviceAccountEmail: WorkbenchEmail,
-                                         email: WorkbenchEmail): Future[Unit]
 
   /**
    * Creates a user-managed key for the given service account.

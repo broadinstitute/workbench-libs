@@ -70,6 +70,16 @@ class MockGoogleIamDAO extends GoogleIamDAO {
                                  iamPermissions: Set[IamPermission]): Future[Set[IamPermission]] =
     Future.successful(iamPermissions)
 
+  override def addIamPolicyBindingOnServiceAccount(serviceAccountProject: GoogleProject,
+                                                   serviceAccountEmail: WorkbenchEmail,
+                                                   memberEmail: WorkbenchEmail,
+                                                   rolesToAdd: Set[String]): Future[Unit] =
+    if (serviceAccounts.contains(serviceAccountEmail)) {
+      Future.successful(())
+    } else {
+      Future.failed(new Exception(s"Unknown service account $memberEmail"))
+    }
+
   override def addServiceAccountUserRoleForUser(googleProject: GoogleProject,
                                                 serviceAccountEmail: WorkbenchEmail,
                                                 userEmail: WorkbenchEmail): Future[Unit] =
@@ -77,15 +87,6 @@ class MockGoogleIamDAO extends GoogleIamDAO {
       Future.successful(())
     } else {
       Future.failed(new Exception(s"Unknown service account $userEmail"))
-    }
-
-  override def addWorkloadIdentityUserRoleForUser(googleProject: GoogleProject,
-                                                  serviceAccountEmail: WorkbenchEmail,
-                                                  email: WorkbenchEmail): Future[Unit] =
-    if (serviceAccounts.contains(serviceAccountEmail)) {
-      Future.successful(())
-    } else {
-      Future.failed(new Exception(s"Unknown service account $email"))
     }
 
   override def createServiceAccountKey(serviceAccountProject: GoogleProject,
