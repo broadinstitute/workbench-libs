@@ -221,19 +221,24 @@ class HttpGoogleIamDAO(appName: String, googleCredentialMode: GoogleCredentialMo
       }
     }
 
+  // Note the project here is the one in which we're adding the IAM roles.
+  // In this case the serviceAccount acts as a resource, not an identity. Therefore the serviceAccount
+  // should live in the provided serviceAccountProject. For more information on service account permissions, see:
+  // - https://cloud.google.com/iam/docs/service-accounts#service_account_permissions
+  // - https://cloud.google.com/iam/docs/service-accounts#the_service_account_user_role
+  // Also a helpful SO answer can be viewed at https://stackoverflow.com/a/61878052/2851999
   override def addIamPolicyBindingOnServiceAccount(serviceAccountProject: GoogleProject,
-                                                   serviceAccountEmail: WorkbenchEmail,
-                                                   memberEmail: WorkbenchEmail,
+                                                   serviceAccount: WorkbenchEmail,
+                                                   member: WorkbenchEmail,
                                                    rolesToAdd: Set[String]): Future[Unit] =
-    getServiceAccountPolicy(serviceAccountProject, serviceAccountEmail).flatMap { policy =>
+    getServiceAccountPolicy(serviceAccountProject, serviceAccount).flatMap { policy =>
       val updatedPolicy =
-        updatePolicy(policy, memberEmail, MemberType.ServiceAccount, rolesToAdd, Set.empty)
+        updatePolicy(policy, member, MemberType.ServiceAccount, rolesToAdd, Set.empty)
       val policyRequest = new ServiceAccountSetIamPolicyRequest().setPolicy(updatedPolicy)
       val request = iam
         .projects()
         .serviceAccounts()
-        .setIamPolicy(s"projects/${serviceAccountProject.value}/serviceAccounts/${serviceAccountEmail.value}",
-                      policyRequest)
+        .setIamPolicy(s"projects/${serviceAccountProject.value}/serviceAccounts/${serviceAccount.value}", policyRequest)
       retry(when5xx, whenUsageLimited, when404, whenInvalidValueOnBucketCreation, whenNonHttpIOException) { () =>
         executeGoogleRequest(request)
       }.void
