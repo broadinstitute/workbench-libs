@@ -1,8 +1,8 @@
 import sbt._
 
 object Dependencies {
-  val akkaV         = "2.5.3"
-  val akkaHttpV     = "10.0.6"
+  val akkaV         = "2.6.8"
+  val akkaHttpV     = "10.2.0"
   val jacksonV      = "2.9.0"
   val googleV       = "1.22.0"
   val scalaLoggingV = "3.9.2"
@@ -12,7 +12,7 @@ object Dependencies {
 
   def excludeGuavaJDK5(m: ModuleID): ModuleID = m.exclude("com.google.guava", "guava-jdk5")
 
-  val scalaLogging: ModuleID = "com.typesafe.scala-logging"    %% "scala-logging" % "3.9.2"  % "provided"
+  val scalaLogging: ModuleID = "com.typesafe.scala-logging"    %% "scala-logging" % scalaLoggingV  % "provided"
   val scalatest: ModuleID =    "org.scalatest"                 %% "scalatest"     % scalaTestV  % "test"
   val scalaTestScalaCheck = "org.scalatestplus" %% "scalatestplus-scalacheck" % "3.1.0.0-RC2" % Test //Since scalatest 3.1.0, scalacheck support is moved to `scalatestplus`
   val scalaTestMockito = "org.scalatestplus" %% "scalatestplus-mockito" % "1.0.0-M2" % Test //Since scalatest 3.1.0, mockito support is moved to `scalatestplus`
@@ -20,6 +20,7 @@ object Dependencies {
   val mockito: ModuleID =      "org.mockito"                   %  "mockito-core"  % "2.8.47" % "test"
 
   val akkaActor: ModuleID =         "com.typesafe.akka" %% "akka-actor"           % akkaV     % "provided"
+  val akkaStream: ModuleID =         "com.typesafe.akka" %% "akka-stream"           % akkaV     % "provided"
   val akkaHttp: ModuleID =          "com.typesafe.akka" %% "akka-http"            % akkaHttpV % "provided"
   val akkaHttpSprayJson: ModuleID = "com.typesafe.akka" %% "akka-http-spray-json" % akkaHttpV % "provided"
   val akkaTestkit: ModuleID =       "com.typesafe.akka" %% "akka-testkit"         % akkaV     % "test"
@@ -120,6 +121,7 @@ object Dependencies {
     metricsScala,
     metricsStatsd,
     akkaHttp,
+    akkaStream,
     akkaTestkit,
     akkaHttpTestkit,
     mockito,
@@ -144,6 +146,8 @@ object Dependencies {
     googleGuava,
     googleRpc,
     googleKms,
+    akkaActor,
+    akkaStream,
     akkaHttpSprayJson,
     akkaTestkit,
     sealerate,
