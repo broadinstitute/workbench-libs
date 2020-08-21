@@ -79,6 +79,15 @@ class MockGoogleIamDAO extends GoogleIamDAO {
       Future.failed(new Exception(s"Unknown service account $userEmail"))
     }
 
+  override def addWorkloadIdentityUserRoleForUser(googleProject: GoogleProject,
+                                                  serviceAccountEmail: WorkbenchEmail,
+                                                  email: WorkbenchEmail): Future[Unit] =
+    if (serviceAccounts.contains(serviceAccountEmail)) {
+      Future.successful(())
+    } else {
+      Future.failed(new Exception(s"Unknown service account $email"))
+    }
+
   override def createServiceAccountKey(serviceAccountProject: GoogleProject,
                                        serviceAccountEmail: WorkbenchEmail): Future[ServiceAccountKey] = {
     val keyId = ServiceAccountKeyId(UUID.randomUUID().toString)
