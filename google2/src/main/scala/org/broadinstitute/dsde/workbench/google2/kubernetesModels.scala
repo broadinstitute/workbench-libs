@@ -428,8 +428,6 @@ object KubernetesModels {
   final case class PortName(value: String) extends AnyVal
   final case class Protocol(value: String) extends AnyVal
 
-  final case class ServiceExternalIp(value: String) extends AnyVal
-
   //container ports are primarily informational, not specifying them does not prevent them from being exposed
   final case class ContainerPort(value: Int)
 
