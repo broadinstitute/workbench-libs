@@ -9,7 +9,8 @@ import com.google.api.services.container.ContainerScopes
 import io.chrisdavenport.log4cats.StructuredLogger
 import org.broadinstitute.dsde.workbench.google2.GKEModels.KubernetesClusterId
 import org.broadinstitute.dsde.workbench.google2.KubernetesModels._
-import org.broadinstitute.dsde.workbench.model.TraceId
+import org.broadinstitute.dsde.workbench.google2.KubernetesSerializableName.ServiceName
+import org.broadinstitute.dsde.workbench.model.{IP, TraceId}
 
 import scala.collection.JavaConverters._
 
@@ -44,6 +45,10 @@ trait KubernetesService[F[_]] {
   def createService(clusterId: KubernetesClusterId, service: KubernetesServiceKind, namespace: KubernetesNamespace)(
     implicit ev: ApplicativeAsk[F, TraceId]
   ): F[Unit]
+
+  def getServiceExternalIp(clusterId: KubernetesClusterId, namespace: KubernetesNamespace, serviceName: ServiceName)(
+    implicit ev: ApplicativeAsk[F, TraceId]
+  ): F[Option[IP]]
 
   def createRole(clusterId: KubernetesClusterId, role: KubernetesRole, namespace: KubernetesNamespace)(
     implicit ev: ApplicativeAsk[F, TraceId]

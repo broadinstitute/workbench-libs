@@ -3,9 +3,10 @@ package mock
 
 import cats.effect.IO
 import cats.mtl.ApplicativeAsk
-import org.broadinstitute.dsde.workbench.google2.KubernetesModels.KubernetesPodStatus
-import org.broadinstitute.dsde.workbench.google2.KubernetesSerializableName.PodName
-import org.broadinstitute.dsde.workbench.model.TraceId
+import org.broadinstitute.dsde.workbench.google2.GKEModels.KubernetesClusterId
+import org.broadinstitute.dsde.workbench.google2.KubernetesModels.{KubernetesNamespace, KubernetesPodStatus}
+import org.broadinstitute.dsde.workbench.google2.KubernetesSerializableName.{PodName, ServiceName}
+import org.broadinstitute.dsde.workbench.model.{IP, TraceId}
 
 class MockKubernetesService extends org.broadinstitute.dsde.workbench.google2.KubernetesService[IO] {
   override def createNamespace(
@@ -40,6 +41,12 @@ class MockKubernetesService extends org.broadinstitute.dsde.workbench.google2.Ku
     service: KubernetesModels.KubernetesServiceKind,
     namespace: KubernetesModels.KubernetesNamespace
   )(implicit ev: ApplicativeAsk[IO, TraceId]): IO[Unit] = IO.unit
+
+  override def getServiceExternalIp(clusterId: KubernetesClusterId,
+                                    namespace: KubernetesNamespace,
+                                    serviceName: ServiceName)(
+    implicit ev: ApplicativeAsk[IO, TraceId]
+  ): IO[Option[IP]] = IO(Some(IP("1.2.3.4")))
 
   override def createRole(
     clusterId: GKEModels.KubernetesClusterId,
