@@ -8,3 +8,5 @@ final case class TraceId(asString: String) extends AnyVal
 object TraceId {
   def apply(uuid: UUID): TraceId = new TraceId(uuid.toString)
 }
+
+final case class IP(asString: String) extends AnyVal

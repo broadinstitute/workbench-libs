@@ -22,8 +22,9 @@ Added:
 - Add `detachDisk`
 - Add `streamUploadBlob`
 - Add `listPodStatus` to `KubernetesService`, returns statuses of all pods belonging to a k8s cluster
+- Add `getServiceExternalIp` to `KubernetesService`
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.11-f401a38"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.11-TRAVIS-REPLACE-ME"`
 
 ## 0.10
 Changed:
