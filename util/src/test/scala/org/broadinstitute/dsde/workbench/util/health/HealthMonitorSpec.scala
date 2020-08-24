@@ -19,7 +19,7 @@ class HealthMonitorSpec
     with AnyFlatSpecLike
     with BeforeAndAfterAll
     with Matchers {
-  override def afterAll: Unit =
+  override def afterAll(): Unit =
     TestKit.shutdownActorSystem(system)
 
   import system.dispatcher

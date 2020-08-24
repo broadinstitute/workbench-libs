@@ -261,7 +261,7 @@ object GoogleStorageService {
     project: Option[GoogleProject] = None
   ): Resource[F, GoogleStorageService[F]] =
     for {
-      db <- GoogleStorageInterpreter.storage[F](pathToCredentialJson, blocker, blockerBound, project)
+      db <- GoogleStorageInterpreter.storage[F](pathToCredentialJson, blocker, project)
     } yield GoogleStorageInterpreter[F](db, blocker, blockerBound)
 
   def fromApplicationDefault[F[_]: ContextShift: Timer: Async: StructuredLogger](
