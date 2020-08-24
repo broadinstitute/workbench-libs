@@ -17,7 +17,7 @@ class GcsPathParserSpec extends AnyFlatSpecLike with Matchers with EitherValues 
     generateUniqueBucketName("my+cluster").value should startWith("mycluster-")
     generateUniqueBucketName("mY-?^&@%#@&^#cLuStEr.foo_bar").value should startWith("my-cluster.foo_bar-")
     generateUniqueBucketName("googMyCluster").value should startWith("oogmycluster-")
-    generateUniqueBucketName("my_Google_clUsTer").value should startWith("my_g00gle_cluster-")
+    generateUniqueBucketName("my_Google_clUsTer").value should startWith("my_oogle_cluster-")
     generateUniqueBucketName("myClusterWhichHasAVeryLongNameBecauseIAmExtremelyVerboseInMyDescriptions").value should startWith(
       "myclusterwhichhasaverylong-"
     )
