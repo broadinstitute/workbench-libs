@@ -18,6 +18,5 @@ test-output/
 .bloop
 
 *.pid
-
-.metals
 .DS_Store
+.metals.DS_Store
