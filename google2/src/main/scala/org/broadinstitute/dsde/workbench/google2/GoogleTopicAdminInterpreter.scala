@@ -36,7 +36,6 @@ class GoogleTopicAdminInterpreter[F[_]: StructuredLogger: Sync: Timer](topicAdmi
   }
 
   def delete(projectTopicName: TopicName, traceId: Option[TraceId] = None): Stream[F, Unit] = {
-    val loggingCtx = Map("topic" -> projectTopicName.asJson, "traceId" -> traceId.asJson)
     val deleteTopic = Sync[F].delay(topicAdminClient.deleteTopic(projectTopicName))
 
     retryHelper[Unit](deleteTopic,

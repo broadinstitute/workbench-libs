@@ -1,11 +1,9 @@
 import Dependencies._
-import Merging._
 import Testing._
 import Version._
 import Publishing._
 import sbt.Keys.{scalacOptions, _}
 import sbt._
-import sbtassembly.AssemblyPlugin.autoImport._
 import scoverage.ScoverageKeys.coverageExcludedPackages
 
 //noinspection TypeAnnotation
@@ -138,14 +136,8 @@ object Settings {
     crossScalaVersions := List("2.12.11", "2.13.3")
   )
 
-  //sbt assembly settings
-  val commonAssemblySettings = Seq(
-    assemblyMergeStrategy in assembly := customMergeStrategy((assemblyMergeStrategy in assembly).value),
-    test in assembly := {}
-  )
-
   //common settings for all sbt subprojects
-  val commonSettings = commonBuildSettings ++ commonAssemblySettings ++ commonTestSettings ++ List(
+  val commonSettings = commonBuildSettings ++ commonTestSettings ++ List(
     organization := "org.broadinstitute.dsde.workbench",
     scalaVersion := "2.12.11", //We can't use 2.13 by default yet because some projects are still built for 2.12 only
     resolvers ++= commonResolvers,
