@@ -15,7 +15,7 @@ script:
 - SBT_OPTS=-J-Xmx3g sbt "+ clean" scalafmtCheckAll
 - SBT_OPTS=-J-Xmx3g sbt "+ test" -Denv.type=test
 after_success:
-- SBT_OPTS=-J-Xmx3g sbt clean coverage test coverageReport coverageAggregate coveralls -Denv.type=test
+#- SBT_OPTS=-J-Xmx3g sbt clean coverage test coverageReport coverageAggregate coveralls -Denv.type=test
 - bash scripts/publish.sh
 - bash scripts/version_update.sh
 dist: trusty
