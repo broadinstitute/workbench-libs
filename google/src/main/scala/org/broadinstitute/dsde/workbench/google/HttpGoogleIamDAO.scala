@@ -302,7 +302,7 @@ class HttpGoogleIamDAO(appName: String, googleCredentialMode: GoogleCredentialMo
     retry(when5xx, whenUsageLimited, when404, whenInvalidValueOnBucketCreation, whenNonHttpIOException) { () =>
       executeGoogleRequest(request)
     } map { response =>
-      Option(response.getKeys).getOrElse(Collections.emptyList()).asScala map googleKeyToWorkbenchKey
+      Option(response.getKeys).getOrElse(Collections.emptyList()).asScala.toSeq map googleKeyToWorkbenchKey
     }
   }
 
@@ -320,7 +320,7 @@ class HttpGoogleIamDAO(appName: String, googleCredentialMode: GoogleCredentialMo
     retry(when5xx, whenUsageLimited, when404, whenInvalidValueOnBucketCreation, whenNonHttpIOException) { () =>
       executeGoogleRequest(request)
     } map { response =>
-      Option(response.getKeys).getOrElse(Collections.emptyList()).asScala map googleKeyToWorkbenchKey
+      Option(response.getKeys).getOrElse(Collections.emptyList()).asScala.toSeq map googleKeyToWorkbenchKey
     }
   }
 
@@ -336,13 +336,6 @@ class HttpGoogleIamDAO(appName: String, googleCredentialMode: GoogleCredentialMo
     Try {
       Instant.from(DateTimeFormatter.ISO_INSTANT.parse(googleTimestamp))
     }.toOption
-
-  private def getProjectPolicy(googleProject: GoogleProject): Future[Policy] = {
-    val request = cloudResourceManager.projects().getIamPolicy(googleProject.value, null)
-    retry(when5xx, whenUsageLimited, when404, whenInvalidValueOnBucketCreation, whenNonHttpIOException) { () =>
-      executeGoogleRequest(request)
-    }
-  }
 
   private def getServiceAccountPolicy(serviceAccountProject: GoogleProject,
                                       serviceAccountEmail: WorkbenchEmail): Future[Policy] = {

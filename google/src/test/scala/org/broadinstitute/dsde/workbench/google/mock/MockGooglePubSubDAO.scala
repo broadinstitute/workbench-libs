@@ -41,18 +41,21 @@ class MockGooglePubSubDAO extends GooglePubSubDAO {
     val subscription =
       subscriptionsByName.getOrElse(subscriptionName,
                                     throw new WorkbenchException(s"no subscription named $subscriptionName"))
-    (0 until maxMessages).map(_ => Option(subscription.queue.poll())).collect {
-      case Some(message) => PubSubMessage(UUID.randomUUID().toString, message)
-    }
+    (0 until maxMessages)
+      .map(_ => Option(subscription.queue.poll()))
+      .collect {
+        case Some(message) => PubSubMessage(UUID.randomUUID().toString, message)
+      }
   }
 
-  override def acknowledgeMessages(subscriptionName: String, messages: Seq[PubSubMessage]): Future[Unit] =
+  override def acknowledgeMessages(subscriptionName: String,
+                                   messages: scala.collection.Seq[PubSubMessage]): Future[Unit] =
     Future.successful(messages.foreach(m => acks.add(m.ackId)))
 
-  override def acknowledgeMessagesById(subscriptionName: String, ackIds: Seq[String]): Future[Unit] =
+  override def acknowledgeMessagesById(subscriptionName: String, ackIds: scala.collection.Seq[String]): Future[Unit] =
     Future.successful(ackIds.foreach(acks.add))
 
-  override def publishMessages(topicName: String, messages: Seq[String]): Future[Unit] = Future {
+  override def publishMessages(topicName: String, messages: scala.collection.Seq[String]): Future[Unit] = Future {
     val subscriptions = topics.getOrElse(topicName, throw new WorkbenchException(s"no topic named $topicName"))
     messages.foreach(logMessage(topicName, _))
     for {

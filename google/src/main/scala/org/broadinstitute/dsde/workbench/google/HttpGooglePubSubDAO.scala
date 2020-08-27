@@ -118,7 +118,7 @@ class HttpGooglePubSubDAO(appName: String,
       case e: HttpResponseException if e.getStatusCode == StatusCodes.NotFound.intValue => false
     }
 
-  override def publishMessages(topicName: String, messages: Seq[String]) = {
+  override def publishMessages(topicName: String, messages: scala.collection.Seq[String]) = {
     logger.debug(s"publishing to google pubsub topic $topicName, messages [${messages.mkString(", ")}]")
     Future
       .traverse(messages.grouped(1000)) { messageBatch =>
@@ -132,10 +132,10 @@ class HttpGooglePubSubDAO(appName: String,
       .map(_ => ())
   }
 
-  override def acknowledgeMessages(subscriptionName: String, messages: Seq[PubSubMessage]) =
+  override def acknowledgeMessages(subscriptionName: String, messages: scala.collection.Seq[PubSubMessage]) =
     acknowledgeMessagesById(subscriptionName, messages.map(_.ackId))
 
-  override def acknowledgeMessagesById(subscriptionName: String, ackIds: Seq[String]) =
+  override def acknowledgeMessagesById(subscriptionName: String, ackIds: scala.collection.Seq[String]) =
     retry(when5xx, whenUsageLimited, when404, whenInvalidValueOnBucketCreation, whenNonHttpIOException)(() => {
       val ackRequest = new AcknowledgeRequest().setAckIds(ackIds.asJava)
       executeGoogleRequest(
@@ -143,7 +143,7 @@ class HttpGooglePubSubDAO(appName: String,
       )
     })
 
-  override def pullMessages(subscriptionName: String, maxMessages: Int): Future[Seq[PubSubMessage]] =
+  override def pullMessages(subscriptionName: String, maxMessages: Int): Future[scala.collection.Seq[PubSubMessage]] =
     retry(when5xx, whenUsageLimited, when404, whenInvalidValueOnBucketCreation, whenNonHttpIOException)(() => {
       val pullRequest = new PullRequest().setReturnImmediately(true).setMaxMessages(maxMessages) //won't keep the connection open if there's no msgs available
       val messages = executeGoogleRequest(
@@ -152,7 +152,7 @@ class HttpGooglePubSubDAO(appName: String,
       if (messages == null)
         Seq.empty
       else
-        messages.map(
+        messages.toSeq.map(
           message => PubSubMessage(message.getAckId, new String(message.getMessage.decodeData(), characterEncoding))
         )
     })

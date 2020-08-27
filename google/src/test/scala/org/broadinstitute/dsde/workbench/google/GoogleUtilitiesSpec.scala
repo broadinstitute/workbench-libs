@@ -20,10 +20,7 @@ import scala.collection.JavaConverters._
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 
-//FIXME: This annotation silences deprecation warnings, which are triggered by the testing of retryWhen500orGoogleError.
-//When we remove that function, we should remove this annotation too.
-import com.github.ghik.silencer.silent
-@silent("deprecated")
+//FIXME: Remove commented out tests once we remove retryWhen500orGoogleError.
 class GoogleUtilitiesSpec
     extends TestKit(ActorSystem("MySpec"))
     with GoogleUtilities
@@ -127,59 +124,59 @@ class GoogleUtilitiesSpec
     whenNonHttpIOException(buildHttpResponseException(404)) shouldBe false
   }
 
-  "when500orGoogleError" should "return true for 500 or Google errors" in {
-    when500orGoogleError(buildGoogleJsonResponseException(403, None, None, Some("usageLimits"))) shouldBe true
-    when500orGoogleError(buildGoogleJsonResponseException(429, None, None, Some("usageLimits"))) shouldBe true
-    when500orGoogleError(buildGoogleJsonResponseException(400, None, Some("invalid"), None)) shouldBe true
-    when500orGoogleError(buildGoogleJsonResponseException(404)) shouldBe true
+//  "when500orGoogleError" should "return true for 500 or Google errors" in {
+//    when500orGoogleError(buildGoogleJsonResponseException(403, None, None, Some("usageLimits"))) shouldBe true
+//    when500orGoogleError(buildGoogleJsonResponseException(429, None, None, Some("usageLimits"))) shouldBe true
+//    when500orGoogleError(buildGoogleJsonResponseException(400, None, Some("invalid"), None)) shouldBe true
+//    when500orGoogleError(buildGoogleJsonResponseException(404)) shouldBe true
+//
+//    when500orGoogleError(buildGoogleJsonResponseException(500)) shouldBe true
+//    when500orGoogleError(buildGoogleJsonResponseException(502)) shouldBe true
+//    when500orGoogleError(buildGoogleJsonResponseException(503)) shouldBe true
+//
+//    when500orGoogleError(buildHttpResponseException(500)) shouldBe true
+//    when500orGoogleError(buildHttpResponseException(502)) shouldBe true
+//    when500orGoogleError(buildHttpResponseException(503)) shouldBe true
+//
+//    when500orGoogleError(new IOException("boom")) shouldBe true
+//  }
 
-    when500orGoogleError(buildGoogleJsonResponseException(500)) shouldBe true
-    when500orGoogleError(buildGoogleJsonResponseException(502)) shouldBe true
-    when500orGoogleError(buildGoogleJsonResponseException(503)) shouldBe true
+//  it should "return false otherwise" in {
+//    when500orGoogleError(buildGoogleJsonResponseException(400, None, Some("boom"), None)) shouldBe false
+//    when500orGoogleError(buildGoogleJsonResponseException(401)) shouldBe false
+//    when500orGoogleError(buildGoogleJsonResponseException(403, Some("boom"), None, Some("boom"))) shouldBe false
+//    when500orGoogleError(buildGoogleJsonResponseException(429, None, None, Some("boom"))) shouldBe false
+//
+//    when500orGoogleError(buildHttpResponseException(400)) shouldBe false
+//    when500orGoogleError(buildHttpResponseException(401)) shouldBe false
+//    when500orGoogleError(buildHttpResponseException(403)) shouldBe false
+//  }
 
-    when500orGoogleError(buildHttpResponseException(500)) shouldBe true
-    when500orGoogleError(buildHttpResponseException(502)) shouldBe true
-    when500orGoogleError(buildHttpResponseException(503)) shouldBe true
-
-    when500orGoogleError(new IOException("boom")) shouldBe true
-  }
-
-  it should "return false otherwise" in {
-    when500orGoogleError(buildGoogleJsonResponseException(400, None, Some("boom"), None)) shouldBe false
-    when500orGoogleError(buildGoogleJsonResponseException(401)) shouldBe false
-    when500orGoogleError(buildGoogleJsonResponseException(403, Some("boom"), None, Some("boom"))) shouldBe false
-    when500orGoogleError(buildGoogleJsonResponseException(429, None, None, Some("boom"))) shouldBe false
-
-    when500orGoogleError(buildHttpResponseException(400)) shouldBe false
-    when500orGoogleError(buildHttpResponseException(401)) shouldBe false
-    when500orGoogleError(buildHttpResponseException(403)) shouldBe false
-  }
-
-  "retryWhen500orGoogleError" should "retry once per backoff interval and then fail" in {
-    withStatsD {
-      val counter = new Counter()
-      whenReady(retryWhen500orGoogleError(() => counter.alwaysBoom()).failed) { f =>
-        f shouldBe a[IOException]
-        counter.counter shouldBe 4 //extra one for the first attempt
-      }
-    } { capturedMetrics =>
-      capturedMetrics should contain("test.histo.samples" -> "1")
-      capturedMetrics should contain("test.histo.max" -> "4") // 4 exceptions
-    }
-  }
-
-  it should "not retry after a success" in {
-    withStatsD {
-      val counter = new Counter()
-      whenReady(retryWhen500orGoogleError(() => counter.boomOnce())) { s =>
-        s shouldBe 42
-        counter.counter shouldBe 2
-      }
-    } { capturedMetrics =>
-      capturedMetrics should contain("test.histo.samples" -> "1")
-      capturedMetrics should contain("test.histo.max" -> "1") // 1 exception
-    }
-  }
+//  "retryWhen500orGoogleError" should "retry once per backoff interval and then fail" in {
+//    withStatsD {
+//      val counter = new Counter()
+//      whenReady(retryWhen500orGoogleError(() => counter.alwaysBoom()).failed) { f =>
+//        f shouldBe a[IOException]
+//        counter.counter shouldBe 4 //extra one for the first attempt
+//      }
+//    } { capturedMetrics =>
+//      capturedMetrics should contain("test.histo.samples" -> "1")
+//      capturedMetrics should contain("test.histo.max" -> "4") // 4 exceptions
+//    }
+//  }
+//
+//  it should "not retry after a success" in {
+//    withStatsD {
+//      val counter = new Counter()
+//      whenReady(retryWhen500orGoogleError(() => counter.boomOnce())) { s =>
+//        s shouldBe 42
+//        counter.counter shouldBe 2
+//      }
+//    } { capturedMetrics =>
+//      capturedMetrics should contain("test.histo.samples" -> "1")
+//      capturedMetrics should contain("test.histo.max" -> "1") // 1 exception
+//    }
+//  }
 
   "combine" should "combine predicates correctly" in {
     combine(Seq(whenNonHttpIOException, when5xx))(new IOException("boom")) shouldBe true
@@ -216,41 +213,41 @@ class GoogleUtilitiesSpec
     }
   }
 
-  "retryWithRecoverWhen500orGoogleError" should "stop retrying if it recovers" in {
-    withStatsD {
-      val counter = new Counter()
+//  "retryWithRecoverWhen500orGoogleError" should "stop retrying if it recovers" in {
+//    withStatsD {
+//      val counter = new Counter()
+//
+//      def recoverIO: PartialFunction[Throwable, Int] = {
+//        case _: IOException => 42
+//      }
+//
+//      whenReady(retryWithRecoverWhen500orGoogleError(() => counter.alwaysBoom())(recoverIO)) { s =>
+//        s shouldBe 42
+//        counter.counter shouldBe 1
+//      }
+//    } { capturedMetrics =>
+//      capturedMetrics should contain("test.histo.samples" -> "1")
+//      capturedMetrics should contain("test.histo.max" -> "0") // 0 exceptions
+//    }
+//  }
 
-      def recoverIO: PartialFunction[Throwable, Int] = {
-        case _: IOException => 42
-      }
-
-      whenReady(retryWithRecoverWhen500orGoogleError(() => counter.alwaysBoom())(recoverIO)) { s =>
-        s shouldBe 42
-        counter.counter shouldBe 1
-      }
-    } { capturedMetrics =>
-      capturedMetrics should contain("test.histo.samples" -> "1")
-      capturedMetrics should contain("test.histo.max" -> "0") // 0 exceptions
-    }
-  }
-
-  it should "keep retrying and fail if it doesn't recover" in {
-    withStatsD {
-      val counter = new Counter()
-
-      def recoverHttp: PartialFunction[Throwable, Int] = {
-        case h: HttpResponseException if h.getStatusCode == 404 => 42
-      }
-
-      whenReady(retryWithRecoverWhen500orGoogleError(() => counter.httpBoom())(recoverHttp).failed) { f =>
-        f shouldBe a[HttpResponseException]
-        counter.counter shouldBe 4 //extra one for the first attempt
-      }
-    } { capturedMetrics =>
-      capturedMetrics should contain("test.histo.samples" -> "1")
-      capturedMetrics should contain("test.histo.max" -> "4") // 4 exceptions
-    }
-  }
+//  it should "keep retrying and fail if it doesn't recover" in {
+//    withStatsD {
+//      val counter = new Counter()
+//
+//      def recoverHttp: PartialFunction[Throwable, Int] = {
+//        case h: HttpResponseException if h.getStatusCode == 404 => 42
+//      }
+//
+//      whenReady(retryWithRecoverWhen500orGoogleError(() => counter.httpBoom())(recoverHttp).failed) { f =>
+//        f shouldBe a[HttpResponseException]
+//        counter.counter shouldBe 4 //extra one for the first attempt
+//      }
+//    } { capturedMetrics =>
+//      capturedMetrics should contain("test.histo.samples" -> "1")
+//      capturedMetrics should contain("test.histo.max" -> "4") // 4 exceptions
+//    }
+//  }
 
   "retryWithRecover" should "stop retrying if it recovers" in {
     withStatsD {
