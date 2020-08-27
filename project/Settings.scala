@@ -4,7 +4,7 @@ import Version._
 import Publishing._
 import sbt.Keys.{scalacOptions, _}
 import sbt._
-//import scoverage.ScoverageKeys.coverageExcludedPackages
+import scoverage.ScoverageKeys.coverageExcludedPackages
 
 //noinspection TypeAnnotation
 object Settings {
@@ -133,7 +133,7 @@ object Settings {
   )
 
   val cross212and213 = Seq(
-    crossScalaVersions := List("2.12.11", "2.13.3")
+    crossScalaVersions := List("2.12.11", "2.13.1")
   )
 
   //common settings for all sbt subprojects
@@ -171,8 +171,8 @@ object Settings {
   val googleSettings = cross212and213 ++ commonSettings ++ List(
     name := "workbench-google",
     libraryDependencies ++= googleDependencies,
-    version := createVersion("0.21")
-//    coverageExcludedPackages := ".*HttpGoogle.*DAO.*" TODO: re-enable this once soverage supports scala 2.13
+    version := createVersion("0.21"),
+    coverageExcludedPackages := ".*HttpGoogle.*DAO.*" // TODO: re-enable this once soverage supports scala 2.13
   ) ++ publishSettings
 
   val google2Settings = cross212and213 ++ commonSettings ++ List(
