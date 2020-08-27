@@ -89,10 +89,6 @@ object Dependencies {
   val openCensusTraceLogging: ModuleID = "io.opencensus" % "opencensus-exporter-trace-logging" % "0.26.0"
   val sealerate: ModuleID = "ca.mrvisser" %% "sealerate" % "0.0.6"
 
-  val silencerVersion = "1.4.1"
-  val silencer: ModuleID = compilerPlugin("com.github.ghik" %% "silencer-plugin" % silencerVersion)
-  val silencerLib: ModuleID = "com.github.ghik" %% "silencer-lib" % silencerVersion % Provided
-
   val commonDependencies = Seq(
     scalatest,
     scalaCheck,
@@ -150,9 +146,7 @@ object Dependencies {
     akkaStream,
     akkaHttpSprayJson,
     akkaTestkit,
-    sealerate,
-    silencer,
-    silencerLib
+    sealerate
   ).map(excludeGuavaJDK5)
 
   val google2Dependencies = commonDependencies ++ Seq(

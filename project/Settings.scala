@@ -133,7 +133,7 @@ object Settings {
   )
 
   val cross212and213 = Seq(
-    crossScalaVersions := List("2.12.11", "2.13.1")
+    crossScalaVersions := List("2.12.11", "2.13.2") //Use 2.13.0 because some sbt plugins are not published for higher version of 2.13 yet
   )
 
   //common settings for all sbt subprojects
@@ -172,7 +172,7 @@ object Settings {
     name := "workbench-google",
     libraryDependencies ++= googleDependencies,
     version := createVersion("0.21"),
-    coverageExcludedPackages := ".*HttpGoogle.*DAO.*" // TODO: re-enable this once soverage supports scala 2.13
+    coverageExcludedPackages := ".*HttpGoogle.*DAO.*"
   ) ++ publishSettings
 
   val google2Settings = cross212and213 ++ commonSettings ++ List(
