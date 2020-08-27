@@ -1,6 +1,5 @@
 import Settings._
 import Testing._
-import sbt.addCompilerPlugin
 
 val testAndCompile = "test->test;compile->compile"
 
