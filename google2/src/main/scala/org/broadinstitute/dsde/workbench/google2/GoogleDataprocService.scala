@@ -71,7 +71,7 @@ object GoogleDataprocService {
       interpreter <- fromCredential(scopedCredential, blocker, regionName, blockerBound, retryConfig)
     } yield interpreter
 
-  private def fromCredential[F[_]: StructuredLogger: Async: Timer: ContextShift](
+  def fromCredential[F[_]: StructuredLogger: Async: Timer: ContextShift](
     googleCredentials: GoogleCredentials,
     blocker: Blocker,
     regionName: RegionName,
