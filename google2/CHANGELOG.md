@@ -18,6 +18,7 @@ Changed:
 - Don't log as error when `getCluster`, `getInstance` returns NotFound
 - Return `None` if `instance`, `cluster` or `disk` doesn't exist when trying to `deleteInstance`, `deleteCluster` or `deleteDisk`
 - Support 2.13
+- Expose `GoogleDataprocService.fromCredential`
 
 Added:
 - Add `detachDisk`
