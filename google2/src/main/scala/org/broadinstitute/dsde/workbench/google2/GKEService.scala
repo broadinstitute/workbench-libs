@@ -14,6 +14,7 @@ import org.broadinstitute.dsde.workbench.{DoneCheckable, RetryConfig}
 import org.broadinstitute.dsde.workbench.google2.GKEModels._
 import org.broadinstitute.dsde.workbench.google2.util.RetryPredicates
 import org.broadinstitute.dsde.workbench.model.TraceId
+import org.broadinstitute.dsde.workbench.google2.util.RetryPredicates._
 
 import scala.concurrent.duration.FiniteDuration
 
@@ -48,9 +49,7 @@ object GKEService {
     pathToCredential: Path,
     blocker: Blocker,
     blockerBound: Semaphore[F],
-    retryConfig: RetryConfig = RetryPredicates.retryConfigWithPredicates(RetryPredicates.whenStatusCode(404),
-                                                                         RetryPredicates.standardRetryPredicate,
-                                                                         RetryPredicates.gkeRetryPredicate)
+    retryConfig: RetryConfig = retryConfigWithPredicates(whenStatusCode(404), standardRetryPredicate, gkeRetryPredicate)
   ): Resource[F, GKEService[F]] =
     for {
       credential <- credentialResource(pathToCredential.toString)
