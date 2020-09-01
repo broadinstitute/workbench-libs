@@ -49,7 +49,9 @@ object GKEService {
     pathToCredential: Path,
     blocker: Blocker,
     blockerBound: Semaphore[F],
-    retryConfig: RetryConfig = RetryPredicates.retryConfigWithPredicates(whenStatusCode(404))
+    retryConfig: RetryConfig = RetryPredicates.retryConfigWithPredicates(RetryPredicates.whenStatusCode(404),
+                                                                         RetryPredicates.standardRetryPredicate,
+                                                                         RetryPredicates.gkeRetryPredicate)
   ): Resource[F, GKEService[F]] =
     for {
       credential <- credentialResource(pathToCredential.toString)
