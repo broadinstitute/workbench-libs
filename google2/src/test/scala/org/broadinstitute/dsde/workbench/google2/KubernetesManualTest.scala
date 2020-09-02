@@ -3,29 +3,21 @@ package google2
 
 import java.nio.file.Paths
 import java.util.UUID
+import scala.collection.JavaConverters._
 
-import scala.concurrent.duration._
-import cats.effect.{Blocker, IO}
 import cats.effect.concurrent.Semaphore
+import cats.effect.{Blocker, IO}
 import cats.mtl.ApplicativeAsk
-import com.google.container.v1.{
-  Cluster,
-  MasterAuthorizedNetworksConfig,
-  NetworkPolicy,
-  NodeConfig,
-  NodeManagement,
-  NodePool,
-  NodePoolAutoscaling,
-  Operation
-}
+import com.google.container.v1._
 import io.chrisdavenport.log4cats.slf4j.Slf4jLogger
 import org.broadinstitute.dsde.workbench.google2.GKEModels._
+import org.broadinstitute.dsde.workbench.google2.KubernetesConstants._
 import org.broadinstitute.dsde.workbench.google2.KubernetesModels._
 import org.broadinstitute.dsde.workbench.google2.KubernetesSerializableName._
 import org.broadinstitute.dsde.workbench.model.TraceId
 import org.broadinstitute.dsde.workbench.model.google.GoogleProject
-import KubernetesConstants._
-import com.google.container.v1.MasterAuthorizedNetworksConfig.CidrBlock
+
+import scala.concurrent.duration._
 
 //TODO: migrate to a unit test
 //TODO: investigate running minikube in a docker for unit/automation tests https://banzaicloud.com/blog/minikube-ci/
@@ -71,21 +63,26 @@ final class Test(credPathStr: String,
 
   def makeClusterId(name: String) = KubernetesClusterId(project, region, KubernetesClusterName(name))
 
-  def callCreateCluster(clusterId: KubernetesClusterId = clusterId): IO[Operation] = {
-    import collection.JavaConverters._
+  def callCreateCluster(
+    clusterId: KubernetesClusterId = clusterId
+  ): IO[com.google.api.services.container.model.Operation] = {
     val ips = List("69.173.127.0/25", "69.173.124.0/23")
     val network: String = KubernetesNetwork(project, NetworkName(networkNameStr)).idString
-    val cluster = getDefaultCluster(nodepoolName.right.get, clusterName.right.get).toBuilder
-      .setNetwork(network) // needs to be a VPC network
-      .setSubnetwork(KubernetesSubNetwork(project, RegionName(regionStr), SubnetworkName(subnetworkNameStr)).idString)
-      .setNetworkPolicy(getDefaultNetworkPolicy()) // needed for security
-      .setMasterAuthorizedNetworksConfig(
-        MasterAuthorizedNetworksConfig
-          .newBuilder()
-          .setEnabled(true)
-          .addAllCidrBlocks(ips.map(ip => CidrBlock.newBuilder().setCidrBlock(ip).build()).asJava)
-      )
-      .build()
+
+    val cluster =
+      new com.google.api.services.container.model.Cluster()
+        .setName(clusterName.right.get.value)
+        .setNodePools(List(getLegacyNodepool(getDefaultNodepoolConfig(nodepoolName.right.get))).asJava)
+        .setNetwork(network)
+        .setSubnetwork(KubernetesSubNetwork(project, RegionName(regionStr), SubnetworkName(subnetworkNameStr)).idString)
+        .setNetworkPolicy(getDefaultLegacyNetworkPolicy())
+        .setMasterAuthorizedNetworksConfig(
+          new com.google.api.services.container.model.MasterAuthorizedNetworksConfig()
+            .setEnabled(true)
+            .setCidrBlocks(
+              ips.map(ip => new com.google.api.services.container.model.CidrBlock().setCidrBlock(ip)).asJava
+            )
+        )
 
     serviceResource.use { service =>
       service.createCluster(KubernetesCreateClusterRequest(project, region, cluster))
@@ -228,12 +225,15 @@ final class Test(credPathStr: String,
     }
 
   def testPolling(operation: Operation): IO[Unit] = {
-    import org.broadinstitute.dsde.workbench.DoneCheckableSyntax._
     import org.broadinstitute.dsde.workbench.DoneCheckableInstances._
+    import org.broadinstitute.dsde.workbench.DoneCheckableSyntax._
 
     serviceResource.use { s =>
       for {
-        lastOp <- s.pollOperation(KubernetesOperationId(project, region, operation), 5 seconds, 72).compile.lastOrError
+        lastOp <- s
+          .pollOperation(KubernetesOperationId(project, region, operation.getName), 5 seconds, 72)
+          .compile
+          .lastOrError
         _ <- if (lastOp.isDone) IO(println(s"operation is done, initial operation: ${operation}"))
         else IO(s"operation errored, initial operation: ${operation}")
       } yield ()
@@ -268,11 +268,9 @@ object KubernetesConstants {
     DEFAULT_NODEPOOL_AUTOSCALING
   )
 
-  def getDefaultNetworkPolicy(): NetworkPolicy =
-    NetworkPolicy
-      .newBuilder()
+  def getDefaultLegacyNetworkPolicy(): com.google.api.services.container.model.NetworkPolicy =
+    new com.google.api.services.container.model.NetworkPolicy()
       .setEnabled(true)
-      .build()
 
   def getDefaultCluster(nodepoolName: NodepoolName, clusterName: KubernetesClusterName): Cluster =
     Cluster
@@ -304,6 +302,26 @@ object KubernetesConstants {
       .setAutoscaling(
         NodePoolAutoscaling
           .newBuilder()
+          .setEnabled(true)
+          .setMinNodeCount(config.autoscalingConfig.minimumNodes)
+          .setMaxNodeCount(config.autoscalingConfig.maximumNodes)
+      )
+
+  def getLegacyNodepool(config: NodepoolConfig): com.google.api.services.container.model.NodePool =
+    new com.google.api.services.container.model.NodePool()
+      .setConfig(
+        new com.google.api.services.container.model.NodeConfig()
+          .setMachineType(config.machineType.value)
+          .setDiskSizeGb(config.diskSize)
+          .setServiceAccount(config.serviceAccount.value)
+      )
+      .setInitialNodeCount(config.initialNodes)
+      .setName(config.name.value)
+      .setManagement(
+        new com.google.api.services.container.model.NodeManagement().setAutoUpgrade(true).setAutoRepair(true)
+      )
+      .setAutoscaling(
+        new com.google.api.services.container.model.NodePoolAutoscaling()
           .setEnabled(true)
           .setMinNodeCount(config.autoscalingConfig.minimumNodes)
           .setMaxNodeCount(config.autoscalingConfig.maximumNodes)

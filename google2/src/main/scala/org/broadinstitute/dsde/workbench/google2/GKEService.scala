@@ -3,10 +3,13 @@ package org.broadinstitute.dsde.workbench.google2
 import java.nio.file.Path
 
 import cats.effect.concurrent.Semaphore
-import cats.effect.{Async, Blocker, ContextShift, Resource, Timer}
+import cats.effect.{Async, Blocker, ContextShift, Resource, Sync, Timer}
 import cats.mtl.ApplicativeAsk
+import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport
+import com.google.api.client.json.jackson2.JacksonFactory
 import com.google.container.v1.{Cluster, NodePool, Operation}
 import com.google.api.gax.core.FixedCredentialsProvider
+import com.google.api.services.container.Container
 import com.google.cloud.container.v1.{ClusterManagerClient, ClusterManagerSettings}
 import fs2.Stream
 import io.chrisdavenport.log4cats.StructuredLogger
@@ -18,9 +21,13 @@ import org.broadinstitute.dsde.workbench.google2.util.RetryPredicates._
 import scala.concurrent.duration.FiniteDuration
 
 trait GKEService[F[_]] {
+
+  // Note createCluster uses the legacy com.google.api.services.container client rather than
+  // the newer com.google.container.v1 client because certain options like Workload Identity
+  // are only available in the old client.
   def createCluster(request: KubernetesCreateClusterRequest)(
     implicit ev: ApplicativeAsk[F, TraceId]
-  ): F[Operation]
+  ): F[com.google.api.services.container.model.Operation]
 
   def deleteCluster(clusterId: KubernetesClusterId)(implicit ev: ApplicativeAsk[F, TraceId]): F[Operation]
 
@@ -58,6 +65,15 @@ object GKEService {
         .setCredentialsProvider(credentialsProvider)
         .build()
       clusterManager <- backgroundResourceF(ClusterManagerClient.create(clusterManagerSettings))
-    } yield new GKEInterpreter[F](clusterManager, blocker, blockerBound, retryConfig)
+      legacyClient <- legacyClient(pathToCredential)
+    } yield new GKEInterpreter[F](clusterManager, legacyClient, blocker, blockerBound, retryConfig)
+
+  private def legacyClient[F[_]: Sync](pathToCredential: Path): Resource[F, com.google.api.services.container.Container] =
+    for {
+      httpTransport <- Resource.liftF(Sync[F].delay(GoogleNetHttpTransport.newTrustedTransport))
+      jsonFactory = JacksonFactory.getDefaultInstance
+      googleCredential <- googleCredential(pathToCredential.toString)
+      legacyClient = new Container.Builder(httpTransport, jsonFactory, googleCredential).setApplicationName("workbench-libs").build()
+    } yield legacyClient
 
 }

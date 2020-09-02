@@ -7,6 +7,7 @@ import cats.Show
 import cats.implicits._
 import cats.effect.{Resource, Sync, Timer}
 import cats.mtl.ApplicativeAsk
+import com.google.api.client.googleapis.auth.oauth2.GoogleCredential
 import com.google.api.core.ApiFutureCallback
 import com.google.api.gax.core.BackgroundResource
 import com.google.auth.oauth2.{ServiceAccountCredentials, UserCredentials}
@@ -106,6 +107,13 @@ package object google2 {
     for {
       credentialFile <- org.broadinstitute.dsde.workbench.util2.readFile(pathToCredential)
       credential <- Resource.liftF(Sync[F].delay(UserCredentials.fromStream(credentialFile)))
+    } yield credential
+
+  // returns legacy GoogleCredential object which is only used for the legacy com.google.api.services client
+  def googleCredential[F[_]: Sync](pathToCredential: String): Resource[F, GoogleCredential] =
+    for {
+      credentialFile <- org.broadinstitute.dsde.workbench.util2.readFile(pathToCredential)
+      credential <- Resource.liftF(Sync[F].delay(GoogleCredential.fromStream(credentialFile)))
     } yield credential
 
   def backgroundResourceF[F[_]: Sync, A <: BackgroundResource](resource: => A): Resource[F, A] =
