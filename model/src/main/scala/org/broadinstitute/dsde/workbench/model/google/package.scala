@@ -54,11 +54,13 @@ package object google {
 
     // must not start with "goog" or contain the string "google"
     // This implementation is a bit ugly, but it's to work around 2.12 and 2.13 compatibility issue
-    val processedName = trimmedPrefix.indexOf("goog") match {
-      case -1 => trimmedPrefix
+    def go(originalString: StringBuilder): StringBuilder = originalString.indexOf("goog") match {
+      case -1 => originalString
       case index =>
-        trimmedPrefix.deleteCharAt(index)
+        go(originalString.replace(index, index + 3, "g00"))
     }
+
+    val processedName = go(trimmedPrefix)
 
     GcsBucketName(s"$processedName-$trimmedUUID")
   }
