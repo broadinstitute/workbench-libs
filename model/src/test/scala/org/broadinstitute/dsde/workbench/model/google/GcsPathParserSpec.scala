@@ -16,25 +16,26 @@ class GcsPathParserSpec extends AnyFlatSpecLike with Matchers with EitherValues 
     generateUniqueBucketName("my.cluster").value should startWith("my.cluster-")
     generateUniqueBucketName("my+cluster").value should startWith("mycluster-")
     generateUniqueBucketName("mY-?^&@%#@&^#cLuStEr.foo_bar").value should startWith("my-cluster.foo_bar-")
-    generateUniqueBucketName("googMyCluster").value should startWith("oogmycluster-")
-    generateUniqueBucketName("my_Google_clUsTer").value should startWith("my_oogle_cluster-")
+    generateUniqueBucketName("googMyCluster").value should startWith("oomycluster-")
+    generateUniqueBucketName("my_Google_clUsTer").value should startWith("my_oole_cluster-")
+    generateUniqueBucketName("googoogle").value should startWith("oooole-")
     generateUniqueBucketName("myClusterWhichHasAVeryLongNameBecauseIAmExtremelyVerboseInMyDescriptions").value should startWith(
-      "myclusterwhichhasaverylong-"
+      "myclusterwhichhasaverylon-"
     )
-    generateUniqueBucketName("myClusterWhichHasAVeryLongNameBecauseIAmExtremelyVerboseInMyDescriptions").value.length shouldBe 63
+    generateUniqueBucketName("myClusterWhichHasAVeryLongNameBecauseIAmExtremelyVerboseInMyDescriptions").value.length shouldBe 62
   }
 
   "gcs" should "generate valid bucket names when trimming the uuid" in {
     //trim the uuid
     generateUniqueBucketName("myClusterWhichHasAModeratelyLongName", false).value should startWith(
-      "myclusterwhichhasamoderatelylongname-"
+      "myclusterwhichhasamoderatelylonname-"
     )
 
     //trim the uuid but the prefix is also too long so trim that too
     generateUniqueBucketName("myClusterWhichHasAVeryLongNameBecauseIAmExtremelyVerboseInMyDescriptions", false).value should startWith(
-      "myclusterwhichhasaverylongnamebecauseiamextremelyverboseinmyde-"
+      "myclusterwhichhasaverylonnamebecauseiamextremelyverboseinmyde-"
     )
-    generateUniqueBucketName("myClusterWhichHasAVeryLongNameBecauseIAmExtremelyVerboseInMyDescriptions", false).value.length shouldBe 63
+    generateUniqueBucketName("myClusterWhichHasAVeryLongNameBecauseIAmExtremelyVerboseInMyDescriptions", false).value.length shouldBe 62
   }
 
   "GcsPath" should "parse valid paths" in {
