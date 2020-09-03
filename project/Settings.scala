@@ -133,7 +133,7 @@ object Settings {
   )
 
   val cross212and213 = Seq(
-    crossScalaVersions := List("2.12.11", "2.13.2") //Use 2.13.0 because some sbt plugins are not published for higher version of 2.13 yet
+    crossScalaVersions := List("2.12.11", "2.13.2")
   )
 
   //common settings for all sbt subprojects
