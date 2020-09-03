@@ -102,13 +102,21 @@ private[google2] class GoogleComputeInterpreter[F[_]: Parallel: StructuredLogger
 
   override def detachDisk(project: GoogleProject, zone: ZoneName, instanceName: InstanceName, deviceName: DeviceName)(
     implicit ev: ApplicativeAsk[F, TraceId]
-  ): F[Operation] = {
+  ): F[Option[Operation]] = {
     val projectZoneInstanceName = ProjectZoneInstanceName.of(instanceName.value, project.value, zone.value)
+
+    val fa = F
+      .delay(instanceClient.detachDiskInstance(projectZoneInstanceName, deviceName.asString))
+      .map(Option(_))
+      .handleErrorWith {
+        case _: com.google.api.gax.rpc.NotFoundException => F.pure(none[Operation])
+        case e                                           => F.raiseError[Option[Operation]](e)
+      }
 
     for {
       traceId <- ev.ask
       op <- withLogging(
-        F.delay(instanceClient.detachDiskInstance(projectZoneInstanceName, deviceName.asString)),
+        fa,
         Some(traceId),
         s"com.google.cloud.compute.v1.InstanceClient.detachDiskInstance(${projectZoneInstanceName.toString}, ${deviceName.asString})"
       )
