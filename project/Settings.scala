@@ -192,7 +192,7 @@ object Settings {
   val google2Settings = only212 ++ commonSettings ++ List(
     name := "workbench-google2",
     libraryDependencies ++= google2Dependencies,
-    version := createVersion("0.11")
+    version := createVersion("0.12")
   ) ++ publishSettings
 
   val newrelicSettings = only212 ++ commonSettings ++ List(
