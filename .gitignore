@@ -19,4 +19,4 @@ test-output/
 
 *.pid
 .DS_Store
-.metals.DS_Store
+.metals
