@@ -5,8 +5,9 @@ This file documents changes to the `workbench-google2` library, including notes 
 ## 0.12
 Changed:
 - Made `GoogleComputeService.detachDisk` recover on 404s and return `Option[Operation]`
+- Support 2.13
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.12-2187bc0"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.12-TRAVIS-REPLACE-ME"`
 
 ## 0.11
 Changed:
@@ -23,7 +24,6 @@ Changed:
 - Update `getCluster`, `getInstance`'s logging to cluster's status
 - Don't log as error when `getCluster`, `getInstance` returns NotFound
 - Return `None` if `instance`, `cluster` or `disk` doesn't exist when trying to `deleteInstance`, `deleteCluster` or `deleteDisk`
-- Support 2.13
 - Expose `GoogleDataprocService.fromCredential`
 
 Added:
