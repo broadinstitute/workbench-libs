@@ -2,6 +2,12 @@
 
 This file documents changes to the `workbench-google2` library, including notes on how to upgrade to new versions.
 
+## 0.12
+Changed:
+- Made `GoogleComputeService.detachDisk` recover on 404s and return `Option[Operation]`
+
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.12-2187bc0"`
+
 ## 0.11
 Changed:
 - Update `pollOperation` signature

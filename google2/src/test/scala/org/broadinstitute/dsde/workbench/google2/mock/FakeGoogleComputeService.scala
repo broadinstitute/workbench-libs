@@ -94,7 +94,8 @@ class FakeGoogleComputeService extends GoogleComputeService[IO] {
 
   def detachDisk(project: GoogleProject, zone: ZoneName, instanceName: InstanceName, deviceName: DeviceName)(
     implicit ev: ApplicativeAsk[IO, TraceId]
-  ): IO[Operation] = ???
+  ): IO[Option[Operation]] =
+    IO.pure(Some(Operation.newBuilder().setId("op").setName("opName").setTargetId("target").build()))
 
   override def deleteInstanceWithAutoDeleteDisk(
     project: GoogleProject,
