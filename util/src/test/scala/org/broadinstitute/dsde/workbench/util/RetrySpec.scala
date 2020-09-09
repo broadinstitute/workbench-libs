@@ -33,7 +33,7 @@ class RetrySpec
   // See: http://doc.scalatest.org/2.2.4/index.html#org.scalatest.concurrent.Futures
   implicit override val patienceConfig = PatienceConfig(timeout = scaled(Span(10, Seconds)))
 
-  override def afterAll: Unit =
+  override def afterAll(): Unit =
     TestKit.shutdownActorSystem(system)
 
   "Retry" should "retry 3 times by default" in {

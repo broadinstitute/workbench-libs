@@ -37,7 +37,7 @@ trait StatsDTestUtils { this: Eventually with MockitoTestUtils =>
         val valueCaptor = captor[String]
         order.verify(statsD, atLeastOnce).send(metricCaptor.capture, valueCaptor.capture)
         order.verify(statsD).close()
-        verify(metricCaptor.getAllValues.asScala.zip(valueCaptor.getAllValues.asScala))
+        verify(metricCaptor.getAllValues.asScala.toSeq.zip(valueCaptor.getAllValues.asScala)) //toSeq is needed for scala 2.13
       }
       result
     } finally {

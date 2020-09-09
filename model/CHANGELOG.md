@@ -7,8 +7,10 @@ This file documents changes to the `workbench-model` library, including notes on
 SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-model" % "0.14-2e155f0"`
 
 ### Changed
-
 - added IdentityConcentratorId to WorkbenchUser 
+- Cross build 2.13
+
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-model" % "0.14-TRAVIS-REPLACE-ME"`
 
 ### Added
 

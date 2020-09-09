@@ -120,7 +120,7 @@ class HttpGoogleProjectDAO(appName: String, googleCredentialMode: GoogleCredenti
     retry(when5xx, whenUsageLimited, when404, whenInvalidValueOnBucketCreation, whenNonHttpIOException)(() => {
       executeGoogleRequest(cloudResManager.projects().getAncestry(projectName, new GetAncestryRequest()))
     }).map { ancestry =>
-      Option(ancestry.getAncestor).map(_.asScala).getOrElse(Seq.empty)
+      Option(ancestry.getAncestor).map(_.asScala.toSeq).getOrElse(Seq.empty)
     }
 
   override def getProjectNumber(projectName: String): Future[Option[Long]] =

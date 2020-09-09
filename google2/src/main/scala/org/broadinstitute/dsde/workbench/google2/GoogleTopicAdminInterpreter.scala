@@ -10,9 +10,7 @@ import com.google.iam.v1.{Binding, GetIamPolicyRequest, Policy, SetIamPolicyRequ
 import com.google.pubsub.v1.TopicName
 import fs2.Stream
 import io.chrisdavenport.log4cats.StructuredLogger
-import io.circe.syntax._
 import org.broadinstitute.dsde.workbench.RetryConfig
-import org.broadinstitute.dsde.workbench.google2.JsonCodec._
 import org.broadinstitute.dsde.workbench.model.TraceId
 
 import scala.collection.JavaConverters._
@@ -36,7 +34,6 @@ class GoogleTopicAdminInterpreter[F[_]: StructuredLogger: Sync: Timer](topicAdmi
   }
 
   def delete(projectTopicName: TopicName, traceId: Option[TraceId] = None): Stream[F, Unit] = {
-    val loggingCtx = Map("topic" -> projectTopicName.asJson, "traceId" -> traceId.asJson)
     val deleteTopic = Sync[F].delay(topicAdminClient.deleteTopic(projectTopicName))
 
     retryHelper[Unit](deleteTopic,

@@ -2,8 +2,8 @@ package org.broadinstitute.dsde.workbench.metrics
 
 import akka.http.scaladsl.model.{HttpRequest, HttpResponse}
 import com.codahale.metrics.{Gauge => DropwizardGauge}
-import nl.grons.metrics.scala.{DefaultInstrumented, MetricName}
-import nl.grons.metrics.scala.{Gauge => GronsGauge}
+import nl.grons.metrics4.scala.{DefaultInstrumented, MetricName}
+import nl.grons.metrics4.scala.{Gauge => GronsGauge}
 import org.broadinstitute.dsde.workbench.metrics.Expansion._
 import scala.collection.JavaConverters._
 import scala.language.implicitConversions

@@ -3,18 +3,18 @@ package mock
 
 import java.nio.file.Path
 
-import cats.effect.IO
-import com.google.cloud.storage.{Acl, Blob, BlobId, BucketInfo}
-import org.broadinstitute.dsde.workbench.model.google.{GcsBucketName, GcsObjectName, GoogleProject}
-import GoogleStorageInterpreterSpec._
 import cats.data.NonEmptyList
+import cats.effect.IO
 import com.google.auth.Credentials
 import com.google.cloud.storage.Storage.BucketSourceOption
+import com.google.cloud.storage.{Acl, Blob, BlobId, BucketInfo}
 import com.google.cloud.{Identity, Policy}
 import fs2.{Pipe, Stream}
 import org.broadinstitute.dsde.workbench.RetryConfig
+import org.broadinstitute.dsde.workbench.google2.GoogleStorageInterpreterSpec._
 import org.broadinstitute.dsde.workbench.google2.util.RetryPredicates.standardRetryConfig
 import org.broadinstitute.dsde.workbench.model.TraceId
+import org.broadinstitute.dsde.workbench.model.google.{GcsBucketName, GcsObjectName, GoogleProject}
 
 class BaseFakeGoogleStorage extends GoogleStorageService[IO] {
   override def listObjectsWithPrefix(bucketName: GcsBucketName,
@@ -33,16 +33,16 @@ class BaseFakeGoogleStorage extends GoogleStorageService[IO] {
                                    retryConfig: RetryConfig): fs2.Stream[IO, Blob] =
     localStorage.listBlobsWithPrefix(bucketName, objectNamePrefix, isRecursive)
 
-  override def setBucketLifecycle(bucketName: GcsBucketName,
-                                  lifecycleRules: List[BucketInfo.LifecycleRule],
-                                  traceId: Option[TraceId] = None,
-                                  retryConfig: RetryConfig): Stream[IO, Unit] = Stream.empty
-
   override def unsafeGetBlobBody(bucketName: GcsBucketName,
                                  blobName: GcsBlobName,
                                  traceId: Option[TraceId] = None,
                                  retryConfig: RetryConfig): IO[Option[String]] =
     localStorage.unsafeGetBlobBody(bucketName, blobName)
+
+  override def setBucketLifecycle(bucketName: GcsBucketName,
+                                  lifecycleRules: List[BucketInfo.LifecycleRule],
+                                  traceId: Option[TraceId] = None,
+                                  retryConfig: RetryConfig): Stream[IO, Unit] = Stream.empty
 
   override def getBlobBody(bucketName: GcsBucketName,
                            blobName: GcsBlobName,

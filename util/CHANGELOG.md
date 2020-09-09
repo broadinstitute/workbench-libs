@@ -5,8 +5,9 @@ This file documents changes to the `workbench-util` library, including notes on 
 ## 0.6
 ### Changed
 - Moved code that depends on `circe`, `fs2` to `util2` since these libraries no longer support 2.11
+- Cross build 2.13
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util" % "0.6-8bae8e8"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util" % "0.6-TRAVIS-REPLACE-ME"`
 
 ## 0.5
 - add retry for IO

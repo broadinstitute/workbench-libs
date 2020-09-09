@@ -8,7 +8,6 @@ import akka.http.scaladsl.Http
 import akka.http.scaladsl.marshalling.Marshal
 import akka.http.scaladsl.model.headers.OAuth2BearerToken
 import akka.http.scaladsl.model.{StatusCodes, _}
-import akka.stream.ActorMaterializer
 import cats.implicits._
 import com.google.api.client.http.{AbstractInputStreamContent, FileContent, HttpResponseException, InputStreamContent}
 import com.google.api.services.compute.ComputeScopes
@@ -183,7 +182,6 @@ class HttpGoogleStorageDAO(appName: String,
     import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
     import org.broadinstitute.dsde.workbench.google.GoogleRequestJsonSupport._
     import spray.json._
-    implicit val materializer = ActorMaterializer()
 
     googleCredential.refreshToken()
 

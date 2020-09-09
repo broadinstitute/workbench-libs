@@ -1,11 +1,9 @@
 import Dependencies._
-import Merging._
 import Testing._
 import Version._
 import Publishing._
 import sbt.Keys.{scalacOptions, _}
 import sbt._
-import sbtassembly.AssemblyPlugin.autoImport._
 import scoverage.ScoverageKeys.coverageExcludedPackages
 
 //noinspection TypeAnnotation
@@ -25,8 +23,7 @@ object Settings {
     javacOptions ++= Seq("-source", "1.8", "-target", "1.8"),
     scalacOptions in (Compile, console) --= Seq("-Ywarn-unused:imports", "-Xfatal-warnings"),
     scalacOptions in (Test, console) --= Seq("-Ywarn-unused:imports", "-Xfatal-warnings"),
-    scalacOptions in Test -= "-Ywarn-dead-code", // due to https://github.com/mockito/mockito-scala#notes
-    addCompilerPlugin("org.typelevel" %% "kind-projector" % "0.10.3")
+    scalacOptions in Test -= "-Ywarn-dead-code" // due to https://github.com/mockito/mockito-scala#notes
   )
 
   lazy val commonCompilerSettings = scalacOptions ++= (CrossVersion.partialVersion(scalaVersion.value) match {
@@ -106,7 +103,6 @@ object Settings {
         "-Xlint:inaccessible", // Warn about inaccessible types in method signatures.
         "-Xlint:infer-any", // Warn when a type argument is inferred to be `Any`.
         "-Xlint:missing-interpolator", // A string literal appears to be missing an interpolator id.
-        "-Xlint:nullary-override", // Warn when non-nullary `def f()' overrides nullary `def f'.
         "-Xlint:nullary-unit", // Warn when nullary methods return Unit.
         "-Xlint:option-implicit", // Option.apply used implicit view.
         "-Xlint:package-object-classes", // Class or object defined in package object.
@@ -117,13 +113,13 @@ object Settings {
         "-Ywarn-dead-code", // Warn when dead code is identified.
         "-Ywarn-extra-implicit", // Warn when more than one implicit parameter section is defined.
 //      "-Ywarn-numeric-widen", // Warn when numerics are widened.
-        "-Ywarn-unused:implicits", // Warn if an implicit parameter is unused.
-        "-Ywarn-unused:imports", // Warn if an import selector is not referenced.
+//        "-Ywarn-unused:implicits", // Warn if an implicit parameter is unused.
+//        "-Ywarn-unused:imports", // Warn if an import selector is not referenced.
         "-Ywarn-unused:locals", // Warn if a local definition is unused.
         "-Ywarn-unused:params", // Warn if a value parameter is unused.
         "-Ywarn-unused:patvars", // Warn if a variable bound in a pattern is unused.
         "-Ywarn-unused:privates", // Warn if a private member is unused.
-        "-Ywarn-value-discard", // Warn when non-Unit expression results are unused.
+//        "-Ywarn-value-discard", // Warn when non-Unit expression results are unused.
         "-Ybackend-parallelism",
         "8", // Enable paralellisation — change to desired number!
         "-Ycache-plugin-class-loader:last-modified", // Enables caching of classloaders for compiler plugins
@@ -132,33 +128,23 @@ object Settings {
       )
   })
 
-  val commonCrossCompileSettings = Seq(
-    crossScalaVersions := List("2.11.12", "2.12.10")
-  )
-
   val only212 = Seq(
-    crossScalaVersions := List("2.12.10")
+    crossScalaVersions := List("2.12.11")
   )
 
   val cross212and213 = Seq(
-    crossScalaVersions := List("2.12.10", "2.13.1")
-  )
-
-  //sbt assembly settings
-  val commonAssemblySettings = Seq(
-    assemblyMergeStrategy in assembly := customMergeStrategy((assemblyMergeStrategy in assembly).value),
-    test in assembly := {}
+    crossScalaVersions := List("2.12.11", "2.13.2")
   )
 
   //common settings for all sbt subprojects
-  val commonSettings = commonBuildSettings ++ commonAssemblySettings ++ commonTestSettings ++ List(
+  val commonSettings = commonBuildSettings ++ commonTestSettings ++ List(
     organization := "org.broadinstitute.dsde.workbench",
-    scalaVersion := "2.12.10",
+    scalaVersion := "2.12.11", //We can't use 2.13 by default yet because some projects are still built for 2.12 only
     resolvers ++= commonResolvers,
     commonCompilerSettings
   )
 
-  val utilSettings = commonCrossCompileSettings ++ commonSettings ++ List(
+  val utilSettings = cross212and213 ++ commonSettings ++ List(
     name := "workbench-util",
     libraryDependencies ++= utilDependencies,
     version := createVersion("0.6")
@@ -170,32 +156,32 @@ object Settings {
     version := createVersion("0.1")
   ) ++ publishSettings
 
-  val modelSettings = commonCrossCompileSettings ++ commonSettings ++ List(
+  val modelSettings = cross212and213 ++ commonSettings ++ List(
     name := "workbench-model",
     libraryDependencies ++= modelDependencies,
     version := createVersion("0.14")
   ) ++ publishSettings
 
-  val metricsSettings = only212 ++ commonSettings ++ List(
+  val metricsSettings = cross212and213 ++ commonSettings ++ List(
     name := "workbench-metrics",
     libraryDependencies ++= metricsDependencies,
     version := createVersion("0.5")
   ) ++ publishSettings
 
-  val googleSettings = only212 ++ commonSettings ++ List(
+  val googleSettings = cross212and213 ++ commonSettings ++ List(
     name := "workbench-google",
     libraryDependencies ++= googleDependencies,
     version := createVersion("0.21"),
     coverageExcludedPackages := ".*HttpGoogle.*DAO.*"
   ) ++ publishSettings
 
-  val google2Settings = only212 ++ commonSettings ++ List(
+  val google2Settings = cross212and213 ++ commonSettings ++ List(
     name := "workbench-google2",
     libraryDependencies ++= google2Dependencies,
     version := createVersion("0.12")
   ) ++ publishSettings
 
-  val newrelicSettings = only212 ++ commonSettings ++ List(
+  val newrelicSettings = cross212and213 ++ commonSettings ++ List(
     name := "workbench-newrelic",
     libraryDependencies ++= newrelicDependencies,
     version := createVersion("0.3")

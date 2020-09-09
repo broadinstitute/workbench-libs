@@ -22,7 +22,7 @@ class FutureSupportSpec
   import system.dispatcher
   implicit val scheduler: Scheduler = system.scheduler
 
-  override def afterAll: Unit =
+  override def afterAll(): Unit =
     TestKit.shutdownActorSystem(system)
 
   "toFutureTry" should "turn a successful Future into a successful Future(Success)" in {

@@ -31,7 +31,7 @@ package object google {
    * @param prefix bucket name prefix
    * @return generated bucket name
    */
-  def generateUniqueBucketName(prefix: String, trimPrefix: Boolean = true) = {
+  def generateUniqueBucketName(prefix: String, trimPrefix: Boolean = true): GcsBucketName = {
     // may only contain lowercase letters, numbers, underscores, dashes, or dots
     val lowerCaseName = prefix.toLowerCase.filter { c =>
       Character.isLetterOrDigit(c) || c == '_' || c == '-' || c == '.'
@@ -53,7 +53,14 @@ package object google {
       if (trimPrefix) uuid else uuid.take(Math.min(maxBucketNameLen - trimmedPrefix.length, uuid.length))
 
     // must not start with "goog" or contain the string "google"
-    val processedName = trimmedPrefix.replaceAllLiterally("goog", "g00g")
+    // This implementation is a bit ugly, but it's to work around 2.12 and 2.13 compatibility issue
+    def go(originalString: StringBuilder): StringBuilder = originalString.indexOf("goog") match {
+      case -1 => originalString
+      case index =>
+        go(originalString.replace(index, index + 3, "g00"))
+    }
+
+    val processedName = go(trimmedPrefix)
 
     GcsBucketName(s"$processedName-$trimmedUUID")
   }
