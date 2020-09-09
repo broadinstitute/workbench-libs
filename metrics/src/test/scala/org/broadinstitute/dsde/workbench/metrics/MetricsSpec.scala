@@ -250,11 +250,6 @@ class MetricsSpec extends AnyFlatSpecLike with Matchers with BeforeAndAfter with
     override def matches(argument: String): Boolean =
       Try(argument.toDouble).toOption.exists(_ != 0)
   }
-
-  private def zeroString: ArgumentMatcher[String] = new ArgumentMatcher[String] {
-    override def matches(argument: String): Boolean =
-      Try(argument.toDouble).toOption.exists(_ == 0)
-  }
 }
 
 object MetricsSpec {

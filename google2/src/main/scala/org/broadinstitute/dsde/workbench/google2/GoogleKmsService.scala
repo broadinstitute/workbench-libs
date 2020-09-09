@@ -1,4 +1,5 @@
-package org.broadinstitute.dsde.workbench.google2
+package org.broadinstitute.dsde.workbench
+package google2
 
 import com.google.cloud.kms.v1.{CryptoKey, KeyRing}
 import com.google.iam.v1.Policy

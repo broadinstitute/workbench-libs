@@ -136,7 +136,7 @@ class HealthMonitor private (
     val processed = data.mapValues {
       case (_, t) if now - t > staleThreshold.toMillis => UnknownStatus
       case (status, _)                                 => status
-    }
+    }.toMap //toMap is needed for scala 2.13
     // overall status is ok iff all subsystems are ok
     val overall = processed.forall(_._2.ok)
     StatusCheckResponse(overall, processed)

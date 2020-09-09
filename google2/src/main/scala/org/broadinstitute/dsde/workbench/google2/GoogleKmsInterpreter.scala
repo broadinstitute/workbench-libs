@@ -1,4 +1,5 @@
-package org.broadinstitute.dsde.workbench.google2
+package org.broadinstitute.dsde.workbench
+package google2
 
 import cats.effect.{Blocker, ContextShift, Resource, Sync}
 import cats.implicits._

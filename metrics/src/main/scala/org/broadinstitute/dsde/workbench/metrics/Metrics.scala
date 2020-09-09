@@ -1,9 +1,9 @@
 package org.broadinstitute.dsde.workbench.metrics
 
-import nl.grons.metrics.scala.{Gauge => GronsGauge}
-import nl.grons.metrics.scala.{Counter => GronsCounter}
-import nl.grons.metrics.scala.{Timer => GronsTimer}
-import nl.grons.metrics.scala.{Histogram => GronsHisto}
+import nl.grons.metrics4.scala.{Gauge => GronsGauge}
+import nl.grons.metrics4.scala.{Counter => GronsCounter}
+import nl.grons.metrics4.scala.{Timer => GronsTimer}
+import nl.grons.metrics4.scala.{Histogram => GronsHisto}
 
 //Wrapper classes around scala-metrics Metrics so they don't immediately forget their own names.
 
