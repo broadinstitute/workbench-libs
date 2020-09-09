@@ -36,11 +36,12 @@ class MockGoogleDirectoryDAO(implicit val executionContext: ExecutionContext) ex
       groups.put(groupEmail, newMembersList)
     }
 
-  // See https://broadworkbench.atlassian.net/browse/CA-1005
-  // Don't care about implementing/testing this method in the mock right now because this is being added purely as an
-  // alternate way to interact with google to see if we get different results when adding members to groups
   override def addMemberToGroup(groupEmail: WorkbenchEmail,
-                                serviceAccountSubjectId: ServiceAccountSubjectId): Future[Unit] = ???
+                                serviceAccountSubjectId: ServiceAccountSubjectId): Future[Unit] = {
+    //TODO: the project name `myproject` in the host part of the email address will need to be dynamic
+    val madeUpEmail = WorkbenchEmail(s"${serviceAccountSubjectId.value}@myproject.iam.gserviceaccount.com")
+    addMemberToGroup(groupEmail, madeUpEmail)
+  }
 
   override def removeMemberFromGroup(groupEmail: WorkbenchEmail, memberEmail: WorkbenchEmail): Future[Unit] =
     Future {
