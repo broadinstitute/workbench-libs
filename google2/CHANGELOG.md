@@ -7,7 +7,7 @@ Changed:
 - Made `GoogleComputeService.detachDisk` recover on 404s and return `Option[Operation]`
 - Support 2.13
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.12-TRAVIS-REPLACE-ME"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.12-65bba14"`
 
 ## 0.11
 Changed:
