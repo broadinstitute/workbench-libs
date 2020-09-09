@@ -35,7 +35,7 @@ trait FutureSupport {
   def assertSuccessfulTries[K, T](tries: Map[K, Try[T]]): Future[Map[K, T]] = {
     val failures = tries.values.collect { case Failure(t) => t }
     if (failures.isEmpty) {
-      Future.successful(tries.mapValues(_.get))
+      Future.successful(tries.mapValues(_.get).toMap) //this toMap is needed to scala 2.13 since it returns MapView in 2.13
     } else {
       Future.failed(failures.head)
     }

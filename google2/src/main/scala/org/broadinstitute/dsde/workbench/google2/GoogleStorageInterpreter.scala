@@ -492,7 +492,6 @@ object GoogleStorageInterpreter {
   def storage[F[_]: Sync: ContextShift](
     pathToJson: String,
     blocker: Blocker,
-    blockerBound: Option[Semaphore[F]],
     project: Option[GoogleProject] = None // legacy credential file doesn't have `project_id` field. Hence we need to pass in explicitly
   ): Resource[F, Storage] =
     for {

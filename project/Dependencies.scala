@@ -1,18 +1,18 @@
 import sbt._
 
 object Dependencies {
-  val akkaV         = "2.5.3"
-  val akkaHttpV     = "10.0.6"
+  val akkaV         = "2.6.8"
+  val akkaHttpV     = "10.2.0"
   val jacksonV      = "2.9.0"
   val googleV       = "1.22.0"
-  val scalaLoggingV = "3.7.2"
+  val scalaLoggingV = "3.9.2"
   val scalaTestV    = "3.2.0"
   val circeVersion = "0.13.0"
   val http4sVersion = "0.21.5"
 
   def excludeGuavaJDK5(m: ModuleID): ModuleID = m.exclude("com.google.guava", "guava-jdk5")
 
-  val scalaLogging: ModuleID = "com.typesafe.scala-logging"    %% "scala-logging" % "3.9.2"  % "provided"
+  val scalaLogging: ModuleID = "com.typesafe.scala-logging"    %% "scala-logging" % scalaLoggingV  % "provided"
   val scalatest: ModuleID =    "org.scalatest"                 %% "scalatest"     % scalaTestV  % "test"
   val scalaTestScalaCheck = "org.scalatestplus" %% "scalatestplus-scalacheck" % "3.1.0.0-RC2" % Test //Since scalatest 3.1.0, scalacheck support is moved to `scalatestplus`
   val scalaTestMockito = "org.scalatestplus" %% "scalatestplus-mockito" % "1.0.0-M2" % Test //Since scalatest 3.1.0, mockito support is moved to `scalatestplus`
@@ -20,6 +20,7 @@ object Dependencies {
   val mockito: ModuleID =      "org.mockito"                   %  "mockito-core"  % "2.8.47" % "test"
 
   val akkaActor: ModuleID =         "com.typesafe.akka" %% "akka-actor"           % akkaV     % "provided"
+  val akkaStream: ModuleID =         "com.typesafe.akka" %% "akka-stream"           % akkaV     % "provided"
   val akkaHttp: ModuleID =          "com.typesafe.akka" %% "akka-http"            % akkaHttpV % "provided"
   val akkaHttpSprayJson: ModuleID = "com.typesafe.akka" %% "akka-http-spray-json" % akkaHttpV % "provided"
   val akkaTestkit: ModuleID =       "com.typesafe.akka" %% "akka-testkit"         % akkaV     % "test"
@@ -32,7 +33,7 @@ object Dependencies {
   val catsEffect: ModuleID = "org.typelevel" %% "cats-effect" % "2.1.3"
 
   // metrics-scala transitively pulls in io.dropwizard.metrics:metrics-core
-  val metricsScala: ModuleID =      "nl.grons"              %% "metrics-scala"    % "3.5.6"
+  val metricsScala: ModuleID =      "nl.grons"              %% "metrics4-scala"    % "4.1.9"
   val metricsStatsd: ModuleID =     "com.readytalk"         %  "metrics3-statsd"  % "4.2.0"
 
   val googleApiClient: ModuleID =            "com.google.api-client" % "google-api-client"                        % googleV
@@ -49,7 +50,6 @@ object Dependencies {
   val googleServicemanagement: ModuleID =    "com.google.apis"       % "google-api-services-servicemanagement"    % s"v1-rev359-$googleV"
   val googleIam: ModuleID =                  "com.google.apis"       % "google-api-services-iam"                  % s"v1-rev215-$googleV"
   val googleBigQuery: ModuleID =             "com.google.apis"       % "google-api-services-bigquery"             % s"v2-rev377-$googleV"
-
   val googleGuava: ModuleID = "com.google.guava"  % "guava" % "22.0"
   val googleRpc: ModuleID =               "io.grpc" % "grpc-core" % "1.16.1" //old google libraries relies on older version of grpc
 
@@ -87,11 +87,7 @@ object Dependencies {
   val openCensusStatsStackDriver: ModuleID = "io.opencensus" % "opencensus-exporter-stats-stackdriver" % "0.26.0"
   val openCensusTraceStackDriver: ModuleID = "io.opencensus" % "opencensus-exporter-trace-stackdriver" % "0.26.0"
   val openCensusTraceLogging: ModuleID = "io.opencensus" % "opencensus-exporter-trace-logging" % "0.26.0"
-  val sealerate: ModuleID = "ca.mrvisser" %% "sealerate" % "0.0.5"
-
-  val silencerVersion = "1.4.1"
-  val silencer: ModuleID = compilerPlugin("com.github.ghik" %% "silencer-plugin" % silencerVersion)
-  val silencerLib: ModuleID = "com.github.ghik" %% "silencer-lib" % silencerVersion % Provided
+  val sealerate: ModuleID = "ca.mrvisser" %% "sealerate" % "0.0.6"
 
   val commonDependencies = Seq(
     scalatest,
@@ -106,7 +102,7 @@ object Dependencies {
     akkaTestkit,
     mockito,
     scalaTestMockito,
-    "org.typelevel" %% "cats-core" % "2.0.0" //This is the last version supports scala 2.11, which is use in orchestration
+    "org.typelevel" %% "cats-core" % "2.1.1"
   )
 
   val modelDependencies = commonDependencies ++ Seq(
@@ -121,6 +117,7 @@ object Dependencies {
     metricsScala,
     metricsStatsd,
     akkaHttp,
+    akkaStream,
     akkaTestkit,
     akkaHttpTestkit,
     mockito,
@@ -145,11 +142,11 @@ object Dependencies {
     googleGuava,
     googleRpc,
     googleKms,
+    akkaActor,
+    akkaStream,
     akkaHttpSprayJson,
     akkaTestkit,
-    sealerate,
-    silencer,
-    silencerLib
+    sealerate
   ).map(excludeGuavaJDK5)
 
   val google2Dependencies = commonDependencies ++ Seq(

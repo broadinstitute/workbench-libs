@@ -53,10 +53,10 @@ private[google2] class GooglePublisherInterpreter[F[_]: Async: Timer: Structured
 
   private def publishMessage(message: String, traceId: Option[TraceId]): Stream[F, Unit] = {
     val byteString = ByteString.copyFromUtf8(message)
-    retryGoogleF(retryConfig)(asyncPublishMessage(byteString, traceId), traceId, s"Publishing $message")
+    retryGoogleF(retryConfig)(asyncPublishMessage(byteString), traceId, s"Publishing $message")
   }
 
-  private def asyncPublishMessage(byteString: ByteString, traceId: Option[TraceId]): F[Unit] =
+  private def asyncPublishMessage(byteString: ByteString): F[Unit] =
     Async[F]
       .async[String] { callback =>
         val message = PubsubMessage

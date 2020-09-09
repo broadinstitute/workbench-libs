@@ -19,7 +19,7 @@ class HealthMonitorSpec
     with AnyFlatSpecLike
     with BeforeAndAfterAll
     with Matchers {
-  override def afterAll: Unit =
+  override def afterAll(): Unit =
     TestKit.shutdownActorSystem(system)
 
   import system.dispatcher
@@ -48,7 +48,10 @@ class HealthMonitorSpec
     }
 
     // setup scheduler to call HealthMonitor.CheckAll
-    system.scheduler.schedule(100 milliseconds, 100 milliseconds, healthMonitorRef, HealthMonitor.CheckAll)
+    system.scheduler.scheduleWithFixedDelay(100 milliseconds,
+                                            100 milliseconds,
+                                            healthMonitorRef,
+                                            HealthMonitor.CheckAll)
 
     awaitAssert(
       assertResult(StatusCheckResponse(true, Map(Agora -> HealthMonitor.OkStatus))) {
