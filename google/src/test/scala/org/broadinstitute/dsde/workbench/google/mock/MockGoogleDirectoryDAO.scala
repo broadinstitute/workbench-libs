@@ -4,6 +4,7 @@ import com.google.api.services.admin.directory.model.Group
 import com.google.api.services.groupssettings.model.{Groups => GroupSettings}
 import org.broadinstitute.dsde.workbench.google.GoogleDirectoryDAO
 import org.broadinstitute.dsde.workbench.model._
+import org.broadinstitute.dsde.workbench.model.google.ServiceAccountSubjectId
 
 import scala.collection.concurrent.TrieMap
 import scala.concurrent.{ExecutionContext, Future}
@@ -34,6 +35,11 @@ class MockGoogleDirectoryDAO(implicit val executionContext: ExecutionContext) ex
 
       groups.put(groupEmail, newMembersList)
     }
+
+  // See https://broadworkbench.atlassian.net/browse/CA-1005
+  // Don't care about implementing/testing this method in the mock right now because this is being added purely as an
+  // alternate way to interact with google to see if we get different results when adding members to groups
+  override def addMemberToGroup(groupEmail: WorkbenchEmail, serviceAccountSubjectId: ServiceAccountSubjectId): Future[Unit] = ???
 
   override def removeMemberFromGroup(groupEmail: WorkbenchEmail, memberEmail: WorkbenchEmail): Future[Unit] =
     Future {
