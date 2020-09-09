@@ -10,7 +10,7 @@ SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-model" % "0.1
 - added IdentityConcentratorId to WorkbenchUser 
 - Cross build 2.13
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-model" % "0.14-TRAVIS-REPLACE-ME"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-model" % "0.14-65bba14"`
 
 ### Added
 
