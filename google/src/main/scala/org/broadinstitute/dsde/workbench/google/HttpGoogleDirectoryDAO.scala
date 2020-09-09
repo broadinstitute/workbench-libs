@@ -15,6 +15,7 @@ import org.broadinstitute.dsde.workbench.google.GoogleCredentialModes._
 import org.broadinstitute.dsde.workbench.google.GoogleUtilities.RetryPredicates._
 import org.broadinstitute.dsde.workbench.metrics.GoogleInstrumentedService
 import org.broadinstitute.dsde.workbench.model._
+import org.broadinstitute.dsde.workbench.model.google.ServiceAccount
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Try
@@ -152,8 +153,18 @@ class HttpGoogleDirectoryDAO(appName: String,
   }
 
   override def addMemberToGroup(groupEmail: WorkbenchEmail, memberEmail: WorkbenchEmail): Future[Unit] = {
-    val member = new Member().setEmail(memberEmail.value).setRole(groupMemberRole)
-    val inserter = directory.members.insert(groupEmail.value, member)
+    val member = new Member().setEmail(memberEmail.value)
+    addMemberToGroup(groupEmail, member)
+  }
+
+  override def addServiceAccountToGroup(groupEmail: WorkbenchEmail, serviceAccount: ServiceAccount): Future[Unit] = {
+    val member = new Member().setId(serviceAccount.subjectId.value)
+    addMemberToGroup(groupEmail, member)
+  }
+
+  private def addMemberToGroup(groupEmail: WorkbenchEmail, member: Member): Future[Unit] = {
+    val finalMember = member.setRole(groupMemberRole)
+    val inserter = directory.members.insert(groupEmail.value, finalMember)
 
     retryWithRecover(when5xx, whenUsageLimited, when404, whenInvalidValueOnBucketCreation, whenNonHttpIOException)(
       () => {

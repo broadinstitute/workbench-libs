@@ -4,6 +4,7 @@ import com.google.api.services.admin.directory.model.Group
 import com.google.api.services.groupssettings.model.{Groups => GroupSettings}
 import org.broadinstitute.dsde.workbench.google.GoogleDirectoryDAO
 import org.broadinstitute.dsde.workbench.model._
+import org.broadinstitute.dsde.workbench.model.google.ServiceAccount
 
 import scala.collection.concurrent.TrieMap
 import scala.concurrent.{ExecutionContext, Future}
@@ -34,6 +35,9 @@ class MockGoogleDirectoryDAO(implicit val executionContext: ExecutionContext) ex
 
       groups.put(groupEmail, newMembersList)
     }
+
+  override def addServiceAccountToGroup(groupEmail: WorkbenchEmail, serviceAccount: ServiceAccount): Future[Unit] =
+    addMemberToGroup(groupEmail, serviceAccount.email)
 
   override def removeMemberFromGroup(groupEmail: WorkbenchEmail, memberEmail: WorkbenchEmail): Future[Unit] =
     Future {
