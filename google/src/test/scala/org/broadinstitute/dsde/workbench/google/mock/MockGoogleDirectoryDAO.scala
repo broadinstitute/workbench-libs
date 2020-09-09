@@ -4,7 +4,7 @@ import com.google.api.services.admin.directory.model.Group
 import com.google.api.services.groupssettings.model.{Groups => GroupSettings}
 import org.broadinstitute.dsde.workbench.google.GoogleDirectoryDAO
 import org.broadinstitute.dsde.workbench.model._
-import org.broadinstitute.dsde.workbench.model.google.ServiceAccountSubjectId
+import org.broadinstitute.dsde.workbench.model.google.ServiceAccount
 
 import scala.collection.concurrent.TrieMap
 import scala.concurrent.{ExecutionContext, Future}
@@ -36,11 +36,9 @@ class MockGoogleDirectoryDAO(implicit val executionContext: ExecutionContext) ex
       groups.put(groupEmail, newMembersList)
     }
 
-  override def addMemberToGroup(groupEmail: WorkbenchEmail,
-                                serviceAccountSubjectId: ServiceAccountSubjectId): Future[Unit] = {
-    //TODO: the project name `myproject` in the host part of the email address will need to be dynamic
-    val madeUpEmail = WorkbenchEmail(s"${serviceAccountSubjectId.value}@myproject.iam.gserviceaccount.com")
-    addMemberToGroup(groupEmail, madeUpEmail)
+  override def addServiceAccountToGroup(groupEmail: WorkbenchEmail,
+                                serviceAccount: ServiceAccount): Future[Unit] = {
+    addMemberToGroup(groupEmail, serviceAccount.email)
   }
 
   override def removeMemberFromGroup(groupEmail: WorkbenchEmail, memberEmail: WorkbenchEmail): Future[Unit] =

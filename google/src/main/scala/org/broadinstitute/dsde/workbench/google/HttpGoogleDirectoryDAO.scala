@@ -15,7 +15,7 @@ import org.broadinstitute.dsde.workbench.google.GoogleCredentialModes._
 import org.broadinstitute.dsde.workbench.google.GoogleUtilities.RetryPredicates._
 import org.broadinstitute.dsde.workbench.metrics.GoogleInstrumentedService
 import org.broadinstitute.dsde.workbench.model._
-import org.broadinstitute.dsde.workbench.model.google.ServiceAccountSubjectId
+import org.broadinstitute.dsde.workbench.model.google.ServiceAccount
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Try
@@ -157,9 +157,9 @@ class HttpGoogleDirectoryDAO(appName: String,
     addMemberToGroup(groupEmail, member)
   }
 
-  override def addMemberToGroup(groupEmail: WorkbenchEmail,
-                                serviceAccountSubjectId: ServiceAccountSubjectId): Future[Unit] = {
-    val member = new Member().setId(serviceAccountSubjectId.value).setRole(groupMemberRole)
+  override def addServiceAccountToGroup(groupEmail: WorkbenchEmail,
+                                serviceAccount: ServiceAccount): Future[Unit] = {
+    val member = new Member().setId(serviceAccount.subjectId.value).setRole(groupMemberRole)
     addMemberToGroup(groupEmail, member)
   }
 

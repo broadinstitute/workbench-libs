@@ -3,7 +3,7 @@ package org.broadinstitute.dsde.workbench.google
 import com.google.api.services.admin.directory.model.Group
 import org.broadinstitute.dsde.workbench.model._
 import com.google.api.services.groupssettings.model.{Groups => GroupSettings}
-import org.broadinstitute.dsde.workbench.model.google.ServiceAccountSubjectId
+import org.broadinstitute.dsde.workbench.model.google.ServiceAccount
 
 import scala.concurrent.Future
 
@@ -19,7 +19,8 @@ trait GoogleDirectoryDAO {
                   groupSettings: Option[GroupSettings] = None): Future[Unit]
   def deleteGroup(groupEmail: WorkbenchEmail): Future[Unit]
   def addMemberToGroup(groupEmail: WorkbenchEmail, memberEmail: WorkbenchEmail): Future[Unit]
-  def addMemberToGroup(groupEmail: WorkbenchEmail, serviceAccountSubjectId: ServiceAccountSubjectId): Future[Unit]
+  // See https://broadworkbench.atlassian.net/browse/CA-1005 about why we have a specific method for adding SA to groups
+  def addServiceAccountToGroup(groupEmail: WorkbenchEmail, serviceAccount: ServiceAccount): Future[Unit]
   def removeMemberFromGroup(groupEmail: WorkbenchEmail, memberEmail: WorkbenchEmail): Future[Unit]
   def getGoogleGroup(groupEmail: WorkbenchEmail): Future[Option[Group]]
   def isGroupMember(groupEmail: WorkbenchEmail, memberEmail: WorkbenchEmail): Future[Boolean]
