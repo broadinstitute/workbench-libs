@@ -157,8 +157,7 @@ class HttpGoogleDirectoryDAO(appName: String,
     addMemberToGroup(groupEmail, member)
   }
 
-  override def addServiceAccountToGroup(groupEmail: WorkbenchEmail,
-                                serviceAccount: ServiceAccount): Future[Unit] = {
+  override def addServiceAccountToGroup(groupEmail: WorkbenchEmail, serviceAccount: ServiceAccount): Future[Unit] = {
     val member = new Member().setId(serviceAccount.subjectId.value).setRole(groupMemberRole)
     addMemberToGroup(groupEmail, member)
   }

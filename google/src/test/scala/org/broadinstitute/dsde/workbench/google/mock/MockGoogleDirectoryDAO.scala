@@ -36,10 +36,8 @@ class MockGoogleDirectoryDAO(implicit val executionContext: ExecutionContext) ex
       groups.put(groupEmail, newMembersList)
     }
 
-  override def addServiceAccountToGroup(groupEmail: WorkbenchEmail,
-                                serviceAccount: ServiceAccount): Future[Unit] = {
+  override def addServiceAccountToGroup(groupEmail: WorkbenchEmail, serviceAccount: ServiceAccount): Future[Unit] =
     addMemberToGroup(groupEmail, serviceAccount.email)
-  }
 
   override def removeMemberFromGroup(groupEmail: WorkbenchEmail, memberEmail: WorkbenchEmail): Future[Unit] =
     Future {
