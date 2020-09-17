@@ -10,6 +10,7 @@ import cats.mtl.ApplicativeAsk
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential
 import com.google.api.core.ApiFutureCallback
 import com.google.api.gax.core.BackgroundResource
+import com.google.api.services.container.ContainerScopes
 import com.google.auth.oauth2.{ServiceAccountCredentials, UserCredentials}
 import fs2.{RaiseThrowable, Stream}
 import io.chrisdavenport.log4cats.StructuredLogger
@@ -113,7 +114,9 @@ package object google2 {
   def googleCredential[F[_]: Sync](pathToCredential: String): Resource[F, GoogleCredential] =
     for {
       credentialFile <- org.broadinstitute.dsde.workbench.util2.readFile(pathToCredential)
-      credential <- Resource.liftF(Sync[F].delay(GoogleCredential.fromStream(credentialFile)))
+      credential <- Resource.liftF(
+        Sync[F].delay(GoogleCredential.fromStream(credentialFile).createScoped(ContainerScopes.all()))
+      )
     } yield credential
 
   def backgroundResourceF[F[_]: Sync, A <: BackgroundResource](resource: => A): Resource[F, A] =
