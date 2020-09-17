@@ -111,7 +111,7 @@ package object google2 {
     } yield credential
 
   // returns legacy GoogleCredential object which is only used for the legacy com.google.api.services client
-  def googleCredential[F[_]: Sync](pathToCredential: String): Resource[F, GoogleCredential] =
+  def legacyGoogleCredential[F[_]: Sync](pathToCredential: String): Resource[F, GoogleCredential] =
     for {
       credentialFile <- org.broadinstitute.dsde.workbench.util2.readFile(pathToCredential)
       credential <- Resource.liftF(

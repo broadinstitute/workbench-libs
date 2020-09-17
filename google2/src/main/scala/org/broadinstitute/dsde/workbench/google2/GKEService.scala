@@ -68,12 +68,16 @@ object GKEService {
       legacyClient <- legacyClient(pathToCredential)
     } yield new GKEInterpreter[F](clusterManager, legacyClient, blocker, blockerBound, retryConfig)
 
-  private def legacyClient[F[_]: Sync](pathToCredential: Path): Resource[F, com.google.api.services.container.Container] =
+  private def legacyClient[F[_]: Sync](
+    pathToCredential: Path
+  ): Resource[F, com.google.api.services.container.Container] =
     for {
       httpTransport <- Resource.liftF(Sync[F].delay(GoogleNetHttpTransport.newTrustedTransport))
       jsonFactory = JacksonFactory.getDefaultInstance
-      googleCredential <- googleCredential(pathToCredential.toString)
-      legacyClient = new Container.Builder(httpTransport, jsonFactory, googleCredential).setApplicationName("workbench-libs").build()
+      googleCredential <- legacyGoogleCredential(pathToCredential.toString)
+      legacyClient = new Container.Builder(httpTransport, jsonFactory, googleCredential)
+        .setApplicationName("workbench-libs")
+        .build()
     } yield legacyClient
 
 }

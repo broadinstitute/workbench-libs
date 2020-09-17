@@ -37,7 +37,7 @@ final class GKEInterpreter[F[_]: Async: StructuredLogger: Timer: ContextShift](
 
     tracedGoogleRetryWithBlocker(
       Async[F].delay(legacyClient.projects().locations().clusters().create(parent, googleRequest).execute()),
-      f"com.google.api.services.container.Projects.Locations.Cluster(${request})"
+      s"com.google.api.services.container.Projects.Locations.Cluster(${request})"
     )
   }
 
