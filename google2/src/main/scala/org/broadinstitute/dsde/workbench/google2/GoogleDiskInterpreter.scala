@@ -40,11 +40,23 @@ private[google2] class GoogleDiskInterpreter[F[_]: StructuredLogger: Timer: Cont
 
   def getDisk(project: GoogleProject, zone: ZoneName, diskName: DiskName)(
     implicit ev: ApplicativeAsk[F, TraceId]
-  ): Stream[F, Disk] = {
+  ): F[Option[Disk]] = {
     val projectZoneDiskName = ProjectZoneDiskName.of(diskName.value, project.value, zone.value)
-    retryF(
-      F.delay(diskClient.getDisk(projectZoneDiskName)),
-      s"com.google.cloud.compute.v1DiskClient.getDisk(${projectZoneDiskName})"
+    val fa = F
+      .delay(diskClient.getDisk(projectZoneDiskName))
+      .map(Option(_))
+      .handleErrorWith {
+        case _: com.google.api.gax.rpc.NotFoundException => F.pure(none[Disk])
+        case e                                           => F.raiseError[Option[Disk]](e)
+      }
+
+    ev.ask.flatMap(
+      traceId =>
+        withLogging(
+          fa,
+          Some(traceId),
+          s"com.google.cloud.compute.v1.DiskClient.getDisk(${projectZoneDiskName.toString})"
+        )
     )
   }
 

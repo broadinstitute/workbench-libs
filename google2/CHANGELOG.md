@@ -5,8 +5,9 @@ This file documents changes to the `workbench-google2` library, including notes 
 ## 0.13
 - `GKEService.createCluster` now uses legacy `com.google.api.services.container` client and model objects
 - `KubernetesModels.KubernetesOperationId` now takes `(operationName: String)` instead of `(operation: Operation)`
+- Made `GoogleComputeService.getDisk` recover on 404s and return `F[Option[Disk]]`
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.13-4a533e2"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.13-TRAVIS-REPLACE-ME"`
 
 ## 0.12
 Changed:
