@@ -30,7 +30,7 @@ trait GoogleDiskService[F[_]] {
 
   def getDisk(project: GoogleProject, zone: ZoneName, diskName: DiskName)(
     implicit ev: ApplicativeAsk[F, TraceId]
-  ): Stream[F, Disk]
+  ): F[Option[Disk]]
 
   def listDisks(project: GoogleProject, zone: ZoneName)(
     implicit ev: ApplicativeAsk[F, TraceId]
