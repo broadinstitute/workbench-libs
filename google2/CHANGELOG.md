@@ -6,7 +6,7 @@ This file documents changes to the `workbench-google2` library, including notes 
 - `GKEService.createCluster` now uses legacy `com.google.api.services.container` client and model objects
 - `KubernetesModels.KubernetesOperationId` now takes `(operationName: String)` instead of `(operation: Operation)`
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.13-TRAVIS-REPLACE-ME"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.13-4a533e2"`
 
 ## 0.12
 Changed:
