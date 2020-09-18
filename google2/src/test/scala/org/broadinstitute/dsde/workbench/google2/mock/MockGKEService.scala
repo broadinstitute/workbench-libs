@@ -12,7 +12,8 @@ import scala.concurrent.duration.FiniteDuration
 class MockGKEService extends GKEService[IO] {
   override def createCluster(request: GKEModels.KubernetesCreateClusterRequest)(
     implicit ev: ApplicativeAsk[IO, TraceId]
-  ): IO[Operation] = IO(Operation.newBuilder().setName("opName").build())
+  ): IO[com.google.api.services.container.model.Operation] =
+    IO(new com.google.api.services.container.model.Operation().setName("opName"))
 
   override def deleteCluster(clusterId: GKEModels.KubernetesClusterId)(
     implicit ev: ApplicativeAsk[IO, TraceId]

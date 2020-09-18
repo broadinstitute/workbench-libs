@@ -4,15 +4,7 @@ import cats.effect.concurrent.Semaphore
 import cats.effect.{Async, Blocker, ContextShift, Timer}
 import cats.mtl.ApplicativeAsk
 import com.google.cloud.container.v1.ClusterManagerClient
-import com.google.container.v1.{
-  Cluster,
-  CreateClusterRequest,
-  CreateNodePoolRequest,
-  GetOperationRequest,
-  IPAllocationPolicy,
-  NodePool,
-  Operation
-}
+import com.google.container.v1.{Cluster, CreateNodePoolRequest, GetOperationRequest, NodePool, Operation}
 import fs2.Stream
 import io.chrisdavenport.log4cats.StructuredLogger
 import org.broadinstitute.dsde.workbench.{DoneCheckable, RetryConfig}
@@ -25,6 +17,7 @@ import scala.concurrent.duration.FiniteDuration
 
 final class GKEInterpreter[F[_]: Async: StructuredLogger: Timer: ContextShift](
   clusterManagerClient: ClusterManagerClient,
+  legacyClient: com.google.api.services.container.Container,
   blocker: Blocker,
   blockerBound: Semaphore[F],
   retryConfig: RetryConfig
@@ -32,25 +25,19 @@ final class GKEInterpreter[F[_]: Async: StructuredLogger: Timer: ContextShift](
 
   override def createCluster(
     request: KubernetesCreateClusterRequest
-  )(implicit ev: ApplicativeAsk[F, TraceId]): F[Operation] = {
-    val parent = Parent(request.project, request.location)
+  )(implicit ev: ApplicativeAsk[F, TraceId]): F[com.google.api.services.container.model.Operation] = {
+    val parent = Parent(request.project, request.location).toString
 
-    val createClusterRequest: CreateClusterRequest = CreateClusterRequest
-      .newBuilder()
-      .setParent(parent.toString)
-      .setCluster(
-        request.cluster.toBuilder
-          .setIpAllocationPolicy( //otherwise it uses the legacy one, which is insecure. See https://cloud.google.com/kubernetes-engine/docs/how-to/alias-ips
-            IPAllocationPolicy
-              .newBuilder()
-              .setUseIpAliases(true)
-          )
-      )
-      .build()
+    // Note createCluster uses the legacy com.google.api.services.container client rather than
+    // the newer com.google.container.v1 client because certain options like Workload Identity
+    // are only available in the old client.
+
+    val googleRequest = new com.google.api.services.container.model.CreateClusterRequest()
+      .setCluster(request.cluster)
 
     tracedGoogleRetryWithBlocker(
-      Async[F].delay(clusterManagerClient.createCluster(createClusterRequest)),
-      f"com.google.cloud.container.v1.ClusterManagerClient.createCluster(${request})"
+      Async[F].delay(legacyClient.projects().locations().clusters().create(parent, googleRequest).execute()),
+      s"com.google.api.services.container.Projects.Locations.Cluster(${request})"
     )
   }
 
