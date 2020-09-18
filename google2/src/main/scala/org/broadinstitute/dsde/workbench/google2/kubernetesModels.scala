@@ -1,7 +1,5 @@
 package org.broadinstitute.dsde.workbench.google2
 
-import com.google.container.v1.Operation
-
 import collection.JavaConverters._
 import io.kubernetes.client.models.{
   V1Container,
@@ -63,13 +61,13 @@ object GKEModels {
     override lazy val toString: String = s"projects/${project.value}/locations/${location.value}"
   }
 
-  //the cluster must have a name, and a com.google.container.v1.NodePool. The NodePool must have an initialNodeCount and a name.
+  //the cluster must have a name, and a NodePool. The NodePool must have an initialNodeCount and a name.
   //the cluster must also have a network and subnetwork. See KubernetesManual test for how to specify these.
   //Location can either contain a zone or not, ex: "us-central1" or "us-central1-a". The former will create the nodepool you specify in multiple zones, the latter a single nodepool
   //see getDefaultCluster for an example of construction with the minimum fields necessary, plus some others you almost certainly want to configure
   final case class KubernetesCreateClusterRequest(project: GoogleProject,
                                                   location: Location,
-                                                  cluster: com.google.container.v1.Cluster)
+                                                  cluster: com.google.api.services.container.model.Cluster)
 
   final case class KubernetesCreateNodepoolRequest(clusterId: KubernetesClusterId,
                                                    nodepool: com.google.container.v1.NodePool)
@@ -101,8 +99,8 @@ object GKEModels {
       s"${clusterId}/nodepools/${nodepoolName.value}"
   }
 
-  final case class KubernetesOperationId(project: GoogleProject, location: Location, operation: Operation) {
-    val idString: String = s"projects/${project.value}/locations/${location.value}/operations/${operation.getName}"
+  final case class KubernetesOperationId(project: GoogleProject, location: Location, operationName: String) {
+    val idString: String = s"projects/${project.value}/locations/${location.value}/operations/${operationName}"
   }
 
   final case class KubernetesNetwork(project: GoogleProject, name: NetworkName) {
