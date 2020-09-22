@@ -10,10 +10,10 @@ import cats.implicits._
 import com.google.auth.Credentials
 import com.google.auth.oauth2.{AccessToken, GoogleCredentials}
 import com.google.cloud.storage.BucketInfo.LifecycleRule
-import com.google.cloud.storage.{Acl, Blob, BlobId, StorageOptions}
+import com.google.cloud.storage.{Acl, Blob, BlobId, Bucket, StorageOptions}
 import com.google.cloud.{Identity, Policy}
 import fs2.{Pipe, Stream}
-import com.google.cloud.storage.Storage.BucketSourceOption
+import com.google.cloud.storage.Storage.{BucketGetOption, BucketSourceOption}
 import io.chrisdavenport.log4cats.StructuredLogger
 import org.broadinstitute.dsde.workbench.google2.util.RetryPredicates.standardRetryConfig
 import org.broadinstitute.dsde.workbench.model.TraceId
@@ -199,6 +199,11 @@ trait GoogleStorageService[F[_]] {
                    traceId: Option[TraceId] = None,
                    retryConfig: RetryConfig = standardRetryConfig): Stream[F, Unit] =
     insertBucket(billingProject, bucketName, acl, Map.empty, traceId)
+
+  def getBucket(googleProject: GoogleProject,
+                bucketName: GcsBucketName,
+                bucketGetOptions: List[BucketGetOption] = List.empty,
+                traceId: Option[TraceId] = None): F[Option[Bucket]]
 
   /**
    * @param googleProject The name of the Google project to create the bucket in
