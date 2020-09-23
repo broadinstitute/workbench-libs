@@ -16,9 +16,10 @@ import com.google.cloud.storage.Storage.{
   BlobSourceOption,
   BlobTargetOption,
   BlobWriteOption,
+  BucketGetOption,
   BucketSourceOption
 }
-import com.google.cloud.storage.{Acl, Blob, BlobId, BlobInfo, BucketInfo, Storage, StorageOptions}
+import com.google.cloud.storage.{Acl, Blob, BlobId, BlobInfo, Bucket, BucketInfo, Storage, StorageOptions}
 import com.google.cloud.{Identity, Policy, Role}
 import fs2.{text, Pipe, Stream}
 import io.chrisdavenport.log4cats.StructuredLogger
@@ -353,6 +354,15 @@ private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer](
         s"com.google.cloud.storage.Storage.delete(${bucketName.value}, ${bucketSourceOptions})"
       )
     } yield res
+  }
+
+  override def getBucket(googleProject: GoogleProject,
+                         bucketName: GcsBucketName,
+                         bucketGetOptions: List[BucketGetOption] = List.empty,
+                         traceId: Option[TraceId] = None): F[Option[Bucket]] = {
+    val dbForProject = db.getOptions.toBuilder.setProjectId(googleProject.value).build().getService
+    val fa = Async[F].delay(dbForProject.get(bucketName.value, bucketGetOptions: _*)).map(Option(_))
+    withLogging(fa, traceId, s"com.google.cloud.storage.Storage.get(${bucketName.value}, ${bucketGetOptions})")
   }
 
   override def setBucketPolicyOnly(bucketName: GcsBucketName,
