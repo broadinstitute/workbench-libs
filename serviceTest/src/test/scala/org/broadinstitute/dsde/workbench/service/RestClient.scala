@@ -21,7 +21,6 @@ import scala.util.Try
 trait RestClient extends Retry with LazyLogging {
 
   implicit val system = ActorSystem()
-  implicit val materializer = ActorMaterializer()
   implicit val ec: ExecutionContext = system.dispatcher
 
   val mapper = new ObjectMapper()
