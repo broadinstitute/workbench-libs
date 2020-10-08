@@ -1,6 +1,7 @@
-package org.broadinstitute.dsde.workbench.service
+package org.broadinstitute.dsde.workbench.model.rawls
 
-// This file is entirely copied from https://github.com/broadinstitute/rawls/blob/develop/model/src/main/scala/org/broadinstitute/dsde/rawls/model/AttributeUpdateOperations.scala#L9
+// This file is entirely copied from
+// https://github.com/broadinstitute/rawls/blob/5e902b1c52a8f4ea9e1b0e24f05f99f8d8c37aa2/model/src/main/scala/org/broadinstitute/dsde/rawls/model/AttributeUpdateOperations.scala#L9
 import spray.json._
 
 sealed trait Attribute
