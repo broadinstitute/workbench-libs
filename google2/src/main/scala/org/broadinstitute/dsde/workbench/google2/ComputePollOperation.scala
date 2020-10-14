@@ -42,7 +42,9 @@ trait ComputePollOperation[F[_]] {
                        haltWhenTrue: Option[Stream[F, Boolean]])(
     whenDone: F[A],
     whenTimeout: F[A],
-    whenInterrupted: F[A]
+    whenInterrupted: F[A],
+    whenError: Error => F[A] = (error: Error) =>
+      F.raiseError(new RuntimeException("Operation failed due to: " + error.toString))
   )(
     implicit ev: ApplicativeAsk[F, TraceId]
   ): F[A] =
@@ -55,19 +57,22 @@ trait ComputePollOperation[F[_]] {
         pollZoneOperation(project, zone, OperationName(operation.getName), delay, maxAttempts, haltWhenTrue)(
           whenDone,
           whenTimeout,
-          whenInterrupted
+          whenInterrupted,
+          whenError
         )
       case (None, Some(region)) =>
         pollRegionOperation(project, region, OperationName(operation.getName), delay, maxAttempts, haltWhenTrue)(
           whenDone,
           whenTimeout,
-          whenInterrupted
+          whenInterrupted,
+          whenError
         )
       case (None, None) =>
         pollGlobalOperation(project, OperationName(operation.getName), delay, maxAttempts, haltWhenTrue)(
           whenDone,
           whenTimeout,
-          whenInterrupted
+          whenInterrupted,
+          whenError
         )
     }
 
@@ -78,11 +83,15 @@ trait ComputePollOperation[F[_]] {
     delay: FiniteDuration,
     maxAttempts: Int,
     haltWhenTrue: Option[Stream[F, Boolean]]
-  )(whenDone: F[A], whenTimeout: F[A], whenInterrupted: F[A])(
+  )(whenDone: F[A],
+    whenTimeout: F[A],
+    whenInterrupted: F[A],
+    whenError: Error => F[A] = (error: Error) =>
+      F.raiseError[A](new RuntimeException("Operation failed due to: " + error.toString)))(
     implicit ev: ApplicativeAsk[F, TraceId]
   ): F[A] = {
     val op = getZoneOperation(project, zoneName, operationName)
-    pollHelper(op, maxAttempts, delay, haltWhenTrue)(whenDone, whenTimeout, whenInterrupted)
+    pollHelper(op, maxAttempts, delay, haltWhenTrue)(whenDone, whenTimeout, whenInterrupted, whenError)
   }
 
   def pollRegionOperation[A](
@@ -92,11 +101,15 @@ trait ComputePollOperation[F[_]] {
     delay: FiniteDuration,
     maxAttempts: Int,
     haltWhenTrue: Option[Stream[F, Boolean]]
-  )(whenDone: F[A], whenTimeout: F[A], whenInterrupted: F[A])(
+  )(whenDone: F[A],
+    whenTimeout: F[A],
+    whenInterrupted: F[A],
+    whenError: Error => F[A] = (error: Error) =>
+      F.raiseError[A](new RuntimeException("Operation failed due to: " + error.toString)))(
     implicit ev: ApplicativeAsk[F, TraceId]
   ): F[A] = {
     val op = getRegionOperation(project, regionName, operationName)
-    pollHelper(op, maxAttempts, delay, haltWhenTrue)(whenDone, whenTimeout, whenInterrupted)
+    pollHelper(op, maxAttempts, delay, haltWhenTrue)(whenDone, whenTimeout, whenInterrupted, whenError)
   }
 
   def pollGlobalOperation[A](
@@ -105,11 +118,15 @@ trait ComputePollOperation[F[_]] {
     delay: FiniteDuration,
     maxAttempts: Int,
     haltWhenTrue: Option[Stream[F, Boolean]]
-  )(whenDone: F[A], whenTimeout: F[A], whenInterrupted: F[A])(
+  )(whenDone: F[A],
+    whenTimeout: F[A],
+    whenInterrupted: F[A],
+    whenError: Error => F[A] = (error: Error) =>
+      F.raiseError[A](new RuntimeException("Operation failed due to: " + error.toString)))(
     implicit ev: ApplicativeAsk[F, TraceId]
   ): F[A] = {
     val op = getGlobalOperation(project, operationName)
-    pollHelper(op, maxAttempts, delay, haltWhenTrue)(whenDone, whenTimeout, whenInterrupted)
+    pollHelper(op, maxAttempts, delay, haltWhenTrue)(whenDone, whenTimeout, whenInterrupted, whenError)
   }
 
   private[google2] def pollHelper[A](
@@ -117,7 +134,7 @@ trait ComputePollOperation[F[_]] {
     maxAttempts: Int,
     delay: FiniteDuration,
     haltWhenTrue: Option[Stream[F, Boolean]]
-  )(whenDone: F[A], whenTimeout: F[A], whenInterrupted: F[A]): F[A] =
+  )(whenDone: F[A], whenTimeout: F[A], whenInterrupted: F[A], whenError: Error => F[A]): F[A] =
     for {
       op <- haltWhenTrue match {
         case Some(hwt) =>
