@@ -92,9 +92,9 @@ class ComputePollOperationSpec extends AnyFlatSpec with Matchers with WorkbenchT
       1 seconds,
       None
     )(
-      IO(fail("this should time out instead of completing")),
-      IO(fail("")),
-      IO(fail("this should time out instead of interrupted")),
+      IO(fail("this should error out instead of completing")),
+      IO(fail("this should error out instead of timing out ")),
+      IO(fail("this should error out instead of interrupted")),
       error => IO(error.getErrorsList.asScala.head.getMessage shouldBe "Return error for handle error test case")
     )
 
