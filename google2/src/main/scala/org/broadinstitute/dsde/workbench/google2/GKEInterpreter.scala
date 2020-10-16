@@ -51,7 +51,7 @@ final class GKEInterpreter[F[_]: StructuredLogger: Timer: ContextShift](
         F.delay(clusterManagerClient.getCluster(clusterId.toString)),
         whenStatusCode(404)
       ),
-      f"com.google.cloud.container.v1.ClusterManagerClient.getCluster(${clusterId.toString})"
+      s"com.google.cloud.container.v1.ClusterManagerClient.getCluster(${clusterId.toString})"
     )
 
   override def deleteCluster(
@@ -91,7 +91,7 @@ final class GKEInterpreter[F[_]: StructuredLogger: Timer: ContextShift](
         F.delay(clusterManagerClient.getNodePool(nodepoolId.toString)),
         whenStatusCode(404)
       ),
-      f"com.google.cloud.container.v1.ClusterManagerClient.getNodepool(${nodepoolId.toString})"
+      s"com.google.cloud.container.v1.ClusterManagerClient.getNodepool(${nodepoolId.toString})"
     )
 
   override def deleteNodepool(nodepoolId: NodepoolId)(implicit ev: ApplicativeAsk[F, TraceId]): F[Option[Operation]] =
@@ -128,4 +128,13 @@ final class GKEInterpreter[F[_]: StructuredLogger: Timer: ContextShift](
                                     ),
                                     action).compile.lastOrError
 
+  private def loggingWithBlocker[A](fa: F[A], action: String)(implicit ev: ApplicativeAsk[F, TraceId]): F[A] =
+    for {
+      traceId <- ev.ask
+      r <- withLogging(blockerBound.withPermit(
+                         blocker.blockOn(fa)
+                       ),
+                       Some(traceId),
+                       action)
+    } yield r
 }

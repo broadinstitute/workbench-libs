@@ -4,7 +4,9 @@ This file documents changes to the `workbench-model` library, including notes on
 
 ## 0.14
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-model" % "0.14-2e155f0"`
+- Add rawls model
+
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-model" % "0.14-TRAVIS-REPLACE-ME"`
 
 ### Changed
 - added IdentityConcentratorId to WorkbenchUser 
