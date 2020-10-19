@@ -131,7 +131,7 @@ trait ComputePollOperation[F[_]] {
       res <- if (op.isDone) {
         if (op.getError == null)
           whenDone
-        else F.raiseError(new RuntimeException("Operation failed due to: " + op.getError.toString))
+        else F.raiseError(PollError(op))
       } else {
         haltWhenTrue match {
           case Some(signal) =>
@@ -198,4 +198,8 @@ object ComputePollOperation {
                                                    blocker,
                                                    blockerBound)
   }
+}
+
+final case class PollError(operation: Operation) extends RuntimeException {
+  override def getMessage: String = operation.getHttpErrorMessage
 }

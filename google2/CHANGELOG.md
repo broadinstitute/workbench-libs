@@ -7,11 +7,13 @@ Changed:
 - `GKEService.createCluster` now uses legacy `com.google.api.services.container` client and model objects
 - `KubernetesModels.KubernetesOperationId` now takes `(operationName: String)` instead of `(operation: Operation)`
 - Made `GoogleComputeService.getDisk` recover on 404s and return `F[Option[Disk]]`
+- `ComputePollOperation.pollHelper` now returns a Poll Error type when the operation fails
+- `ComputePollOperation.PollError` added. Takes an operation and returns the HTTP error message
 
 Add:
 - `GoogleStorageService.getBucket`
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.13-39c1b35"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.13-TRAVIS-REPLACE-ME"`
 
 ## 0.12
 Changed:
