@@ -178,7 +178,7 @@ object Settings {
   val google2Settings = cross212and213 ++ commonSettings ++ List(
     name := "workbench-google2",
     libraryDependencies ++= google2Dependencies,
-    version := createVersion("0.14")
+    version := createVersion("0.13")
   ) ++ publishSettings
 
   val newrelicSettings = cross212and213 ++ commonSettings ++ List(
