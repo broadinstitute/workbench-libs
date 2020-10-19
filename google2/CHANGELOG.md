@@ -2,16 +2,13 @@
 
 This file documents changes to the `workbench-google2` library, including notes on how to upgrade to new versions.
 
-## 0.14
-Changed:
-- `ComputePollOperation.pollHelper` now returns a Poll Error type when the operation fails
-- `ComputePollOperation.PollError` added. Takes an operation and returns the HTTP error message
-
 ## 0.13
 Changed:
 - `GKEService.createCluster` now uses legacy `com.google.api.services.container` client and model objects
 - `KubernetesModels.KubernetesOperationId` now takes `(operationName: String)` instead of `(operation: Operation)`
 - Made `GoogleComputeService.getDisk` recover on 404s and return `F[Option[Disk]]`
+- `ComputePollOperation.pollHelper` now returns a Poll Error type when the operation fails
+- `ComputePollOperation.PollError` added. Takes an operation and returns the HTTP error message
 
 Add:
 - `GoogleStorageService.getBucket`
