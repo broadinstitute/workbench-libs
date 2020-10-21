@@ -27,17 +27,19 @@ trait GKEService[F[_]] {
   // are only available in the old client.
   def createCluster(request: KubernetesCreateClusterRequest)(
     implicit ev: ApplicativeAsk[F, TraceId]
-  ): F[com.google.api.services.container.model.Operation]
+  ): F[Option[com.google.api.services.container.model.Operation]]
 
-  def deleteCluster(clusterId: KubernetesClusterId)(implicit ev: ApplicativeAsk[F, TraceId]): F[Operation]
+  def deleteCluster(clusterId: KubernetesClusterId)(implicit ev: ApplicativeAsk[F, TraceId]): F[Option[Operation]]
 
   def getCluster(clusterId: KubernetesClusterId)(implicit ev: ApplicativeAsk[F, TraceId]): F[Option[Cluster]]
 
-  def createNodepool(request: KubernetesCreateNodepoolRequest)(implicit ev: ApplicativeAsk[F, TraceId]): F[Operation]
+  def createNodepool(request: KubernetesCreateNodepoolRequest)(
+    implicit ev: ApplicativeAsk[F, TraceId]
+  ): F[Option[com.google.api.services.container.model.Operation]]
 
   def getNodepool(nodepoolId: NodepoolId)(implicit ev: ApplicativeAsk[F, TraceId]): F[Option[NodePool]]
 
-  def deleteNodepool(nodepoolId: NodepoolId)(implicit ev: ApplicativeAsk[F, TraceId]): F[Operation]
+  def deleteNodepool(nodepoolId: NodepoolId)(implicit ev: ApplicativeAsk[F, TraceId]): F[Option[Operation]]
 
   def pollOperation(operationId: KubernetesOperationId, delay: FiniteDuration, maxAttempts: Int)(
     implicit ev: ApplicativeAsk[F, TraceId],

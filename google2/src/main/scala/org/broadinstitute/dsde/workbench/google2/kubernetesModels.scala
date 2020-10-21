@@ -70,7 +70,7 @@ object GKEModels {
                                                   cluster: com.google.api.services.container.model.Cluster)
 
   final case class KubernetesCreateNodepoolRequest(clusterId: KubernetesClusterId,
-                                                   nodepool: com.google.container.v1.NodePool)
+                                                   nodepool: com.google.api.services.container.model.NodePool)
 
   //this is NOT analogous to clusterName in the context of dataproc/GCE. A single cluster can have multiple nodes, pods, services, containers, deployments, etc.
   //clusters should most likely NOT be provisioned per user as they are today. More design/security research is needed

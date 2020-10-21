@@ -22,6 +22,7 @@ import org.broadinstitute.dsde.workbench.google2.JavaSerializableSyntax._
 import org.broadinstitute.dsde.workbench.google2.KubernetesModels._
 import org.broadinstitute.dsde.workbench.google2.KubernetesSerializableName.{PodName, ServiceName}
 import org.broadinstitute.dsde.workbench.model.{IP, TraceId}
+import org.broadinstitute.dsde.workbench.google2.util.RetryPredicates._
 
 import scala.collection.JavaConverters._
 
@@ -78,8 +79,11 @@ class KubernetesInterpreter[F[_]: StructuredLogger: Effect: Timer: ContextShift]
       traceId <- ev.ask
       client <- blockingF(getClient(clusterId, new CoreV1Api(_)))
       call = blockingF(
-        F.delay(
-          client.createNamespacedPod(namespace.name.value, pod.getJavaSerialization, null, "true", null)
+        recoverF(
+          F.delay(
+            client.createNamespacedPod(namespace.name.value, pod.getJavaSerialization, null, "true", null)
+          ),
+          whenStatusCode(409)
         )
       )
       _ <- withLogging(
@@ -132,8 +136,11 @@ class KubernetesInterpreter[F[_]: StructuredLogger: Effect: Timer: ContextShift]
       traceId <- ev.ask
       client <- blockingF(getClient(clusterId, new CoreV1Api(_)))
       call = blockingF(
-        F.delay(
-          client.createNamespacedService(namespace.name.value, service.getJavaSerialization, null, "true", null)
+        recoverF(
+          F.delay(
+            client.createNamespacedService(namespace.name.value, service.getJavaSerialization, null, "true", null)
+          ),
+          whenStatusCode(409)
         )
       )
       _ <- withLogging(
@@ -187,8 +194,11 @@ class KubernetesInterpreter[F[_]: StructuredLogger: Effect: Timer: ContextShift]
       traceId <- ev.ask
       client <- blockingF(getClient(clusterId, new CoreV1Api(_)))
       call = blockingF(
-        F.delay(
-          client.createNamespace(namespace.getJavaSerialization, null, "true", null)
+        recoverF(
+          F.delay(
+            client.createNamespace(namespace.getJavaSerialization, null, "true", null)
+          ),
+          whenStatusCode(409)
         )
       )
       _ <- withLogging(
@@ -205,8 +215,11 @@ class KubernetesInterpreter[F[_]: StructuredLogger: Effect: Timer: ContextShift]
       traceId <- ev.ask
       client <- blockingF(getClient(clusterId, new CoreV1Api(_)))
       call = blockingF(
-        F.delay(
-          client.deleteNamespace(namespace.name.value, null, null, null, null, null, null)
+        recoverF(
+          F.delay(
+            client.deleteNamespace(namespace.name.value, null, null, null, null, null, null)
+          ),
+          whenStatusCode(409)
         )
       )
       _ <- withLogging(
@@ -232,9 +245,10 @@ class KubernetesInterpreter[F[_]: StructuredLogger: Effect: Timer: ContextShift]
       traceId <- ev.ask
       client <- blockingF(getClient(clusterId, new CoreV1Api(_)))
       call = blockingF(
-        F.delay(
-          client.createNamespacedSecret(namespace.name.value, secret.getJavaSerialization, null, "true", null)
-        )
+        recoverF(F.delay(
+                   client.createNamespacedSecret(namespace.name.value, secret.getJavaSerialization, null, "true", null)
+                 ),
+                 whenStatusCode(409))
       )
       _ <- withLogging(
         call,
@@ -252,13 +266,14 @@ class KubernetesInterpreter[F[_]: StructuredLogger: Effect: Timer: ContextShift]
       traceId <- ev.ask
       client <- blockingF(getClient(clusterId, new CoreV1Api(_)))
       call = blockingF(
-        F.delay(
-          client.createNamespacedServiceAccount(namespace.name.value,
-                                                serviceAccount.getJavaSerialization,
-                                                null,
-                                                "true",
-                                                null)
-        )
+        recoverF(F.delay(
+                   client.createNamespacedServiceAccount(namespace.name.value,
+                                                         serviceAccount.getJavaSerialization,
+                                                         null,
+                                                         "true",
+                                                         null)
+                 ),
+                 whenStatusCode(409))
       )
       _ <- withLogging(
         call,
@@ -274,9 +289,10 @@ class KubernetesInterpreter[F[_]: StructuredLogger: Effect: Timer: ContextShift]
       traceId <- ev.ask
       client <- blockingF(getClient(clusterId, new RbacAuthorizationV1Api(_)))
       call = blockingF(
-        F.delay(
-          client.createNamespacedRole(namespace.name.value, role.getJavaSerialization, null, "true", null)
-        )
+        recoverF(F.delay(
+                   client.createNamespacedRole(namespace.name.value, role.getJavaSerialization, null, "true", null)
+                 ),
+                 whenStatusCode(409))
       )
       _ <- withLogging(
         call,
@@ -294,9 +310,14 @@ class KubernetesInterpreter[F[_]: StructuredLogger: Effect: Timer: ContextShift]
       traceId <- ev.ask
       client <- blockingF(getClient(clusterId, new RbacAuthorizationV1Api(_)))
       call = blockingF(
-        F.delay(
-          client.createNamespacedRoleBinding(namespace.name.value, roleBinding.getJavaSerialization, null, "true", null)
-        )
+        recoverF(F.delay(
+                   client.createNamespacedRoleBinding(namespace.name.value,
+                                                      roleBinding.getJavaSerialization,
+                                                      null,
+                                                      "true",
+                                                      null)
+                 ),
+                 whenStatusCode(409))
       )
       _ <- withLogging(
         call,
