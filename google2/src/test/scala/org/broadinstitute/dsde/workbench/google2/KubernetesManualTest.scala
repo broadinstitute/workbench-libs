@@ -103,21 +103,7 @@ final class Test(credPathStr: String,
                          nodepoolNameStr: String): IO[Option[com.google.api.services.container.model.Operation]] = {
     val nodepoolName = KubernetesName.withValidation[NodepoolName](nodepoolNameStr, NodepoolName.apply)
     val nodepoolConfig = getDefaultNodepoolConfig(nodepoolName.right.get)
-    val nodepool = new com.google.api.services.container.model.NodePool()
-
-    val config = new com.google.api.services.container.model.NodeConfig()
-      .setSandboxConfig(
-        new SandboxConfig().setType("gvisor")
-      )
-      .setImageType("cos_containerd")
-
-    val labels = Map[String, String]("cloud.google.com/gke-smt-disabled" -> "false")
-
-    config.setLabels(labels.asJava)
-
-    nodepool
-      .setConfig(config)
-      .setName(nodepoolName.right.get.value)
+    val nodepool = getNodepoolBuilder(nodepoolConfig).build()
 
     serviceResource.use { service =>
       service.createNodepool(KubernetesCreateNodepoolRequest(clusterId, nodepool))

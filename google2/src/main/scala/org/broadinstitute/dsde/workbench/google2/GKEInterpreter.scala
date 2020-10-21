@@ -4,7 +4,7 @@ import cats.effect.concurrent.Semaphore
 import cats.effect.{Async, Blocker, ContextShift, Timer}
 import cats.mtl.ApplicativeAsk
 import com.google.cloud.container.v1.ClusterManagerClient
-import com.google.container.v1.{Cluster, GetOperationRequest, NodePool, Operation}
+import com.google.container.v1.{Cluster, CreateNodePoolRequest, GetOperationRequest, NodePool, Operation}
 import fs2.Stream
 import io.chrisdavenport.log4cats.StructuredLogger
 import org.broadinstitute.dsde.workbench.{DoneCheckable, RetryConfig}
@@ -68,16 +68,16 @@ final class GKEInterpreter[F[_]: StructuredLogger: Timer: ContextShift](
   override def createNodepool(
     request: KubernetesCreateNodepoolRequest
   )(implicit ev: ApplicativeAsk[F, TraceId]): F[Option[com.google.api.services.container.model.Operation]] = {
-    val parent = request.clusterId.toString
-
-    val createNodepoolRequest: com.google.api.services.container.model.CreateNodePoolRequest =
-      new com.google.api.services.container.model.CreateNodePoolRequest()
-        .setNodePool(request.nodepool)
+    val createNodepoolRequest: CreateNodePoolRequest = CreateNodePoolRequest
+      .newBuilder()
+      .setParent(request.clusterId.toString)
+      .setNodePool(request.nodepool.toBuilder)
+      .build()
 
     tracedGoogleRetryWithBlocker(
       recoverF(
         F.delay(
-          legacyClient.projects().locations().clusters().nodePools().create(parent, createNodepoolRequest).execute()
+          clusterManagerClient.createNodePool(createNodepoolRequest)
         ),
         whenStatusCode(409)
       ),
