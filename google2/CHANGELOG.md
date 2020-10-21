@@ -8,7 +8,7 @@ Changed:
 - `KubernetesModels.KubernetesOperationId` now takes `(operationName: String)` instead of `(operation: Operation)`
 - Made `GoogleComputeService.getDisk` recover on 404s and return `F[Option[Disk]]`
 - `ComputePollOperation.pollHelper` now returns a Poll Error type when the operation fails
-- `ComputePollOperation.PollError` added. Takes an operation and returns the HTTP error message
+- `ComputePollOperation.PollError` added. Takes an operation and returns the HTTP error message.
 
 Add:
 - `GoogleStorageService.getBucket`
