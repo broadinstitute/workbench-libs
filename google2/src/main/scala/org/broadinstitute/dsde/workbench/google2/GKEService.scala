@@ -35,7 +35,7 @@ trait GKEService[F[_]] {
 
   def createNodepool(request: KubernetesCreateNodepoolRequest)(
     implicit ev: ApplicativeAsk[F, TraceId]
-  ): F[Option[com.google.api.services.container.model.Operation]]
+  ): F[Option[Operation]]
 
   def getNodepool(nodepoolId: NodepoolId)(implicit ev: ApplicativeAsk[F, TraceId]): F[Option[NodePool]]
 

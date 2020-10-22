@@ -67,7 +67,7 @@ final class GKEInterpreter[F[_]: StructuredLogger: Timer: ContextShift](
 
   override def createNodepool(
     request: KubernetesCreateNodepoolRequest
-  )(implicit ev: ApplicativeAsk[F, TraceId]): F[Option[com.google.api.services.container.model.Operation]] = {
+  )(implicit ev: ApplicativeAsk[F, TraceId]): F[Option[Operation]] = {
     val createNodepoolRequest: CreateNodePoolRequest = CreateNodePoolRequest
       .newBuilder()
       .setParent(request.clusterId.toString)

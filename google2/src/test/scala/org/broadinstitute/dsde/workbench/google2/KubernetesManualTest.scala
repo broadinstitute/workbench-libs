@@ -99,8 +99,7 @@ final class Test(credPathStr: String,
     service.getCluster(KubernetesClusterId(project, region, clusterName.right.get))
   }
 
-  def callCreateNodepool(clusterId: KubernetesClusterId = clusterId,
-                         nodepoolNameStr: String): IO[Option[com.google.api.services.container.model.Operation]] = {
+  def callCreateNodepool(clusterId: KubernetesClusterId = clusterId, nodepoolNameStr: String): IO[Option[Operation]] = {
     val nodepoolName = KubernetesName.withValidation[NodepoolName](nodepoolNameStr, NodepoolName.apply)
     val nodepoolConfig = getDefaultNodepoolConfig(nodepoolName.right.get)
     val nodepool = getNodepoolBuilder(nodepoolConfig).build()
