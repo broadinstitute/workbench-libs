@@ -13,7 +13,7 @@ Changed:
 Add:
 - `GoogleStorageService.getBucket`
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.13-TRAVIS-REPLACE-ME"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.13-6f4d8f1"`
 
 ## 0.12
 Changed:
