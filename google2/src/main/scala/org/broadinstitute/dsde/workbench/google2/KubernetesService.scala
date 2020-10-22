@@ -15,6 +15,9 @@ import org.broadinstitute.dsde.workbench.model.{IP, TraceId}
 import scala.collection.JavaConverters._
 
 trait KubernetesService[F[_]] {
+  // These methods do not fail on 409 in the case of create and 404 in the case of delete
+  // This ensures idempotency (i.e., you can repeatedly call create/delete for the same resource without error)
+
   // namespaces group resources, and allow our list/get/update API calls to be segmented. This can be used on a per-user basis, for example
   def createNamespace(clusterId: KubernetesClusterId, namespace: KubernetesNamespace)(
     implicit ev: ApplicativeAsk[F, TraceId]

@@ -22,6 +22,9 @@ import scala.concurrent.duration.FiniteDuration
 
 trait GKEService[F[_]] {
 
+  // These methods return Option[Operation] so as to return None on 409 in the case of create and 404 in the case of delete
+  // This ensures idempotency (i.e., you can repeatedly call create/delete for the same resource without error)
+
   // Note createCluster uses the legacy com.google.api.services.container client rather than
   // the newer com.google.container.v1 client because certain options like Workload Identity
   // are only available in the old client.

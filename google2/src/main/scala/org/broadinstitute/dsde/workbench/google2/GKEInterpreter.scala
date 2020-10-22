@@ -60,7 +60,7 @@ final class GKEInterpreter[F[_]: StructuredLogger: Timer: ContextShift](
     tracedGoogleRetryWithBlocker(
       recoverF(
         F.delay(clusterManagerClient.deleteCluster(clusterId.toString)),
-        whenStatusCode(409)
+        whenStatusCode(404)
       ),
       f"com.google.cloud.container.v1.ClusterManagerClient.deleteCluster(${clusterId.toString})"
     )
@@ -98,7 +98,7 @@ final class GKEInterpreter[F[_]: StructuredLogger: Timer: ContextShift](
     tracedGoogleRetryWithBlocker(
       recoverF(
         F.delay(clusterManagerClient.deleteNodePool(nodepoolId.toString)),
-        whenStatusCode(409)
+        whenStatusCode(404)
       ),
       f"com.google.cloud.container.v1.ClusterManagerClient.deleteNodepool(${nodepoolId.toString})"
     )

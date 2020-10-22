@@ -219,7 +219,7 @@ class KubernetesInterpreter[F[_]: StructuredLogger: Effect: Timer: ContextShift]
           F.delay(
             client.deleteNamespace(namespace.name.value, null, null, null, null, null, null)
           ),
-          whenStatusCode(409)
+          whenStatusCode(404)
         )
       )
       _ <- withLogging(

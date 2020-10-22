@@ -8,7 +8,6 @@ import scala.collection.JavaConverters._
 import cats.effect.concurrent.Semaphore
 import cats.effect.{Blocker, IO}
 import cats.mtl.ApplicativeAsk
-import com.google.api.services.container.model.SandboxConfig
 import com.google.container.v1._
 import io.chrisdavenport.log4cats.slf4j.Slf4jLogger
 import org.broadinstitute.dsde.workbench.google2.GKEModels._
@@ -100,7 +99,6 @@ final class Test(credPathStr: String,
   }
 
   def callCreateNodepool(clusterId: KubernetesClusterId = clusterId, nodepoolNameStr: String): IO[Option[Operation]] = {
-    val nodepoolName = KubernetesName.withValidation[NodepoolName](nodepoolNameStr, NodepoolName.apply)
     val nodepoolConfig = getDefaultNodepoolConfig(nodepoolName.right.get)
     val nodepool = getNodepoolBuilder(nodepoolConfig).build()
 
@@ -109,11 +107,14 @@ final class Test(credPathStr: String,
     }
   }
 
-  def callGetNodepool(nodepoolId: NodepoolId): IO[Option[NodePool]] = serviceResource.use { service =>
-    service.getNodepool(nodepoolId)
-  }
+  def callGetNodepool(nodepoolId: NodepoolId = NodepoolId(clusterId, nodepoolName.right.get)): IO[Option[NodePool]] =
+    serviceResource.use { service =>
+      service.getNodepool(nodepoolId)
+    }
 
-  def callDeleteNodepool(nodepoolId: NodepoolId): IO[Option[Operation]] = serviceResource.use { service =>
+  def callDeleteNodepool(
+    nodepoolId: NodepoolId = NodepoolId(clusterId, nodepoolName.right.get)
+  ): IO[Option[Operation]] = serviceResource.use { service =>
     service.deleteNodepool(nodepoolId)
   }
 
