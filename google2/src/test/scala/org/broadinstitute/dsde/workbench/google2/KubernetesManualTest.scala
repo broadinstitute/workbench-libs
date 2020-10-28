@@ -3,8 +3,8 @@ package google2
 
 import java.nio.file.Paths
 import java.util.UUID
-import scala.collection.JavaConverters._
 
+import scala.collection.JavaConverters._
 import cats.effect.concurrent.Semaphore
 import cats.effect.{Blocker, IO}
 import cats.mtl.ApplicativeAsk
@@ -65,7 +65,7 @@ final class Test(credPathStr: String,
 
   def callCreateCluster(
     clusterId: KubernetesClusterId = clusterId
-  ): IO[com.google.api.services.container.model.Operation] = {
+  ): IO[Option[com.google.api.services.container.model.Operation]] = {
     val ips = List("69.173.127.0/25", "69.173.124.0/23")
     val network: String = KubernetesNetwork(project, NetworkName(networkNameStr)).idString
 
@@ -89,16 +89,16 @@ final class Test(credPathStr: String,
     }
   }
 
-  def callDeleteCluster(clusterId: KubernetesClusterId = clusterId): IO[Operation] = serviceResource.use { service =>
-    service.deleteCluster(KubernetesClusterId(project, region, clusterName.right.get))
+  def callDeleteCluster(clusterId: KubernetesClusterId = clusterId): IO[Option[Operation]] = serviceResource.use {
+    service =>
+      service.deleteCluster(KubernetesClusterId(project, region, clusterName.right.get))
   }
 
   def callGetCluster(clusterId: KubernetesClusterId = clusterId): IO[Option[Cluster]] = serviceResource.use { service =>
     service.getCluster(KubernetesClusterId(project, region, clusterName.right.get))
   }
 
-  def callCreateNodepool(clusterId: KubernetesClusterId = clusterId, nodepoolNameStr: String): IO[Operation] = {
-    val nodepoolName = KubernetesName.withValidation[NodepoolName](nodepoolNameStr, NodepoolName.apply)
+  def callCreateNodepool(clusterId: KubernetesClusterId = clusterId, nodepoolNameStr: String): IO[Option[Operation]] = {
     val nodepoolConfig = getDefaultNodepoolConfig(nodepoolName.right.get)
     val nodepool = getNodepoolBuilder(nodepoolConfig).build()
 
@@ -107,11 +107,14 @@ final class Test(credPathStr: String,
     }
   }
 
-  def callGetNodepool(nodepoolId: NodepoolId): IO[Option[NodePool]] = serviceResource.use { service =>
-    service.getNodepool(nodepoolId)
-  }
+  def callGetNodepool(nodepoolId: NodepoolId = NodepoolId(clusterId, nodepoolName.right.get)): IO[Option[NodePool]] =
+    serviceResource.use { service =>
+      service.getNodepool(nodepoolId)
+    }
 
-  def callDeleteNodepool(nodepoolId: NodepoolId): IO[Operation] = serviceResource.use { service =>
+  def callDeleteNodepool(
+    nodepoolId: NodepoolId = NodepoolId(clusterId, nodepoolName.right.get)
+  ): IO[Option[Operation]] = serviceResource.use { service =>
     service.deleteNodepool(nodepoolId)
   }
 

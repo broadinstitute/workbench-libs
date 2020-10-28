@@ -12,12 +12,12 @@ import scala.concurrent.duration.FiniteDuration
 class MockGKEService extends GKEService[IO] {
   override def createCluster(request: GKEModels.KubernetesCreateClusterRequest)(
     implicit ev: ApplicativeAsk[IO, TraceId]
-  ): IO[com.google.api.services.container.model.Operation] =
-    IO(new com.google.api.services.container.model.Operation().setName("opName"))
+  ): IO[Option[com.google.api.services.container.model.Operation]] =
+    IO(Some(new com.google.api.services.container.model.Operation().setName("opName")))
 
   override def deleteCluster(clusterId: GKEModels.KubernetesClusterId)(
     implicit ev: ApplicativeAsk[IO, TraceId]
-  ): IO[Operation] = IO(Operation.newBuilder().setName("opName").build())
+  ): IO[Option[Operation]] = IO(Some(Operation.newBuilder().setName("opName").build()))
 
   val testEndpoint = "0.0.0.0"
   override def getCluster(clusterId: GKEModels.KubernetesClusterId)(
@@ -26,7 +26,8 @@ class MockGKEService extends GKEService[IO] {
 
   override def createNodepool(request: GKEModels.KubernetesCreateNodepoolRequest)(
     implicit ev: ApplicativeAsk[IO, TraceId]
-  ): IO[Operation] = IO(Operation.newBuilder().setName("opName").build())
+  ): IO[Option[Operation]] =
+    IO(Some(Operation.newBuilder().setName("opName").build()))
 
   override def getNodepool(nodepoolId: GKEModels.NodepoolId)(
     implicit ev: ApplicativeAsk[IO, TraceId]
@@ -34,7 +35,7 @@ class MockGKEService extends GKEService[IO] {
 
   override def deleteNodepool(nodepoolId: GKEModels.NodepoolId)(
     implicit ev: ApplicativeAsk[IO, TraceId]
-  ): IO[Operation] = IO(Operation.newBuilder().setName("opName").build())
+  ): IO[Option[Operation]] = IO(Some(Operation.newBuilder().setName("opName").build()))
 
   override def pollOperation(operationId: GKEModels.KubernetesOperationId, delay: FiniteDuration, maxAttempts: Int)(
     implicit ev: ApplicativeAsk[IO, TraceId],

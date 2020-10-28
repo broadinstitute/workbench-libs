@@ -15,17 +15,18 @@ import cats.implicits._
 
 import scala.concurrent.duration.FiniteDuration
 
-final class GKEInterpreter[F[_]: Async: StructuredLogger: Timer: ContextShift](
+final class GKEInterpreter[F[_]: StructuredLogger: Timer: ContextShift](
   clusterManagerClient: ClusterManagerClient,
   legacyClient: com.google.api.services.container.Container,
   blocker: Blocker,
   blockerBound: Semaphore[F],
   retryConfig: RetryConfig
-) extends GKEService[F] {
+)(implicit F: Async[F])
+    extends GKEService[F] {
 
   override def createCluster(
     request: KubernetesCreateClusterRequest
-  )(implicit ev: ApplicativeAsk[F, TraceId]): F[com.google.api.services.container.model.Operation] = {
+  )(implicit ev: ApplicativeAsk[F, TraceId]): F[Option[com.google.api.services.container.model.Operation]] = {
     val parent = Parent(request.project, request.location).toString
 
     // Note createCluster uses the legacy com.google.api.services.container client rather than
@@ -36,7 +37,10 @@ final class GKEInterpreter[F[_]: Async: StructuredLogger: Timer: ContextShift](
       .setCluster(request.cluster)
 
     tracedGoogleRetryWithBlocker(
-      Async[F].delay(legacyClient.projects().locations().clusters().create(parent, googleRequest).execute()),
+      recoverF(
+        F.delay(legacyClient.projects().locations().clusters().create(parent, googleRequest).execute()),
+        whenStatusCode(409)
+      ),
       s"com.google.api.services.container.Projects.Locations.Cluster(${request})"
     )
   }
@@ -44,21 +48,26 @@ final class GKEInterpreter[F[_]: Async: StructuredLogger: Timer: ContextShift](
   override def getCluster(clusterId: KubernetesClusterId)(implicit ev: ApplicativeAsk[F, TraceId]): F[Option[Cluster]] =
     tracedGoogleRetryWithBlocker(
       recoverF(
-        Async[F].delay(clusterManagerClient.getCluster(clusterId.toString)),
+        F.delay(clusterManagerClient.getCluster(clusterId.toString)),
         whenStatusCode(404)
       ),
       f"com.google.cloud.container.v1.ClusterManagerClient.getCluster(${clusterId.toString})"
     )
 
-  override def deleteCluster(clusterId: KubernetesClusterId)(implicit ev: ApplicativeAsk[F, TraceId]): F[Operation] =
+  override def deleteCluster(
+    clusterId: KubernetesClusterId
+  )(implicit ev: ApplicativeAsk[F, TraceId]): F[Option[Operation]] =
     tracedGoogleRetryWithBlocker(
-      Async[F].delay(clusterManagerClient.deleteCluster(clusterId.toString)),
+      recoverF(
+        F.delay(clusterManagerClient.deleteCluster(clusterId.toString)),
+        whenStatusCode(404)
+      ),
       f"com.google.cloud.container.v1.ClusterManagerClient.deleteCluster(${clusterId.toString})"
     )
 
   override def createNodepool(
     request: KubernetesCreateNodepoolRequest
-  )(implicit ev: ApplicativeAsk[F, TraceId]): F[Operation] = {
+  )(implicit ev: ApplicativeAsk[F, TraceId]): F[Option[Operation]] = {
     val createNodepoolRequest: CreateNodePoolRequest = CreateNodePoolRequest
       .newBuilder()
       .setParent(request.clusterId.toString)
@@ -66,23 +75,31 @@ final class GKEInterpreter[F[_]: Async: StructuredLogger: Timer: ContextShift](
       .build()
 
     tracedGoogleRetryWithBlocker(
-      Async[F].delay(clusterManagerClient.createNodePool(createNodepoolRequest)),
-      f"com.google.cloud.container.v1.ClusterManagerClient.createNodepool(${request})"
+      recoverF(
+        F.delay(
+          clusterManagerClient.createNodePool(createNodepoolRequest)
+        ),
+        whenStatusCode(409)
+      ),
+      f"com.google.api.services.container.Projects.Locations.Cluster.Nodepool(${request})"
     )
   }
 
   override def getNodepool(nodepoolId: NodepoolId)(implicit ev: ApplicativeAsk[F, TraceId]): F[Option[NodePool]] =
     tracedGoogleRetryWithBlocker(
       recoverF(
-        Async[F].delay(clusterManagerClient.getNodePool(nodepoolId.toString)),
+        F.delay(clusterManagerClient.getNodePool(nodepoolId.toString)),
         whenStatusCode(404)
       ),
       f"com.google.cloud.container.v1.ClusterManagerClient.getNodepool(${nodepoolId.toString})"
     )
 
-  override def deleteNodepool(nodepoolId: NodepoolId)(implicit ev: ApplicativeAsk[F, TraceId]): F[Operation] =
+  override def deleteNodepool(nodepoolId: NodepoolId)(implicit ev: ApplicativeAsk[F, TraceId]): F[Option[Operation]] =
     tracedGoogleRetryWithBlocker(
-      Async[F].delay(clusterManagerClient.deleteNodePool(nodepoolId.toString)),
+      recoverF(
+        F.delay(clusterManagerClient.deleteNodePool(nodepoolId.toString)),
+        whenStatusCode(404)
+      ),
       f"com.google.cloud.container.v1.ClusterManagerClient.deleteNodepool(${nodepoolId.toString})"
     )
 
@@ -97,9 +114,9 @@ final class GKEInterpreter[F[_]: Async: StructuredLogger: Timer: ContextShift](
       .build()
 
     val getOperation = for {
-      op <- Async[F].delay(clusterManagerClient.getOperation(request))
-      _ <- if (op.getStatusMessage.isEmpty) Async[F].unit
-      else Async[F].raiseError[Unit](new RuntimeException("Operation failed due to: " + op.getStatusMessage))
+      op <- F.delay(clusterManagerClient.getOperation(request))
+      _ <- if (op.getStatusMessage.isEmpty) F.unit
+      else F.raiseError[Unit](new RuntimeException("Operation failed due to: " + op.getStatusMessage))
     } yield op
 
     streamFUntilDone(getOperation, maxAttempts, delay)
