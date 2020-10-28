@@ -30,9 +30,11 @@ object RetryPredicates {
   }
 
   def whenStatusCode(code: Int): Throwable => Boolean = {
-    case e: BaseServiceException => e.getCode == code
-    case e: ApiException         => e.getStatusCode.getCode.getHttpStatusCode == code
-    case _                       => false
+    case e: BaseServiceException                                              => e.getCode == code
+    case e: ApiException                                                      => e.getStatusCode.getCode.getHttpStatusCode == code
+    case e: com.google.api.client.googleapis.json.GoogleJsonResponseException => e.getDetails.getCode == code
+    case e: io.kubernetes.client.ApiException                                 => e.getCode == code
+    case _                                                                    => false
   }
 
   def gkeRetryPredicate: Throwable => Boolean = {

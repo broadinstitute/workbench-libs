@@ -22,22 +22,27 @@ import scala.concurrent.duration.FiniteDuration
 
 trait GKEService[F[_]] {
 
+  // These methods return Option[Operation] so as to return None on 409 in the case of create and 404 in the case of delete
+  // This ensures idempotency (i.e., you can repeatedly call create/delete for the same resource without error)
+
   // Note createCluster uses the legacy com.google.api.services.container client rather than
   // the newer com.google.container.v1 client because certain options like Workload Identity
   // are only available in the old client.
   def createCluster(request: KubernetesCreateClusterRequest)(
     implicit ev: ApplicativeAsk[F, TraceId]
-  ): F[com.google.api.services.container.model.Operation]
+  ): F[Option[com.google.api.services.container.model.Operation]]
 
-  def deleteCluster(clusterId: KubernetesClusterId)(implicit ev: ApplicativeAsk[F, TraceId]): F[Operation]
+  def deleteCluster(clusterId: KubernetesClusterId)(implicit ev: ApplicativeAsk[F, TraceId]): F[Option[Operation]]
 
   def getCluster(clusterId: KubernetesClusterId)(implicit ev: ApplicativeAsk[F, TraceId]): F[Option[Cluster]]
 
-  def createNodepool(request: KubernetesCreateNodepoolRequest)(implicit ev: ApplicativeAsk[F, TraceId]): F[Operation]
+  def createNodepool(request: KubernetesCreateNodepoolRequest)(
+    implicit ev: ApplicativeAsk[F, TraceId]
+  ): F[Option[Operation]]
 
   def getNodepool(nodepoolId: NodepoolId)(implicit ev: ApplicativeAsk[F, TraceId]): F[Option[NodePool]]
 
-  def deleteNodepool(nodepoolId: NodepoolId)(implicit ev: ApplicativeAsk[F, TraceId]): F[Operation]
+  def deleteNodepool(nodepoolId: NodepoolId)(implicit ev: ApplicativeAsk[F, TraceId]): F[Option[Operation]]
 
   def pollOperation(operationId: KubernetesOperationId, delay: FiniteDuration, maxAttempts: Int)(
     implicit ev: ApplicativeAsk[F, TraceId],
