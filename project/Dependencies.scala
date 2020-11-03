@@ -3,20 +3,20 @@ import sbt._
 object Dependencies {
   val akkaV         = "2.6.8"
   val akkaHttpV     = "10.2.0"
-  val jacksonV      = "2.9.0"
+  val jacksonV      = "2.11.3"
   val googleV       = "1.22.0"
   val scalaLoggingV = "3.9.2"
-  val scalaTestV    = "3.2.0"
+  val scalaTestV    = "3.2.2"
   val circeVersion = "0.13.0"
-  val http4sVersion = "0.21.5"
+  val http4sVersion = "0.21.8"
 
   def excludeGuavaJDK5(m: ModuleID): ModuleID = m.exclude("com.google.guava", "guava-jdk5")
 
   val scalaLogging: ModuleID = "com.typesafe.scala-logging"    %% "scala-logging" % scalaLoggingV  % "provided"
   val scalatest: ModuleID =    "org.scalatest"                 %% "scalatest"     % scalaTestV  % "test"
-  val scalaTestScalaCheck = "org.scalatestplus" %% "scalatestplus-scalacheck" % "3.1.0.0-RC2" % Test //Since scalatest 3.1.0, scalacheck support is moved to `scalatestplus`
-  val scalaTestMockito = "org.scalatestplus" %% "scalatestplus-mockito" % "1.0.0-M2" % Test //Since scalatest 3.1.0, mockito support is moved to `scalatestplus`
-  val scalaTestSelenium =  "org.scalatestplus" %% "selenium-3-141" % "3.2.0.0" % Test //Since scalatest 3.1.0, selenium support is moved to `scalatestplus`
+  val scalaTestScalaCheck = "org.scalatestplus" %% "scalacheck-1-14" % "3.2.2.0" % Test //Since scalatest 3.1.0, scalacheck support is moved to `scalatestplus`
+  val scalaTestMockito = "org.scalatestplus" %% "mockito-3-4" % "3.2.2.0" % Test //Since scalatest 3.1.0, mockito support is moved to `scalatestplus`
+  val scalaTestSelenium =  "org.scalatestplus" %% "selenium-3-141" % "3.2.2.0" % Test //Since scalatest 3.1.0, selenium support is moved to `scalatestplus`
   val mockito: ModuleID =      "org.mockito"                   %  "mockito-core"  % "2.8.47" % "test"
 
   val akkaActor: ModuleID =         "com.typesafe.akka" %% "akka-actor"           % akkaV     % "provided"
@@ -30,7 +30,7 @@ object Dependencies {
 
   val jacksonModule: ModuleID =   "com.fasterxml.jackson.module" %% "jackson-module-scala"   % jacksonV % "test"
 
-  val catsEffect: ModuleID = "org.typelevel" %% "cats-effect" % "2.1.3"
+  val catsEffect: ModuleID = "org.typelevel" %% "cats-effect" % "2.2.0"
 
   // metrics-scala transitively pulls in io.dropwizard.metrics:metrics-core
   val metricsScala: ModuleID =      "nl.grons"              %% "metrics4-scala"    % "4.1.9"
@@ -79,8 +79,8 @@ object Dependencies {
   val http4sBlazeClient = "org.http4s" %% "http4s-blaze-client" % http4sVersion
   val http4sDsl = "org.http4s"      %% "http4s-dsl"          % http4sVersion
 
-  val fs2Io: ModuleID = "co.fs2" %% "fs2-io" % "2.4.2"
-  val rawlsModel: ModuleID = "org.broadinstitute.dsde" %% "rawls-model" % "0.1-0d02c8ce-SNAP" exclude("com.typesafe.scala-logging", "scala-logging_2.11") exclude("com.typesafe.akka", "akka-stream_2.11")
+  val fs2Io: ModuleID = "co.fs2" %% "fs2-io" % "2.4.4"
+  val rawlsModel: ModuleID = "org.broadinstitute.dsde" %% "rawls-model" % "0.1-2356e282" exclude("com.typesafe.scala-logging", "scala-logging_2.11") exclude("com.typesafe.akka", "akka-stream_2.11")
   val newRelic: ModuleID = "com.newrelic.agent.java" % "newrelic-api" % "5.0.0"
   val openCensusApi: ModuleID = "io.opencensus" % "opencensus-api" % "0.26.0"
   val openCensusImpl: ModuleID = "io.opencensus" % "opencensus-impl" % "0.26.0"
@@ -208,6 +208,7 @@ object Dependencies {
     akkaHttpSprayJson,
     akkaTestkit,
     jacksonModule,
+    akkaStream,
     rawlsModel,
     scalaTestSelenium
   )

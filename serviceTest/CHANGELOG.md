@@ -7,8 +7,9 @@ Changed
 - Bump selenium version
 - Check if log type is available before trying to get the log
 - Add a few more helful chrome option
+- Supports scala 2.13
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "0.18-61887ce"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "0.18-TRAVIS-REPLACE-ME"`
 
 ## 0.17
 
