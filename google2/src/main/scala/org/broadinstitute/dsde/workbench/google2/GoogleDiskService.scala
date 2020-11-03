@@ -22,7 +22,7 @@ import scala.collection.JavaConverters._
 trait GoogleDiskService[F[_]] {
   def createDisk(project: GoogleProject, zone: ZoneName, disk: Disk)(
     implicit ev: ApplicativeAsk[F, TraceId]
-  ): F[Operation]
+  ): F[Option[Operation]]
 
   def deleteDisk(project: GoogleProject, zone: ZoneName, diskName: DiskName)(
     implicit ev: ApplicativeAsk[F, TraceId]

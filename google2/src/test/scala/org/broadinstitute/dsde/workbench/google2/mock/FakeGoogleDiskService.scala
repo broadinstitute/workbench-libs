@@ -10,7 +10,8 @@ import org.broadinstitute.dsde.workbench.model.google.GoogleProject
 class MockGoogleDiskService extends GoogleDiskService[IO] {
   override def createDisk(project: GoogleProject, zone: ZoneName, disk: Disk)(
     implicit ev: ApplicativeAsk[IO, TraceId]
-  ): IO[Operation] = IO.pure(Operation.newBuilder().setId("op").setName("opName").setTargetId("target").build())
+  ): IO[Option[Operation]] =
+    IO.pure(Some(Operation.newBuilder().setId("op").setName("opName").setTargetId("target").build()))
 
   override def deleteDisk(project: GoogleProject, zone: ZoneName, diskName: DiskName)(
     implicit ev: ApplicativeAsk[IO, TraceId]
