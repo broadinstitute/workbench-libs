@@ -17,6 +17,7 @@ import io.chrisdavenport.log4cats.StructuredLogger
 import org.broadinstitute.dsde.workbench.RetryConfig
 import org.broadinstitute.dsde.workbench.model.TraceId
 import org.broadinstitute.dsde.workbench.model.google.GoogleProject
+import org.broadinstitute.dsde.workbench.google2.util.RetryPredicates._
 
 import scala.collection.JavaConverters._
 
@@ -30,10 +31,10 @@ private[google2] class GoogleDiskInterpreter[F[_]: StructuredLogger: Timer: Cont
 
   override def createDisk(project: GoogleProject, zone: ZoneName, disk: Disk)(
     implicit ev: ApplicativeAsk[F, TraceId]
-  ): F[Operation] = {
+  ): F[Option[Operation]] = {
     val projectZone = ProjectZoneName.of(project.value, zone.value)
     retryF(
-      F.delay(diskClient.insertDisk(projectZone, disk)),
+      recoverF(F.delay(diskClient.insertDisk(projectZone, disk)), whenStatusCode(409)),
       s"com.google.cloud.compute.v1DiskClient.insertDisk(${projectZone.toString}, ${disk.getName})"
     ).compile.lastOrError
   }
@@ -42,13 +43,7 @@ private[google2] class GoogleDiskInterpreter[F[_]: StructuredLogger: Timer: Cont
     implicit ev: ApplicativeAsk[F, TraceId]
   ): F[Option[Disk]] = {
     val projectZoneDiskName = ProjectZoneDiskName.of(diskName.value, project.value, zone.value)
-    val fa = F
-      .delay(diskClient.getDisk(projectZoneDiskName))
-      .map(Option(_))
-      .handleErrorWith {
-        case _: com.google.api.gax.rpc.NotFoundException => F.pure(none[Disk])
-        case e                                           => F.raiseError[Option[Disk]](e)
-      }
+    val fa = recoverF(F.delay(diskClient.getDisk(projectZoneDiskName)), whenStatusCode(404))
 
     ev.ask.flatMap(
       traceId =>
@@ -64,13 +59,7 @@ private[google2] class GoogleDiskInterpreter[F[_]: StructuredLogger: Timer: Cont
     implicit ev: ApplicativeAsk[F, TraceId]
   ): F[Option[Operation]] = {
     val projectZoneDiskName = ProjectZoneDiskName.of(diskName.value, project.value, zone.value)
-    val fa = F
-      .delay(diskClient.deleteDisk(projectZoneDiskName))
-      .map(Option(_))
-      .handleErrorWith {
-        case _: com.google.api.gax.rpc.NotFoundException => F.pure(none[Operation])
-        case e                                           => F.raiseError[Option[Operation]](e)
-      }
+    val fa = recoverF(F.delay(diskClient.deleteDisk(projectZoneDiskName)), whenStatusCode(404))
 
     ev.ask.flatMap(
       traceId =>
