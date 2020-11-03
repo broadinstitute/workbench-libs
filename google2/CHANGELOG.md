@@ -6,7 +6,7 @@ This file documents changes to the `workbench-google2` library, including notes 
 - Changes the return types for some methods in `GKEInterpreter` from `F[Operation]` to `F[Option[Operation]]`
 - Change the return type for `createDisk` in `GoogleDiskService` to `F[Option[Operation]]`
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.14-TRAVIS-REPLACE-ME"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.14-aa84412"`
 
 ## 0.13
 Changed:
