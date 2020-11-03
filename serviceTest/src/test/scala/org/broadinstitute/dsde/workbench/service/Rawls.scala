@@ -2,7 +2,7 @@ package org.broadinstitute.dsde.workbench.service
 
 import com.fasterxml.jackson.databind.JsonNode
 import com.typesafe.scalalogging.LazyLogging
-import org.broadinstitute.dsde.workbench.model.rawls.AttributeUpdateOperations.{
+import org.broadinstitute.dsde.rawls.model.AttributeUpdateOperations.{
   AttributeUpdateOperation,
   AttributeUpdateOperationFormat
 }
