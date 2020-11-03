@@ -17,5 +17,4 @@ script:
 after_success:
 - SBT_OPTS=-J-Xmx3g sbt clean coverage test coverageReport coverageAggregate coveralls -Denv.type=test
 - bash scripts/publish.sh
-- bash scripts/version_update.sh
 dist: trusty

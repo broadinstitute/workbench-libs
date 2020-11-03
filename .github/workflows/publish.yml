@@ -1,0 +1,20 @@
+name: Update TRAVIS-REPLACE-ME
+
+on:
+  push:
+    branches: [ develop ]
+  pull_request:
+    branches:
+      - develop
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Publish library
+        run: .github/scripts/publish.sh
+        shell: bash
+      - name: Update `TRAVIS-REPLACE-ME`
+        run: .github/scripts/version_update.sh
+        shell: bash
