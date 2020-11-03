@@ -127,14 +127,4 @@ final class GKEInterpreter[F[_]: StructuredLogger: Timer: ContextShift](
                                       blocker.blockOn(fa)
                                     ),
                                     action).compile.lastOrError
-
-  private def loggingWithBlocker[A](fa: F[A], action: String)(implicit ev: ApplicativeAsk[F, TraceId]): F[A] =
-    for {
-      traceId <- ev.ask
-      r <- withLogging(blockerBound.withPermit(
-                         blocker.blockOn(fa)
-                       ),
-                       Some(traceId),
-                       action)
-    } yield r
 }
