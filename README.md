@@ -30,7 +30,7 @@ Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util2"
 
 Contains generic, externally-facing model classes used across Workbench.
 
-Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-model" % "0.14-65bba14"`
+Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-model" % "0.14-TRAVIS-REPLACE-ME"`
 
 [Changelog](model/CHANGELOG.md)
 
@@ -96,7 +96,7 @@ Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-error-
 
 Contains common classes and utilities for writing tests against Workbench REST web services.
 
-Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "0.18-61887ce" % "test" classifier "tests"`
+Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "0.18-TRAVIS-REPLACE-ME" % "test" classifier "tests"`
 
 [Changelog](serviceTest/CHANGELOG.md)
 
