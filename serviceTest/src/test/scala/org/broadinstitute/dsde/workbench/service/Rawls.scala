@@ -73,6 +73,42 @@ trait Rawls extends RestClient with LazyLogging {
 
   }
 
+  //noinspection RedundantBlock
+  object billingV2 {
+
+    def createBillingProject(projectName: String, billingAccount: String, servicePerimeterOpt: Option[String] = None)(
+      implicit token: AuthToken
+    ): String = {
+      logger.info(s"Creating billing project $projectName in billing account $billingAccount")
+      val request = Map("projectName" -> projectName, "billingAccount" -> billingAccount) ++ servicePerimeterOpt.map(
+        servicePerimeter => "servicePerimeter" -> servicePerimeter
+      )
+      postRequest(s"${url}api/billing/v2", request)
+    }
+
+    def getBillingProject(projectName: String)(implicit token: AuthToken): Map[String, String] =
+      parseResponseAs[Map[String, String]](getRequest(s"${url}api/billing/v2/${projectName}"))
+
+    def listMembersInBillingProject(projectName: String)(implicit token: AuthToken): List[Map[String, String]] = {
+      logger.info(s"list members of billing project $projectName the caller owns")
+      parseResponseAs[List[Map[String, String]]](getRequest(s"${url}api/billing/v2/$projectName/members"))
+    }
+
+    def addUserToBillingProject(projectName: String, email: String, billingProjectRole: BillingProjectRole)(
+      implicit token: AuthToken
+    ): String = {
+      logger.info(s"Adding user to billing project: $projectName $email ${billingProjectRole.toString}")
+      putRequest(s"${url}api/billing/v2/$projectName/members/${billingProjectRole.toString}/$email")
+    }
+
+    def removeUserFromBillingProject(projectName: String, email: String, billingProjectRole: BillingProjectRole)(
+      implicit token: AuthToken
+    ): String = {
+      logger.info(s"Removing user from billing project: $projectName $email ${billingProjectRole.toString}")
+      deleteRequest(s"${url}api/billing/v2/$projectName/members/${billingProjectRole.toString}/$email")
+    }
+  }
+
   //noinspection RedundantBlock,ScalaUnnecessaryParentheses
   object methodConfigs {
     def copyMethodConfigFromWorkspace(
