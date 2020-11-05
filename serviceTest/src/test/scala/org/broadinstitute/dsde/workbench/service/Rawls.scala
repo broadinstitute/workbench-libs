@@ -89,6 +89,9 @@ trait Rawls extends RestClient with LazyLogging {
     def getBillingProject(projectName: String)(implicit token: AuthToken): Map[String, String] =
       parseResponseAs[Map[String, String]](getRequest(s"${url}api/billing/v2/${projectName}"))
 
+    def deleteBillingProject(projectName: String)(implicit token: AuthToken): String =
+      deleteRequest(s"${url}api/billing/v2/${projectName}")
+
     def listMembersInBillingProject(projectName: String)(implicit token: AuthToken): List[Map[String, String]] = {
       logger.info(s"list members of billing project $projectName the caller owns")
       parseResponseAs[List[Map[String, String]]](getRequest(s"${url}api/billing/v2/$projectName/members"))
