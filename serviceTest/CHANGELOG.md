@@ -12,7 +12,7 @@ Changed
 Added
 - Rawls billing v2 support
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "0.18-TRAVIS-REPLACE-ME"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "0.18-d7bebc7"`
 
 ## 0.17
 
