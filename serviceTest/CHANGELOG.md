@@ -9,6 +9,9 @@ Changed
 - Add a few more helful chrome option
 - Supports scala 2.13
 
+Added
+- Rawls billing v2 support
+
 SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "0.18-TRAVIS-REPLACE-ME"`
 
 ## 0.17
