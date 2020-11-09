@@ -68,14 +68,6 @@ To start the Google PubSub emulator for unit testing:
 
 [Changelog](google2/CHANGELOG.md)
 
-## workbench-newrelic
-
-Contains utility functions for publishing custom metrics to newrelic. 
-
-Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-newrelic" % "0.2-e66171c"`
-
-[Changelog](newrelic/CHANGELOG.md)
-
 ## workbench-openTelemetry
 
 Contains utility functions for publishing custom metrics using openTelemetry (openCensus and openTracing). 

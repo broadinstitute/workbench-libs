@@ -181,12 +181,6 @@ object Settings {
     version := createVersion("0.14")
   ) ++ publishSettings
 
-  val newrelicSettings = cross212and213 ++ commonSettings ++ List(
-    name := "workbench-newrelic",
-    libraryDependencies ++= newrelicDependencies,
-    version := createVersion("0.3")
-  ) ++ publishSettings
-
   val openTelemetrySettings = cross212and213 ++ commonSettings ++ List(
     name := "workbench-openTelemetry",
     libraryDependencies ++= openTelemetryDependencies,
