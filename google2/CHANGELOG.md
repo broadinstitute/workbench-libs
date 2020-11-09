@@ -7,7 +7,7 @@ This file documents changes to the `workbench-google2` library, including notes 
 - Change the return type for `createDisk` in `GoogleDiskService` to `F[Option[Operation]]`
 - Add GKE objects to /test `Generators`
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.14-TRAVIS-REPLACE-ME"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.14-aed2645"`
 
 ## 0.13
 Changed:
