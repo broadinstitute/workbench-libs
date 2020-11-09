@@ -6,6 +6,12 @@ import java.time.Instant
 
 import cats.data.NonEmptyList
 import com.google.pubsub.v1.TopicName
+import org.broadinstitute.dsde.workbench.google2.GKEModels.{
+  KubernetesClusterId,
+  KubernetesClusterName,
+  NodepoolId,
+  NodepoolName
+}
 import org.broadinstitute.dsde.workbench.google2.NotificationEventTypes._
 import org.broadinstitute.dsde.workbench.model.google._
 import org.scalacheck.{Arbitrary, Gen}
@@ -46,6 +52,19 @@ object Generators {
     filters <- genFilters
   } yield NotificationRequest(topic, "JSON_API_V1", filters.eventTypes, filters.objectNamePrefix)
   val genDiskName = alphaLowerStrOfLength(10).map(DiskName)
+  val genLocation = for {
+    zoneLetter <- Gen.oneOf('a', 'b', 'c')
+  } yield Location(s"us-central1-${zoneLetter}")
+  val genKubernetesClusterId = for {
+    project <- genGoogleProject
+    location <- genLocation
+    clusterName <- Gen.uuid.map(x => KubernetesClusterName(x.toString))
+  } yield KubernetesClusterId(project, location, clusterName)
+  val genNodepoolName = Gen.uuid.map(x => NodepoolName(x.toString))
+  val genNodepoolId = for {
+    clusterId <- genKubernetesClusterId
+    nodepoolName <- genNodepoolName
+  } yield NodepoolId(clusterId, nodepoolName)
 
   def alphaLowerStrOfLength(n: Int): Gen[String] = Gen.listOfN(n, Gen.alphaLowerChar).map(_.mkString)
 
