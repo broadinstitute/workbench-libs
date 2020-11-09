@@ -3,11 +3,15 @@
 This file documents changes to the `workbench-google2` library, including notes on how to upgrade to new versions.
 
 ## 0.14
+Changed:
 - Changes the return types for some methods in `GKEInterpreter` from `F[Operation]` to `F[Option[Operation]]`
 - Change the return type for `createDisk` in `GoogleDiskService` to `F[Option[Operation]]`
+- Upgrade `cats-mtl` to `1.0.0`
+
+Added:
 - Add GKE objects to /test `Generators`
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.14-aed2645"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.14-TRAVIS-REPLACE-ME"`
 
 ## 0.13
 Changed:
