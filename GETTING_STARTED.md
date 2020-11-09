@@ -54,6 +54,6 @@ When publishing branch builds to Artifactory (`sbt publish`), code _must_ be com
 
 When publishing for local use (`sbt publishLocal`), artifacts are simply dropped into your Ivy cache (`~/.ivy2`) so the only foot you can shoot is your own. As long as you use `-Dproject.isSnapshot=true` to make a `-SNAP`-versioned artifact, you can safely experiment with changes prior to your first branch commit.
 
-If we ever get all dependants moved to Scala 2.12 (I'm looking at you, [firecloud-orchestration](https://github.com/broadinstitute/firecloud-orchestration)), we can remove the `+` from the `sbt publish`/`sbt publish-local`. If your use case during development uses only 2.12, you can probably omit the `+` to possibly reduce build/publish time.
+If we ever get all dependants moved to Scala 2.12 (I'm looking at you, [firecloud-orchestration](https://github.com/broadinstitute/firecloud-orchestration)), we can remove the `+` from the `sbt publish`/`sbt publishLocal`. If your use case during development uses only 2.12, you can probably omit the `+` to possibly reduce build/publish time.
 
 **Future improvement**: Make sbt show the versions of all published artifacts at the end of the build so we don't have to scan and extract them from the build output.
