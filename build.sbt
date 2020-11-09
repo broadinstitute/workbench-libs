@@ -41,11 +41,6 @@ lazy val workbenchGoogle2 = project
   .dependsOn(workbenchModel)
   .withTestSettings
 
-lazy val workbenchNewrelic = project
-  .in(file("newrelic"))
-  .settings(newrelicSettings: _*)
-  .withTestSettings
-
 lazy val workbenchOpenTelemetry = project
   .in(file("openTelemetry"))
   .settings(openTelemetrySettings: _*)
@@ -85,7 +80,6 @@ lazy val workbenchLibs = project
   .aggregate(workbenchUtil2)
   .aggregate(workbenchModel)
   .aggregate(workbenchMetrics)
-  .aggregate(workbenchNewrelic)
   .aggregate(workbenchOpenTelemetry)
   .aggregate(workbenchErrorReporting)
   .aggregate(workbenchGoogle)

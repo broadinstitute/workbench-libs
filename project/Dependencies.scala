@@ -81,7 +81,6 @@ object Dependencies {
 
   val fs2Io: ModuleID = "co.fs2" %% "fs2-io" % "2.4.4"
   val rawlsModel: ModuleID = "org.broadinstitute.dsde" %% "rawls-model" % "0.1-2356e282" exclude("com.typesafe.scala-logging", "scala-logging_2.11") exclude("com.typesafe.akka", "akka-stream_2.11")
-  val newRelic: ModuleID = "com.newrelic.agent.java" % "newrelic-api" % "5.0.0"
   val openCensusApi: ModuleID = "io.opencensus" % "opencensus-api" % "0.26.0"
   val openCensusImpl: ModuleID = "io.opencensus" % "opencensus-impl" % "0.26.0"
   val openCensusStatsStackDriver: ModuleID = "io.opencensus" % "opencensus-exporter-stats-stackdriver" % "0.26.0"
@@ -169,12 +168,6 @@ object Dependencies {
     kubernetesClient,
     googleContainerV1,
     sealerate
-  )
-
-  val newrelicDependencies = Seq(
-    catsEffect,
-    log4cats,
-    newRelic
   )
 
   val openTelemetryDependencies = List(
