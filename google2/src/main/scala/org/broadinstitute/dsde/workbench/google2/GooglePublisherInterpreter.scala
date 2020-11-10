@@ -54,7 +54,7 @@ private[google2] class GooglePublisherInterpreter[F[_]: Async: Timer: Structured
 
   override def publishOne[MessageType: Encoder](message: MessageType)(implicit ev: Ask[F, TraceId]): F[Unit] = {
     val byteString = ByteString.copyFromUtf8(message.asJson.noSpaces)
-    tracedLogging(asyncPublishMessage(byteString),s"com.google.cloud.pubsub.v1.Publisher.publish($byteString)")
+    tracedLogging(asyncPublishMessage(byteString), s"com.google.cloud.pubsub.v1.Publisher.publish($byteString)")
   }
 
   private def publishMessage(message: String, traceId: Option[TraceId]): Stream[F, Unit] = {

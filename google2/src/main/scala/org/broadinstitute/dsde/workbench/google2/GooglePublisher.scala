@@ -21,9 +21,9 @@ trait GooglePublisher[F[_]] {
   def publishNative: Pipe[F, PubsubMessage, Unit]
 
   /**
-    * Watch out message size quota and limitations https://cloud.google.com/pubsub/quotas
-    * This publishes a single message, but the preferred approach is with streams via `publish`
-    */
+   * Watch out message size quota and limitations https://cloud.google.com/pubsub/quotas
+   * This publishes a single message, but the preferred approach is with streams via `publish`
+   */
   def publishOne[MessageType: Encoder](message: MessageType)(implicit ev: Ask[F, TraceId]): F[Unit]
 
   /**
