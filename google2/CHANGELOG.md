@@ -43,7 +43,7 @@ Changed:
 - Update `pollOperation` signature
 - Fix a bug for `detachDisk` function
 - Add `createSecret` to `KubernetesService`
-- remove Ask implicit param from `KubernetesService` creation
+- remove `ApplicativeAsk` implicit param from `KubernetesService` creation
 - add deleteNamespace to `KubernetesService`
 - added mocks for `GKEService` and `KubernetesService`
 - optimized implementation of `GoogleStorageInterpreter.getBlobBody` to fully use streams
