@@ -2,7 +2,7 @@ package org.broadinstitute.dsde.workbench.google2
 
 import cats.effect._
 import cats.effect.concurrent.Semaphore
-import cats.mtl.ApplicativeAsk
+import cats.mtl.Ask
 import com.google.api.gax.core.FixedCredentialsProvider
 import com.google.api.services.compute.ComputeScopes
 import com.google.auth.oauth2.GoogleCredentials
@@ -27,21 +27,21 @@ trait GoogleDataprocService[F[_]] {
     region: RegionName,
     clusterName: DataprocClusterName,
     createClusterConfig: Option[CreateClusterConfig]
-  )(implicit ev: ApplicativeAsk[F, TraceId]): F[CreateClusterResponse]
+  )(implicit ev: Ask[F, TraceId]): F[CreateClusterResponse]
 
   def deleteCluster(project: GoogleProject, region: RegionName, clusterName: DataprocClusterName)(
-    implicit ev: ApplicativeAsk[F, TraceId]
+    implicit ev: Ask[F, TraceId]
   ): F[Option[ClusterOperationMetadata]]
 
   def getCluster(project: GoogleProject, region: RegionName, clusterName: DataprocClusterName)(
-    implicit ev: ApplicativeAsk[F, TraceId]
+    implicit ev: Ask[F, TraceId]
   ): F[Option[Cluster]]
 
   def getClusterInstances(project: GoogleProject, region: RegionName, clusterName: DataprocClusterName)(
-    implicit ev: ApplicativeAsk[F, TraceId]
+    implicit ev: Ask[F, TraceId]
   ): F[Map[DataprocRole, Set[InstanceName]]]
 
-  def getClusterError(operationName: OperationName)(implicit ev: ApplicativeAsk[F, TraceId]): F[Option[ClusterError]]
+  def getClusterError(operationName: OperationName)(implicit ev: Ask[F, TraceId]): F[Option[ClusterError]]
 }
 
 object GoogleDataprocService {

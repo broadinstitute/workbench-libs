@@ -24,7 +24,7 @@ import cats.effect.IO
 import org.broadinstitute.dsde.workbench.model.google.GcsBucketName
 import org.broadinstitute.dsde.workbench.google2.GcsBlobName
 import org.broadinstitute.dsde.workbench.model.google.GoogleProject
-import cats.mtl.ApplicativeAsk
+import cats.mtl.Ask
 import java.util.UUID
 import org.broadinstitute.dsde.workbench.model.TraceId
 import cats.effect.Blocker
@@ -33,7 +33,7 @@ import cats.effect.concurrent.Semaphore
 implicit val cs = IO.contextShift(global)
 implicit val t = IO.timer(global)
 implicit def logger = new ConsoleLogger("prefix-you-like", LogLevel(true, true, true, true))
-implicit val traceId = ApplicativeAsk.const[IO, TraceId](TraceId(UUID.randomUUID()))
+implicit val traceId = Ask.const[IO, TraceId](TraceId(UUID.randomUUID()))
 val blocker = Blocker.liftExecutionContext(global)
 val blockerBound = Semaphore[IO](10).unsafeRunSync
 ```

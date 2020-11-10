@@ -4,7 +4,7 @@ import cats.Show
 import cats.effect._
 import cats.effect.concurrent.Semaphore
 import cats.implicits._
-import cats.mtl.ApplicativeAsk
+import cats.mtl.Ask
 import com.google.api.core.ApiFutures
 import com.google.api.gax.rpc.StatusCode.Code
 import com.google.cloud.dataproc.v1.{RegionName => _, _}
@@ -31,7 +31,7 @@ private[google2] class GoogleDataprocInterpreter[F[_]: StructuredLogger: Timer: 
     region: RegionName,
     clusterName: DataprocClusterName,
     createClusterConfig: Option[CreateClusterConfig]
-  )(implicit ev: ApplicativeAsk[F, TraceId]): F[CreateClusterResponse] = {
+  )(implicit ev: Ask[F, TraceId]): F[CreateClusterResponse] = {
     val config: ClusterConfig = createClusterConfig
       .map(
         config =>
@@ -85,7 +85,7 @@ private[google2] class GoogleDataprocInterpreter[F[_]: StructuredLogger: Timer: 
   }
 
   override def deleteCluster(project: GoogleProject, region: RegionName, clusterName: DataprocClusterName)(
-    implicit ev: ApplicativeAsk[F, TraceId]
+    implicit ev: Ask[F, TraceId]
   ): F[Option[ClusterOperationMetadata]] = {
     val request = DeleteClusterRequest
       .newBuilder()
@@ -119,7 +119,7 @@ private[google2] class GoogleDataprocInterpreter[F[_]: StructuredLogger: Timer: 
   }
 
   override def getCluster(project: GoogleProject, region: RegionName, clusterName: DataprocClusterName)(
-    implicit ev: ApplicativeAsk[F, TraceId]
+    implicit ev: Ask[F, TraceId]
   ): F[Option[Cluster]] = {
     val fa =
       F.delay(clusterControllerClient.getCluster(project.value, region.value, clusterName.value))
@@ -141,7 +141,7 @@ private[google2] class GoogleDataprocInterpreter[F[_]: StructuredLogger: Timer: 
   }
 
   override def getClusterInstances(project: GoogleProject, region: RegionName, clusterName: DataprocClusterName)(
-    implicit ev: ApplicativeAsk[F, TraceId]
+    implicit ev: Ask[F, TraceId]
   ): F[Map[DataprocRole, Set[InstanceName]]] =
     for {
       cluster <- getCluster(project, region, clusterName)
@@ -149,7 +149,7 @@ private[google2] class GoogleDataprocInterpreter[F[_]: StructuredLogger: Timer: 
 
   override def getClusterError(
     operationName: OperationName
-  )(implicit ev: ApplicativeAsk[F, TraceId]): F[Option[ClusterError]] =
+  )(implicit ev: Ask[F, TraceId]): F[Option[ClusterError]] =
     for {
       error <- retryF(
         recoverF(
@@ -160,7 +160,7 @@ private[google2] class GoogleDataprocInterpreter[F[_]: StructuredLogger: Timer: 
       )
     } yield error.map(e => ClusterError(e.getCode, e.getMessage))
 
-  private def retryF[A](fa: F[A], loggingMsg: String)(implicit ev: ApplicativeAsk[F, TraceId]): F[A] =
+  private def retryF[A](fa: F[A], loggingMsg: String)(implicit ev: Ask[F, TraceId]): F[A] =
     tracedRetryGoogleF(retryConfig)(blockerBound.withPermit(blocker.blockOn(fa)), loggingMsg).compile.lastOrError
 }
 

@@ -2,9 +2,18 @@
 
 This file documents changes to the `workbench-google2` library, including notes on how to upgrade to new versions.
 
+## 0.15
+Changed:
+- Upgrade `cats-mtl` to `1.0.0`
+
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.15-TRAVIS-REPLACE-ME"`
+
 ## 0.14
+Changed:
 - Changes the return types for some methods in `GKEInterpreter` from `F[Operation]` to `F[Option[Operation]]`
 - Change the return type for `createDisk` in `GoogleDiskService` to `F[Option[Operation]]`
+
+Added:
 - Add GKE objects to /test `Generators`
 
 SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.14-aed2645"`
@@ -34,7 +43,7 @@ Changed:
 - Update `pollOperation` signature
 - Fix a bug for `detachDisk` function
 - Add `createSecret` to `KubernetesService`
-- remove ApplicativeAsk implicit param from `KubernetesService` creation
+- remove `ApplicativeAsk` implicit param from `KubernetesService` creation
 - add deleteNamespace to `KubernetesService`
 - added mocks for `GKEService` and `KubernetesService`
 - optimized implementation of `GoogleStorageInterpreter.getBlobBody` to fully use streams

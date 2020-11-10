@@ -1,7 +1,7 @@
 package org.broadinstitute.dsde.workbench.google2.mock
 
 import cats.effect.IO
-import cats.mtl.ApplicativeAsk
+import cats.mtl.Ask
 import com.google.cloud.compute.v1.{Firewall, Instance, MachineType, Network, Operation, Subnetwork, Zone}
 import org.broadinstitute.dsde.workbench.google2.{
   ComputePollOperation,
@@ -21,24 +21,24 @@ import org.broadinstitute.dsde.workbench.model.google.GoogleProject
 
 class FakeGoogleComputeService extends GoogleComputeService[IO] {
   override def createInstance(project: GoogleProject, zone: ZoneName, instance: Instance)(
-    implicit ev: ApplicativeAsk[IO, TraceId]
+    implicit ev: Ask[IO, TraceId]
   ): IO[Operation] = IO.pure(Operation.newBuilder().setId("op").setName("opName").setTargetId("target").build())
 
   override def deleteInstance(project: GoogleProject, zone: ZoneName, instanceName: InstanceName)(
-    implicit ev: ApplicativeAsk[IO, TraceId]
+    implicit ev: Ask[IO, TraceId]
   ): IO[Option[Operation]] =
     IO.pure(Some(Operation.newBuilder().setId("op").setName("opName").setTargetId("target").build()))
 
   override def getInstance(project: GoogleProject, zone: ZoneName, instanceName: InstanceName)(
-    implicit ev: ApplicativeAsk[IO, TraceId]
+    implicit ev: Ask[IO, TraceId]
   ): IO[Option[Instance]] = IO.pure(None)
 
   override def stopInstance(project: GoogleProject, zone: ZoneName, instanceName: InstanceName)(
-    implicit ev: ApplicativeAsk[IO, TraceId]
+    implicit ev: Ask[IO, TraceId]
   ): IO[Operation] = IO.pure(Operation.newBuilder().setId("op").setName("opName").setTargetId("target").build())
 
   override def startInstance(project: GoogleProject, zone: ZoneName, instanceName: InstanceName)(
-    implicit ev: ApplicativeAsk[IO, TraceId]
+    implicit ev: Ask[IO, TraceId]
   ): IO[Operation] = IO.pure(Operation.newBuilder().setId("op").setName("opName").setTargetId("target").build())
 
   override def modifyInstanceMetadata(
@@ -47,53 +47,53 @@ class FakeGoogleComputeService extends GoogleComputeService[IO] {
     instanceName: InstanceName,
     metadataToAdd: Map[String, String],
     metadataToRemove: Set[String]
-  )(implicit ev: ApplicativeAsk[IO, TraceId]): IO[Unit] =
+  )(implicit ev: Ask[IO, TraceId]): IO[Unit] =
     IO.unit
 
   override def addFirewallRule(project: GoogleProject, firewall: Firewall)(
-    implicit ev: ApplicativeAsk[IO, TraceId]
+    implicit ev: Ask[IO, TraceId]
   ): IO[Operation] = IO.pure(Operation.newBuilder().setId("op").setName("opName").setTargetId("target").build())
 
   override def getFirewallRule(project: GoogleProject, firewallRuleName: FirewallRuleName)(
-    implicit ev: ApplicativeAsk[IO, TraceId]
+    implicit ev: Ask[IO, TraceId]
   ): IO[Option[Firewall]] = IO.pure(None)
 
   override def setMachineType(project: GoogleProject,
                               zone: ZoneName,
                               instanceName: InstanceName,
-                              machineType: MachineTypeName)(implicit ev: ApplicativeAsk[IO, TraceId]): IO[Unit] =
+                              machineType: MachineTypeName)(implicit ev: Ask[IO, TraceId]): IO[Unit] =
     IO.unit
 
   override def getMachineType(project: GoogleProject, zone: ZoneName, machineTypeName: MachineTypeName)(
-    implicit ev: ApplicativeAsk[IO, TraceId]
+    implicit ev: Ask[IO, TraceId]
   ): IO[Option[MachineType]] = IO.pure(Some(MachineType.newBuilder().setMemoryMb(7680).build))
 
   override def getZones(project: GoogleProject, regionName: RegionName)(
-    implicit ev: ApplicativeAsk[IO, TraceId]
+    implicit ev: Ask[IO, TraceId]
   ): IO[List[Zone]] = IO.pure(List(Zone.newBuilder.setName("us-central1-a").build))
 
   override def deleteFirewallRule(project: GoogleProject, firewallRuleName: FirewallRuleName)(
-    implicit ev: ApplicativeAsk[IO, TraceId]
+    implicit ev: Ask[IO, TraceId]
   ): IO[Unit] = IO.unit
 
   override def getNetwork(project: GoogleProject, networkName: NetworkName)(
-    implicit ev: ApplicativeAsk[IO, TraceId]
+    implicit ev: Ask[IO, TraceId]
   ): IO[Option[Network]] = IO(None)
 
   override def createNetwork(project: GoogleProject, network: Network)(
-    implicit ev: ApplicativeAsk[IO, TraceId]
+    implicit ev: Ask[IO, TraceId]
   ): IO[Operation] = IO.pure(Operation.newBuilder().setId("op").setName("opName").setTargetId("target").build())
 
   override def getSubnetwork(project: GoogleProject, region: RegionName, subnetwork: SubnetworkName)(
-    implicit ev: ApplicativeAsk[IO, TraceId]
+    implicit ev: Ask[IO, TraceId]
   ): IO[Option[Subnetwork]] = IO(None)
 
   override def createSubnetwork(project: GoogleProject, region: RegionName, subnetwork: Subnetwork)(
-    implicit ev: ApplicativeAsk[IO, TraceId]
+    implicit ev: Ask[IO, TraceId]
   ): IO[Operation] = IO.pure(Operation.newBuilder().setId("op").setName("opName").setTargetId("target").build())
 
   def detachDisk(project: GoogleProject, zone: ZoneName, instanceName: InstanceName, deviceName: DeviceName)(
-    implicit ev: ApplicativeAsk[IO, TraceId]
+    implicit ev: Ask[IO, TraceId]
   ): IO[Option[Operation]] =
     IO.pure(Some(Operation.newBuilder().setId("op").setName("opName").setTargetId("target").build()))
 
@@ -102,7 +102,7 @@ class FakeGoogleComputeService extends GoogleComputeService[IO] {
     zone: ZoneName,
     instanceName: InstanceName,
     autoDeleteDisks: Set[DiskName]
-  )(implicit ev: ApplicativeAsk[IO, TraceId], computePollOperation: ComputePollOperation[IO]): IO[Option[Operation]] =
+  )(implicit ev: Ask[IO, TraceId], computePollOperation: ComputePollOperation[IO]): IO[Option[Operation]] =
     IO.pure(Some(Operation.newBuilder().setId("op").setName("opName").setStatus("DONE").setTargetId("target").build()))
 }
 

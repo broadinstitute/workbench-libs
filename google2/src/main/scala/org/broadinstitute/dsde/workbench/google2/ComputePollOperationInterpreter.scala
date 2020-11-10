@@ -2,7 +2,7 @@ package org.broadinstitute.dsde.workbench.google2
 
 import cats.effect.concurrent.Semaphore
 import cats.effect.{Blocker, Concurrent, ContextShift, Timer}
-import cats.mtl.ApplicativeAsk
+import cats.mtl.Ask
 import com.google.cloud.compute.v1._
 import io.chrisdavenport.log4cats.StructuredLogger
 import org.broadinstitute.dsde.workbench.model.TraceId
@@ -17,7 +17,7 @@ class ComputePollOperationInterpreter[F[_]: StructuredLogger: ContextShift](
 )(implicit override val F: Concurrent[F], override val timer: Timer[F])
     extends ComputePollOperation[F] {
   override def getZoneOperation(project: GoogleProject, zoneName: ZoneName, operationName: OperationName)(
-    implicit ev: ApplicativeAsk[F, TraceId]
+    implicit ev: Ask[F, TraceId]
   ): F[Operation] = {
     val request = ProjectZoneOperationName
       .newBuilder()
@@ -32,7 +32,7 @@ class ComputePollOperationInterpreter[F[_]: StructuredLogger: ContextShift](
   }
 
   override def getRegionOperation(project: GoogleProject, regionName: RegionName, operationName: OperationName)(
-    implicit ev: ApplicativeAsk[F, TraceId]
+    implicit ev: Ask[F, TraceId]
   ): F[Operation] = {
     val request = ProjectRegionOperationName
       .newBuilder()
@@ -47,7 +47,7 @@ class ComputePollOperationInterpreter[F[_]: StructuredLogger: ContextShift](
   }
 
   override def getGlobalOperation(project: GoogleProject, operationName: OperationName)(
-    implicit ev: ApplicativeAsk[F, TraceId]
+    implicit ev: Ask[F, TraceId]
   ): F[Operation] = {
     val request =
       ProjectGlobalOperationName.newBuilder().setProject(project.value).setOperation(operationName.value).build

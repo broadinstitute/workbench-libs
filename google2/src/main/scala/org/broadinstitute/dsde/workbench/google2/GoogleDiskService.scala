@@ -2,7 +2,7 @@ package org.broadinstitute.dsde.workbench.google2
 
 import cats.effect.concurrent.Semaphore
 import cats.effect.{Async, Blocker, ContextShift, Resource, Timer}
-import cats.mtl.ApplicativeAsk
+import cats.mtl.Ask
 import com.google.api.gax.core.FixedCredentialsProvider
 import com.google.api.services.compute.ComputeScopes
 import com.google.auth.oauth2.GoogleCredentials
@@ -21,23 +21,23 @@ import scala.collection.JavaConverters._
  */
 trait GoogleDiskService[F[_]] {
   def createDisk(project: GoogleProject, zone: ZoneName, disk: Disk)(
-    implicit ev: ApplicativeAsk[F, TraceId]
+    implicit ev: Ask[F, TraceId]
   ): F[Option[Operation]]
 
   def deleteDisk(project: GoogleProject, zone: ZoneName, diskName: DiskName)(
-    implicit ev: ApplicativeAsk[F, TraceId]
+    implicit ev: Ask[F, TraceId]
   ): F[Option[Operation]]
 
   def getDisk(project: GoogleProject, zone: ZoneName, diskName: DiskName)(
-    implicit ev: ApplicativeAsk[F, TraceId]
+    implicit ev: Ask[F, TraceId]
   ): F[Option[Disk]]
 
   def listDisks(project: GoogleProject, zone: ZoneName)(
-    implicit ev: ApplicativeAsk[F, TraceId]
+    implicit ev: Ask[F, TraceId]
   ): Stream[F, Disk]
 
   def resizeDisk(project: GoogleProject, zone: ZoneName, diskName: DiskName, newSizeGb: Int)(
-    implicit ev: ApplicativeAsk[F, TraceId]
+    implicit ev: Ask[F, TraceId]
   ): F[Operation]
 }
 

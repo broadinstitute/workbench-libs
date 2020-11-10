@@ -7,7 +7,7 @@ import java.util.UUID
 import scala.collection.JavaConverters._
 import cats.effect.concurrent.Semaphore
 import cats.effect.{Blocker, IO}
-import cats.mtl.ApplicativeAsk
+import cats.mtl.Ask
 import com.google.container.v1._
 import io.chrisdavenport.log4cats.slf4j.Slf4jLogger
 import org.broadinstitute.dsde.workbench.google2.GKEModels._
@@ -33,7 +33,7 @@ final class Test(credPathStr: String,
 
   implicit val cs = IO.contextShift(global)
   implicit val t = IO.timer(global)
-  implicit val traceId = ApplicativeAsk.const[IO, TraceId](TraceId(UUID.randomUUID()))
+  implicit val traceId = Ask.const[IO, TraceId](TraceId(UUID.randomUUID()))
 
   implicit def logger = Slf4jLogger.getLogger[IO]
 
