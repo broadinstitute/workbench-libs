@@ -4,6 +4,7 @@ import cats.implicits._
 import com.google.pubsub.v1.TopicName
 import io.circe.{Decoder, Encoder}
 import org.broadinstitute.dsde.workbench.model.TraceId
+import org.broadinstitute.dsde.workbench.model.google.GoogleProject
 
 object JsonCodec {
   implicit val topicNameEncoder: Encoder[TopicName] = Encoder.encodeString.contramap(
@@ -18,4 +19,6 @@ object JsonCodec {
   implicit val traceIdEncoder: Encoder[TraceId] = Encoder.encodeString.contramap(_.asString)
 
   implicit val traceIdDecoder: Decoder[TraceId] = Decoder.decodeString.map(s => TraceId(s))
+
+  implicit val googleProjectEncoder: Encoder[GoogleProject] = Encoder.encodeString.contramap(_.value)
 }
