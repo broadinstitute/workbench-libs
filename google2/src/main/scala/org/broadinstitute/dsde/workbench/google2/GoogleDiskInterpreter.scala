@@ -3,7 +3,7 @@ package org.broadinstitute.dsde.workbench.google2
 import cats.effect.concurrent.Semaphore
 import cats.effect.{Async, Blocker, ContextShift, Timer}
 import cats.implicits._
-import cats.mtl.ApplicativeAsk
+import cats.mtl.Ask
 import com.google.cloud.compute.v1.{
   Disk,
   DiskClient,
@@ -30,7 +30,7 @@ private[google2] class GoogleDiskInterpreter[F[_]: StructuredLogger: Timer: Cont
     extends GoogleDiskService[F] {
 
   override def createDisk(project: GoogleProject, zone: ZoneName, disk: Disk)(
-    implicit ev: ApplicativeAsk[F, TraceId]
+    implicit ev: Ask[F, TraceId]
   ): F[Option[Operation]] = {
     val projectZone = ProjectZoneName.of(project.value, zone.value)
     retryF(
@@ -40,7 +40,7 @@ private[google2] class GoogleDiskInterpreter[F[_]: StructuredLogger: Timer: Cont
   }
 
   def getDisk(project: GoogleProject, zone: ZoneName, diskName: DiskName)(
-    implicit ev: ApplicativeAsk[F, TraceId]
+    implicit ev: Ask[F, TraceId]
   ): F[Option[Disk]] = {
     val projectZoneDiskName = ProjectZoneDiskName.of(diskName.value, project.value, zone.value)
     val fa = recoverF(F.delay(diskClient.getDisk(projectZoneDiskName)), whenStatusCode(404))
@@ -56,7 +56,7 @@ private[google2] class GoogleDiskInterpreter[F[_]: StructuredLogger: Timer: Cont
   }
 
   override def deleteDisk(project: GoogleProject, zone: ZoneName, diskName: DiskName)(
-    implicit ev: ApplicativeAsk[F, TraceId]
+    implicit ev: Ask[F, TraceId]
   ): F[Option[Operation]] = {
     val projectZoneDiskName = ProjectZoneDiskName.of(diskName.value, project.value, zone.value)
     val fa = recoverF(F.delay(diskClient.deleteDisk(projectZoneDiskName)), whenStatusCode(404))
@@ -72,7 +72,7 @@ private[google2] class GoogleDiskInterpreter[F[_]: StructuredLogger: Timer: Cont
   }
 
   override def listDisks(project: GoogleProject, zone: ZoneName)(
-    implicit ev: ApplicativeAsk[F, TraceId]
+    implicit ev: Ask[F, TraceId]
   ): Stream[F, Disk] = {
     val projectZone = ProjectZoneName.of(project.value, zone.value)
     for {
@@ -86,7 +86,7 @@ private[google2] class GoogleDiskInterpreter[F[_]: StructuredLogger: Timer: Cont
   }
 
   override def resizeDisk(project: GoogleProject, zone: ZoneName, diskName: DiskName, newSizeGb: Int)(
-    implicit ev: ApplicativeAsk[F, TraceId]
+    implicit ev: Ask[F, TraceId]
   ): F[Operation] = {
     val projectZoneDiskName = ProjectZoneDiskName.of(diskName.value, project.value, zone.value)
     val request = DisksResizeRequest.newBuilder().setSizeGb(newSizeGb.toString).build()
@@ -96,7 +96,7 @@ private[google2] class GoogleDiskInterpreter[F[_]: StructuredLogger: Timer: Cont
     ).compile.lastOrError
   }
 
-  private def retryF[A](fa: F[A], loggingMsg: String)(implicit ev: ApplicativeAsk[F, TraceId]): Stream[F, A] =
+  private def retryF[A](fa: F[A], loggingMsg: String)(implicit ev: Ask[F, TraceId]): Stream[F, A] =
     tracedRetryGoogleF(retryConfig)(blockerBound.withPermit(blocker.blockOn(fa)), loggingMsg)
 
 }

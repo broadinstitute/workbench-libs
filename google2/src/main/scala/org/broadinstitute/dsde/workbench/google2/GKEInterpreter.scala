@@ -2,7 +2,7 @@ package org.broadinstitute.dsde.workbench.google2
 
 import cats.effect.concurrent.Semaphore
 import cats.effect.{Async, Blocker, ContextShift, Timer}
-import cats.mtl.ApplicativeAsk
+import cats.mtl.Ask
 import com.google.cloud.container.v1.ClusterManagerClient
 import com.google.container.v1.{Cluster, CreateNodePoolRequest, GetOperationRequest, NodePool, Operation}
 import fs2.Stream
@@ -26,7 +26,7 @@ final class GKEInterpreter[F[_]: StructuredLogger: Timer: ContextShift](
 
   override def createCluster(
     request: KubernetesCreateClusterRequest
-  )(implicit ev: ApplicativeAsk[F, TraceId]): F[Option[com.google.api.services.container.model.Operation]] = {
+  )(implicit ev: Ask[F, TraceId]): F[Option[com.google.api.services.container.model.Operation]] = {
     val parent = Parent(request.project, request.location).toString
 
     // Note createCluster uses the legacy com.google.api.services.container client rather than
@@ -45,7 +45,7 @@ final class GKEInterpreter[F[_]: StructuredLogger: Timer: ContextShift](
     )
   }
 
-  override def getCluster(clusterId: KubernetesClusterId)(implicit ev: ApplicativeAsk[F, TraceId]): F[Option[Cluster]] =
+  override def getCluster(clusterId: KubernetesClusterId)(implicit ev: Ask[F, TraceId]): F[Option[Cluster]] =
     tracedGoogleRetryWithBlocker(
       recoverF(
         F.delay(clusterManagerClient.getCluster(clusterId.toString)),
@@ -56,7 +56,7 @@ final class GKEInterpreter[F[_]: StructuredLogger: Timer: ContextShift](
 
   override def deleteCluster(
     clusterId: KubernetesClusterId
-  )(implicit ev: ApplicativeAsk[F, TraceId]): F[Option[Operation]] =
+  )(implicit ev: Ask[F, TraceId]): F[Option[Operation]] =
     tracedGoogleRetryWithBlocker(
       recoverF(
         F.delay(clusterManagerClient.deleteCluster(clusterId.toString)),
@@ -67,7 +67,7 @@ final class GKEInterpreter[F[_]: StructuredLogger: Timer: ContextShift](
 
   override def createNodepool(
     request: KubernetesCreateNodepoolRequest
-  )(implicit ev: ApplicativeAsk[F, TraceId]): F[Option[Operation]] = {
+  )(implicit ev: Ask[F, TraceId]): F[Option[Operation]] = {
     val createNodepoolRequest: CreateNodePoolRequest = CreateNodePoolRequest
       .newBuilder()
       .setParent(request.clusterId.toString)
@@ -85,7 +85,7 @@ final class GKEInterpreter[F[_]: StructuredLogger: Timer: ContextShift](
     )
   }
 
-  override def getNodepool(nodepoolId: NodepoolId)(implicit ev: ApplicativeAsk[F, TraceId]): F[Option[NodePool]] =
+  override def getNodepool(nodepoolId: NodepoolId)(implicit ev: Ask[F, TraceId]): F[Option[NodePool]] =
     tracedGoogleRetryWithBlocker(
       recoverF(
         F.delay(clusterManagerClient.getNodePool(nodepoolId.toString)),
@@ -94,7 +94,7 @@ final class GKEInterpreter[F[_]: StructuredLogger: Timer: ContextShift](
       s"com.google.cloud.container.v1.ClusterManagerClient.getNodepool(${nodepoolId.toString})"
     )
 
-  override def deleteNodepool(nodepoolId: NodepoolId)(implicit ev: ApplicativeAsk[F, TraceId]): F[Option[Operation]] =
+  override def deleteNodepool(nodepoolId: NodepoolId)(implicit ev: Ask[F, TraceId]): F[Option[Operation]] =
     tracedGoogleRetryWithBlocker(
       recoverF(
         F.delay(clusterManagerClient.deleteNodePool(nodepoolId.toString)),
@@ -105,7 +105,7 @@ final class GKEInterpreter[F[_]: StructuredLogger: Timer: ContextShift](
 
   //delete and create operations take around ~5mins with simple tests, could be longer for larger clusters
   override def pollOperation(operationId: KubernetesOperationId, delay: FiniteDuration, maxAttempts: Int)(
-    implicit ev: ApplicativeAsk[F, TraceId],
+    implicit ev: Ask[F, TraceId],
     doneEv: DoneCheckable[Operation]
   ): Stream[F, Operation] = {
     val request = GetOperationRequest
@@ -122,7 +122,7 @@ final class GKEInterpreter[F[_]: StructuredLogger: Timer: ContextShift](
     streamFUntilDone(getOperation, maxAttempts, delay)
   }
 
-  private def tracedGoogleRetryWithBlocker[A](fa: F[A], action: String)(implicit ev: ApplicativeAsk[F, TraceId]): F[A] =
+  private def tracedGoogleRetryWithBlocker[A](fa: F[A], action: String)(implicit ev: Ask[F, TraceId]): F[A] =
     tracedRetryGoogleF(retryConfig)(blockerBound.withPermit(
                                       blocker.blockOn(fa)
                                     ),

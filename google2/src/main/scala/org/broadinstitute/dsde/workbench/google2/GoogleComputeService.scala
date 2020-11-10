@@ -4,7 +4,7 @@ import _root_.io.chrisdavenport.log4cats.StructuredLogger
 import cats.Parallel
 import cats.effect._
 import cats.effect.concurrent.Semaphore
-import cats.mtl.ApplicativeAsk
+import cats.mtl.Ask
 import com.google.api.gax.core.FixedCredentialsProvider
 import com.google.api.services.compute.ComputeScopes
 import com.google.auth.oauth2.GoogleCredentials
@@ -21,11 +21,11 @@ import scala.collection.JavaConverters._
  */
 trait GoogleComputeService[F[_]] {
   def createInstance(project: GoogleProject, zone: ZoneName, instance: Instance)(
-    implicit ev: ApplicativeAsk[F, TraceId]
+    implicit ev: Ask[F, TraceId]
   ): F[Operation]
 
   def deleteInstance(project: GoogleProject, zone: ZoneName, instanceName: InstanceName)(
-    implicit ev: ApplicativeAsk[F, TraceId]
+    implicit ev: Ask[F, TraceId]
   ): F[Option[Operation]]
 
   /**
@@ -36,52 +36,52 @@ trait GoogleComputeService[F[_]] {
                                        zone: ZoneName,
                                        instanceName: InstanceName,
                                        autoDeleteDisks: Set[DiskName])(
-    implicit ev: ApplicativeAsk[F, TraceId],
+    implicit ev: Ask[F, TraceId],
     computePollOperation: ComputePollOperation[F]
   ): F[Option[Operation]]
 
   def detachDisk(project: GoogleProject, zone: ZoneName, instanceName: InstanceName, deviceName: DeviceName)(
-    implicit ev: ApplicativeAsk[F, TraceId]
+    implicit ev: Ask[F, TraceId]
   ): F[Option[Operation]]
 
   def getInstance(project: GoogleProject, zone: ZoneName, instanceName: InstanceName)(
-    implicit ev: ApplicativeAsk[F, TraceId]
+    implicit ev: Ask[F, TraceId]
   ): F[Option[Instance]]
 
   def stopInstance(project: GoogleProject, zone: ZoneName, instanceName: InstanceName)(
-    implicit ev: ApplicativeAsk[F, TraceId]
+    implicit ev: Ask[F, TraceId]
   ): F[Operation]
 
   def startInstance(project: GoogleProject, zone: ZoneName, instanceName: InstanceName)(
-    implicit ev: ApplicativeAsk[F, TraceId]
+    implicit ev: Ask[F, TraceId]
   ): F[Operation]
 
   def addInstanceMetadata(project: GoogleProject,
                           zone: ZoneName,
                           instanceName: InstanceName,
-                          metadata: Map[String, String])(implicit ev: ApplicativeAsk[F, TraceId]): F[Unit] =
+                          metadata: Map[String, String])(implicit ev: Ask[F, TraceId]): F[Unit] =
     modifyInstanceMetadata(project, zone, instanceName, metadata, Set.empty)
 
   def removeInstanceMetadata(project: GoogleProject,
                              zone: ZoneName,
                              instanceName: InstanceName,
-                             metadataToRemove: Set[String])(implicit ev: ApplicativeAsk[F, TraceId]): F[Unit] =
+                             metadataToRemove: Set[String])(implicit ev: Ask[F, TraceId]): F[Unit] =
     modifyInstanceMetadata(project, zone, instanceName, Map.empty, metadataToRemove)
 
   def modifyInstanceMetadata(project: GoogleProject,
                              zone: ZoneName,
                              instanceName: InstanceName,
                              metadataToAdd: Map[String, String],
-                             metadataToRemove: Set[String])(implicit ev: ApplicativeAsk[F, TraceId]): F[Unit]
+                             metadataToRemove: Set[String])(implicit ev: Ask[F, TraceId]): F[Unit]
 
-  def addFirewallRule(project: GoogleProject, firewall: Firewall)(implicit ev: ApplicativeAsk[F, TraceId]): F[Operation]
+  def addFirewallRule(project: GoogleProject, firewall: Firewall)(implicit ev: Ask[F, TraceId]): F[Operation]
 
   def getFirewallRule(project: GoogleProject, firewallRuleName: FirewallRuleName)(
-    implicit ev: ApplicativeAsk[F, TraceId]
+    implicit ev: Ask[F, TraceId]
   ): F[Option[Firewall]]
 
   def deleteFirewallRule(project: GoogleProject, firewallRuleName: FirewallRuleName)(
-    implicit ev: ApplicativeAsk[F, TraceId]
+    implicit ev: Ask[F, TraceId]
   ): F[Unit]
 
   def getComputeEngineDefaultServiceAccount(projectNumber: Long): WorkbenchEmail =
@@ -90,27 +90,27 @@ trait GoogleComputeService[F[_]] {
     WorkbenchEmail(s"$projectNumber-compute@developer.gserviceaccount.com")
 
   def setMachineType(project: GoogleProject, zone: ZoneName, instanceName: InstanceName, machineType: MachineTypeName)(
-    implicit ev: ApplicativeAsk[F, TraceId]
+    implicit ev: Ask[F, TraceId]
   ): F[Unit]
 
   def getMachineType(project: GoogleProject, zone: ZoneName, machineTypeName: MachineTypeName)(
-    implicit ev: ApplicativeAsk[F, TraceId]
+    implicit ev: Ask[F, TraceId]
   ): F[Option[MachineType]]
 
-  def getZones(project: GoogleProject, regionName: RegionName)(implicit ev: ApplicativeAsk[F, TraceId]): F[List[Zone]]
+  def getZones(project: GoogleProject, regionName: RegionName)(implicit ev: Ask[F, TraceId]): F[List[Zone]]
 
   def getNetwork(project: GoogleProject, networkName: NetworkName)(
-    implicit ev: ApplicativeAsk[F, TraceId]
+    implicit ev: Ask[F, TraceId]
   ): F[Option[Network]]
 
-  def createNetwork(project: GoogleProject, network: Network)(implicit ev: ApplicativeAsk[F, TraceId]): F[Operation]
+  def createNetwork(project: GoogleProject, network: Network)(implicit ev: Ask[F, TraceId]): F[Operation]
 
   def getSubnetwork(project: GoogleProject, region: RegionName, subnetwork: SubnetworkName)(
-    implicit ev: ApplicativeAsk[F, TraceId]
+    implicit ev: Ask[F, TraceId]
   ): F[Option[Subnetwork]]
 
   def createSubnetwork(project: GoogleProject, region: RegionName, subnetwork: Subnetwork)(
-    implicit ev: ApplicativeAsk[F, TraceId]
+    implicit ev: Ask[F, TraceId]
   ): F[Operation]
 }
 
