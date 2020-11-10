@@ -4,7 +4,7 @@ import java.nio.file.Path
 
 import cats.effect.concurrent.Semaphore
 import cats.effect.{Async, Blocker, ContextShift, Resource, Sync, Timer}
-import cats.mtl.ApplicativeAsk
+import cats.mtl.Ask
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport
 import com.google.api.client.json.jackson2.JacksonFactory
 import com.google.container.v1.{Cluster, NodePool, Operation}
@@ -29,23 +29,23 @@ trait GKEService[F[_]] {
   // the newer com.google.container.v1 client because certain options like Workload Identity
   // are only available in the old client.
   def createCluster(request: KubernetesCreateClusterRequest)(
-    implicit ev: ApplicativeAsk[F, TraceId]
+    implicit ev: Ask[F, TraceId]
   ): F[Option[com.google.api.services.container.model.Operation]]
 
-  def deleteCluster(clusterId: KubernetesClusterId)(implicit ev: ApplicativeAsk[F, TraceId]): F[Option[Operation]]
+  def deleteCluster(clusterId: KubernetesClusterId)(implicit ev: Ask[F, TraceId]): F[Option[Operation]]
 
-  def getCluster(clusterId: KubernetesClusterId)(implicit ev: ApplicativeAsk[F, TraceId]): F[Option[Cluster]]
+  def getCluster(clusterId: KubernetesClusterId)(implicit ev: Ask[F, TraceId]): F[Option[Cluster]]
 
   def createNodepool(request: KubernetesCreateNodepoolRequest)(
-    implicit ev: ApplicativeAsk[F, TraceId]
+    implicit ev: Ask[F, TraceId]
   ): F[Option[Operation]]
 
-  def getNodepool(nodepoolId: NodepoolId)(implicit ev: ApplicativeAsk[F, TraceId]): F[Option[NodePool]]
+  def getNodepool(nodepoolId: NodepoolId)(implicit ev: Ask[F, TraceId]): F[Option[NodePool]]
 
-  def deleteNodepool(nodepoolId: NodepoolId)(implicit ev: ApplicativeAsk[F, TraceId]): F[Option[Operation]]
+  def deleteNodepool(nodepoolId: NodepoolId)(implicit ev: Ask[F, TraceId]): F[Option[Operation]]
 
   def pollOperation(operationId: KubernetesOperationId, delay: FiniteDuration, maxAttempts: Int)(
-    implicit ev: ApplicativeAsk[F, TraceId],
+    implicit ev: Ask[F, TraceId],
     doneEv: DoneCheckable[Operation]
   ): Stream[F, Operation]
 }

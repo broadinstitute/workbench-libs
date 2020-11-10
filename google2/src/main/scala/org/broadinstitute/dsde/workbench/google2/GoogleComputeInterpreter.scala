@@ -6,7 +6,7 @@ import cats.Parallel
 import cats.effect.concurrent.Semaphore
 import cats.effect.{Async, Blocker, ContextShift, Timer}
 import cats.implicits._
-import cats.mtl.ApplicativeAsk
+import cats.mtl.Ask
 import com.google.cloud.compute.v1._
 import org.broadinstitute.dsde.workbench.google2.util.RetryPredicates._
 import org.broadinstitute.dsde.workbench.model.google.GoogleProject
@@ -32,7 +32,7 @@ private[google2] class GoogleComputeInterpreter[F[_]: Parallel: StructuredLogger
     extends GoogleComputeService[F] {
 
   override def createInstance(project: GoogleProject, zone: ZoneName, instance: Instance)(
-    implicit ev: ApplicativeAsk[F, TraceId]
+    implicit ev: Ask[F, TraceId]
   ): F[Operation] = {
     val projectZone = ProjectZoneName.of(project.value, zone.value)
     retryF(
@@ -45,7 +45,7 @@ private[google2] class GoogleComputeInterpreter[F[_]: Parallel: StructuredLogger
                                                 zone: ZoneName,
                                                 instanceName: InstanceName,
                                                 autoDeleteDisks: Set[DiskName])(
-    implicit ev: ApplicativeAsk[F, TraceId],
+    implicit ev: Ask[F, TraceId],
     computePollOperation: ComputePollOperation[F]
   ): F[Option[Operation]] = {
     val projectZoneInstanceName = ProjectZoneInstanceName.of(instanceName.value, project.value, zone.value)
@@ -78,7 +78,7 @@ private[google2] class GoogleComputeInterpreter[F[_]: Parallel: StructuredLogger
   }
 
   override def deleteInstance(project: GoogleProject, zone: ZoneName, instanceName: InstanceName)(
-    implicit ev: ApplicativeAsk[F, TraceId]
+    implicit ev: Ask[F, TraceId]
   ): F[Option[Operation]] = {
     val projectZoneInstanceName = ProjectZoneInstanceName.of(instanceName.value, project.value, zone.value)
 
@@ -101,7 +101,7 @@ private[google2] class GoogleComputeInterpreter[F[_]: Parallel: StructuredLogger
   }
 
   override def detachDisk(project: GoogleProject, zone: ZoneName, instanceName: InstanceName, deviceName: DeviceName)(
-    implicit ev: ApplicativeAsk[F, TraceId]
+    implicit ev: Ask[F, TraceId]
   ): F[Option[Operation]] = {
     val projectZoneInstanceName = ProjectZoneInstanceName.of(instanceName.value, project.value, zone.value)
 
@@ -124,7 +124,7 @@ private[google2] class GoogleComputeInterpreter[F[_]: Parallel: StructuredLogger
   }
 
   override def getInstance(project: GoogleProject, zone: ZoneName, instanceName: InstanceName)(
-    implicit ev: ApplicativeAsk[F, TraceId]
+    implicit ev: Ask[F, TraceId]
   ): F[Option[Instance]] = {
     val projectZoneInstanceName = ProjectZoneInstanceName.of(instanceName.value, project.value, zone.value)
 
@@ -145,7 +145,7 @@ private[google2] class GoogleComputeInterpreter[F[_]: Parallel: StructuredLogger
   }
 
   override def stopInstance(project: GoogleProject, zone: ZoneName, instanceName: InstanceName)(
-    implicit ev: ApplicativeAsk[F, TraceId]
+    implicit ev: Ask[F, TraceId]
   ): F[Operation] = {
     val projectZoneInstanceName = ProjectZoneInstanceName.of(instanceName.value, project.value, zone.value)
     retryF(
@@ -155,7 +155,7 @@ private[google2] class GoogleComputeInterpreter[F[_]: Parallel: StructuredLogger
   }
 
   override def startInstance(project: GoogleProject, zone: ZoneName, instanceName: InstanceName)(
-    implicit ev: ApplicativeAsk[F, TraceId]
+    implicit ev: Ask[F, TraceId]
   ): F[Operation] = {
     val projectZoneInstanceName = ProjectZoneInstanceName.of(instanceName.value, project.value, zone.value)
     retryF(
@@ -170,7 +170,7 @@ private[google2] class GoogleComputeInterpreter[F[_]: Parallel: StructuredLogger
     instanceName: InstanceName,
     metadataToAdd: Map[String, String],
     metadataToRemove: Set[String]
-  )(implicit ev: ApplicativeAsk[F, TraceId]): F[Unit] = {
+  )(implicit ev: Ask[F, TraceId]): F[Unit] = {
     val projectZoneInstanceName = ProjectZoneInstanceName.of(instanceName.value, project.value, zone.value)
     val readAndUpdate = for {
       instanceOpt <- recoverF(F.delay(instanceClient.getInstance(projectZoneInstanceName)), whenStatusCode(404))
@@ -209,15 +209,14 @@ private[google2] class GoogleComputeInterpreter[F[_]: Parallel: StructuredLogger
     )
   }
 
-  override def addFirewallRule(project: GoogleProject,
-                               firewall: Firewall)(implicit ev: ApplicativeAsk[F, TraceId]): F[Operation] =
+  override def addFirewallRule(project: GoogleProject, firewall: Firewall)(implicit ev: Ask[F, TraceId]): F[Operation] =
     retryF(
       F.delay(firewallClient.insertFirewall(project.value, firewall)),
       s"com.google.cloud.compute.v1.FirewallClient.insertFirewall(${project.value}, ${firewall.getName})"
     )
 
   override def getFirewallRule(project: GoogleProject, firewallRuleName: FirewallRuleName)(
-    implicit ev: ApplicativeAsk[F, TraceId]
+    implicit ev: Ask[F, TraceId]
   ): F[Option[Firewall]] = {
     val projectFirewallRuleName = ProjectGlobalFirewallName.of(firewallRuleName.value, project.value)
     retryF(
@@ -230,7 +229,7 @@ private[google2] class GoogleComputeInterpreter[F[_]: Parallel: StructuredLogger
   }
 
   override def deleteFirewallRule(project: GoogleProject, firewallRuleName: FirewallRuleName)(
-    implicit ev: ApplicativeAsk[F, TraceId]
+    implicit ev: Ask[F, TraceId]
   ): F[Unit] = {
     val request =
       ProjectGlobalFirewallName.newBuilder().setProject(project.value).setFirewall(firewallRuleName.value).build
@@ -243,7 +242,7 @@ private[google2] class GoogleComputeInterpreter[F[_]: Parallel: StructuredLogger
   override def setMachineType(project: GoogleProject,
                               zone: ZoneName,
                               instanceName: InstanceName,
-                              machineTypeName: MachineTypeName)(implicit ev: ApplicativeAsk[F, TraceId]): F[Unit] = {
+                              machineTypeName: MachineTypeName)(implicit ev: Ask[F, TraceId]): F[Unit] = {
     val projectZoneInstanceName = ProjectZoneInstanceName.of(instanceName.value, project.value, zone.value)
     val request =
       InstancesSetMachineTypeRequest.newBuilder().setMachineType(buildMachineTypeUri(zone, machineTypeName)).build()
@@ -253,8 +252,7 @@ private[google2] class GoogleComputeInterpreter[F[_]: Parallel: StructuredLogger
     )
   }
 
-  override def getZones(project: GoogleProject,
-                        regionName: RegionName)(implicit ev: ApplicativeAsk[F, TraceId]): F[List[Zone]] = {
+  override def getZones(project: GoogleProject, regionName: RegionName)(implicit ev: Ask[F, TraceId]): F[List[Zone]] = {
     val request = ListZonesHttpRequest
       .newBuilder()
       .setProject(project.value)
@@ -268,7 +266,7 @@ private[google2] class GoogleComputeInterpreter[F[_]: Parallel: StructuredLogger
   }
 
   override def getMachineType(project: GoogleProject, zone: ZoneName, machineTypeName: MachineTypeName)(
-    implicit ev: ApplicativeAsk[F, TraceId]
+    implicit ev: Ask[F, TraceId]
   ): F[Option[MachineType]] = {
     val projectZoneMachineTypeName = ProjectZoneMachineTypeName.of(machineTypeName.value, project.value, zone.value)
     retryF(
@@ -278,7 +276,7 @@ private[google2] class GoogleComputeInterpreter[F[_]: Parallel: StructuredLogger
   }
 
   override def getNetwork(project: GoogleProject,
-                          networkName: NetworkName)(implicit ev: ApplicativeAsk[F, TraceId]): F[Option[Network]] = {
+                          networkName: NetworkName)(implicit ev: Ask[F, TraceId]): F[Option[Network]] = {
     val projectNetworkName =
       ProjectGlobalNetworkName.newBuilder().setProject(project.value).setNetwork(networkName.value).build
     retryF(
@@ -287,8 +285,7 @@ private[google2] class GoogleComputeInterpreter[F[_]: Parallel: StructuredLogger
     )
   }
 
-  override def createNetwork(project: GoogleProject,
-                             network: Network)(implicit ev: ApplicativeAsk[F, TraceId]): F[Operation] = {
+  override def createNetwork(project: GoogleProject, network: Network)(implicit ev: Ask[F, TraceId]): F[Operation] = {
     val projectName = ProjectName.newBuilder().setProject(project.value).build
     retryF(
       F.delay(networkClient.insertNetwork(projectName, network)),
@@ -297,7 +294,7 @@ private[google2] class GoogleComputeInterpreter[F[_]: Parallel: StructuredLogger
   }
 
   override def getSubnetwork(project: GoogleProject, region: RegionName, subnetwork: SubnetworkName)(
-    implicit ev: ApplicativeAsk[F, TraceId]
+    implicit ev: Ask[F, TraceId]
   ): F[Option[Subnetwork]] = {
     val projectRegionSubnetworkName = ProjectRegionSubnetworkName
       .newBuilder()
@@ -312,7 +309,7 @@ private[google2] class GoogleComputeInterpreter[F[_]: Parallel: StructuredLogger
   }
 
   override def createSubnetwork(project: GoogleProject, region: RegionName, subnetwork: Subnetwork)(
-    implicit ev: ApplicativeAsk[F, TraceId]
+    implicit ev: Ask[F, TraceId]
   ): F[Operation] = {
     val projectRegionName = ProjectRegionName.newBuilder().setProject(project.value).setRegion(region.value).build
     retryF(
@@ -327,7 +324,7 @@ private[google2] class GoogleComputeInterpreter[F[_]: Parallel: StructuredLogger
   private def buildRegionUri(googleProject: GoogleProject, regionName: RegionName): String =
     s"https://www.googleapis.com/compute/v1/projects/${googleProject.value}/regions/${regionName.value}"
 
-  private def retryF[A](fa: F[A], loggingMsg: String)(implicit ev: ApplicativeAsk[F, TraceId]): F[A] =
+  private def retryF[A](fa: F[A], loggingMsg: String)(implicit ev: Ask[F, TraceId]): F[A] =
     tracedRetryGoogleF(retryConfig)(blockerBound.withPermit(blocker.blockOn(fa)), loggingMsg).compile.lastOrError
 
 }

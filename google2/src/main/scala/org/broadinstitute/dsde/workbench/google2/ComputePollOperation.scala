@@ -4,7 +4,7 @@ import cats.implicits._
 import cats.Parallel
 import cats.effect.concurrent.Semaphore
 import cats.effect.{Blocker, Concurrent, ContextShift, Resource, Timer}
-import cats.mtl.ApplicativeAsk
+import cats.mtl.Ask
 import com.google.api.gax.core.FixedCredentialsProvider
 import com.google.api.services.compute.ComputeScopes
 import com.google.auth.oauth2.GoogleCredentials
@@ -24,15 +24,15 @@ trait ComputePollOperation[F[_]] {
   implicit def F: Concurrent[F]
 
   def getZoneOperation(project: GoogleProject, zoneName: ZoneName, operationName: OperationName)(
-    implicit ev: ApplicativeAsk[F, TraceId]
+    implicit ev: Ask[F, TraceId]
   ): F[Operation]
 
   def getRegionOperation(project: GoogleProject, regionName: RegionName, operationName: OperationName)(
-    implicit ev: ApplicativeAsk[F, TraceId]
+    implicit ev: Ask[F, TraceId]
   ): F[Operation]
 
   def getGlobalOperation(project: GoogleProject, operationName: OperationName)(
-    implicit ev: ApplicativeAsk[F, TraceId]
+    implicit ev: Ask[F, TraceId]
   ): F[Operation]
 
   def pollOperation[A](project: GoogleProject,
@@ -44,7 +44,7 @@ trait ComputePollOperation[F[_]] {
     whenTimeout: F[A],
     whenInterrupted: F[A]
   )(
-    implicit ev: ApplicativeAsk[F, TraceId]
+    implicit ev: Ask[F, TraceId]
   ): F[A] =
     // TODO: once a newer version of the Java Compute SDK is released investigate using
     // the operation `wait` API instead of polling `get`. See:
@@ -79,7 +79,7 @@ trait ComputePollOperation[F[_]] {
     maxAttempts: Int,
     haltWhenTrue: Option[Stream[F, Boolean]]
   )(whenDone: F[A], whenTimeout: F[A], whenInterrupted: F[A])(
-    implicit ev: ApplicativeAsk[F, TraceId]
+    implicit ev: Ask[F, TraceId]
   ): F[A] = {
     val op = getZoneOperation(project, zoneName, operationName)
     pollHelper(op, maxAttempts, delay, haltWhenTrue)(whenDone, whenTimeout, whenInterrupted)
@@ -93,7 +93,7 @@ trait ComputePollOperation[F[_]] {
     maxAttempts: Int,
     haltWhenTrue: Option[Stream[F, Boolean]]
   )(whenDone: F[A], whenTimeout: F[A], whenInterrupted: F[A])(
-    implicit ev: ApplicativeAsk[F, TraceId]
+    implicit ev: Ask[F, TraceId]
   ): F[A] = {
     val op = getRegionOperation(project, regionName, operationName)
     pollHelper(op, maxAttempts, delay, haltWhenTrue)(whenDone, whenTimeout, whenInterrupted)
@@ -106,7 +106,7 @@ trait ComputePollOperation[F[_]] {
     maxAttempts: Int,
     haltWhenTrue: Option[Stream[F, Boolean]]
   )(whenDone: F[A], whenTimeout: F[A], whenInterrupted: F[A])(
-    implicit ev: ApplicativeAsk[F, TraceId]
+    implicit ev: Ask[F, TraceId]
   ): F[A] = {
     val op = getGlobalOperation(project, operationName)
     pollHelper(op, maxAttempts, delay, haltWhenTrue)(whenDone, whenTimeout, whenInterrupted)

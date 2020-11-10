@@ -6,7 +6,7 @@ import DoneCheckableSyntax._
 import cats.Show
 import cats.implicits._
 import cats.effect.{Resource, Sync, Timer}
-import cats.mtl.ApplicativeAsk
+import cats.mtl.Ask
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential
 import com.google.api.core.ApiFutureCallback
 import com.google.api.gax.core.BackgroundResource
@@ -76,7 +76,7 @@ package object google2 {
 
   def tracedLogging[F[_]: Sync: Timer, A](fa: F[A], action: String)(
     implicit logger: StructuredLogger[F],
-    ev: ApplicativeAsk[F, TraceId]
+    ev: Ask[F, TraceId]
   ): F[A] =
     for {
       traceId <- ev.ask
@@ -85,7 +85,7 @@ package object google2 {
 
   def tracedRetryGoogleF[F[_]: Sync: Timer: RaiseThrowable: StructuredLogger, A](
     retryConfig: RetryConfig
-  )(fa: F[A], action: String)(implicit ev: ApplicativeAsk[F, TraceId]): Stream[F, A] =
+  )(fa: F[A], action: String)(implicit ev: Ask[F, TraceId]): Stream[F, A] =
     for {
       traceId <- Stream.eval(ev.ask)
       result <- retryGoogleF(retryConfig)(fa, Some(traceId), action)

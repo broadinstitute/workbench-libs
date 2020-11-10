@@ -8,7 +8,7 @@ import cats.effect.concurrent.Semaphore
 import cats.effect.implicits._
 import cats.effect.{Async, Blocker, ContextShift, Effect, Timer}
 import cats.implicits._
-import cats.mtl.ApplicativeAsk
+import cats.mtl.Ask
 import com.google.auth.oauth2.{AccessToken, GoogleCredentials}
 import com.google.common.cache.{CacheBuilder, CacheLoader}
 import com.google.container.v1.Cluster
@@ -47,7 +47,7 @@ class KubernetesInterpreter[F[_]: StructuredLogger: Effect: Timer: ContextShift]
       new CacheLoader[KubernetesClusterId, ApiClient] {
         def load(clusterId: KubernetesClusterId): ApiClient = {
           //we do not want to have to specify this at resource (class) creation time, so we create one on each load here
-          implicit val traceId = ApplicativeAsk.const[F, TraceId](TraceId(UUID.randomUUID()))
+          implicit val traceId = Ask.const[F, TraceId](TraceId(UUID.randomUUID()))
           val res = for {
             _ <- StructuredLogger[F]
               .info(s"Determined that there is no cached client for kubernetes cluster ${clusterId}. Creating a client")
@@ -73,7 +73,7 @@ class KubernetesInterpreter[F[_]: StructuredLogger: Effect: Timer: ContextShift]
 
   // https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.12/#podspec-v1-core
   override def createPod(clusterId: KubernetesClusterId, pod: KubernetesPod, namespace: KubernetesNamespace)(
-    implicit ev: ApplicativeAsk[F, TraceId]
+    implicit ev: Ask[F, TraceId]
   ): F[Unit] =
     for {
       traceId <- ev.ask
@@ -94,7 +94,7 @@ class KubernetesInterpreter[F[_]: StructuredLogger: Effect: Timer: ContextShift]
     } yield ()
 
   override def listPodStatus(clusterId: KubernetesClusterId, namespace: KubernetesNamespace)(
-    implicit ev: ApplicativeAsk[F, TraceId]
+    implicit ev: Ask[F, TraceId]
   ): F[List[KubernetesPodStatus]] =
     for {
       traceId <- ev.ask
@@ -130,7 +130,7 @@ class KubernetesInterpreter[F[_]: StructuredLogger: Effect: Timer: ContextShift]
   override def createService(clusterId: KubernetesClusterId,
                              service: KubernetesServiceKind,
                              namespace: KubernetesNamespace)(
-    implicit ev: ApplicativeAsk[F, TraceId]
+    implicit ev: Ask[F, TraceId]
   ): F[Unit] =
     for {
       traceId <- ev.ask
@@ -153,7 +153,7 @@ class KubernetesInterpreter[F[_]: StructuredLogger: Effect: Timer: ContextShift]
   override def getServiceExternalIp(clusterId: KubernetesClusterId,
                                     namespace: KubernetesNamespace,
                                     serviceName: ServiceName)(
-    implicit ev: ApplicativeAsk[F, TraceId]
+    implicit ev: Ask[F, TraceId]
   ): F[Option[IP]] =
     for {
       traceId <- ev.ask
@@ -188,7 +188,7 @@ class KubernetesInterpreter[F[_]: StructuredLogger: Effect: Timer: ContextShift]
     } yield ipOpt
 
   override def createNamespace(clusterId: KubernetesClusterId, namespace: KubernetesNamespace)(
-    implicit ev: ApplicativeAsk[F, TraceId]
+    implicit ev: Ask[F, TraceId]
   ): F[Unit] =
     for {
       traceId <- ev.ask
@@ -209,7 +209,7 @@ class KubernetesInterpreter[F[_]: StructuredLogger: Effect: Timer: ContextShift]
     } yield ()
 
   override def deleteNamespace(clusterId: KubernetesClusterId, namespace: KubernetesNamespace)(
-    implicit ev: ApplicativeAsk[F, TraceId]
+    implicit ev: Ask[F, TraceId]
   ): F[Unit] = {
     val delete = for {
       traceId <- ev.ask
@@ -239,7 +239,7 @@ class KubernetesInterpreter[F[_]: StructuredLogger: Effect: Timer: ContextShift]
   }
 
   override def createSecret(clusterId: KubernetesClusterId, namespace: KubernetesNamespace, secret: KubernetesSecret)(
-    implicit ev: ApplicativeAsk[F, TraceId]
+    implicit ev: Ask[F, TraceId]
   ): F[Unit] =
     for {
       traceId <- ev.ask
@@ -260,7 +260,7 @@ class KubernetesInterpreter[F[_]: StructuredLogger: Effect: Timer: ContextShift]
   override def createServiceAccount(clusterId: KubernetesClusterId,
                                     serviceAccount: KubernetesServiceAccount,
                                     namespace: KubernetesNamespace)(
-    implicit ev: ApplicativeAsk[F, TraceId]
+    implicit ev: Ask[F, TraceId]
   ): F[Unit] =
     for {
       traceId <- ev.ask
@@ -283,7 +283,7 @@ class KubernetesInterpreter[F[_]: StructuredLogger: Effect: Timer: ContextShift]
     } yield ()
 
   override def createRole(clusterId: KubernetesClusterId, role: KubernetesRole, namespace: KubernetesNamespace)(
-    implicit ev: ApplicativeAsk[F, TraceId]
+    implicit ev: Ask[F, TraceId]
   ): F[Unit] =
     for {
       traceId <- ev.ask
@@ -304,7 +304,7 @@ class KubernetesInterpreter[F[_]: StructuredLogger: Effect: Timer: ContextShift]
   override def createRoleBinding(clusterId: KubernetesClusterId,
                                  roleBinding: KubernetesRoleBinding,
                                  namespace: KubernetesNamespace)(
-    implicit ev: ApplicativeAsk[F, TraceId]
+    implicit ev: Ask[F, TraceId]
   ): F[Unit] =
     for {
       traceId <- ev.ask
