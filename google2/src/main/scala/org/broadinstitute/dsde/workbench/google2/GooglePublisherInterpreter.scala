@@ -2,6 +2,7 @@ package org.broadinstitute.dsde.workbench.google2
 
 import cats.effect._
 import cats.implicits._
+import cats.mtl.Ask
 import com.google.api.core.ApiFutures
 import com.google.api.gax.core.FixedCredentialsProvider
 import com.google.api.gax.rpc.AlreadyExistsException
@@ -49,6 +50,11 @@ private[google2] class GooglePublisherInterpreter[F[_]: Async: Timer: Structured
 
   def publishString: Pipe[F, String, Unit] = in => {
     in.flatMap(s => publishMessage(s, None))
+  }
+
+  override def publishOne[MessageType: Encoder](message: MessageType)(implicit ev: Ask[F, TraceId]): F[Unit] = {
+    val byteString = ByteString.copyFromUtf8(message.asJson.noSpaces)
+    tracedLogging(asyncPublishMessage(byteString),s"com.google.cloud.pubsub.v1.Publisher.publish($byteString)")
   }
 
   private def publishMessage(message: String, traceId: Option[TraceId]): Stream[F, Unit] = {
