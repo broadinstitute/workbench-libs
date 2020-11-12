@@ -7,7 +7,6 @@ import com.google.cloud.bigquery.BigQueryOptions.DefaultBigQueryFactory
 import com.google.cloud.bigquery.{BigQuery, BigQueryOptions, JobId, QueryJobConfiguration, TableResult}
 import io.chrisdavenport.log4cats.StructuredLogger
 import org.broadinstitute.dsde.workbench.model.google.GoogleProject
-import scala.collection.JavaConverters._
 
 trait GoogleBigQueryService[F[_]] {
   def query(queryJobConfiguration: QueryJobConfiguration, options: BigQuery.JobOption*): F[TableResult]
