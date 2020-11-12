@@ -29,6 +29,10 @@ trait GoogleDataprocService[F[_]] {
     createClusterConfig: Option[CreateClusterConfig]
   )(implicit ev: Ask[F, TraceId]): F[CreateClusterResponse]
 
+  def stopCluster(project: GoogleProject, region: RegionName, clusterName: DataprocClusterName)(
+    implicit ev: Ask[F, TraceId]
+  ): F[CreateClusterResponse]
+
   def deleteCluster(project: GoogleProject, region: RegionName, clusterName: DataprocClusterName)(
     implicit ev: Ask[F, TraceId]
   ): F[Option[ClusterOperationMetadata]]
