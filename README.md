@@ -111,10 +111,10 @@ Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-servic
 
 ## workbench-notifications
 
-Workbench utility libraries, built for Scala 2.12. You can find the full list of packages at [Artifactory](https://broadinstitute.jfrog.io/broadinstitute/webapp/#/artifacts/browse/tree/General/libs-release-local/org/broadinstitute/dsde/workbench/).
+Workbench utility libraries, built for Scala 2.12 and 2.13. You can find the full list of packages at [Artifactory](https://broadinstitute.jfrog.io/broadinstitute/webapp/#/artifacts/browse/tree/General/libs-release-local/org/broadinstitute/dsde/workbench/).
 
 Contains utilities for publishing email notifications to PubSub for delivery via SendGrid.
 
-Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-notifications" % "0.3-e66171c"`
+Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-notifications" % "0.3-TRAVIS-REPLACE-ME"`
 
 [Changelog](notifications/CHANGELOG.md)
