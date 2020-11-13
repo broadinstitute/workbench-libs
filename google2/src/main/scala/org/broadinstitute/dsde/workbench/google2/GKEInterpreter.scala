@@ -4,7 +4,16 @@ import cats.effect.concurrent.Semaphore
 import cats.effect.{Async, Blocker, ContextShift, Timer}
 import cats.mtl.Ask
 import com.google.cloud.container.v1.ClusterManagerClient
-import com.google.container.v1.{Cluster, CreateNodePoolRequest, GetOperationRequest, NodePool, Operation}
+import com.google.container.v1.{
+  Cluster,
+  CreateNodePoolRequest,
+  GetOperationRequest,
+  NodePool,
+  NodePoolAutoscaling,
+  Operation,
+  SetNodePoolAutoscalingRequest,
+  SetNodePoolSizeRequest
+}
 import fs2.Stream
 import io.chrisdavenport.log4cats.StructuredLogger
 import org.broadinstitute.dsde.workbench.{DoneCheckable, RetryConfig}
@@ -102,6 +111,27 @@ final class GKEInterpreter[F[_]: StructuredLogger: Timer: ContextShift](
       ),
       f"com.google.cloud.container.v1.ClusterManagerClient.deleteNodepool(${nodepoolId.toString})"
     )
+
+  override def setNodepoolAutoscaling(nodepoolId: NodepoolId, autoscaling: NodePoolAutoscaling)(
+    implicit ev: Ask[F, TraceId]
+  ): F[Operation] = {
+    val request =
+      SetNodePoolAutoscalingRequest.newBuilder().setName(nodepoolId.toString).setAutoscaling(autoscaling).build()
+
+    tracedGoogleRetryWithBlocker(
+      F.delay(clusterManagerClient.setNodePoolAutoscaling(request)),
+      f"com.google.cloud.container.v1.ClusterManagerClient.setNodePoolAutoscaling(${nodepoolId.toString}, ${autoscaling.toString})"
+    )
+  }
+
+  override def setNodepoolSize(nodepoolId: NodepoolId, nodeCount: Int)(implicit ev: Ask[F, TraceId]): F[Operation] = {
+    val request = SetNodePoolSizeRequest.newBuilder().setName(nodepoolId.toString).setNodeCount(nodeCount).build()
+
+    tracedGoogleRetryWithBlocker(
+      F.delay(clusterManagerClient.setNodePoolSize(request)),
+      f"com.google.cloud.container.v1.ClusterManagerClient.setNodePoolSize(${nodepoolId.toString}, ${nodeCount})"
+    )
+  }
 
   //delete and create operations take around ~5mins with simple tests, could be longer for larger clusters
   override def pollOperation(operationId: KubernetesOperationId, delay: FiniteDuration, maxAttempts: Int)(implicit

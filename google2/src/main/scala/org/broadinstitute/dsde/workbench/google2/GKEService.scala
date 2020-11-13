@@ -7,7 +7,7 @@ import cats.effect.{Async, Blocker, ContextShift, Resource, Sync, Timer}
 import cats.mtl.Ask
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport
 import com.google.api.client.json.jackson2.JacksonFactory
-import com.google.container.v1.{Cluster, NodePool, Operation}
+import com.google.container.v1.{Cluster, NodePool, NodePoolAutoscaling, Operation}
 import com.google.api.gax.core.FixedCredentialsProvider
 import com.google.api.services.container.Container
 import com.google.cloud.container.v1.{ClusterManagerClient, ClusterManagerSettings}
@@ -28,24 +28,30 @@ trait GKEService[F[_]] {
   // Note createCluster uses the legacy com.google.api.services.container client rather than
   // the newer com.google.container.v1 client because certain options like Workload Identity
   // are only available in the old client.
-  def createCluster(request: KubernetesCreateClusterRequest)(implicit
-    ev: Ask[F, TraceId]
+  def createCluster(request: KubernetesCreateClusterRequest)(
+    implicit ev: Ask[F, TraceId]
   ): F[Option[com.google.api.services.container.model.Operation]]
 
   def deleteCluster(clusterId: KubernetesClusterId)(implicit ev: Ask[F, TraceId]): F[Option[Operation]]
 
   def getCluster(clusterId: KubernetesClusterId)(implicit ev: Ask[F, TraceId]): F[Option[Cluster]]
 
-  def createNodepool(request: KubernetesCreateNodepoolRequest)(implicit
-    ev: Ask[F, TraceId]
+  def createNodepool(request: KubernetesCreateNodepoolRequest)(
+    implicit ev: Ask[F, TraceId]
   ): F[Option[Operation]]
 
   def getNodepool(nodepoolId: NodepoolId)(implicit ev: Ask[F, TraceId]): F[Option[NodePool]]
 
   def deleteNodepool(nodepoolId: NodepoolId)(implicit ev: Ask[F, TraceId]): F[Option[Operation]]
 
-  def pollOperation(operationId: KubernetesOperationId, delay: FiniteDuration, maxAttempts: Int)(implicit
-    ev: Ask[F, TraceId],
+  def setNodepoolAutoscaling(nodepoolId: NodepoolId, autoscaling: NodePoolAutoscaling)(
+    implicit ev: Ask[F, TraceId]
+  ): F[Operation]
+
+  def setNodepoolSize(nodepoolId: NodepoolId, nodeCount: Int)(implicit ev: Ask[F, TraceId]): F[Operation]
+
+  def pollOperation(operationId: KubernetesOperationId, delay: FiniteDuration, maxAttempts: Int)(
+    implicit ev: Ask[F, TraceId],
     doneEv: DoneCheckable[Operation]
   ): Stream[F, Operation]
 }
