@@ -9,6 +9,7 @@ import com.google.api.core.ApiFutures
 import com.google.api.gax.rpc.StatusCode.Code
 import com.google.cloud.dataproc.v1.{RegionName => _, _}
 import com.google.common.util.concurrent.MoreExecutors
+import com.google.protobuf.FieldMask
 import io.chrisdavenport.log4cats.StructuredLogger
 import org.broadinstitute.dsde.workbench.RetryConfig
 import org.broadinstitute.dsde.workbench.google2.util.RetryPredicates._
@@ -93,6 +94,78 @@ private[google2] class GoogleDataprocInterpreter[F[_]: StructuredLogger: Timer: 
   override def stopCluster(project: GoogleProject, region: RegionName, clusterName: DataprocClusterName)(
     implicit ev: Ask[F, TraceId]
   ): F[CreateClusterResponse] = ???
+
+  override def resizeCluster(project: GoogleProject,
+                             region: RegionName,
+                             clusterName: DataprocClusterName,
+                             numWorkers: Option[Int] = None,
+                             numPreemptibles: Option[Int] = None)(
+    implicit ev: Ask[F, TraceId]
+  ): F[Option[ClusterOperationMetadata]] = {
+    val workerMask = "config.worker_config.num_instances"
+    val preemptibleMask = "config.secondary_worker_config.num_instances"
+
+    val configAndMask = (numWorkers, numPreemptibles) match {
+      case (Some(nw), Some(np)) =>
+        val mask = FieldMask.newBuilder
+          .addAllPaths(List(workerMask, preemptibleMask).asJava)
+        val config = ClusterConfig.newBuilder
+          .setWorkerConfig(InstanceGroupConfig.newBuilder.setNumInstances(nw))
+          .setSecondaryWorkerConfig(InstanceGroupConfig.newBuilder.setNumInstances(np))
+        Some((config, mask))
+
+      case (Some(nw), None) =>
+        val mask = FieldMask.newBuilder
+          .addPaths(workerMask)
+        val config = ClusterConfig.newBuilder
+          .setWorkerConfig(InstanceGroupConfig.newBuilder.setNumInstances(nw))
+        Some((config, mask))
+
+      case (None, Some(np)) =>
+        val mask = FieldMask.newBuilder
+          .addPaths(preemptibleMask)
+        val config = ClusterConfig.newBuilder
+          .setSecondaryWorkerConfig(InstanceGroupConfig.newBuilder.setNumInstances(np))
+        Some((config, mask))
+
+      case (None, None) =>
+        None
+    }
+
+    val updateCluster = configAndMask.traverse {
+      case (config, mask) =>
+        val cluster = Cluster
+          .newBuilder()
+          .setClusterName(clusterName.value)
+          .setConfig(config)
+          .build()
+
+        val updateClusterRequest = UpdateClusterRequest
+          .newBuilder()
+          .setCluster(cluster)
+          .setRegion(region.value)
+          .setProjectId(project.value)
+          .setUpdateMask(mask)
+          .build()
+
+        Async[F].async[ClusterOperationMetadata] { cb =>
+          ApiFutures.addCallback(
+            clusterControllerClient.updateClusterAsync(updateClusterRequest).getMetadata,
+            callBack(cb),
+            MoreExecutors.directExecutor()
+          )
+        }
+    }
+
+    for {
+      traceId <- ev.ask
+      res <- withLogging(
+        updateCluster,
+        Some(traceId),
+        s"com.google.cloud.dataproc.v1.ClusterControllerClient.updateClusterAsync(${updateClusterRequest})"
+      )
+    } yield res
+  }
 
   override def deleteCluster(project: GoogleProject, region: RegionName, clusterName: DataprocClusterName)(
     implicit ev: Ask[F, TraceId]
