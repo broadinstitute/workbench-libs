@@ -11,7 +11,7 @@ Added:
 Changed:
 - Upgrade `cats-mtl` to `1.0.0`
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.15-TRAVIS-REPLACE-ME"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.15-426a0c2"`
 
 ## 0.14
 Changed:
