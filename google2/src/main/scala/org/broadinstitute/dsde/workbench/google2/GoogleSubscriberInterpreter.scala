@@ -78,18 +78,16 @@ object GoogleSubscriberInterpreter {
         traceId = Option(message.getAttributesMap.get("traceId")).map(s => TraceId(s))
       } yield Event(msg, traceId, message.getPublishTime, consumer)
 
-      val deliveredTimes = Subscriber.getDeliveryAttempt(message)
+      // The delivery attempt counter received from Pub/Sub if a DeadLetterPolicy is set on the subscription, and zero otherwise
+      val deliveredTimes = Option(Subscriber.getDeliveryAttempt(message)).map(_.toInt).getOrElse(-1)
 
       val loggingCtx = Map(
         "traceId" -> Option(message.getAttributesMap.get("traceId")).getOrElse(""),
         "publishTime" -> message.getPublishTime.toString,
         "attempts" -> deliveredTimes.toString
       )
-
+      println(loggingCtx)
       val result = for {
-        _ <- if (deliveredTimes > maxRetries.value)
-          logger.info(loggingCtx)(s"message reached maxRetry") >> F.delay(consumer.ack())
-        else F.unit
         res <- parseEvent.attempt
         _ <- res match {
           case Right(event) =>
