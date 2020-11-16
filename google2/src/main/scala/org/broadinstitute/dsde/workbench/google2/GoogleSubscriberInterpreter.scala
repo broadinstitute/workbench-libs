@@ -77,7 +77,7 @@ object GoogleSubscriberInterpreter {
         traceId = Option(message.getAttributesMap.get("traceId")).map(s => TraceId(s))
       } yield Event(msg, traceId, message.getPublishTime, consumer)
 
-      // The delivery attempt counter received from Pub/Sub if a DeadLetterPolicy is set on the subscription, and zero otherwise
+      // The delivery attempt counter received from Pub/Sub if a DeadLetterPolicy is set on the subscription, and null otherwise
       val deliveredTimes = Option(Subscriber.getDeliveryAttempt(message)).map(_.toInt).getOrElse(-1)
 
       val result = for {
