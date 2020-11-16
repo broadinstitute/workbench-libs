@@ -1,6 +1,6 @@
 package org.broadinstitute.dsde.workbench.google2
 
-import cats.Show
+import cats.{Parallel, Show}
 import cats.effect._
 import cats.effect.concurrent.Semaphore
 import cats.implicits._
@@ -12,6 +12,7 @@ import com.google.common.util.concurrent.MoreExecutors
 import com.google.protobuf.FieldMask
 import io.chrisdavenport.log4cats.StructuredLogger
 import org.broadinstitute.dsde.workbench.RetryConfig
+import org.broadinstitute.dsde.workbench.google2.DataprocRole.Master
 import org.broadinstitute.dsde.workbench.google2.util.RetryPredicates._
 import org.broadinstitute.dsde.workbench.model.TraceId
 import org.broadinstitute.dsde.workbench.model.google.GoogleProject
@@ -19,8 +20,9 @@ import org.broadinstitute.dsde.workbench.google2.GoogleDataprocInterpreter._
 
 import scala.collection.JavaConverters._
 
-private[google2] class GoogleDataprocInterpreter[F[_]: StructuredLogger: Timer: ContextShift](
+private[google2] class GoogleDataprocInterpreter[F[_]: StructuredLogger: Timer: Parallel: ContextShift](
   clusterControllerClient: ClusterControllerClient,
+  googleComputeService: GoogleComputeService[F],
   blocker: Blocker,
   blockerBound: Semaphore[F],
   retryConfig: RetryConfig
@@ -86,14 +88,40 @@ private[google2] class GoogleDataprocInterpreter[F[_]: StructuredLogger: Timer: 
   }
 
   /**
-   * It is actually not possible to 'stop' a Dataproc cluster altogether.
-   * What we do here is:
+   * Strictly speaking, it is not possible to 'stop' a Dataproc cluster altogether.
+   * What we do here instead is:
    *   1. remove pre-emptible instances, if any, since they are not possible to restart
    *   2. stop underlying nodes
    */
-  override def stopCluster(project: GoogleProject, region: RegionName, clusterName: DataprocClusterName)(
+  override def stopCluster(project: GoogleProject,
+                           region: RegionName,
+                           clusterName: DataprocClusterName,
+                           instances: Set[DataprocInstance],
+                           numWorkers: Option[Int] = None,
+                           numPreemptibles: Option[Int] = None,
+                           metadata: Option[Map[String, String]] = None)(
     implicit ev: Ask[F, TraceId]
-  ): F[CreateClusterResponse] = ???
+  ): F[Option[ClusterOperationMetadata]] =
+    for {
+      // First, remove all its preemptible instances, if any
+      _ <- if (numPreemptibles.exists(_ > 0))
+        resizeCluster(project, region, clusterName, numPreemptibles = Some(0))
+      else F.pure(none[ClusterOperationMetadata])
+
+      // Then, stop each instance individually
+      _ <- instances.toList.parTraverse { instance =>
+        if (instance.dataprocRole == Master && metadata.nonEmpty) {
+          googleComputeService.addInstanceMetadata(
+            instance.project,
+            instance.zone,
+            instance.name,
+            metadata.get // TODO: Refactor
+          )
+        }
+
+        googleComputeService.stopInstance(instance.project, instance.zone, instance.name)
+      }
+    } yield None
 
   override def resizeCluster(project: GoogleProject,
                              region: RegionName,
