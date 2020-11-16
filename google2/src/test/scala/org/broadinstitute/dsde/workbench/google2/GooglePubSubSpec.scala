@@ -132,7 +132,7 @@ object GooglePubSubSpec {
         )
       )(_ => /*IO(p.shutdown()) >>*/ IO.unit) //TODO: shutdown properly. Somehow this hangs the publisher unit test
       subscription = ProjectSubscriptionName.of(projectTopicName.getProject, projectTopicName.getTopic)
-      receiver = GoogleSubscriberInterpreter.receiver(queue)
+      receiver = GoogleSubscriberInterpreter.receiver(queue, MaxRetries(3))
       sub <- Resource.liftF(
         IO(
           Subscriber

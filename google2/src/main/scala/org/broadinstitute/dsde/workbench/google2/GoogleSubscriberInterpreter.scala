@@ -21,13 +21,14 @@ import com.google.protobuf.Timestamp
 
 import scala.concurrent.duration.FiniteDuration
 
-private[google2] class GoogleSubscriberInterpreter[F[_]: Async: Timer: ContextShift, MessageType](
+private[google2] class GoogleSubscriberInterpreter[F[_]: Timer: ContextShift, MessageType](
   subscriber: Subscriber,
   queue: fs2.concurrent.Queue[F, Event[MessageType]]
-) extends GoogleSubscriber[F, MessageType] {
+)(implicit F: Async[F])
+    extends GoogleSubscriber[F, MessageType] {
   val messages: Stream[F, Event[MessageType]] = queue.dequeue
 
-  def start: F[Unit] = Async[F].async[Unit] { callback =>
+  def start: F[Unit] = F.async[Unit] { callback =>
     subscriber.addListener(
       new ApiService.Listener() {
         override def failed(from: ApiService.State, failure: Throwable): Unit =
@@ -41,7 +42,7 @@ private[google2] class GoogleSubscriberInterpreter[F[_]: Async: Timer: ContextSh
   }
 
   def stop: F[Unit] =
-    Async[F].async[Unit] { callback =>
+    F.async[Unit] { callback =>
       subscriber.addListener(
         new ApiService.Listener() {
           override def failed(from: ApiService.State, failure: Throwable): Unit =
@@ -61,27 +62,34 @@ object GoogleSubscriberInterpreter {
     queue: fs2.concurrent.Queue[F, Event[MessageType]]
   ): GoogleSubscriberInterpreter[F, MessageType] = new GoogleSubscriberInterpreter[F, MessageType](subscriber, queue)
 
-  private[google2] def receiver[F[_]: Effect, MessageType: Decoder](
-    queue: fs2.concurrent.Queue[F, Event[MessageType]]
-  )(implicit logger: StructuredLogger[F]): MessageReceiver = new MessageReceiver() {
+  private[google2] def receiver[F[_], MessageType: Decoder](
+    queue: fs2.concurrent.Queue[F, Event[MessageType]],
+    maxRetries: MaxRetries
+  )(implicit logger: StructuredLogger[F], F: Effect[F]): MessageReceiver = new MessageReceiver() {
     override def receiveMessage(message: PubsubMessage, consumer: AckReplyConsumer): Unit = {
       val parseEvent = for {
-        isJson <- Effect[F].fromEither(parse(message.getData.toStringUtf8)).attempt
+        isJson <- F.fromEither(parse(message.getData.toStringUtf8)).attempt
         msg <- isJson match {
           case Left(_) =>
-            Effect[F].raiseError[MessageType](new Exception(s"${message.getData.toStringUtf8} is not a valid Json"))
+            F.raiseError[MessageType](new Exception(s"${message.getData.toStringUtf8} is not a valid Json"))
           case Right(json) =>
-            Effect[F].fromEither(json.as[MessageType])
+            F.fromEither(json.as[MessageType])
         }
         traceId = Option(message.getAttributesMap.get("traceId")).map(s => TraceId(s))
       } yield Event(msg, traceId, message.getPublishTime, consumer)
 
+      val deliveredTimes = Subscriber.getDeliveryAttempt(message)
+
       val loggingCtx = Map(
         "traceId" -> Option(message.getAttributesMap.get("traceId")).getOrElse(""),
-        "publishTime" -> message.getPublishTime.toString
+        "publishTime" -> message.getPublishTime.toString,
+        "attempts" -> deliveredTimes.toString
       )
 
       val result = for {
+        _ <- if (deliveredTimes > maxRetries.value)
+          logger.info(loggingCtx)(s"message reached maxRetry") >> F.delay(consumer.ack())
+        else F.unit
         res <- parseEvent.attempt
         _ <- res match {
           case Right(event) =>
@@ -90,7 +98,7 @@ object GoogleSubscriberInterpreter {
 
               _ <- r match {
                 case Left(e) =>
-                  logger.info(loggingCtx)(s"Subscriber fail to enqueue $message due to $e") >> Effect[F].delay(
+                  logger.info(loggingCtx)(s"Subscriber fail to enqueue $message due to $e") >> F.delay(
                     consumer.nack()
                   ) //pubsub will resend the message up to ackDeadlineSeconds (this is configed during subscription creation)
                 case Right(_) =>
@@ -99,7 +107,7 @@ object GoogleSubscriberInterpreter {
             } yield ()
           case Left(e) =>
             logger
-              .info(s"Subscriber fail to decode message ${message} due to ${e}. Going to ack the message") >> Effect[F]
+              .info(s"Subscriber fail to decode message ${message} due to ${e}. Going to ack the message") >> F
               .delay(consumer.ack())
         }
       } yield ()
@@ -139,7 +147,7 @@ object GoogleSubscriberInterpreter {
             .setMaxOutstandingRequestBytes(config.maxOutstandingRequestBytes)
             .build
       )
-      sub <- subscriberResource(queue, subscription, credential, flowControlSettings)
+      sub <- subscriberResource(queue, subscription, credential, subscriberConfig.maxRetries, flowControlSettings)
     } yield sub
   }
 
@@ -169,12 +177,13 @@ object GoogleSubscriberInterpreter {
     queue: Queue[F, Event[MessageType]],
     subscription: ProjectSubscriptionName,
     credential: ServiceAccountCredentials,
+    maxRetries: MaxRetries,
     flowControlSettings: Option[FlowControlSettings]
   ): Resource[F, Subscriber] = {
     val subscriber = for {
       builder <- Sync[F].delay(
         Subscriber
-          .newBuilder(subscription, receiver(queue))
+          .newBuilder(subscription, receiver(queue, maxRetries))
           .setCredentialsProvider(FixedCredentialsProvider.create(credential))
       )
       builderWithFlowControlSetting <- flowControlSettings.traverse { fcs =>
