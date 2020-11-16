@@ -10,8 +10,9 @@ Added:
 
 Changed:
 - Upgrade `cats-mtl` to `1.0.0`
+- Fix a bug where `maxRetry` in SubscriberConfig not respected
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.15-426a0c2"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.15-TRAVIS-REPLACE-ME"`
 
 ## 0.14
 Changed:
