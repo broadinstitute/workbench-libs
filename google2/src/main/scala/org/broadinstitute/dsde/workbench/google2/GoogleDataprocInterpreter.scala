@@ -132,7 +132,7 @@ private[google2] class GoogleDataprocInterpreter[F[_]: StructuredLogger: Timer: 
         None
     }
 
-    val updateCluster = configAndMask.traverse {
+    val updateClusterRequest = configAndMask.map {
       case (config, mask) =>
         val cluster = Cluster
           .newBuilder()
@@ -140,22 +140,30 @@ private[google2] class GoogleDataprocInterpreter[F[_]: StructuredLogger: Timer: 
           .setConfig(config)
           .build()
 
-        val updateClusterRequest = UpdateClusterRequest
+        UpdateClusterRequest
           .newBuilder()
           .setCluster(cluster)
           .setRegion(region.value)
           .setProjectId(project.value)
           .setUpdateMask(mask)
           .build()
-
-        Async[F].async[ClusterOperationMetadata] { cb =>
-          ApiFutures.addCallback(
-            clusterControllerClient.updateClusterAsync(updateClusterRequest).getMetadata,
-            callBack(cb),
-            MoreExecutors.directExecutor()
-          )
-        }
     }
+
+    val updateCluster = updateClusterRequest
+      .traverse { request =>
+        Async[F]
+          .async[ClusterOperationMetadata] { cb =>
+            ApiFutures.addCallback(
+              clusterControllerClient.updateClusterAsync(request).getMetadata,
+              callBack(cb),
+              MoreExecutors.directExecutor()
+            )
+          }
+      }
+      .handleErrorWith {
+        case _: com.google.api.gax.rpc.NotFoundException => F.pure(none[ClusterOperationMetadata])
+        case e                                           => F.raiseError[Option[ClusterOperationMetadata]](e)
+      }
 
     for {
       traceId <- ev.ask
