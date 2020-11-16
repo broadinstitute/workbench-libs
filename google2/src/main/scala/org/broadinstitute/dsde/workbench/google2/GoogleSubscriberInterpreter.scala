@@ -10,6 +10,7 @@ import com.google.api.gax.rpc.AlreadyExistsException
 import com.google.auth.oauth2.ServiceAccountCredentials
 import com.google.cloud.pubsub.v1._
 import com.google.common.util.concurrent.MoreExecutors
+import com.google.protobuf.Timestamp
 import com.google.pubsub.v1.{PubsubMessage, _}
 import fs2.Stream
 import fs2.concurrent.Queue
@@ -17,7 +18,6 @@ import io.chrisdavenport.log4cats.{Logger, StructuredLogger}
 import io.circe.Decoder
 import io.circe.parser._
 import org.broadinstitute.dsde.workbench.model.TraceId
-import com.google.protobuf.Timestamp
 
 import scala.concurrent.duration.FiniteDuration
 
@@ -63,8 +63,7 @@ object GoogleSubscriberInterpreter {
   ): GoogleSubscriberInterpreter[F, MessageType] = new GoogleSubscriberInterpreter[F, MessageType](subscriber, queue)
 
   private[google2] def receiver[F[_], MessageType: Decoder](
-    queue: fs2.concurrent.Queue[F, Event[MessageType]],
-    maxRetries: MaxRetries
+    queue: fs2.concurrent.Queue[F, Event[MessageType]]
   )(implicit logger: StructuredLogger[F], F: Effect[F]): MessageReceiver = new MessageReceiver() {
     override def receiveMessage(message: PubsubMessage, consumer: AckReplyConsumer): Unit = {
       val parseEvent = for {
@@ -81,12 +80,6 @@ object GoogleSubscriberInterpreter {
       // The delivery attempt counter received from Pub/Sub if a DeadLetterPolicy is set on the subscription, and zero otherwise
       val deliveredTimes = Option(Subscriber.getDeliveryAttempt(message)).map(_.toInt).getOrElse(-1)
 
-      val loggingCtx = Map(
-        "traceId" -> Option(message.getAttributesMap.get("traceId")).getOrElse(""),
-        "publishTime" -> message.getPublishTime.toString,
-        "attempts" -> deliveredTimes.toString
-      )
-      println(loggingCtx)
       val result = for {
         res <- parseEvent.attempt
         _ <- res match {
@@ -96,11 +89,11 @@ object GoogleSubscriberInterpreter {
 
               _ <- r match {
                 case Left(e) =>
-                  logger.info(loggingCtx)(s"Subscriber fail to enqueue $message due to $e") >> F.delay(
+                  logger.info(s"Subscriber fail to enqueue $message due to $e") >> F.delay(
                     consumer.nack()
                   ) //pubsub will resend the message up to ackDeadlineSeconds (this is configed during subscription creation)
                 case Right(_) =>
-                  logger.info(loggingCtx)(s"Subscriber Successfully received $message.")
+                  logger.info(s"Subscriber Successfully received $message.")
               }
             } yield ()
           case Left(e) =>
@@ -131,8 +124,9 @@ object GoogleSubscriberInterpreter {
     subscriberConfig: SubscriberConfig,
     queue: fs2.concurrent.Queue[F, Event[MessageType]]
   ): Resource[F, Subscriber] = {
-    val subscription =
+    val subscription = subscriberConfig.subscriptionName.getOrElse(
       ProjectSubscriptionName.of(subscriberConfig.topicName.getProject, subscriberConfig.topicName.getTopic)
+    )
 
     for {
       credential <- credentialResource(subscriberConfig.pathToCredentialJson)
@@ -145,7 +139,7 @@ object GoogleSubscriberInterpreter {
             .setMaxOutstandingRequestBytes(config.maxOutstandingRequestBytes)
             .build
       )
-      sub <- subscriberResource(queue, subscription, credential, subscriberConfig.maxRetries, flowControlSettings)
+      sub <- subscriberResource(queue, subscription, credential, flowControlSettings)
     } yield sub
   }
 
@@ -153,8 +147,9 @@ object GoogleSubscriberInterpreter {
     subscriberConfig: SubscriberConfig,
     queue: fs2.concurrent.Queue[F, Event[String]]
   ): Resource[F, Subscriber] = {
-    val subscription =
+    val subscription = subscriberConfig.subscriptionName.getOrElse(
       ProjectSubscriptionName.of(subscriberConfig.topicName.getProject, subscriberConfig.topicName.getTopic)
+    )
 
     for {
       credential <- credentialResource(subscriberConfig.pathToCredentialJson)
@@ -175,13 +170,12 @@ object GoogleSubscriberInterpreter {
     queue: Queue[F, Event[MessageType]],
     subscription: ProjectSubscriptionName,
     credential: ServiceAccountCredentials,
-    maxRetries: MaxRetries,
     flowControlSettings: Option[FlowControlSettings]
   ): Resource[F, Subscriber] = {
     val subscriber = for {
       builder <- Sync[F].delay(
         Subscriber
-          .newBuilder(subscription, receiver(queue, maxRetries))
+          .newBuilder(subscription, receiver(queue))
           .setCredentialsProvider(FixedCredentialsProvider.create(credential))
       )
       builderWithFlowControlSetting <- flowControlSettings.traverse { fcs =>
@@ -213,25 +207,33 @@ object GoogleSubscriberInterpreter {
   }
 
   private def createSubscription[F[_]: Effect: Logger](
-    subsriberConfig: SubscriberConfig,
+    subscriberConfig: SubscriberConfig,
     subscription: ProjectSubscriptionName,
     subscriptionAdminClient: SubscriptionAdminClient
   ): Resource[F, Unit] = {
     val sub = Subscription
       .newBuilder()
       .setName(subscription.toString)
-      .setTopic(subsriberConfig.topicName.toString)
+      .setTopic(subscriberConfig.topicName.toString)
       .setPushConfig(PushConfig.getDefaultInstance)
-      .setAckDeadlineSeconds(subsriberConfig.ackDeadLine.toSeconds.toInt)
-//   Comment this out since this causes this error: INVALID_ARGUMENT: Invalid resource name given (name=). Refer to https://cloud.google.com/pubsub/docs/admin#resource_names for more information
-//      .setDeadLetterPolicy(
-//        DeadLetterPolicy.newBuilder().setMaxDeliveryAttempts(subsriberConfig.maxRetries.value).build()
-//      )
-      .build()
+      .setAckDeadlineSeconds(subscriberConfig.ackDeadLine.toSeconds.toInt)
+
+    val subWithDeadLetterPolicy = subscriberConfig.deadLetterPolicy.fold(sub.build()) { deadLetterPolicy =>
+      sub
+        .setDeadLetterPolicy(
+          DeadLetterPolicy
+            .newBuilder()
+            .setDeadLetterTopic(deadLetterPolicy.topicName.toString)
+            .setMaxDeliveryAttempts(deadLetterPolicy.maxRetries.value)
+            .build()
+        )
+        .build()
+    }
+
     Resource.liftF(
       Async[F]
         .delay(
-          subscriptionAdminClient.createSubscription(sub)
+          subscriptionAdminClient.createSubscription(subWithDeadLetterPolicy)
         )
         .void
         .recover {
@@ -254,10 +256,15 @@ object GoogleSubscriberInterpreter {
 }
 
 final case class FlowControlSettingsConfig(maxOutstandingElementCount: Long, maxOutstandingRequestBytes: Long)
-final case class SubscriberConfig(pathToCredentialJson: String,
-                                  topicName: TopicName,
-                                  ackDeadLine: FiniteDuration,
-                                  maxRetries: MaxRetries,
-                                  flowControlSettingsConfig: Option[FlowControlSettingsConfig])
+final case class SubscriberConfig(
+  pathToCredentialJson: String,
+  topicName: TopicName,
+  subscriptionName: Option[ProjectSubscriptionName], //it'll have the same name as topic if this is None
+  ackDeadLine: FiniteDuration,
+  deadLetterPolicy: Option[SubscriberDeadLetterPolicy],
+  flowControlSettingsConfig: Option[FlowControlSettingsConfig]
+)
 final case class MaxRetries(value: Int) extends AnyVal
+final case class SubscriberDeadLetterPolicy(topicName: TopicName, maxRetries: MaxRetries)
+
 final case class Event[A](msg: A, traceId: Option[TraceId] = None, publishedTime: Timestamp, consumer: AckReplyConsumer)

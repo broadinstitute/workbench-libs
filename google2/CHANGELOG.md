@@ -2,6 +2,13 @@
 
 This file documents changes to the `workbench-google2` library, including notes on how to upgrade to new versions.
 
+## 0.16
+
+Changed:
+- Add `subscriptionName: Option[ProjectSubscriptionName]` and `deadLetterPolicy: Option[SubscriberDeadLetterPolicy]` to `SubscriberConfig`
+
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.16-TRAVIS-REPLACE-ME"`
+
 ## 0.15
 
 Added:
@@ -10,9 +17,8 @@ Added:
 
 Changed:
 - Upgrade `cats-mtl` to `1.0.0`
-- Fix a bug where `maxRetry` in SubscriberConfig not respected
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.15-TRAVIS-REPLACE-ME"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.15-426a0c2"`
 
 ## 0.14
 Changed:
