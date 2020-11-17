@@ -4,10 +4,13 @@ This file documents changes to the `workbench-notifications` library, including 
 
 ## 0.3
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util" % "0.3-4c7acd5"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util" % "0.3-426a0c2"`
 
 ### Changed
 - Moved `SamModel`
+
+### Added
+- Support scala 2.13
 
 ## 0.2
 - upgrade cats to 1.4.0 and scala to 2.12.7

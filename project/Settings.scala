@@ -27,13 +27,6 @@ object Settings {
   )
 
   lazy val commonCompilerSettings = scalacOptions ++= (CrossVersion.partialVersion(scalaVersion.value) match {
-    case Some((2, n)) if n <= 11 => // for 2.11 all we care about is capabilities, not warnings
-      Seq(
-        "-language:existentials", // Existential types (besides wildcard types) can be written and inferred
-        "-language:higherKinds", // Allow higher-kinded types
-        "-language:implicitConversions", // Allow definition of implicit functions called views
-        "-Ypartial-unification" // Enable partial unification in type constructor inference
-      )
     case Some((2, 12)) =>
       Seq(
         "-deprecation", // Emit warning and location for usages of deprecated APIs.
@@ -66,7 +59,6 @@ object Settings {
         "-Xlint:type-parameter-shadow", // A local type parameter shadows a type already in scope.
         "-Xlint:unsound-match", // Pattern match may not be typesafe.
         "-Yno-adapted-args", // Do not adapt an argument list (either by inserting () or creating a tuple) to match the receiver.
-        // "-Yno-imports",                      // No predef or default imports
         "-Ypartial-unification", // Enable partial unification in type constructor inference
         "-Ywarn-dead-code", // Warn when dead code is identified.
         "-Ywarn-extra-implicit", // Warn when more than one implicit parameter section is defined.
@@ -74,14 +66,9 @@ object Settings {
         "-Ywarn-infer-any", // Warn when a type argument is inferred to be `Any`.
         "-Ywarn-nullary-override", // Warn when non-nullary `def f()' overrides nullary `def f'.
         "-Ywarn-nullary-unit", // Warn when nullary methods return Unit.
-//        "-Ywarn-numeric-widen",              // Warn when numerics are widened.
         "-Ywarn-unused:implicits", // Warn if an implicit parameter is unused.
         "-Ywarn-unused:imports", // Warn if an import selector is not referenced.
-//        "-Ywarn-unused:locals",              // Warn if a local definition is unused.
-//        "-Ywarn-unused:params",              // Warn if a value parameter is unused.
         "-Ywarn-unused:patvars", // Warn if a variable bound in a pattern is unused.
-//        "-Ywarn-unused:privates",            // Warn if a private member is unused.
-//        "-Ywarn-value-discard",               // Warn when non-Unit expression results are unused.
         "-language:postfixOps"
       )
     case Some((2, 13)) =>
@@ -112,14 +99,10 @@ object Settings {
         "-Xlint:type-parameter-shadow", // A local type parameter shadows a type already in scope.
         "-Ywarn-dead-code", // Warn when dead code is identified.
         "-Ywarn-extra-implicit", // Warn when more than one implicit parameter section is defined.
-//      "-Ywarn-numeric-widen", // Warn when numerics are widened.
-//        "-Ywarn-unused:implicits", // Warn if an implicit parameter is unused.
-//        "-Ywarn-unused:imports", // Warn if an import selector is not referenced.
         "-Ywarn-unused:locals", // Warn if a local definition is unused.
         "-Ywarn-unused:params", // Warn if a value parameter is unused.
         "-Ywarn-unused:patvars", // Warn if a variable bound in a pattern is unused.
         "-Ywarn-unused:privates", // Warn if a private member is unused.
-//        "-Ywarn-value-discard", // Warn when non-Unit expression results are unused.
         "-Ybackend-parallelism",
         "8", // Enable paralellisation — change to desired number!
         "-Ycache-plugin-class-loader:last-modified", // Enables caching of classloaders for compiler plugins
@@ -128,12 +111,8 @@ object Settings {
       )
   })
 
-  val only212 = Seq(
-    crossScalaVersions := List("2.12.11")
-  )
-
   val cross212and213 = Seq(
-    crossScalaVersions := List("2.12.11", "2.13.2")
+    crossScalaVersions := List("2.12.12", "2.13.3")
   )
 
   //common settings for all sbt subprojects
@@ -178,7 +157,7 @@ object Settings {
   val google2Settings = cross212and213 ++ commonSettings ++ List(
     name := "workbench-google2",
     libraryDependencies ++= google2Dependencies,
-    version := createVersion("0.15")
+    version := createVersion("0.16")
   ) ++ publishSettings
 
   val openTelemetrySettings = cross212and213 ++ commonSettings ++ List(
@@ -199,7 +178,7 @@ object Settings {
     version := createVersion("0.18")
   ) ++ publishSettings
 
-  val notificationsSettings = only212 ++ commonSettings ++ List(
+  val notificationsSettings = cross212and213 ++ commonSettings ++ List(
     name := "workbench-notifications",
     libraryDependencies ++= notificationsDependencies,
     version := createVersion("0.3")
