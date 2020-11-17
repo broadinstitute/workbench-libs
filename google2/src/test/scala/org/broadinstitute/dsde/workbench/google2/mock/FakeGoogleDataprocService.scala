@@ -16,6 +16,24 @@ class BaseFakeGoogleDataprocService extends GoogleDataprocService[IO] {
     createClusterConfig: Option[CreateClusterConfig]
   )(implicit ev: Ask[IO, TraceId]): IO[CreateClusterResponse] = IO.pure(CreateClusterResponse.AlreadyExists)
 
+  override def stopCluster(project: GoogleProject,
+                           region: RegionName,
+                           clusterName: DataprocClusterName,
+                           instances: Set[DataprocInstance],
+                           numWorkers: Option[Int] = None,
+                           numPreemptibles: Option[Int] = None,
+                           metadata: Option[Map[String, String]] = None)(
+    implicit ev: Ask[IO, TraceId]
+  ): IO[Option[ClusterOperationMetadata]] = IO.pure(none[ClusterOperationMetadata])
+
+  override def resizeCluster(project: GoogleProject,
+                             region: RegionName,
+                             clusterName: DataprocClusterName,
+                             numWorkers: Option[Int] = None,
+                             numPreemptibles: Option[Int] = None)(
+    implicit ev: Ask[IO, TraceId]
+  ): IO[Option[ClusterOperationMetadata]] = IO.pure(none[ClusterOperationMetadata])
+
   override def deleteCluster(project: GoogleProject, region: RegionName, clusterName: DataprocClusterName)(
     implicit ev: Ask[IO, TraceId]
   ): IO[Option[ClusterOperationMetadata]] = IO.pure(none[ClusterOperationMetadata])

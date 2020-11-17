@@ -89,9 +89,9 @@ private[google2] class GoogleDataprocInterpreter[F[_]: StructuredLogger: Timer: 
 
   /**
    * Strictly speaking, it is not possible to 'stop' a Dataproc cluster altogether.
-   * What we do here instead is:
-   *   1. remove pre-emptible instances, if any, since they are not possible to restart
-   *   2. stop underlying nodes
+   * Instead, we approximate by:
+   *   1. removing pre-emptible instances (if any) by resizing the cluster, since they would not be possible to restart
+   *   2. stopping underlying nodes individually
    */
   override def stopCluster(project: GoogleProject,
                            region: RegionName,
