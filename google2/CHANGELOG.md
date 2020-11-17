@@ -2,6 +2,12 @@
 
 This file documents changes to the `workbench-google2` library, including notes on how to upgrade to new versions.
 
+## 0.17
+
+Changed:
+- `GoogleDataprocInterpreter` now requires a `GoogleComputeService` instance so it can stop and resize Dataproc
+cluster nodes.
+
 ## 0.16
 
 Changed:
