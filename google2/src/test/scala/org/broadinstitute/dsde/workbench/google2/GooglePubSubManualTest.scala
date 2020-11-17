@@ -10,7 +10,7 @@ import cats.implicits._
 import scala.concurrent.ExecutionContext.global
 import scala.concurrent.duration._
 
-object GooglePubSubMannualTest {
+object GooglePubSubManualTest {
   implicit val cs = IO.contextShift(global)
   implicit val t = IO.timer(global)
   implicit def logger = Slf4jLogger.getLogger[IO]
@@ -26,7 +26,7 @@ object GooglePubSubMannualTest {
   /**
    * How to use this:
    * 1. sbt "project workbenchGoogle2" test:console
-   * 2. val res = org.broadinstitute.dsde.workbench.google2.GooglePubSubMannualTest.publish()
+   * 2. val res = org.broadinstitute.dsde.workbench.google2.GooglePubSubManualTest.publish()
    * 3. res.unsafeRunSync
    *
    * You can now see messages being published
@@ -46,7 +46,7 @@ object GooglePubSubMannualTest {
   /**
    * How to use this:
    * 1. sbt "project workbenchGoogle2" test:console
-   * 2. val res = org.broadinstitute.dsde.workbench.google2.GooglePubSubMannualTest.subscriber()
+   * 2. val res = org.broadinstitute.dsde.workbench.google2.GooglePubSubManualTest.subscriber()
    * 3. res.unsafeRunSync
    *
    * You can now publish messages in console and watch messages being printed out

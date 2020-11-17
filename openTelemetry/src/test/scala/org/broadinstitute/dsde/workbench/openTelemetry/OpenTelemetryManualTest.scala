@@ -7,7 +7,7 @@ import io.opencensus.trace.Tracing
 import io.opencensus.trace.samplers.Samplers
 import scala.concurrent.ExecutionContext.global
 
-object OpenTelemetryMannualTest {
+object OpenTelemetryManualTest {
   implicit val cs = IO.contextShift(global)
 
   private def test(): IO[Unit] = IO {
