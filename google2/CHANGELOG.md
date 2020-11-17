@@ -7,7 +7,7 @@ This file documents changes to the `workbench-google2` library, including notes 
 Changed:
 - Add `subscriptionName: Option[ProjectSubscriptionName]` and `deadLetterPolicy: Option[SubscriberDeadLetterPolicy]` to `SubscriberConfig`
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.16-TRAVIS-REPLACE-ME"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.16-a002ea3"`
 
 ## 0.15
 
