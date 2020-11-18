@@ -52,7 +52,7 @@ object GooglePubSubMannualTest {
    * You can now publish messages in console and watch messages being printed out
    */
   def subscriber() = {
-    val config = SubscriberConfig(path, projectTopicName, None, 1 minute, None, None)
+    val config = SubscriberConfig(path, projectTopicName, None, 1 minute, None, None, None)
     for {
       queue <- InspectableQueue.bounded[IO, Event[Messagee]](100)
       sub = GoogleSubscriber.resource[IO, Messagee](config, queue)
