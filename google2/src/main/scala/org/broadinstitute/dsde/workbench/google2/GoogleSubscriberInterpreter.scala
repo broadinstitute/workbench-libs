@@ -211,15 +211,15 @@ object GoogleSubscriberInterpreter {
     subscription: ProjectSubscriptionName,
     subscriptionAdminClient: SubscriptionAdminClient
   ): Resource[F, Unit] = {
-    val sub = Subscription
+    val initialSub = Subscription
       .newBuilder()
       .setName(subscription.toString)
       .setTopic(subscriberConfig.topicName.toString)
       .setPushConfig(PushConfig.getDefaultInstance)
       .setAckDeadlineSeconds(subscriberConfig.ackDeadLine.toSeconds.toInt)
 
-    val subWithDeadLetterPolicy = subscriberConfig.deadLetterPolicy.fold(sub.build()) { deadLetterPolicy =>
-      sub
+    val subWithDeadLetterPolicy = subscriberConfig.deadLetterPolicy.fold(initialSub) { deadLetterPolicy =>
+      initialSub
         .setDeadLetterPolicy(
           DeadLetterPolicy
             .newBuilder()
@@ -227,13 +227,16 @@ object GoogleSubscriberInterpreter {
             .setMaxDeliveryAttempts(deadLetterPolicy.maxRetries.value)
             .build()
         )
-        .build()
+    }
+
+    val sub = subscriberConfig.filter.fold(subWithDeadLetterPolicy.build()) { ft =>
+      subWithDeadLetterPolicy.setFilter(ft).build()
     }
 
     Resource.liftF(
       Async[F]
         .delay(
-          subscriptionAdminClient.createSubscription(subWithDeadLetterPolicy)
+          subscriptionAdminClient.createSubscription(sub)
         )
         .void
         .recover {
@@ -262,7 +265,8 @@ final case class SubscriberConfig(
   subscriptionName: Option[ProjectSubscriptionName], //it'll have the same name as topic if this is None
   ackDeadLine: FiniteDuration,
   deadLetterPolicy: Option[SubscriberDeadLetterPolicy],
-  flowControlSettingsConfig: Option[FlowControlSettingsConfig]
+  flowControlSettingsConfig: Option[FlowControlSettingsConfig],
+  filter: Option[String]
 )
 final case class MaxRetries(value: Int) extends AnyVal
 final case class SubscriberDeadLetterPolicy(topicName: TopicName, maxRetries: MaxRetries)
