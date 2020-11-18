@@ -97,9 +97,9 @@ private[google2] class GoogleDataprocInterpreter[F[_]: StructuredLogger: Timer: 
                            region: RegionName,
                            clusterName: DataprocClusterName,
                            instances: Set[DataprocInstance],
-                           numWorkers: Option[Int] = None,
-                           numPreemptibles: Option[Int] = None,
-                           metadata: Option[Map[String, String]] = None)(
+                           numWorkers: Option[Int],
+                           numPreemptibles: Option[Int],
+                           metadata: Option[Map[String, String]])(
     implicit ev: Ask[F, TraceId]
   ): F[Option[ClusterOperationMetadata]] =
     for {
@@ -126,8 +126,8 @@ private[google2] class GoogleDataprocInterpreter[F[_]: StructuredLogger: Timer: 
   override def resizeCluster(project: GoogleProject,
                              region: RegionName,
                              clusterName: DataprocClusterName,
-                             numWorkers: Option[Int] = None,
-                             numPreemptibles: Option[Int] = None)(
+                             numWorkers: Option[Int],
+                             numPreemptibles: Option[Int])(
     implicit ev: Ask[F, TraceId]
   ): F[Option[ClusterOperationMetadata]] = {
     val workerMask = "config.worker_config.num_instances"

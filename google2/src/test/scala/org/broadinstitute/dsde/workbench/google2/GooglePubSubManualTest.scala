@@ -20,7 +20,7 @@ object GooglePubSubManualTest {
   val projectTopicName = ProjectTopicName.of("your google project", "your topic name")
   val path = "your service account path"
 
-  val printPipe: Pipe[IO, Event[Messagee], Unit] = in =>
+  val printPipe: Pipe[IO, Event[Message], Unit] = in =>
     in.evalMap(s => IO(println("processed " + s)) >> IO(s.consumer.ack()))
 
   /**
@@ -41,7 +41,7 @@ object GooglePubSubManualTest {
     pub.use(x => (Stream.eval(IO.pure("yes")) through x.publish).compile.drain)
   }
 
-  implicit val msgDecoder: Decoder[Messagee] = Decoder.forProduct1("msg")(Messagee)
+  implicit val msgDecoder: Decoder[Message] = Decoder.forProduct1("msg")(Message)
 
   /**
    * How to use this:
@@ -54,8 +54,8 @@ object GooglePubSubManualTest {
   def subscriber() = {
     val config = SubscriberConfig(path, projectTopicName, None, 1 minute, None, None, None)
     for {
-      queue <- InspectableQueue.bounded[IO, Event[Messagee]](100)
-      sub = GoogleSubscriber.resource[IO, Messagee](config, queue)
+      queue <- InspectableQueue.bounded[IO, Event[Message]](100)
+      sub = GoogleSubscriber.resource[IO, Message](config, queue)
       _ <- sub.use { s =>
         val stream = Stream(
           Stream.eval(s.start),
@@ -67,4 +67,4 @@ object GooglePubSubManualTest {
   }
 }
 
-final case class Messagee(msg: String)
+final case class Message(msg: String)

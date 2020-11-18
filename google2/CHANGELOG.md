@@ -3,20 +3,20 @@
 This file documents changes to the `workbench-google2` library, including notes on how to upgrade to new versions.
 
 ## 0.17
+Added:
+- `GoogleDataprocInterpreter` can resize clusters and stop cluster VMs.
 
 Changed:
-- `GoogleDataprocInterpreter` now requires a `GoogleComputeService` instance so it can stop and resize Dataproc
+- `GoogleDataprocInterpreter` requires a `GoogleComputeService` instance so it can stop and resize Dataproc
 cluster nodes.
 
 ## 0.16
-
 Changed:
 - Add `subscriptionName: Option[ProjectSubscriptionName]`, `deadLetterPolicy: Option[SubscriberDeadLetterPolicy]` and `filter: Option[String]` to `SubscriberConfig`
 
 SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.16-87a7a9b"`
 
 ## 0.15
-
 Added:
 - Add `FakeGooglePublisher` mock	
 - Add `publishOne` to `GooglePublisher`	

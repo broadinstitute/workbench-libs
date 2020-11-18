@@ -36,17 +36,17 @@ trait GoogleDataprocService[F[_]] {
                   region: RegionName,
                   clusterName: DataprocClusterName,
                   instances: Set[DataprocInstance],
-                  numWorkers: Option[Int] = None,
-                  numPreemptibles: Option[Int] = None,
-                  metadata: Option[Map[String, String]] = None)(
+                  numWorkers: Option[Int],
+                  numPreemptibles: Option[Int],
+                  metadata: Option[Map[String, String]])(
     implicit ev: Ask[F, TraceId]
   ): F[Option[ClusterOperationMetadata]]
 
   def resizeCluster(project: GoogleProject,
                     region: RegionName,
                     clusterName: DataprocClusterName,
-                    numWorkers: Option[Int] = None,
-                    numPreemptibles: Option[Int] = None)(
+                    numWorkers: Option[Int],
+                    numPreemptibles: Option[Int])(
     implicit ev: Ask[F, TraceId]
   ): F[Option[ClusterOperationMetadata]]
 
