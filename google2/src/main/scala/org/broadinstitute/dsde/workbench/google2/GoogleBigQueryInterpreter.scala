@@ -1,9 +1,13 @@
 package org.broadinstitute.dsde.workbench.google2
 
+import cats.implicits._
 import cats.Show
 import cats.effect.{Blocker, ContextShift, Sync, Timer}
-import com.google.cloud.bigquery.{BigQuery, JobId, QueryJobConfiguration, TableResult}
+import cats.mtl.Ask
+import com.google.cloud.bigquery.BigQuery.TableOption
+import com.google.cloud.bigquery.{BigQuery, JobId, QueryJobConfiguration, Table, TableInfo, TableResult}
 import io.chrisdavenport.log4cats.StructuredLogger
+import org.broadinstitute.dsde.workbench.model.TraceId
 
 private[google2] class GoogleBigQueryInterpreter[F[_]: Sync: ContextShift: Timer: StructuredLogger](client: BigQuery,
                                                                                                     blocker: Blocker)
@@ -35,6 +39,17 @@ private[google2] class GoogleBigQueryInterpreter[F[_]: Sync: ContextShift: Timer
       s"com.google.cloud.bigquery.BigQuery.query(${queryJobConfiguration.getQuery})",
       tableResultFormatter
     )
+
+  override def createTable(tableInfo: TableInfo, options: TableOption*)(implicit ev: Ask[F, TraceId]): F[Table] =
+    ev.ask.flatMap { traceId =>
+      withLogging(
+        blockingF(Sync[F].delay[Table] {
+          client.create(tableInfo, options: _*)
+        }),
+        Some(traceId),
+        s"com.google.cloud.bigquery.BigQuery.create(${tableInfo})"
+      )
+    }
 
   private def blockingF[A](fa: F[A]): F[A] = blocker.blockOn(fa)
 }
