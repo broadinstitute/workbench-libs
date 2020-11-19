@@ -170,6 +170,7 @@ private[google2] class GoogleDataprocInterpreter[F[_]: StructuredLogger: Timer: 
 
         UpdateClusterRequest
           .newBuilder()
+          .setClusterName(clusterName.value)
           .setCluster(cluster)
           .setRegion(region.value)
           .setProjectId(project.value)
