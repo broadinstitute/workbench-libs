@@ -28,12 +28,16 @@ final class GoogleDataprocManualTest(pathToCredential: String,
   val project = GoogleProject(projectStr)
   val region = RegionName(regionStr)
 
-  val serviceResources = for {
-    computeService <- GoogleComputeService.resource(pathToCredential, blocker, blockerBound)
-  } yield GoogleDataprocService.resource(computeService, pathToCredential, blocker, blockerBound, region)
+  val dataprocServiceResource = GoogleComputeService
+    .resource(pathToCredential, blocker, blockerBound)
+    .flatMap(
+      computeService => GoogleDataprocService.resource(computeService, pathToCredential, blocker, blockerBound, region)
+    )
 
-  def callResizeCluster(cluster: DataprocClusterName,
+  def callResizeCluster(cluster: String,
                         numWorkers: Option[Int],
                         numPreemptibles: Option[Int]): IO[Option[ClusterOperationMetadata]] =
-    serviceResources.use(_.use(_.resizeCluster(project, region, cluster, numWorkers, numPreemptibles)))
+    dataprocServiceResource.use { dataprocService =>
+      dataprocService.resizeCluster(project, region, DataprocClusterName(cluster), numWorkers, numPreemptibles)
+    }
 }
