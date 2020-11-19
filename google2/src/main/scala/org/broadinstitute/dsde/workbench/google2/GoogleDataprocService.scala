@@ -126,11 +126,11 @@ object GoogleDataprocService {
 
 final case class DataprocClusterName(value: String) extends AnyVal
 
-case class DataprocInstance(name: InstanceName,
-                            project: GoogleProject,
-                            zone: ZoneName,
-                            googleId: BigInt,
-                            dataprocRole: DataprocRole) {
+final case class DataprocInstance(name: InstanceName,
+                                  project: GoogleProject,
+                                  zone: ZoneName,
+                                  googleId: BigInt,
+                                  dataprocRole: DataprocRole) {
   def isPreemptible: Boolean = dataprocRole == SecondaryWorker
 }
 
