@@ -20,7 +20,6 @@ class BaseFakeGoogleDataprocService extends GoogleDataprocService[IO] {
                            region: RegionName,
                            clusterName: DataprocClusterName,
                            instances: Set[DataprocInstance],
-                           numWorkers: Option[Int] = None,
                            numPreemptibles: Option[Int] = None,
                            metadata: Option[Map[String, String]] = None)(
     implicit ev: Ask[IO, TraceId]

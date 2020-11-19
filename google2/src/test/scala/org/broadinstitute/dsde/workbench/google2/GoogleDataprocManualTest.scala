@@ -5,7 +5,7 @@ import java.util.UUID
 import cats.effect.concurrent.Semaphore
 import cats.effect.{Blocker, IO}
 import cats.mtl.Ask
-import com.google.cloud.dataproc.v1.ClusterOperationMetadata
+import com.google.cloud.dataproc.v1.{Cluster, ClusterOperationMetadata}
 import io.chrisdavenport.log4cats.slf4j.Slf4jLogger
 import org.broadinstitute.dsde.workbench.model.TraceId
 import org.broadinstitute.dsde.workbench.model.google.GoogleProject
@@ -27,6 +27,7 @@ final class GoogleDataprocManualTest(pathToCredential: String,
 
   val project = GoogleProject(projectStr)
   val region = RegionName(regionStr)
+  val zone = ZoneName(s"${regionStr}-a")
 
   val dataprocServiceResource = GoogleComputeService
     .resource(pathToCredential, blocker, blockerBound)
@@ -34,10 +35,38 @@ final class GoogleDataprocManualTest(pathToCredential: String,
       computeService => GoogleDataprocService.resource(computeService, pathToCredential, blocker, blockerBound, region)
     )
 
+  def callStopCluster(cluster: String,
+                      instanceNameAndRoles: Set[(String, DataprocRole)],
+                      numPreemptibles: Option[Int]): IO[Option[ClusterOperationMetadata]] = {
+    val instances = instanceNameAndRoles.map {
+      case (name, role) =>
+        DataprocInstance(InstanceName(name), project, zone, role)
+    }
+
+    dataprocServiceResource.use { dataprocService =>
+      dataprocService.stopCluster(project,
+                                  region,
+                                  DataprocClusterName(cluster),
+                                  instances,
+                                  numPreemptibles,
+                                  metadata = None)
+    }
+  }
+
   def callResizeCluster(cluster: String,
                         numWorkers: Option[Int],
                         numPreemptibles: Option[Int]): IO[Option[ClusterOperationMetadata]] =
     dataprocServiceResource.use { dataprocService =>
       dataprocService.resizeCluster(project, region, DataprocClusterName(cluster), numWorkers, numPreemptibles)
+    }
+
+  def callGetCluster(cluster: String): IO[Option[Cluster]] =
+    dataprocServiceResource.use { dataprocService =>
+      dataprocService.getCluster(project, region, DataprocClusterName(cluster))
+    }
+
+  def callGetClusterInstances(cluster: String): IO[Map[DataprocRole, Set[InstanceName]]] =
+    dataprocServiceResource.use { dataprocService =>
+      dataprocService.getClusterInstances(project, region, DataprocClusterName(cluster))
     }
 }

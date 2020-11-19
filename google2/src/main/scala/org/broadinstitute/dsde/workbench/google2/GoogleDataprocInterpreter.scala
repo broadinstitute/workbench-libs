@@ -97,7 +97,6 @@ private[google2] class GoogleDataprocInterpreter[F[_]: StructuredLogger: Timer: 
                            region: RegionName,
                            clusterName: DataprocClusterName,
                            instances: Set[DataprocInstance],
-                           numWorkers: Option[Int],
                            numPreemptibles: Option[Int],
                            metadata: Option[Map[String, String]])(
     implicit ev: Ask[F, TraceId]
@@ -110,16 +109,17 @@ private[google2] class GoogleDataprocInterpreter[F[_]: StructuredLogger: Timer: 
 
       // Then, stop each instance individually
       _ <- instances.toList.parTraverse { instance =>
-        if (instance.dataprocRole == Master && metadata.nonEmpty) {
-          googleComputeService.addInstanceMetadata(
-            instance.project,
-            instance.zone,
-            instance.name,
-            metadata.get // TODO: Refactor
-          )
+        instance.dataprocRole match {
+          case Master =>
+            googleComputeService.addInstanceMetadata(
+              instance.project,
+              instance.zone,
+              instance.name,
+              metadata.get
+            ) >> googleComputeService.stopInstance(instance.project, instance.zone, instance.name)
+          case _ =>
+            googleComputeService.stopInstance(instance.project, instance.zone, instance.name)
         }
-
-        googleComputeService.stopInstance(instance.project, instance.zone, instance.name)
       }
     } yield None
 

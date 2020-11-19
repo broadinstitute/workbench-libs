@@ -36,7 +36,6 @@ trait GoogleDataprocService[F[_]] {
                   region: RegionName,
                   clusterName: DataprocClusterName,
                   instances: Set[DataprocInstance],
-                  numWorkers: Option[Int],
                   numPreemptibles: Option[Int],
                   metadata: Option[Map[String, String]])(
     implicit ev: Ask[F, TraceId]
@@ -129,7 +128,6 @@ final case class DataprocClusterName(value: String) extends AnyVal
 final case class DataprocInstance(name: InstanceName,
                                   project: GoogleProject,
                                   zone: ZoneName,
-                                  googleId: BigInt,
                                   dataprocRole: DataprocRole) {
   def isPreemptible: Boolean = dataprocRole == SecondaryWorker
 }
