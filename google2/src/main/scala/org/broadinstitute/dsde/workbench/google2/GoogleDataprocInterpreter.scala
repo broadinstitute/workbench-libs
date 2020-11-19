@@ -105,7 +105,7 @@ private[google2] class GoogleDataprocInterpreter[F[_]: StructuredLogger: Timer: 
     for {
       // First, remove all its preemptible instances, if any
       _ <- if (numPreemptibles.exists(_ > 0))
-        resizeCluster(project, region, clusterName, numPreemptibles = Some(0))
+        resizeCluster(project, region, clusterName, numWorkers = None, numPreemptibles = Some(0))
       else F.pure(none[ClusterOperationMetadata])
 
       // Then, stop each instance individually
