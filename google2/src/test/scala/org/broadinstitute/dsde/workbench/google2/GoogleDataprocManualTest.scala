@@ -5,6 +5,7 @@ import java.util.UUID
 import cats.effect.concurrent.Semaphore
 import cats.effect.{Blocker, IO}
 import cats.mtl.Ask
+import com.google.cloud.compute.v1.Operation
 import com.google.cloud.dataproc.v1.{Cluster, ClusterOperationMetadata}
 import io.chrisdavenport.log4cats.slf4j.Slf4jLogger
 import org.broadinstitute.dsde.workbench.model.TraceId
@@ -36,12 +37,12 @@ final class GoogleDataprocManualTest(pathToCredential: String,
     )
 
   def callStopCluster(cluster: String,
-                      instanceNameAndRoles: Set[(String, DataprocRole)],
-                      numPreemptibles: Option[Int]): IO[Option[ClusterOperationMetadata]] = {
+                      instanceNameAndRoles: List[(String, DataprocRole)],
+                      numPreemptibles: Option[Int]): IO[List[Operation]] = {
     val instances = instanceNameAndRoles.map {
       case (name, role) =>
         DataprocInstance(InstanceName(name), project, zone, role)
-    }
+    }.toSet
 
     dataprocServiceResource.use { dataprocService =>
       dataprocService.stopCluster(project,

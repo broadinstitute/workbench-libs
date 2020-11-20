@@ -14,6 +14,7 @@ import org.broadinstitute.dsde.workbench.model.TraceId
 import org.broadinstitute.dsde.workbench.model.google.{GcsBucketName, GoogleProject}
 import ca.mrvisser.sealerate
 import cats.Parallel
+import com.google.cloud.compute.v1.Operation
 import org.broadinstitute.dsde.workbench.google2.DataprocRole.SecondaryWorker
 
 import scala.collection.JavaConverters._
@@ -39,7 +40,7 @@ trait GoogleDataprocService[F[_]] {
                   numPreemptibles: Option[Int],
                   metadata: Option[Map[String, String]])(
     implicit ev: Ask[F, TraceId]
-  ): F[Option[ClusterOperationMetadata]]
+  ): F[List[Operation]]
 
   def resizeCluster(project: GoogleProject,
                     region: RegionName,

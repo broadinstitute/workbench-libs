@@ -7,6 +7,7 @@ import cats.implicits._
 import cats.mtl.Ask
 import com.google.api.core.ApiFutures
 import com.google.api.gax.rpc.StatusCode.Code
+import com.google.cloud.compute.v1.Operation
 import com.google.cloud.dataproc.v1.{RegionName => _, _}
 import com.google.common.util.concurrent.MoreExecutors
 import com.google.protobuf.FieldMask
@@ -100,7 +101,7 @@ private[google2] class GoogleDataprocInterpreter[F[_]: StructuredLogger: Timer: 
                            numPreemptibles: Option[Int],
                            metadata: Option[Map[String, String]])(
     implicit ev: Ask[F, TraceId]
-  ): F[Option[ClusterOperationMetadata]] =
+  ): F[List[Operation]] =
     for {
       // First, remove all its preemptible instances, if any
       _ <- if (numPreemptibles.exists(_ > 0))
@@ -108,20 +109,20 @@ private[google2] class GoogleDataprocInterpreter[F[_]: StructuredLogger: Timer: 
       else F.pure(none[ClusterOperationMetadata])
 
       // Then, stop each instance individually
-      _ <- instances.toList.parTraverse { instance =>
+      operations <- instances.toList.parTraverse { instance =>
         instance.dataprocRole match {
-          case Master =>
+          case Master if metadata.nonEmpty =>
             googleComputeService.addInstanceMetadata(
               instance.project,
               instance.zone,
               instance.name,
-              metadata.get
+              metadata.get // safe to do here since we predicated that 'metadata' is non-empty
             ) >> googleComputeService.stopInstance(instance.project, instance.zone, instance.name)
           case _ =>
             googleComputeService.stopInstance(instance.project, instance.zone, instance.name)
         }
       }
-    } yield None
+    } yield operations
 
   override def resizeCluster(project: GoogleProject,
                              region: RegionName,
@@ -132,6 +133,8 @@ private[google2] class GoogleDataprocInterpreter[F[_]: StructuredLogger: Timer: 
   ): F[Option[ClusterOperationMetadata]] = {
     val workerMask = "config.worker_config.num_instances"
     val preemptibleMask = "config.secondary_worker_config.num_instances"
+
+    println("\n\n RESIZING \n")
 
     val configAndMask = (numWorkers, numPreemptibles) match {
       case (Some(nw), Some(np)) =>

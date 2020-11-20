@@ -4,6 +4,7 @@ package mock
 import cats.implicits._
 import cats.effect.IO
 import cats.mtl.Ask
+import com.google.cloud.compute.v1.Operation
 import com.google.cloud.dataproc.v1.{Cluster, ClusterOperationMetadata}
 import org.broadinstitute.dsde.workbench.model.TraceId
 import org.broadinstitute.dsde.workbench.model.google.GoogleProject
@@ -23,7 +24,7 @@ class BaseFakeGoogleDataprocService extends GoogleDataprocService[IO] {
                            numPreemptibles: Option[Int] = None,
                            metadata: Option[Map[String, String]] = None)(
     implicit ev: Ask[IO, TraceId]
-  ): IO[Option[ClusterOperationMetadata]] = IO.pure(none[ClusterOperationMetadata])
+  ): IO[List[Operation]] = IO.pure(List.empty[Operation])
 
   override def resizeCluster(project: GoogleProject,
                              region: RegionName,
