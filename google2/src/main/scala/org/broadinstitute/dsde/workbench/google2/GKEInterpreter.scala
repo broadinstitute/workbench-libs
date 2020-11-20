@@ -71,7 +71,7 @@ final class GKEInterpreter[F[_]: StructuredLogger: Timer: ContextShift](
         F.delay(clusterManagerClient.deleteCluster(clusterId.toString)),
         whenStatusCode(404)
       ),
-      f"com.google.cloud.container.v1.ClusterManagerClient.deleteCluster(${clusterId.toString})"
+      s"com.google.cloud.container.v1.ClusterManagerClient.deleteCluster(${clusterId.toString})"
     )
 
   override def createNodepool(
@@ -90,7 +90,7 @@ final class GKEInterpreter[F[_]: StructuredLogger: Timer: ContextShift](
         ),
         whenStatusCode(409)
       ),
-      f"com.google.api.services.container.Projects.Locations.Cluster.Nodepool(${request})"
+      s"com.google.api.services.container.Projects.Locations.Cluster.Nodepool(${request})"
     )
   }
 
@@ -109,7 +109,7 @@ final class GKEInterpreter[F[_]: StructuredLogger: Timer: ContextShift](
         F.delay(clusterManagerClient.deleteNodePool(nodepoolId.toString)),
         whenStatusCode(404)
       ),
-      f"com.google.cloud.container.v1.ClusterManagerClient.deleteNodepool(${nodepoolId.toString})"
+      s"com.google.cloud.container.v1.ClusterManagerClient.deleteNodepool(${nodepoolId.toString})"
     )
 
   override def setNodepoolAutoscaling(nodepoolId: NodepoolId, autoscaling: NodePoolAutoscaling)(
@@ -120,7 +120,7 @@ final class GKEInterpreter[F[_]: StructuredLogger: Timer: ContextShift](
 
     tracedGoogleRetryWithBlocker(
       F.delay(clusterManagerClient.setNodePoolAutoscaling(request)),
-      f"com.google.cloud.container.v1.ClusterManagerClient.setNodePoolAutoscaling(${nodepoolId.toString}, ${autoscaling.toString})"
+      s"com.google.cloud.container.v1.ClusterManagerClient.setNodePoolAutoscaling(${nodepoolId.toString}, ${autoscaling.toString})"
     )
   }
 
@@ -129,7 +129,7 @@ final class GKEInterpreter[F[_]: StructuredLogger: Timer: ContextShift](
 
     tracedGoogleRetryWithBlocker(
       F.delay(clusterManagerClient.setNodePoolSize(request)),
-      f"com.google.cloud.container.v1.ClusterManagerClient.setNodePoolSize(${nodepoolId.toString}, ${nodeCount})"
+      s"com.google.cloud.container.v1.ClusterManagerClient.setNodePoolSize(${nodepoolId.toString}, ${nodeCount})"
     )
   }
 
