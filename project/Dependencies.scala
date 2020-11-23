@@ -81,10 +81,10 @@ object Dependencies {
 
   val fs2Io: ModuleID = "co.fs2" %% "fs2-io" % "2.4.4"
   val rawlsModel: ModuleID = "org.broadinstitute.dsde" %% "rawls-model" % "0.1-2356e282" exclude("com.typesafe.scala-logging", "scala-logging_2.11") exclude("com.typesafe.akka", "akka-stream_2.11")
-  val openCensusApi: ModuleID = "io.opencensus" % "opencensus-api" % "0.26.0"
-  val openCensusImpl: ModuleID = "io.opencensus" % "opencensus-impl" % "0.26.0"
-  val openCensusStatsStackDriver: ModuleID = "io.opencensus" % "opencensus-exporter-stats-stackdriver" % "0.26.0"
-  val openCensusTraceStackDriver: ModuleID = "io.opencensus" % "opencensus-exporter-trace-stackdriver" % "0.26.0"
+  val openCensusApi: ModuleID = "io.opencensus" % "opencensus-api" % "0.28.2"
+  val openCensusImpl: ModuleID = "io.opencensus" % "opencensus-impl" % "0.28.2"
+  val openCensusStatsStackDriver: ModuleID = "io.opencensus" % "opencensus-exporter-stats-stackdriver" % "0.28.2"
+  val openCensusTraceStackDriver: ModuleID = "io.opencensus" % "opencensus-exporter-trace-stackdriver" % "0.28.2"
   val openCensusTraceLogging: ModuleID = "io.opencensus" % "opencensus-exporter-trace-logging" % "0.26.0"
   val sealerate: ModuleID = "ca.mrvisser" %% "sealerate" % "0.0.6"
 
