@@ -5,7 +5,7 @@ import cats.effect.{Resource, Sync, Timer}
 import cats.mtl.Ask
 import com.google.auth.oauth2.ServiceAccountCredentials
 import com.google.cloud.Identity
-import com.google.pubsub.v1.TopicName
+import com.google.pubsub.v1.{Topic, TopicName}
 import fs2.Stream
 import io.chrisdavenport.log4cats.StructuredLogger
 import org.broadinstitute.dsde.workbench.google2.GoogleTopicAdminInterpreter._
@@ -17,11 +17,11 @@ trait GoogleTopicAdmin[F[_]] {
   /**
    * @param traceId uuid for tracing a unique call flow in logging
    */
-  def create(projectTopicName: TopicName, traceId: Option[TraceId] = None): Stream[F, Unit]
+  def create(projectTopicName: TopicName, traceId: Option[TraceId] = None): F[Unit]
 
-  def delete(projectTopicName: TopicName, traceId: Option[TraceId] = None): Stream[F, Unit]
+  def delete(projectTopicName: TopicName, traceId: Option[TraceId] = None): F[Unit]
 
-  def list(project: GoogleProject)(implicit ev: Ask[F, TraceId]): F[Unit]
+  def list(project: GoogleProject)(implicit ev: Ask[F, TraceId]): Stream[F, Topic]
 
   /**
    * @param projectTopicName
@@ -43,24 +43,22 @@ trait GoogleTopicAdmin[F[_]] {
   def createWithPublisherMembers(projectTopicName: TopicName,
                                  members: List[Identity],
                                  traceId: Option[TraceId] = None
-  ): Stream[F, Unit]
+  ): F[Unit]
 }
 
 object GoogleTopicAdmin {
   def fromCredentialPath[F[_]: StructuredLogger: Sync: Timer](
-    pathToCredential: String,
-    retryConfig: RetryConfig = GoogleTopicAdminInterpreter.defaultRetryConfig
+    pathToCredential: String
   ): Resource[F, GoogleTopicAdmin[F]] =
     for {
       credential <- credentialResource(pathToCredential)
-      topicAdmin <- fromServiceAccountCrendential(credential, retryConfig)
+      topicAdmin <- fromServiceAccountCrendential(credential)
     } yield topicAdmin
 
   def fromServiceAccountCrendential[F[_]: StructuredLogger: Sync: Timer](
-    serviceAccountCredentials: ServiceAccountCredentials,
-    retryConfig: RetryConfig
+    serviceAccountCredentials: ServiceAccountCredentials
   ): Resource[F, GoogleTopicAdmin[F]] =
     for {
       topicAdminClient <- topicAdminClientResource(serviceAccountCredentials)
-    } yield new GoogleTopicAdminInterpreter[F](topicAdminClient, retryConfig)
+    } yield new GoogleTopicAdminInterpreter[F](topicAdminClient)
 }

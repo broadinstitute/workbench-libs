@@ -33,7 +33,7 @@ object RetryPredicates {
     case e: BaseServiceException                                              => e.getCode == code
     case e: ApiException                                                      => e.getStatusCode.getCode.getHttpStatusCode == code
     case e: com.google.api.client.googleapis.json.GoogleJsonResponseException => e.getDetails.getCode == code
-    case e: io.kubernetes.client.ApiException                                 => e.getCode == code
+    case e: io.kubernetes.client.openapi.ApiException                         => e.getCode == code
     case _                                                                    => false
   }
 

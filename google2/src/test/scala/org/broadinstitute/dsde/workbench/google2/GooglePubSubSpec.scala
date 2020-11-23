@@ -160,9 +160,7 @@ object GooglePubSubSpec {
             throw e
         }
 
-      (GooglePublisherInterpreter[IO](pub, RetryConfig(1 seconds, identity, 3, _ => true)),
-       GoogleSubscriberInterpreter[IO, A](sub, queue)
-      )
+      (GooglePublisherInterpreter[IO](pub), GoogleSubscriberInterpreter[IO, A](sub, queue))
     }
 }
 
