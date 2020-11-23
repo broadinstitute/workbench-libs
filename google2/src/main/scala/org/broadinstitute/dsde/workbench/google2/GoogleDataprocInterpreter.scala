@@ -13,13 +13,13 @@ import com.google.common.util.concurrent.MoreExecutors
 import com.google.protobuf.FieldMask
 import io.chrisdavenport.log4cats.StructuredLogger
 import org.broadinstitute.dsde.workbench.RetryConfig
-import org.broadinstitute.dsde.workbench.google2.DataprocRole.Master
+import org.broadinstitute.dsde.workbench.google2.DataprocRole.{Master, SecondaryWorker, Worker}
 import org.broadinstitute.dsde.workbench.google2.util.RetryPredicates._
 import org.broadinstitute.dsde.workbench.model.TraceId
 import org.broadinstitute.dsde.workbench.model.google.GoogleProject
 import org.broadinstitute.dsde.workbench.google2.GoogleDataprocInterpreter._
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 
 private[google2] class GoogleDataprocInterpreter[F[_]: StructuredLogger: Timer: Parallel: ContextShift](
   clusterControllerClient: ClusterControllerClient,
@@ -265,10 +265,10 @@ private[google2] class GoogleDataprocInterpreter[F[_]: StructuredLogger: Timer: 
 
   override def getClusterInstances(project: GoogleProject, region: RegionName, clusterName: DataprocClusterName)(
     implicit ev: Ask[F, TraceId]
-  ): F[Map[DataprocRole, Set[InstanceName]]] =
+  ): F[Map[DataprocRoleAndPreemptibility, Set[InstanceName]]] =
     for {
       cluster <- getCluster(project, region, clusterName)
-    } yield cluster.map(c => getAllInstanceNames(c)).getOrElse(Map.empty)
+    } yield cluster.map(getAllInstanceNames).getOrElse(Map.empty)
 
   override def getClusterError(
     operationName: OperationName
@@ -276,7 +276,7 @@ private[google2] class GoogleDataprocInterpreter[F[_]: StructuredLogger: Timer: 
     for {
       error <- retryF(
         recoverF(
-          Async[F].delay(clusterControllerClient.getOperationsClient().getOperation(operationName.value).getError()),
+          Async[F].delay(clusterControllerClient.getOperationsClient.getOperation(operationName.value).getError),
           whenStatusCode(404)
         ),
         s"com.google.cloud.dataproc.v1.ClusterControllerClient.getOperationsClient.getOperation(${operationName.value}).getError()"
@@ -291,30 +291,37 @@ object GoogleDataprocInterpreter {
   // WARNING: Be very careful refactoring this function and make sure you test this out in console.
   // Incorrectness in this function can cause leonardo fail to stop all instances for a Dataproc cluster, which
   // incurs compute cost for users
-  def getAllInstanceNames(cluster: Cluster): Map[DataprocRole, Set[InstanceName]] = {
-    def getFromGroup(role: DataprocRole, group: InstanceGroupConfig): Map[DataprocRole, Set[InstanceName]] = {
-      val instances = group.getInstanceNamesList
-        .asByteStringList()
-        .asScala
-        .toList
-        .map(byteString => InstanceName(byteString.toStringUtf8))
-        .toSet
-
-      if (instances.isEmpty) Map.empty else Map(role -> instances)
-    }
-
+  def getAllInstanceNames(cluster: Cluster): Map[DataprocRoleAndPreemptibility, Set[InstanceName]] = {
     val res = Option(cluster.getConfig).map { config =>
       val master =
         Option(config.getMasterConfig).map(config => getFromGroup(DataprocRole.Master, config)).getOrElse(Map.empty)
       val workers =
         Option(config.getWorkerConfig).map(config => getFromGroup(DataprocRole.Worker, config)).getOrElse(Map.empty)
       val secondaryWorkers = Option(config.getSecondaryWorkerConfig)
-        .map(config => getFromGroup(DataprocRole.SecondaryWorker(config.getIsPreemptible), config))
+        .map(config => getFromGroup(DataprocRole.SecondaryWorker, config))
         .getOrElse(Map.empty)
 
       master ++ workers ++ secondaryWorkers
     }
 
     res.getOrElse(Map.empty)
+  }
+
+  def containsPreemptibles(instances: Map[DataprocRoleAndPreemptibility, Set[InstanceName]]): Boolean =
+    instances.exists {
+      case (DataprocRoleAndPreemptibility(_, isPreemptible), instanceNames) => isPreemptible && instanceNames.nonEmpty
+    }
+
+  private def getFromGroup(role: DataprocRole,
+                           groupConfig: InstanceGroupConfig): Map[DataprocRoleAndPreemptibility, Set[InstanceName]] = {
+    val instances = groupConfig.getInstanceNamesList
+      .asByteStringList()
+      .asScala
+      .toList
+      .map(byteString => InstanceName(byteString.toStringUtf8))
+      .toSet
+
+    if (instances.isEmpty) Map.empty
+    else Map(DataprocRoleAndPreemptibility(role, groupConfig.getIsPreemptible) -> instances)
   }
 }

@@ -15,7 +15,7 @@ import org.broadinstitute.dsde.workbench.model.google.{GcsBucketName, GoogleProj
 import ca.mrvisser.sealerate
 import cats.Parallel
 import com.google.cloud.compute.v1.Operation
-import org.broadinstitute.dsde.workbench.google2.DataprocRole.SecondaryWorker
+import org.broadinstitute.dsde.workbench.google2.DataprocRole.{Master, SecondaryWorker, Worker}
 
 import scala.collection.JavaConverters._
 import scala.language.higherKinds
@@ -60,7 +60,7 @@ trait GoogleDataprocService[F[_]] {
 
   def getClusterInstances(project: GoogleProject, region: RegionName, clusterName: DataprocClusterName)(
     implicit ev: Ask[F, TraceId]
-  ): F[Map[DataprocRole, Set[InstanceName]]]
+  ): F[Map[DataprocRoleAndPreemptibility, Set[InstanceName]]]
 
   def getClusterError(operationName: OperationName)(implicit ev: Ask[F, TraceId]): F[Option[ClusterError]]
 }
@@ -149,10 +149,12 @@ sealed trait DataprocRole extends Product with Serializable
 object DataprocRole {
   case object Master extends DataprocRole
   case object Worker extends DataprocRole
-  case class SecondaryWorker(isPreemptible: Boolean) extends DataprocRole
+  case object SecondaryWorker extends DataprocRole
 
   val stringToDataprocRole = sealerate.values[DataprocRole].map(p => (p.toString, p)).toMap
 }
+
+final case class DataprocRoleAndPreemptibility(role: DataprocRole, isPreemptible: Boolean)
 
 final case class ClusterError(code: Int, message: String)
 final case class ClusterErrorDetails(code: Int, message: Option[String])

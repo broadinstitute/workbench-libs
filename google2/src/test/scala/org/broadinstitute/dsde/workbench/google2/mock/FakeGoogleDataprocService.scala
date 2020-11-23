@@ -44,7 +44,7 @@ class BaseFakeGoogleDataprocService extends GoogleDataprocService[IO] {
 
   override def getClusterInstances(project: GoogleProject, region: RegionName, clusterName: DataprocClusterName)(
     implicit ev: Ask[IO, TraceId]
-  ): IO[Map[DataprocRole, Set[InstanceName]]] = IO.pure(Map.empty)
+  ): IO[Map[DataprocRoleAndPreemptibility, Set[InstanceName]]] = IO.pure(Map.empty)
 
   override def getClusterError(operationName: OperationName)(
     implicit ev: Ask[IO, TraceId]

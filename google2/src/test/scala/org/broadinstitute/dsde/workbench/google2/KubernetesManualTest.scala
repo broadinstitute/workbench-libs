@@ -98,7 +98,7 @@ final class Test(credPathStr: String,
     service.getCluster(KubernetesClusterId(project, region, clusterName.right.get))
   }
 
-  def callCreateNodepool(clusterId: KubernetesClusterId = clusterId, nodepoolNameStr: String): IO[Option[Operation]] = {
+  def callCreateNodepool(clusterId: KubernetesClusterId = clusterId): IO[Option[Operation]] = {
     val nodepoolConfig = getDefaultNodepoolConfig(nodepoolName.right.get)
     val nodepool = getNodepoolBuilder(nodepoolConfig).build()
 
