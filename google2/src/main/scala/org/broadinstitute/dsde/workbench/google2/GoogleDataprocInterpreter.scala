@@ -309,7 +309,7 @@ object GoogleDataprocInterpreter {
       val workers =
         Option(config.getWorkerConfig).map(config => getFromGroup(DataprocRole.Worker, config)).getOrElse(Map.empty)
       val secondaryWorkers = Option(config.getSecondaryWorkerConfig)
-        .map(config => getFromGroup(DataprocRole.SecondaryWorker, config))
+        .map(config => getFromGroup(DataprocRole.SecondaryWorker(config.getIsPreemptible), config))
         .getOrElse(Map.empty)
 
       master ++ workers ++ secondaryWorkers

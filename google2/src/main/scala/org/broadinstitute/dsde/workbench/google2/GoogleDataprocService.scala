@@ -129,9 +129,7 @@ final case class DataprocClusterName(value: String) extends AnyVal
 final case class DataprocInstance(name: InstanceName,
                                   project: GoogleProject,
                                   zone: ZoneName,
-                                  dataprocRole: DataprocRole) {
-  def isPreemptible: Boolean = dataprocRole == SecondaryWorker
-}
+                                  dataprocRole: DataprocRole)
 
 sealed abstract class CreateClusterResponse
 object CreateClusterResponse {
@@ -151,7 +149,7 @@ sealed trait DataprocRole extends Product with Serializable
 object DataprocRole {
   case object Master extends DataprocRole
   case object Worker extends DataprocRole
-  case object SecondaryWorker extends DataprocRole // alias to Preemptible Worker
+  case class SecondaryWorker(isPreemptible: Boolean) extends DataprocRole
 
   val stringToDataprocRole = sealerate.values[DataprocRole].map(p => (p.toString, p)).toMap
 }
