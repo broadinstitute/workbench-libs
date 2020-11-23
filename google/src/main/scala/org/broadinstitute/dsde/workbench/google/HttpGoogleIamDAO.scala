@@ -8,10 +8,6 @@ import java.util.Collections
 import akka.actor.ActorSystem
 import akka.http.scaladsl.model.StatusCodes
 import cats.data.OptionT
-import cats.instances.future._
-import cats.instances.list._
-import cats.instances.set._
-import cats.instances.map._
 import cats.syntax.foldable._
 import cats.syntax.functor._
 import cats.syntax.semigroup._

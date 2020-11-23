@@ -5,7 +5,7 @@ import java.util.concurrent.Executor
 
 import cats.effect._
 import cats.effect.implicits._
-import cats.implicits._
+import cats.syntax.all._
 import com.google.api.core.ApiFutures
 import com.google.auth.oauth2.ServiceAccountCredentials
 import com.google.cloud.firestore._

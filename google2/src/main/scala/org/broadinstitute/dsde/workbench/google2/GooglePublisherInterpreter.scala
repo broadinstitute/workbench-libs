@@ -1,7 +1,7 @@
 package org.broadinstitute.dsde.workbench.google2
 
 import cats.effect._
-import cats.implicits._
+import cats.syntax.all._
 import cats.mtl.Ask
 import com.google.api.core.ApiFutures
 import com.google.api.gax.core.FixedCredentialsProvider

@@ -2,7 +2,7 @@ package org.broadinstitute.dsde.workbench
 package google2
 
 import cats.effect.{Blocker, ContextShift, Resource, Sync}
-import cats.implicits._
+import cats.syntax.all._
 import com.google.api.gax.core.FixedCredentialsProvider
 import com.google.auth.oauth2.ServiceAccountCredentials
 import com.google.cloud.kms.v1.CryptoKey.CryptoKeyPurpose

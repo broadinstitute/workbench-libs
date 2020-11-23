@@ -8,7 +8,7 @@ import java.time.Instant
 import cats.data.NonEmptyList
 import cats.effect._
 import cats.effect.concurrent.Semaphore
-import cats.implicits._
+import cats.syntax.all._
 import com.google.auth.oauth2.ServiceAccountCredentials
 import com.google.cloud.storage.BucketInfo.LifecycleRule
 import com.google.cloud.storage.Storage.{

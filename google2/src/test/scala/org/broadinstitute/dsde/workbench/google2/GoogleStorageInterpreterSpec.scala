@@ -2,7 +2,6 @@ package org.broadinstitute.dsde.workbench.google2
 
 import cats.effect.concurrent.Semaphore
 import cats.effect.{Blocker, IO}
-import cats.implicits._
 import fs2.Stream
 import com.google.cloud.storage.contrib.nio.testing.LocalStorageHelper
 import org.broadinstitute.dsde.workbench.google2.Generators._

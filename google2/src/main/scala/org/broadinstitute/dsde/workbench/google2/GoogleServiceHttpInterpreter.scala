@@ -4,7 +4,7 @@ package google2
 import cats.Eq
 import cats.data.NonEmptyList
 import cats.effect.{Resource, Sync}
-import cats.implicits._
+import cats.syntax.all._
 import com.google.api.services.storage.StorageScopes
 import com.google.auth.oauth2.{GoogleCredentials, ServiceAccountCredentials}
 import com.google.cloud.Identity

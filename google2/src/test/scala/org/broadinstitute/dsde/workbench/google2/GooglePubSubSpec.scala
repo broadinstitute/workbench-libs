@@ -1,7 +1,6 @@
 package org.broadinstitute.dsde.workbench.google2
 
 import cats.effect.{ContextShift, IO, Resource, Timer}
-import cats.implicits._
 import com.google.api.gax.core.NoCredentialsProvider
 import com.google.api.gax.grpc.GrpcTransportChannel
 import com.google.api.gax.rpc.FixedTransportChannelProvider

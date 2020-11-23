@@ -6,7 +6,6 @@ import fs2.concurrent.InspectableQueue
 import fs2.{Pipe, Stream}
 import io.chrisdavenport.log4cats.slf4j.Slf4jLogger
 import io.circe.Decoder
-import cats.implicits._
 import scala.concurrent.ExecutionContext.global
 import scala.concurrent.duration._
 
