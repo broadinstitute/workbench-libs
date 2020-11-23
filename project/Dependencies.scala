@@ -1,8 +1,8 @@
 import sbt._
 
 object Dependencies {
-  val akkaV         = "2.6.10"
-  val akkaHttpV     = "10.2.0"
+  val akkaV         = "2.6.8"
+  val akkaHttpV     = "10.2.1"
   val jacksonV      = "2.11.3"
   val googleV       = "1.22.0"
   val scalaLoggingV = "3.9.2"
@@ -15,9 +15,9 @@ object Dependencies {
   val scalaLogging: ModuleID = "com.typesafe.scala-logging"    %% "scala-logging" % scalaLoggingV  % "provided"
   val scalatest: ModuleID =    "org.scalatest"                 %% "scalatest"     % scalaTestV  % "test"
   val scalaTestScalaCheck = "org.scalatestplus" %% "scalacheck-1-14" % "3.2.2.0" % Test //Since scalatest 3.1.0, scalacheck support is moved to `scalatestplus`
-  val scalaTestMockito = "org.scalatestplus" %% "mockito-3-4" % "3.2.2.0" % Test //Since scalatest 3.1.0, mockito support is moved to `scalatestplus`
+  val scalaTestMockito = "org.scalatestplus" %% "mockito-3-4" % "3.2.3.0" % Test //Since scalatest 3.1.0, mockito support is moved to `scalatestplus`
   val scalaTestSelenium =  "org.scalatestplus" %% "selenium-3-141" % "3.2.2.0" % Test //Since scalatest 3.1.0, selenium support is moved to `scalatestplus`
-  val mockito: ModuleID =      "org.mockito"                   %  "mockito-core"  % "2.8.47" % "test"
+  val mockito: ModuleID =      "org.mockito"                   %  "mockito-core"  % "2.28.2" % "test"
 
   val akkaActor: ModuleID =         "com.typesafe.akka" %% "akka-actor"           % akkaV     % "provided"
   val akkaStream: ModuleID =         "com.typesafe.akka" %% "akka-stream"           % akkaV     % "provided"
@@ -26,7 +26,7 @@ object Dependencies {
   val akkaTestkit: ModuleID =       "com.typesafe.akka" %% "akka-testkit"         % akkaV     % "test"
   val akkaHttpTestkit: ModuleID =   "com.typesafe.akka" %% "akka-http-testkit"    % akkaHttpV % "test"
   val scalaCheck: ModuleID =        "org.scalacheck"      %%  "scalacheck"        % "1.14.3"  % "test"
-  val commonsCodec: ModuleID = "commons-codec" % "commons-codec" % "1.12" % "test"
+  val commonsCodec: ModuleID = "commons-codec" % "commons-codec" % "1.15" % "test"
 
   val jacksonModule: ModuleID =   "com.fasterxml.jackson.module" %% "jackson-module-scala"   % jacksonV % "test"
 
