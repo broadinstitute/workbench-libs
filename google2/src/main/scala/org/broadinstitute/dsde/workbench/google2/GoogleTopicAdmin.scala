@@ -2,6 +2,7 @@ package org.broadinstitute.dsde.workbench
 package google2
 
 import cats.effect.{Resource, Sync, Timer}
+import cats.mtl.Ask
 import com.google.auth.oauth2.ServiceAccountCredentials
 import com.google.cloud.Identity
 import com.google.pubsub.v1.TopicName
@@ -9,6 +10,7 @@ import fs2.Stream
 import io.chrisdavenport.log4cats.StructuredLogger
 import org.broadinstitute.dsde.workbench.google2.GoogleTopicAdminInterpreter._
 import org.broadinstitute.dsde.workbench.model.TraceId
+import org.broadinstitute.dsde.workbench.model.google.GoogleProject
 
 trait GoogleTopicAdmin[F[_]] {
 
@@ -18,6 +20,8 @@ trait GoogleTopicAdmin[F[_]] {
   def create(projectTopicName: TopicName, traceId: Option[TraceId] = None): Stream[F, Unit]
 
   def delete(projectTopicName: TopicName, traceId: Option[TraceId] = None): Stream[F, Unit]
+
+  def list(project: GoogleProject)(implicit ev: Ask[F, TraceId]): F[Unit]
 
   /**
    * @param projectTopicName

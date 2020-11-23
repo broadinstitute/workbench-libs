@@ -2,16 +2,18 @@ package org.broadinstitute.dsde.workbench.google2
 
 import cats.effect.{Resource, Sync, Timer}
 import cats.implicits._
+import cats.mtl.Ask
 import com.google.api.gax.core.FixedCredentialsProvider
 import com.google.auth.oauth2.ServiceAccountCredentials
 import com.google.cloud.Identity
 import com.google.cloud.pubsub.v1.{TopicAdminClient, TopicAdminSettings}
 import com.google.iam.v1.{Binding, GetIamPolicyRequest, Policy, SetIamPolicyRequest}
-import com.google.pubsub.v1.TopicName
+import com.google.pubsub.v1.{ProjectName, TopicName}
 import fs2.Stream
 import io.chrisdavenport.log4cats.StructuredLogger
 import org.broadinstitute.dsde.workbench.RetryConfig
 import org.broadinstitute.dsde.workbench.model.TraceId
+import org.broadinstitute.dsde.workbench.model.google.GoogleProject
 
 import scala.collection.JavaConverters._
 import scala.concurrent.duration._
@@ -41,6 +43,14 @@ class GoogleTopicAdminInterpreter[F[_]: StructuredLogger: Sync: Timer](topicAdmi
                       traceId,
                       s"com.google.cloud.pubsub.v1.TopicAdminClient.deleteTopic($projectTopicName)"
     )
+  }
+
+  override def list(project: GoogleProject)(implicit ev: Ask[F, TraceId]): F[Unit] = {
+    val listTopics = Sync[F].delay(topicAdminClient.listTopics(ProjectName.of(project.value)))
+
+    ev.ask.flatMap { traceId =>
+      withLogging(listTopics, Some(traceId), s"com.google.cloud.pubsub.v1.TopicAdminClient.listTopics(${project})")
+    }
   }
 
   def createWithPublisherMembers(topicName: TopicName,
