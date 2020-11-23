@@ -50,7 +50,7 @@ object Dependencies {
   val googleServicemanagement: ModuleID =    "com.google.apis"       % "google-api-services-servicemanagement"    % s"v1-rev359-$googleV"
   val googleIam: ModuleID =                  "com.google.apis"       % "google-api-services-iam"                  % s"v1-rev215-$googleV"
   val googleBigQuery: ModuleID =             "com.google.apis"       % "google-api-services-bigquery"             % s"v2-rev377-$googleV"
-  val googleGuava: ModuleID = "com.google.guava"  % "guava" % "22.0"
+  val googleGuava: ModuleID = "com.google.guava"  % "guava" % "30.0-jre"
   val googleRpc: ModuleID =               "io.grpc" % "grpc-core" % "1.16.1" //old google libraries relies on older version of grpc
 
   val googleRpc2: ModuleID =               "io.grpc" % "grpc-core" % "1.28.1"
