@@ -53,8 +53,9 @@ trait GooglePubSubDAO {
       case _                         => throw new WorkbenchException(s"Unable to process message from subscription ${subscriptionName}")
     }
 
-  def withMessages(subscriptionName: String,
-                   maxMessages: Int)(op: (scala.collection.Seq[String]) => Future[AckStatus]): Future[HandledStatus] =
+  def withMessages(subscriptionName: String, maxMessages: Int)(
+    op: (scala.collection.Seq[String]) => Future[AckStatus]
+  ): Future[HandledStatus] =
     pullMessages(subscriptionName, maxMessages) flatMap {
       case scala.collection.Seq() => Future.successful(NoMessage)
       case messages =>

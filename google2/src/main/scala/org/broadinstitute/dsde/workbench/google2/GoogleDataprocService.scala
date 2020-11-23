@@ -29,16 +29,16 @@ trait GoogleDataprocService[F[_]] {
     createClusterConfig: Option[CreateClusterConfig]
   )(implicit ev: Ask[F, TraceId]): F[CreateClusterResponse]
 
-  def deleteCluster(project: GoogleProject, region: RegionName, clusterName: DataprocClusterName)(
-    implicit ev: Ask[F, TraceId]
+  def deleteCluster(project: GoogleProject, region: RegionName, clusterName: DataprocClusterName)(implicit
+    ev: Ask[F, TraceId]
   ): F[Option[ClusterOperationMetadata]]
 
-  def getCluster(project: GoogleProject, region: RegionName, clusterName: DataprocClusterName)(
-    implicit ev: Ask[F, TraceId]
+  def getCluster(project: GoogleProject, region: RegionName, clusterName: DataprocClusterName)(implicit
+    ev: Ask[F, TraceId]
   ): F[Option[Cluster]]
 
-  def getClusterInstances(project: GoogleProject, region: RegionName, clusterName: DataprocClusterName)(
-    implicit ev: Ask[F, TraceId]
+  def getClusterInstances(project: GoogleProject, region: RegionName, clusterName: DataprocClusterName)(implicit
+    ev: Ask[F, TraceId]
   ): F[Map[DataprocRole, Set[InstanceName]]]
 
   def getClusterError(operationName: OperationName)(implicit ev: Ask[F, TraceId]): F[Option[ClusterError]]

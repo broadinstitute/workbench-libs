@@ -18,8 +18,11 @@ import org.broadinstitute.dsde.workbench.model.google.GoogleResourceTypes.Google
 import scala.collection.JavaConverters._
 import scala.concurrent.{ExecutionContext, Future}
 
-class HttpGoogleProjectDAO(appName: String, googleCredentialMode: GoogleCredentialMode, workbenchMetricBaseName: String)(
-  implicit system: ActorSystem,
+class HttpGoogleProjectDAO(appName: String,
+                           googleCredentialMode: GoogleCredentialMode,
+                           workbenchMetricBaseName: String
+)(implicit
+  system: ActorSystem,
   executionContext: ExecutionContext
 ) extends AbstractHttpGoogleDAO(appName, googleCredentialMode, workbenchMetricBaseName)
     with GoogleProjectDAO {
@@ -38,18 +41,19 @@ class HttpGoogleProjectDAO(appName: String, googleCredentialMode: GoogleCredenti
     new Cloudbilling.Builder(httpTransport, jsonFactory, googleCredential).setApplicationName(appName).build()
 
   override def createProject(projectName: String): Future[String] =
-    retry(when5xx, whenUsageLimited, when404, whenInvalidValueOnBucketCreation, whenNonHttpIOException)(() => {
+    retry(when5xx, whenUsageLimited, when404, whenInvalidValueOnBucketCreation, whenNonHttpIOException) { () =>
       executeGoogleRequest(
         cloudResManager.projects().create(new Project().setName(projectName).setProjectId(projectName))
       )
-    }).map { operation =>
+    }.map { operation =>
       operation.getName
     }
 
   override def createProject(projectName: String,
                              parentId: String,
-                             parentType: GoogleParentResourceType): Future[String] =
-    retry(when5xx, whenUsageLimited, when404, whenInvalidValueOnBucketCreation, whenNonHttpIOException)(() => {
+                             parentType: GoogleParentResourceType
+  ): Future[String] =
+    retry(when5xx, whenUsageLimited, when404, whenInvalidValueOnBucketCreation, whenNonHttpIOException) { () =>
       executeGoogleRequest(
         cloudResManager
           .projects()
@@ -60,14 +64,14 @@ class HttpGoogleProjectDAO(appName: String, googleCredentialMode: GoogleCredenti
               .setParent(new ResourceId().setId(parentId).setType(parentType.value))
           )
       )
-    }).map { operation =>
+    }.map { operation =>
       operation.getName
     }
 
   override def pollOperation(operationId: String): Future[Operation] =
-    retry(when5xx, whenUsageLimited, when404, whenInvalidValueOnBucketCreation, whenNonHttpIOException)(() => {
+    retry(when5xx, whenUsageLimited, when404, whenInvalidValueOnBucketCreation, whenNonHttpIOException) { () =>
       executeGoogleRequest(cloudResManager.operations().get(operationId))
-    })
+    }
 
   override def isProjectActive(projectName: String): Future[Boolean] =
     retryWithRecover(when5xx, whenUsageLimited, when404, whenInvalidValueOnBucketCreation, whenNonHttpIOException) {
@@ -98,13 +102,13 @@ class HttpGoogleProjectDAO(appName: String, googleCredentialMode: GoogleCredenti
     }
 
   override def enableService(projectName: String, serviceName: String): Future[String] =
-    retry(when5xx, whenUsageLimited, when404, whenInvalidValueOnBucketCreation, whenNonHttpIOException)(() => {
+    retry(when5xx, whenUsageLimited, when404, whenInvalidValueOnBucketCreation, whenNonHttpIOException) { () =>
       executeGoogleRequest(
         serviceManagement
           .services()
           .enable(serviceName, new EnableServiceRequest().setConsumerId(s"project:$projectName"))
       )
-    }).map { operation =>
+    }.map { operation =>
       operation.getName
     }
 
@@ -117,9 +121,9 @@ class HttpGoogleProjectDAO(appName: String, googleCredentialMode: GoogleCredenti
     }
 
   override def getAncestry(projectName: String): Future[Seq[Ancestor]] =
-    retry(when5xx, whenUsageLimited, when404, whenInvalidValueOnBucketCreation, whenNonHttpIOException)(() => {
+    retry(when5xx, whenUsageLimited, when404, whenInvalidValueOnBucketCreation, whenNonHttpIOException) { () =>
       executeGoogleRequest(cloudResManager.projects().getAncestry(projectName, new GetAncestryRequest()))
-    }).map { ancestry =>
+    }.map { ancestry =>
       Option(ancestry.getAncestor).map(_.asScala.toSeq).getOrElse(Seq.empty)
     }
 

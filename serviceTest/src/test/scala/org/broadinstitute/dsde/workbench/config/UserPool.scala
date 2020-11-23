@@ -72,7 +72,6 @@ object UserPool {
     userConfig.NotebooksWhitelisted.getRandomCredentials(n)
 
   /**
-   *
    * Chooses a campaign manager
    */
   def chooseCampaignManager: Credentials = chooseCampaignManagers(1).head

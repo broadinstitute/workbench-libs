@@ -16,8 +16,8 @@ class ComputePollOperationInterpreter[F[_]: StructuredLogger: ContextShift](
   blockerBound: Semaphore[F]
 )(implicit override val F: Concurrent[F], override val timer: Timer[F])
     extends ComputePollOperation[F] {
-  override def getZoneOperation(project: GoogleProject, zoneName: ZoneName, operationName: OperationName)(
-    implicit ev: Ask[F, TraceId]
+  override def getZoneOperation(project: GoogleProject, zoneName: ZoneName, operationName: OperationName)(implicit
+    ev: Ask[F, TraceId]
   ): F[Operation] = {
     val request = ProjectZoneOperationName
       .newBuilder()
@@ -31,8 +31,8 @@ class ComputePollOperationInterpreter[F[_]: StructuredLogger: ContextShift](
     )
   }
 
-  override def getRegionOperation(project: GoogleProject, regionName: RegionName, operationName: OperationName)(
-    implicit ev: Ask[F, TraceId]
+  override def getRegionOperation(project: GoogleProject, regionName: RegionName, operationName: OperationName)(implicit
+    ev: Ask[F, TraceId]
   ): F[Operation] = {
     val request = ProjectRegionOperationName
       .newBuilder()
@@ -46,8 +46,8 @@ class ComputePollOperationInterpreter[F[_]: StructuredLogger: ContextShift](
     )
   }
 
-  override def getGlobalOperation(project: GoogleProject, operationName: OperationName)(
-    implicit ev: Ask[F, TraceId]
+  override def getGlobalOperation(project: GoogleProject, operationName: OperationName)(implicit
+    ev: Ask[F, TraceId]
   ): F[Operation] = {
     val request =
       ProjectGlobalOperationName.newBuilder().setProject(project.value).setOperation(operationName.value).build

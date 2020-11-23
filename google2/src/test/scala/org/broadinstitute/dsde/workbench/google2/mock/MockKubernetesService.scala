@@ -44,8 +44,9 @@ class MockKubernetesService extends org.broadinstitute.dsde.workbench.google2.Ku
 
   override def getServiceExternalIp(clusterId: KubernetesClusterId,
                                     namespace: KubernetesNamespace,
-                                    serviceName: ServiceName)(
-    implicit ev: Ask[IO, TraceId]
+                                    serviceName: ServiceName
+  )(implicit
+    ev: Ask[IO, TraceId]
   ): IO[Option[IP]] = IO(Some(IP("1.2.3.4")))
 
   override def createRole(

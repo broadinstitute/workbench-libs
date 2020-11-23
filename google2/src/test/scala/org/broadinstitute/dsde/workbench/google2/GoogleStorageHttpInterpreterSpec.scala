@@ -62,7 +62,7 @@ class GoogleStorageNotificationCreatorInterpreterSpec
         parse(expectedJsonString).getOrElse(throw new Exception("failed to parse NotificationRequest json"))
 
       val result = notificationRequest.asJson
-      result shouldBe (expectedJson)
+      result shouldBe expectedJson
     }
   }
 }

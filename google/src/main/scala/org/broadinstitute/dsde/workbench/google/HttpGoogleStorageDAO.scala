@@ -30,7 +30,8 @@ import scala.concurrent.{ExecutionContext, Future}
 class HttpGoogleStorageDAO(appName: String,
                            googleCredentialMode: GoogleCredentialMode,
                            workbenchMetricBaseName: String,
-                           maxPageSize: Long = 1000)(implicit system: ActorSystem, executionContext: ExecutionContext)
+                           maxPageSize: Long = 1000
+)(implicit system: ActorSystem, executionContext: ExecutionContext)
     extends AbstractHttpGoogleDAO(appName, googleCredentialMode, workbenchMetricBaseName)
     with GoogleStorageDAO {
 
@@ -43,28 +44,31 @@ class HttpGoogleStorageDAO(appName: String,
            pemFile: String,
            appName: String,
            workbenchMetricBaseName: String,
-           maxPageSize: Long)(implicit system: ActorSystem, executionContext: ExecutionContext) = {
+           maxPageSize: Long
+  )(implicit system: ActorSystem, executionContext: ExecutionContext) = {
     this(appName, Pem(WorkbenchEmail(serviceAccountClientId), new File(pemFile)), workbenchMetricBaseName, maxPageSize)
   }
   override val scopes = Seq(StorageScopes.DEVSTORAGE_FULL_CONTROL,
                             ComputeScopes.COMPUTE,
                             PlusScopes.USERINFO_EMAIL,
-                            PlusScopes.USERINFO_PROFILE)
+                            PlusScopes.USERINFO_PROFILE
+  )
 
   implicit override val service = GoogleInstrumentedService.Storage
 
-  private lazy val storage = {
+  private lazy val storage =
     new Storage.Builder(httpTransport, jsonFactory, googleCredential).setApplicationName(appName).build()
-  }
 
   override def createBucket(billingProject: GoogleProject,
                             bucketName: GcsBucketName,
                             readers: List[GcsEntity] = List.empty,
-                            owners: List[GcsEntity] = List.empty): Future[GcsBucketName] = {
-    val bucketAcl = readers.map(entity => new BucketAccessControl().setEntity(entity.toString).setRole(Reader.value)) ++ owners
-      .map(entity => new BucketAccessControl().setEntity(entity.toString).setRole(Owner.value))
-    val defaultBucketObjectAcl = readers.map(
-      entity => new ObjectAccessControl().setEntity(entity.toString).setRole(Reader.value)
+                            owners: List[GcsEntity] = List.empty
+  ): Future[GcsBucketName] = {
+    val bucketAcl =
+      readers.map(entity => new BucketAccessControl().setEntity(entity.toString).setRole(Reader.value)) ++ owners
+        .map(entity => new BucketAccessControl().setEntity(entity.toString).setRole(Owner.value))
+    val defaultBucketObjectAcl = readers.map(entity =>
+      new ObjectAccessControl().setEntity(entity.toString).setRole(Reader.value)
     ) ++ owners.map(entity => new ObjectAccessControl().setEntity(entity.toString).setRole(Owner.value))
     val bucket = new Bucket()
       .setName(bucketName.value)
@@ -73,16 +77,16 @@ class HttpGoogleStorageDAO(appName: String,
 
     val inserter = storage.buckets().insert(billingProject.value, bucket)
 
-    retry(when5xx, whenUsageLimited, when404, whenInvalidValueOnBucketCreation, whenNonHttpIOException)(() => {
+    retry(when5xx, whenUsageLimited, when404, whenInvalidValueOnBucketCreation, whenNonHttpIOException) { () =>
       executeGoogleRequest(inserter)
       bucketName
-    })
+    }
   }
 
   override def getBucket(bucketName: GcsBucketName): Future[Bucket] =
-    retry(when5xx, whenUsageLimited, when404, whenInvalidValueOnBucketCreation, whenNonHttpIOException)(() => {
+    retry(when5xx, whenUsageLimited, when404, whenInvalidValueOnBucketCreation, whenNonHttpIOException) { () =>
       executeGoogleRequest(storage.buckets().get(bucketName.value))
-    })
+    }
 
   override def deleteBucket(bucketName: GcsBucketName, recurse: Boolean): Future[Unit] = {
     // If `recurse` is true, first delete all objects in the bucket
@@ -128,29 +132,32 @@ class HttpGoogleStorageDAO(appName: String,
   override def storeObject(bucketName: GcsBucketName,
                            objectName: GcsObjectName,
                            objectContents: ByteArrayInputStream,
-                           objectType: String): Future[Unit] =
+                           objectType: String
+  ): Future[Unit] =
     storeObject(bucketName, objectName, new InputStreamContent(objectType, objectContents))
 
   override def storeObject(bucketName: GcsBucketName,
                            objectName: GcsObjectName,
                            objectContents: File,
-                           objectType: String): Future[Unit] =
+                           objectType: String
+  ): Future[Unit] =
     storeObject(bucketName, objectName, new FileContent(objectType, objectContents))
 
   private def storeObject(bucketName: GcsBucketName,
                           objectName: GcsObjectName,
-                          content: AbstractInputStreamContent): Future[Unit] = {
+                          content: AbstractInputStreamContent
+  ): Future[Unit] = {
     val storageObject = new StorageObject().setName(objectName.value)
-    retry(when5xx, whenUsageLimited, when404, whenInvalidValueOnBucketCreation, whenNonHttpIOException)(() => {
+    retry(when5xx, whenUsageLimited, when404, whenInvalidValueOnBucketCreation, whenNonHttpIOException) { () =>
       val inserter = storage.objects().insert(bucketName.value, storageObject, content)
       inserter.getMediaHttpUploader.setDirectUploadEnabled(true)
 
       executeGoogleRequest(inserter)
-    })
+    }
   }
 
   override def getObject(bucketName: GcsBucketName, objectName: GcsObjectName): Future[Option[ByteArrayOutputStream]] =
-    retry(when5xx, whenUsageLimited, when404, whenInvalidValueOnBucketCreation, whenNonHttpIOException)(() => {
+    retry(when5xx, whenUsageLimited, when404, whenInvalidValueOnBucketCreation, whenNonHttpIOException) { () =>
       try {
         val getter = storage.objects().get(bucketName.value, objectName.value)
         getter.getMediaHttpDownloader.setDirectDownloadEnabled(true)
@@ -161,7 +168,7 @@ class HttpGoogleStorageDAO(appName: String,
       } catch {
         case t: HttpResponseException if t.getStatusCode == StatusCodes.NotFound.intValue => None
       }
-    })
+    }
 
   override def objectExists(bucketName: GcsBucketName, objectName: GcsObjectName): Future[Boolean] = {
     val getter = storage.objects().get(bucketName.value, objectName.value)
@@ -178,7 +185,8 @@ class HttpGoogleStorageDAO(appName: String,
   //When we migrate to the com.google.cloud library, we will be able to re-write this to use their implementation
   override def setObjectChangePubSubTrigger(bucketName: GcsBucketName,
                                             topicName: String,
-                                            eventTypes: List[String]): Future[Unit] = {
+                                            eventTypes: List[String]
+  ): Future[Unit] = {
     import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
     import org.broadinstitute.dsde.workbench.google.GoogleRequestJsonSupport._
     import spray.json._
@@ -213,7 +221,8 @@ class HttpGoogleStorageDAO(appName: String,
                         Option(entity),
                         endTime - startTime,
                         Option(response.status.intValue),
-                        None).toJson(GoogleRequestFormat).compactPrint
+                        None
+          ).toJson(GoogleRequestFormat).compactPrint
         )
         ()
       }
@@ -221,7 +230,8 @@ class HttpGoogleStorageDAO(appName: String,
   }
 
   override def listObjectsWithPrefix(bucketName: GcsBucketName,
-                                     objectNamePrefix: String): Future[List[GcsObjectName]] = {
+                                     objectNamePrefix: String
+  ): Future[List[GcsObjectName]] = {
     val getter = storage.objects().list(bucketName.value).setPrefix(objectNamePrefix).setMaxResults(maxPageSize)
 
     val objects = listObjectsRecursive(getter) map { pagesOption =>
@@ -242,23 +252,23 @@ class HttpGoogleStorageDAO(appName: String,
   }
 
   private def listObjectsRecursive(fetcher: Storage#Objects#List,
-                                   accumulated: Option[List[Objects]] = Some(Nil)): Future[Option[List[Objects]]] =
+                                   accumulated: Option[List[Objects]] = Some(Nil)
+  ): Future[Option[List[Objects]]] =
     accumulated match {
       // when accumulated has a Nil list then this must be the first request
       case Some(Nil) =>
-        retryWithRecover(when5xx, whenUsageLimited, when404, whenInvalidValueOnBucketCreation, whenNonHttpIOException)(
-          () => {
+        retryWithRecover(when5xx, whenUsageLimited, when404, whenInvalidValueOnBucketCreation, whenNonHttpIOException) {
+          () =>
             Option(executeGoogleRequest(fetcher))
-          }
-        ) {
+        } {
           case e: HttpResponseException if e.getStatusCode == StatusCodes.NotFound.intValue => None
         }.flatMap(firstPage => listObjectsRecursive(fetcher, firstPage.map(List(_))))
 
       // the head is the Objects object of the prior request which contains next page token
       case Some(head :: _) if head.getNextPageToken != null =>
-        retry(when5xx, whenUsageLimited, when404, whenInvalidValueOnBucketCreation, whenNonHttpIOException)(() => {
+        retry(when5xx, whenUsageLimited, when404, whenInvalidValueOnBucketCreation, whenNonHttpIOException) { () =>
           executeGoogleRequest(fetcher.setPageToken(head.getNextPageToken))
-        }).flatMap(nextPage => listObjectsRecursive(fetcher, accumulated.map(pages => nextPage :: pages)))
+        }.flatMap(nextPage => listObjectsRecursive(fetcher, accumulated.map(pages => nextPage :: pages)))
 
       // when accumulated is None (bucket does not exist) or next page token is null
       case _ => Future.successful(accumulated)
@@ -278,36 +288,38 @@ class HttpGoogleStorageDAO(appName: String,
 
   override def setBucketLifecycle(bucketName: GcsBucketName,
                                   lifecycleAge: Int,
-                                  lifecycleType: GcsLifecycleType = Delete): Future[Unit] = {
+                                  lifecycleType: GcsLifecycleType = Delete
+  ): Future[Unit] = {
     val lifecycle = new Lifecycle.Rule()
       .setAction(new Action().setType(lifecycleType.value))
       .setCondition(new Condition().setAge(lifecycleAge))
     val bucket = new Bucket().setName(bucketName.value).setLifecycle(new Lifecycle().setRule(List(lifecycle).asJava))
     val updater = storage.buckets().update(bucketName.value, bucket)
 
-    retry(when5xx, whenUsageLimited, when404, whenInvalidValueOnBucketCreation, whenNonHttpIOException)(() => {
+    retry(when5xx, whenUsageLimited, when404, whenInvalidValueOnBucketCreation, whenNonHttpIOException) { () =>
       executeGoogleRequest(updater)
-    })
+    }
   }
 
   override def copyObject(srcBucketName: GcsBucketName,
                           srcObjectName: GcsObjectName,
                           destBucketName: GcsBucketName,
-                          destObjectName: GcsObjectName): Future[Unit] = {
+                          destObjectName: GcsObjectName
+  ): Future[Unit] = {
     val copier = storage
       .objects()
       .copy(srcBucketName.value, srcObjectName.value, destBucketName.value, destObjectName.value, new StorageObject())
-    retry(when5xx, whenUsageLimited, when404, whenInvalidValueOnBucketCreation, whenNonHttpIOException)(() => {
+    retry(when5xx, whenUsageLimited, when404, whenInvalidValueOnBucketCreation, whenNonHttpIOException) { () =>
       executeGoogleRequest(copier)
-    })
+    }
   }
 
   override def setBucketAccessControl(bucketName: GcsBucketName, entity: GcsEntity, role: GcsRole): Future[Unit] = {
     val acl = new BucketAccessControl().setEntity(entity.toString).setRole(role.value)
     val inserter = storage.bucketAccessControls().insert(bucketName.value, acl)
 
-    retry(when5xx, whenUsageLimited, when404, whenInvalidValueOnBucketCreation, whenNonHttpIOException)(
-      () => executeGoogleRequest(inserter)
+    retry(when5xx, whenUsageLimited, when404, whenInvalidValueOnBucketCreation, whenNonHttpIOException)(() =>
+      executeGoogleRequest(inserter)
     ).void
   }
 
@@ -326,18 +338,20 @@ class HttpGoogleStorageDAO(appName: String,
   override def setObjectAccessControl(bucketName: GcsBucketName,
                                       objectName: GcsObjectName,
                                       entity: GcsEntity,
-                                      role: GcsRole): Future[Unit] = {
+                                      role: GcsRole
+  ): Future[Unit] = {
     val acl = new ObjectAccessControl().setEntity(entity.toString).setRole(role.value)
     val inserter = storage.objectAccessControls().insert(bucketName.value, objectName.value, acl)
 
-    retry(when5xx, whenUsageLimited, when404, whenInvalidValueOnBucketCreation, whenNonHttpIOException)(
-      () => executeGoogleRequest(inserter)
+    retry(when5xx, whenUsageLimited, when404, whenInvalidValueOnBucketCreation, whenNonHttpIOException)(() =>
+      executeGoogleRequest(inserter)
     ).void
   }
 
   override def removeObjectAccessControl(bucketName: GcsBucketName,
                                          objectName: GcsObjectName,
-                                         entity: GcsEntity): Future[Unit] = {
+                                         entity: GcsEntity
+  ): Future[Unit] = {
     val deleter = storage.objectAccessControls().delete(bucketName.value, objectName.value, entity.toString)
 
     retryWithRecover(when5xx, whenUsageLimited, when404, whenInvalidValueOnBucketCreation, whenNonHttpIOException) {
@@ -351,12 +365,13 @@ class HttpGoogleStorageDAO(appName: String,
 
   override def setDefaultObjectAccessControl(bucketName: GcsBucketName,
                                              entity: GcsEntity,
-                                             role: GcsRole): Future[Unit] = {
+                                             role: GcsRole
+  ): Future[Unit] = {
     val acl = new ObjectAccessControl().setEntity(entity.toString).setRole(role.value)
     val inserter = storage.defaultObjectAccessControls().insert(bucketName.value, acl)
 
-    retry(when5xx, whenUsageLimited, when404, whenInvalidValueOnBucketCreation, whenNonHttpIOException)(
-      () => executeGoogleRequest(inserter)
+    retry(when5xx, whenUsageLimited, when404, whenInvalidValueOnBucketCreation, whenNonHttpIOException)(() =>
+      executeGoogleRequest(inserter)
     ).void
   }
 
@@ -373,12 +388,12 @@ class HttpGoogleStorageDAO(appName: String,
   }
 
   override def getBucketAccessControls(bucketName: GcsBucketName): Future[BucketAccessControls] =
-    retry(when5xx, whenUsageLimited, when404, whenInvalidValueOnBucketCreation, whenNonHttpIOException)(() => {
+    retry(when5xx, whenUsageLimited, when404, whenInvalidValueOnBucketCreation, whenNonHttpIOException) { () =>
       executeGoogleRequest(storage.bucketAccessControls().list(bucketName.value))
-    })
+    }
 
   override def getDefaultObjectAccessControls(bucketName: GcsBucketName): Future[ObjectAccessControls] =
-    retry(when5xx, whenUsageLimited, when404, whenInvalidValueOnBucketCreation, whenNonHttpIOException)(() => {
+    retry(when5xx, whenUsageLimited, when404, whenInvalidValueOnBucketCreation, whenNonHttpIOException) { () =>
       executeGoogleRequest(storage.defaultObjectAccessControls().list(bucketName.value))
-    })
+    }
 }

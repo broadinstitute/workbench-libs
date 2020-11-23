@@ -111,7 +111,8 @@ object GoogleSubscriberInterpreter {
           Event(message.getData.toStringUtf8,
                 Option(message.getAttributesMap.get("traceId")).map(s => TraceId(s)),
                 message.getPublishTime,
-                consumer)
+                consumer
+          )
         )
         enqueueAction.toIO.unsafeRunSync
       }
@@ -129,12 +130,11 @@ object GoogleSubscriberInterpreter {
       credential <- credentialResource(subscriberConfig.pathToCredentialJson)
       subscriptionAdminClient <- subscriptionAdminClientResource(credential)
       _ <- createSubscription(subscriberConfig, subscription, subscriptionAdminClient)
-      flowControlSettings = subscriberConfig.flowControlSettingsConfig.map(
-        config =>
-          FlowControlSettings.newBuilder
-            .setMaxOutstandingElementCount(config.maxOutstandingElementCount)
-            .setMaxOutstandingRequestBytes(config.maxOutstandingRequestBytes)
-            .build
+      flowControlSettings = subscriberConfig.flowControlSettingsConfig.map(config =>
+        FlowControlSettings.newBuilder
+          .setMaxOutstandingElementCount(config.maxOutstandingElementCount)
+          .setMaxOutstandingRequestBytes(config.maxOutstandingRequestBytes)
+          .build
       )
       sub <- subscriberResource(queue, subscription, credential, flowControlSettings)
     } yield sub
@@ -152,12 +152,11 @@ object GoogleSubscriberInterpreter {
       credential <- credentialResource(subscriberConfig.pathToCredentialJson)
       subscriptionAdminClient <- subscriptionAdminClientResource(credential)
       _ <- createSubscription(subscriberConfig, subscription, subscriptionAdminClient)
-      flowControlSettings = subscriberConfig.flowControlSettingsConfig.map(
-        config =>
-          FlowControlSettings.newBuilder
-            .setMaxOutstandingElementCount(config.maxOutstandingElementCount)
-            .setMaxOutstandingRequestBytes(config.maxOutstandingRequestBytes)
-            .build
+      flowControlSettings = subscriberConfig.flowControlSettingsConfig.map(config =>
+        FlowControlSettings.newBuilder
+          .setMaxOutstandingElementCount(config.maxOutstandingElementCount)
+          .setMaxOutstandingRequestBytes(config.maxOutstandingRequestBytes)
+          .build
       )
       sub <- stringSubscriberResource(queue, subscription, credential, flowControlSettings)
     } yield sub
@@ -236,8 +235,8 @@ object GoogleSubscriberInterpreter {
           subscriptionAdminClient.createSubscription(sub)
         )
         .void
-        .recover {
-          case _: AlreadyExistsException => Logger[F].info(s"subscription ${subscription} already exists")
+        .recover { case _: AlreadyExistsException =>
+          Logger[F].info(s"subscription ${subscription} already exists")
         }
     )
   }

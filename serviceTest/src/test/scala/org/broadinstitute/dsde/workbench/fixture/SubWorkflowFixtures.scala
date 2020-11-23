@@ -24,7 +24,8 @@ trait SubWorkflowFixtures extends RandomUtil {
   def methodTree(levels: Int,
                  scatterCount: Int,
                  methodNamespace: String = uniqueMethodName(),
-                 topLevelMethodName: String = uniqueMethodName())(implicit token: AuthToken): Method = {
+                 topLevelMethodName: String = uniqueMethodName()
+  )(implicit token: AuthToken): Method = {
     if (levels < 2)
       throw new Exception(s"Test Logic Error: methodTree requires at least 2 levels.  Requested: $levels")
 
@@ -79,12 +80,14 @@ trait SubWorkflowFixtures extends RandomUtil {
                                                method.methodName,
                                                method.snapshotId,
                                                "public",
-                                               "READER")
+                                               "READER"
+    )
     method
   }
 
-  private def baseMethod(methodNamespace: String,
-                         workflowName: String = uniqueMethodName())(implicit token: AuthToken): Method = {
+  private def baseMethod(methodNamespace: String, workflowName: String = uniqueMethodName())(implicit
+    token: AuthToken
+  ): Method = {
     val method = Method(
       methodName = workflowName,
       methodNamespace = methodNamespace,
@@ -136,7 +139,8 @@ trait SubWorkflowFixtures extends RandomUtil {
   private def methodWithSubWorkflows(workflowName: String,
                                      methodNamespace: String,
                                      child: Method,
-                                     scatterCount: Int): Method = {
+                                     scatterCount: Int
+  ): Method = {
 
     // Orchestration in real environments has a globally resolvable name like "firecloud-orchestration.dsde-dev.b.o"
     // but not in FIABs; instead they can use the docker network name
@@ -181,8 +185,8 @@ trait SubWorkflowFixtures extends RandomUtil {
   }
 
   // how many middle-level methods of the tree (not counting top and base, so total - 2)
-  private def middleMethods(methodNamespace: String, count: Int, scatterCount: Int)(
-    implicit token: AuthToken
+  private def middleMethods(methodNamespace: String, count: Int, scatterCount: Int)(implicit
+    token: AuthToken
   ): Method = {
     val subMethod =
       if (count == 1)

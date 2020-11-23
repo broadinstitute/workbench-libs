@@ -46,14 +46,16 @@ class OpenTelemetryMetricsInterpreter[F[_]](appName: String)(implicit F: Async[F
                                   s"The distribution of ${name} success",
                                   latencySuccess,
                                   latencyDistribution,
-                                  (List(appTagKey) ++ tagKvs.keys).asJava)
+                                  (List(appTagKey) ++ tagKvs.keys).asJava
+    )
 
     val viewFailureName = Name.create(s"$appName/${name}_failure_count")
     val viewFailure = View.create(viewFailureName,
                                   s"The count of ${name} failure",
                                   countFailure,
                                   Aggregation.Count.create(),
-                                  (List(appTagKey) ++ tagKvs.keys).asJava)
+                                  (List(appTagKey) ++ tagKvs.keys).asJava
+    )
 
     for {
       _ <- F.delay(viewManager.registerView(viewSuccess)) //it's no op if the view is already registered
@@ -97,7 +99,8 @@ class OpenTelemetryMetricsInterpreter[F[_]](appName: String)(implicit F: Async[F
                            s"The count of ${name}",
                            counter,
                            Aggregation.Sum.create(),
-                           (List(appTagKey) ++ tagKvs.keys).asJava)
+                           (List(appTagKey) ++ tagKvs.keys).asJava
+    )
     for {
       _ <- F.delay(viewManager.registerView(view))
       _ <- F.delay(statsRecorder.newMeasureMap().put(counter, count).record(tc))
@@ -107,7 +110,8 @@ class OpenTelemetryMetricsInterpreter[F[_]](appName: String)(implicit F: Async[F
   def recordDuration(name: String,
                      duration: FiniteDuration,
                      distributionBucket: List[FiniteDuration],
-                     tags: Map[String, String] = Map.empty)(implicit timer: Timer[F]): F[Unit] = {
+                     tags: Map[String, String] = Map.empty
+  )(implicit timer: Timer[F]): F[Unit] = {
     val latency = MeasureDouble.create(s"${name}_duration", s"The latency of ${name} in milliseconds", "ms")
 
     val latencyDistribution =
@@ -119,7 +123,8 @@ class OpenTelemetryMetricsInterpreter[F[_]](appName: String)(implicit F: Async[F
                            s"The distribution of ${name} duration",
                            latency,
                            latencyDistribution,
-                           (List(appTagKey) ++ tagKvs.keys).asJava)
+                           (List(appTagKey) ++ tagKvs.keys).asJava
+    )
 
     for {
       _ <- F.delay(viewManager.registerView(view))
@@ -134,8 +139,8 @@ class OpenTelemetryMetricsInterpreter[F[_]](appName: String)(implicit F: Async[F
         .emptyBuilder()
         .putLocal(appTagKey, appTagValue)
 
-      tags.foreach {
-        case (k, v) => builder.putLocal(k, v)
+      tags.foreach { case (k, v) =>
+        builder.putLocal(k, v)
       }
 
       builder.build()
