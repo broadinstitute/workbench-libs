@@ -29,7 +29,20 @@ jobs:
         run: .github/scripts/version_update.sh
         shell: bash
       - name: Push changes
-        uses: ad-m/github-push-action@master
+        uses: EndBug/add-and-commit@v5
         with:
-          github_token: ${{ secrets.BROADBOT_GITHUB_TOKEN }}
-          branch: ${{ github.ref }}
+          add: '.'
+
+          # The name of the user that will be displayed as the author of the commit
+          # Default: author of the commit that triggered the run
+          author_name: broadbot
+
+          # The email of the user that will be displayed as the author of the commit
+          # Default: author of the commit that triggered the run
+          author_email: broadbot@broadinstitute.org
+
+          # The message for the commit
+          # Default: 'Commit from GitHub Actions (name of the workflow)'
+#          message: 'Auto update hash in ${f} to ${HASH}'
+        env:
+          GITHUB_TOKEN: ${{ secrets.BROADBOT_GITHUB_TOKEN }}

@@ -15,9 +15,6 @@ TO_REPLACE="TRAVIS-REPLACE-ME"
 
 HASH=$(git rev-parse HEAD | cut -c -7)
 
-git config --global user.email "broadbot@broadinstitute.org"
-git config --global user.name "broadbot"
-
 echo "Auto-updating version hashes..."
 
 for f in README.md */CHANGELOG.md
