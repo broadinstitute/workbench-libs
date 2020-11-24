@@ -32,4 +32,4 @@ jobs:
         uses: ad-m/github-push-action@master
         with:
           github_token: ${{ secrets.BROADBOT_GITHUB_TOKEN }}
-          branch: version
+          branch: ${{ github.ref }}
