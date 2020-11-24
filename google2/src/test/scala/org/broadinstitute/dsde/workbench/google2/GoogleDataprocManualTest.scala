@@ -66,7 +66,7 @@ final class GoogleDataprocManualTest(pathToCredential: String,
       dataprocService.getCluster(project, region, DataprocClusterName(cluster))
     }
 
-  def callGetClusterInstances(cluster: String): IO[Map[DataprocRoleAndPreemptibility, Set[InstanceName]]] =
+  def callGetClusterInstances(cluster: String): IO[Map[DataprocRoleZonePreemptibility, Set[InstanceName]]] =
     dataprocServiceResource.use { dataprocService =>
       dataprocService.getClusterInstances(project, region, DataprocClusterName(cluster))
     }

@@ -60,7 +60,7 @@ trait GoogleDataprocService[F[_]] {
 
   def getClusterInstances(project: GoogleProject, region: RegionName, clusterName: DataprocClusterName)(
     implicit ev: Ask[F, TraceId]
-  ): F[Map[DataprocRoleAndPreemptibility, Set[InstanceName]]]
+  ): F[Map[DataprocRoleZonePreemptibility, Set[InstanceName]]]
 
   def getClusterError(operationName: OperationName)(implicit ev: Ask[F, TraceId]): F[Option[ClusterError]]
 }
@@ -154,7 +154,7 @@ object DataprocRole {
   val stringToDataprocRole = sealerate.values[DataprocRole].map(p => (p.toString, p)).toMap
 }
 
-final case class DataprocRoleAndPreemptibility(role: DataprocRole, isPreemptible: Boolean)
+final case class DataprocRoleZonePreemptibility(role: DataprocRole, zone: ZoneName, isPreemptible: Boolean)
 
 final case class ClusterError(code: Int, message: String)
 final case class ClusterErrorDetails(code: Int, message: Option[String])

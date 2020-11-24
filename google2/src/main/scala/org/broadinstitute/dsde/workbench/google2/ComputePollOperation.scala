@@ -16,7 +16,7 @@ import org.broadinstitute.dsde.workbench.model.google.GoogleProject
 import org.broadinstitute.dsde.workbench.DoneCheckableInstances.computeDoneCheckable
 import org.broadinstitute.dsde.workbench.DoneCheckableSyntax._
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import scala.concurrent.duration.FiniteDuration
 
 trait ComputePollOperation[F[_]] {
@@ -50,7 +50,7 @@ trait ComputePollOperation[F[_]] {
     // the operation `wait` API instead of polling `get`. See:
     // https://cloud.google.com/compute/docs/reference/rest/v1/zoneOperations/wait
     // https://github.com/googleapis/java-compute/commit/50cb4a98cb36fcd3bf4bdd5d16ab17f9d391bf98
-    (getZoneName(operation.getZone), getRegionName(operation.getRegion)) match {
+    (ZoneName.fromUri(operation.getZone), RegionName.fromUri(operation.getRegion)) match {
       case (Some(zone), _) =>
         pollZoneOperation(project, zone, OperationName(operation.getName), delay, maxAttempts, haltWhenTrue)(
           whenDone,
@@ -148,12 +148,6 @@ trait ComputePollOperation[F[_]] {
         }
       }
     } yield res
-
-  private def getZoneName(zoneUrl: String): Option[ZoneName] =
-    Option(zoneUrl).flatMap(_.split("/").lastOption).map(ZoneName)
-
-  private def getRegionName(regionUrl: String): Option[RegionName] =
-    Option(regionUrl).flatMap(_.split("/").lastOption).map(RegionName)
 }
 
 object ComputePollOperation {

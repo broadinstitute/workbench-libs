@@ -265,7 +265,7 @@ private[google2] class GoogleDataprocInterpreter[F[_]: StructuredLogger: Timer: 
 
   override def getClusterInstances(project: GoogleProject, region: RegionName, clusterName: DataprocClusterName)(
     implicit ev: Ask[F, TraceId]
-  ): F[Map[DataprocRoleAndPreemptibility, Set[InstanceName]]] =
+  ): F[Map[DataprocRoleZonePreemptibility, Set[InstanceName]]] =
     for {
       cluster <- getCluster(project, region, clusterName)
     } yield cluster.map(getAllInstanceNames).getOrElse(Map.empty)
@@ -291,14 +291,23 @@ object GoogleDataprocInterpreter {
   // WARNING: Be very careful refactoring this function and make sure you test this out in console.
   // Incorrectness in this function can cause leonardo fail to stop all instances for a Dataproc cluster, which
   // incurs compute cost for users
-  def getAllInstanceNames(cluster: Cluster): Map[DataprocRoleAndPreemptibility, Set[InstanceName]] = {
+  def getAllInstanceNames(cluster: Cluster): Map[DataprocRoleZonePreemptibility, Set[InstanceName]] = {
     val res = Option(cluster.getConfig).map { config =>
+      val zoneUri = config.getGceClusterConfig.getZoneUri
+      val zone = ZoneName.fromUri(zoneUri).getOrElse(ZoneName(""))
+      println(s"\n\n zoneURI: $zoneUri \n")
+      println(s"\n\n zone: $zone \n")
+
       val master =
-        Option(config.getMasterConfig).map(config => getFromGroup(DataprocRole.Master, config)).getOrElse(Map.empty)
+        Option(config.getMasterConfig)
+          .map(config => getFromGroup(DataprocRole.Master, config, zone))
+          .getOrElse(Map.empty)
       val workers =
-        Option(config.getWorkerConfig).map(config => getFromGroup(DataprocRole.Worker, config)).getOrElse(Map.empty)
+        Option(config.getWorkerConfig)
+          .map(config => getFromGroup(DataprocRole.Worker, config, zone))
+          .getOrElse(Map.empty)
       val secondaryWorkers = Option(config.getSecondaryWorkerConfig)
-        .map(config => getFromGroup(DataprocRole.SecondaryWorker, config))
+        .map(config => getFromGroup(DataprocRole.SecondaryWorker, config, zone))
         .getOrElse(Map.empty)
 
       master ++ workers ++ secondaryWorkers
@@ -307,13 +316,15 @@ object GoogleDataprocInterpreter {
     res.getOrElse(Map.empty)
   }
 
-  def containsPreemptibles(instances: Map[DataprocRoleAndPreemptibility, Set[InstanceName]]): Boolean =
+  def containsPreemptibles(instances: Map[DataprocRoleZonePreemptibility, Set[InstanceName]]): Boolean =
     instances.exists {
-      case (DataprocRoleAndPreemptibility(_, isPreemptible), instanceNames) => isPreemptible && instanceNames.nonEmpty
+      case (DataprocRoleZonePreemptibility(_, _, isPreemptible), instanceNames) =>
+        isPreemptible && instanceNames.nonEmpty
     }
 
   private def getFromGroup(role: DataprocRole,
-                           groupConfig: InstanceGroupConfig): Map[DataprocRoleAndPreemptibility, Set[InstanceName]] = {
+                           groupConfig: InstanceGroupConfig,
+                           zone: ZoneName): Map[DataprocRoleZonePreemptibility, Set[InstanceName]] = {
     val instances = groupConfig.getInstanceNamesList
       .asByteStringList()
       .asScala
@@ -322,6 +333,6 @@ object GoogleDataprocInterpreter {
       .toSet
 
     if (instances.isEmpty) Map.empty
-    else Map(DataprocRoleAndPreemptibility(role, groupConfig.getIsPreemptible) -> instances)
+    else Map(DataprocRoleZonePreemptibility(role, zone, groupConfig.getIsPreemptible) -> instances)
   }
 }
