@@ -16,7 +16,7 @@ test-output/
 *.log
 /config/
 .bloop
-
+.bsp
 *.pid
 .DS_Store
 .metals
