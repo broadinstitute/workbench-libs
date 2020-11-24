@@ -3,9 +3,6 @@ name: Publish Jar
 on:
   push:
     branches: [ develop ]
-  pull_request:
-    branches:
-      - develop
 
 jobs:
   publish:
@@ -16,12 +13,11 @@ jobs:
         uses: olafurpg/setup-scala@v10
         with:
           java-version: "adopt@1.8"
-#       TODO: uncomment
-#      - name: Publish workbench-libs
-#        run: sbt "+ publish" -Dproject.isSnapshot=true
-#        env:
-#          ARTIFACTORY_USERNAME: ${{ secrets.ARTIFACTORY_USERNAME }}
-#          ARTIFACTORY_PASSWORD: ${{ secrets.ARTIFACTORY_PASSWORD }}
+      - name: Publish workbench-libs
+        run: sbt "+ publish" -Dproject.isSnapshot=true
+        env:
+          ARTIFACTORY_USERNAME: ${{ secrets.ARTIFACTORY_USERNAME }}
+          ARTIFACTORY_PASSWORD: ${{ secrets.ARTIFACTORY_PASSWORD }}
       - name: Update `TRAVIS-REPLACE-ME`
         run: .github/scripts/version_update.sh
         shell: bash
