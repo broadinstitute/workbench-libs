@@ -16,11 +16,11 @@ jobs:
           uses: olafurpg/setup-scala@v10
           with:
             java-version: "adopt@1.8"
-              - name: Build and Test
-                run: sbt "+ publish" -Dproject.isSnapshot=true
-                env:
-                  ARTIFACTORY_USERNAME: ${{ secrets.ARTIFACTORY_USERNAME }}
-                  ARTIFACTORY_PASSWORD: ${{ secrets.ARTIFACTORY_PASSWORD }}
+      - name: Build and Test
+        run: sbt "+ publish" -Dproject.isSnapshot=true
+        env:
+          ARTIFACTORY_USERNAME: ${{ secrets.ARTIFACTORY_USERNAME }}
+          ARTIFACTORY_PASSWORD: ${{ secrets.ARTIFACTORY_PASSWORD }}
       - name: Update `TRAVIS-REPLACE-ME`
         run: .github/scripts/version_update.sh
         shell: bash

@@ -19,8 +19,8 @@ jobs:
         uses: olafurpg/setup-scala@v10
         with:
           java-version: "adopt@1.8"
-          - name: Build and Test
-            run: sbt -Dfile.encoding=UTF-8 clean +test coverageReport coverageAggregate
+      - name: Build and Test
+        run: sbt -Dfile.encoding=UTF-8 clean +test coverageReport coverageAggregate
       - name: Compile and check scalafmt
         run: sbt -Denv.type=test clean "test:compile" scalafmtCheckAll
       - name: Upload coverage to Codecov
