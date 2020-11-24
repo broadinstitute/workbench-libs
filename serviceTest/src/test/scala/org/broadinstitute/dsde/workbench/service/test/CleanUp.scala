@@ -80,8 +80,8 @@ trait CleanUp extends TestSuiteMixin with ExceptionHandling with LazyLogging { s
    * @param testCode the test code to run
    */
   def withCleanUp(testCode: => Any): Unit = {
-    val testTrial = Try { testCode }
-    val cleanupTrial = Try { runCleanUpFunctions() }
+    val testTrial = Try(testCode)
+    val cleanupTrial = Try(runCleanUpFunctions())
 
     (testTrial, cleanupTrial) match {
       case (Failure(t), _)          => throw t
@@ -92,8 +92,8 @@ trait CleanUp extends TestSuiteMixin with ExceptionHandling with LazyLogging { s
 
   abstract override def withFixture(test: NoArgTest): Outcome = {
     if (cleanUpFunctions.peek() != null) throw new Exception("cleanUpFunctions non empty at start of withFixture block")
-    val testTrial = Try { super.withFixture(test) }
-    val cleanupTrial = Try { runCleanUpFunctions() }
+    val testTrial = Try(super.withFixture(test))
+    val cleanupTrial = Try(runCleanUpFunctions())
 
     CleanUp.runCodeWithCleanup(testTrial, cleanupTrial)
   }
@@ -107,8 +107,8 @@ trait CleanUp extends TestSuiteMixin with ExceptionHandling with LazyLogging { s
       Try(f())
     }
     cleanUpFunctions.clear()
-    val errorReports = cleanups.collect {
-      case Failure(t) => ErrorReport(t)
+    val errorReports = cleanups.collect { case Failure(t) =>
+      ErrorReport(t)
     }
 
     if (errorReports.nonEmpty) {

@@ -68,7 +68,8 @@ object Notifications {
    */
   private def register[T <: Notification](notificationType: NotificationType[T]): NotificationType[T] = {
     require(allNotificationTypes == null,
-            "all calls to register must come before definition of allNotificationTypes in the file")
+            "all calls to register must come before definition of allNotificationTypes in the file"
+    )
     allNotificationTypesBuilder += notificationType.notificationType -> notificationType
     notificationType
   }
@@ -83,8 +84,8 @@ object Notifications {
   case class WorkspaceAddedNotification(recipientUserId: WorkbenchUserId,
                                         accessLevel: String,
                                         workspaceName: WorkspaceName,
-                                        workspaceOwnerId: WorkbenchUserId)
-      extends UserNotification
+                                        workspaceOwnerId: WorkbenchUserId
+  ) extends UserNotification
   val WorkspaceAddedNotificationType = register(new NotificationType[WorkspaceAddedNotification] {
     override val format = jsonFormat4(WorkspaceAddedNotification.apply)
     override val description = "Workspace Access Added or Changed"
@@ -93,8 +94,8 @@ object Notifications {
   case class WorkspaceRemovedNotification(recipientUserId: WorkbenchUserId,
                                           accessLevel: String,
                                           workspaceName: WorkspaceName,
-                                          workspaceOwnerId: WorkbenchUserId)
-      extends UserNotification
+                                          workspaceOwnerId: WorkbenchUserId
+  ) extends UserNotification
   val WorkspaceRemovedNotificationType = register(new NotificationType[WorkspaceRemovedNotification] {
     override val format = jsonFormat4(WorkspaceRemovedNotification.apply)
     override val description = "Workspace Access Removed"
@@ -103,8 +104,8 @@ object Notifications {
   case class WorkspaceInvitedNotification(recipientUserEmail: WorkbenchEmail,
                                           requesterId: WorkbenchUserId,
                                           workspaceName: WorkspaceName,
-                                          bucketName: String)
-      extends Notification
+                                          bucketName: String
+  ) extends Notification
   val WorkspaceInvitedNotificationType = register(new NotificationType[WorkspaceInvitedNotification] {
     override val format = jsonFormat4(WorkspaceInvitedNotification.apply)
     override val description = "Invitation"
@@ -121,8 +122,8 @@ object Notifications {
   case class GroupAccessRequestNotification(recipientUserId: WorkbenchUserId,
                                             groupName: String,
                                             replyToIds: Set[WorkbenchUserId],
-                                            requesterId: WorkbenchUserId)
-      extends Notification
+                                            requesterId: WorkbenchUserId
+  ) extends Notification
   val GroupAccessRequestNotificationType = register(new NotificationType[GroupAccessRequestNotification] {
     override val format = jsonFormat4(GroupAccessRequestNotification)
     override val description = "Group Access Requested"

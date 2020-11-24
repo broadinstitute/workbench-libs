@@ -16,7 +16,8 @@ trait GoogleIamDAO {
    * Relies on spooky knowledge of how Google constructs SA emails, which isn't the best.
    */
   protected def toServiceAccountEmail(serviceAccountProject: GoogleProject,
-                                      serviceAccountName: ServiceAccountName): WorkbenchEmail =
+                                      serviceAccountName: ServiceAccountName
+  ): WorkbenchEmail =
     WorkbenchEmail(s"$serviceAccountName@$serviceAccountProject.iam.gserviceaccount.com")
 
   /**
@@ -26,7 +27,8 @@ trait GoogleIamDAO {
    * @return An option representing either finding the SA, or not, wrapped in a Future, representing any other failures.
    */
   def findServiceAccount(serviceAccountProject: GoogleProject,
-                         serviceAccountName: ServiceAccountName): Future[Option[ServiceAccount]]
+                         serviceAccountName: ServiceAccountName
+  ): Future[Option[ServiceAccount]]
 
   /**
    * Looks for a service account in the given project.
@@ -35,7 +37,8 @@ trait GoogleIamDAO {
    * @return An option representing either finding the SA, or not, wrapped in a Future, representing any other failures.
    */
   def findServiceAccount(serviceAccountProject: GoogleProject,
-                         serviceAccountEmail: WorkbenchEmail): Future[Option[ServiceAccount]]
+                         serviceAccountEmail: WorkbenchEmail
+  ): Future[Option[ServiceAccount]]
 
   /**
    * Creates a service account in the given project.
@@ -46,7 +49,8 @@ trait GoogleIamDAO {
    */
   def createServiceAccount(serviceAccountProject: GoogleProject,
                            serviceAccountName: ServiceAccountName,
-                           displayName: ServiceAccountDisplayName): Future[ServiceAccount]
+                           displayName: ServiceAccountDisplayName
+  ): Future[ServiceAccount]
 
   /**
    * Get or create a service account in the given project.
@@ -105,7 +109,8 @@ trait GoogleIamDAO {
   @deprecated(message = "Please use the generic method with {{{ memberType = MemberType.User }}}.", since = "0.21")
   def removeIamRolesForUser(iamProject: GoogleProject,
                             email: WorkbenchEmail,
-                            rolesToRemove: Set[String]): Future[Boolean] =
+                            rolesToRemove: Set[String]
+  ): Future[Boolean] =
     removeIamRoles(iamProject: GoogleProject, email: WorkbenchEmail, MemberType.User, rolesToRemove: Set[String])
 
   /**
@@ -121,7 +126,8 @@ trait GoogleIamDAO {
   def addIamRoles(iamProject: GoogleProject,
                   email: WorkbenchEmail,
                   memberType: MemberType,
-                  rolesToAdd: Set[String]): Future[Boolean]
+                  rolesToAdd: Set[String]
+  ): Future[Boolean]
 
   /**
    * Removes project-level IAM roles for the given member type.
@@ -136,10 +142,10 @@ trait GoogleIamDAO {
   def removeIamRoles(iamProject: GoogleProject,
                      email: WorkbenchEmail,
                      memberType: MemberType,
-                     rolesToRemove: Set[String]): Future[Boolean]
+                     rolesToRemove: Set[String]
+  ): Future[Boolean]
 
   /**
-   *
    * @param serviceAccountProject the google project where serviceAccount lives
    * @param serviceAccount the service account (i.e. the IAM resource) to which to add the policy binding
    * @param member the user email address for which to add the roles to
@@ -149,7 +155,8 @@ trait GoogleIamDAO {
   def addIamPolicyBindingOnServiceAccount(serviceAccountProject: GoogleProject,
                                           serviceAccount: WorkbenchEmail,
                                           member: WorkbenchEmail,
-                                          rolesToAdd: Set[String]): Future[Unit]
+                                          rolesToAdd: Set[String]
+  ): Future[Unit]
 
   /**
    * Adds the Service Account User role for the given users on the given service account.
@@ -161,7 +168,8 @@ trait GoogleIamDAO {
    */
   def addServiceAccountUserRoleForUser(serviceAccountProject: GoogleProject,
                                        serviceAccountEmail: WorkbenchEmail,
-                                       email: WorkbenchEmail): Future[Unit]
+                                       email: WorkbenchEmail
+  ): Future[Unit]
 
   /**
    * Creates a user-managed key for the given service account.
@@ -170,7 +178,8 @@ trait GoogleIamDAO {
    * @return instance of ServiceAccountKey
    */
   def createServiceAccountKey(serviceAccountProject: GoogleProject,
-                              serviceAccountEmail: WorkbenchEmail): Future[ServiceAccountKey]
+                              serviceAccountEmail: WorkbenchEmail
+  ): Future[ServiceAccountKey]
 
   /**
    * Deletes a user-managed key for the given service account.
@@ -180,7 +189,8 @@ trait GoogleIamDAO {
    */
   def removeServiceAccountKey(serviceAccountProject: GoogleProject,
                               serviceAccountEmail: WorkbenchEmail,
-                              keyId: ServiceAccountKeyId): Future[Unit]
+                              keyId: ServiceAccountKeyId
+  ): Future[Unit]
 
   /**
    * Lists keys associated with a given service account.
@@ -189,7 +199,8 @@ trait GoogleIamDAO {
    * @return list of service account keys
    */
   def listServiceAccountKeys(serviceAccountProject: GoogleProject,
-                             serviceAccountEmail: WorkbenchEmail): Future[Seq[ServiceAccountKey]]
+                             serviceAccountEmail: WorkbenchEmail
+  ): Future[Seq[ServiceAccountKey]]
 
   /**
    * Lists user managed keys associated with a given service account.
@@ -198,7 +209,8 @@ trait GoogleIamDAO {
    * @return list of service account keys
    */
   def listUserManagedServiceAccountKeys(serviceAccountProject: GoogleProject,
-                                        serviceAccountEmail: WorkbenchEmail): Future[Seq[ServiceAccountKey]]
+                                        serviceAccountEmail: WorkbenchEmail
+  ): Future[Seq[ServiceAccountKey]]
 }
 
 object GoogleIamDAO {

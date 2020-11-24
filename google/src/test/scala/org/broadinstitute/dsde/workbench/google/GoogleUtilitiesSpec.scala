@@ -46,7 +46,8 @@ class GoogleUtilitiesSpec
   def buildGoogleJsonResponseException(statusCode: Int,
                                        message: Option[String] = None,
                                        reason: Option[String] = None,
-                                       domain: Option[String] = None): GoogleJsonResponseException = {
+                                       domain: Option[String] = None
+  ): GoogleJsonResponseException = {
     val httpExc = new HttpResponseException.Builder(statusCode, null, new HttpHeaders())
     val errInfo = new ErrorInfo()
 
@@ -253,8 +254,8 @@ class GoogleUtilitiesSpec
     withStatsD {
       val counter = new Counter()
 
-      def recoverIO: PartialFunction[Throwable, Int] = {
-        case _: IOException => 42
+      def recoverIO: PartialFunction[Throwable, Int] = { case _: IOException =>
+        42
       }
 
       whenReady(retryWithRecover(whenNonHttpIOException(_))(() => counter.alwaysBoom())(recoverIO)) { s =>

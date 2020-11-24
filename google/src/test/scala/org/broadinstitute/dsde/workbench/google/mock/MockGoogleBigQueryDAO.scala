@@ -27,8 +27,13 @@ class MockGoogleBigQueryDAO extends GoogleBigQueryDAO {
   override def startParameterizedQuery(project: GoogleProject,
                                        querySql: String,
                                        queryParameters: List[QueryParameter],
-                                       parameterMode: String): Future[JobReference] =
-    if (project == testProject && querySql == testParamQuery && queryParameters.equals(queryParameters) && parameterMode == testParameterMode)
+                                       parameterMode: String
+  ): Future[JobReference] =
+    if (
+      project == testProject && querySql == testParamQuery && queryParameters.equals(
+        queryParameters
+      ) && parameterMode == testParameterMode
+    )
       Future.successful(testJobReference)
     else
       Future.failed(new Exception(unexpectedInputsError))

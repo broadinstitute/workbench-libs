@@ -40,16 +40,18 @@ class MockGooglePubSubDAO extends GooglePubSubDAO {
   override def pullMessages(subscriptionName: String, maxMessages: Int): Future[Seq[PubSubMessage]] = Future {
     val subscription =
       subscriptionsByName.getOrElse(subscriptionName,
-                                    throw new WorkbenchException(s"no subscription named $subscriptionName"))
+                                    throw new WorkbenchException(s"no subscription named $subscriptionName")
+      )
     (0 until maxMessages)
       .map(_ => Option(subscription.queue.poll()))
-      .collect {
-        case Some(message) => PubSubMessage(UUID.randomUUID().toString, message)
+      .collect { case Some(message) =>
+        PubSubMessage(UUID.randomUUID().toString, message)
       }
   }
 
   override def acknowledgeMessages(subscriptionName: String,
-                                   messages: scala.collection.Seq[PubSubMessage]): Future[Unit] =
+                                   messages: scala.collection.Seq[PubSubMessage]
+  ): Future[Unit] =
     Future.successful(messages.foreach(m => acks.add(m.ackId)))
 
   override def acknowledgeMessagesById(subscriptionName: String, ackIds: scala.collection.Seq[String]): Future[Unit] =
@@ -61,9 +63,7 @@ class MockGooglePubSubDAO extends GooglePubSubDAO {
     for {
       sub <- subscriptions
       message <- messages
-    } yield {
-      sub.queue.add(message)
-    }
+    } yield sub.queue.add(message)
   }
 
   override def deleteSubscription(subscriptionName: String): Future[Boolean] = Future {

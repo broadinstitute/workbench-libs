@@ -8,7 +8,8 @@ case class ErrorReport(source: String,
                        statusCode: Option[StatusCode],
                        causes: Seq[ErrorReport],
                        stackTrace: Seq[StackTraceElement],
-                       exceptionClass: Option[Class[_]])
+                       exceptionClass: Option[Class[_]]
+)
 
 case class ErrorReportSource(source: String)
 
@@ -41,23 +42,24 @@ object ErrorReport {
                 Some(statusCode),
                 causes(throwable),
                 throwable.getStackTrace,
-                Option(throwable.getClass))
+                Option(throwable.getClass)
+    )
 
   def apply(statusCode: StatusCode, message: String)(implicit source: ErrorReportSource): ErrorReport =
     ErrorReport(source.source, message, Option(statusCode), Seq.empty, Seq.empty, None)
 
-  def apply(statusCode: StatusCode, message: String, throwable: Throwable)(
-    implicit source: ErrorReportSource
+  def apply(statusCode: StatusCode, message: String, throwable: Throwable)(implicit
+    source: ErrorReportSource
   ): ErrorReport =
     ErrorReport(source.source, message, Option(statusCode), causes(throwable), throwable.getStackTrace, None)
 
-  def apply(statusCode: StatusCode, message: String, cause: ErrorReport)(
-    implicit source: ErrorReportSource
+  def apply(statusCode: StatusCode, message: String, cause: ErrorReport)(implicit
+    source: ErrorReportSource
   ): ErrorReport =
     ErrorReport(source.source, message, Option(statusCode), Seq(cause), Seq.empty, None)
 
-  def apply(statusCode: StatusCode, message: String, causes: Seq[ErrorReport])(
-    implicit source: ErrorReportSource
+  def apply(statusCode: StatusCode, message: String, causes: Seq[ErrorReport])(implicit
+    source: ErrorReportSource
   ): ErrorReport =
     ErrorReport(source.source, message, Option(statusCode), causes, Seq.empty, None)
 
@@ -67,13 +69,15 @@ object ErrorReport {
                 None,
                 causes(throwable),
                 throwable.getStackTrace,
-                Option(throwable.getClass))
+                Option(throwable.getClass)
+    )
 
   def apply(message: String,
             statusCode: Option[StatusCode],
             causes: Seq[ErrorReport],
             stackTrace: Seq[StackTraceElement],
-            exceptionClass: Option[Class[_]])(implicit source: ErrorReportSource): ErrorReport =
+            exceptionClass: Option[Class[_]]
+  )(implicit source: ErrorReportSource): ErrorReport =
     ErrorReport(source.source, message, statusCode, causes, stackTrace, exceptionClass)
   // $COVERAGE-ON$
 

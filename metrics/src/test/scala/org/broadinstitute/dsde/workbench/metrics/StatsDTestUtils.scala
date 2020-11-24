@@ -37,7 +37,9 @@ trait StatsDTestUtils { this: Eventually with MockitoTestUtils =>
         val valueCaptor = captor[String]
         order.verify(statsD, atLeastOnce).send(metricCaptor.capture, valueCaptor.capture)
         order.verify(statsD).close()
-        verify(metricCaptor.getAllValues.asScala.toSeq.zip(valueCaptor.getAllValues.asScala)) //toSeq is needed for scala 2.13
+        verify(
+          metricCaptor.getAllValues.asScala.toSeq.zip(valueCaptor.getAllValues.asScala)
+        ) //toSeq is needed for scala 2.13
       }
       result
     } finally {
@@ -49,7 +51,8 @@ trait StatsDTestUtils { this: Eventually with MockitoTestUtils =>
   protected def expectedHttpRequestMetrics(method: String,
                                            path: String,
                                            statusCode: Int,
-                                           expectedTimes: Int): Set[(String, String)] = {
+                                           expectedTimes: Int
+  ): Set[(String, String)] = {
     val prefix = s"test.httpRequestMethod.$method.httpRequestUri.$path.httpResponseStatusCode.$statusCode"
     val expectedTimesStr = expectedTimes.toString
     Set(

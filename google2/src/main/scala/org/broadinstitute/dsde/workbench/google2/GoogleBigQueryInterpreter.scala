@@ -6,12 +6,12 @@ import com.google.cloud.bigquery.{BigQuery, JobId, QueryJobConfiguration, TableR
 import io.chrisdavenport.log4cats.StructuredLogger
 
 private[google2] class GoogleBigQueryInterpreter[F[_]: Sync: ContextShift: Timer: StructuredLogger](client: BigQuery,
-                                                                                                    blocker: Blocker)
-    extends GoogleBigQueryService[F] {
+                                                                                                    blocker: Blocker
+) extends GoogleBigQueryService[F] {
 
   private val tableResultFormatter: Show[TableResult] =
-    Show.show(
-      (tableResult: TableResult) => if (tableResult == null) "null" else s"total row count: ${tableResult.getTotalRows}"
+    Show.show((tableResult: TableResult) =>
+      if (tableResult == null) "null" else s"total row count: ${tableResult.getTotalRows}"
     )
 
   override def query(queryJobConfiguration: QueryJobConfiguration, options: BigQuery.JobOption*): F[TableResult] =
@@ -26,7 +26,8 @@ private[google2] class GoogleBigQueryInterpreter[F[_]: Sync: ContextShift: Timer
 
   override def query(queryJobConfiguration: QueryJobConfiguration,
                      jobId: JobId,
-                     options: BigQuery.JobOption*): F[TableResult] =
+                     options: BigQuery.JobOption*
+  ): F[TableResult] =
     withLogging(
       blockingF(Sync[F].delay[TableResult] {
         client.query(queryJobConfiguration, jobId, options: _*)
