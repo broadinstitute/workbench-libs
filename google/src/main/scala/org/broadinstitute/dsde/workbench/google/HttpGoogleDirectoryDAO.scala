@@ -26,7 +26,8 @@ import scala.util.Try
 class HttpGoogleDirectoryDAO(appName: String,
                              googleCredentialMode: GoogleCredentialMode,
                              workbenchMetricBaseName: String,
-                             maxPageSize: Int = 200)(implicit system: ActorSystem, executionContext: ExecutionContext)
+                             maxPageSize: Int = 200
+)(implicit system: ActorSystem, executionContext: ExecutionContext)
     extends AbstractHttpGoogleDAO(appName, googleCredentialMode, workbenchMetricBaseName)
     with GoogleDirectoryDAO {
 
@@ -45,9 +46,9 @@ class HttpGoogleDirectoryDAO(appName: String,
 
     def updateGroupSettings(groupEmail: WorkbenchEmail, settings: GroupSettings) = {
       val updater = settingsClient.groups().update(groupEmail.value, settings)
-      retry(when5xx, whenUsageLimited, when404, whenInvalidValueOnBucketCreation, whenNonHttpIOException)(() => {
+      retry(when5xx, whenUsageLimited, when404, whenInvalidValueOnBucketCreation, whenNonHttpIOException) { () =>
         executeGoogleRequest(updater)
-      })
+      }
     }
   }
 
@@ -62,11 +63,13 @@ class HttpGoogleDirectoryDAO(appName: String,
            appsDomain: String,
            appName: String,
            workbenchMetricBaseName: String,
-           maxPageSize: Int)(implicit system: ActorSystem, executionContext: ExecutionContext) = {
+           maxPageSize: Int
+  )(implicit system: ActorSystem, executionContext: ExecutionContext) = {
     this(appName,
          Pem(WorkbenchEmail(serviceAccountClientId), new File(pemFile), Some(WorkbenchEmail(ubEmail))),
          workbenchMetricBaseName,
-         maxPageSize)
+         maxPageSize
+    )
   }
 
   @deprecated(
@@ -78,34 +81,39 @@ class HttpGoogleDirectoryDAO(appName: String,
            pemFile: String,
            appsDomain: String,
            appName: String,
-           workbenchMetricBaseName: String)(implicit system: ActorSystem, executionContext: ExecutionContext) = {
+           workbenchMetricBaseName: String
+  )(implicit system: ActorSystem, executionContext: ExecutionContext) = {
     this(appName,
          Pem(
            WorkbenchEmail(clientSecrets.getDetails.get("client_email").toString),
            new File(pemFile),
            Some(WorkbenchEmail(clientSecrets.getDetails.get("sub_email").toString))
          ),
-         workbenchMetricBaseName)
+         workbenchMetricBaseName
+    )
   }
 
   override val scopes = Seq(DirectoryScopes.ADMIN_DIRECTORY_GROUP)
 
-  val groupMemberRole = "MEMBER" // the Google Group role corresponding to a member (note that this is distinct from the GCS roles defined in WorkspaceAccessLevel)
+  val groupMemberRole =
+    "MEMBER" // the Google Group role corresponding to a member (note that this is distinct from the GCS roles defined in WorkspaceAccessLevel)
 
   implicit override val service = GoogleInstrumentedService.Groups
 
-  private lazy val directory = {
+  private lazy val directory =
     new Directory.Builder(httpTransport, jsonFactory, googleCredential).setApplicationName(appName).build()
-  }
 
   override def createGroup(groupId: WorkbenchGroupName, groupEmail: WorkbenchEmail): Future[Unit] =
     createGroup(groupId.value, groupEmail)
 
   override def createGroup(displayName: String,
                            groupEmail: WorkbenchEmail,
-                           groupSettings: Option[GroupSettings] = None): Future[Unit] = {
+                           groupSettings: Option[GroupSettings] = None
+  ): Future[Unit] = {
     val groups = directory.groups
-    val group = new Group().setEmail(groupEmail.value).setName(displayName.take(60)) //max google group name length is 60 characters
+    val group = new Group()
+      .setEmail(groupEmail.value)
+      .setName(displayName.take(60)) //max google group name length is 60 characters
     val inserter = groups.insert(group)
 
     for {
@@ -113,7 +121,8 @@ class HttpGoogleDirectoryDAO(appName: String,
                             whenUsageLimited,
                             when404,
                             whenInvalidValueOnBucketCreation,
-                            whenNonHttpIOException) { () =>
+                            whenNonHttpIOException
+      ) { () =>
         executeGoogleRequest(inserter)
       } {
         case t: Throwable if when5xx(t) =>
@@ -143,10 +152,11 @@ class HttpGoogleDirectoryDAO(appName: String,
                      when404,
                      whenInvalidValueOnBucketCreation,
                      whenPreconditionFailed,
-                     whenNonHttpIOException)(() => {
+                     whenNonHttpIOException
+    ) { () =>
       executeGoogleRequest(deleter)
       ()
-    }) {
+    } {
       case e: HttpResponseException if e.getStatusCode == StatusCodes.NotFound.intValue =>
         () // if the group is already gone, don't fail
     }
@@ -166,12 +176,11 @@ class HttpGoogleDirectoryDAO(appName: String,
     val finalMember = member.setRole(groupMemberRole)
     val inserter = directory.members.insert(groupEmail.value, finalMember)
 
-    retryWithRecover(when5xx, whenUsageLimited, when404, whenInvalidValueOnBucketCreation, whenNonHttpIOException)(
-      () => {
+    retryWithRecover(when5xx, whenUsageLimited, when404, whenInvalidValueOnBucketCreation, whenNonHttpIOException) {
+      () =>
         executeGoogleRequest(inserter)
         ()
-      }
-    ) {
+    } {
       case e: HttpResponseException if e.getStatusCode == StatusCodes.Conflict.intValue =>
         () //if the member is already there, then don't keep trying to add them
       // Recover from http 412 errors because they can be spuriously thrown by Google, but the operation succeeds
@@ -182,12 +191,11 @@ class HttpGoogleDirectoryDAO(appName: String,
   override def removeMemberFromGroup(groupEmail: WorkbenchEmail, memberEmail: WorkbenchEmail): Future[Unit] = {
     val deleter = directory.members.delete(groupEmail.value, memberEmail.value)
 
-    retryWithRecover(when5xx, whenUsageLimited, when404, whenInvalidValueOnBucketCreation, whenNonHttpIOException)(
-      () => {
+    retryWithRecover(when5xx, whenUsageLimited, when404, whenInvalidValueOnBucketCreation, whenNonHttpIOException) {
+      () =>
         executeGoogleRequest(deleter)
         ()
-      }
-    ) {
+    } {
       case e: HttpResponseException if e.getStatusCode == StatusCodes.NotFound.intValue =>
         () //if the member is already absent, then don't keep trying to delete them
       case e: GoogleJsonResponseException
@@ -201,11 +209,10 @@ class HttpGoogleDirectoryDAO(appName: String,
   override def getGoogleGroup(groupEmail: WorkbenchEmail): Future[Option[Group]] = {
     val getter = directory.groups().get(groupEmail.value)
 
-    retryWithRecover(when5xx, whenUsageLimited, when404, whenInvalidValueOnBucketCreation, whenNonHttpIOException)(
-      () => {
+    retryWithRecover(when5xx, whenUsageLimited, when404, whenInvalidValueOnBucketCreation, whenNonHttpIOException) {
+      () =>
         Option(executeGoogleRequest(getter))
-      }
-    ) {
+    } {
       case e: HttpResponseException if e.getStatusCode == StatusCodes.NotFound.intValue => None
     }
   }
@@ -213,12 +220,11 @@ class HttpGoogleDirectoryDAO(appName: String,
   override def isGroupMember(groupEmail: WorkbenchEmail, memberEmail: WorkbenchEmail): Future[Boolean] = {
     val getter = directory.members.get(groupEmail.value, memberEmail.value)
 
-    retryWithRecover(when5xx, whenUsageLimited, when404, whenInvalidValueOnBucketCreation, whenNonHttpIOException)(
-      () => {
+    retryWithRecover(when5xx, whenUsageLimited, when404, whenInvalidValueOnBucketCreation, whenNonHttpIOException) {
+      () =>
         executeGoogleRequest(getter)
         true
-      }
-    ) {
+    } {
       case e: HttpResponseException if e.getStatusCode == StatusCodes.NotFound.intValue => false
       case e: GoogleJsonResponseException
           if e.getStatusCode == StatusCodes.BadRequest.intValue && e.getDetails.getMessage.equals(
@@ -261,19 +267,18 @@ class HttpGoogleDirectoryDAO(appName: String,
     accumulated match {
       // when accumulated has a Nil list then this must be the first request
       case Some(Nil) =>
-        retryWithRecover(when5xx, whenUsageLimited, when404, whenInvalidValueOnBucketCreation, whenNonHttpIOException)(
-          () => {
+        retryWithRecover(when5xx, whenUsageLimited, when404, whenInvalidValueOnBucketCreation, whenNonHttpIOException) {
+          () =>
             Option(executeGoogleRequest(fetcher))
-          }
-        ) {
+        } {
           case e: HttpResponseException if e.getStatusCode == StatusCodes.NotFound.intValue => None
         }.flatMap(firstPage => listGroupMembersRecursive(fetcher, firstPage.map(List(_))))
 
       // the head is the Members object of the prior request which contains next page token
       case Some(head :: _) if head.getNextPageToken != null =>
-        retry(when5xx, whenUsageLimited, when404, whenInvalidValueOnBucketCreation, whenNonHttpIOException)(() => {
+        retry(when5xx, whenUsageLimited, when404, whenInvalidValueOnBucketCreation, whenNonHttpIOException) { () =>
           executeGoogleRequest(fetcher.setPageToken(head.getNextPageToken))
-        }).flatMap(nextPage => listGroupMembersRecursive(fetcher, accumulated.map(pages => nextPage :: pages)))
+        }.flatMap(nextPage => listGroupMembersRecursive(fetcher, accumulated.map(pages => nextPage :: pages)))
 
       // when accumulated is None (group does not exist) or next page token is null
       case _ => Future.successful(accumulated)

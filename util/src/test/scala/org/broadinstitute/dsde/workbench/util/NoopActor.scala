@@ -10,7 +10,7 @@ object NoopActor {
  * Created by rtitle on 9/12/17.
  */
 class NoopActor extends Actor {
-  override def receive: Receive = {
-    case _ => () // noop
+  override def receive: Receive = { case _ =>
+    () // noop
   }
 }

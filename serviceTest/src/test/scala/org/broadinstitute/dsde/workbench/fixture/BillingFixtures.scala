@@ -31,7 +31,8 @@ trait BillingFixtures extends ExceptionHandling with LazyLogging with CleanUp wi
 
   protected def removeMembersFromBillingProject(projectName: String,
                                                 memberEmails: List[String],
-                                                role: BillingProjectRole)(implicit token: AuthToken): Unit =
+                                                role: BillingProjectRole
+  )(implicit token: AuthToken): Unit =
     memberEmails foreach { email =>
       Orchestration.billing.removeUserFromBillingProject(projectName, email, role)
     }
@@ -57,7 +58,8 @@ trait BillingFixtures extends ExceptionHandling with LazyLogging with CleanUp wi
 
   private def createNewBillingProject(namePrefix: String,
                                       ownerEmails: List[String] = List(),
-                                      userEmails: List[String] = List())(implicit token: AuthToken): String = {
+                                      userEmails: List[String] = List()
+  )(implicit token: AuthToken): String = {
     val billingProjectName = s"$namePrefix-${makeRandomId()}"
     Orchestration.billing.createBillingProject(billingProjectName, ServiceTestConfig.Projects.billingAccountId)
     addMembersToBillingProject(billingProjectName, ownerEmails, BillingProjectRole.Owner)
@@ -109,7 +111,8 @@ trait BillingFixtures extends ExceptionHandling with LazyLogging with CleanUp wi
    */
   def claimGPAllocProject(newOwnerCreds: Credentials,
                           ownerEmails: List[String] = List(),
-                          userEmails: List[String] = List()): ClaimedProject =
+                          userEmails: List[String] = List()
+  ): ClaimedProject =
     claimGPAllocProject(newOwnerCreds.email, ownerEmails, userEmails)(newOwnerCreds.makeAuthToken _)
 
   /**
@@ -181,7 +184,8 @@ trait BillingFixtures extends ExceptionHandling with LazyLogging with CleanUp wi
    */
   def withCleanBillingProject(newOwnerCreds: Credentials,
                               ownerEmails: List[String] = List(),
-                              userEmails: List[String] = List())(testCode: (String) => Any): Unit =
+                              userEmails: List[String] = List()
+  )(testCode: (String) => Any): Unit =
     withCleanBillingProject(newOwnerCreds.email, ownerEmails, userEmails)(newOwnerCreds.makeAuthToken _)(testCode)
 
   /**
@@ -208,8 +212,8 @@ trait BillingFixtures extends ExceptionHandling with LazyLogging with CleanUp wi
     CleanUp.runCodeWithCleanup(testTrial, cleanupTrial)
   }
 
-  def addUserInBillingProject(billingProjectName: String, email: String, role: BillingProjectRole)(
-    implicit token: AuthToken
+  def addUserInBillingProject(billingProjectName: String, email: String, role: BillingProjectRole)(implicit
+    token: AuthToken
   ): Unit =
     Orchestration.billing.addUserToBillingProject(billingProjectName, email, role)
 }

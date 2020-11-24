@@ -15,8 +15,8 @@ trait ExceptionHandling extends LazyLogging {
    *   try cleanUp() catch nonFatalAndLog
    * </pre>
    */
-  def nonFatalAndLog: PartialFunction[Throwable, Unit] = {
-    case NonFatal(e) => logger.warn(e.getMessage)
+  def nonFatalAndLog: PartialFunction[Throwable, Unit] = { case NonFatal(e) =>
+    logger.warn(e.getMessage)
   }
 
   /**
@@ -28,7 +28,7 @@ trait ExceptionHandling extends LazyLogging {
    *   try cleanUp() catch nonFatalAndLog("Oops")
    * </pre>
    */
-  def nonFatalAndLog(message: String): PartialFunction[Throwable, Unit] = {
-    case NonFatal(e) => logger.warn(s"$message", e)
+  def nonFatalAndLog(message: String): PartialFunction[Throwable, Unit] = { case NonFatal(e) =>
+    logger.warn(s"$message", e)
   }
 }

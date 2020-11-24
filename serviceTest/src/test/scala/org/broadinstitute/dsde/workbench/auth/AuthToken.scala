@@ -18,7 +18,8 @@ object AuthTokenScopes {
   val userLoginScopes = Seq("profile", "email", "openid")
   // the list of scopes needed by service accounts to do their work:
   val serviceAccountScopes = userLoginScopes ++ Seq("https://www.googleapis.com/auth/devstorage.full_control",
-                                                    "https://www.googleapis.com/auth/cloud-platform")
+                                                    "https://www.googleapis.com/auth/cloud-platform"
+  )
   // list of scopes needed to work with billing.
   val billingScopes = userLoginScopes ++ Seq("https://www.googleapis.com/auth/cloud-billing")
 }
@@ -31,32 +32,32 @@ trait AuthToken extends LazyLogging {
 
   def buildCredential(): GoogleCredential
 
-  private def makeToken(): String = {
-    Retry.retry(5.seconds, 1.minute)({
+  private def makeToken(): String =
+    Retry
+      .retry(5.seconds, 1.minute) {
 
-      val cred = buildCredential()
-      def baseLogMessage =
-        "Details: \n" +
-          s"Service Account: ${cred.getServiceAccountId} \n" +
-          s"User: ${cred.getServiceAccountUser} \n" +
-          s"Scopes: ${cred.getServiceAccountScopesAsString} \n" +
-          s"Access Token: ${cred.getAccessToken} \n" +
-          s"Token Expires: in ${cred.getExpiresInSeconds} seconds \n" +
-          s"SA Private Key ID: ${cred.getServiceAccountPrivateKeyId}"
+        val cred = buildCredential()
+        def baseLogMessage =
+          "Details: \n" +
+            s"Service Account: ${cred.getServiceAccountId} \n" +
+            s"User: ${cred.getServiceAccountUser} \n" +
+            s"Scopes: ${cred.getServiceAccountScopesAsString} \n" +
+            s"Access Token: ${cred.getAccessToken} \n" +
+            s"Token Expires: in ${cred.getExpiresInSeconds} seconds \n" +
+            s"SA Private Key ID: ${cred.getServiceAccountPrivateKeyId}"
 
-      try {
-        cred.refreshToken()
-        Option(cred.getAccessToken)
-      } catch {
-        case e: TokenResponseException
-            if Set(StatusCodes.Unauthorized.intValue, StatusCodes.BadRequest.intValue) contains e.getStatusCode =>
-          logger.error(s"Encountered ${e.getStatusCode} error getting access token." + baseLogMessage)
-          None
-        case f: IOException => {
-          logger.error(s"Error getting access token with error message. " + baseLogMessage, f)
-          None
+        try {
+          cred.refreshToken()
+          Option(cred.getAccessToken)
+        } catch {
+          case e: TokenResponseException
+              if Set(StatusCodes.Unauthorized.intValue, StatusCodes.BadRequest.intValue) contains e.getStatusCode =>
+            logger.error(s"Encountered ${e.getStatusCode} error getting access token." + baseLogMessage)
+            None
+          case f: IOException =>
+            logger.error(s"Error getting access token with error message. " + baseLogMessage, f)
+            None
         }
       }
-    })
-  }.getOrElse(throw new Exception("Unable to get access token"))
+      .getOrElse(throw new Exception("Unable to get access token"))
 }

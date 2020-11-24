@@ -10,35 +10,36 @@ import org.broadinstitute.dsde.workbench.model.TraceId
 import scala.concurrent.duration.FiniteDuration
 
 class MockGKEService extends GKEService[IO] {
-  override def createCluster(request: GKEModels.KubernetesCreateClusterRequest)(
-    implicit ev: Ask[IO, TraceId]
+  override def createCluster(request: GKEModels.KubernetesCreateClusterRequest)(implicit
+    ev: Ask[IO, TraceId]
   ): IO[Option[com.google.api.services.container.model.Operation]] =
     IO(Some(new com.google.api.services.container.model.Operation().setName("opName")))
 
-  override def deleteCluster(clusterId: GKEModels.KubernetesClusterId)(
-    implicit ev: Ask[IO, TraceId]
+  override def deleteCluster(clusterId: GKEModels.KubernetesClusterId)(implicit
+    ev: Ask[IO, TraceId]
   ): IO[Option[Operation]] = IO(Some(Operation.newBuilder().setName("opName").build()))
 
   val testEndpoint = "0.0.0.0"
-  override def getCluster(clusterId: GKEModels.KubernetesClusterId)(
-    implicit ev: Ask[IO, TraceId]
+  override def getCluster(clusterId: GKEModels.KubernetesClusterId)(implicit
+    ev: Ask[IO, TraceId]
   ): IO[Option[Cluster]] = IO(Some(Cluster.newBuilder().setEndpoint(testEndpoint).build()))
 
-  override def createNodepool(request: GKEModels.KubernetesCreateNodepoolRequest)(
-    implicit ev: Ask[IO, TraceId]
+  override def createNodepool(request: GKEModels.KubernetesCreateNodepoolRequest)(implicit
+    ev: Ask[IO, TraceId]
   ): IO[Option[Operation]] =
     IO(Some(Operation.newBuilder().setName("opName").build()))
 
-  override def getNodepool(nodepoolId: GKEModels.NodepoolId)(
-    implicit ev: Ask[IO, TraceId]
+  override def getNodepool(nodepoolId: GKEModels.NodepoolId)(implicit
+    ev: Ask[IO, TraceId]
   ): IO[Option[NodePool]] = IO(None)
 
-  override def deleteNodepool(nodepoolId: GKEModels.NodepoolId)(
-    implicit ev: Ask[IO, TraceId]
+  override def deleteNodepool(nodepoolId: GKEModels.NodepoolId)(implicit
+    ev: Ask[IO, TraceId]
   ): IO[Option[Operation]] = IO(Some(Operation.newBuilder().setName("opName").build()))
 
   override def pollOperation(operationId: GKEModels.KubernetesOperationId, delay: FiniteDuration, maxAttempts: Int)(
-    implicit ev: Ask[IO, TraceId],
+    implicit
+    ev: Ask[IO, TraceId],
     doneEv: DoneCheckable[Operation]
   ): fs2.Stream[IO, Operation] =
     fs2.Stream(

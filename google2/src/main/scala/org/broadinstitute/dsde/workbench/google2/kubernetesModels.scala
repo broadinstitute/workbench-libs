@@ -39,7 +39,8 @@ final case class KubernetesInvalidNameException(message: String) extends Workben
 
 object KubernetesName {
   def withValidation[A](str: String, apply: String => A): Either[Throwable, A] = {
-    val regex = "(?:[a-z](?:[-a-z0-9]{0,38}[a-z0-9])?)".r //this is taken directly from the google error message if you have an invalid nodepool name. Its not in the docs anywhere
+    val regex =
+      "(?:[a-z](?:[-a-z0-9]{0,38}[a-z0-9])?)".r //this is taken directly from the google error message if you have an invalid nodepool name. Its not in the docs anywhere
     val isValidName: Boolean = regex.pattern.matcher(str).matches()
 
     if (isValidName) {
@@ -67,10 +68,12 @@ object GKEModels {
   //see getDefaultCluster for an example of construction with the minimum fields necessary, plus some others you almost certainly want to configure
   final case class KubernetesCreateClusterRequest(project: GoogleProject,
                                                   location: Location,
-                                                  cluster: com.google.api.services.container.model.Cluster)
+                                                  cluster: com.google.api.services.container.model.Cluster
+  )
 
   final case class KubernetesCreateNodepoolRequest(clusterId: KubernetesClusterId,
-                                                   nodepool: com.google.container.v1.NodePool)
+                                                   nodepool: com.google.container.v1.NodePool
+  )
 
   //this is NOT analogous to clusterName in the context of dataproc/GCE. A single cluster can have multiple nodes, pods, services, containers, deployments, etc.
   //clusters should most likely NOT be provisioned per user as they are today. More design/security research is needed
@@ -383,7 +386,8 @@ object KubernetesModels {
   final case class KubernetesContainer(name: ContainerName,
                                        image: Image,
                                        ports: Option[Set[ContainerPort]],
-                                       resourceLimits: Option[Map[String, String]] = None)
+                                       resourceLimits: Option[Map[String, String]] = None
+  )
 
   sealed trait KubernetesServiceKind extends Product with Serializable {
     def kindName: KubernetesServiceKindName
@@ -399,22 +403,22 @@ object KubernetesModels {
 
     final case class KubernetesLoadBalancerService(selector: KubernetesSelector,
                                                    ports: Set[ServicePort],
-                                                   serviceName: ServiceName)
-        extends KubernetesServiceKind {
+                                                   serviceName: ServiceName
+    ) extends KubernetesServiceKind {
       val kindName = SERVICE_TYPE_LOADBALANCER
     }
 
     final case class KubernetesNodePortService(selector: KubernetesSelector,
                                                ports: Set[ServicePort],
-                                               serviceName: ServiceName)
-        extends KubernetesServiceKind {
+                                               serviceName: ServiceName
+    ) extends KubernetesServiceKind {
       val kindName = SERVICE_TYPE_NODEPORT
     }
 
     final case class KubernetesClusterIPService(selector: KubernetesSelector,
                                                 ports: Set[ServicePort],
-                                                serviceName: ServiceName)
-        extends KubernetesServiceKind {
+                                                serviceName: ServiceName
+    ) extends KubernetesServiceKind {
       val kindName = SERVICE_TYPE_CLUSTERIP
     }
   }
@@ -446,7 +450,8 @@ object KubernetesModels {
   final case class KubernetesVerb(name: VerbName)
   final case class KubernetesPolicyRule(apiGroups: Set[KubernetesApiGroup],
                                         resources: Set[KubernetesResource],
-                                        verbs: Set[KubernetesVerb])
+                                        verbs: Set[KubernetesVerb]
+  )
   final case class KubernetesRole(name: RoleName, rules: List[KubernetesPolicyRule])
 
   sealed trait KubernetesSubjectKind extends Product with Serializable
@@ -462,11 +467,13 @@ object KubernetesModels {
   }
   final case class KubernetesSubject(kind: KubernetesSubjectKind,
                                      kindName: SubjectKindName,
-                                     namespaceName: NamespaceName)
+                                     namespaceName: NamespaceName
+  )
   final case class KubernetesRoleRef(apiGroupName: ApiGroupName, roleRefKind: KubernetesRoleRefKind, roleName: RoleName)
   final case class KubernetesRoleBinding(name: RoleBindingName,
                                          roleRef: KubernetesRoleRef,
-                                         subjects: List[KubernetesSubject])
+                                         subjects: List[KubernetesSubject]
+  )
 
   //Kubernetes pod phase is what we'll use to map to KubernetesPodStatus - phases include Pending, Running, Succeeded, Failed, Unknown (https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/#pod-phase)
   // When all pods are Running or Succeeded, an app is considered Ready in Leonardo.
@@ -516,6 +523,7 @@ object KubernetesModels {
   final case class KubernetesSecret(namespaceName: NamespaceName,
                                     name: SecretName,
                                     secrets: Map[SecretKey, Array[Byte]],
-                                    secretType: KubernetesSecretType)
+                                    secretType: KubernetesSecretType
+  )
 
 }

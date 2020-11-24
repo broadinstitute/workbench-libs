@@ -92,20 +92,21 @@ object GooglePublisherInterpreter {
       _ <- createTopic(config.projectTopicName, topicAdminClient)
     } yield publisher
 
-  private def createTopic[F[_]: Sync](topicName: TopicName, topicAdminClient: TopicAdminClient)(
-    implicit logger: StructuredLogger[F]
+  private def createTopic[F[_]: Sync](topicName: TopicName, topicAdminClient: TopicAdminClient)(implicit
+    logger: StructuredLogger[F]
   ): Resource[F, Unit] =
     Resource.liftF(
       Sync[F]
         .delay(topicAdminClient.createTopic(topicName))
         .void
-        .recoverWith {
-          case _: AlreadyExistsException => logger.info(s"${topicName} already exists")
+        .recoverWith { case _: AlreadyExistsException =>
+          logger.info(s"${topicName} already exists")
         }
     )
 
   private def publisherResource[F[_]: Sync](topicName: ProjectTopicName,
-                                            credential: ServiceAccountCredentials): Resource[F, Publisher] =
+                                            credential: ServiceAccountCredentials
+  ): Resource[F, Publisher] =
     Resource.make(
       Sync[F].delay(
         Publisher
@@ -118,4 +119,5 @@ object GooglePublisherInterpreter {
 
 final case class PublisherConfig(pathToCredentialJson: String,
                                  projectTopicName: ProjectTopicName,
-                                 retryConfig: RetryConfig)
+                                 retryConfig: RetryConfig
+)

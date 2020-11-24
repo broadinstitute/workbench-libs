@@ -33,15 +33,14 @@ private[google2] class GoogleDataprocInterpreter[F[_]: StructuredLogger: Timer: 
     createClusterConfig: Option[CreateClusterConfig]
   )(implicit ev: Ask[F, TraceId]): F[CreateClusterResponse] = {
     val config: ClusterConfig = createClusterConfig
-      .map(
-        config =>
-          ClusterConfig.newBuilder
-            .setGceClusterConfig(config.gceClusterConfig)
-            .setInitializationActions(0, config.nodeInitializationAction)
-            .setMasterConfig(config.instanceGroupConfig)
-            .setConfigBucket(config.stagingBucket.value)
-            .setSoftwareConfig(config.softwareConfig)
-            .build()
+      .map(config =>
+        ClusterConfig.newBuilder
+          .setGceClusterConfig(config.gceClusterConfig)
+          .setInitializationActions(0, config.nodeInitializationAction)
+          .setMasterConfig(config.instanceGroupConfig)
+          .setConfigBucket(config.stagingBucket.value)
+          .setSoftwareConfig(config.softwareConfig)
+          .build()
       )
       .getOrElse(ClusterConfig.newBuilder.build())
 
@@ -84,8 +83,8 @@ private[google2] class GoogleDataprocInterpreter[F[_]: StructuredLogger: Timer: 
     } yield result
   }
 
-  override def deleteCluster(project: GoogleProject, region: RegionName, clusterName: DataprocClusterName)(
-    implicit ev: Ask[F, TraceId]
+  override def deleteCluster(project: GoogleProject, region: RegionName, clusterName: DataprocClusterName)(implicit
+    ev: Ask[F, TraceId]
   ): F[Option[ClusterOperationMetadata]] = {
     val request = DeleteClusterRequest
       .newBuilder()
@@ -118,8 +117,8 @@ private[google2] class GoogleDataprocInterpreter[F[_]: StructuredLogger: Timer: 
     } yield res
   }
 
-  override def getCluster(project: GoogleProject, region: RegionName, clusterName: DataprocClusterName)(
-    implicit ev: Ask[F, TraceId]
+  override def getCluster(project: GoogleProject, region: RegionName, clusterName: DataprocClusterName)(implicit
+    ev: Ask[F, TraceId]
   ): F[Option[Cluster]] = {
     val fa =
       F.delay(clusterControllerClient.getCluster(project.value, region.value, clusterName.value))

@@ -56,7 +56,8 @@ object GoogleUtilities {
       case _ => false
     }
 
-    /** Think twice about reaching for this predicate in a retry. Usually, 412 Precondition Failed is an indication of an ETag mismatch.
+    /**
+     * Think twice about reaching for this predicate in a retry. Usually, 412 Precondition Failed is an indication of an ETag mismatch.
      * Typically, doing a GET on a GCP resource will return an ETag along with the response. ETags are a form of concurrency control: they are updated
      * each time a resource is modified. The expectation is that you first GET the resource, and when modifying it, you pass along the same ETag
      * that you got. If the ETag you provide matches the one on Google's side, the modification is applied and your request succeeds. if it doesn't,
@@ -123,13 +124,12 @@ trait GoogleUtilities extends LazyLogging with InstrumentedRetry with GoogleInst
   )
   protected def when500orGoogleError(throwable: Throwable): Boolean =
     throwable match {
-      case t: GoogleJsonResponseException => {
+      case t: GoogleJsonResponseException =>
         ((t.getStatusCode == 403 || t.getStatusCode == 429) && t.getDetails.getErrors.asScala.head.getDomain
           .equalsIgnoreCase("usageLimits")) ||
-        (t.getStatusCode == 400 && t.getDetails.getErrors.asScala.head.getReason.equalsIgnoreCase("invalid")) ||
-        t.getStatusCode == 404 ||
-        t.getStatusCode / 100 == 5
-      }
+          (t.getStatusCode == 400 && t.getDetails.getErrors.asScala.head.getReason.equalsIgnoreCase("invalid")) ||
+          t.getStatusCode == 404 ||
+          t.getStatusCode / 100 == 5
       case t: GoogleHttpResponseException => t.getStatusCode / 100 == 5
       case _: IOException                 => true
       case _                              => false
@@ -178,11 +178,8 @@ trait GoogleUtilities extends LazyLogging with InstrumentedRetry with GoogleInst
   )(f: (InputStream) => B)(implicit counters: GoogleCounters): B =
     executeGoogleCall(request) { response =>
       val stream = response.getContent
-      try {
-        f(stream)
-      } finally {
-        stream.close()
-      }
+      try f(stream)
+      finally stream.close()
     }
 
   protected def executeGoogleCall[A, B](
@@ -195,11 +192,8 @@ trait GoogleUtilities extends LazyLogging with InstrumentedRetry with GoogleInst
       case Success(response) =>
         logGoogleRequest(request, start, response)
         instrumentGoogleRequest(request, start, Right(response))
-        try {
-          processResponse(response)
-        } finally {
-          response.disconnect()
-        }
+        try processResponse(response)
+        finally response.disconnect()
       case Failure(httpRegrets: GoogleHttpResponseException) =>
         logGoogleRequest(request, start, httpRegrets)
         instrumentGoogleRequest(request, start, Left(httpRegrets))
@@ -213,7 +207,8 @@ trait GoogleUtilities extends LazyLogging with InstrumentedRetry with GoogleInst
 
   private def logGoogleRequest[A](request: AbstractGoogleClientRequest[A],
                                   startTime: Long,
-                                  response: GoogleHttpResponse): Unit =
+                                  response: GoogleHttpResponse
+  ): Unit =
     logGoogleRequest(request, startTime, Option(response.getStatusCode), None)
 
   private def logGoogleRequest[A](request: AbstractGoogleClientRequest[A], startTime: Long, regrets: Throwable): Unit =
@@ -225,7 +220,8 @@ trait GoogleUtilities extends LazyLogging with InstrumentedRetry with GoogleInst
   private def logGoogleRequest[A](request: AbstractGoogleClientRequest[A],
                                   startTime: Long,
                                   statusCode: Option[Int],
-                                  errorReport: Option[ErrorReport]): Unit = {
+                                  errorReport: Option[ErrorReport]
+  ): Unit = {
     import GoogleRequestJsonSupport._
     import spray.json._
 
@@ -250,7 +246,8 @@ trait GoogleUtilities extends LazyLogging with InstrumentedRetry with GoogleInst
                     payload,
                     System.currentTimeMillis() - startTime,
                     statusCode,
-                    errorReport).toJson(GoogleRequestFormat).compactPrint
+                    errorReport
+      ).toJson(GoogleRequestFormat).compactPrint
     )
   }
 
@@ -272,7 +269,8 @@ protected[google] case class GoogleRequest(method: String,
                                            payload: Option[JsValue],
                                            time_ms: Long,
                                            statusCode: Option[Int],
-                                           errorReport: Option[ErrorReport])
+                                           errorReport: Option[ErrorReport]
+)
 protected[google] object GoogleRequestJsonSupport {
   import spray.json.DefaultJsonProtocol._
   import org.broadinstitute.dsde.workbench.model.ErrorReportJsonSupport._

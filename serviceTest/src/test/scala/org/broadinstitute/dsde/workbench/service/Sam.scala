@@ -127,15 +127,16 @@ object Sam extends Sam {
       putRequest(url + s"api/groups/v1/$groupName/$policyName/$memberEmail")
     }
 
-    def removeUserFromPolicy(groupName: String, policyName: String, memberEmail: String)(
-      implicit token: AuthToken
+    def removeUserFromPolicy(groupName: String, policyName: String, memberEmail: String)(implicit
+      token: AuthToken
     ): Unit = {
       logger.info(s"Removing $memberEmail from $policyName policy in $groupName")
       deleteRequest(url + s"api/groups/v1/$groupName/$policyName/$memberEmail")
     }
 
-    def listResourcePolicies(resourceTypeName: String,
-                             resourceId: String)(implicit token: AuthToken): Set[AccessPolicyResponseEntry] = {
+    def listResourcePolicies(resourceTypeName: String, resourceId: String)(implicit
+      token: AuthToken
+    ): Set[AccessPolicyResponseEntry] = {
       logger.info(s"Listing policies for $resourceId")
       val response = parseResponse(getRequest(url + s"api/resources/v1/$resourceTypeName/$resourceId/policies"))
 
@@ -143,21 +144,22 @@ object Sam extends Sam {
       response.parseJson.convertTo[Set[AccessPolicyResponseEntry]](immSetFormat(AccessPolicyResponseEntryFormat))
     }
 
-    def setPolicyMembers(groupName: String, policyName: String, memberEmails: Set[String])(
-      implicit token: AuthToken
+    def setPolicyMembers(groupName: String, policyName: String, memberEmails: Set[String])(implicit
+      token: AuthToken
     ): Unit = {
       logger.info(s"Overwriting members in $policyName policy of $groupName")
       putRequest(url + s"api/groups/v1/$groupName/$policyName", memberEmails)
     }
 
-    def createResource(resourceTypeName: String,
-                       resourceRequest: CreateResourceRequest)(implicit token: AuthToken): Unit = {
+    def createResource(resourceTypeName: String, resourceRequest: CreateResourceRequest)(implicit
+      token: AuthToken
+    ): Unit = {
       logger.info(s"Creating new resource $resourceRequest of type $resourceTypeName")
       postRequest(url + s"api/resources/v1/$resourceTypeName", resourceRequest)
     }
 
-    def syncResourcePolicy(resourceTypeName: String, resourceId: String, policyName: String)(
-      implicit token: AuthToken
+    def syncResourcePolicy(resourceTypeName: String, resourceId: String, policyName: String)(implicit
+      token: AuthToken
     ): Unit = {
       logger.info(s"Synchronizing $policyName for $resourceId of type $resourceTypeName")
       postRequest(url + s"api/google/v1/resource/$resourceTypeName/$resourceId/$policyName/sync")
@@ -211,5 +213,6 @@ object SamModel {
 
   final case class CreateResourceRequest(resourceId: String,
                                          policies: Map[String, AccessPolicyMembership],
-                                         authDomain: Set[String])
+                                         authDomain: Set[String]
+  )
 }

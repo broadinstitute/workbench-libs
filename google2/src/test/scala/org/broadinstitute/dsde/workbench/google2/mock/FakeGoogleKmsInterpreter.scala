@@ -22,21 +22,25 @@ object FakeGoogleKmsInterpreter extends GoogleKmsService[IO] {
                          keyRingId: KeyRingId,
                          keyId: KeyId,
                          nextRotationTimeOpt: Option[Timestamp],
-                         rotationPeriodOpt: Option[Duration]): IO[CryptoKey] = IO.pure(CryptoKey.newBuilder().build())
+                         rotationPeriodOpt: Option[Duration]
+  ): IO[CryptoKey] = IO.pure(CryptoKey.newBuilder().build())
   override def getKey(project: GoogleProject,
                       location: Location,
                       keyRingId: KeyRingId,
-                      keyId: KeyId): IO[Option[CryptoKey]] = ???
+                      keyId: KeyId
+  ): IO[Option[CryptoKey]] = ???
   override def addMemberToKeyPolicy(project: GoogleProject,
                                     location: Location,
                                     keyRingId: KeyRingId,
                                     keyId: KeyId,
                                     member: String,
-                                    role: String): IO[Policy] = IO.pure(Policy.newBuilder().build())
+                                    role: String
+  ): IO[Policy] = IO.pure(Policy.newBuilder().build())
   override def removeMemberFromKeyPolicy(project: GoogleProject,
                                          location: Location,
                                          keyRingId: KeyRingId,
                                          keyId: KeyId,
                                          member: String,
-                                         role: String): IO[Policy] = ???
+                                         role: String
+  ): IO[Policy] = ???
 }

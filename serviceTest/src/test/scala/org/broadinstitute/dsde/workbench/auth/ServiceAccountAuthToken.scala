@@ -36,4 +36,5 @@ class ServiceAccountAuthTokenFromPem(clientId: String, pemFilePath: String, scop
 
 case class TrialBillingAccountAuthToken()
     extends ServiceAccountAuthTokenFromPem(ServiceTestConfig.GCS.trialBillingPemFileClientId,
-                                           ServiceTestConfig.GCS.trialBillingPemFile)
+                                           ServiceTestConfig.GCS.trialBillingPemFile
+    )

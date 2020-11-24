@@ -16,7 +16,8 @@ trait GoogleDirectoryDAO {
   def createGroup(groupName: WorkbenchGroupName, groupEmail: WorkbenchEmail): Future[Unit]
   def createGroup(displayName: String,
                   groupEmail: WorkbenchEmail,
-                  groupSettings: Option[GroupSettings] = None): Future[Unit]
+                  groupSettings: Option[GroupSettings] = None
+  ): Future[Unit]
   def deleteGroup(groupEmail: WorkbenchEmail): Future[Unit]
   def addMemberToGroup(groupEmail: WorkbenchEmail, memberEmail: WorkbenchEmail): Future[Unit]
   // See https://broadworkbench.atlassian.net/browse/CA-1005 about why we have a specific method for adding SA to groups
@@ -33,7 +34,9 @@ trait GoogleDirectoryDAO {
       .setWhoCanViewMembership("ALL_MANAGERS_CAN_VIEW")
       .setWhoCanViewGroup("ALL_OWNERS_CAN_VIEW")
       .setWhoCanInvite("NONE_CAN_INVITE")
-      .setArchiveOnly("true") //.setWhoCanPostMessage("NONE_CAN_POST") setting archive only is the way to set it so no one can post
+      .setArchiveOnly(
+        "true"
+      ) //.setWhoCanPostMessage("NONE_CAN_POST") setting archive only is the way to set it so no one can post
       .setWhoCanLeaveGroup("NONE_CAN_LEAVE")
       .setWhoCanContactOwner("ALL_MANAGERS_CAN_CONTACT")
       .setWhoCanAddReferences("NONE")

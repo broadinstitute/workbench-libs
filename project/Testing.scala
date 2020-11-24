@@ -8,7 +8,6 @@ object Testing {
   lazy val IntegrationTest = config("it") extend Test
 
   val commonTestSettings: Seq[Setting[_]] = List(
-
     // SLF4J initializes itself upon the first logging call.  Because sbt
     // runs tests in parallel it is likely that a second thread will
     // invoke a second logging call before SLF4J has completed
@@ -35,15 +34,14 @@ object Testing {
     ),
     testOptions in Test ++= Seq(Tests.Filter(s => !isIntegrationTest(s))),
     testOptions in IntegrationTest := Seq(Tests.Filter(s => isIntegrationTest(s))),
-
     parallelExecution in Test := false
   )
 
-  val noTestSettings = Seq( test in Test := {} )
+  val noTestSettings = Seq(test in Test := {})
 
   implicit class ProjectTestSettings(val project: Project) extends AnyVal {
     def withTestSettings: Project = project
-      .configs(IntegrationTest).settings(inConfig(IntegrationTest)(Defaults.testTasks): _*)
+      .configs(IntegrationTest)
+      .settings(inConfig(IntegrationTest)(Defaults.testTasks): _*)
   }
 }
-

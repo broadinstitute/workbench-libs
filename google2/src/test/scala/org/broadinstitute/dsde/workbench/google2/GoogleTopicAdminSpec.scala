@@ -56,8 +56,8 @@ class GoogleTopicAdminSpec extends AnyFlatSpecLike with Matchers with WorkbenchT
 
 object GoogleTopicAdminSpec {
   val localTopicAdmin: Resource[IO, TopicAdminClient] = for {
-    channel <- Resource.make(IO(ManagedChannelBuilder.forTarget("localhost:8085").usePlaintext().build()))(
-      c => IO(c.shutdown())
+    channel <- Resource.make(IO(ManagedChannelBuilder.forTarget("localhost:8085").usePlaintext().build()))(c =>
+      IO(c.shutdown())
     )
     channelProvider = FixedTransportChannelProvider.create(GrpcTransportChannel.create(channel))
     credentialsProvider = NoCredentialsProvider.create()

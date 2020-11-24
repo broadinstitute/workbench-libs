@@ -43,9 +43,10 @@ private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer](
                                      isRecursive: Boolean = false,
                                      maxPageSize: Long = 1000,
                                      traceId: Option[TraceId] = None,
-                                     retryConfig: RetryConfig): Stream[F, GcsObjectName] =
-    listBlobsWithPrefix(bucketName, objectNamePrefix, isRecursive, maxPageSize, traceId, retryConfig).map(
-      blob => GcsObjectName(blob.getName, Instant.ofEpochMilli(blob.getCreateTime))
+                                     retryConfig: RetryConfig
+  ): Stream[F, GcsObjectName] =
+    listBlobsWithPrefix(bucketName, objectNamePrefix, isRecursive, maxPageSize, traceId, retryConfig).map(blob =>
+      GcsObjectName(blob.getName, Instant.ofEpochMilli(blob.getCreateTime))
     )
 
   override def listBlobsWithPrefix(bucketName: GcsBucketName,
@@ -53,38 +54,41 @@ private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer](
                                    isRecursive: Boolean,
                                    maxPageSize: Long = 1000,
                                    traceId: Option[TraceId] = None,
-                                   retryConfig: RetryConfig): Stream[F, Blob] = {
+                                   retryConfig: RetryConfig
+  ): Stream[F, Blob] = {
     val blobListOptions =
       if (isRecursive)
         List(BlobListOption.prefix(objectNamePrefix), BlobListOption.pageSize(maxPageSize.longValue()))
       else
         List(BlobListOption.prefix(objectNamePrefix),
              BlobListOption.pageSize(maxPageSize.longValue()),
-             BlobListOption.currentDirectory())
+             BlobListOption.currentDirectory()
+        )
 
     val result = for {
       blob <- listBlobs(db, bucketName, blobListOptions, traceId, retryConfig, true)
-    } yield {
-      // Remove directory from end result
-      // For example, if you have `bucketName/dir1/object1` in GCS, remove `bucketName/dir1/` from the end result
-      if (blob.getName.endsWith("/"))
-        None
-      else
-        Option(blob)
-    }
+    } yield
+    // Remove directory from end result
+    // For example, if you have `bucketName/dir1/object1` in GCS, remove `bucketName/dir1/` from the end result
+    if (blob.getName.endsWith("/"))
+      None
+    else
+      Option(blob)
     result.unNone
   }
 
   override def unsafeGetBlobBody(bucketName: GcsBucketName,
                                  blobName: GcsBlobName,
                                  traceId: Option[TraceId] = None,
-                                 retryConfig: RetryConfig): F[Option[String]] =
+                                 retryConfig: RetryConfig
+  ): F[Option[String]] =
     getBlobBody(bucketName, blobName, traceId, retryConfig).through(text.utf8Decode).compile.foldSemigroup
 
   override def getBlobBody(bucketName: GcsBucketName,
                            blobName: GcsBlobName,
                            traceId: Option[TraceId] = None,
-                           retryConfig: RetryConfig): Stream[F, Byte] = {
+                           retryConfig: RetryConfig
+  ): Stream[F, Byte] = {
     val getBlobs = blockingF(F.delay(db.get(BlobId.of(bucketName.value, blobName.value)))).map(Option(_))
 
     for {
@@ -118,7 +122,8 @@ private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer](
                        blobName: GcsBlobName,
                        credentials: Option[Credentials] = None,
                        traceId: Option[TraceId] = None,
-                       retryConfig: RetryConfig): Stream[F, Blob] = {
+                       retryConfig: RetryConfig
+  ): Stream[F, Blob] = {
     val dbForCredential = credentials match {
       case Some(c) => db.getOptions.toBuilder.setCredentials(c).build().getService
       case None    => db
@@ -137,7 +142,8 @@ private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer](
   def downloadObject(blobId: BlobId,
                      path: Path,
                      traceId: Option[TraceId] = None,
-                     retryConfig: RetryConfig): Stream[F, Unit] = {
+                     retryConfig: RetryConfig
+  ): Stream[F, Unit] = {
     val downLoad = blockingF(Async[F].delay(db.get(blobId).downloadTo(path)))
 
     retryGoogleF(retryConfig)(downLoad, traceId, s"com.google.cloud.storage.Storage.get($blobId).download")
@@ -146,7 +152,8 @@ private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer](
   override def getObjectMetadata(bucketName: GcsBucketName,
                                  blobName: GcsBlobName,
                                  traceId: Option[TraceId],
-                                 retryConfig: RetryConfig): Stream[F, GetMetadataResponse] = {
+                                 retryConfig: RetryConfig
+  ): Stream[F, GetMetadataResponse] = {
     val getBlobs = blockingF(Async[F].delay(db.get(BlobId.of(bucketName.value, blobName.value)))).map(Option(_))
 
     for {
@@ -171,7 +178,8 @@ private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer](
                                  objectName: GcsBlobName,
                                  metadata: Map[String, String],
                                  traceId: Option[TraceId],
-                                 retryConfig: RetryConfig): Stream[F, Unit] = {
+                                 retryConfig: RetryConfig
+  ): Stream[F, Unit] = {
     val blobId = BlobId.of(bucketName.value, objectName.value)
     val blobInfo = BlobInfo
       .newBuilder(blobId)
@@ -182,7 +190,8 @@ private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer](
 
     retryGoogleF(retryConfig)(metadataUpdate,
                               traceId,
-                              s"com.google.cloud.storage.Storage.update($bucketName/${objectName.value})").void
+                              s"com.google.cloud.storage.Storage.update($bucketName/${objectName.value})"
+    ).void
   }
 
   override def streamUploadBlob(bucketName: GcsBucketName,
@@ -190,7 +199,8 @@ private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer](
                                 metadata: Map[String, String] = Map.empty,
                                 generation: Option[Long] = None,
                                 overwrite: Boolean = true,
-                                traceId: Option[TraceId] = None): Pipe[F, Byte, Unit] = {
+                                traceId: Option[TraceId] = None
+  ): Pipe[F, Byte, Unit] = {
     val (blobInfo, generationOption) = generation match {
       case Some(g) =>
         val blobId = BlobId.of(bucketName.value, objectName.value, g)
@@ -198,14 +208,16 @@ private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer](
            .newBuilder(blobId)
            .setMetadata(metadata.asJava)
            .build(),
-         List(BlobWriteOption.generationMatch()))
+         List(BlobWriteOption.generationMatch())
+        )
       case None =>
         val blobId = BlobId.of(bucketName.value, objectName.value)
         (BlobInfo
            .newBuilder(blobId)
            .setMetadata(metadata.asJava)
            .build(),
-         List.empty[BlobWriteOption])
+         List.empty[BlobWriteOption]
+        )
     }
 
     val outputStream = F.delay {
@@ -223,7 +235,8 @@ private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer](
                           metadata: Map[String, String] = Map.empty,
                           generation: Option[Long] = None,
                           traceId: Option[TraceId] = None,
-                          retryConfig: RetryConfig): Stream[F, Blob] = {
+                          retryConfig: RetryConfig
+  ): Stream[F, Blob] = {
     val storeObject: F[Blob] = generation match {
       case Some(g) =>
         val blobId = BlobId.of(bucketName.value, objectName.value, g)
@@ -245,14 +258,16 @@ private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer](
 
     retryGoogleF(retryConfig)(storeObject,
                               traceId,
-                              s"com.google.cloud.storage.Storage.create($bucketName/${objectName.value}, xxx)")
+                              s"com.google.cloud.storage.Storage.create($bucketName/${objectName.value}, xxx)"
+    )
   }
 
   override def removeObject(bucketName: GcsBucketName,
                             blobName: GcsBlobName,
                             generation: Option[Long] = None,
                             traceId: Option[TraceId] = None,
-                            retryConfig: RetryConfig): Stream[F, RemoveObjectResult] = {
+                            retryConfig: RetryConfig
+  ): Stream[F, RemoveObjectResult] = {
     val deleteObject: F[Boolean] = generation match {
       case Some(g) =>
         val blobId = BlobId.of(bucketName.value, blobName.value, g)
@@ -277,7 +292,8 @@ private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer](
                             traceId: Option[TraceId] = None,
                             bucketPolicyOnlyEnabled: Boolean = false,
                             logBucket: Option[GcsBucketName] = None,
-                            retryConfig: RetryConfig): Stream[F, Unit] = {
+                            retryConfig: RetryConfig
+  ): Stream[F, Unit] = {
 
     if (acl.isDefined && bucketPolicyOnlyEnabled) {
       throw new WorkbenchException(
@@ -312,7 +328,7 @@ private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer](
     val dbForProject = db.getOptions.toBuilder.setProjectId(googleProject.value).build().getService
 
     val createBucket = blockingF(Async[F].delay(dbForProject.create(bucketInfo))).void.recoverWith {
-      case e: com.google.cloud.storage.StorageException if (e.getCode == 409) =>
+      case e: com.google.cloud.storage.StorageException if e.getCode == 409 =>
         StructuredLogger[F].info(s"$bucketName already exists")
     }
 
@@ -328,25 +344,29 @@ private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer](
                             isRecursive: Boolean,
                             bucketSourceOptions: List[BucketSourceOption] = List.empty,
                             traceId: Option[TraceId] = None,
-                            retryConfig: RetryConfig = standardRetryConfig): Stream[F, Boolean] = {
+                            retryConfig: RetryConfig = standardRetryConfig
+  ): Stream[F, Boolean] = {
     val dbForProject = db.getOptions.toBuilder.setProjectId(googleProject.value).build().getService
 
     val allBlobs = listBlobs(dbForProject, bucketName, List.empty, traceId, retryConfig, false).map(_.getBlobId)
 
     for {
-      _ <- if (isRecursive) {
-        val r = for {
-          allBlobs <- allBlobs.compile.toList
-          isSuccess <- if (allBlobs.isEmpty)
-            Async[F].pure(true)
-          else Async[F].delay(dbForProject.delete(allBlobs.asJava).asScala.toList.forall(x => x))
-          _ <- if (isSuccess)
-            logger.info(s"Successfully deleted all objects in ${bucketName.value}")
-          else
-            Async[F].raiseError(new RuntimeException(s"failed to delete all objects in ${bucketName.value}"))
-        } yield ()
-        Stream.eval(r)
-      } else Stream.eval(Async[F].unit)
+      _ <-
+        if (isRecursive) {
+          val r = for {
+            allBlobs <- allBlobs.compile.toList
+            isSuccess <-
+              if (allBlobs.isEmpty)
+                Async[F].pure(true)
+              else Async[F].delay(dbForProject.delete(allBlobs.asJava).asScala.toList.forall(x => x))
+            _ <-
+              if (isSuccess)
+                logger.info(s"Successfully deleted all objects in ${bucketName.value}")
+              else
+                Async[F].raiseError(new RuntimeException(s"failed to delete all objects in ${bucketName.value}"))
+          } yield ()
+          Stream.eval(r)
+        } else Stream.eval(Async[F].unit)
       deleteBucket = Async[F].delay(dbForProject.delete(bucketName.value, bucketSourceOptions: _*))
       res <- retryGoogleF(retryConfig)(
         deleteBucket,
@@ -359,7 +379,8 @@ private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer](
   override def getBucket(googleProject: GoogleProject,
                          bucketName: GcsBucketName,
                          bucketGetOptions: List[BucketGetOption] = List.empty,
-                         traceId: Option[TraceId] = None): F[Option[Bucket]] = {
+                         traceId: Option[TraceId] = None
+  ): F[Option[Bucket]] = {
     val dbForProject = db.getOptions.toBuilder.setProjectId(googleProject.value).build().getService
     val fa = Async[F].delay(dbForProject.get(bucketName.value, bucketGetOptions: _*)).map(Option(_))
     withLogging(fa, traceId, s"com.google.cloud.storage.Storage.get(${bucketName.value}, ${bucketGetOptions})")
@@ -368,7 +389,8 @@ private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer](
   override def setBucketPolicyOnly(bucketName: GcsBucketName,
                                    bucketPolicyOnlyEnabled: Boolean,
                                    traceId: Option[TraceId] = None,
-                                   retryConfig: RetryConfig): Stream[F, Unit] = {
+                                   retryConfig: RetryConfig
+  ): Stream[F, Unit] = {
     val iamConfiguration =
       BucketInfo.IamConfiguration.newBuilder().setIsUniformBucketLevelAccessEnabled(bucketPolicyOnlyEnabled).build()
     val updateBucket = blockingF(
@@ -385,7 +407,8 @@ private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer](
   override def setBucketLabels(bucketName: GcsBucketName,
                                labels: Map[String, String],
                                traceId: Option[TraceId] = None,
-                               retryConfig: RetryConfig): Stream[F, Unit] = {
+                               retryConfig: RetryConfig
+  ): Stream[F, Unit] = {
     val updateBucket = blockingF(
       Async[F].delay(db.update(BucketInfo.newBuilder(bucketName.value).setLabels(labels.asJava).build()))
     )
@@ -400,13 +423,14 @@ private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer](
   override def setIamPolicy(bucketName: GcsBucketName,
                             roles: Map[StorageRole, NonEmptyList[Identity]],
                             traceId: Option[TraceId] = None,
-                            retryConfig: RetryConfig): Stream[F, Unit] = {
+                            retryConfig: RetryConfig
+  ): Stream[F, Unit] = {
     val getAndSetIamPolicy = for {
       policy <- blockingF(Async[F].delay(db.getIamPolicy(bucketName.value)))
       policyBuilder = policy.toBuilder()
       updatedPolicy = roles
-        .foldLeft(policyBuilder)(
-          (currentBuilder, item) => currentBuilder.addIdentity(Role.of(item._1.name), item._2.head, item._2.tail: _*)
+        .foldLeft(policyBuilder)((currentBuilder, item) =>
+          currentBuilder.addIdentity(Role.of(item._1.name), item._2.head, item._2.tail: _*)
         )
         .build()
       _ <- blockingF(Async[F].delay(db.setIamPolicy(bucketName.value, updatedPolicy)))
@@ -421,7 +445,8 @@ private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer](
 
   override def getIamPolicy(bucketName: GcsBucketName,
                             traceId: Option[TraceId] = None,
-                            retryConfig: RetryConfig): Stream[F, Policy] = {
+                            retryConfig: RetryConfig
+  ): Stream[F, Policy] = {
     val getIamPolicy = for {
       policy <- blockingF(Async[F].delay(db.getIamPolicy(bucketName.value)))
     } yield policy
@@ -436,7 +461,8 @@ private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer](
   override def setBucketLifecycle(bucketName: GcsBucketName,
                                   lifecycleRules: List[LifecycleRule],
                                   traceId: Option[TraceId] = None,
-                                  retryConfig: RetryConfig): Stream[F, Unit] = {
+                                  retryConfig: RetryConfig
+  ): Stream[F, Unit] = {
     val bucketInfo = BucketInfo
       .of(bucketName.value)
       .toBuilder
@@ -444,7 +470,8 @@ private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer](
       .build()
     retryGoogleF(retryConfig)(blockingF(Async[F].delay(db.update(bucketInfo))),
                               traceId,
-                              s"com.google.cloud.storage.Storage.update($bucketInfo)").void
+                              s"com.google.cloud.storage.Storage.update($bucketInfo)"
+    ).void
   }
 
   private def listBlobs(db: Storage,
@@ -452,10 +479,11 @@ private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer](
                         blobListOptions: List[BlobListOption],
                         traceId: Option[TraceId],
                         retryConfig: RetryConfig,
-                        ifErrorWhenBucketNotFound: Boolean): Stream[F, Blob] = {
+                        ifErrorWhenBucketNotFound: Boolean
+  ): Stream[F, Blob] = {
     val listFirstPage =
       Async[F].delay(db.list(bucketName.value, blobListOptions: _*)).map(p => Option(p)).handleErrorWith {
-        case e: com.google.cloud.storage.StorageException if (e.getCode == 404) =>
+        case e: com.google.cloud.storage.StorageException if e.getCode == 404 =>
           //This can happen if the bucket doesn't exist
           if (ifErrorWhenBucketNotFound)
             Async[F].raiseError(e)
@@ -502,7 +530,8 @@ object GoogleStorageInterpreter {
   def storage[F[_]: Sync: ContextShift](
     pathToJson: String,
     blocker: Blocker,
-    project: Option[GoogleProject] = None // legacy credential file doesn't have `project_id` field. Hence we need to pass in explicitly
+    project: Option[GoogleProject] =
+      None // legacy credential file doesn't have `project_id` field. Hence we need to pass in explicitly
   ): Resource[F, Storage] =
     for {
       credential <- org.broadinstitute.dsde.workbench.util2.readFile(pathToJson)

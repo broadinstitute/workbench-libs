@@ -55,7 +55,8 @@ trait Retry {
    * @return
    */
   def retryUntilSuccessOrTimeout[T](pred: Predicate[Throwable] = always,
-                                    failureLogMessage: String = defaultErrorMessage)(
+                                    failureLogMessage: String = defaultErrorMessage
+  )(
     interval: FiniteDuration,
     timeout: FiniteDuration
   )(op: () => Future[T])(implicit executionContext: ExecutionContext): RetryableFuture[T] = {
@@ -101,7 +102,8 @@ trait Retry {
                              4000 milliseconds,
                              8000 milliseconds,
                              16000 milliseconds,
-                             32000 milliseconds)
+                             32000 milliseconds
+    )
     plainIntervals.map(i => addJitter(i, 1000 milliseconds))
   }
 

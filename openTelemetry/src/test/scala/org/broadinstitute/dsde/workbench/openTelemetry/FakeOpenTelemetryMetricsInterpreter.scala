@@ -17,5 +17,6 @@ object FakeOpenTelemetryMetricsInterpreter extends OpenTelemetryMetrics[IO] {
   def recordDuration(name: String,
                      duration: FiniteDuration,
                      distributionBucket: List[FiniteDuration],
-                     tags: Map[String, String] = Map.empty)(implicit timer: Timer[IO]): IO[Unit] = IO.unit
+                     tags: Map[String, String] = Map.empty
+  )(implicit timer: Timer[IO]): IO[Unit] = IO.unit
 }

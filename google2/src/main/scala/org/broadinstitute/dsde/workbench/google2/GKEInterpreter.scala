@@ -104,8 +104,8 @@ final class GKEInterpreter[F[_]: StructuredLogger: Timer: ContextShift](
     )
 
   //delete and create operations take around ~5mins with simple tests, could be longer for larger clusters
-  override def pollOperation(operationId: KubernetesOperationId, delay: FiniteDuration, maxAttempts: Int)(
-    implicit ev: Ask[F, TraceId],
+  override def pollOperation(operationId: KubernetesOperationId, delay: FiniteDuration, maxAttempts: Int)(implicit
+    ev: Ask[F, TraceId],
     doneEv: DoneCheckable[Operation]
   ): Stream[F, Operation] = {
     val request = GetOperationRequest
@@ -115,8 +115,9 @@ final class GKEInterpreter[F[_]: StructuredLogger: Timer: ContextShift](
 
     val getOperation = for {
       op <- F.delay(clusterManagerClient.getOperation(request))
-      _ <- if (op.getStatusMessage.isEmpty) F.unit
-      else F.raiseError[Unit](new RuntimeException("Operation failed due to: " + op.getStatusMessage))
+      _ <-
+        if (op.getStatusMessage.isEmpty) F.unit
+        else F.raiseError[Unit](new RuntimeException("Operation failed due to: " + op.getStatusMessage))
     } yield op
 
     streamFUntilDone(getOperation, maxAttempts, delay)
@@ -126,5 +127,6 @@ final class GKEInterpreter[F[_]: StructuredLogger: Timer: ContextShift](
     tracedRetryGoogleF(retryConfig)(blockerBound.withPermit(
                                       blocker.blockOn(fa)
                                     ),
-                                    action).compile.lastOrError
+                                    action
+    ).compile.lastOrError
 }

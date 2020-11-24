@@ -38,7 +38,8 @@ trait GoogleTopicAdmin[F[_]] {
    */
   def createWithPublisherMembers(projectTopicName: TopicName,
                                  members: List[Identity],
-                                 traceId: Option[TraceId] = None): Stream[F, Unit]
+                                 traceId: Option[TraceId] = None
+  ): Stream[F, Unit]
 }
 
 object GoogleTopicAdmin {

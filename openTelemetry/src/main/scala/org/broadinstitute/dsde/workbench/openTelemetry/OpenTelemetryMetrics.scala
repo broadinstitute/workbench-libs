@@ -26,7 +26,8 @@ trait OpenTelemetryMetrics[F[_]] {
   def recordDuration(name: String,
                      duration: FiniteDuration,
                      distributionBucket: List[FiniteDuration],
-                     tags: Map[String, String] = Map.empty)(implicit timer: Timer[F]): F[Unit]
+                     tags: Map[String, String] = Map.empty
+  )(implicit timer: Timer[F]): F[Unit]
 }
 
 object OpenTelemetryMetrics {
@@ -35,14 +36,15 @@ object OpenTelemetryMetrics {
   )(GoogleProjectId.apply)
 
   private def parseProject[F[_]: ContextShift: Sync](pathToCredential: Path,
-                                                     blocker: Blocker): Stream[F, GoogleProjectId] =
+                                                     blocker: Blocker
+  ): Stream[F, GoogleProjectId] =
     fs2.io.file
       .readAll[F](pathToCredential, blocker, 4096)
       .through(byteStreamParser)
       .through(decoder[F, GoogleProjectId])
 
-  def resource[F[_]: ContextShift](pathToCredential: Path, appName: String, blocker: Blocker)(
-    implicit F: Async[F]
+  def resource[F[_]: ContextShift](pathToCredential: Path, appName: String, blocker: Blocker)(implicit
+    F: Async[F]
   ): Resource[F, OpenTelemetryMetricsInterpreter[F]] =
     for {
       projectId <- Resource.liftF(parseProject[F](pathToCredential, blocker).compile.lastOrError)
@@ -57,13 +59,13 @@ object OpenTelemetryMetrics {
         .setCredentials(credential)
         .setProjectId(projectId.value)
         .build()
-      _ <- Resource.make(F.delay(StackdriverStatsExporter.createAndRegister(configuration)))(
-        _ => F.delay(StackdriverStatsExporter.unregister())
+      _ <- Resource.make(F.delay(StackdriverStatsExporter.createAndRegister(configuration)))(_ =>
+        F.delay(StackdriverStatsExporter.unregister())
       )
     } yield new OpenTelemetryMetricsInterpreter[F](appName)
 
-  def registerTracing[F[_]: ContextShift](pathToCredential: Path, blocker: Blocker)(
-    implicit F: Async[F]
+  def registerTracing[F[_]: ContextShift](pathToCredential: Path, blocker: Blocker)(implicit
+    F: Async[F]
   ): Resource[F, Unit] =
     for {
       projectId <- Resource.liftF(parseProject[F](pathToCredential, blocker).compile.lastOrError)
@@ -78,8 +80,8 @@ object OpenTelemetryMetrics {
         .setCredentials(credential)
         .setProjectId(projectId.value)
         .build()
-      _ <- Resource.make(F.delay(StackdriverTraceExporter.createAndRegister(configuration)))(
-        _ => F.unit //Seems if we unregister here, no tracing will be exported
+      _ <- Resource.make(F.delay(StackdriverTraceExporter.createAndRegister(configuration)))(_ =>
+        F.unit //Seems if we unregister here, no tracing will be exported
       )
     } yield ()
 

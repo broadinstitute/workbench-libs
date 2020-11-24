@@ -12,7 +12,6 @@ trait GPAllocSuperFixture extends BeforeAndAfterAll {
 }
 
 @deprecated(message = "GPAllocFixtures is deprecated, everything you need is now in BillingFixtures",
-            since = "workbench-service-test-v0.5")
-trait GPAllocFixtures extends BillingFixtures { self: TestSuite =>
-
-}
+            since = "workbench-service-test-v0.5"
+)
+trait GPAllocFixtures extends BillingFixtures { self: TestSuite => }

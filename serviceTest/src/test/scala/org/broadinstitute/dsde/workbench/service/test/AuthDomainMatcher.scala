@@ -22,8 +22,8 @@ object AuthDomainMatcher extends Matchers with Eventually {
    * user can see the workspace in workspaces list and
    *  can see workspace detail and see expected auth-domains
    */
-  def checkVisibleAndAccessible(projectName: String, workspaceName: String, authDomains: List[String])(
-    implicit token: AuthToken
+  def checkVisibleAndAccessible(projectName: String, workspaceName: String, authDomains: List[String])(implicit
+    token: AuthToken
   ): Unit = {
 
     eventually {
@@ -65,7 +65,7 @@ object AuthDomainMatcher extends Matchers with Eventually {
 
     eventually {
       val workspaceNames = Rawls.workspaces.getWorkspaceNames()
-      workspaceNames must not contain (workspaceName)
+      workspaceNames must not contain workspaceName
     }
 
     eventually {

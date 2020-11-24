@@ -13,7 +13,8 @@ package object metrics extends LazyLogging {
                           port: Int,
                           period: Duration,
                           registryName: String = "default",
-                          apiKey: Option[String] = None): Unit = {
+                          apiKey: Option[String] = None
+  ): Unit = {
     logger.info(s"Starting statsd reporter writing to [$host:$port] with period [${period.toMillis} ms]")
     val reporter = StatsDReporter
       .forRegistry(SharedMetricRegistries.getOrCreate(registryName))

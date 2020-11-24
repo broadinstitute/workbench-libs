@@ -22,12 +22,14 @@ object Util extends LazyLogging {
     string + delimiter
 
   @deprecated("Please use RandomUtil makeRandomId or randomIdWithPrefix instead.",
-              "workbench-libs/workbench-service-tests 0.8")
+              "workbench-libs/workbench-service-tests 0.8"
+  )
   def makeRandomId(length: Int = 7): String =
     Random.alphanumeric.take(length).mkString
 
   @deprecated("Please use RandomUtil randomUuid or uuidWithPrefix instead.",
-              "workbench-libs/workbench-service-tests 0.8")
+              "workbench-libs/workbench-service-tests 0.8"
+  )
   def makeUuid: String =
     UUID.randomUUID().toString
 

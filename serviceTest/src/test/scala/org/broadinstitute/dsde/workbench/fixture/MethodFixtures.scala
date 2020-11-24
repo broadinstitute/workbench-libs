@@ -15,19 +15,15 @@ trait MethodFixtures extends ExceptionHandling with RandomUtil { self: TestSuite
     val methodName: String = uuidWithPrefix(testName)
     for (i <- 1 to numSnapshots)
       Orchestration.methods.createMethod(method.creationAttributes + ("name" -> methodName))
-    try {
-      testCode(methodName)
-    } catch {
+    try testCode(methodName)
+    catch {
       case t: Exception =>
         logger.error("MethodFixtures.withMethod Exception: ", t)
         throw t // end test execution
-    } finally {
-      if (cleanUp) {
-        try {
-          for (i <- 1 to numSnapshots)
-            Orchestration.methods.redact(method.methodNamespace, methodName, i)
-        } catch nonFatalAndLog(s"Error redacting method $method.methodName/$methodName")
-      }
+    } finally if (cleanUp) {
+      try for (i <- 1 to numSnapshots)
+        Orchestration.methods.redact(method.methodNamespace, methodName, i)
+      catch nonFatalAndLog(s"Error redacting method $method.methodName/$methodName")
     }
 
   }
@@ -38,9 +34,8 @@ trait MethodFixtures extends ExceptionHandling with RandomUtil { self: TestSuite
     val attributes = MethodData.SimpleMethod.creationAttributes ++ Map("name" -> name, "namespace" -> namespace)
     Orchestration.methods.createMethod(attributes)
 
-    try {
-      testCode((name, namespace))
-    } catch {
+    try testCode((name, namespace))
+    catch {
       case t: Exception =>
         logger.error("MethodFixtures.withMethod Exception: ", t)
         throw t // end test execution

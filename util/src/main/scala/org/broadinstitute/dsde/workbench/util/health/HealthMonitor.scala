@@ -116,10 +116,10 @@ class HealthMonitor private (
     val (subsystem, result) = subsystemAndResult
     result
       .withTimeout(futureTimeout,
-                   s"Timed out after ${futureTimeout.toString} waiting for a response from ${subsystem.toString}")
-      .recover {
-        case NonFatal(ex) =>
-          failedStatus(ex.getMessage)
+                   s"Timed out after ${futureTimeout.toString} waiting for a response from ${subsystem.toString}"
+      )
+      .recover { case NonFatal(ex) =>
+        failedStatus(ex.getMessage)
       } map {
       Store(subsystem, _)
     } pipeTo self

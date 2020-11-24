@@ -35,7 +35,9 @@ trait FutureSupport {
   def assertSuccessfulTries[K, T](tries: Map[K, Try[T]]): Future[Map[K, T]] = {
     val failures = tries.values.collect { case Failure(t) => t }
     if (failures.isEmpty) {
-      Future.successful(tries.mapValues(_.get).toMap) //this toMap is needed to scala 2.13 since it returns MapView in 2.13
+      Future.successful(
+        tries.mapValues(_.get).toMap
+      ) //this toMap is needed to scala 2.13 since it returns MapView in 2.13
     } else {
       Future.failed(failures.head)
     }
@@ -51,8 +53,10 @@ trait FutureSupport {
    * }}}
    */
   implicit class FutureWithTimeout[A](f: Future[A]) {
-    def withTimeout(duration: FiniteDuration, errMsg: String)(implicit scheduler: Scheduler,
-                                                              ec: ExecutionContext): Future[A] =
+    def withTimeout(duration: FiniteDuration, errMsg: String)(implicit
+      scheduler: Scheduler,
+      ec: ExecutionContext
+    ): Future[A] =
       Future.firstCompletedOf(Seq(f, after(duration, scheduler)(Future.failed(new TimeoutException(errMsg)))))
   }
 }
