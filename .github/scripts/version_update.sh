@@ -29,7 +29,7 @@ for f in README.md */CHANGELOG.md
     git add ${f}
 
     # will fail if no change: ignore it
-    git commit --message "Auto update hash in ${f} to ${HASH}" || true
+#    git commit --message "Auto update hash in ${f} to ${HASH}" || true
   done
 
 echo "Finished updating version hashes."
