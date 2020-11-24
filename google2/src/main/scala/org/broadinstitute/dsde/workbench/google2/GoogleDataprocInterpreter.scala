@@ -103,24 +103,29 @@ private[google2] class GoogleDataprocInterpreter[F[_]: StructuredLogger: Timer: 
     implicit ev: Ask[F, TraceId]
   ): F[List[Operation]] =
     for {
-      // First, remove all its preemptible instances, if any
-      _ <- if (numPreemptibles.exists(_ > 0))
+      clusterInstances <- getClusterInstances(project, region, clusterName)
+
+      // First, remove all preemptible instances, if any
+      _ <- if (containsPreemptibles(clusterInstances))
         resizeCluster(project, region, clusterName, numWorkers = None, numPreemptibles = Some(0))
       else F.pure(none[ClusterOperationMetadata])
 
       // Then, stop each instance individually
-      operations <- instances.toList.parTraverse { instance =>
-        instance.dataprocRole match {
-          case Master if metadata.nonEmpty =>
-            googleComputeService.addInstanceMetadata(
-              instance.project,
-              instance.zone,
-              instance.name,
-              metadata.get // safe to do here since we predicated that 'metadata' is non-empty
-            ) >> googleComputeService.stopInstance(instance.project, instance.zone, instance.name)
-          case _ =>
-            googleComputeService.stopInstance(instance.project, instance.zone, instance.name)
-        }
+      operations <- clusterInstances.toList.parFlatTraverse {
+        case (DataprocRoleZonePreemptibility(role, zone, _), instances) =>
+          instances.toList.parTraverse { instance =>
+            role match {
+              case Master if metadata.nonEmpty =>
+                googleComputeService.addInstanceMetadata(
+                  project,
+                  zone,
+                  instance,
+                  metadata.get // safe to do here since we predicated that 'metadata' is non-empty
+                ) >> googleComputeService.stopInstance(project, zone, instance)
+              case _ =>
+                googleComputeService.stopInstance(project, zone, instance)
+            }
+          }
       }
     } yield operations
 
