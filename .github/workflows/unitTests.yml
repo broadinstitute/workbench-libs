@@ -20,7 +20,7 @@ jobs:
       - name: Compile and check scalafmt
         run: sbt -Denv.type=test clean "test:compile" scalafmtCheckAll
       - name: Build and test
-        run: sbt -Dfile.encoding=UTF-8 clean +test coverage coverageReport coverageAggregate
+        run: sbt -Dfile.encoding=UTF-8 clean +test coverage coverageReport
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v1
         with:
