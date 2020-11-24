@@ -24,12 +24,6 @@ for f in README.md */CHANGELOG.md
   do
     echo "Replacing ${TO_REPLACE} with ${HASH} in ${f}..."
     sed -i "s/${TO_REPLACE}/${HASH}/g" ${f}
-
-    # will do nothing if there's nothing to add
-    git add ${f}
-
-    # will fail if no change: ignore it
-#    git commit --message "Auto update hash in ${f} to ${HASH}" || true
   done
 
 echo "Finished updating version hashes."
