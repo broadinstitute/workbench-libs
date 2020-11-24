@@ -52,8 +52,8 @@ private[google2] class GoogleFirestoreInterpreter[F[_]](db: Firestore)(implicit 
 }
 
 object GoogleFirestoreInterpreter {
-  def apply[F[_]](db: Firestore)(
-    implicit effect: Effect[F],
+  def apply[F[_]](db: Firestore)(implicit
+    effect: Effect[F],
     ec: ExecutionContext
   ): GoogleFirestoreInterpreter[F] = new GoogleFirestoreInterpreter[F](db)
 

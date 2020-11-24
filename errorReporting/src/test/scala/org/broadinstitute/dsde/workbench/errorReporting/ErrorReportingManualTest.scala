@@ -29,7 +29,8 @@ object ErrorReportingManualTest {
     val res = ErrorReporting
       .fromPath[IO](Paths.get("/Users/qi/.google/qi-billing-90828dd5e7b8.json"),
                     "qi-test-app",
-                    ProjectName.of("qi-billing"))
+                    ProjectName.of("qi-billing")
+      )
       .use(c => test(c))
 
     res.unsafeRunSync()

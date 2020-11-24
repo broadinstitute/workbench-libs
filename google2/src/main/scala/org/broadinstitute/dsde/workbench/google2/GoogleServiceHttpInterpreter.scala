@@ -26,8 +26,8 @@ import org.http4s.{AuthScheme, Credentials, Headers, Method, Request, Response, 
 
 class GoogleServiceHttpInterpreter[F[_]: Sync: Logger](httpClient: Client[F],
                                                        config: NotificationCreaterConfig,
-                                                       googleCredentials: GoogleCredentials)
-    extends GoogleServiceHttp[F]
+                                                       googleCredentials: GoogleCredentials
+) extends GoogleServiceHttp[F]
     with Http4sClientDsl[F] {
   val authHeader = Authorization(
     Credentials.Token(AuthScheme.Bearer, googleCredentials.refreshAccessToken().getTokenValue)
@@ -37,7 +37,8 @@ class GoogleServiceHttpInterpreter[F[_]: Sync: Logger](httpClient: Client[F],
   def createNotification(topic: TopicName,
                          bucketName: GcsBucketName,
                          filters: Filters,
-                         traceId: Option[TraceId]): F[Unit] = {
+                         traceId: Option[TraceId]
+  ): F[Unit] = {
     val notificationUri = config.googleUrl.withPath(s"/storage/v1/b/${bucketName.value}/notificationConfigs")
     val notificationBody = NotificationRequest(topic, "JSON_API_V1", filters.eventTypes, filters.objectNamePrefix)
     val headers = Headers.of(authHeader)
@@ -52,16 +53,17 @@ class GoogleServiceHttpInterpreter[F[_]: Sync: Logger](httpClient: Client[F],
       )
       // POST request will create multiple notifications for same bucket and topic with different ID; Hence we check if
       // a notification for the given bucket and topic already exists. If yes, we do nothing; else, we create it
-      _ <- if (notifications.items.exists(nel => nel.toList.exists(x => x.topic === topic)))
-        Sync[F].pure(())
-      else
-        httpClient.expectOr[Notification](
-          Request[F](
-            method = Method.POST,
-            uri = notificationUri,
-            headers = headers
-          ).withEntity(notificationBody)
-        )(onError(traceId))
+      _ <-
+        if (notifications.items.exists(nel => nel.toList.exists(x => x.topic === topic)))
+          Sync[F].pure(())
+        else
+          httpClient.expectOr[Notification](
+            Request[F](
+              method = Method.POST,
+              uri = notificationUri,
+              headers = headers
+            ).withEntity(notificationBody)
+          )(onError(traceId))
     } yield ()
   }
 
@@ -159,7 +161,8 @@ final case class Filters(eventTypes: List[NotificationEventTypes], objectNamePre
 final private[google2] case class NotificationRequest(topic: TopicName,
                                                       payloadFormat: String,
                                                       eventTypes: List[NotificationEventTypes],
-                                                      objectNamePrefix: Option[String])
+                                                      objectNamePrefix: Option[String]
+)
 final private[google2] case class NotificationResponse(items: Option[NonEmptyList[Notification]])
 final case class Notification(topic: TopicName)
 final case class NotificationCreaterConfig(pathToCredentialJson: String, googleUrl: Uri)

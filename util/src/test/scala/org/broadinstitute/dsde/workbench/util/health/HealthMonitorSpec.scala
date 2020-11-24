@@ -51,7 +51,8 @@ class HealthMonitorSpec
     system.scheduler.scheduleWithFixedDelay(100 milliseconds,
                                             100 milliseconds,
                                             healthMonitorRef,
-                                            HealthMonitor.CheckAll)
+                                            HealthMonitor.CheckAll
+    )
 
     awaitAssert(
       assertResult(StatusCheckResponse(true, Map(Agora -> HealthMonitor.OkStatus))) {

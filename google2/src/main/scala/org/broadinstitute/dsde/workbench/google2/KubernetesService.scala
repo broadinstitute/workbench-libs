@@ -19,29 +19,30 @@ trait KubernetesService[F[_]] {
   // This ensures idempotency (i.e., you can repeatedly call create/delete for the same resource without error)
 
   // namespaces group resources, and allow our list/get/update API calls to be segmented. This can be used on a per-user basis, for example
-  def createNamespace(clusterId: KubernetesClusterId, namespace: KubernetesNamespace)(
-    implicit ev: Ask[F, TraceId]
+  def createNamespace(clusterId: KubernetesClusterId, namespace: KubernetesNamespace)(implicit
+    ev: Ask[F, TraceId]
   ): F[Unit]
 
-  def deleteNamespace(clusterId: KubernetesClusterId, namespace: KubernetesNamespace)(
-    implicit ev: Ask[F, TraceId]
+  def deleteNamespace(clusterId: KubernetesClusterId, namespace: KubernetesNamespace)(implicit
+    ev: Ask[F, TraceId]
   ): F[Unit]
 
   // A Kubernetes service account is an automatically enabled authenticator that uses signed bearer tokens to verify requests.
   // NB: It is distinct from Google service accounts.
   def createServiceAccount(clusterId: KubernetesClusterId,
                            serviceAccount: KubernetesServiceAccount,
-                           namespaceName: KubernetesNamespace)(
-    implicit ev: Ask[F, TraceId]
+                           namespaceName: KubernetesNamespace
+  )(implicit
+    ev: Ask[F, TraceId]
   ): F[Unit]
 
   // pods represent a set of containers
-  def createPod(clusterId: KubernetesClusterId, pod: KubernetesPod, namespace: KubernetesNamespace)(
-    implicit ev: Ask[F, TraceId]
+  def createPod(clusterId: KubernetesClusterId, pod: KubernetesPod, namespace: KubernetesNamespace)(implicit
+    ev: Ask[F, TraceId]
   ): F[Unit]
 
-  def listPodStatus(clusterId: KubernetesClusterId, namespace: KubernetesNamespace)(
-    implicit ev: Ask[F, TraceId]
+  def listPodStatus(clusterId: KubernetesClusterId, namespace: KubernetesNamespace)(implicit
+    ev: Ask[F, TraceId]
   ): F[List[KubernetesPodStatus]]
 
   // certain services allow us to expose various containers via a matching selector
@@ -53,18 +54,19 @@ trait KubernetesService[F[_]] {
     implicit ev: Ask[F, TraceId]
   ): F[Option[IP]]
 
-  def createRole(clusterId: KubernetesClusterId, role: KubernetesRole, namespace: KubernetesNamespace)(
-    implicit ev: Ask[F, TraceId]
+  def createRole(clusterId: KubernetesClusterId, role: KubernetesRole, namespace: KubernetesNamespace)(implicit
+    ev: Ask[F, TraceId]
   ): F[Unit]
 
   def createRoleBinding(clusterId: KubernetesClusterId,
                         roleBinding: KubernetesRoleBinding,
-                        namespace: KubernetesNamespace)(
-    implicit ev: Ask[F, TraceId]
+                        namespace: KubernetesNamespace
+  )(implicit
+    ev: Ask[F, TraceId]
   ): F[Unit]
 
-  def createSecret(clusterId: KubernetesClusterId, namespace: KubernetesNamespace, secret: KubernetesSecret)(
-    implicit ev: Ask[F, TraceId]
+  def createSecret(clusterId: KubernetesClusterId, namespace: KubernetesNamespace, secret: KubernetesSecret)(implicit
+    ev: Ask[F, TraceId]
   ): F[Unit]
 }
 

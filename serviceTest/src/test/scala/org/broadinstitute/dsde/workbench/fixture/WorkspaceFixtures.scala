@@ -10,7 +10,8 @@ import org.scalatest.TestSuite
 
 import scala.util.Try
 
-/**WorkspaceFixtures
+/**
+ * WorkspaceFixtures
  * Fixtures for creating and cleaning up test workspaces.
  */
 trait WorkspaceFixtures extends ExceptionHandling with RandomUtil { self: TestSuite =>
@@ -31,7 +32,8 @@ trait WorkspaceFixtures extends ExceptionHandling with RandomUtil { self: TestSu
                     authDomain: Set[String] = Set.empty,
                     aclEntries: List[AclEntry] = List(),
                     attributes: Option[Map[String, Any]] = None,
-                    cleanUp: Boolean = true)(testCode: (String) => Any)(implicit token: AuthToken): Unit = {
+                    cleanUp: Boolean = true
+  )(testCode: (String) => Any)(implicit token: AuthToken): Unit = {
     val workspaceName = uuidWithPrefix(namePrefix, " ")
     Orchestration.workspaces.create(namespace, workspaceName, authDomain)
     if (aclEntries.nonEmpty)

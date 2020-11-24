@@ -17,8 +17,8 @@ import scala.collection.JavaConverters._
 import scala.concurrent.duration._
 
 class GoogleTopicAdminInterpreter[F[_]: StructuredLogger: Sync: Timer](topicAdminClient: TopicAdminClient,
-                                                                       retryConfig: RetryConfig)
-    extends GoogleTopicAdmin[F] {
+                                                                       retryConfig: RetryConfig
+) extends GoogleTopicAdmin[F] {
   def retryHelper[A]: (F[A], Option[TraceId], String) => Stream[F, A] = retryGoogleF[F, A](retryConfig)
 
   def create(projectTopicName: TopicName, traceId: Option[TraceId] = None): Stream[F, Unit] = {
@@ -30,7 +30,8 @@ class GoogleTopicAdminInterpreter[F[_]: StructuredLogger: Sync: Timer](topicAdmi
 
     retryHelper[Unit](createTopic,
                       traceId,
-                      s"com.google.cloud.pubsub.v1.TopicAdminClient.createTopic($projectTopicName)")
+                      s"com.google.cloud.pubsub.v1.TopicAdminClient.createTopic($projectTopicName)"
+    )
   }
 
   def delete(projectTopicName: TopicName, traceId: Option[TraceId] = None): Stream[F, Unit] = {
@@ -38,12 +39,14 @@ class GoogleTopicAdminInterpreter[F[_]: StructuredLogger: Sync: Timer](topicAdmi
 
     retryHelper[Unit](deleteTopic,
                       traceId,
-                      s"com.google.cloud.pubsub.v1.TopicAdminClient.deleteTopic($projectTopicName)")
+                      s"com.google.cloud.pubsub.v1.TopicAdminClient.deleteTopic($projectTopicName)"
+    )
   }
 
   def createWithPublisherMembers(topicName: TopicName,
                                  members: List[Identity],
-                                 traceId: Option[TraceId] = None): Stream[F, Unit] = {
+                                 traceId: Option[TraceId] = None
+  ): Stream[F, Unit] = {
     val loggingCtx = Map("topic" -> topicName.toString, "traceId" -> traceId.map(_.asString).getOrElse(""))
     val createTopic = Sync[F].delay(topicAdminClient.createTopic(topicName)).void.recoverWith {
       case _: com.google.api.gax.rpc.AlreadyExistsException =>
@@ -53,15 +56,19 @@ class GoogleTopicAdminInterpreter[F[_]: StructuredLogger: Sync: Timer](topicAdmi
     for {
       _ <- retryHelper[Unit](createTopic,
                              traceId,
-                             s"com.google.cloud.pubsub.v1.TopicAdminClient.createTopic($topicName)")
+                             s"com.google.cloud.pubsub.v1.TopicAdminClient.createTopic($topicName)"
+      )
 
       topicNameString = TopicName.format(topicName.getProject, topicName.getTopic)
       request = GetIamPolicyRequest.newBuilder().setResource(topicNameString).build()
-      getPolicy = Sync[F].delay(topicAdminClient.getIamPolicy(request)) //getIamPolicy requires `roles/pubsub.admin` role, see https://cloud.google.com/pubsub/docs/access-control
+      getPolicy = Sync[F].delay(
+        topicAdminClient.getIamPolicy(request)
+      ) //getIamPolicy requires `roles/pubsub.admin` role, see https://cloud.google.com/pubsub/docs/access-control
 
       policy <- retryHelper[Policy](getPolicy,
                                     traceId,
-                                    s"com.google.cloud.pubsub.v1.TopicAdminClient.getIamPolicy($topicName)")
+                                    s"com.google.cloud.pubsub.v1.TopicAdminClient.getIamPolicy($topicName)"
+      )
       binding = Binding
         .newBuilder()
         .setRole("roles/pubsub.publisher")
@@ -77,7 +84,8 @@ class GoogleTopicAdminInterpreter[F[_]: StructuredLogger: Sync: Timer](topicAdmi
       updatePolicy = Sync[F].delay(topicAdminClient.setIamPolicy(request)).void
       _ <- retryHelper[Unit](updatePolicy,
                              traceId,
-                             s"com.google.cloud.pubsub.v1.TopicAdminClient.setIamPolicy($topicName, $updatedPolicy)")
+                             s"com.google.cloud.pubsub.v1.TopicAdminClient.setIamPolicy($topicName, $updatedPolicy)"
+      )
     } yield ()
   }
 }

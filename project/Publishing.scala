@@ -3,8 +3,8 @@ import sbt._
 import Artifactory._
 
 /**
-  * NOTE: This was lifted wholesale from Cromwell.
-  */
+ * NOTE: This was lifted wholesale from Cromwell.
+ */
 
 object Publishing {
   private val buildTimestamp = System.currentTimeMillis() / 1000
@@ -24,8 +24,8 @@ object Publishing {
   }
 
   val publishSettings: Seq[Setting[_]] =
-  //we only publish to libs-release-local because of a bug in sbt that makes snapshots take
-  //priority over the local package cache. see here: https://github.com/sbt/sbt/issues/2687#issuecomment-236586241
+    //we only publish to libs-release-local because of a bug in sbt that makes snapshots take
+    //priority over the local package cache. see here: https://github.com/sbt/sbt/issues/2687#issuecomment-236586241
     Seq(
       publishTo := Option(artifactoryResolver(false)),
       publishArtifact in Compile := true,

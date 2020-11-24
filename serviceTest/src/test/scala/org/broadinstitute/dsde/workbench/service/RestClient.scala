@@ -97,11 +97,13 @@ trait RestClient extends Retry with LazyLogging {
   private def requestWithJsonContent(method: HttpMethod,
                                      uri: String,
                                      content: Any,
-                                     httpHeaders: List[HttpHeader] = List())(implicit token: AuthToken): String = {
+                                     httpHeaders: List[HttpHeader] = List()
+  )(implicit token: AuthToken): String = {
     val req = HttpRequest(method,
                           encodeUri(uri),
                           List(makeAuthHeader(token)) ++ httpHeaders,
-                          HttpEntity(ContentTypes.`application/json`, mapper.writeValueAsString(content)))
+                          HttpEntity(ContentTypes.`application/json`, mapper.writeValueAsString(content))
+    )
     parseResponse(sendRequest(req))
   }
 
@@ -112,33 +114,33 @@ trait RestClient extends Retry with LazyLogging {
     parseResponse(sendRequest(req))
   }
 
-  private def requestBasic(method: HttpMethod, uri: String, httpHeaders: List[HttpHeader] = List())(
-    implicit token: AuthToken
+  private def requestBasic(method: HttpMethod, uri: String, httpHeaders: List[HttpHeader] = List())(implicit
+    token: AuthToken
   ): HttpResponse = {
     val req = HttpRequest(method, encodeUri(uri), List(makeAuthHeader(token)) ++ httpHeaders)
     sendRequest(req)
   }
 
-  def patchRequest(uri: String, content: Any, httpHeaders: List[HttpHeader] = List())(
-    implicit token: AuthToken
+  def patchRequest(uri: String, content: Any, httpHeaders: List[HttpHeader] = List())(implicit
+    token: AuthToken
   ): String =
     requestWithJsonContent(PATCH, uri, content, httpHeaders)
 
-  def postRequest(uri: String, content: Any = None, httpHeaders: List[HttpHeader] = List())(
-    implicit token: AuthToken
+  def postRequest(uri: String, content: Any = None, httpHeaders: List[HttpHeader] = List())(implicit
+    token: AuthToken
   ): String =
     requestWithJsonContent(POST, uri, content, httpHeaders)
 
-  def putRequest(uri: String, content: Any = None, httpHeaders: List[HttpHeader] = List())(
-    implicit token: AuthToken
+  def putRequest(uri: String, content: Any = None, httpHeaders: List[HttpHeader] = List())(implicit
+    token: AuthToken
   ): String =
     requestWithJsonContent(PUT, uri, content, httpHeaders)
 
   def deleteRequest(uri: String, httpHeaders: List[HttpHeader] = List())(implicit token: AuthToken): String =
     requestWithJsonContent(DELETE, uri, None, httpHeaders)
 
-  def deleteRequestWithContent(uri: String, content: Any = None, httpHeaders: List[HttpHeader] = List())(
-    implicit token: AuthToken
+  def deleteRequestWithContent(uri: String, content: Any = None, httpHeaders: List[HttpHeader] = List())(implicit
+    token: AuthToken
   ): String =
     requestWithJsonContent(DELETE, uri, content, httpHeaders)
 

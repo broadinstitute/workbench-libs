@@ -6,9 +6,9 @@ object Dependencies {
   val jacksonV      = "2.11.3"
   val googleV       = "1.22.0"
   val scalaLoggingV = "3.9.2"
-  val scalaTestV    = "3.2.2"
+  val scalaTestV    = "3.2.3"
   val circeVersion = "0.13.0"
-  val http4sVersion = "0.21.8"
+  val http4sVersion = "0.21.11"
 
   def excludeGuavaJDK5(m: ModuleID): ModuleID = m.exclude("com.google.guava", "guava-jdk5")
 
@@ -26,7 +26,7 @@ object Dependencies {
   val akkaTestkit: ModuleID =       "com.typesafe.akka" %% "akka-testkit"         % akkaV     % "test"
   val akkaHttpTestkit: ModuleID =   "com.typesafe.akka" %% "akka-http-testkit"    % akkaHttpV % "test"
   val scalaCheck: ModuleID =        "org.scalacheck"      %%  "scalacheck"        % "1.15.1"  % "test"
-  val commonsCodec: ModuleID = "commons-codec" % "commons-codec" % "1.15" % "test"
+  val commonsCodec: ModuleID = "commons-codec" % "commons-codec" % "20041127.091804" % "test"
 
   val jacksonModule: ModuleID =   "com.fasterxml.jackson.module" %% "jackson-module-scala"   % jacksonV % "test"
 
@@ -58,8 +58,8 @@ object Dependencies {
   val googleStorageNew: ModuleID = "com.google.cloud" % "google-cloud-storage" % "1.113.4"
   val googleStorageLocal: ModuleID = "com.google.cloud" % "google-cloud-nio" % "0.122.1" % "test"
   val googlePubsubNew: ModuleID = "com.google.cloud" % "google-cloud-pubsub" % "1.105.1"
-  val googleKms: ModuleID = "com.google.cloud" % "google-cloud-kms" % "1.40.2"
-  val googleDataproc: ModuleID =    "com.google.cloud" % "google-cloud-dataproc" % "0.122.3"
+  val googleKms: ModuleID = "com.google.cloud" % "google-cloud-kms" % "0.77.0-beta"
+  val googleDataproc: ModuleID =    "com.google.cloud" % "google-cloud-dataproc" % "1.1.7"
   val googleComputeNew: ModuleID = "com.google.cloud" % "google-cloud-compute" % "0.118.0-alpha"
   val googleContainer: ModuleID = "com.google.cloud" % "google-cloud-container" % "1.2.0"
   val kubernetesClient: ModuleID = "io.kubernetes" % "client-java" % "5.0.0" % "compile"
@@ -79,7 +79,7 @@ object Dependencies {
   val http4sBlazeClient = "org.http4s" %% "http4s-blaze-client" % http4sVersion
   val http4sDsl = "org.http4s"      %% "http4s-dsl"          % http4sVersion
 
-  val fs2Io: ModuleID = "co.fs2" %% "fs2-io" % "2.4.4"
+  val fs2Io: ModuleID = "co.fs2" %% "fs2-io" % "2.4.5"
   val rawlsModel: ModuleID = "org.broadinstitute.dsde" %% "rawls-model" % "0.1-2356e282" exclude("com.typesafe.scala-logging", "scala-logging_2.11") exclude("com.typesafe.akka", "akka-stream_2.11")
   val openCensusApi: ModuleID = "io.opencensus" % "opencensus-api" % "0.28.2"
   val openCensusImpl: ModuleID = "io.opencensus" % "opencensus-impl" % "0.28.2"
