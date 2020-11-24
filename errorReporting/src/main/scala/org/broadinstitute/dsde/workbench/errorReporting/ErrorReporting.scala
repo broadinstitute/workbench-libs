@@ -21,8 +21,8 @@ trait ErrorReporting[F[_]] {
 }
 
 object ErrorReporting {
-  def fromPath[F[_]](pathToCredential: Path, appName: String, projectName: ProjectName)(
-    implicit F: Sync[F]
+  def fromPath[F[_]](pathToCredential: Path, appName: String, projectName: ProjectName)(implicit
+    F: Sync[F]
   ): Resource[F, ErrorReporting[F]] =
     for {
       crendtialFile <- org.broadinstitute.dsde.workbench.util2.readPath(pathToCredential)
@@ -34,17 +34,15 @@ object ErrorReporting {
       client <- fromCredential(credential, appName, projectName)
     } yield client
 
-  def fromCredential[F[_]](credentials: GoogleCredentials, appName: String, projectName: ProjectName)(
-    implicit F: Sync[F]
+  def fromCredential[F[_]](credentials: GoogleCredentials, appName: String, projectName: ProjectName)(implicit
+    F: Sync[F]
   ): Resource[F, ErrorReporting[F]] = {
     val settings = ReportErrorsServiceSettings
       .newBuilder()
       .setCredentialsProvider(FixedCredentialsProvider.create(credentials))
       .build()
     Resource
-      .make[F, ReportErrorsServiceClient](F.delay(ReportErrorsServiceClient.create(settings)))(
-        c => F.delay(c.close())
-      )
+      .make[F, ReportErrorsServiceClient](F.delay(ReportErrorsServiceClient.create(settings)))(c => F.delay(c.close()))
       .map(c => new ErrorReportingInterpreter[F](appName, projectName, c))
   }
 }

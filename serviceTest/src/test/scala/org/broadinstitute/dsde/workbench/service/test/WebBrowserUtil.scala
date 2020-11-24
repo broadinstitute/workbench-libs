@@ -27,9 +27,8 @@ trait WebBrowserUtil extends WebBrowser {
     }
 
   abstract override def findAll(query: Query)(implicit driver: WebDriver): Iterator[Element] =
-    try {
-      super.findAll(query)
-    } catch {
+    try super.findAll(query)
+    catch {
       case _: StaleElementReferenceException => this.findAll(query)
     }
 
@@ -50,8 +49,9 @@ trait WebBrowserUtil extends WebBrowser {
      * @param timeOutInSeconds number of seconds to wait for the condition to be true
      * @param webDriver implicit WebDriver for the WebDriverWait
      */
-    def condition(condition: => Boolean,
-                  timeOutInSeconds: Long = defaultTimeOutInSeconds)(implicit webDriver: WebDriver): Unit =
+    def condition(condition: => Boolean, timeOutInSeconds: Long = defaultTimeOutInSeconds)(implicit
+      webDriver: WebDriver
+    ): Unit =
       withWaitForCondition(timeOutInSeconds) {
         condition
       }
@@ -78,8 +78,9 @@ trait WebBrowserUtil extends WebBrowser {
      * @param webDriver implicit WebDriver for the WebDriverWait
      * @return the found element
      */
-    def enabled(query: Query,
-                timeOutInSeconds: Long = defaultTimeOutInSeconds)(implicit webDriver: WebDriver): Element =
+    def enabled(query: Query, timeOutInSeconds: Long = defaultTimeOutInSeconds)(implicit
+      webDriver: WebDriver
+    ): Element =
       withWaitForElement(timeOutInSeconds) {
         find(query).filter(_.isEnabled).orNull
       }
@@ -89,20 +90,22 @@ trait WebBrowserUtil extends WebBrowser {
       element
     }
 
-    def writable(query: Query,
-                 timeoutInSeconds: Long = defaultTimeOutInSeconds)(implicit webDriver: WebDriver): Element =
+    def writable(query: Query, timeoutInSeconds: Long = defaultTimeOutInSeconds)(implicit
+      webDriver: WebDriver
+    ): Element =
       withWaitForElement(timeoutInSeconds) {
         findAll(query).find(_.attribute("readonly").isEmpty).orNull
       }
 
-    def notVisible(query: Query,
-                   timeOutInSeconds: Long = defaultTimeOutInSeconds)(implicit webDriver: WebDriver): Unit =
+    def notVisible(query: Query, timeOutInSeconds: Long = defaultTimeOutInSeconds)(implicit
+      webDriver: WebDriver
+    ): Unit =
       withWaitForCondition(timeOutInSeconds) {
         !findAll(query).exists(_.isDisplayed)
       }
 
-    def forState(element: Element, state: String, timeOutInSeconds: Long = defaultTimeOutInSeconds)(
-      implicit webDriver: WebDriver
+    def forState(element: Element, state: String, timeOutInSeconds: Long = defaultTimeOutInSeconds)(implicit
+      webDriver: WebDriver
     ): Element = {
       withWaitForCondition(timeOutInSeconds) {
         element.attribute("data-test-state").getOrElse("") == state
@@ -149,9 +152,8 @@ trait WebBrowserUtil extends WebBrowser {
       val wait = new WebDriverWait(webDriver, timeOutInSeconds)
       wait until new java.util.function.Function[WebDriver, Boolean] {
         override def apply(d: WebDriver): Boolean =
-          try {
-            f
-          } catch {
+          try f
+          catch {
             case _: StaleElementReferenceException => false
           }
       }
@@ -162,9 +164,8 @@ trait WebBrowserUtil extends WebBrowser {
       val wait = new WebDriverWait(webDriver, timeOutInSeconds)
       wait until new java.util.function.Function[WebDriver, Element] {
         override def apply(d: WebDriver): Element =
-          try {
-            f
-          } catch {
+          try f
+          catch {
             case _: StaleElementReferenceException => null
           }
       }

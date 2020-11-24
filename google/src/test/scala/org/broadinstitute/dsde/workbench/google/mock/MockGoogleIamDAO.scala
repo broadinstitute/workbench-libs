@@ -24,7 +24,8 @@ class MockGoogleIamDAO extends GoogleIamDAO {
     new TrieMap()
 
   override def findServiceAccount(serviceAccountProject: GoogleProject,
-                                  serviceAccountName: ServiceAccountName): Future[Option[ServiceAccount]] = {
+                                  serviceAccountName: ServiceAccountName
+  ): Future[Option[ServiceAccount]] = {
     val email = toServiceAccountEmail(serviceAccountProject, serviceAccountName)
     findServiceAccount(serviceAccountProject, email)
   }
@@ -38,7 +39,8 @@ class MockGoogleIamDAO extends GoogleIamDAO {
 
   override def createServiceAccount(googleProject: GoogleProject,
                                     serviceAccountName: ServiceAccountName,
-                                    displayName: ServiceAccountDisplayName): Future[ServiceAccount] = {
+                                    displayName: ServiceAccountDisplayName
+  ): Future[ServiceAccount] = {
     val email = toServiceAccountEmail(googleProject, serviceAccountName)
     val uniqueId = ServiceAccountSubjectId(Random.nextLong.toString)
     val sa = ServiceAccount(uniqueId, email, displayName)
@@ -48,7 +50,8 @@ class MockGoogleIamDAO extends GoogleIamDAO {
   }
 
   override def removeServiceAccount(googleProject: GoogleProject,
-                                    serviceAccountName: ServiceAccountName): Future[Unit] = {
+                                    serviceAccountName: ServiceAccountName
+  ): Future[Unit] = {
     serviceAccounts -= toServiceAccountEmail(googleProject, serviceAccountName)
     serviceAccountKeys -= toServiceAccountEmail(googleProject, serviceAccountName)
     Future.successful(())
@@ -57,23 +60,27 @@ class MockGoogleIamDAO extends GoogleIamDAO {
   override def addIamRoles(googleProject: GoogleProject,
                            userEmail: WorkbenchEmail,
                            memberType: MemberType,
-                           rolesToAdd: Set[String]): Future[Boolean] =
+                           rolesToAdd: Set[String]
+  ): Future[Boolean] =
     Future.successful(false)
 
   override def removeIamRoles(googleProject: GoogleProject,
                               userEmail: WorkbenchEmail,
                               memberType: MemberType,
-                              rolesToRemove: Set[String]): Future[Boolean] =
+                              rolesToRemove: Set[String]
+  ): Future[Boolean] =
     Future.successful(false)
 
   override def testIamPermission(project: GoogleProject,
-                                 iamPermissions: Set[IamPermission]): Future[Set[IamPermission]] =
+                                 iamPermissions: Set[IamPermission]
+  ): Future[Set[IamPermission]] =
     Future.successful(iamPermissions)
 
   override def addIamPolicyBindingOnServiceAccount(serviceAccountProject: GoogleProject,
                                                    serviceAccountEmail: WorkbenchEmail,
                                                    memberEmail: WorkbenchEmail,
-                                                   rolesToAdd: Set[String]): Future[Unit] =
+                                                   rolesToAdd: Set[String]
+  ): Future[Unit] =
     if (serviceAccounts.contains(serviceAccountEmail)) {
       Future.successful(())
     } else {
@@ -82,7 +89,8 @@ class MockGoogleIamDAO extends GoogleIamDAO {
 
   override def addServiceAccountUserRoleForUser(googleProject: GoogleProject,
                                                 serviceAccountEmail: WorkbenchEmail,
-                                                userEmail: WorkbenchEmail): Future[Unit] =
+                                                userEmail: WorkbenchEmail
+  ): Future[Unit] =
     if (serviceAccounts.contains(serviceAccountEmail)) {
       Future.successful(())
     } else {
@@ -90,7 +98,8 @@ class MockGoogleIamDAO extends GoogleIamDAO {
     }
 
   override def createServiceAccountKey(serviceAccountProject: GoogleProject,
-                                       serviceAccountEmail: WorkbenchEmail): Future[ServiceAccountKey] = {
+                                       serviceAccountEmail: WorkbenchEmail
+  ): Future[ServiceAccountKey] = {
     val keyId = ServiceAccountKeyId(UUID.randomUUID().toString)
     val key = ServiceAccountKey(
       keyId,
@@ -107,17 +116,20 @@ class MockGoogleIamDAO extends GoogleIamDAO {
 
   override def removeServiceAccountKey(serviceAccountProject: GoogleProject,
                                        serviceAccountEmail: WorkbenchEmail,
-                                       keyId: ServiceAccountKeyId): Future[Unit] = {
+                                       keyId: ServiceAccountKeyId
+  ): Future[Unit] = {
     serviceAccountKeys(serviceAccountEmail) -= keyId
     Future.successful(())
   }
 
   override def listServiceAccountKeys(serviceAccountProject: GoogleProject,
-                                      serviceAccountEmail: WorkbenchEmail): Future[Seq[ServiceAccountKey]] =
+                                      serviceAccountEmail: WorkbenchEmail
+  ): Future[Seq[ServiceAccountKey]] =
     Future.successful(serviceAccountKeys(serviceAccountEmail).values.toSeq)
 
   override def listUserManagedServiceAccountKeys(serviceAccountProject: GoogleProject,
-                                                 serviceAccountEmail: WorkbenchEmail): Future[Seq[ServiceAccountKey]] =
+                                                 serviceAccountEmail: WorkbenchEmail
+  ): Future[Seq[ServiceAccountKey]] =
     Future.successful(serviceAccountKeys(serviceAccountEmail).values.toSeq)
 
 }

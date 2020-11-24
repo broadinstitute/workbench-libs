@@ -20,12 +20,12 @@ import scala.collection.JavaConverters._
  * Algebra for Google Compute access.
  */
 trait GoogleComputeService[F[_]] {
-  def createInstance(project: GoogleProject, zone: ZoneName, instance: Instance)(
-    implicit ev: Ask[F, TraceId]
+  def createInstance(project: GoogleProject, zone: ZoneName, instance: Instance)(implicit
+    ev: Ask[F, TraceId]
   ): F[Operation]
 
-  def deleteInstance(project: GoogleProject, zone: ZoneName, instanceName: InstanceName)(
-    implicit ev: Ask[F, TraceId]
+  def deleteInstance(project: GoogleProject, zone: ZoneName, instanceName: InstanceName)(implicit
+    ev: Ask[F, TraceId]
   ): F[Option[Operation]]
 
   /**
@@ -35,53 +35,57 @@ trait GoogleComputeService[F[_]] {
   def deleteInstanceWithAutoDeleteDisk(project: GoogleProject,
                                        zone: ZoneName,
                                        instanceName: InstanceName,
-                                       autoDeleteDisks: Set[DiskName])(
-    implicit ev: Ask[F, TraceId],
+                                       autoDeleteDisks: Set[DiskName]
+  )(implicit
+    ev: Ask[F, TraceId],
     computePollOperation: ComputePollOperation[F]
   ): F[Option[Operation]]
 
-  def detachDisk(project: GoogleProject, zone: ZoneName, instanceName: InstanceName, deviceName: DeviceName)(
-    implicit ev: Ask[F, TraceId]
+  def detachDisk(project: GoogleProject, zone: ZoneName, instanceName: InstanceName, deviceName: DeviceName)(implicit
+    ev: Ask[F, TraceId]
   ): F[Option[Operation]]
 
-  def getInstance(project: GoogleProject, zone: ZoneName, instanceName: InstanceName)(
-    implicit ev: Ask[F, TraceId]
+  def getInstance(project: GoogleProject, zone: ZoneName, instanceName: InstanceName)(implicit
+    ev: Ask[F, TraceId]
   ): F[Option[Instance]]
 
-  def stopInstance(project: GoogleProject, zone: ZoneName, instanceName: InstanceName)(
-    implicit ev: Ask[F, TraceId]
+  def stopInstance(project: GoogleProject, zone: ZoneName, instanceName: InstanceName)(implicit
+    ev: Ask[F, TraceId]
   ): F[Operation]
 
-  def startInstance(project: GoogleProject, zone: ZoneName, instanceName: InstanceName)(
-    implicit ev: Ask[F, TraceId]
+  def startInstance(project: GoogleProject, zone: ZoneName, instanceName: InstanceName)(implicit
+    ev: Ask[F, TraceId]
   ): F[Operation]
 
   def addInstanceMetadata(project: GoogleProject,
                           zone: ZoneName,
                           instanceName: InstanceName,
-                          metadata: Map[String, String])(implicit ev: Ask[F, TraceId]): F[Unit] =
+                          metadata: Map[String, String]
+  )(implicit ev: Ask[F, TraceId]): F[Unit] =
     modifyInstanceMetadata(project, zone, instanceName, metadata, Set.empty)
 
   def removeInstanceMetadata(project: GoogleProject,
                              zone: ZoneName,
                              instanceName: InstanceName,
-                             metadataToRemove: Set[String])(implicit ev: Ask[F, TraceId]): F[Unit] =
+                             metadataToRemove: Set[String]
+  )(implicit ev: Ask[F, TraceId]): F[Unit] =
     modifyInstanceMetadata(project, zone, instanceName, Map.empty, metadataToRemove)
 
   def modifyInstanceMetadata(project: GoogleProject,
                              zone: ZoneName,
                              instanceName: InstanceName,
                              metadataToAdd: Map[String, String],
-                             metadataToRemove: Set[String])(implicit ev: Ask[F, TraceId]): F[Unit]
+                             metadataToRemove: Set[String]
+  )(implicit ev: Ask[F, TraceId]): F[Unit]
 
   def addFirewallRule(project: GoogleProject, firewall: Firewall)(implicit ev: Ask[F, TraceId]): F[Operation]
 
-  def getFirewallRule(project: GoogleProject, firewallRuleName: FirewallRuleName)(
-    implicit ev: Ask[F, TraceId]
+  def getFirewallRule(project: GoogleProject, firewallRuleName: FirewallRuleName)(implicit
+    ev: Ask[F, TraceId]
   ): F[Option[Firewall]]
 
-  def deleteFirewallRule(project: GoogleProject, firewallRuleName: FirewallRuleName)(
-    implicit ev: Ask[F, TraceId]
+  def deleteFirewallRule(project: GoogleProject, firewallRuleName: FirewallRuleName)(implicit
+    ev: Ask[F, TraceId]
   ): F[Unit]
 
   def getComputeEngineDefaultServiceAccount(projectNumber: Long): WorkbenchEmail =
@@ -93,24 +97,24 @@ trait GoogleComputeService[F[_]] {
     implicit ev: Ask[F, TraceId]
   ): F[Unit]
 
-  def getMachineType(project: GoogleProject, zone: ZoneName, machineTypeName: MachineTypeName)(
-    implicit ev: Ask[F, TraceId]
+  def getMachineType(project: GoogleProject, zone: ZoneName, machineTypeName: MachineTypeName)(implicit
+    ev: Ask[F, TraceId]
   ): F[Option[MachineType]]
 
   def getZones(project: GoogleProject, regionName: RegionName)(implicit ev: Ask[F, TraceId]): F[List[Zone]]
 
-  def getNetwork(project: GoogleProject, networkName: NetworkName)(
-    implicit ev: Ask[F, TraceId]
+  def getNetwork(project: GoogleProject, networkName: NetworkName)(implicit
+    ev: Ask[F, TraceId]
   ): F[Option[Network]]
 
   def createNetwork(project: GoogleProject, network: Network)(implicit ev: Ask[F, TraceId]): F[Operation]
 
-  def getSubnetwork(project: GoogleProject, region: RegionName, subnetwork: SubnetworkName)(
-    implicit ev: Ask[F, TraceId]
+  def getSubnetwork(project: GoogleProject, region: RegionName, subnetwork: SubnetworkName)(implicit
+    ev: Ask[F, TraceId]
   ): F[Option[Subnetwork]]
 
-  def createSubnetwork(project: GoogleProject, region: RegionName, subnetwork: Subnetwork)(
-    implicit ev: Ask[F, TraceId]
+  def createSubnetwork(project: GoogleProject, region: RegionName, subnetwork: Subnetwork)(implicit
+    ev: Ask[F, TraceId]
   ): F[Operation]
 }
 
@@ -187,7 +191,8 @@ object GoogleComputeService {
                                             subnetworkClient,
                                             retryConfig,
                                             blocker,
-                                            blockerBound)
+                                            blockerBound
+    )
   }
 }
 

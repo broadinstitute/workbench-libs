@@ -37,8 +37,8 @@ object RetryPredicates {
     case _                                                                    => false
   }
 
-  def gkeRetryPredicate: Throwable => Boolean = {
-    case e: io.grpc.StatusRuntimeException => e.getStatus.getCode == io.grpc.Status.Code.INTERNAL
+  def gkeRetryPredicate: Throwable => Boolean = { case e: io.grpc.StatusRuntimeException =>
+    e.getStatus.getCode == io.grpc.Status.Code.INTERNAL
   }
 
   def combine(predicates: Seq[Throwable => Boolean]): Throwable => Boolean = { throwable =>

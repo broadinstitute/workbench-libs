@@ -15,7 +15,8 @@ case class ProjectNumber(value: String) extends ValueObject
 // Service Accounts
 case class ServiceAccount(subjectId: ServiceAccountSubjectId,
                           email: WorkbenchEmail,
-                          displayName: ServiceAccountDisplayName)
+                          displayName: ServiceAccountDisplayName
+)
 case class ServiceAccountSubjectId(value: String) extends ValueObject //The SA's Subject ID.
 case class ServiceAccountName(value: String) extends ValueObject //The left half of the SA's email.
 case class ServiceAccountDisplayName(value: String) extends ValueObject //A friendly name.
@@ -25,7 +26,8 @@ case class ServiceAccountPrivateKeyData(value: String) extends ValueObject with 
 case class ServiceAccountKey(id: ServiceAccountKeyId,
                              privateKeyData: ServiceAccountPrivateKeyData,
                              validAfter: Option[Instant],
-                             validBefore: Option[Instant])
+                             validBefore: Option[Instant]
+)
 
 // Test IAM types.
 case class IamPermission(value: String) extends ValueObject

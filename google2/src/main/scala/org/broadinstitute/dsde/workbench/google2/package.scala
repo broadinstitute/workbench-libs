@@ -39,15 +39,17 @@ package object google2 {
                        retryConfig.retryInitialDelay,
                        retryConfig.retryNextDelay,
                        retryConfig.maxAttempts,
-                       retryConfig.retryable)
+                       retryConfig.retryable
+    )
   }
 
   def withLogging[F[_]: Sync: Timer, A](fa: F[A],
                                         traceId: Option[TraceId],
                                         action: String,
                                         resultFormatter: Show[A] =
-                                          Show.show[A](a => if (a == null) "null" else a.toString.take(1024)))(
-    implicit logger: StructuredLogger[F]
+                                          Show.show[A](a => if (a == null) "null" else a.toString.take(1024))
+  )(implicit
+    logger: StructuredLogger[F]
   ): F[A] =
     for {
       startTime <- Timer[F].clock.realTime(TimeUnit.MILLISECONDS)
@@ -74,8 +76,8 @@ package object google2 {
       result <- Sync[F].fromEither(attempted)
     } yield result
 
-  def tracedLogging[F[_]: Sync: Timer, A](fa: F[A], action: String)(
-    implicit logger: StructuredLogger[F],
+  def tracedLogging[F[_]: Sync: Timer, A](fa: F[A], action: String)(implicit
+    logger: StructuredLogger[F],
     ev: Ask[F, TraceId]
   ): F[A] =
     for {
@@ -138,7 +140,8 @@ package object google2 {
 final case class RetryConfig(retryInitialDelay: FiniteDuration,
                              retryNextDelay: FiniteDuration => FiniteDuration,
                              maxAttempts: Int,
-                             retryable: Throwable => Boolean = scala.util.control.NonFatal.apply)
+                             retryable: Throwable => Boolean = scala.util.control.NonFatal.apply
+)
 final case class LoggableGoogleCall(response: Option[String], result: String)
 
 trait DoneCheckable[A] {

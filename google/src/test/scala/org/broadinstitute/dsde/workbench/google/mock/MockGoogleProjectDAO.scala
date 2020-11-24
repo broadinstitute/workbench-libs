@@ -13,7 +13,8 @@ class MockGoogleProjectDAO extends GoogleProjectDAO {
 
   override def createProject(projectName: String,
                              parentId: String,
-                             parentType: GoogleParentResourceType): Future[String] =
+                             parentType: GoogleParentResourceType
+  ): Future[String] =
     Future.successful(UUID.randomUUID().toString)
 
   override def pollOperation(operationId: String): Future[Operation] = Future.successful(new Operation)

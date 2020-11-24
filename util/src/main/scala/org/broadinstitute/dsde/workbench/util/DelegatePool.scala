@@ -28,7 +28,8 @@ object DelegatePool {
     Proxy
       .newProxyInstance(getClass.getClassLoader,
                         Array(implicitly[ClassTag[T]].runtimeClass),
-                        new DelegatePoolInvocationHandler[T](delegates))
+                        new DelegatePoolInvocationHandler[T](delegates)
+      )
       .asInstanceOf[T]
 }
 
