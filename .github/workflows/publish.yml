@@ -13,9 +13,9 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Setup Scala
-          uses: olafurpg/setup-scala@v10
-          with:
-            java-version: "adopt@1.8"
+        uses: olafurpg/setup-scala@v10
+        with:
+          java-version: "adopt@1.8"
       - name: Build and Test
         run: sbt "+ publish" -Dproject.isSnapshot=true
         env:
