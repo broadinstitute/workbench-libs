@@ -15,10 +15,8 @@ import org.broadinstitute.dsde.workbench.model.google.{GcsBucketName, GoogleProj
 import ca.mrvisser.sealerate
 import cats.Parallel
 import com.google.cloud.compute.v1.Operation
-import org.broadinstitute.dsde.workbench.google2.DataprocRole.{Master, SecondaryWorker, Worker}
 
-import scala.collection.JavaConverters._
-import scala.language.higherKinds
+import scala.jdk.CollectionConverters._
 
 /**
  * Algebra for Google Dataproc access
@@ -36,8 +34,6 @@ trait GoogleDataprocService[F[_]] {
   def stopCluster(project: GoogleProject,
                   region: RegionName,
                   clusterName: DataprocClusterName,
-                  instances: Set[DataprocInstance],
-                  numPreemptibles: Option[Int],
                   metadata: Option[Map[String, String]])(
     implicit ev: Ask[F, TraceId]
   ): F[List[Operation]]

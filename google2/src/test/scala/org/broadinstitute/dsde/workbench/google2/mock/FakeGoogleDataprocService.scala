@@ -20,8 +20,6 @@ class BaseFakeGoogleDataprocService extends GoogleDataprocService[IO] {
   override def stopCluster(project: GoogleProject,
                            region: RegionName,
                            clusterName: DataprocClusterName,
-                           instances: Set[DataprocInstance],
-                           numPreemptibles: Option[Int] = None,
                            metadata: Option[Map[String, String]] = None)(
     implicit ev: Ask[IO, TraceId]
   ): IO[List[Operation]] = IO.pure(List.empty[Operation])

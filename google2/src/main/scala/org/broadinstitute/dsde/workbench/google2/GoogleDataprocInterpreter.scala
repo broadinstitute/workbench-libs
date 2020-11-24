@@ -12,13 +12,14 @@ import com.google.cloud.dataproc.v1.{RegionName => _, _}
 import com.google.common.util.concurrent.MoreExecutors
 import com.google.protobuf.FieldMask
 import io.chrisdavenport.log4cats.StructuredLogger
-import org.broadinstitute.dsde.workbench.RetryConfig
+import org.broadinstitute.dsde.workbench.{DoneCheckable, RetryConfig}
 import org.broadinstitute.dsde.workbench.google2.DataprocRole.{Master, SecondaryWorker, Worker}
 import org.broadinstitute.dsde.workbench.google2.util.RetryPredicates._
 import org.broadinstitute.dsde.workbench.model.TraceId
 import org.broadinstitute.dsde.workbench.model.google.GoogleProject
-import org.broadinstitute.dsde.workbench.google2.GoogleDataprocInterpreter._
+import org.broadinstitute.dsde.workbench.google2.GoogleDataprocInterpreter.{containsPreemptibles, _}
 
+import scala.concurrent.duration._
 import scala.jdk.CollectionConverters._
 
 private[google2] class GoogleDataprocInterpreter[F[_]: StructuredLogger: Timer: Parallel: ContextShift](
@@ -97,24 +98,31 @@ private[google2] class GoogleDataprocInterpreter[F[_]: StructuredLogger: Timer: 
   override def stopCluster(project: GoogleProject,
                            region: RegionName,
                            clusterName: DataprocClusterName,
-                           instances: Set[DataprocInstance],
-                           numPreemptibles: Option[Int],
                            metadata: Option[Map[String, String]])(
     implicit ev: Ask[F, TraceId]
-  ): F[List[Operation]] =
+  ): F[List[Operation]] = {
+    implicit val resizingDoneCheckable = new DoneCheckable[Map[DataprocRoleZonePreemptibility, Set[InstanceName]]] {
+      def isDone(instances: Map[DataprocRoleZonePreemptibility, Set[InstanceName]]): Boolean =
+        !containsPreemptibles(instances)
+    }
+
     for {
       clusterInstances <- getClusterInstances(project, region, clusterName)
 
-      // First, remove all preemptible instances, if any
-      _ <- if (containsPreemptibles(clusterInstances))
-        resizeCluster(project, region, clusterName, numWorkers = None, numPreemptibles = Some(0))
-      else F.pure(none[ClusterOperationMetadata])
+      // First, remove any preemptible instances and wait until that is done
+      remainingClusterInstances <- if (containsPreemptibles(clusterInstances))
+        resizeCluster(project, region, clusterName, numWorkers = None, numPreemptibles = Some(0)) >> streamFUntilDone(
+          getClusterInstances(project, region, clusterName),
+          15,
+          6 seconds
+        ).compile.lastOrError
+      else F.pure(clusterInstances)
 
-      // Then, stop each instance individually
-      operations <- clusterInstances.toList.parFlatTraverse {
+      // Then, stop each remaining instance individually
+      operations <- remainingClusterInstances.toList.parFlatTraverse {
         case (DataprocRoleZonePreemptibility(role, zone, _), instances) =>
           instances.toList.parTraverse { instance =>
-            role match {
+            val operation = role match {
               case Master if metadata.nonEmpty =>
                 googleComputeService.addInstanceMetadata(
                   project,
@@ -125,9 +133,14 @@ private[google2] class GoogleDataprocInterpreter[F[_]: StructuredLogger: Timer: 
               case _ =>
                 googleComputeService.stopInstance(project, zone, instance)
             }
+            operation.recoverWith {
+              case _: com.google.api.gax.rpc.NotFoundException => F.pure(Operation.getDefaultInstance)
+              case e                                           => F.raiseError[Operation](e)
+            }
           }
       }
     } yield operations
+  }
 
   override def resizeCluster(project: GoogleProject,
                              region: RegionName,
@@ -297,11 +310,11 @@ object GoogleDataprocInterpreter {
   // Incorrectness in this function can cause leonardo fail to stop all instances for a Dataproc cluster, which
   // incurs compute cost for users
   def getAllInstanceNames(cluster: Cluster): Map[DataprocRoleZonePreemptibility, Set[InstanceName]] = {
+    println(s"\n\n getAllInstanceNames()\n")
+
     val res = Option(cluster.getConfig).map { config =>
       val zoneUri = config.getGceClusterConfig.getZoneUri
       val zone = ZoneName.fromUri(zoneUri).getOrElse(ZoneName(""))
-      println(s"\n\n zoneURI: $zoneUri \n")
-      println(s"\n\n zone: $zone \n")
 
       val master =
         Option(config.getMasterConfig)

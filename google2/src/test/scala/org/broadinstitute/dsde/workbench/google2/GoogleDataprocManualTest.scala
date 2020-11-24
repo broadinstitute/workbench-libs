@@ -36,23 +36,10 @@ final class GoogleDataprocManualTest(pathToCredential: String,
       computeService => GoogleDataprocService.resource(computeService, pathToCredential, blocker, blockerBound, region)
     )
 
-  def callStopCluster(cluster: String,
-                      instanceNameAndRoles: List[(String, DataprocRole)],
-                      numPreemptibles: Option[Int]): IO[List[Operation]] = {
-    val instances = instanceNameAndRoles.map {
-      case (name, role) =>
-        DataprocInstance(InstanceName(name), project, zone, role)
-    }.toSet
-
+  def callStopCluster(cluster: String): IO[List[Operation]] =
     dataprocServiceResource.use { dataprocService =>
-      dataprocService.stopCluster(project,
-                                  region,
-                                  DataprocClusterName(cluster),
-                                  instances,
-                                  numPreemptibles,
-                                  metadata = None)
+      dataprocService.stopCluster(project, region, DataprocClusterName(cluster), metadata = None)
     }
-  }
 
   def callResizeCluster(cluster: String,
                         numWorkers: Option[Int],
