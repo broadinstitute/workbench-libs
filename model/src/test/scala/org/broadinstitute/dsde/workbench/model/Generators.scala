@@ -43,8 +43,10 @@ object Generator {
     identityConcentratorId <- Gen.option[IdentityConcentratorId](Gen.const(IdentityConcentratorId(userId.value)))
   } yield WorkbenchUser(userId, googleSubjectId, email, identityConcentratorId)
 
-  val genWorkbenchGroupName = Gen.alphaStr.map(x => WorkbenchGroupName(s"s$x")) //prepending `s` just so this won't be an empty string
-  val genGoogleProject = Gen.alphaStr.map(x => GoogleProject(s"s$x")) //prepending `s` just so this won't be an empty string
+  val genWorkbenchGroupName =
+    Gen.alphaStr.map(x => WorkbenchGroupName(s"s$x")) //prepending `s` just so this won't be an empty string
+  val genGoogleProject =
+    Gen.alphaStr.map(x => GoogleProject(s"s$x")) //prepending `s` just so this won't be an empty string
   val genWorkbenchSubject: Gen[WorkbenchSubject] = for {
     groupId <- genWorkbenchGroupName
     project <- genGoogleProject

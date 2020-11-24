@@ -29,8 +29,8 @@ private[google2] class GoogleDiskInterpreter[F[_]: StructuredLogger: Timer: Cont
 )(implicit F: Async[F])
     extends GoogleDiskService[F] {
 
-  override def createDisk(project: GoogleProject, zone: ZoneName, disk: Disk)(
-    implicit ev: Ask[F, TraceId]
+  override def createDisk(project: GoogleProject, zone: ZoneName, disk: Disk)(implicit
+    ev: Ask[F, TraceId]
   ): F[Option[Operation]] = {
     val projectZone = ProjectZoneName.of(project.value, zone.value)
     retryF(
@@ -39,40 +39,38 @@ private[google2] class GoogleDiskInterpreter[F[_]: StructuredLogger: Timer: Cont
     ).compile.lastOrError
   }
 
-  def getDisk(project: GoogleProject, zone: ZoneName, diskName: DiskName)(
-    implicit ev: Ask[F, TraceId]
+  def getDisk(project: GoogleProject, zone: ZoneName, diskName: DiskName)(implicit
+    ev: Ask[F, TraceId]
   ): F[Option[Disk]] = {
     val projectZoneDiskName = ProjectZoneDiskName.of(diskName.value, project.value, zone.value)
     val fa = recoverF(F.delay(diskClient.getDisk(projectZoneDiskName)), whenStatusCode(404))
 
-    ev.ask.flatMap(
-      traceId =>
-        withLogging(
-          fa,
-          Some(traceId),
-          s"com.google.cloud.compute.v1.DiskClient.getDisk(${projectZoneDiskName.toString})"
-        )
+    ev.ask.flatMap(traceId =>
+      withLogging(
+        fa,
+        Some(traceId),
+        s"com.google.cloud.compute.v1.DiskClient.getDisk(${projectZoneDiskName.toString})"
+      )
     )
   }
 
-  override def deleteDisk(project: GoogleProject, zone: ZoneName, diskName: DiskName)(
-    implicit ev: Ask[F, TraceId]
+  override def deleteDisk(project: GoogleProject, zone: ZoneName, diskName: DiskName)(implicit
+    ev: Ask[F, TraceId]
   ): F[Option[Operation]] = {
     val projectZoneDiskName = ProjectZoneDiskName.of(diskName.value, project.value, zone.value)
     val fa = recoverF(F.delay(diskClient.deleteDisk(projectZoneDiskName)), whenStatusCode(404))
 
-    ev.ask.flatMap(
-      traceId =>
-        withLogging(
-          fa,
-          Some(traceId),
-          s"com.google.cloud.compute.v1.DiskClient.deleteDisk(${projectZoneDiskName.toString})"
-        )
+    ev.ask.flatMap(traceId =>
+      withLogging(
+        fa,
+        Some(traceId),
+        s"com.google.cloud.compute.v1.DiskClient.deleteDisk(${projectZoneDiskName.toString})"
+      )
     )
   }
 
-  override def listDisks(project: GoogleProject, zone: ZoneName)(
-    implicit ev: Ask[F, TraceId]
+  override def listDisks(project: GoogleProject, zone: ZoneName)(implicit
+    ev: Ask[F, TraceId]
   ): Stream[F, Disk] = {
     val projectZone = ProjectZoneName.of(project.value, zone.value)
     for {
@@ -85,8 +83,8 @@ private[google2] class GoogleDiskInterpreter[F[_]: StructuredLogger: Timer: Cont
     } yield res
   }
 
-  override def resizeDisk(project: GoogleProject, zone: ZoneName, diskName: DiskName, newSizeGb: Int)(
-    implicit ev: Ask[F, TraceId]
+  override def resizeDisk(project: GoogleProject, zone: ZoneName, diskName: DiskName, newSizeGb: Int)(implicit
+    ev: Ask[F, TraceId]
   ): F[Operation] = {
     val projectZoneDiskName = ProjectZoneDiskName.of(diskName.value, project.value, zone.value)
     val request = DisksResizeRequest.newBuilder().setSizeGb(newSizeGb.toString).build()

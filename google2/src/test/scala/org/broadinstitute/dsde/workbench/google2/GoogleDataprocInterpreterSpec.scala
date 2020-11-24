@@ -29,6 +29,6 @@ class GoogleDataprocInterpreterSpec
       DataprocRole.Master -> Set(InstanceName("master")),
       DataprocRole.Worker -> Set(InstanceName("instance0"), InstanceName("instance1"), InstanceName("instance2"))
     )
-    res shouldBe (expectedResult)
+    res shouldBe expectedResult
   }
 }

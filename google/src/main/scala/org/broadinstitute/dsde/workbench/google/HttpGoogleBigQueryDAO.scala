@@ -24,9 +24,8 @@ class HttpGoogleBigQueryDAO(
 
   implicit override val service = GoogleInstrumentedService.BigQuery
 
-  private lazy val bigquery: Bigquery = {
+  private lazy val bigquery: Bigquery =
     new Bigquery.Builder(httpTransport, jsonFactory, googleCredential).setApplicationName(appName).build()
-  }
 
   private def submitQuery(projectId: String, job: Job): Future[JobReference] = {
     val queryRequest = bigquery.jobs.insert(projectId, job)
@@ -54,13 +53,14 @@ class HttpGoogleBigQueryDAO(
   override def startParameterizedQuery(project: GoogleProject,
                                        querySql: String,
                                        queryParameters: List[QueryParameter],
-                                       parameterMode: String): Future[JobReference] = {
+                                       parameterMode: String
+  ): Future[JobReference] = {
     val job = new Job()
       .setConfiguration(
         new JobConfiguration()
           .setQuery(
             new JobConfigurationQuery()
-            // This defaults to true in current version. Standard SQL is required for query parameters.
+              // This defaults to true in current version. Standard SQL is required for query parameters.
               .setUseLegacySql(false)
               .setParameterMode(parameterMode)
               .setQueryParameters(queryParameters.asJava)

@@ -30,11 +30,10 @@ class GooglePubSubSpec extends AnyFlatSpecLike with Matchers with WorkbenchTestS
 
     val res = for {
       queue <- fs2.concurrent.Queue.bounded[IO, Event[Person]](10000)
-      _ <- localPubsub[Person](topicName, queue).use {
-        case (pub, _) =>
-          val res = Stream.emits(people) through pub.publish
+      _ <- localPubsub[Person](topicName, queue).use { case (pub, _) =>
+        val res = Stream.emits(people) through pub.publish
 
-          res.compile.drain
+        res.compile.drain
       }
     } yield succeed
 
@@ -50,37 +49,36 @@ class GooglePubSubSpec extends AnyFlatSpecLike with Matchers with WorkbenchTestS
       queue <- fs2.concurrent.Queue.bounded[IO, Event[Person]](10000)
       terminateSubscriber <- SignallingRef[IO, Boolean](false) //signal for terminating subscriber
       terminateStopStream <- SignallingRef[IO, Boolean](false) //signal for terminating stopStream
-      _ <- localPubsub(projectTopicName, queue).use {
-        case (pub, sub) =>
-          val subScribeStream = (Stream.emits(people) through pub.publish[Person]) ++ Stream.eval(sub.start)
+      _ <- localPubsub(projectTopicName, queue).use { case (pub, sub) =>
+        val subScribeStream = (Stream.emits(people) through pub.publish[Person]) ++ Stream.eval(sub.start)
 
-          val processEvents: Stream[IO, Unit] = sub.messages.zipWithIndex
-            .evalMap[IO, Unit] {
-              case (event, index) =>
-                if (expectedPeople.contains(event.msg)) {
-                  expectedPeople = expectedPeople.filterNot(_ == event.msg)
-                  if (index.toInt == people.length - 1)
-                    IO(event.consumer.ack()).void >> terminateSubscriber.set(true)
-                  else
-                    IO(event.consumer.ack()).void
-                } else
-                  IO.raiseError(new Exception(s"${event} doesn't equal ${people(index.toInt)}")) >> terminateSubscriber
-                    .set(true)
-            }
-            .interruptWhen(terminateStopStream)
+        val processEvents: Stream[IO, Unit] = sub.messages.zipWithIndex
+          .evalMap[IO, Unit] { case (event, index) =>
+            if (expectedPeople.contains(event.msg)) {
+              expectedPeople = expectedPeople.filterNot(_ == event.msg)
+              if (index.toInt == people.length - 1)
+                IO(event.consumer.ack()).void >> terminateSubscriber.set(true)
+              else
+                IO(event.consumer.ack()).void
+            } else
+              IO.raiseError(new Exception(s"${event} doesn't equal ${people(index.toInt)}")) >> terminateSubscriber
+                .set(true)
+          }
+          .interruptWhen(terminateStopStream)
 
-          // stopStream will check every 1 seconds to see if SignallingRef is set to false, if so terminate subscriber
-          val stopStream: Stream[IO, Unit] = (Stream.sleep(1 seconds) ++ Stream.eval_ {
-            for {
-              r <- terminateSubscriber.get
-              _ <- if (r) {
+        // stopStream will check every 1 seconds to see if SignallingRef is set to false, if so terminate subscriber
+        val stopStream: Stream[IO, Unit] = (Stream.sleep(1 seconds) ++ Stream.eval_ {
+          for {
+            r <- terminateSubscriber.get
+            _ <-
+              if (r) {
                 sub.stop >> terminateStopStream.set(true)
               } else IO.unit
-            } yield ()
-          }).repeat.interruptWhen(terminateStopStream)
+          } yield ()
+        }).repeat.interruptWhen(terminateStopStream)
 
-          val finalStream = Stream(subScribeStream, stopStream, processEvents).parJoinUnbounded
-          finalStream.compile.drain
+        val finalStream = Stream(subScribeStream, stopStream, processEvents).parJoinUnbounded
+        finalStream.compile.drain
       }
     } yield succeed
 
@@ -89,14 +87,14 @@ class GooglePubSubSpec extends AnyFlatSpecLike with Matchers with WorkbenchTestS
 }
 
 object GooglePubSubSpec {
-  def localPubsub[A: Decoder](projectTopicName: TopicName, queue: fs2.concurrent.Queue[IO, Event[A]])(
-    implicit timer: Timer[IO],
+  def localPubsub[A: Decoder](projectTopicName: TopicName, queue: fs2.concurrent.Queue[IO, Event[A]])(implicit
+    timer: Timer[IO],
     cs: ContextShift[IO],
     logger: StructuredLogger[IO]
   ): Resource[IO, (GooglePublisherInterpreter[IO], GoogleSubscriberInterpreter[IO, A])] =
     for {
-      channel <- Resource.make(IO(ManagedChannelBuilder.forTarget("localhost:8085").usePlaintext().build()))(
-        c => IO(c.shutdown())
+      channel <- Resource.make(IO(ManagedChannelBuilder.forTarget("localhost:8085").usePlaintext().build()))(c =>
+        IO(c.shutdown())
       )
       channelProvider = FixedTransportChannelProvider.create(GrpcTransportChannel.create(channel))
       credentialsProvider = NoCredentialsProvider.create()
@@ -144,26 +142,27 @@ object GooglePubSubSpec {
       )
     } yield {
       // create topic
-      Try(topicClient.createTopic(projectTopicName)).void.recover[Unit] {
-        case e: io.grpc.StatusRuntimeException =>
+      Try(topicClient.createTopic(projectTopicName)).void.recover[Unit] { case e: io.grpc.StatusRuntimeException =>
+        if (e.getStatus.getCode == Code.ALREADY_EXISTS)
+          ()
+        else
+          throw e
+      }
+
+      // create subscription
+      Try(
+        subscriptionAdminClient.createSubscription(subscription, projectTopicName, PushConfig.getDefaultInstance, 10)
+      ).void
+        .recover[Unit] { case e: io.grpc.StatusRuntimeException =>
           if (e.getStatus.getCode == Code.ALREADY_EXISTS)
             ()
           else
             throw e
-      }
-
-      // create subscription
-      Try(subscriptionAdminClient.createSubscription(subscription, projectTopicName, PushConfig.getDefaultInstance, 10)).void
-        .recover[Unit] {
-          case e: io.grpc.StatusRuntimeException =>
-            if (e.getStatus.getCode == Code.ALREADY_EXISTS)
-              ()
-            else
-              throw e
         }
 
       (GooglePublisherInterpreter[IO](pub, RetryConfig(1 seconds, identity, 3, _ => true)),
-       GoogleSubscriberInterpreter[IO, A](sub, queue))
+       GoogleSubscriberInterpreter[IO, A](sub, queue)
+      )
     }
 }
 

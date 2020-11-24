@@ -7,9 +7,8 @@ import org.broadinstitute.dsde.workbench.model.TraceId
 import org.broadinstitute.dsde.workbench.model.google.GoogleProject
 
 object JsonCodec {
-  implicit val topicNameEncoder: Encoder[TopicName] = Encoder.encodeString.contramap(
-    tn => TopicName.format(tn.getProject, tn.getTopic)
-  )
+  implicit val topicNameEncoder: Encoder[TopicName] =
+    Encoder.encodeString.contramap(tn => TopicName.format(tn.getProject, tn.getTopic))
 
   implicit val projectTopicNameDecoder: Decoder[TopicName] = Decoder.decodeString.emap { s =>
     // topic has this format: '//pubsub.googleapis.com/projects/{project-identifier}/topics/{my-topic}'

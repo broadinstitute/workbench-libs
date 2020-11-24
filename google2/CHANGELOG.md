@@ -6,8 +6,9 @@ This file documents changes to the `workbench-google2` library, including notes 
 
 Changed:
 - Add `subscriptionName: Option[ProjectSubscriptionName]`, `deadLetterPolicy: Option[SubscriberDeadLetterPolicy]` and `filter: Option[String]` to `SubscriberConfig`
+- Add a `GoogleBigQueryService.resource()` method that accepts the Google project to be billed
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.16-87a7a9b"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.16-42883ed"`
 
 ## 0.15
 

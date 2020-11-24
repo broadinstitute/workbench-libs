@@ -45,7 +45,8 @@ trait WorkbenchInstrumented extends DefaultInstrumented {
   protected class ExpandedMetricBuilder private (m: String = "", _transient: Boolean = false) {
     def expand[A: Expansion](key: String, a: A): ExpandedMetricBuilder =
       new ExpandedMetricBuilder((if (m == "") m else m + ".") + implicitly[Expansion[A]].makeNameWithKey(key, a),
-                                _transient)
+                                _transient
+      )
 
     /**
      * Marks a metric as "transient". Transient metrics will automatically be deleted in Hosted
@@ -127,13 +128,13 @@ trait WorkbenchInstrumented extends DefaultInstrumented {
       .expand(HttpResponseStatusCodeMetricKey, httpResponse.status)
   }
 
-  implicit protected def httpRequestCounter(
-    implicit builder: ExpandedMetricBuilder
+  implicit protected def httpRequestCounter(implicit
+    builder: ExpandedMetricBuilder
   ): (HttpRequest, HttpResponse) => Counter =
     httpRequestMetricBuilder(builder)(_, _).asCounter("request")
 
-  implicit protected def httpRequestTimer(
-    implicit builder: ExpandedMetricBuilder
+  implicit protected def httpRequestTimer(implicit
+    builder: ExpandedMetricBuilder
   ): (HttpRequest, HttpResponse) => Timer =
     httpRequestMetricBuilder(builder)(_, _).asTimer("latency")
 

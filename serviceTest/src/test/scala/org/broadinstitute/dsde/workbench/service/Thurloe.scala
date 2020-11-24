@@ -35,9 +35,8 @@ trait Thurloe extends RestClient with LazyLogging {
 
     def deleteAll(subjectId: String)(implicit token: AuthToken): Unit = {
       logger.info(s"Deleting all key/value pairs from for $subjectId")
-      getAll(subjectId).foreach[Unit] {
-        case (key, _) =>
-          delete(subjectId, key)
+      getAll(subjectId).foreach[Unit] { case (key, _) =>
+        delete(subjectId, key)
       }
     }
 
@@ -45,7 +44,8 @@ trait Thurloe extends RestClient with LazyLogging {
       logger.info(s"Setting $key as $value for $subjectId")
       postRequest(url + s"api/thurloe",
                   Map("userId" -> subjectId, "keyValuePairs" -> List(Map("key" -> key, "value" -> value))),
-                  thurloeHeaders)
+                  thurloeHeaders
+      )
     }
 
     def getAll(subjectId: String)(implicit token: AuthToken): Map[String, String] = {

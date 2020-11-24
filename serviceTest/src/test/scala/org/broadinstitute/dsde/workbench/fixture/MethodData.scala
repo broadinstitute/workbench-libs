@@ -6,7 +6,8 @@ case class Method(methodName: String,
                   rootEntityType: String,
                   synopsis: String,
                   documentation: String,
-                  payload: String) {
+                  payload: String
+) {
 
   def creationAttributes =
     Map("namespace" -> methodNamespace,
@@ -14,7 +15,8 @@ case class Method(methodName: String,
         "synopsis" -> synopsis,
         "documentation" -> documentation,
         "payload" -> payload,
-        "entityType" -> "Workflow")
+        "entityType" -> "Workflow"
+    )
 
   def methodRepoInfo: Map[String, Any] = Map(
     "methodNamespace" -> methodNamespace,
