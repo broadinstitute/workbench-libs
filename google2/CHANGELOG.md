@@ -6,8 +6,9 @@ This file documents changes to the `workbench-google2` library, including notes 
 
 Changed:
 - Add `subscriptionName: Option[ProjectSubscriptionName]`, `deadLetterPolicy: Option[SubscriberDeadLetterPolicy]` and `filter: Option[String]` to `SubscriberConfig`
+- Add a `GoogleBigQueryService.resource()` method that accepts the Google project to be billed
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.16-87a7a9b"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.16-TRAVIS-REPLACE-ME"`
 
 ## 0.15
 
@@ -18,7 +19,11 @@ Added:
 Changed:
 - Upgrade `cats-mtl` to `1.0.0`
 
+<<<<<<< HEAD
 SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.15-426a0c2"`
+=======
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.15-TRAVIS-REPLACE-ME"`
+>>>>>>> update hashes in .mds
 
 ## 0.14
 Changed:
