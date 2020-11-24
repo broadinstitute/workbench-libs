@@ -26,7 +26,7 @@ object Dependencies {
   val akkaTestkit: ModuleID =       "com.typesafe.akka" %% "akka-testkit"         % akkaV     % "test"
   val akkaHttpTestkit: ModuleID =   "com.typesafe.akka" %% "akka-http-testkit"    % akkaHttpV % "test"
   val scalaCheck: ModuleID =        "org.scalacheck"      %%  "scalacheck"        % "1.15.1"  % "test"
-  val commonsCodec: ModuleID = "commons-codec" % "commons-codec" % "1.15" % "test"
+  val commonsCodec: ModuleID = "commons-codec" % "commons-codec" % "20041127.091804" % "test"
 
   val jacksonModule: ModuleID =   "com.fasterxml.jackson.module" %% "jackson-module-scala"   % jacksonV % "test"
 
