@@ -23,7 +23,7 @@ Update metrics4-scala to 4.1.14 (#413)
 Update http4s-blaze-client, http4s-circe, ... to 0.21.12 (#415)
 Update mockito-core to 3.6.28 (#414)
 Update guava to 30.0-jre (#390)
-Update `io.kubernetes client-java` to `5.0.0` to `10.0.0` (This has some breaking changes)
+Update `io.kubernetes client-java` to `5.0.0` to `10.0.0` (This has some breaking changes if you're using the library's API directly)
 ```
       
 SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.17-TRAVIS-REPLACE-ME"`

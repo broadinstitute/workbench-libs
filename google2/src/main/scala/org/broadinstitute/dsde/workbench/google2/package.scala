@@ -4,7 +4,7 @@ import java.util.concurrent.TimeUnit
 
 import DoneCheckableSyntax._
 import cats.Show
-import cats.implicits._
+import Ask.implicits._
 import cats.effect.{Resource, Sync, Timer}
 import cats.mtl.Ask
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential
