@@ -33,7 +33,7 @@ object Dependencies {
   val catsEffect: ModuleID = "org.typelevel" %% "cats-effect" % "2.2.0"
 
   // metrics-scala transitively pulls in io.dropwizard.metrics:metrics-core
-  val metricsScala: ModuleID =      "nl.grons"              %% "metrics4-scala"    % "4.1.9"
+  val metricsScala: ModuleID =      "nl.grons"              %% "metrics4-scala"    % "4.1.14"
   val metricsStatsd: ModuleID =     "com.readytalk"         %  "metrics3-statsd"  % "4.2.0"
 
   val googleApiClient: ModuleID =            "com.google.api-client" % "google-api-client"                        % googleV
