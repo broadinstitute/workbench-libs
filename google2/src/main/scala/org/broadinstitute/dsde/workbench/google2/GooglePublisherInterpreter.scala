@@ -15,23 +15,22 @@ import fs2.{Pipe, Stream}
 import io.chrisdavenport.log4cats.StructuredLogger
 import io.circe.Encoder
 import io.circe.syntax._
-import org.broadinstitute.dsde.workbench.RetryConfig
 import org.broadinstitute.dsde.workbench.model.TraceId
 
 private[google2] class GooglePublisherInterpreter[F[_]: Async: Timer: StructuredLogger](
-  publisher: Publisher,
-  retryConfig: RetryConfig
+  publisher: Publisher
 ) extends GooglePublisher[F] {
   def publish[MessageType: Encoder]: Pipe[F, MessageType, Unit] = in => {
     in.flatMap { message =>
-      publishMessage(message.asJson.noSpaces, None) //This will turn message case class into raw json string
+      Stream
+        .eval(publishMessage(message.asJson.noSpaces, None)) //This will turn message case class into raw json string
     }
   }
 
   def publishNative: Pipe[F, PubsubMessage, Unit] = in => {
     in.flatMap { message =>
-      for {
-        _ <- retryGoogleF(retryConfig)(
+      Stream.eval(
+        withLogging(
           Async[F]
             .async[String] { callback =>
               ApiFutures.addCallback(
@@ -44,12 +43,12 @@ private[google2] class GooglePublisherInterpreter[F[_]: Async: Timer: Structured
           Option(message.getAttributesMap.get("traceId")).map(s => TraceId(s)),
           s"Publishing ${message}"
         )
-      } yield ()
+      )
     }
   }
 
   def publishString: Pipe[F, String, Unit] = in => {
-    in.flatMap(s => publishMessage(s, None))
+    in.flatMap(s => Stream.eval(publishMessage(s, None)))
   }
 
   override def publishOne[MessageType: Encoder](message: MessageType)(implicit ev: Ask[F, TraceId]): F[Unit] = {
@@ -57,9 +56,9 @@ private[google2] class GooglePublisherInterpreter[F[_]: Async: Timer: Structured
     tracedLogging(asyncPublishMessage(byteString), s"com.google.cloud.pubsub.v1.Publisher.publish($byteString)")
   }
 
-  private def publishMessage(message: String, traceId: Option[TraceId]): Stream[F, Unit] = {
+  private def publishMessage(message: String, traceId: Option[TraceId]): F[Unit] = {
     val byteString = ByteString.copyFromUtf8(message)
-    retryGoogleF(retryConfig)(asyncPublishMessage(byteString), traceId, s"Publishing $message")
+    withLogging(asyncPublishMessage(byteString), traceId, s"Publishing $message")
   }
 
   private def asyncPublishMessage(byteString: ByteString): F[Unit] =
@@ -80,9 +79,8 @@ private[google2] class GooglePublisherInterpreter[F[_]: Async: Timer: Structured
 
 object GooglePublisherInterpreter {
   def apply[F[_]: Async: Timer: ContextShift: StructuredLogger](
-    publisher: Publisher,
-    retryConfig: RetryConfig
-  ): GooglePublisherInterpreter[F] = new GooglePublisherInterpreter(publisher, retryConfig)
+    publisher: Publisher
+  ): GooglePublisherInterpreter[F] = new GooglePublisherInterpreter(publisher)
 
   def publisher[F[_]: Sync: StructuredLogger](config: PublisherConfig): Resource[F, Publisher] =
     for {
@@ -92,20 +90,21 @@ object GooglePublisherInterpreter {
       _ <- createTopic(config.projectTopicName, topicAdminClient)
     } yield publisher
 
-  private def createTopic[F[_]: Sync](topicName: TopicName, topicAdminClient: TopicAdminClient)(
-    implicit logger: StructuredLogger[F]
+  private def createTopic[F[_]: Sync](topicName: TopicName, topicAdminClient: TopicAdminClient)(implicit
+    logger: StructuredLogger[F]
   ): Resource[F, Unit] =
     Resource.liftF(
       Sync[F]
         .delay(topicAdminClient.createTopic(topicName))
         .void
-        .recoverWith {
-          case _: AlreadyExistsException => logger.info(s"${topicName} already exists")
+        .recoverWith { case _: AlreadyExistsException =>
+          logger.info(s"${topicName} already exists")
         }
     )
 
   private def publisherResource[F[_]: Sync](topicName: ProjectTopicName,
-                                            credential: ServiceAccountCredentials): Resource[F, Publisher] =
+                                            credential: ServiceAccountCredentials
+  ): Resource[F, Publisher] =
     Resource.make(
       Sync[F].delay(
         Publisher
@@ -116,6 +115,4 @@ object GooglePublisherInterpreter {
     )(p => Sync[F].delay(p.shutdown()))
 }
 
-final case class PublisherConfig(pathToCredentialJson: String,
-                                 projectTopicName: ProjectTopicName,
-                                 retryConfig: RetryConfig)
+final case class PublisherConfig(pathToCredentialJson: String, projectTopicName: ProjectTopicName)

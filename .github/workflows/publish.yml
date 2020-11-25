@@ -1,0 +1,41 @@
+name: Publish Jar
+
+on:
+  push:
+    branches: [ develop ]
+
+jobs:
+  publish:
+    runs-on: Ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+      - name: Setup Scala
+        uses: olafurpg/setup-scala@v10
+        with:
+          java-version: "adopt@1.8"
+      - name: Publish workbench-libs
+        run: sbt "+ publish" -Dproject.isSnapshot=false
+        env:
+          ARTIFACTORY_USERNAME: ${{ secrets.ARTIFACTORY_USERNAME }}
+          ARTIFACTORY_PASSWORD: ${{ secrets.ARTIFACTORY_PASSWORD }}
+      - name: Update `TRAVIS-REPLACE-ME`
+        run: .github/scripts/version_update.sh
+        shell: bash
+      - name: Push changes
+        uses: EndBug/add-and-commit@v5
+        with:
+          add: '.'
+
+          # The name of the user that will be displayed as the author of the commit
+          # Default: author of the commit that triggered the run
+          author_name: broadbot
+
+          # The email of the user that will be displayed as the author of the commit
+          # Default: author of the commit that triggered the run
+          author_email: broadbot@broadinstitute.org
+
+          # The message for the commit
+          # Default: 'Commit from GitHub Actions (name of the workflow)'
+#          message:
+        env:
+          GITHUB_TOKEN: ${{ secrets.BROADBOT_GITHUB_TOKEN }}

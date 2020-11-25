@@ -19,10 +19,14 @@ class GcsPathParserSpec extends AnyFlatSpecLike with Matchers with EitherValues 
     generateUniqueBucketName("googMyCluster").value should startWith("g00gmycluster-")
     generateUniqueBucketName("googoogle").value should startWith("g00g00gle-")
     generateUniqueBucketName("my_Google_clUsTer").value should startWith("my_g00gle_cluster-")
-    generateUniqueBucketName("myClusterWhichHasAVeryLongNameBecauseIAmExtremelyVerboseInMyDescriptions").value should startWith(
+    generateUniqueBucketName(
+      "myClusterWhichHasAVeryLongNameBecauseIAmExtremelyVerboseInMyDescriptions"
+    ).value should startWith(
       "myclusterwhichhasaverylong-"
     )
-    generateUniqueBucketName("myClusterWhichHasAVeryLongNameBecauseIAmExtremelyVerboseInMyDescriptions").value.length shouldBe 63
+    generateUniqueBucketName(
+      "myClusterWhichHasAVeryLongNameBecauseIAmExtremelyVerboseInMyDescriptions"
+    ).value.length shouldBe 63
   }
 
   "gcs" should "generate valid bucket names when trimming the uuid" in {
@@ -32,23 +36,31 @@ class GcsPathParserSpec extends AnyFlatSpecLike with Matchers with EitherValues 
     )
 
     //trim the uuid but the prefix is also too long so trim that too
-    generateUniqueBucketName("myClusterWhichHasAVeryLongNameBecauseIAmExtremelyVerboseInMyDescriptions", false).value should startWith(
+    generateUniqueBucketName("myClusterWhichHasAVeryLongNameBecauseIAmExtremelyVerboseInMyDescriptions",
+                             false
+    ).value should startWith(
       "myclusterwhichhasaverylongnamebecauseiamextremelyverboseinmyde-"
     )
-    generateUniqueBucketName("myClusterWhichHasAVeryLongNameBecauseIAmExtremelyVerboseInMyDescriptions", false).value.length shouldBe 63
+    generateUniqueBucketName("myClusterWhichHasAVeryLongNameBecauseIAmExtremelyVerboseInMyDescriptions",
+                             false
+    ).value.length shouldBe 63
   }
 
   "GcsPath" should "parse valid paths" in {
     parseGcsPath("gs://a-bucket/a/relative/path").right.value shouldBe GcsPath(GcsBucketName("a-bucket"),
-                                                                               GcsObjectName("a/relative/path"))
+                                                                               GcsObjectName("a/relative/path")
+    )
     parseGcsPath("gs://a-123-bucket/foo/").right.value shouldBe GcsPath(GcsBucketName("a-123-bucket"),
-                                                                        GcsObjectName("foo/"))
+                                                                        GcsObjectName("foo/")
+    )
     parseGcsPath("gs://a-bucket-123/").right.value shouldBe GcsPath(GcsBucketName("a-bucket-123"), GcsObjectName(""))
     parseGcsPath("gs://a-bucket-123").right.value shouldBe GcsPath(GcsBucketName("a-bucket-123"), GcsObjectName(""))
     parseGcsPath("//a-bucket-123/a/relative/path").right.value shouldBe GcsPath(GcsBucketName("a-bucket-123"),
-                                                                                GcsObjectName("a/relative/path"))
+                                                                                GcsObjectName("a/relative/path")
+    )
     parseGcsPath("gs://a_123_bucket/a/relative/path").right.value shouldBe GcsPath(GcsBucketName("a_123_bucket"),
-                                                                                   GcsObjectName("a/relative/path"))
+                                                                                   GcsObjectName("a/relative/path")
+    )
     parseGcsPath("gs://a.123.bucket.123/a/relative/path").right.value shouldBe GcsPath(
       GcsBucketName("a.123.bucket.123"),
       GcsObjectName("a/relative/path")

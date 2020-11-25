@@ -123,10 +123,8 @@ trait WebBrowserSpec extends WebBrowserUtil with ExceptionHandling with LazyLogg
     val service = new ChromeDriverService.Builder().usingDriverExecutable(chromeDriverFile).usingAnyFreePort().build()
     service.start()
     implicit val driver: RemoteWebDriver = startRemoteWebdriver(service.getUrl, options)
-    try {
-      withScreenshot {
-        testCode(driver)
-      }
+    try withScreenshot {
+      testCode(driver)
     } finally {
       try driver.close()
       catch nonFatalAndLog
@@ -139,10 +137,8 @@ trait WebBrowserSpec extends WebBrowserUtil with ExceptionHandling with LazyLogg
 
   private def runDockerChrome(options: ChromeOptions, testCode: WebDriver => Any): Unit = {
     implicit val driver: RemoteWebDriver = startRemoteWebdriver(new URL(chromeDriverHost), options)
-    try {
-      withScreenshot {
-        testCode(driver)
-      }
+    try withScreenshot {
+      testCode(driver)
     } finally {
       try driver.close()
       catch nonFatalAndLog
@@ -178,9 +174,8 @@ trait WebBrowserSpec extends WebBrowserUtil with ExceptionHandling with LazyLogg
    * lets us control the image file name.
    */
   override def withScreenshot[T](f: => T)(implicit driver: WebDriver): T =
-    try {
-      f
-    } catch {
+    try f
+    catch {
       case t: Throwable =>
         val date = new SimpleDateFormat("HH-mm-ss-SSS").format(new java.util.Date())
         val path = "failure_screenshots"

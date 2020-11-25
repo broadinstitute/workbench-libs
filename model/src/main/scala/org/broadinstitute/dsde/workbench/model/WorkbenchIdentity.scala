@@ -25,7 +25,8 @@ final case class IdentityConcentratorId(value: String) extends ValueObject
 final case class WorkbenchUser(id: WorkbenchUserId,
                                googleSubjectId: Option[GoogleSubjectId],
                                email: WorkbenchEmail,
-                               identityConcentratorId: Option[IdentityConcentratorId])
+                               identityConcentratorId: Option[IdentityConcentratorId]
+)
 final case class WorkbenchUserId(value: String) extends WorkbenchSubject with ValueObject
 
 trait WorkbenchGroup { val id: WorkbenchGroupIdentity; val members: Set[WorkbenchSubject]; val email: WorkbenchEmail }

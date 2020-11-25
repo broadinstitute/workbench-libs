@@ -18,7 +18,8 @@ trait GoogleServiceHttp[F[_]] {
   def createNotification(topic: TopicName,
                          bucketName: GcsBucketName,
                          filters: Filters,
-                         traceId: Option[TraceId]): F[Unit]
+                         traceId: Option[TraceId]
+  ): F[Unit]
   def getProjectServiceAccount(project: GoogleProject, traceId: Option[TraceId]): F[Identity]
 }
 

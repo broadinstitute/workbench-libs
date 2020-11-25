@@ -27,7 +27,8 @@ final class Test(credPathStr: String,
                  clusterNameStr: String = "test-cluster",
                  nodepoolNameStr: String = "test-nodepool",
                  defaultNamespaceNameStr: String = "test-namespace",
-                 networkNameStr: String = "kube-test") {
+                 networkNameStr: String = "kube-test"
+) {
 
   import scala.concurrent.ExecutionContext.global
 
@@ -168,7 +169,8 @@ final class Test(credPathStr: String,
 
   def callCreateSecret(clusterId: KubernetesClusterId = clusterId,
                        secret: KubernetesSecret = kubeSecret,
-                       namespace: KubernetesNamespace = KubernetesNamespace(defaultNamespaceName.right.get)): IO[Unit] =
+                       namespace: KubernetesNamespace = KubernetesNamespace(defaultNamespaceName.right.get)
+  ): IO[Unit] =
     kubeService.use { k =>
       k.createSecret(clusterId, namespace, secret)
     }
@@ -237,8 +239,9 @@ final class Test(credPathStr: String,
           .pollOperation(KubernetesOperationId(project, region, operation.getName), 5 seconds, 72)
           .compile
           .lastOrError
-        _ <- if (lastOp.isDone) IO(println(s"operation is done, initial operation: ${operation}"))
-        else IO(s"operation errored, initial operation: ${operation}")
+        _ <-
+          if (lastOp.isDone) IO(println(s"operation is done, initial operation: ${operation}"))
+          else IO(s"operation errored, initial operation: ${operation}")
       } yield ()
     }
   }
@@ -253,7 +256,8 @@ object KubernetesConstants {
     ServicePort(PortNum(8080),
                 KubernetesName.withValidation("testport", PortName).right.get,
                 TargetPortNum(8080),
-                Protocol("TCP"))
+                Protocol("TCP")
+    )
   )
 
   val DEFAULT_NODEPOOL_SIZE = 1

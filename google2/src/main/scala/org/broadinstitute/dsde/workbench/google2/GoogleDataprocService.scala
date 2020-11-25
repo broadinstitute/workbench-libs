@@ -34,28 +34,30 @@ trait GoogleDataprocService[F[_]] {
   def stopCluster(project: GoogleProject,
                   region: RegionName,
                   clusterName: DataprocClusterName,
-                  metadata: Option[Map[String, String]])(
-    implicit ev: Ask[F, TraceId]
+                  metadata: Option[Map[String, String]]
+  )(implicit
+    ev: Ask[F, TraceId]
   ): F[List[Operation]]
 
   def resizeCluster(project: GoogleProject,
                     region: RegionName,
                     clusterName: DataprocClusterName,
                     numWorkers: Option[Int],
-                    numPreemptibles: Option[Int])(
-    implicit ev: Ask[F, TraceId]
+                    numPreemptibles: Option[Int]
+  )(implicit
+    ev: Ask[F, TraceId]
   ): F[Option[ClusterOperationMetadata]]
 
-  def deleteCluster(project: GoogleProject, region: RegionName, clusterName: DataprocClusterName)(
-    implicit ev: Ask[F, TraceId]
+  def deleteCluster(project: GoogleProject, region: RegionName, clusterName: DataprocClusterName)(implicit
+    ev: Ask[F, TraceId]
   ): F[Option[ClusterOperationMetadata]]
 
-  def getCluster(project: GoogleProject, region: RegionName, clusterName: DataprocClusterName)(
-    implicit ev: Ask[F, TraceId]
+  def getCluster(project: GoogleProject, region: RegionName, clusterName: DataprocClusterName)(implicit
+    ev: Ask[F, TraceId]
   ): F[Option[Cluster]]
 
-  def getClusterInstances(project: GoogleProject, region: RegionName, clusterName: DataprocClusterName)(
-    implicit ev: Ask[F, TraceId]
+  def getClusterInstances(project: GoogleProject, region: RegionName, clusterName: DataprocClusterName)(implicit
+    ev: Ask[F, TraceId]
   ): F[Map[DataprocRoleZonePreemptibility, Set[InstanceName]]]
 
   def getClusterError(operationName: OperationName)(implicit ev: Ask[F, TraceId]): F[Option[ClusterError]]
@@ -78,7 +80,8 @@ object GoogleDataprocService {
                                     blocker,
                                     regionName,
                                     blockerBound,
-                                    retryConfig)
+                                    retryConfig
+      )
     } yield interpreter
 
   def resourceFromUserCredential[F[_]: StructuredLogger: Async: Timer: Parallel: ContextShift](
@@ -97,7 +100,8 @@ object GoogleDataprocService {
                                     blocker,
                                     regionName,
                                     blockerBound,
-                                    retryConfig)
+                                    retryConfig
+      )
     } yield interpreter
 
   def fromCredential[F[_]: StructuredLogger: Async: Timer: Parallel: ContextShift](
@@ -125,7 +129,8 @@ final case class DataprocClusterName(value: String) extends AnyVal
 final case class DataprocInstance(name: InstanceName,
                                   project: GoogleProject,
                                   zone: ZoneName,
-                                  dataprocRole: DataprocRole)
+                                  dataprocRole: DataprocRole
+)
 
 sealed abstract class CreateClusterResponse
 object CreateClusterResponse {

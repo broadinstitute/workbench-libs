@@ -21,7 +21,8 @@ class MockGoogleDirectoryDAO(implicit val executionContext: ExecutionContext) ex
 
   override def createGroup(displayName: String,
                            groupEmail: WorkbenchEmail,
-                           groupSettings: Option[GroupSettings] = None): Future[Unit] =
+                           groupSettings: Option[GroupSettings] = None
+  ): Future[Unit] =
     Future.successful(groups.putIfAbsent(groupEmail, Set.empty))
 
   override def deleteGroup(groupEmail: WorkbenchEmail): Future[Unit] =

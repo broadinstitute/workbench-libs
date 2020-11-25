@@ -13,8 +13,8 @@ import com.google.auth.oauth2.{AccessToken, GoogleCredentials}
 import com.google.common.cache.{CacheBuilder, CacheLoader}
 import com.google.container.v1.Cluster
 import io.chrisdavenport.log4cats.StructuredLogger
-import io.kubernetes.client.ApiClient
-import io.kubernetes.client.apis.{CoreV1Api, RbacAuthorizationV1Api}
+import io.kubernetes.client.openapi.ApiClient
+import io.kubernetes.client.openapi.apis.{CoreV1Api, RbacAuthorizationV1Api}
 import io.kubernetes.client.util.Config
 import org.broadinstitute.dsde.workbench.google2.GKEModels.KubernetesClusterId
 import org.broadinstitute.dsde.workbench.google2.JavaSerializableInstances._
@@ -72,8 +72,8 @@ class KubernetesInterpreter[F[_]: StructuredLogger: Effect: Timer: ContextShift]
     )
 
   // https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.12/#podspec-v1-core
-  override def createPod(clusterId: KubernetesClusterId, pod: KubernetesPod, namespace: KubernetesNamespace)(
-    implicit ev: Ask[F, TraceId]
+  override def createPod(clusterId: KubernetesClusterId, pod: KubernetesPod, namespace: KubernetesNamespace)(implicit
+    ev: Ask[F, TraceId]
   ): F[Unit] =
     for {
       traceId <- ev.ask
@@ -93,15 +93,15 @@ class KubernetesInterpreter[F[_]: StructuredLogger: Effect: Timer: ContextShift]
       )
     } yield ()
 
-  override def listPodStatus(clusterId: KubernetesClusterId, namespace: KubernetesNamespace)(
-    implicit ev: Ask[F, TraceId]
+  override def listPodStatus(clusterId: KubernetesClusterId, namespace: KubernetesNamespace)(implicit
+    ev: Ask[F, TraceId]
   ): F[List[KubernetesPodStatus]] =
     for {
       traceId <- ev.ask
       client <- blockingF(getClient(clusterId, new CoreV1Api(_)))
       call = blockingF(
         F.delay(
-          client.listNamespacedPod(namespace.name.value, null, "true", null, null, null, null, null, null, null)
+          client.listNamespacedPod(namespace.name.value, null, true, null, null, null, null, null, null, null)
         )
       )
       response <- withLogging(
@@ -112,12 +112,11 @@ class KubernetesInterpreter[F[_]: StructuredLogger: Effect: Timer: ContextShift]
 
       listPodStatus = Option(response.getItems)
         .map { l =>
-          l.asScala.toList.foldMap(
-            v1Pod =>
-              PodStatus.stringToPodStatus
-                .get(v1Pod.getStatus.getPhase)
-                .map(s => List(KubernetesPodStatus(PodName(v1Pod.getMetadata.getName), s)))
-                .toRight(new RuntimeException(s"Unknown Google status ${v1Pod.getStatus.getPhase}"))
+          l.asScala.toList.foldMap(v1Pod =>
+            PodStatus.stringToPodStatus
+              .get(v1Pod.getStatus.getPhase)
+              .map(s => List(KubernetesPodStatus(PodName(v1Pod.getMetadata.getName), s)))
+              .toRight(new RuntimeException(s"Unknown Google status ${v1Pod.getStatus.getPhase}"))
           )
         }
         .getOrElse(Nil.asRight[RuntimeException])
@@ -129,8 +128,9 @@ class KubernetesInterpreter[F[_]: StructuredLogger: Effect: Timer: ContextShift]
   // Services can be applied to pods/containers, while deployments are for pre-creating pods/containers.
   override def createService(clusterId: KubernetesClusterId,
                              service: KubernetesServiceKind,
-                             namespace: KubernetesNamespace)(
-    implicit ev: Ask[F, TraceId]
+                             namespace: KubernetesNamespace
+  )(implicit
+    ev: Ask[F, TraceId]
   ): F[Unit] =
     for {
       traceId <- ev.ask
@@ -152,19 +152,20 @@ class KubernetesInterpreter[F[_]: StructuredLogger: Effect: Timer: ContextShift]
 
   override def getServiceExternalIp(clusterId: KubernetesClusterId,
                                     namespace: KubernetesNamespace,
-                                    serviceName: ServiceName)(
-    implicit ev: Ask[F, TraceId]
+                                    serviceName: ServiceName
+  )(implicit
+    ev: Ask[F, TraceId]
   ): F[Option[IP]] =
     for {
       traceId <- ev.ask
       client <- blockingF(getClient(clusterId, new CoreV1Api(_)))
       call = blockingF(
         F.delay(
-          client.listNamespacedService(namespace.name.value, null, "true", null, null, null, null, null, null, null)
+          client.listNamespacedService(namespace.name.value, null, true, null, null, null, null, null, null, null)
         )
       ).map(Option(_)).handleErrorWith {
-        case e: io.kubernetes.client.ApiException if e.getCode == 404 => F.pure(None)
-        case e: Throwable                                             => F.raiseError(e)
+        case e: io.kubernetes.client.openapi.ApiException if e.getCode == 404 => F.pure(None)
+        case e: Throwable                                                     => F.raiseError(e)
       }
       responseOpt <- withLogging(
         call,
@@ -187,8 +188,8 @@ class KubernetesInterpreter[F[_]: StructuredLogger: Effect: Timer: ContextShift]
 
     } yield ipOpt
 
-  override def createNamespace(clusterId: KubernetesClusterId, namespace: KubernetesNamespace)(
-    implicit ev: Ask[F, TraceId]
+  override def createNamespace(clusterId: KubernetesClusterId, namespace: KubernetesNamespace)(implicit
+    ev: Ask[F, TraceId]
   ): F[Unit] =
     for {
       traceId <- ev.ask
@@ -208,8 +209,8 @@ class KubernetesInterpreter[F[_]: StructuredLogger: Effect: Timer: ContextShift]
       )
     } yield ()
 
-  override def deleteNamespace(clusterId: KubernetesClusterId, namespace: KubernetesNamespace)(
-    implicit ev: Ask[F, TraceId]
+  override def deleteNamespace(clusterId: KubernetesClusterId, namespace: KubernetesNamespace)(implicit
+    ev: Ask[F, TraceId]
   ): F[Unit] = {
     val delete = for {
       traceId <- ev.ask
@@ -248,7 +249,8 @@ class KubernetesInterpreter[F[_]: StructuredLogger: Effect: Timer: ContextShift]
         recoverF(F.delay(
                    client.createNamespacedSecret(namespace.name.value, secret.getJavaSerialization, null, "true", null)
                  ),
-                 whenStatusCode(409))
+                 whenStatusCode(409)
+        )
       )
       _ <- withLogging(
         call,
@@ -259,8 +261,9 @@ class KubernetesInterpreter[F[_]: StructuredLogger: Effect: Timer: ContextShift]
 
   override def createServiceAccount(clusterId: KubernetesClusterId,
                                     serviceAccount: KubernetesServiceAccount,
-                                    namespace: KubernetesNamespace)(
-    implicit ev: Ask[F, TraceId]
+                                    namespace: KubernetesNamespace
+  )(implicit
+    ev: Ask[F, TraceId]
   ): F[Unit] =
     for {
       traceId <- ev.ask
@@ -271,9 +274,11 @@ class KubernetesInterpreter[F[_]: StructuredLogger: Effect: Timer: ContextShift]
                                                          serviceAccount.getJavaSerialization,
                                                          null,
                                                          "true",
-                                                         null)
+                                                         null
+                   )
                  ),
-                 whenStatusCode(409))
+                 whenStatusCode(409)
+        )
       )
       _ <- withLogging(
         call,
@@ -282,8 +287,8 @@ class KubernetesInterpreter[F[_]: StructuredLogger: Effect: Timer: ContextShift]
       )
     } yield ()
 
-  override def createRole(clusterId: KubernetesClusterId, role: KubernetesRole, namespace: KubernetesNamespace)(
-    implicit ev: Ask[F, TraceId]
+  override def createRole(clusterId: KubernetesClusterId, role: KubernetesRole, namespace: KubernetesNamespace)(implicit
+    ev: Ask[F, TraceId]
   ): F[Unit] =
     for {
       traceId <- ev.ask
@@ -292,7 +297,8 @@ class KubernetesInterpreter[F[_]: StructuredLogger: Effect: Timer: ContextShift]
         recoverF(F.delay(
                    client.createNamespacedRole(namespace.name.value, role.getJavaSerialization, null, "true", null)
                  ),
-                 whenStatusCode(409))
+                 whenStatusCode(409)
+        )
       )
       _ <- withLogging(
         call,
@@ -303,8 +309,9 @@ class KubernetesInterpreter[F[_]: StructuredLogger: Effect: Timer: ContextShift]
 
   override def createRoleBinding(clusterId: KubernetesClusterId,
                                  roleBinding: KubernetesRoleBinding,
-                                 namespace: KubernetesNamespace)(
-    implicit ev: Ask[F, TraceId]
+                                 namespace: KubernetesNamespace
+  )(implicit
+    ev: Ask[F, TraceId]
   ): F[Unit] =
     for {
       traceId <- ev.ask
@@ -315,9 +322,11 @@ class KubernetesInterpreter[F[_]: StructuredLogger: Effect: Timer: ContextShift]
                                                       roleBinding.getJavaSerialization,
                                                       null,
                                                       "true",
-                                                      null)
+                                                      null
+                   )
                  ),
-                 whenStatusCode(409))
+                 whenStatusCode(409)
+        )
       )
       _ <- withLogging(
         call,
@@ -364,7 +373,7 @@ class KubernetesInterpreter[F[_]: StructuredLogger: Effect: Timer: ContextShift]
             .setSslCaCert(certStream)
         )
       }
-    } yield (apiClient) // appending here a .setDebugging(true) prints out useful API request/response info for development
+    } yield apiClient // appending here a .setDebugging(true) prints out useful API request/response info for development
   }
 
   // TODO: Retry once we know what Kubernetes error codes are applicable

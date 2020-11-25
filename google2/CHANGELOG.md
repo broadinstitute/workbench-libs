@@ -2,7 +2,7 @@
 
 This file documents changes to the `workbench-google2` library, including notes on how to upgrade to new versions.
 
-## 0.17
+## 0.18
 Added:
 - `GoogleDataprocInterpreter` can resize clusters and stop cluster VMs.
 
@@ -10,11 +10,67 @@ Changed:
 - `GoogleDataprocInterpreter` requires a `GoogleComputeService` instance so it can stop and resize Dataproc
 cluster nodes.
 
-## 0.16
-Changed:
-- Add `subscriptionName: Option[ProjectSubscriptionName]`, `deadLetterPolicy: Option[SubscriberDeadLetterPolicy]` and `filter: Option[String]` to `SubscriberConfig`
+## 0.17
+Added:
+- `list` to `GoogleTopicAdmin`
+- `GoogleSubscriptionAdmin`
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.16-87a7a9b"`
+Changed:
+- Remove `retryConfig` from `PublisherConfig`
+
+Dependency Upgrades
+```
+Update google-cloud-pubsub to 1.109.0 (#409)
+Update fs2-io to 2.4.6 (#411)
+Update google-cloud-bigquery to 1.125.0 (#381)
+Update google-cloud-firestore to 1.35.2 (#385)
+Update google-cloud-kms to 1.40.2 (#386)
+Update google-cloud-firestore to 2.1.0 (#412)
+Update grpc-core to 1.33.1 (#395) (Note: if your project explicitly specify grpc-core version, you need to update it to match this version)
+Update metrics4-scala to 4.1.14 (#413)
+Update http4s-blaze-client, http4s-circe, ... to 0.21.12 (#415)
+Update mockito-core to 3.6.28 (#414)
+Update guava to 30.0-jre (#390)
+Update `io.kubernetes client-java` to `5.0.0` to `10.0.0` (This has some breaking changes)
+```
+      
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.17-0e2d8cc"`
+
+## 0.16
+Added:
+- `subscriptionName: Option[ProjectSubscriptionName]`, `deadLetterPolicy: Option[SubscriberDeadLetterPolicy]` and `filter: Option[String]` to `SubscriberConfig`
+- `GoogleBigQueryService.resource()` method that accepts the Google project to be billed
+
+Changed:
+- Scala Steward:
+```
+Update mockito-3-4 to 3.2.3.0 (#404)
+Update commons-codec to 1.15 (#393)
+Update akka-http, akka-http-spray-json, ... to 10.2.1 (#392)
+Update mockito-core to 2.28.2 (#399)
+Update sbt to 1.4.4 (#400)
+Update google-cloud-container to 1.2.0 (#382)
+Update google-cloud-errorreporting to 0.120.8-beta (#384)
+Update google-api-services-container to v1-rev20201007-1.30.10 (#380)
+Update google-cloud-nio to 0.122.1 (#387) (Note: upgrade to this version if your project explicitly specifies version)
+Update akka-actor, akka-stream, ... to 2.6.10 (#391)
+Update mockito-core to 3.6.0 (#407)
+Update opencensus-api, ... to 0.28.2 (#397)
+Update log4cats-slf4j to 1.1.1 (#394)
+Update google-cloud-storage to 1.113.4 (#389)
+Update google-cloud-pubsub to 1.105.1 (#388)
+Update google-cloud-dataproc to 0.122.3 (#383)
+Update sbt-scalafix to 0.9.23 (#378)
+Update scalacheck to 1.15.1 (#401)
+Update commons-codec to 20041127.091804 (#406)
+Update scalafmt-core to 2.7.5 (#402)
+Update http4s-blaze-client, http4s-circe, ... to 0.21.11 (#398)
+Update google-cloud-dataproc to 1.1.7 (#408)
+Update scalatest to 3.2.3 (#403)
+Update fs2-io to 2.4.5 (#379)
+```
+
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.16-42883ed"`
 
 ## 0.15
 Added:

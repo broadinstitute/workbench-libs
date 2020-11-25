@@ -33,12 +33,12 @@ object RetryPredicates {
     case e: BaseServiceException                                              => e.getCode == code
     case e: ApiException                                                      => e.getStatusCode.getCode.getHttpStatusCode == code
     case e: com.google.api.client.googleapis.json.GoogleJsonResponseException => e.getDetails.getCode == code
-    case e: io.kubernetes.client.ApiException                                 => e.getCode == code
+    case e: io.kubernetes.client.openapi.ApiException                         => e.getCode == code
     case _                                                                    => false
   }
 
-  def gkeRetryPredicate: Throwable => Boolean = {
-    case e: io.grpc.StatusRuntimeException => e.getStatus.getCode == io.grpc.Status.Code.INTERNAL
+  def gkeRetryPredicate: Throwable => Boolean = { case e: io.grpc.StatusRuntimeException =>
+    e.getStatus.getCode == io.grpc.Status.Code.INTERNAL
   }
 
   def combine(predicates: Seq[Throwable => Boolean]): Throwable => Boolean = { throwable =>

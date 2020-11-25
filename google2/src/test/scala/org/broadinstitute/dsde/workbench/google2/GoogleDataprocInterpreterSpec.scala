@@ -1,7 +1,6 @@
 package org.broadinstitute.dsde.workbench.google2
 
 import com.google.cloud.dataproc.v1.{Cluster, ClusterConfig, GceClusterConfig, InstanceGroupConfig}
-import io.kubernetes.client.models.V1VolumeFluent.GcePersistentDiskNested
 import org.broadinstitute.dsde.workbench.google2.DataprocRole.{Master, SecondaryWorker, Worker}
 import org.broadinstitute.dsde.workbench.util2.{PropertyBasedTesting, WorkbenchTestSuite}
 import org.scalatest.flatspec.AnyFlatSpecLike
@@ -43,12 +42,13 @@ class GoogleDataprocInterpreterSpec
       DataprocRoleZonePreemptibility(Master, ZoneName("us-central1-a"), false) -> Set(InstanceName("master")),
       DataprocRoleZonePreemptibility(Worker, ZoneName("us-central1-a"), false) -> Set(InstanceName("worker0"),
                                                                                       InstanceName("worker1"),
-                                                                                      InstanceName("worker2")),
+                                                                                      InstanceName("worker2")
+      ),
       DataprocRoleZonePreemptibility(SecondaryWorker, ZoneName("us-central1-a"), true) -> Set(
         InstanceName("secondaryWorker0"),
         InstanceName("secondaryWorker1")
       )
     )
-    res shouldBe (expectedResult)
+    res shouldBe expectedResult
   }
 }

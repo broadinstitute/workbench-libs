@@ -36,7 +36,8 @@ trait GoogleStorageService[F[_]] {
                             isRecursive: Boolean = false,
                             maxPageSize: Long = 1000,
                             traceId: Option[TraceId] = None,
-                            retryConfig: RetryConfig = standardRetryConfig): Stream[F, GcsObjectName]
+                            retryConfig: RetryConfig = standardRetryConfig
+  ): Stream[F, GcsObjectName]
 
   /**
    * @param traceId uuid for tracing a unique call flow in logging
@@ -46,7 +47,8 @@ trait GoogleStorageService[F[_]] {
                           isRecursive: Boolean,
                           maxPageSize: Long = 1000,
                           traceId: Option[TraceId] = None,
-                          retryConfig: RetryConfig = standardRetryConfig): Stream[F, Blob]
+                          retryConfig: RetryConfig = standardRetryConfig
+  ): Stream[F, Blob]
 
   /**
    * not memory safe. Use listObjectsWithPrefix if you're worried about OOM
@@ -63,7 +65,8 @@ trait GoogleStorageService[F[_]] {
                           objectNamePrefix,
                           maxPageSize = maxPageSize,
                           traceId = traceId,
-                          retryConfig = retryConfig).compile.toList
+                          retryConfig = retryConfig
+    ).compile.toList
 
   /**
    * @param traceId uuid for tracing a unique call flow in logging
@@ -76,14 +79,16 @@ trait GoogleStorageService[F[_]] {
                  metadata: Map[String, String] = Map.empty,
                  generation: Option[Long] = None,
                  traceId: Option[TraceId] = None,
-                 retryConfig: RetryConfig = standardRetryConfig): Stream[F, Blob]
+                 retryConfig: RetryConfig = standardRetryConfig
+  ): Stream[F, Blob]
 
   def streamUploadBlob(bucketName: GcsBucketName,
                        objectName: GcsBlobName,
                        metadata: Map[String, String] = Map.empty,
                        generation: Option[Long] = None,
                        overwrite: Boolean = true,
-                       traceId: Option[TraceId] = None): Pipe[F, Byte, Unit]
+                       traceId: Option[TraceId] = None
+  ): Pipe[F, Byte, Unit]
 
   /**
    * @param traceId uuid for tracing a unique call flow in logging
@@ -95,7 +100,8 @@ trait GoogleStorageService[F[_]] {
                   objectType: String,
                   metadata: Map[String, String] = Map.empty,
                   generation: Option[Long] = None,
-                  traceId: Option[TraceId] = None): Stream[F, Unit] =
+                  traceId: Option[TraceId] = None
+  ): Stream[F, Unit] =
     createBlob(bucketName, objectName, objectContents, objectType, metadata, generation, traceId).void
 
   /**
@@ -104,7 +110,8 @@ trait GoogleStorageService[F[_]] {
   def setBucketLifecycle(bucketName: GcsBucketName,
                          lifecycleRules: List[LifecycleRule],
                          traceId: Option[TraceId] = None,
-                         retryConfig: RetryConfig = standardRetryConfig): Stream[F, Unit]
+                         retryConfig: RetryConfig = standardRetryConfig
+  ): Stream[F, Unit]
 
   /**
    * not memory safe. Use getObject if you're worried about OOM
@@ -114,7 +121,8 @@ trait GoogleStorageService[F[_]] {
   def unsafeGetObject(bucketName: GcsBucketName,
                       blobName: GcsBlobName,
                       traceId: Option[TraceId] = None,
-                      retryConfig: RetryConfig = standardRetryConfig): F[Option[String]] =
+                      retryConfig: RetryConfig = standardRetryConfig
+  ): F[Option[String]] =
     unsafeGetBlobBody(bucketName, blobName, traceId, retryConfig)
 
   /**
@@ -124,7 +132,8 @@ trait GoogleStorageService[F[_]] {
   def unsafeGetBlobBody(bucketName: GcsBucketName,
                         blobName: GcsBlobName,
                         traceId: Option[TraceId] = None,
-                        retryConfig: RetryConfig = standardRetryConfig): F[Option[String]]
+                        retryConfig: RetryConfig = standardRetryConfig
+  ): F[Option[String]]
 
   /**
    * @param traceId uuid for tracing a unique call flow in logging
@@ -133,7 +142,8 @@ trait GoogleStorageService[F[_]] {
   def getObject(bucketName: GcsBucketName,
                 blobName: GcsBlobName,
                 traceId: Option[TraceId] = None,
-                retryConfig: RetryConfig = standardRetryConfig): Stream[F, Byte] =
+                retryConfig: RetryConfig = standardRetryConfig
+  ): Stream[F, Byte] =
     getBlobBody(bucketName, blobName, traceId, retryConfig)
 
   /**
@@ -142,7 +152,8 @@ trait GoogleStorageService[F[_]] {
   def getBlobBody(bucketName: GcsBucketName,
                   blobName: GcsBlobName,
                   traceId: Option[TraceId] = None,
-                  retryConfig: RetryConfig = standardRetryConfig): Stream[F, Byte]
+                  retryConfig: RetryConfig = standardRetryConfig
+  ): Stream[F, Byte]
 
   /**
    * return com.google.cloud.storage.Blob, which gives you metadata and user defined metadata etc
@@ -152,7 +163,8 @@ trait GoogleStorageService[F[_]] {
               blobName: GcsBlobName,
               credential: Option[Credentials] = None,
               traceId: Option[TraceId] = None,
-              retryConfig: RetryConfig = standardRetryConfig): Stream[F, Blob]
+              retryConfig: RetryConfig = standardRetryConfig
+  ): Stream[F, Blob]
 
   /**
    * @param traceId uuid for tracing a unique call flow in logging
@@ -160,7 +172,8 @@ trait GoogleStorageService[F[_]] {
   def downloadObject(blobId: BlobId,
                      path: Path,
                      traceId: Option[TraceId] = None,
-                     retryConfig: RetryConfig = standardRetryConfig): Stream[F, Unit]
+                     retryConfig: RetryConfig = standardRetryConfig
+  ): Stream[F, Unit]
 
   /**
    * @param traceId uuid for tracing a unique call flow in logging
@@ -168,7 +181,8 @@ trait GoogleStorageService[F[_]] {
   def getObjectMetadata(bucketName: GcsBucketName,
                         blobName: GcsBlobName,
                         traceId: Option[TraceId],
-                        retryConfig: RetryConfig = standardRetryConfig): Stream[F, GetMetadataResponse]
+                        retryConfig: RetryConfig = standardRetryConfig
+  ): Stream[F, GetMetadataResponse]
 
   /**
    * @param traceId uuid for tracing a unique call flow in logging
@@ -177,7 +191,8 @@ trait GoogleStorageService[F[_]] {
                         blobName: GcsBlobName,
                         metadata: Map[String, String],
                         traceId: Option[TraceId],
-                        retryConfig: RetryConfig = standardRetryConfig): Stream[F, Unit]
+                        retryConfig: RetryConfig = standardRetryConfig
+  ): Stream[F, Unit]
 
   /**
    * @return true if deleted; false if not found
@@ -186,7 +201,8 @@ trait GoogleStorageService[F[_]] {
                    blobName: GcsBlobName,
                    generation: Option[Long] = None,
                    traceId: Option[TraceId] = None,
-                   retryConfig: RetryConfig = standardRetryConfig): Stream[F, RemoveObjectResult]
+                   retryConfig: RetryConfig = standardRetryConfig
+  ): Stream[F, RemoveObjectResult]
 
   /**
    * @param traceId uuid for tracing a unique call flow in logging
@@ -197,13 +213,15 @@ trait GoogleStorageService[F[_]] {
                    bucketName: GcsBucketName,
                    acl: Option[NonEmptyList[Acl]] = None,
                    traceId: Option[TraceId] = None,
-                   retryConfig: RetryConfig = standardRetryConfig): Stream[F, Unit] =
+                   retryConfig: RetryConfig = standardRetryConfig
+  ): Stream[F, Unit] =
     insertBucket(billingProject, bucketName, acl, Map.empty, traceId)
 
   def getBucket(googleProject: GoogleProject,
                 bucketName: GcsBucketName,
                 bucketGetOptions: List[BucketGetOption] = List.empty,
-                traceId: Option[TraceId] = None): F[Option[Bucket]]
+                traceId: Option[TraceId] = None
+  ): F[Option[Bucket]]
 
   /**
    * @param googleProject The name of the Google project to create the bucket in
@@ -218,7 +236,8 @@ trait GoogleStorageService[F[_]] {
                    traceId: Option[TraceId] = None,
                    bucketPolicyOnlyEnabled: Boolean = false,
                    logBucket: Option[GcsBucketName] = None,
-                   retryConfig: RetryConfig = standardRetryConfig): Stream[F, Unit]
+                   retryConfig: RetryConfig = standardRetryConfig
+  ): Stream[F, Unit]
 
   /**
    * @param googleProject The name of the Google project to create the bucket in
@@ -230,7 +249,8 @@ trait GoogleStorageService[F[_]] {
                    isRecursive: Boolean = false,
                    bucketSourceOptions: List[BucketSourceOption] = List.empty,
                    traceId: Option[TraceId] = None,
-                   retryConfig: RetryConfig = standardRetryConfig): Stream[F, Boolean]
+                   retryConfig: RetryConfig = standardRetryConfig
+  ): Stream[F, Boolean]
 
   /**
    * @param traceId uuid for tracing a unique call flow in logging
@@ -238,12 +258,14 @@ trait GoogleStorageService[F[_]] {
   def setBucketPolicyOnly(bucketName: GcsBucketName,
                           bucketPolicyOnlyEnabled: Boolean,
                           traceId: Option[TraceId] = None,
-                          retryConfig: RetryConfig = standardRetryConfig): Stream[F, Unit]
+                          retryConfig: RetryConfig = standardRetryConfig
+  ): Stream[F, Unit]
 
   def setBucketLabels(bucketName: GcsBucketName,
                       labels: Map[String, String],
                       traceId: Option[TraceId] = None,
-                      retryConfig: RetryConfig = standardRetryConfig): Stream[F, Unit]
+                      retryConfig: RetryConfig = standardRetryConfig
+  ): Stream[F, Unit]
 
   /**
    * @param traceId uuid for tracing a unique call flow in logging
@@ -251,11 +273,13 @@ trait GoogleStorageService[F[_]] {
   def setIamPolicy(bucketName: GcsBucketName,
                    roles: Map[StorageRole, NonEmptyList[Identity]],
                    traceId: Option[TraceId] = None,
-                   retryConfig: RetryConfig = standardRetryConfig): Stream[F, Unit]
+                   retryConfig: RetryConfig = standardRetryConfig
+  ): Stream[F, Unit]
 
   def getIamPolicy(bucketName: GcsBucketName,
                    traceId: Option[TraceId] = None,
-                   retryConfig: RetryConfig = standardRetryConfig): Stream[F, Policy]
+                   retryConfig: RetryConfig = standardRetryConfig
+  ): Stream[F, Policy]
 }
 
 object GoogleStorageService {

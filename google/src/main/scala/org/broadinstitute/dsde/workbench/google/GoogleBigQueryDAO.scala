@@ -11,7 +11,8 @@ trait GoogleBigQueryDAO {
   def startParameterizedQuery(project: GoogleProject,
                               querySql: String,
                               queryParameters: List[QueryParameter],
-                              parameterMode: String): Future[JobReference]
+                              parameterMode: String
+  ): Future[JobReference]
 
   def getQueryStatus(jobRef: JobReference): Future[Job]
 

@@ -34,8 +34,7 @@ object GooglePubSubManualTest {
   def publish() = {
     val config = PublisherConfig(
       path,
-      projectTopicName,
-      org.broadinstitute.dsde.workbench.google2.GoogleTopicAdminInterpreter.defaultRetryConfig
+      projectTopicName
     )
     val pub = GooglePublisher.resource[IO](config)
     pub.use(x => (Stream.eval(IO.pure("yes")) through x.publish).compile.drain)

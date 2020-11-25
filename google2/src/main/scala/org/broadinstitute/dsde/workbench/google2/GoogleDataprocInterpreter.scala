@@ -39,15 +39,14 @@ private[google2] class GoogleDataprocInterpreter[F[_]: StructuredLogger: Timer: 
     createClusterConfig: Option[CreateClusterConfig]
   )(implicit ev: Ask[F, TraceId]): F[CreateClusterResponse] = {
     val config: ClusterConfig = createClusterConfig
-      .map(
-        config =>
-          ClusterConfig.newBuilder
-            .setGceClusterConfig(config.gceClusterConfig)
-            .setInitializationActions(0, config.nodeInitializationAction)
-            .setMasterConfig(config.instanceGroupConfig)
-            .setConfigBucket(config.stagingBucket.value)
-            .setSoftwareConfig(config.softwareConfig)
-            .build()
+      .map(config =>
+        ClusterConfig.newBuilder
+          .setGceClusterConfig(config.gceClusterConfig)
+          .setInitializationActions(0, config.nodeInitializationAction)
+          .setMasterConfig(config.instanceGroupConfig)
+          .setConfigBucket(config.stagingBucket.value)
+          .setSoftwareConfig(config.softwareConfig)
+          .build()
       )
       .getOrElse(ClusterConfig.newBuilder.build())
 
@@ -99,20 +98,22 @@ private[google2] class GoogleDataprocInterpreter[F[_]: StructuredLogger: Timer: 
   override def stopCluster(project: GoogleProject,
                            region: RegionName,
                            clusterName: DataprocClusterName,
-                           metadata: Option[Map[String, String]])(
-    implicit ev: Ask[F, TraceId]
+                           metadata: Option[Map[String, String]]
+  )(implicit
+    ev: Ask[F, TraceId]
   ): F[List[Operation]] =
     for {
       clusterInstances <- getClusterInstances(project, region, clusterName)
 
       // First, remove preemptible instances (if any) and wait until the removal is done
-      remainingClusterInstances <- if (containsPreemptibles(clusterInstances))
-        resizeCluster(project, region, clusterName, numWorkers = None, numPreemptibles = Some(0)) >> streamFUntilDone(
-          getClusterInstances(project, region, clusterName),
-          15,
-          6 seconds
-        ).compile.lastOrError
-      else F.pure(clusterInstances)
+      remainingClusterInstances <-
+        if (containsPreemptibles(clusterInstances))
+          resizeCluster(project, region, clusterName, numWorkers = None, numPreemptibles = Some(0)) >> streamFUntilDone(
+            getClusterInstances(project, region, clusterName),
+            15,
+            6 seconds
+          ).compile.lastOrError
+        else F.pure(clusterInstances)
 
       // Then, wait until the cluster's status transitions back to RUNNING (from UPDATING)
       // Otherwise, stopping the remaining instances may cause the cluster to get in to ERROR status
@@ -144,8 +145,9 @@ private[google2] class GoogleDataprocInterpreter[F[_]: StructuredLogger: Timer: 
                              region: RegionName,
                              clusterName: DataprocClusterName,
                              numWorkers: Option[Int],
-                             numPreemptibles: Option[Int])(
-    implicit ev: Ask[F, TraceId]
+                             numPreemptibles: Option[Int]
+  )(implicit
+    ev: Ask[F, TraceId]
   ): F[Option[ClusterOperationMetadata]] = {
     val workerMask = "config.worker_config.num_instances"
     val preemptibleMask = "config.secondary_worker_config.num_instances"
@@ -177,22 +179,21 @@ private[google2] class GoogleDataprocInterpreter[F[_]: StructuredLogger: Timer: 
         None
     }
 
-    val updateClusterRequest = configAndMask.map {
-      case (config, mask) =>
-        val cluster = Cluster
-          .newBuilder()
-          .setClusterName(clusterName.value)
-          .setConfig(config)
-          .build()
+    val updateClusterRequest = configAndMask.map { case (config, mask) =>
+      val cluster = Cluster
+        .newBuilder()
+        .setClusterName(clusterName.value)
+        .setConfig(config)
+        .build()
 
-        UpdateClusterRequest
-          .newBuilder()
-          .setClusterName(clusterName.value)
-          .setCluster(cluster)
-          .setRegion(region.value)
-          .setProjectId(project.value)
-          .setUpdateMask(mask)
-          .build()
+      UpdateClusterRequest
+        .newBuilder()
+        .setClusterName(clusterName.value)
+        .setCluster(cluster)
+        .setRegion(region.value)
+        .setProjectId(project.value)
+        .setUpdateMask(mask)
+        .build()
     }
 
     val updateCluster = updateClusterRequest
@@ -221,8 +222,8 @@ private[google2] class GoogleDataprocInterpreter[F[_]: StructuredLogger: Timer: 
     } yield res
   }
 
-  override def deleteCluster(project: GoogleProject, region: RegionName, clusterName: DataprocClusterName)(
-    implicit ev: Ask[F, TraceId]
+  override def deleteCluster(project: GoogleProject, region: RegionName, clusterName: DataprocClusterName)(implicit
+    ev: Ask[F, TraceId]
   ): F[Option[ClusterOperationMetadata]] = {
     val request = DeleteClusterRequest
       .newBuilder()
@@ -255,8 +256,8 @@ private[google2] class GoogleDataprocInterpreter[F[_]: StructuredLogger: Timer: 
     } yield res
   }
 
-  override def getCluster(project: GoogleProject, region: RegionName, clusterName: DataprocClusterName)(
-    implicit ev: Ask[F, TraceId]
+  override def getCluster(project: GoogleProject, region: RegionName, clusterName: DataprocClusterName)(implicit
+    ev: Ask[F, TraceId]
   ): F[Option[Cluster]] = {
     val fa =
       F.delay(clusterControllerClient.getCluster(project.value, region.value, clusterName.value))
@@ -329,14 +330,14 @@ object GoogleDataprocInterpreter {
   }
 
   def containsPreemptibles(instances: Map[DataprocRoleZonePreemptibility, Set[InstanceName]]): Boolean =
-    instances.exists {
-      case (DataprocRoleZonePreemptibility(_, _, isPreemptible), instanceNames) =>
-        isPreemptible && instanceNames.nonEmpty
+    instances.exists { case (DataprocRoleZonePreemptibility(_, _, isPreemptible), instanceNames) =>
+      isPreemptible && instanceNames.nonEmpty
     }
 
   private def getFromGroup(role: DataprocRole,
                            groupConfig: InstanceGroupConfig,
-                           zone: ZoneName): Map[DataprocRoleZonePreemptibility, Set[InstanceName]] = {
+                           zone: ZoneName
+  ): Map[DataprocRoleZonePreemptibility, Set[InstanceName]] = {
     val instances = groupConfig.getInstanceNamesList
       .asByteStringList()
       .asScala

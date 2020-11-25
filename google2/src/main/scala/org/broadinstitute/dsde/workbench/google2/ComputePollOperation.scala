@@ -23,28 +23,29 @@ trait ComputePollOperation[F[_]] {
   implicit def timer: Timer[F]
   implicit def F: Concurrent[F]
 
-  def getZoneOperation(project: GoogleProject, zoneName: ZoneName, operationName: OperationName)(
-    implicit ev: Ask[F, TraceId]
+  def getZoneOperation(project: GoogleProject, zoneName: ZoneName, operationName: OperationName)(implicit
+    ev: Ask[F, TraceId]
   ): F[Operation]
 
-  def getRegionOperation(project: GoogleProject, regionName: RegionName, operationName: OperationName)(
-    implicit ev: Ask[F, TraceId]
+  def getRegionOperation(project: GoogleProject, regionName: RegionName, operationName: OperationName)(implicit
+    ev: Ask[F, TraceId]
   ): F[Operation]
 
-  def getGlobalOperation(project: GoogleProject, operationName: OperationName)(
-    implicit ev: Ask[F, TraceId]
+  def getGlobalOperation(project: GoogleProject, operationName: OperationName)(implicit
+    ev: Ask[F, TraceId]
   ): F[Operation]
 
   def pollOperation[A](project: GoogleProject,
                        operation: Operation,
                        delay: FiniteDuration,
                        maxAttempts: Int,
-                       haltWhenTrue: Option[Stream[F, Boolean]])(
+                       haltWhenTrue: Option[Stream[F, Boolean]]
+  )(
     whenDone: F[A],
     whenTimeout: F[A],
     whenInterrupted: F[A]
-  )(
-    implicit ev: Ask[F, TraceId]
+  )(implicit
+    ev: Ask[F, TraceId]
   ): F[A] =
     // TODO: once a newer version of the Java Compute SDK is released investigate using
     // the operation `wait` API instead of polling `get`. See:
@@ -78,8 +79,8 @@ trait ComputePollOperation[F[_]] {
     delay: FiniteDuration,
     maxAttempts: Int,
     haltWhenTrue: Option[Stream[F, Boolean]]
-  )(whenDone: F[A], whenTimeout: F[A], whenInterrupted: F[A])(
-    implicit ev: Ask[F, TraceId]
+  )(whenDone: F[A], whenTimeout: F[A], whenInterrupted: F[A])(implicit
+    ev: Ask[F, TraceId]
   ): F[A] = {
     val op = getZoneOperation(project, zoneName, operationName)
     pollHelper(op, maxAttempts, delay, haltWhenTrue)(whenDone, whenTimeout, whenInterrupted)
@@ -92,8 +93,8 @@ trait ComputePollOperation[F[_]] {
     delay: FiniteDuration,
     maxAttempts: Int,
     haltWhenTrue: Option[Stream[F, Boolean]]
-  )(whenDone: F[A], whenTimeout: F[A], whenInterrupted: F[A])(
-    implicit ev: Ask[F, TraceId]
+  )(whenDone: F[A], whenTimeout: F[A], whenInterrupted: F[A])(implicit
+    ev: Ask[F, TraceId]
   ): F[A] = {
     val op = getRegionOperation(project, regionName, operationName)
     pollHelper(op, maxAttempts, delay, haltWhenTrue)(whenDone, whenTimeout, whenInterrupted)
@@ -105,8 +106,8 @@ trait ComputePollOperation[F[_]] {
     delay: FiniteDuration,
     maxAttempts: Int,
     haltWhenTrue: Option[Stream[F, Boolean]]
-  )(whenDone: F[A], whenTimeout: F[A], whenInterrupted: F[A])(
-    implicit ev: Ask[F, TraceId]
+  )(whenDone: F[A], whenTimeout: F[A], whenInterrupted: F[A])(implicit
+    ev: Ask[F, TraceId]
   ): F[A] = {
     val op = getGlobalOperation(project, operationName)
     pollHelper(op, maxAttempts, delay, haltWhenTrue)(whenDone, whenTimeout, whenInterrupted)
@@ -128,25 +129,26 @@ trait ComputePollOperation[F[_]] {
         case None =>
           streamFUntilDone[F, Operation](op, maxAttempts, delay).compile.lastOrError
       }
-      res <- if (op.isDone) {
-        if (op.getError == null)
-          whenDone
-        else F.raiseError(PollError(op))
-      } else {
-        haltWhenTrue match {
-          case Some(signal) =>
-            signal.head.compile.last
-              .flatMap { head =>
-                // If stream is interrupted, then at this point, haltWhenTrue will be either empty or contains `true`;
-                // If stream is never interrupted, then haltWhenTrue will always have value since it should an infinite stream
-                if (head.isEmpty || head.exists(identity))
-                  whenInterrupted
-                else whenTimeout
-              }
-          case None =>
-            whenTimeout
+      res <-
+        if (op.isDone) {
+          if (op.getError == null)
+            whenDone
+          else F.raiseError(PollError(op))
+        } else {
+          haltWhenTrue match {
+            case Some(signal) =>
+              signal.head.compile.last
+                .flatMap { head =>
+                  // If stream is interrupted, then at this point, haltWhenTrue will be either empty or contains `true`;
+                  // If stream is never interrupted, then haltWhenTrue will always have value since it should an infinite stream
+                  if (head.isEmpty || head.exists(identity))
+                    whenInterrupted
+                  else whenTimeout
+                }
+            case None =>
+              whenTimeout
+          }
         }
-      }
     } yield res
 }
 
@@ -190,7 +192,8 @@ object ComputePollOperation {
                                                    regionOperationClient,
                                                    globalOperationClient,
                                                    blocker,
-                                                   blockerBound)
+                                                   blockerBound
+    )
   }
 }
 

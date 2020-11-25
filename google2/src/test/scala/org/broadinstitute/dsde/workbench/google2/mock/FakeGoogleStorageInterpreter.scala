@@ -22,7 +22,8 @@ class BaseFakeGoogleStorage extends GoogleStorageService[IO] {
                                      isRecursive: Boolean,
                                      maxPageSize: Long = 1000,
                                      traceId: Option[TraceId] = None,
-                                     retryConfig: RetryConfig): fs2.Stream[IO, GcsObjectName] =
+                                     retryConfig: RetryConfig
+  ): fs2.Stream[IO, GcsObjectName] =
     localStorage.listObjectsWithPrefix(bucketName, objectNamePrefix, isRecursive)
 
   override def listBlobsWithPrefix(bucketName: GcsBucketName,
@@ -30,55 +31,64 @@ class BaseFakeGoogleStorage extends GoogleStorageService[IO] {
                                    isRecursive: Boolean,
                                    maxPageSize: Long = 1000,
                                    traceId: Option[TraceId] = None,
-                                   retryConfig: RetryConfig): fs2.Stream[IO, Blob] =
+                                   retryConfig: RetryConfig
+  ): fs2.Stream[IO, Blob] =
     localStorage.listBlobsWithPrefix(bucketName, objectNamePrefix, isRecursive)
 
   override def unsafeGetBlobBody(bucketName: GcsBucketName,
                                  blobName: GcsBlobName,
                                  traceId: Option[TraceId] = None,
-                                 retryConfig: RetryConfig): IO[Option[String]] =
+                                 retryConfig: RetryConfig
+  ): IO[Option[String]] =
     localStorage.unsafeGetBlobBody(bucketName, blobName)
 
   override def setBucketLifecycle(bucketName: GcsBucketName,
                                   lifecycleRules: List[BucketInfo.LifecycleRule],
                                   traceId: Option[TraceId] = None,
-                                  retryConfig: RetryConfig): Stream[IO, Unit] = Stream.empty
+                                  retryConfig: RetryConfig
+  ): Stream[IO, Unit] = Stream.empty
 
   override def getBlobBody(bucketName: GcsBucketName,
                            blobName: GcsBlobName,
                            traceId: Option[TraceId] = None,
-                           retryConfig: RetryConfig): Stream[IO, Byte] =
+                           retryConfig: RetryConfig
+  ): Stream[IO, Byte] =
     localStorage.getBlobBody(bucketName, blobName, traceId)
 
   override def getBlob(bucketName: GcsBucketName,
                        blobName: GcsBlobName,
                        credentials: Option[Credentials] = None,
                        traceId: Option[TraceId] = None,
-                       retryConfig: RetryConfig): Stream[IO, Blob] =
+                       retryConfig: RetryConfig
+  ): Stream[IO, Blob] =
     localStorage.getBlob(bucketName, blobName, credentials, traceId)
 
   override def downloadObject(blobId: BlobId,
                               path: Path,
                               traceId: Option[TraceId] = None,
-                              retryConfig: RetryConfig): Stream[IO, Unit] = Stream.eval(IO.unit)
+                              retryConfig: RetryConfig
+  ): Stream[IO, Unit] = Stream.eval(IO.unit)
 
   override def getObjectMetadata(bucketName: GcsBucketName,
                                  blobName: GcsBlobName,
                                  traceId: Option[TraceId],
-                                 retryConfig: RetryConfig): Stream[IO, GetMetadataResponse] =
+                                 retryConfig: RetryConfig
+  ): Stream[IO, GetMetadataResponse] =
     localStorage.getObjectMetadata(bucketName, blobName, traceId)
 
   override def setObjectMetadata(bucketName: GcsBucketName,
                                  objectName: GcsBlobName,
                                  metadata: Map[String, String],
                                  traceId: Option[TraceId],
-                                 retryConfig: RetryConfig): Stream[IO, Unit] = Stream.eval(IO.unit)
+                                 retryConfig: RetryConfig
+  ): Stream[IO, Unit] = Stream.eval(IO.unit)
 
   override def removeObject(bucketName: GcsBucketName,
                             blobName: GcsBlobName,
                             generation: Option[Long],
                             traceId: Option[TraceId] = None,
-                            retryConfig: RetryConfig): Stream[IO, RemoveObjectResult] =
+                            retryConfig: RetryConfig
+  ): Stream[IO, RemoveObjectResult] =
     localStorage.removeObject(bucketName, blobName).as(RemoveObjectResult.Removed)
 
   override def insertBucket(googleProject: GoogleProject,
@@ -88,30 +98,35 @@ class BaseFakeGoogleStorage extends GoogleStorageService[IO] {
                             traceId: Option[TraceId] = None,
                             bucketPolicyOnlyEnabled: Boolean = false,
                             logBucket: Option[GcsBucketName] = None,
-                            retryConfig: RetryConfig): Stream[IO, Unit] = Stream.empty
+                            retryConfig: RetryConfig
+  ): Stream[IO, Unit] = Stream.empty
 
   override def deleteBucket(googleProject: GoogleProject,
                             bucketName: GcsBucketName,
                             isRecursive: Boolean,
                             bucketSourceOptions: List[BucketSourceOption] = List.empty,
                             traceId: Option[TraceId] = None,
-                            retryConfig: RetryConfig = standardRetryConfig): Stream[IO, Boolean] =
+                            retryConfig: RetryConfig = standardRetryConfig
+  ): Stream[IO, Boolean] =
     Stream.emit(true).covary[IO]
 
   override def setBucketPolicyOnly(bucketName: GcsBucketName,
                                    bucketOnlyPolicyEnabled: Boolean,
                                    traceId: Option[TraceId] = None,
-                                   retryConfig: RetryConfig): Stream[IO, Unit] = Stream.empty
+                                   retryConfig: RetryConfig
+  ): Stream[IO, Unit] = Stream.empty
 
   override def setBucketLabels(bucketName: GcsBucketName,
                                labels: Map[String, String],
                                traceId: Option[TraceId] = None,
-                               retryConfig: RetryConfig): Stream[IO, Unit] = Stream.empty
+                               retryConfig: RetryConfig
+  ): Stream[IO, Unit] = Stream.empty
 
   override def setIamPolicy(bucketName: GcsBucketName,
                             roles: Map[StorageRole, NonEmptyList[Identity]],
                             traceId: Option[TraceId] = None,
-                            retryConfig: RetryConfig): Stream[IO, Unit] = Stream.empty
+                            retryConfig: RetryConfig
+  ): Stream[IO, Unit] = Stream.empty
 
   override def createBlob(bucketName: GcsBucketName,
                           objectName: GcsBlobName,
@@ -120,12 +135,14 @@ class BaseFakeGoogleStorage extends GoogleStorageService[IO] {
                           metadata: Map[String, String],
                           generation: Option[Long],
                           traceId: Option[TraceId],
-                          retryConfig: RetryConfig): Stream[IO, Blob] =
+                          retryConfig: RetryConfig
+  ): Stream[IO, Blob] =
     localStorage.createBlob(bucketName, objectName, objectContents, objectType, metadata, generation, traceId)
 
   override def getIamPolicy(bucketName: GcsBucketName,
                             traceId: Option[TraceId],
-                            retryConfig: RetryConfig): Stream[IO, Policy] =
+                            retryConfig: RetryConfig
+  ): Stream[IO, Policy] =
     localStorage.getIamPolicy(bucketName, traceId)
 
   override def streamUploadBlob(bucketName: GcsBucketName,
@@ -133,13 +150,15 @@ class BaseFakeGoogleStorage extends GoogleStorageService[IO] {
                                 metadata: Map[String, String],
                                 generation: Option[Long],
                                 overwrite: Boolean,
-                                traceId: Option[TraceId]): Pipe[IO, Byte, Unit] =
+                                traceId: Option[TraceId]
+  ): Pipe[IO, Byte, Unit] =
     localStorage.streamUploadBlob(bucketName, objectName, metadata, generation, overwrite, traceId)
 
   override def getBucket(googleProject: GoogleProject,
                          bucketName: GcsBucketName,
                          bucketGetOptions: List[Storage.BucketGetOption],
-                         traceId: Option[TraceId]): IO[Option[Bucket]] = IO.pure(None)
+                         traceId: Option[TraceId]
+  ): IO[Option[Bucket]] = IO.pure(None)
 }
 
 object FakeGoogleStorageInterpreter extends BaseFakeGoogleStorage

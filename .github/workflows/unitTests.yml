@@ -1,0 +1,36 @@
+name: Unit Tests
+
+on:
+  pull_request:
+    branches:
+      - develop
+
+jobs:
+  test:
+    runs-on: Ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up pubsub emulator
+        run: |
+          docker run --name pubsub-emulator -d -p 8085:8085 -ti google/cloud-sdk:290.0.1 gcloud beta emulators pubsub start --host-port 0.0.0.0:8085
+      - name: Setup Scala
+        uses: olafurpg/setup-scala@v10
+        with:
+          java-version: "adopt@1.8"
+      - name: Compile and check scalafmt
+        run: sbt -Denv.type=test clean "test:compile" scalafmtCheckAll
+      - name: Build and test
+        run: sbt -Dfile.encoding=UTF-8 clean coverage +test coverageReport
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v1
+        with:
+          fail_ci_if_error: true
+          token: ${{ secrets.CODECOV_TOKEN }}
+      - name: Setup Cache
+        uses: coursier/cache-action@v5
+      - name: Cache resources
+        run: |
+          rm -rf "$HOME/.ivy2/local" || true
+          find $HOME/.ivy2/cache                       -name "ivydata-*.properties" -delete || true
+          find $HOME/.cache/coursier/v1                -name "ivydata-*.properties" -delete || true
+          find $HOME/.sbt                              -name "*.lock"               -delete || true

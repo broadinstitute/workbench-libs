@@ -20,24 +20,24 @@ import scala.collection.JavaConverters._
  * Algebra for Google Disk access.
  */
 trait GoogleDiskService[F[_]] {
-  def createDisk(project: GoogleProject, zone: ZoneName, disk: Disk)(
-    implicit ev: Ask[F, TraceId]
+  def createDisk(project: GoogleProject, zone: ZoneName, disk: Disk)(implicit
+    ev: Ask[F, TraceId]
   ): F[Option[Operation]]
 
-  def deleteDisk(project: GoogleProject, zone: ZoneName, diskName: DiskName)(
-    implicit ev: Ask[F, TraceId]
+  def deleteDisk(project: GoogleProject, zone: ZoneName, diskName: DiskName)(implicit
+    ev: Ask[F, TraceId]
   ): F[Option[Operation]]
 
-  def getDisk(project: GoogleProject, zone: ZoneName, diskName: DiskName)(
-    implicit ev: Ask[F, TraceId]
+  def getDisk(project: GoogleProject, zone: ZoneName, diskName: DiskName)(implicit
+    ev: Ask[F, TraceId]
   ): F[Option[Disk]]
 
-  def listDisks(project: GoogleProject, zone: ZoneName)(
-    implicit ev: Ask[F, TraceId]
+  def listDisks(project: GoogleProject, zone: ZoneName)(implicit
+    ev: Ask[F, TraceId]
   ): Stream[F, Disk]
 
-  def resizeDisk(project: GoogleProject, zone: ZoneName, diskName: DiskName, newSizeGb: Int)(
-    implicit ev: Ask[F, TraceId]
+  def resizeDisk(project: GoogleProject, zone: ZoneName, diskName: DiskName, newSizeGb: Int)(implicit
+    ev: Ask[F, TraceId]
   ): F[Operation]
 }
 
