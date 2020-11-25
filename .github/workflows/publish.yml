@@ -36,6 +36,6 @@ jobs:
 
           # The message for the commit
           # Default: 'Commit from GitHub Actions (name of the workflow)'
-#          message: 'Auto update hash in ${f} to ${HASH}'
+#          message:
         env:
           GITHUB_TOKEN: ${{ secrets.BROADBOT_GITHUB_TOKEN }}
