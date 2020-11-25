@@ -114,7 +114,6 @@ private[google2] class GoogleDataprocInterpreter[F[_]: StructuredLogger: Timer: 
         ).compile.lastOrError
       else F.pure(clusterInstances)
 
-      // TODO Move into the if-clause above
       // Then, wait until the cluster's status transitions back to RUNNING (from UPDATING)
       // Otherwise, stopping the remaining instances may cause the cluster to get in to ERROR status
       _ <- streamFUntilDone(getCluster(project, region, clusterName), 15, 3 seconds).compile.lastOrError
@@ -150,8 +149,6 @@ private[google2] class GoogleDataprocInterpreter[F[_]: StructuredLogger: Timer: 
   ): F[Option[ClusterOperationMetadata]] = {
     val workerMask = "config.worker_config.num_instances"
     val preemptibleMask = "config.secondary_worker_config.num_instances"
-
-    println("\n\n RESIZING \n")
 
     val configAndMask = (numWorkers, numPreemptibles) match {
       case (Some(nw), Some(np)) =>
@@ -261,8 +258,6 @@ private[google2] class GoogleDataprocInterpreter[F[_]: StructuredLogger: Timer: 
   override def getCluster(project: GoogleProject, region: RegionName, clusterName: DataprocClusterName)(
     implicit ev: Ask[F, TraceId]
   ): F[Option[Cluster]] = {
-    println(s"\n\ngetCluster\n")
-
     val fa =
       F.delay(clusterControllerClient.getCluster(project.value, region.value, clusterName.value))
         .map(Option(_))
@@ -311,8 +306,6 @@ object GoogleDataprocInterpreter {
   // Incorrectness in this function can cause leonardo fail to stop all instances for a Dataproc cluster, which
   // incurs compute cost for users
   def getAllInstanceNames(cluster: Cluster): Map[DataprocRoleZonePreemptibility, Set[InstanceName]] = {
-    println(s"\n\n getAllInstanceNames()\n")
-
     val res = Option(cluster.getConfig).map { config =>
       val zoneUri = config.getGceClusterConfig.getZoneUri
       val zone = ZoneName.fromUri(zoneUri).getOrElse(ZoneName(""))

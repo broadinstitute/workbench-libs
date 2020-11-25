@@ -163,12 +163,8 @@ object DoneCheckableInstances {
   }
 
   implicit val clusterRunningCheckable = new DoneCheckable[Option[com.google.cloud.dataproc.v1.Cluster]] {
-    def isDone(cluster: Option[Cluster]): Boolean = {
-
-      println(s"\n\nCluster status is ${cluster.get.getStatus}\n")
-
+    def isDone(cluster: Option[Cluster]): Boolean =
       cluster.exists(_.getStatus.getState.toString == "RUNNING")
-    }
   }
 }
 
