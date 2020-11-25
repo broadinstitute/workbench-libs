@@ -26,7 +26,7 @@ Update guava to 30.0-jre (#390)
 Update `io.kubernetes client-java` to `5.0.0` to `10.0.0` (This has some breaking changes)
 ```
       
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.17-13fdba5"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.17-TRAVIS-REPLACE-ME"`
 
 ## 0.16
 
