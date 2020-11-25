@@ -12,12 +12,13 @@ import com.google.cloud.dataproc.v1.{RegionName => _, _}
 import com.google.common.util.concurrent.MoreExecutors
 import com.google.protobuf.FieldMask
 import io.chrisdavenport.log4cats.StructuredLogger
-import org.broadinstitute.dsde.workbench.{DoneCheckable, RetryConfig}
-import org.broadinstitute.dsde.workbench.google2.DataprocRole.{Master, SecondaryWorker, Worker}
+import org.broadinstitute.dsde.workbench.DoneCheckableInstances.{clusterRunningCheckable, resizingDoneCheckable}
+import org.broadinstitute.dsde.workbench.RetryConfig
+import org.broadinstitute.dsde.workbench.google2.DataprocRole.Master
 import org.broadinstitute.dsde.workbench.google2.util.RetryPredicates._
 import org.broadinstitute.dsde.workbench.model.TraceId
 import org.broadinstitute.dsde.workbench.model.google.GoogleProject
-import org.broadinstitute.dsde.workbench.google2.GoogleDataprocInterpreter.{containsPreemptibles, _}
+import org.broadinstitute.dsde.workbench.google2.GoogleDataprocInterpreter.{containsPreemptibles, getAllInstanceNames}
 
 import scala.concurrent.duration._
 import scala.jdk.CollectionConverters._
@@ -100,16 +101,11 @@ private[google2] class GoogleDataprocInterpreter[F[_]: StructuredLogger: Timer: 
                            clusterName: DataprocClusterName,
                            metadata: Option[Map[String, String]])(
     implicit ev: Ask[F, TraceId]
-  ): F[List[Operation]] = {
-    implicit val resizingDoneCheckable = new DoneCheckable[Map[DataprocRoleZonePreemptibility, Set[InstanceName]]] {
-      def isDone(instances: Map[DataprocRoleZonePreemptibility, Set[InstanceName]]): Boolean =
-        !containsPreemptibles(instances)
-    }
-
+  ): F[List[Operation]] =
     for {
       clusterInstances <- getClusterInstances(project, region, clusterName)
 
-      // First, remove any preemptible instances and wait until that is done
+      // First, remove preemptible instances (if any) and wait until the removal is done
       remainingClusterInstances <- if (containsPreemptibles(clusterInstances))
         resizeCluster(project, region, clusterName, numWorkers = None, numPreemptibles = Some(0)) >> streamFUntilDone(
           getClusterInstances(project, region, clusterName),
@@ -118,11 +114,16 @@ private[google2] class GoogleDataprocInterpreter[F[_]: StructuredLogger: Timer: 
         ).compile.lastOrError
       else F.pure(clusterInstances)
 
+      // TODO Move into the if-clause above
+      // Then, wait until the cluster's status transitions back to RUNNING (from UPDATING)
+      // Otherwise, stopping the remaining instances may cause the cluster to get in to ERROR status
+      _ <- streamFUntilDone(getCluster(project, region, clusterName), 15, 3 seconds).compile.lastOrError
+
       // Then, stop each remaining instance individually
       operations <- remainingClusterInstances.toList.parFlatTraverse {
         case (DataprocRoleZonePreemptibility(role, zone, _), instances) =>
           instances.toList.parTraverse { instance =>
-            val operation = role match {
+            (role match {
               case Master if metadata.nonEmpty =>
                 googleComputeService.addInstanceMetadata(
                   project,
@@ -132,15 +133,13 @@ private[google2] class GoogleDataprocInterpreter[F[_]: StructuredLogger: Timer: 
                 ) >> googleComputeService.stopInstance(project, zone, instance)
               case _ =>
                 googleComputeService.stopInstance(project, zone, instance)
-            }
-            operation.recoverWith {
+            }).recoverWith {
               case _: com.google.api.gax.rpc.NotFoundException => F.pure(Operation.getDefaultInstance)
               case e                                           => F.raiseError[Operation](e)
             }
           }
       }
     } yield operations
-  }
 
   override def resizeCluster(project: GoogleProject,
                              region: RegionName,
@@ -262,6 +261,8 @@ private[google2] class GoogleDataprocInterpreter[F[_]: StructuredLogger: Timer: 
   override def getCluster(project: GoogleProject, region: RegionName, clusterName: DataprocClusterName)(
     implicit ev: Ask[F, TraceId]
   ): F[Option[Cluster]] = {
+    println(s"\n\ngetCluster\n")
+
     val fa =
       F.delay(clusterControllerClient.getCluster(project.value, region.value, clusterName.value))
         .map(Option(_))
@@ -276,7 +277,7 @@ private[google2] class GoogleDataprocInterpreter[F[_]: StructuredLogger: Timer: 
           fa,
           Some(traceId),
           s"com.google.cloud.dataproc.v1.ClusterControllerClient.getCluster(${project.value}, ${region.value}, ${clusterName.value})",
-          Show.show[Option[Cluster]](c => s"${c.map(_.getStatus.toString).getOrElse("Not found")}")
+          Show.show[Option[Cluster]](c => s"${c.map(_.getStatus.getState.toString).getOrElse("Not found")}")
         )
       }
   }

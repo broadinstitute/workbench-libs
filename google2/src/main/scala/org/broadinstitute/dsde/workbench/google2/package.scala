@@ -12,11 +12,14 @@ import com.google.api.core.ApiFutureCallback
 import com.google.api.gax.core.BackgroundResource
 import com.google.api.services.container.ContainerScopes
 import com.google.auth.oauth2.{ServiceAccountCredentials, UserCredentials}
+import com.google.cloud.dataproc.v1.Cluster
 import fs2.{RaiseThrowable, Stream}
 import io.chrisdavenport.log4cats.StructuredLogger
 import io.circe.Encoder
 import org.broadinstitute.dsde.workbench.model.{ErrorReportSource, TraceId}
 import io.circe.syntax._
+import org.broadinstitute.dsde.workbench.google2.GoogleDataprocInterpreter.containsPreemptibles
+import org.broadinstitute.dsde.workbench.google2.{DataprocRoleZonePreemptibility, InstanceName}
 
 import scala.concurrent.duration._
 
@@ -152,6 +155,20 @@ object DoneCheckableInstances {
   }
   implicit val computeDoneCheckable = new DoneCheckable[com.google.cloud.compute.v1.Operation] {
     def isDone(op: com.google.cloud.compute.v1.Operation): Boolean = op.getStatus == "DONE"
+  }
+
+  implicit val resizingDoneCheckable = new DoneCheckable[Map[DataprocRoleZonePreemptibility, Set[InstanceName]]] {
+    def isDone(instances: Map[DataprocRoleZonePreemptibility, Set[InstanceName]]): Boolean =
+      !containsPreemptibles(instances)
+  }
+
+  implicit val clusterRunningCheckable = new DoneCheckable[Option[com.google.cloud.dataproc.v1.Cluster]] {
+    def isDone(cluster: Option[Cluster]): Boolean = {
+
+      println(s"\n\nCluster status is ${cluster.get.getStatus}\n")
+
+      cluster.exists(_.getStatus.getState.toString == "RUNNING")
+    }
   }
 }
 
