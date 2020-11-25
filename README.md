@@ -1,4 +1,5 @@
-[![Build Status](https://travis-ci.org/broadinstitute/workbench-libs.svg?branch=develop)](https://travis-ci.org/broadinstitute/workbench-libs)
+[![Build Status](https://github.com/broadinstitute/workbench-libs/workflows/Unit%20tests/badge.svg)](https://github.com/broadinstitute/workbench-libs/actions)
+[![codecov](https://codecov.io/gh/broadinstitute/workbench-libs/branch/develop/graph/badge.svg)](https://codecov.io/gh/broadinstitute/workbench-libs)
 
 # workbench-libs
 
