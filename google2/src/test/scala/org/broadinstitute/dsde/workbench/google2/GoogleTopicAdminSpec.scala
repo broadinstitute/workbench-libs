@@ -18,13 +18,11 @@ class GoogleTopicAdminSpec extends AnyFlatSpecLike with Matchers with WorkbenchT
     forAll { (topic: TopicName) =>
       val result = localTopicAdmin.use { topicAdmin =>
         val googleTopicAdmin =
-          new GoogleTopicAdminInterpreter[IO](topicAdmin, GoogleTopicAdminInterpreter.defaultRetryConfig)
-        val res = for {
+          new GoogleTopicAdminInterpreter[IO](topicAdmin)
+        for {
           _ <- googleTopicAdmin.create(topic)
-          t <- Stream.eval(IO(topicAdmin.getTopic(topic)))
+          t <- IO(topicAdmin.getTopic(topic))
         } yield t.getName shouldBe topic.toString
-
-        res.compile.lastOrError
       }
 
       result.unsafeRunSync()
@@ -35,16 +33,14 @@ class GoogleTopicAdminSpec extends AnyFlatSpecLike with Matchers with WorkbenchT
     forAll { (topic: TopicName) =>
       val result = localTopicAdmin.use { topicAdmin =>
         val googleTopicAdmin =
-          new GoogleTopicAdminInterpreter[IO](topicAdmin, GoogleTopicAdminInterpreter.defaultRetryConfig)
-        val res = for {
+          new GoogleTopicAdminInterpreter[IO](topicAdmin)
+        for {
           _ <- googleTopicAdmin.create(topic)
           _ <- googleTopicAdmin.delete(topic)
           caught = the[com.google.api.gax.rpc.NotFoundException] thrownBy {
             topicAdmin.getTopic(topic)
           }
         } yield (caught.getMessage should include("NOT_FOUND"))
-
-        res.compile.lastOrError
       }
 
       result.unsafeRunSync()

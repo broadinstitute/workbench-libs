@@ -1,7 +1,7 @@
 package org.broadinstitute.dsde.workbench.google2
 
 import collection.JavaConverters._
-import io.kubernetes.client.models.{
+import io.kubernetes.client.openapi.models.{
   V1Container,
   V1ContainerPort,
   V1Namespace,

@@ -51,9 +51,9 @@ object Dependencies {
   val googleIam: ModuleID =                  "com.google.apis"       % "google-api-services-iam"                  % s"v1-rev215-$googleV"
   val googleBigQuery: ModuleID =             "com.google.apis"       % "google-api-services-bigquery"             % s"v2-rev377-$googleV"
   val googleGuava: ModuleID = "com.google.guava"  % "guava" % "30.0-jre"
-  val googleRpc: ModuleID =               "io.grpc" % "grpc-core" % "1.33.1" //old google libraries relies on older version of grpc
+  val googleRpc: ModuleID =               "io.grpc" % "grpc-core" % "1.33.1"
 
-  val googleRpc2: ModuleID =               "io.grpc" % "grpc-core" % "1.28.1"
+  val googleRpc2: ModuleID =               "io.grpc" % "grpc-core" % "1.33.1"
   val googleFirestore: ModuleID = "com.google.cloud" % "google-cloud-firestore" % "2.1.0"
   val googleStorageNew: ModuleID = "com.google.cloud" % "google-cloud-storage" % "1.113.4"
   val googleStorageLocal: ModuleID = "com.google.cloud" % "google-cloud-nio" % "0.122.1" % "test"
@@ -62,7 +62,7 @@ object Dependencies {
   val googleDataproc: ModuleID =    "com.google.cloud" % "google-cloud-dataproc" % "1.1.7"
   val googleComputeNew: ModuleID = "com.google.cloud" % "google-cloud-compute" % "0.118.0-alpha"
   val googleContainer: ModuleID = "com.google.cloud" % "google-cloud-container" % "1.2.0"
-  val kubernetesClient: ModuleID = "io.kubernetes" % "client-java" % "5.0.0" % "compile"
+  val kubernetesClient: ModuleID = "io.kubernetes" % "client-java" % "10.0.0"
   val googleBigQueryNew: ModuleID = "com.google.cloud" % "google-cloud-bigquery" % "1.125.0"
   //the below v1 module is a dependency for v2 because it contains the OAuth scopes necessary to created scoped credentials
   val googleContainerV1: ModuleID = "com.google.apis" % "google-api-services-container" % "v1-rev20201007-1.30.10"

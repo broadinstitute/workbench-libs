@@ -76,7 +76,7 @@ package object google2 {
       result <- Sync[F].fromEither(attempted)
     } yield result
 
-  def tracedLogging[F[_]: Sync: Timer, A](fa: F[A], action: String)(implicit
+  def tracedLogging[F[_]: Timer: Sync, A](fa: F[A], action: String)(implicit
     logger: StructuredLogger[F],
     ev: Ask[F, TraceId]
   ): F[A] =

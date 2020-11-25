@@ -39,5 +39,5 @@ object GooglePublisher {
   ): Resource[F, GooglePublisher[F]] =
     for {
       publisher <- GooglePublisherInterpreter.publisher(config)
-    } yield GooglePublisherInterpreter(publisher, config.retryConfig)
+    } yield GooglePublisherInterpreter(publisher)
 }

@@ -13,8 +13,8 @@ import com.google.auth.oauth2.{AccessToken, GoogleCredentials}
 import com.google.common.cache.{CacheBuilder, CacheLoader}
 import com.google.container.v1.Cluster
 import io.chrisdavenport.log4cats.StructuredLogger
-import io.kubernetes.client.ApiClient
-import io.kubernetes.client.apis.{CoreV1Api, RbacAuthorizationV1Api}
+import io.kubernetes.client.openapi.ApiClient
+import io.kubernetes.client.openapi.apis.{CoreV1Api, RbacAuthorizationV1Api}
 import io.kubernetes.client.util.Config
 import org.broadinstitute.dsde.workbench.google2.GKEModels.KubernetesClusterId
 import org.broadinstitute.dsde.workbench.google2.JavaSerializableInstances._
@@ -101,7 +101,7 @@ class KubernetesInterpreter[F[_]: StructuredLogger: Effect: Timer: ContextShift]
       client <- blockingF(getClient(clusterId, new CoreV1Api(_)))
       call = blockingF(
         F.delay(
-          client.listNamespacedPod(namespace.name.value, null, "true", null, null, null, null, null, null, null)
+          client.listNamespacedPod(namespace.name.value, null, true, null, null, null, null, null, null, null)
         )
       )
       response <- withLogging(
@@ -161,11 +161,11 @@ class KubernetesInterpreter[F[_]: StructuredLogger: Effect: Timer: ContextShift]
       client <- blockingF(getClient(clusterId, new CoreV1Api(_)))
       call = blockingF(
         F.delay(
-          client.listNamespacedService(namespace.name.value, null, "true", null, null, null, null, null, null, null)
+          client.listNamespacedService(namespace.name.value, null, true, null, null, null, null, null, null, null)
         )
       ).map(Option(_)).handleErrorWith {
-        case e: io.kubernetes.client.ApiException if e.getCode == 404 => F.pure(None)
-        case e: Throwable                                             => F.raiseError(e)
+        case e: io.kubernetes.client.openapi.ApiException if e.getCode == 404 => F.pure(None)
+        case e: Throwable                                                     => F.raiseError(e)
       }
       responseOpt <- withLogging(
         call,
