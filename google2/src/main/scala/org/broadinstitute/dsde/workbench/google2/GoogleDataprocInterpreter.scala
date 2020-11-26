@@ -124,13 +124,15 @@ private[google2] class GoogleDataprocInterpreter[F[_]: StructuredLogger: Timer: 
         case (DataprocRoleZonePreemptibility(role, zone, _), instances) =>
           instances.toList.parTraverse { instance =>
             (role match {
-              case Master if metadata.nonEmpty =>
-                googleComputeService.addInstanceMetadata(
-                  project,
-                  zone,
-                  instance,
-                  metadata.get // safe to do here since we predicated that 'metadata' is non-empty
-                ) >> googleComputeService.stopInstance(project, zone, instance)
+              case Master =>
+                metadata.traverse { md =>
+                  googleComputeService.addInstanceMetadata(
+                    project,
+                    zone,
+                    instance,
+                    md
+                  )
+                } >> googleComputeService.stopInstance(project, zone, instance)
               case _ =>
                 googleComputeService.stopInstance(project, zone, instance)
             }).recoverWith {
