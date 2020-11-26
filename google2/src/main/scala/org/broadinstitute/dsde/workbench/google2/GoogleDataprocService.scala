@@ -16,7 +16,7 @@ import ca.mrvisser.sealerate
 import cats.Parallel
 import com.google.cloud.compute.v1.Operation
 
-import scala.jdk.CollectionConverters._
+import scala.collection.JavaConverters._
 
 /**
  * Algebra for Google Dataproc access

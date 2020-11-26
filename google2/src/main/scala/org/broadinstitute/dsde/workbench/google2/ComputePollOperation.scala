@@ -16,7 +16,7 @@ import org.broadinstitute.dsde.workbench.model.google.GoogleProject
 import org.broadinstitute.dsde.workbench.DoneCheckableInstances.computeDoneCheckable
 import org.broadinstitute.dsde.workbench.DoneCheckableSyntax._
 
-import scala.jdk.CollectionConverters._
+import scala.collection.JavaConverters._
 import scala.concurrent.duration.FiniteDuration
 
 trait ComputePollOperation[F[_]] {

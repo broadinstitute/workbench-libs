@@ -21,7 +21,7 @@ import org.broadinstitute.dsde.workbench.model.google.GoogleProject
 import org.broadinstitute.dsde.workbench.google2.GoogleDataprocInterpreter.{containsPreemptibles, getAllInstanceNames}
 
 import scala.concurrent.duration._
-import scala.jdk.CollectionConverters._
+import scala.collection.JavaConverters._
 
 private[google2] class GoogleDataprocInterpreter[F[_]: StructuredLogger: Timer: Parallel: ContextShift](
   clusterControllerClient: ClusterControllerClient,

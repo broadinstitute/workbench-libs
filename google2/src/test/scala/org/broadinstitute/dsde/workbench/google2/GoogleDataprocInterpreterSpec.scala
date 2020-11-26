@@ -6,7 +6,7 @@ import org.broadinstitute.dsde.workbench.util2.{PropertyBasedTesting, WorkbenchT
 import org.scalatest.flatspec.AnyFlatSpecLike
 import org.scalatest.matchers.should.Matchers
 
-import scala.jdk.CollectionConverters._
+import scala.collection.JavaConverters._
 
 class GoogleDataprocInterpreterSpec
     extends AnyFlatSpecLike
