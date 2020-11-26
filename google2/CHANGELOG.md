@@ -7,8 +7,8 @@ Added:
 - `GoogleDataprocInterpreter` can resize clusters and stop cluster VMs.
 
 Changed:
-- `GoogleDataprocInterpreter` requires a `GoogleComputeService` instance so it can stop and resize Dataproc
-cluster nodes.
+- [BREAKING] `GoogleDataprocInterpreter` requires a `GoogleComputeService` instance so it can stop and resize Dataproc
+cluster nodes. Note that this is a breaking change for existing `GoogleDataprocInterpreter` clients.
 
 ## 0.17
 Added:
