@@ -13,7 +13,8 @@ import org.broadinstitute.dsde.workbench.model.google.GoogleProject
 
 final class GoogleDataprocManualTest(pathToCredential: String,
                                      projectStr: String = "broad-dsde-dev",
-                                     regionStr: String = "us-central1") {
+                                     regionStr: String = "us-central1"
+) {
 
   import scala.concurrent.ExecutionContext.global
 
@@ -32,8 +33,8 @@ final class GoogleDataprocManualTest(pathToCredential: String,
 
   val dataprocServiceResource = GoogleComputeService
     .resource(pathToCredential, blocker, blockerBound)
-    .flatMap(
-      computeService => GoogleDataprocService.resource(computeService, pathToCredential, blocker, blockerBound, region)
+    .flatMap(computeService =>
+      GoogleDataprocService.resource(computeService, pathToCredential, blocker, blockerBound, region)
     )
 
   def callStopCluster(cluster: String): IO[List[Operation]] =
@@ -43,7 +44,8 @@ final class GoogleDataprocManualTest(pathToCredential: String,
 
   def callResizeCluster(cluster: String,
                         numWorkers: Option[Int],
-                        numPreemptibles: Option[Int]): IO[Option[ClusterOperationMetadata]] =
+                        numPreemptibles: Option[Int]
+  ): IO[Option[ClusterOperationMetadata]] =
     dataprocServiceResource.use { dataprocService =>
       dataprocService.resizeCluster(project, region, DataprocClusterName(cluster), numWorkers, numPreemptibles)
     }

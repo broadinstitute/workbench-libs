@@ -20,20 +20,22 @@ class BaseFakeGoogleDataprocService extends GoogleDataprocService[IO] {
   override def stopCluster(project: GoogleProject,
                            region: RegionName,
                            clusterName: DataprocClusterName,
-                           metadata: Option[Map[String, String]] = None)(
-    implicit ev: Ask[IO, TraceId]
+                           metadata: Option[Map[String, String]] = None
+  )(implicit
+    ev: Ask[IO, TraceId]
   ): IO[List[Operation]] = IO.pure(List.empty[Operation])
 
   override def resizeCluster(project: GoogleProject,
                              region: RegionName,
                              clusterName: DataprocClusterName,
                              numWorkers: Option[Int] = None,
-                             numPreemptibles: Option[Int] = None)(
-    implicit ev: Ask[IO, TraceId]
+                             numPreemptibles: Option[Int] = None
+  )(implicit
+    ev: Ask[IO, TraceId]
   ): IO[Option[ClusterOperationMetadata]] = IO.pure(none[ClusterOperationMetadata])
 
-  override def deleteCluster(project: GoogleProject, region: RegionName, clusterName: DataprocClusterName)(
-    implicit ev: Ask[IO, TraceId]
+  override def deleteCluster(project: GoogleProject, region: RegionName, clusterName: DataprocClusterName)(implicit
+    ev: Ask[IO, TraceId]
   ): IO[Option[ClusterOperationMetadata]] = IO.pure(none[ClusterOperationMetadata])
 
   override def getCluster(project: GoogleProject, region: RegionName, clusterName: DataprocClusterName)(implicit
