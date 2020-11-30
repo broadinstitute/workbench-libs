@@ -51,7 +51,7 @@ trait ComputePollOperation[F[_]] {
     // the operation `wait` API instead of polling `get`. See:
     // https://cloud.google.com/compute/docs/reference/rest/v1/zoneOperations/wait
     // https://github.com/googleapis/java-compute/commit/50cb4a98cb36fcd3bf4bdd5d16ab17f9d391bf98
-    (ZoneName.fromUri(operation.getZone), RegionName.fromUri(operation.getRegion)) match {
+    (ZoneName.fromUriString(operation.getZone), RegionName.fromUriString(operation.getRegion)) match {
       case (Some(zone), _) =>
         pollZoneOperation(project, zone, OperationName(operation.getName), delay, maxAttempts, haltWhenTrue)(
           whenDone,

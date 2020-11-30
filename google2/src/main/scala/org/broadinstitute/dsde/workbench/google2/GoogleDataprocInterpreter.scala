@@ -311,7 +311,7 @@ object GoogleDataprocInterpreter {
   def getAllInstanceNames(cluster: Cluster): Map[DataprocRoleZonePreemptibility, Set[InstanceName]] = {
     val res = Option(cluster.getConfig).map { config =>
       val zoneUri = config.getGceClusterConfig.getZoneUri
-      val zone = ZoneName.fromUri(zoneUri).getOrElse(ZoneName(""))
+      val zone = ZoneName.fromUriString(zoneUri).getOrElse(ZoneName(""))
 
       val master =
         Option(config.getMasterConfig)
