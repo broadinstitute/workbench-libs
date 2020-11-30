@@ -292,7 +292,8 @@ private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer](
                             traceId: Option[TraceId] = None,
                             bucketPolicyOnlyEnabled: Boolean = false,
                             logBucket: Option[GcsBucketName] = None,
-                            retryConfig: RetryConfig
+                            retryConfig: RetryConfig,
+                            location: Option[String] = None
   ): Stream[F, Unit] = {
 
     if (acl.isDefined && bucketPolicyOnlyEnabled) {
@@ -315,6 +316,9 @@ private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer](
       bucketInfoBuilder.setLogging(logging)
     }
 
+    // set the location is passed else the bucket will default to `us multi-region`
+    location.foreach(bucketInfoBuilder.setLocation)
+
     val bucketInfo = acl
       .map { aclList =>
         val acls = aclList.toList.asJava
@@ -324,6 +328,8 @@ private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer](
           .build()
       }
       .getOrElse(bucketInfoBuilder.build())
+
+    println(s"**** FIND ME: BUCKET LOCATION- ${bucketInfo.getLocation}")
 
     val dbForProject = db.getOptions.toBuilder.setProjectId(googleProject.value).build().getService
 
