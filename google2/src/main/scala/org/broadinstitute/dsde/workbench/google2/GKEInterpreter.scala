@@ -112,8 +112,8 @@ final class GKEInterpreter[F[_]: StructuredLogger: Timer: ContextShift](
       s"com.google.cloud.container.v1.ClusterManagerClient.deleteNodepool(${nodepoolId.toString})"
     )
 
-  override def setNodepoolAutoscaling(nodepoolId: NodepoolId, autoscaling: NodePoolAutoscaling)(
-    implicit ev: Ask[F, TraceId]
+  override def setNodepoolAutoscaling(nodepoolId: NodepoolId, autoscaling: NodePoolAutoscaling)(implicit
+    ev: Ask[F, TraceId]
   ): F[Operation] = {
     val request =
       SetNodePoolAutoscalingRequest.newBuilder().setName(nodepoolId.toString).setAutoscaling(autoscaling).build()

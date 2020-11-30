@@ -37,12 +37,12 @@ class MockGKEService extends GKEService[IO] {
     ev: Ask[IO, TraceId]
   ): IO[Option[Operation]] = IO(Some(Operation.newBuilder().setName("opName").build()))
 
-  override def setNodepoolAutoscaling(nodepoolId: GKEModels.NodepoolId, autoscaling: NodePoolAutoscaling)(
-    implicit ev: Ask[IO, TraceId]
+  override def setNodepoolAutoscaling(nodepoolId: GKEModels.NodepoolId, autoscaling: NodePoolAutoscaling)(implicit
+    ev: Ask[IO, TraceId]
   ): IO[Operation] = IO(Operation.newBuilder().setName("opName").build())
 
-  override def setNodepoolSize(nodepoolId: GKEModels.NodepoolId, nodeCount: Int)(
-    implicit ev: Ask[IO, TraceId]
+  override def setNodepoolSize(nodepoolId: GKEModels.NodepoolId, nodeCount: Int)(implicit
+    ev: Ask[IO, TraceId]
   ): IO[Operation] = IO(Operation.newBuilder().setName("opName").build())
 
   override def pollOperation(operationId: GKEModels.KubernetesOperationId, delay: FiniteDuration, maxAttempts: Int)(
