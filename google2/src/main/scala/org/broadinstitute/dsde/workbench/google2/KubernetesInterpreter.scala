@@ -81,7 +81,7 @@ class KubernetesInterpreter[F[_]: StructuredLogger: Effect: Timer: ContextShift]
       call = blockingF(
         recoverF(
           F.delay(
-            client.createNamespacedPod(namespace.name.value, pod.getJavaSerialization, null, "true", null)
+            client.createNamespacedPod(namespace.name.value, pod.getJavaSerialization, "true", null, null)
           ),
           whenStatusCode(409)
         )
@@ -89,7 +89,7 @@ class KubernetesInterpreter[F[_]: StructuredLogger: Effect: Timer: ContextShift]
       _ <- withLogging(
         call,
         Some(traceId),
-        s"io.kubernetes.client.apis.CoreV1Api.createNamespacedPod(${namespace.name.value}, ${pod.name.value}, null, true, null)"
+        s"io.kubernetes.client.apis.CoreV1Api.createNamespacedPod(${namespace.name.value}, ${pod.name.value}, true, null, null)"
       )
     } yield ()
 
@@ -101,13 +101,13 @@ class KubernetesInterpreter[F[_]: StructuredLogger: Effect: Timer: ContextShift]
       client <- blockingF(getClient(clusterId, new CoreV1Api(_)))
       call = blockingF(
         F.delay(
-          client.listNamespacedPod(namespace.name.value, null, true, null, null, null, null, null, null, null)
+          client.listNamespacedPod(namespace.name.value, "true", null, null, null, null, null, null, null, null)
         )
       )
       response <- withLogging(
         call,
         Some(traceId),
-        s"io.kubernetes.client.apis.CoreV1Api.listNamespacedPod(${namespace.name.value}, null, true, null, null, null, null, null, null, null)"
+        s"io.kubernetes.client.apis.CoreV1Api.listNamespacedPod(${namespace.name.value}, true, null, null, null, null, null, null, null, null)"
       )
 
       listPodStatus = Option(response.getItems)
@@ -138,7 +138,7 @@ class KubernetesInterpreter[F[_]: StructuredLogger: Effect: Timer: ContextShift]
       call = blockingF(
         recoverF(
           F.delay(
-            client.createNamespacedService(namespace.name.value, service.getJavaSerialization, null, "true", null)
+            client.createNamespacedService(namespace.name.value, service.getJavaSerialization, "true", null, null)
           ),
           whenStatusCode(409)
         )
@@ -146,7 +146,7 @@ class KubernetesInterpreter[F[_]: StructuredLogger: Effect: Timer: ContextShift]
       _ <- withLogging(
         call,
         Some(traceId),
-        s"io.kubernetes.client.apis.CoreV1Api.createNamespacedService(${namespace.name.value}, ${service.serviceName.value}, null, true, null)"
+        s"io.kubernetes.client.apis.CoreV1Api.createNamespacedService(${namespace.name.value}, ${service.serviceName.value}, true, null, null)"
       )
     } yield ()
 
@@ -161,7 +161,7 @@ class KubernetesInterpreter[F[_]: StructuredLogger: Effect: Timer: ContextShift]
       client <- blockingF(getClient(clusterId, new CoreV1Api(_)))
       call = blockingF(
         F.delay(
-          client.listNamespacedService(namespace.name.value, null, true, null, null, null, null, null, null, null)
+          client.listNamespacedService(namespace.name.value, "true", null, null, null, null, null, null, null, null)
         )
       ).map(Option(_)).handleErrorWith {
         case e: io.kubernetes.client.openapi.ApiException if e.getCode == 404 => F.pure(None)
@@ -170,7 +170,7 @@ class KubernetesInterpreter[F[_]: StructuredLogger: Effect: Timer: ContextShift]
       responseOpt <- withLogging(
         call,
         Some(traceId),
-        s"io.kubernetes.client.apis.CoreV1Api.listNamespacedService(${namespace.name.value}, null, true, null, null, null, null, null, null, null)"
+        s"io.kubernetes.client.apis.CoreV1Api.listNamespacedService(${namespace.name.value}, true, null, null, null, null, null, null, null, null)"
       )
 
       // Many of these fields can be null, so null-check everything
@@ -197,7 +197,7 @@ class KubernetesInterpreter[F[_]: StructuredLogger: Effect: Timer: ContextShift]
       call = blockingF(
         recoverF(
           F.delay(
-            client.createNamespace(namespace.getJavaSerialization, null, "true", null)
+            client.createNamespace(namespace.getJavaSerialization, "true", null, null)
           ),
           whenStatusCode(409)
         )
@@ -205,7 +205,7 @@ class KubernetesInterpreter[F[_]: StructuredLogger: Effect: Timer: ContextShift]
       _ <- withLogging(
         call,
         Some(traceId),
-        s"io.kubernetes.client.apis.CoreV1Api.createNamespace(${namespace.getJavaSerialization}, null, true, null)"
+        s"io.kubernetes.client.apis.CoreV1Api.createNamespace(${namespace.getJavaSerialization}, true, null, null)"
       )
     } yield ()
 
@@ -218,7 +218,7 @@ class KubernetesInterpreter[F[_]: StructuredLogger: Effect: Timer: ContextShift]
       call = blockingF(
         recoverF(
           F.delay(
-            client.deleteNamespace(namespace.name.value, null, null, null, null, null, null)
+            client.deleteNamespace(namespace.name.value, "true", null, null, null, null, null)
           ),
           whenStatusCode(404)
         )
@@ -226,7 +226,7 @@ class KubernetesInterpreter[F[_]: StructuredLogger: Effect: Timer: ContextShift]
       _ <- withLogging(
         call,
         Some(traceId),
-        s"io.kubernetes.client.apis.CoreV1Api.deleteNamespace(${namespace.name.value}, null, null, null, null, null, null)"
+        s"io.kubernetes.client.apis.CoreV1Api.deleteNamespace(${namespace.name.value}, true, null, null, null, null, null)"
       )
     } yield ()
 
@@ -247,7 +247,7 @@ class KubernetesInterpreter[F[_]: StructuredLogger: Effect: Timer: ContextShift]
       client <- blockingF(getClient(clusterId, new CoreV1Api(_)))
       call = blockingF(
         recoverF(F.delay(
-                   client.createNamespacedSecret(namespace.name.value, secret.getJavaSerialization, null, "true", null)
+                   client.createNamespacedSecret(namespace.name.value, secret.getJavaSerialization, "true", null, null)
                  ),
                  whenStatusCode(409)
         )
@@ -255,7 +255,7 @@ class KubernetesInterpreter[F[_]: StructuredLogger: Effect: Timer: ContextShift]
       _ <- withLogging(
         call,
         Some(traceId),
-        s"io.kubernetes.client.apis.CoreV1Api.createNamespacedSecret(${namespace.name.value}, ${secret.name.value}, null, true, null)"
+        s"io.kubernetes.client.apis.CoreV1Api.createNamespacedSecret(${namespace.name.value}, ${secret.name.value}, true, null, null)"
       )
     } yield ()
 
@@ -272,8 +272,8 @@ class KubernetesInterpreter[F[_]: StructuredLogger: Effect: Timer: ContextShift]
         recoverF(F.delay(
                    client.createNamespacedServiceAccount(namespace.name.value,
                                                          serviceAccount.getJavaSerialization,
-                                                         null,
                                                          "true",
+                                                         null,
                                                          null
                    )
                  ),
@@ -283,7 +283,7 @@ class KubernetesInterpreter[F[_]: StructuredLogger: Effect: Timer: ContextShift]
       _ <- withLogging(
         call,
         Some(traceId),
-        s"io.kubernetes.client.apis.CoreV1Api.createNamespacedServiceAccount(${namespace.name.value}, ${serviceAccount.name.value}, null, true, null)"
+        s"io.kubernetes.client.apis.CoreV1Api.createNamespacedServiceAccount(${namespace.name.value}, ${serviceAccount.name.value}, true, null, null)"
       )
     } yield ()
 
@@ -295,7 +295,7 @@ class KubernetesInterpreter[F[_]: StructuredLogger: Effect: Timer: ContextShift]
       client <- blockingF(getClient(clusterId, new RbacAuthorizationV1Api(_)))
       call = blockingF(
         recoverF(F.delay(
-                   client.createNamespacedRole(namespace.name.value, role.getJavaSerialization, null, "true", null)
+                   client.createNamespacedRole(namespace.name.value, role.getJavaSerialization, "true", null, null)
                  ),
                  whenStatusCode(409)
         )
@@ -303,7 +303,7 @@ class KubernetesInterpreter[F[_]: StructuredLogger: Effect: Timer: ContextShift]
       _ <- withLogging(
         call,
         Some(traceId),
-        s"io.kubernetes.client.apis.RbacAuthorizationV1Api.createNamespacedRole(${namespace.name.value}, ${role.name.value}, null, true, null)"
+        s"io.kubernetes.client.apis.RbacAuthorizationV1Api.createNamespacedRole(${namespace.name.value}, ${role.name.value}, true, null, null)"
       )
     } yield ()
 
@@ -320,8 +320,8 @@ class KubernetesInterpreter[F[_]: StructuredLogger: Effect: Timer: ContextShift]
         recoverF(F.delay(
                    client.createNamespacedRoleBinding(namespace.name.value,
                                                       roleBinding.getJavaSerialization,
-                                                      null,
                                                       "true",
+                                                      null,
                                                       null
                    )
                  ),
@@ -331,7 +331,7 @@ class KubernetesInterpreter[F[_]: StructuredLogger: Effect: Timer: ContextShift]
       _ <- withLogging(
         call,
         Some(traceId),
-        s"io.kubernetes.client.apis.RbacAuthorizationV1Api.createNamespacedRoleBinding(${namespace.name.value}, ${roleBinding.name.value}, null, true, null)"
+        s"io.kubernetes.client.apis.RbacAuthorizationV1Api.createNamespacedRoleBinding(${namespace.name.value}, ${roleBinding.name.value}, true, null, null)"
       )
     } yield ()
 
