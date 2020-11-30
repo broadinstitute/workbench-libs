@@ -12,6 +12,7 @@ import com.google.api.core.ApiFutureCallback
 import com.google.api.gax.core.BackgroundResource
 import com.google.api.services.container.ContainerScopes
 import com.google.auth.oauth2.{ServiceAccountCredentials, UserCredentials}
+import com.google.cloud.compute.v1.Operation
 import fs2.{RaiseThrowable, Stream}
 import io.chrisdavenport.log4cats.StructuredLogger
 import io.circe.Encoder
@@ -86,13 +87,17 @@ package object google2 {
       result <- Sync[F].fromEither(attempted)
     } yield result
 
-  def tracedLogging[F[_]: Timer: Sync, A](fa: F[A], action: String)(implicit
+  def tracedLogging[F[_]: Timer: Sync, A](fa: F[A],
+                                          action: String,
+                                          resultFormatter: Show[A] =
+                                            Show.show[A](a => if (a == null) "null" else a.toString.take(1024))
+  )(implicit
     logger: StructuredLogger[F],
     ev: Ask[F, TraceId]
   ): F[A] =
     for {
       traceId <- ev.ask
-      result <- withLogging(fa, Some(traceId), action)
+      result <- withLogging(fa, Some(traceId), action, resultFormatter)
     } yield result
 
   def tracedRetryGoogleF[F[_]: Sync: Timer: RaiseThrowable: StructuredLogger, A](
@@ -148,6 +153,12 @@ package object google2 {
     (Stream.sleep_(delay) ++ Stream.eval(fa))
       .repeatN(maxAttempts)
       .takeThrough(!_.isDone)
+
+  val showOperation: Show[Option[Operation]] = Show.show[Option[Operation]](op =>
+    op.fold("null")(o =>
+      s" operationType=${o.getOperationType}, progress=${o.getProgress}, status=${o.getStatus}, startTime=${o.getStartTime}"
+    )
+  )
 }
 
 final case class RetryConfig(retryInitialDelay: FiniteDuration,
