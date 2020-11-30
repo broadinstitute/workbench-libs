@@ -7,8 +7,8 @@ import java.util.concurrent.TimeUnit
 import cats.effect.concurrent.Semaphore
 import cats.effect.implicits._
 import cats.effect.{Async, Blocker, ContextShift, Effect, Timer}
-import cats.syntax.all._
 import cats.mtl.Ask
+import cats.syntax.all._
 import com.google.auth.oauth2.{AccessToken, GoogleCredentials}
 import com.google.common.cache.{CacheBuilder, CacheLoader}
 import com.google.container.v1.Cluster
@@ -21,8 +21,8 @@ import org.broadinstitute.dsde.workbench.google2.JavaSerializableInstances._
 import org.broadinstitute.dsde.workbench.google2.JavaSerializableSyntax._
 import org.broadinstitute.dsde.workbench.google2.KubernetesModels._
 import org.broadinstitute.dsde.workbench.google2.KubernetesSerializableName.{PodName, ServiceName}
-import org.broadinstitute.dsde.workbench.model.{IP, TraceId}
 import org.broadinstitute.dsde.workbench.google2.util.RetryPredicates._
+import org.broadinstitute.dsde.workbench.model.{IP, TraceId}
 
 import scala.collection.JavaConverters._
 
@@ -272,8 +272,8 @@ class KubernetesInterpreter[F[_]: StructuredLogger: Effect: Timer: ContextShift]
         recoverF(F.delay(
                    client.createNamespacedServiceAccount(namespace.name.value,
                                                          serviceAccount.getJavaSerialization,
-                                                         "true",
                                                          null,
+                                                         "true",
                                                          null
                    )
                  ),

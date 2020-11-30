@@ -32,8 +32,12 @@ package object google2 {
 
   def retryGoogleF[F[_]: Sync: Timer: RaiseThrowable, A](
     retryConfig: RetryConfig
-  )(fa: F[A], traceId: Option[TraceId], action: String)(implicit logger: StructuredLogger[F]): Stream[F, A] = {
-    val faWithLogging = withLogging(fa, traceId, action)
+  )(fa: F[A],
+    traceId: Option[TraceId],
+    action: String,
+    resultFormatter: Show[A] = Show.show[A](a => if (a == null) "null" else a.toString.take(1024))
+  )(implicit logger: StructuredLogger[F]): Stream[F, A] = {
+    val faWithLogging = withLogging(fa, traceId, action, resultFormatter)
 
     Stream.retry[F, A](faWithLogging,
                        retryConfig.retryInitialDelay,
@@ -61,6 +65,12 @@ package object google2 {
         "duration" -> (endTime - startTime).milliseconds.toString
       )
       _ <- attempted match {
+        case Left(e: io.kubernetes.client.openapi.ApiException) =>
+          val loggableGoogleCall = LoggableGoogleCall(Some(e.getResponseBody), "Failed")
+
+          val msg = loggingCtx.asJson.deepMerge(loggableGoogleCall.asJson)
+          // Duplicate MDC context in regular logging until log formats can be changed in apps
+          logger.error(loggingCtx, e)(msg.noSpaces)
         case Left(e) =>
           val loggableGoogleCall = LoggableGoogleCall(None, "Failed")
 
@@ -87,10 +97,13 @@ package object google2 {
 
   def tracedRetryGoogleF[F[_]: Sync: Timer: RaiseThrowable: StructuredLogger, A](
     retryConfig: RetryConfig
-  )(fa: F[A], action: String)(implicit ev: Ask[F, TraceId]): Stream[F, A] =
+  )(fa: F[A],
+    action: String,
+    resultFormatter: Show[A] = Show.show[A](a => if (a == null) "null" else a.toString.take(1024))
+  )(implicit ev: Ask[F, TraceId]): Stream[F, A] =
     for {
       traceId <- Stream.eval(ev.ask)
-      result <- retryGoogleF(retryConfig)(fa, Some(traceId), action)
+      result <- retryGoogleF(retryConfig)(fa, Some(traceId), action, resultFormatter)
     } yield result
 
   def callBack[A](cb: Either[Throwable, A] => Unit): ApiFutureCallback[A] =
