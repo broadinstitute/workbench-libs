@@ -272,8 +272,8 @@ class KubernetesInterpreter[F[_]: StructuredLogger: Effect: Timer: ContextShift]
         recoverF(F.delay(
                    client.createNamespacedServiceAccount(namespace.name.value,
                                                          serviceAccount.getJavaSerialization,
-                                                         null,
                                                          "true",
+                                                         null,
                                                          null
                    )
                  ),

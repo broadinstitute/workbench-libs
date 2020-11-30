@@ -11,6 +11,8 @@ Add
 Changed
 - Remove `retryConfig` from `PublisherConfig`
 - Update Kubernetes client library
+- Format getCluster response (currently it prints out cert, which seems not ideal and noisy)
+- print out more useful info for kubernetes error
 
 Dependency Upgrades
 ```
@@ -29,7 +31,7 @@ Update guava to 30.0-jre (#390)
 Update `io.kubernetes client-java` from `5.0.0` to `10.0.0` (This has some breaking changes if you're using the library's API directly)
 ```
       
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.17-dcd18ab"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.17-TRAVIS-REPLACE-ME"`
 
 ## 0.16
 
