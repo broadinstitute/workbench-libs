@@ -155,7 +155,10 @@ package object google2 {
       .takeThrough(!_.isDone)
 
   val showOperation: Show[Operation] = Show.show[Operation](op =>
-    s" operationType=${op.getOperationType}, progress=${op.getProgress}, status=${op.getStatus}, startTime=${op.getStartTime}"
+    if (op == null)
+      "null"
+    else
+      s"operationType=${op.getOperationType}, progress=${op.getProgress}, status=${op.getStatus}, startTime=${op.getStartTime}"
   )
 }
 
