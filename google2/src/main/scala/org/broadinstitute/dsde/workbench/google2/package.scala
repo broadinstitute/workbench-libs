@@ -154,10 +154,8 @@ package object google2 {
       .repeatN(maxAttempts)
       .takeThrough(!_.isDone)
 
-  val showOperation: Show[Option[Operation]] = Show.show[Option[Operation]](op =>
-    op.fold("null")(o =>
-      s" operationType=${o.getOperationType}, progress=${o.getProgress}, status=${o.getStatus}, startTime=${o.getStartTime}"
-    )
+  val showOperation: Show[Operation] = Show.show[Operation](op =>
+    s" operationType=${op.getOperationType}, progress=${op.getProgress}, status=${op.getStatus}, startTime=${op.getStartTime}"
   )
 }
 
