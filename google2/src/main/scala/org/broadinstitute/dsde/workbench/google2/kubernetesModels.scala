@@ -24,7 +24,7 @@ import org.apache.commons.codec.binary.Base64
 import org.broadinstitute.dsde.workbench.google2.KubernetesSerializableName._
 import org.broadinstitute.dsde.workbench.model.WorkbenchException
 import org.broadinstitute.dsde.workbench.model.google.GoogleProject
-import cats.implicits._
+import cats.syntax.all._
 import io.kubernetes.client.custom.IntOrString
 import ca.mrvisser.sealerate
 

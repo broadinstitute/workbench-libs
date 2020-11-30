@@ -3,7 +3,7 @@ package org.broadinstitute.dsde.workbench.google2
 import cats.Show
 import cats.effect._
 import cats.effect.concurrent.Semaphore
-import cats.implicits._
+import cats.syntax.all._
 import cats.mtl.Ask
 import com.google.api.core.ApiFutures
 import com.google.api.gax.rpc.StatusCode.Code
