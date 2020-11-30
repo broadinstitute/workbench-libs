@@ -3,7 +3,7 @@ package mock
 
 import cats.effect.IO
 import cats.mtl.Ask
-import com.google.container.v1.{Cluster, NodePool, Operation}
+import com.google.container.v1.{Cluster, NodePool, NodePoolAutoscaling, Operation}
 import org.broadinstitute.dsde.workbench.DoneCheckable
 import org.broadinstitute.dsde.workbench.model.TraceId
 
@@ -36,6 +36,14 @@ class MockGKEService extends GKEService[IO] {
   override def deleteNodepool(nodepoolId: GKEModels.NodepoolId)(implicit
     ev: Ask[IO, TraceId]
   ): IO[Option[Operation]] = IO(Some(Operation.newBuilder().setName("opName").build()))
+
+  override def setNodepoolAutoscaling(nodepoolId: GKEModels.NodepoolId, autoscaling: NodePoolAutoscaling)(implicit
+    ev: Ask[IO, TraceId]
+  ): IO[Operation] = IO(Operation.newBuilder().setName("opName").build())
+
+  override def setNodepoolSize(nodepoolId: GKEModels.NodepoolId, nodeCount: Int)(implicit
+    ev: Ask[IO, TraceId]
+  ): IO[Operation] = IO(Operation.newBuilder().setName("opName").build())
 
   override def pollOperation(operationId: GKEModels.KubernetesOperationId, delay: FiniteDuration, maxAttempts: Int)(
     implicit

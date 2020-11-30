@@ -6,6 +6,7 @@ This file documents changes to the `workbench-google2` library, including notes 
 Add
 - Add `list` to `GoogleTopicAdmin`
 - Add `GoogleSubscriptionAdmin`
+- Add `setNodepoolAutoscaling` and `setNodepoolSize` to `GKEService`
 
 Changed
 - Remove `retryConfig` from `PublisherConfig`
