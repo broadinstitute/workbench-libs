@@ -5,7 +5,7 @@ import java.util.concurrent.{Executor, TimeUnit}
 
 import cats.data.OptionT
 import cats.effect._
-import cats.implicits._
+import cats.syntax.all._
 import fs2.Stream
 import com.google.api.core.ApiFutures
 import com.google.cloud.firestore.{DocumentReference, DocumentSnapshot, Transaction}

@@ -7,7 +7,7 @@ import java.util.concurrent.TimeUnit
 import cats.effect.concurrent.Semaphore
 import cats.effect.implicits._
 import cats.effect.{Async, Blocker, ContextShift, Effect, Timer}
-import cats.implicits._
+import cats.syntax.all._
 import cats.mtl.Ask
 import com.google.auth.oauth2.{AccessToken, GoogleCredentials}
 import com.google.common.cache.{CacheBuilder, CacheLoader}

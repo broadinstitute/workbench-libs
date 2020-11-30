@@ -8,7 +8,7 @@ object Dependencies {
   val scalaLoggingV = "3.9.2"
   val scalaTestV    = "3.2.3"
   val circeVersion = "0.13.0"
-  val http4sVersion = "0.21.12"
+  val http4sVersion = "0.21.13"
 
   def excludeGuavaJDK5(m: ModuleID): ModuleID = m.exclude("com.google.guava", "guava-jdk5")
 
@@ -101,7 +101,7 @@ object Dependencies {
     akkaTestkit,
     mockito,
     scalaTestMockito,
-    "org.typelevel" %% "cats-core" % "2.1.1"
+    "org.typelevel" %% "cats-core" % "2.2.0"
   )
 
   val modelDependencies = commonDependencies ++ Seq(

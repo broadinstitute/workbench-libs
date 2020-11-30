@@ -4,7 +4,7 @@ import java.util.concurrent.TimeUnit
 
 import cats.ApplicativeError
 import cats.effect.{Async, Timer}
-import cats.implicits._
+import cats.syntax.all._
 import io.opencensus.stats.Aggregation.Distribution
 import io.opencensus.stats.Measure.{MeasureDouble, MeasureLong}
 import io.opencensus.stats.View.Name

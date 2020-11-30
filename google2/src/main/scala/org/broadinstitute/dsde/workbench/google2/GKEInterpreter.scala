@@ -11,7 +11,7 @@ import org.broadinstitute.dsde.workbench.{DoneCheckable, RetryConfig}
 import org.broadinstitute.dsde.workbench.google2.GKEModels._
 import org.broadinstitute.dsde.workbench.google2.util.RetryPredicates._
 import org.broadinstitute.dsde.workbench.model.TraceId
-import cats.implicits._
+import cats.syntax.all._
 
 import scala.concurrent.duration.FiniteDuration
 

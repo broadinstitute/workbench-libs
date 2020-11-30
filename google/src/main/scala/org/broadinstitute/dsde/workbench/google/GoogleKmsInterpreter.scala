@@ -1,6 +1,6 @@
 package org.broadinstitute.dsde.workbench.google
 
-import cats.implicits._
+import cats.syntax.all._
 import cats.effect.{ContextShift, Resource, Sync}
 import com.google.api.gax.core.FixedCredentialsProvider
 import com.google.auth.oauth2.ServiceAccountCredentials
