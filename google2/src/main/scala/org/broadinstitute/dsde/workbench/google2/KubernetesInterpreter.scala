@@ -217,21 +217,22 @@ class KubernetesInterpreter[F[_]: Effect: Timer: ContextShift](
     val delete = for {
       traceId <- ev.ask
       client <- blockingF(getClient(clusterId, new CoreV1Api(_)))
+      cc = client.deleteNamespaceCall(
+        namespace.name.value,
+        "true",
+        null,
+        null,
+        null,
+        null,
+        null,
+        kubernetesApiCallBack(
+          s"io.kubernetes.client.openapi.apis.CoreV1Api.deleteNamespaceAsync(${namespace.name.value})"
+        )()
+      )
       call = blockingF(
         recoverF(
           F.delay(
-            client.deleteNamespaceAsync(
-              namespace.name.value,
-              "true",
-              null,
-              null,
-              null,
-              null,
-              null,
-              kubernetesApiCallBack(
-                s"io.kubernetes.client.openapi.apis.CoreV1Api.deleteNamespaceAsync(${namespace.name.value})"
-              )()
-            )
+            cc.execute()
           ),
           whenStatusCode(404)
         )
@@ -239,7 +240,7 @@ class KubernetesInterpreter[F[_]: Effect: Timer: ContextShift](
       _ <- withLogging(
         call,
         Some(traceId),
-        s"io.kubernetes.client.openapi.apis.CoreV1Api.deleteNamespace(${namespace.name.value}, true, null, null, null, null, null)"
+        s"io.kubernetes.client.openapi.apis.CoreV1Api.deleteNamespaceCall(${namespace.name.value}, true, null, null, null, null, null)"
       )
     } yield ()
 
