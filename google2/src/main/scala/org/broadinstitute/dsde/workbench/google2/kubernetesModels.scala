@@ -216,7 +216,7 @@ object JavaSerializableInstances {
   implicit val kubernetesNamespaceSerializable = new JavaSerializable[KubernetesNamespace, V1Namespace] {
     def getJavaSerialization(kubernetesName: KubernetesNamespace): V1Namespace = {
       val v1Namespace = new V1Namespace()
-      v1Namespace.metadata(kubernetesName.name.getJavaSerialization)
+      v1Namespace.setMetadata(kubernetesName.name.getJavaSerialization)
       v1Namespace
     }
   }

@@ -27,7 +27,8 @@ class ComputePollOperationInterpreter[F[_]: StructuredLogger: ContextShift](
       .build
     tracedLogging(
       blockOn(F.delay(zoneOperationClient.getZoneOperation(request))),
-      s"com.google.cloud.compute.v1.ZoneOperationClient.getZoneOperation(${request.toString})"
+      s"com.google.cloud.compute.v1.ZoneOperationClient.getZoneOperation(${request.toString})",
+      showOperation
     )
   }
 
@@ -42,7 +43,8 @@ class ComputePollOperationInterpreter[F[_]: StructuredLogger: ContextShift](
       .build
     tracedLogging(
       blockOn(F.delay(regionOperationClient.getRegionOperation(request))),
-      s"com.google.cloud.compute.v1.regionOperationClient.getRegionOperation(${request.toString})"
+      s"com.google.cloud.compute.v1.regionOperationClient.getRegionOperation(${request.toString})",
+      showOperation
     )
   }
 
@@ -53,7 +55,8 @@ class ComputePollOperationInterpreter[F[_]: StructuredLogger: ContextShift](
       ProjectGlobalOperationName.newBuilder().setProject(project.value).setOperation(operationName.value).build
     tracedLogging(
       blockOn(F.delay(globalOperationClient.getGlobalOperation(request))),
-      s"com.google.cloud.compute.v1.globalOperationClient.getGlobalOperation(${request.toString})"
+      s"com.google.cloud.compute.v1.globalOperationClient.getGlobalOperation(${request.toString})",
+      showOperation
     )
   }
 
