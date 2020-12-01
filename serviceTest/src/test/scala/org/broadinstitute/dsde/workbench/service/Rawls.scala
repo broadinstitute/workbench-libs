@@ -409,13 +409,13 @@ trait Rawls extends RestClient with LazyLogging {
       (status, ids)
     }
 
-    def getWorkflowMetadata(billingProject: String, workspaceName: String, submissionId: String, workflowId: String)(
+    def getWorkflowMetadata(billingProject: String, workspaceName: String, submissionId: String, workflowId: String, expandSubworkflows: Boolean = false)(
       implicit token: AuthToken
     ): String = {
       logger.info(s"Get workflow metadata: $billingProject/$workspaceName/$submissionId/$workflowId")
       parseResponse(
         getRequest(
-          url + s"api/workspaces/$billingProject/$workspaceName/submissions/$submissionId/workflows/$workflowId"
+          url + s"api/workspaces/$billingProject/$workspaceName/submissions/$submissionId/workflows/$workflowId?expandSubWorkflows=$expandSubworkflows"
         )
       )
     }
