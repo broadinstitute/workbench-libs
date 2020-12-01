@@ -1,5 +1,6 @@
 package org.broadinstitute.dsde.workbench.google2
 
+import cats.Show
 import cats.effect.concurrent.Semaphore
 import cats.effect.{Async, Blocker, ContextShift, Timer}
 import cats.mtl.Ask
@@ -60,7 +61,8 @@ final class GKEInterpreter[F[_]: StructuredLogger: Timer: ContextShift](
         F.delay(clusterManagerClient.getCluster(clusterId.toString)),
         whenStatusCode(404)
       ),
-      s"com.google.cloud.container.v1.ClusterManagerClient.getCluster(${clusterId.toString})"
+      s"com.google.cloud.container.v1.ClusterManagerClient.getCluster(${clusterId.toString})",
+      Show.show[Option[Cluster]](c => c.fold("null")(cc => s"status: ${cc.getStatus}"))
     )
 
   override def deleteCluster(
@@ -153,10 +155,15 @@ final class GKEInterpreter[F[_]: StructuredLogger: Timer: ContextShift](
     streamFUntilDone(getOperation, maxAttempts, delay)
   }
 
-  private def tracedGoogleRetryWithBlocker[A](fa: F[A], action: String)(implicit ev: Ask[F, TraceId]): F[A] =
+  private def tracedGoogleRetryWithBlocker[A](fa: F[A],
+                                              action: String,
+                                              resultFormatter: Show[A] =
+                                                Show.show[A](a => if (a == null) "null" else a.toString.take(1024))
+  )(implicit ev: Ask[F, TraceId]): F[A] =
     tracedRetryGoogleF(retryConfig)(blockerBound.withPermit(
                                       blocker.blockOn(fa)
                                     ),
-                                    action
+                                    action,
+                                    resultFormatter
     ).compile.lastOrError
 }

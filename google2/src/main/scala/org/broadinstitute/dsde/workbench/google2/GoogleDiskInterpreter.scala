@@ -64,7 +64,8 @@ private[google2] class GoogleDiskInterpreter[F[_]: StructuredLogger: Timer: Cont
       withLogging(
         fa,
         Some(traceId),
-        s"com.google.cloud.compute.v1.DiskClient.deleteDisk(${projectZoneDiskName.toString})"
+        s"com.google.cloud.compute.v1.DiskClient.deleteDisk(${projectZoneDiskName.toString})",
+        showOperation.contramap[Option[Operation]](opt => opt.getOrElse(null))
       )
     )
   }
