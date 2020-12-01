@@ -153,7 +153,7 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
 
   object workspaces {
 
-    def create(namespace: String, name: String, authDomain: Set[String] = Set.empty)(implicit
+    def create(namespace: String, name: String, authDomain: Set[String] = Set.empty, bucketLocation: Option[String] = None)(implicit
       token: AuthToken
     ): Unit = {
       logger.info(s"Creating workspace: $namespace/$name authDomain: $authDomain")
@@ -166,7 +166,9 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
                         "authorizationDomain" -> authDomainGroups
       )
 
-      postRequest(apiUrl(s"api/workspaces"), request)
+      val requestWithRegion: Map[String, Object] = request ++ bucketLocation.map("bucketLocation" -> _)
+
+      postRequest(apiUrl(s"api/workspaces"), requestWithRegion)
     }
 
     def clone(originNamespace: String,

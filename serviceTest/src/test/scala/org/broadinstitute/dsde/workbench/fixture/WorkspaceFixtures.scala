@@ -32,10 +32,11 @@ trait WorkspaceFixtures extends ExceptionHandling with RandomUtil { self: TestSu
                     authDomain: Set[String] = Set.empty,
                     aclEntries: List[AclEntry] = List(),
                     attributes: Option[Map[String, Any]] = None,
-                    cleanUp: Boolean = true
+                    cleanUp: Boolean = true,
+                    workspaceRegion: Option[String] = None
   )(testCode: (String) => Any)(implicit token: AuthToken): Unit = {
     val workspaceName = uuidWithPrefix(namePrefix, " ")
-    Orchestration.workspaces.create(namespace, workspaceName, authDomain)
+    Orchestration.workspaces.create(namespace, workspaceName, authDomain, workspaceRegion)
     if (aclEntries.nonEmpty)
       Orchestration.workspaces.updateAcl(namespace, workspaceName, aclEntries)
     if (attributes.isDefined)
