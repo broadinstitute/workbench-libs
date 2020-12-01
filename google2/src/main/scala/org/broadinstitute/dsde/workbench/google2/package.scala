@@ -79,7 +79,7 @@ package object google2 {
           // Duplicate MDC context in regular logging until log formats can be changed in apps
           logger.error(loggingCtx, e)(msg.noSpaces)
         case Right(r) =>
-          val response = Option(Show(resultFormatter).show(r))
+          val response = Option(resultFormatter.show(r))
           val loggableGoogleCall = LoggableGoogleCall(response, "Succeeded")
           val msg = loggingCtx.asJson.deepMerge(loggableGoogleCall.asJson)
           logger.info(loggingCtx)(msg.noSpaces)

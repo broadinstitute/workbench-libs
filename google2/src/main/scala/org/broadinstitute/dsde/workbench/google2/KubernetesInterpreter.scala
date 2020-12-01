@@ -1,7 +1,6 @@
 package org.broadinstitute.dsde.workbench.google2
 
 import java.io.ByteArrayInputStream
-import java.util
 import java.util.UUID
 import java.util.concurrent.TimeUnit
 
@@ -14,9 +13,8 @@ import com.google.auth.oauth2.{AccessToken, GoogleCredentials}
 import com.google.common.cache.{CacheBuilder, CacheLoader}
 import com.google.container.v1.Cluster
 import io.chrisdavenport.log4cats.StructuredLogger
-import io.kubernetes.client.openapi.{ApiCallback, ApiClient, ApiException}
+import io.kubernetes.client.openapi.ApiClient
 import io.kubernetes.client.openapi.apis.{CoreV1Api, RbacAuthorizationV1Api}
-import io.kubernetes.client.openapi.models.V1Status
 import io.kubernetes.client.util.Config
 import org.broadinstitute.dsde.workbench.google2.GKEModels.KubernetesClusterId
 import org.broadinstitute.dsde.workbench.google2.JavaSerializableInstances._
@@ -51,7 +49,7 @@ class KubernetesInterpreter[F[_]: Effect: Timer: ContextShift](
           //we do not want to have to specify this at resource (class) creation time, so we create one on each load here
           implicit val traceId = Ask.const[F, TraceId](TraceId(UUID.randomUUID()))
           val res = for {
-            _ <- StructuredLogger[F]
+            _ <- logger
               .info(s"Determined that there is no cached client for kubernetes cluster ${clusterId}. Creating a client")
             clusterOpt <- gkeService.getCluster(clusterId)
             cluster <- F.fromEither(
@@ -217,30 +215,32 @@ class KubernetesInterpreter[F[_]: Effect: Timer: ContextShift](
     val delete = for {
       traceId <- ev.ask
       client <- blockingF(getClient(clusterId, new CoreV1Api(_)))
-      cc = client.deleteNamespaceCall(
-        namespace.name.value,
-        "true",
-        null,
-        null,
-        null,
-        null,
-        null,
-        kubernetesApiCallBack(
-          s"io.kubernetes.client.openapi.apis.CoreV1Api.deleteNamespaceAsync(${namespace.name.value})"
-        )()
-      )
       call = blockingF(
         recoverF(
           F.delay(
-            cc.execute()
-          ),
+            client.deleteNamespace(
+              namespace.name.value,
+              "true",
+              null,
+              null,
+              null,
+              null,
+              null
+            )
+          ).void
+            .recoverWith {
+              case e: com.google.gson.JsonSyntaxException
+                  if e.getMessage.contains("Expected a string but was BEGIN_OBJECT") =>
+                logger.error(e)("Ignore response parsing error")
+            } // see https://github.com/kubernetes-client/java/wiki/6.-Known-Issues#1-exception-on-deleting-resources-javalangillegalstateexception-expected-a-string-but-was-begin_object
+          ,
           whenStatusCode(404)
         )
       )
       _ <- withLogging(
         call,
         Some(traceId),
-        s"io.kubernetes.client.openapi.apis.CoreV1Api.deleteNamespaceCall(${namespace.name.value}, true, null, null, null, null, null)"
+        s"io.kubernetes.client.openapi.apis.CoreV1Api.deleteNamespace(${namespace.name.value}, true, null, null, null, null, null)"
       )
     } yield ()
 
@@ -392,32 +392,4 @@ class KubernetesInterpreter[F[_]: Effect: Timer: ContextShift](
 
   // TODO: Retry once we know what Kubernetes error codes are applicable
   private def blockingF[A](fa: F[A]): F[A] = blockerBound.withPermit(blocker.blockOn(fa))
-
-  private def kubernetesApiCallBack(action: String)(
-    failure: (ApiException, Int, Map[String, List[String]]) => F[Unit] = (e, code, headers) =>
-      logger.error(Map("statusCode" -> code.toString) ++ headers.view.mapValues(_.toString).toMap, e)(
-        s"${action}: ${e.getResponseBody}"
-      ),
-    success: (V1Status, Int, Map[String, List[String]]) => F[Unit] = (status, code, headers) =>
-      logger
-        .info(Map("statusCode" -> code.toString) ++ headers.view.mapValues(_.toString).toMap)(s"${action}: ${status}")
-  ) = new ApiCallback[V1Status] {
-    override def onFailure(e: ApiException,
-                           statusCode: Int,
-                           responseHeaders: util.Map[String, util.List[String]]
-    ): Unit =
-      failure(e, statusCode, responseHeaders.asScala.map { case (k, v) => k -> v.asScala.toList }.toMap).toIO
-        .unsafeRunSync()
-
-    override def onSuccess(result: V1Status,
-                           statusCode: Int,
-                           responseHeaders: util.Map[String, util.List[String]]
-    ): Unit =
-      success(result, statusCode, responseHeaders.asScala.map { case (k, v) => k -> v.asScala.toList }.toMap).toIO
-        .unsafeRunSync()
-
-    override def onUploadProgress(bytesWritten: Long, contentLength: Long, done: Boolean): Unit = ()
-
-    override def onDownloadProgress(bytesRead: Long, contentLength: Long, done: Boolean): Unit = ()
-  }
 }
