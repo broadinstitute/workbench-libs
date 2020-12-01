@@ -329,7 +329,7 @@ private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer](
       }
       .getOrElse(bucketInfoBuilder.build())
 
-    println(s"**** FIND ME: BUCKET LOCATION- ${bucketInfo.getLocation}")
+    println(s"**** FIND ME: BUCKET NAME- ${bucketInfo.getName}\t BUCKET LOCATION- ${bucketInfo.getLocation}")
 
     val dbForProject = db.getOptions.toBuilder.setProjectId(googleProject.value).build().getService
 

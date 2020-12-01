@@ -234,20 +234,25 @@ trait Rawls extends RestClient with LazyLogging {
 
   object workspaces {
 
-    def create(namespace: String, name: String, authDomain: Set[String] = Set.empty)(implicit
+    def create(namespace: String, name: String, authDomain: Set[String] = Set.empty, bucketLocation: Option[String] = None)(implicit
       token: AuthToken
     ): Unit = {
       logger.info(s"Creating workspace: $namespace/$name authDomain: $authDomain")
 
       val authDomainGroups = authDomain.map(a => Map("membersGroupName" -> a))
 
-      val request = Map("namespace" -> namespace,
-                        "name" -> name,
-                        "attributes" -> Map.empty,
-                        "authorizationDomain" -> authDomainGroups
+      val request: Map[String, Object] = Map(
+        "namespace" -> namespace,
+        "name" -> name,
+        "attributes" -> Map.empty,
+        "authorizationDomain" -> authDomainGroups
       )
 
-      postRequest(url + s"api/workspaces", request)
+      val updatedRequest: Map[String, Object] = request ++ bucketLocation.map("bucketLocation" -> _)
+
+      println(s"***** FIND ME: Creating workspace with properties: $updatedRequest")
+
+      postRequest(url + s"api/workspaces", updatedRequest)
     }
 
     def clone(sourceNamespace: String,
