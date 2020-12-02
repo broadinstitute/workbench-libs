@@ -2,7 +2,7 @@ package org.broadinstitute.dsde.workbench.google2
 
 import cats.effect.concurrent.Semaphore
 import cats.effect.{Async, Blocker, ContextShift, Timer}
-import cats.implicits._
+import cats.syntax.all._
 import cats.mtl.Ask
 import com.google.cloud.compute.v1.{
   Disk,
@@ -64,7 +64,8 @@ private[google2] class GoogleDiskInterpreter[F[_]: StructuredLogger: Timer: Cont
       withLogging(
         fa,
         Some(traceId),
-        s"com.google.cloud.compute.v1.DiskClient.deleteDisk(${projectZoneDiskName.toString})"
+        s"com.google.cloud.compute.v1.DiskClient.deleteDisk(${projectZoneDiskName.toString})",
+        showOperation.contramap[Option[Operation]](opt => opt.getOrElse(null))
       )
     )
   }

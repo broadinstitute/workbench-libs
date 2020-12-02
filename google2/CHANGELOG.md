@@ -14,9 +14,13 @@ cluster nodes. Note that this is a breaking change for existing `GoogleDataprocI
 Added:
 - `list` to `GoogleTopicAdmin`
 - `GoogleSubscriptionAdmin`
+- `setNodepoolAutoscaling` and `setNodepoolSize` to `GKEService`
 
 Changed:
 - Remove `retryConfig` from `PublisherConfig`
+- Update Kubernetes client library
+- Format getCluster response (currently it prints out cert, which seems not ideal and noisy)
+- print out more useful info for kubernetes error
 
 Dependency Upgrades
 ```
@@ -29,12 +33,13 @@ Update google-cloud-firestore to 2.1.0 (#412)
 Update grpc-core to 1.33.1 (#395) (Note: if your project explicitly specify grpc-core version, you need to update it to match this version)
 Update metrics4-scala to 4.1.14 (#413)
 Update http4s-blaze-client, http4s-circe, ... to 0.21.12 (#415)
+Update http4s-blaze-client, http4s-circe, ... to 0.21.13
 Update mockito-core to 3.6.28 (#414)
 Update guava to 30.0-jre (#390)
-Update `io.kubernetes client-java` to `5.0.0` to `10.0.0` (This has some breaking changes)
+Update `io.kubernetes client-java` from `5.0.0` to `10.0.0` (This has some breaking changes if you're using the library's API directly)
 ```
       
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.17-0e2d8cc"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.17-1e1f697"`
 
 ## 0.16
 Added:

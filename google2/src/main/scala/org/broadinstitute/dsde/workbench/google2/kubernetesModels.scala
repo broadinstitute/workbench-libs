@@ -24,7 +24,7 @@ import org.apache.commons.codec.binary.Base64
 import org.broadinstitute.dsde.workbench.google2.KubernetesSerializableName._
 import org.broadinstitute.dsde.workbench.model.WorkbenchException
 import org.broadinstitute.dsde.workbench.model.google.GoogleProject
-import cats.implicits._
+import cats.syntax.all._
 import io.kubernetes.client.custom.IntOrString
 import ca.mrvisser.sealerate
 
@@ -216,7 +216,7 @@ object JavaSerializableInstances {
   implicit val kubernetesNamespaceSerializable = new JavaSerializable[KubernetesNamespace, V1Namespace] {
     def getJavaSerialization(kubernetesName: KubernetesNamespace): V1Namespace = {
       val v1Namespace = new V1Namespace()
-      v1Namespace.metadata(kubernetesName.name.getJavaSerialization)
+      v1Namespace.setMetadata(kubernetesName.name.getJavaSerialization)
       v1Namespace
     }
   }

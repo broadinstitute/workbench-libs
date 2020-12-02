@@ -6,7 +6,7 @@ import java.nio.file.Path
 import cats.data.NonEmptyList
 import cats.effect._
 import cats.effect.concurrent.Semaphore
-import cats.implicits._
+import cats.syntax.all._
 import com.google.auth.Credentials
 import com.google.auth.oauth2.{AccessToken, GoogleCredentials}
 import com.google.cloud.storage.BucketInfo.LifecycleRule

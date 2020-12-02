@@ -4,7 +4,7 @@ import java.util.concurrent.TimeUnit
 
 import DoneCheckableSyntax._
 import cats.Show
-import cats.implicits._
+import cats.syntax.all._
 import cats.effect.{Resource, Sync, Timer}
 import cats.mtl.Ask
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential
@@ -12,14 +12,12 @@ import com.google.api.core.ApiFutureCallback
 import com.google.api.gax.core.BackgroundResource
 import com.google.api.services.container.ContainerScopes
 import com.google.auth.oauth2.{ServiceAccountCredentials, UserCredentials}
-import com.google.cloud.dataproc.v1.Cluster
+import com.google.cloud.compute.v1.Operation
 import fs2.{RaiseThrowable, Stream}
 import io.chrisdavenport.log4cats.StructuredLogger
 import io.circe.Encoder
 import org.broadinstitute.dsde.workbench.model.{ErrorReportSource, TraceId}
 import io.circe.syntax._
-import org.broadinstitute.dsde.workbench.google2.GoogleDataprocInterpreter.containsPreemptibles
-import org.broadinstitute.dsde.workbench.google2.{DataprocRoleZonePreemptibility, InstanceName}
 
 import scala.concurrent.duration._
 
@@ -35,8 +33,12 @@ package object google2 {
 
   def retryGoogleF[F[_]: Sync: Timer: RaiseThrowable, A](
     retryConfig: RetryConfig
-  )(fa: F[A], traceId: Option[TraceId], action: String)(implicit logger: StructuredLogger[F]): Stream[F, A] = {
-    val faWithLogging = withLogging(fa, traceId, action)
+  )(fa: F[A],
+    traceId: Option[TraceId],
+    action: String,
+    resultFormatter: Show[A] = Show.show[A](a => if (a == null) "null" else a.toString.take(1024))
+  )(implicit logger: StructuredLogger[F]): Stream[F, A] = {
+    val faWithLogging = withLogging(fa, traceId, action, resultFormatter)
 
     Stream.retry[F, A](faWithLogging,
                        retryConfig.retryInitialDelay,
@@ -64,6 +66,12 @@ package object google2 {
         "duration" -> (endTime - startTime).milliseconds.toString
       )
       _ <- attempted match {
+        case Left(e: io.kubernetes.client.openapi.ApiException) =>
+          val loggableGoogleCall = LoggableGoogleCall(Some(e.getResponseBody), "Failed")
+
+          val msg = loggingCtx.asJson.deepMerge(loggableGoogleCall.asJson)
+          // Duplicate MDC context in regular logging until log formats can be changed in apps
+          logger.error(loggingCtx, e)(msg.noSpaces)
         case Left(e) =>
           val loggableGoogleCall = LoggableGoogleCall(None, "Failed")
 
@@ -71,7 +79,7 @@ package object google2 {
           // Duplicate MDC context in regular logging until log formats can be changed in apps
           logger.error(loggingCtx, e)(msg.noSpaces)
         case Right(r) =>
-          val response = Option(Show(resultFormatter).show(r))
+          val response = Option(resultFormatter.show(r))
           val loggableGoogleCall = LoggableGoogleCall(response, "Succeeded")
           val msg = loggingCtx.asJson.deepMerge(loggableGoogleCall.asJson)
           logger.info(loggingCtx)(msg.noSpaces)
@@ -79,21 +87,28 @@ package object google2 {
       result <- Sync[F].fromEither(attempted)
     } yield result
 
-  def tracedLogging[F[_]: Timer: Sync, A](fa: F[A], action: String)(implicit
+  def tracedLogging[F[_]: Timer: Sync, A](fa: F[A],
+                                          action: String,
+                                          resultFormatter: Show[A] =
+                                            Show.show[A](a => if (a == null) "null" else a.toString.take(1024))
+  )(implicit
     logger: StructuredLogger[F],
     ev: Ask[F, TraceId]
   ): F[A] =
     for {
       traceId <- ev.ask
-      result <- withLogging(fa, Some(traceId), action)
+      result <- withLogging(fa, Some(traceId), action, resultFormatter)
     } yield result
 
   def tracedRetryGoogleF[F[_]: Sync: Timer: RaiseThrowable: StructuredLogger, A](
     retryConfig: RetryConfig
-  )(fa: F[A], action: String)(implicit ev: Ask[F, TraceId]): Stream[F, A] =
+  )(fa: F[A],
+    action: String,
+    resultFormatter: Show[A] = Show.show[A](a => if (a == null) "null" else a.toString.take(1024))
+  )(implicit ev: Ask[F, TraceId]): Stream[F, A] =
     for {
       traceId <- Stream.eval(ev.ask)
-      result <- retryGoogleF(retryConfig)(fa, Some(traceId), action)
+      result <- retryGoogleF(retryConfig)(fa, Some(traceId), action, resultFormatter)
     } yield result
 
   def callBack[A](cb: Either[Throwable, A] => Unit): ApiFutureCallback[A] =
@@ -138,6 +153,13 @@ package object google2 {
     (Stream.sleep_(delay) ++ Stream.eval(fa))
       .repeatN(maxAttempts)
       .takeThrough(!_.isDone)
+
+  val showOperation: Show[Operation] = Show.show[Operation](op =>
+    if (op == null)
+      "null"
+    else
+      s"operationType=${op.getOperationType}, progress=${op.getProgress}, status=${op.getStatus}, startTime=${op.getStartTime}"
+  )
 }
 
 final case class RetryConfig(retryInitialDelay: FiniteDuration,

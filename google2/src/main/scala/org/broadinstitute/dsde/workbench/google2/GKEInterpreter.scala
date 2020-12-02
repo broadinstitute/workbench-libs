@@ -1,17 +1,27 @@
 package org.broadinstitute.dsde.workbench.google2
 
+import cats.Show
 import cats.effect.concurrent.Semaphore
 import cats.effect.{Async, Blocker, ContextShift, Timer}
 import cats.mtl.Ask
 import com.google.cloud.container.v1.ClusterManagerClient
-import com.google.container.v1.{Cluster, CreateNodePoolRequest, GetOperationRequest, NodePool, Operation}
+import com.google.container.v1.{
+  Cluster,
+  CreateNodePoolRequest,
+  GetOperationRequest,
+  NodePool,
+  NodePoolAutoscaling,
+  Operation,
+  SetNodePoolAutoscalingRequest,
+  SetNodePoolSizeRequest
+}
 import fs2.Stream
 import io.chrisdavenport.log4cats.StructuredLogger
 import org.broadinstitute.dsde.workbench.{DoneCheckable, RetryConfig}
 import org.broadinstitute.dsde.workbench.google2.GKEModels._
 import org.broadinstitute.dsde.workbench.google2.util.RetryPredicates._
 import org.broadinstitute.dsde.workbench.model.TraceId
-import cats.implicits._
+import cats.syntax.all._
 
 import scala.concurrent.duration.FiniteDuration
 
@@ -51,7 +61,8 @@ final class GKEInterpreter[F[_]: StructuredLogger: Timer: ContextShift](
         F.delay(clusterManagerClient.getCluster(clusterId.toString)),
         whenStatusCode(404)
       ),
-      s"com.google.cloud.container.v1.ClusterManagerClient.getCluster(${clusterId.toString})"
+      s"com.google.cloud.container.v1.ClusterManagerClient.getCluster(${clusterId.toString})",
+      Show.show[Option[Cluster]](c => c.fold("null")(cc => s"status: ${cc.getStatus}"))
     )
 
   override def deleteCluster(
@@ -62,7 +73,7 @@ final class GKEInterpreter[F[_]: StructuredLogger: Timer: ContextShift](
         F.delay(clusterManagerClient.deleteCluster(clusterId.toString)),
         whenStatusCode(404)
       ),
-      f"com.google.cloud.container.v1.ClusterManagerClient.deleteCluster(${clusterId.toString})"
+      s"com.google.cloud.container.v1.ClusterManagerClient.deleteCluster(${clusterId.toString})"
     )
 
   override def createNodepool(
@@ -81,7 +92,7 @@ final class GKEInterpreter[F[_]: StructuredLogger: Timer: ContextShift](
         ),
         whenStatusCode(409)
       ),
-      f"com.google.api.services.container.Projects.Locations.Cluster.Nodepool(${request})"
+      s"com.google.api.services.container.Projects.Locations.Cluster.Nodepool(${request})"
     )
   }
 
@@ -100,8 +111,29 @@ final class GKEInterpreter[F[_]: StructuredLogger: Timer: ContextShift](
         F.delay(clusterManagerClient.deleteNodePool(nodepoolId.toString)),
         whenStatusCode(404)
       ),
-      f"com.google.cloud.container.v1.ClusterManagerClient.deleteNodepool(${nodepoolId.toString})"
+      s"com.google.cloud.container.v1.ClusterManagerClient.deleteNodepool(${nodepoolId.toString})"
     )
+
+  override def setNodepoolAutoscaling(nodepoolId: NodepoolId, autoscaling: NodePoolAutoscaling)(implicit
+    ev: Ask[F, TraceId]
+  ): F[Operation] = {
+    val request =
+      SetNodePoolAutoscalingRequest.newBuilder().setName(nodepoolId.toString).setAutoscaling(autoscaling).build()
+
+    tracedGoogleRetryWithBlocker(
+      F.delay(clusterManagerClient.setNodePoolAutoscaling(request)),
+      s"com.google.cloud.container.v1.ClusterManagerClient.setNodePoolAutoscaling(${nodepoolId.toString}, ${autoscaling.toString})"
+    )
+  }
+
+  override def setNodepoolSize(nodepoolId: NodepoolId, nodeCount: Int)(implicit ev: Ask[F, TraceId]): F[Operation] = {
+    val request = SetNodePoolSizeRequest.newBuilder().setName(nodepoolId.toString).setNodeCount(nodeCount).build()
+
+    tracedGoogleRetryWithBlocker(
+      F.delay(clusterManagerClient.setNodePoolSize(request)),
+      s"com.google.cloud.container.v1.ClusterManagerClient.setNodePoolSize(${nodepoolId.toString}, ${nodeCount})"
+    )
+  }
 
   //delete and create operations take around ~5mins with simple tests, could be longer for larger clusters
   override def pollOperation(operationId: KubernetesOperationId, delay: FiniteDuration, maxAttempts: Int)(implicit
@@ -123,10 +155,15 @@ final class GKEInterpreter[F[_]: StructuredLogger: Timer: ContextShift](
     streamFUntilDone(getOperation, maxAttempts, delay)
   }
 
-  private def tracedGoogleRetryWithBlocker[A](fa: F[A], action: String)(implicit ev: Ask[F, TraceId]): F[A] =
+  private def tracedGoogleRetryWithBlocker[A](fa: F[A],
+                                              action: String,
+                                              resultFormatter: Show[A] =
+                                                Show.show[A](a => if (a == null) "null" else a.toString.take(1024))
+  )(implicit ev: Ask[F, TraceId]): F[A] =
     tracedRetryGoogleF(retryConfig)(blockerBound.withPermit(
                                       blocker.blockOn(fa)
                                     ),
-                                    action
+                                    action,
+                                    resultFormatter
     ).compile.lastOrError
 }

@@ -1,7 +1,7 @@
 package org.broadinstitute.dsde.workbench.google2
 package mock
 
-import cats.implicits._
+import cats.syntax.all._
 import cats.effect.IO
 import cats.mtl.Ask
 import com.google.cloud.compute.v1.Operation
