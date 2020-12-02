@@ -159,16 +159,6 @@ object DoneCheckableInstances {
   implicit val computeDoneCheckable = new DoneCheckable[com.google.cloud.compute.v1.Operation] {
     def isDone(op: com.google.cloud.compute.v1.Operation): Boolean = op.getStatus == "DONE"
   }
-
-  implicit val resizingDoneCheckable = new DoneCheckable[Map[DataprocRoleZonePreemptibility, Set[InstanceName]]] {
-    def isDone(instances: Map[DataprocRoleZonePreemptibility, Set[InstanceName]]): Boolean =
-      !containsPreemptibles(instances)
-  }
-
-  implicit val clusterRunningCheckable = new DoneCheckable[Option[com.google.cloud.dataproc.v1.Cluster]] {
-    def isDone(cluster: Option[Cluster]): Boolean =
-      cluster.exists(_.getStatus.getState.toString == "RUNNING")
-  }
 }
 
 final case class DoneCheckableOps[A](a: A)(implicit ev: DoneCheckable[A]) {

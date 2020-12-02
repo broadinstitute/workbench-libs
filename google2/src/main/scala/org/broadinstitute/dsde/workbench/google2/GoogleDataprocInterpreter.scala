@@ -12,13 +12,12 @@ import com.google.cloud.dataproc.v1.{RegionName => _, _}
 import com.google.common.util.concurrent.MoreExecutors
 import com.google.protobuf.FieldMask
 import io.chrisdavenport.log4cats.StructuredLogger
-import org.broadinstitute.dsde.workbench.DoneCheckableInstances.{clusterRunningCheckable, resizingDoneCheckable}
-import org.broadinstitute.dsde.workbench.RetryConfig
+import org.broadinstitute.dsde.workbench.{DoneCheckable, RetryConfig}
 import org.broadinstitute.dsde.workbench.google2.DataprocRole.Master
 import org.broadinstitute.dsde.workbench.google2.util.RetryPredicates._
 import org.broadinstitute.dsde.workbench.model.TraceId
 import org.broadinstitute.dsde.workbench.model.google.GoogleProject
-import org.broadinstitute.dsde.workbench.google2.GoogleDataprocInterpreter.{containsPreemptibles, getAllInstanceNames}
+import org.broadinstitute.dsde.workbench.google2.GoogleDataprocInterpreter._
 
 import scala.concurrent.duration._
 import scala.collection.JavaConverters._
@@ -350,4 +349,16 @@ object GoogleDataprocInterpreter {
     if (instances.isEmpty) Map.empty
     else Map(DataprocRoleZonePreemptibility(role, zone, groupConfig.getIsPreemptible) -> instances)
   }
+
+  implicit val resizingDoneCheckable: DoneCheckable[Map[DataprocRoleZonePreemptibility, Set[InstanceName]]] =
+    new DoneCheckable[Map[DataprocRoleZonePreemptibility, Set[InstanceName]]] {
+      def isDone(instances: Map[DataprocRoleZonePreemptibility, Set[InstanceName]]): Boolean =
+        !containsPreemptibles(instances)
+    }
+
+  implicit val clusterRunningCheckable: DoneCheckable[Option[Cluster]] =
+    new DoneCheckable[Option[com.google.cloud.dataproc.v1.Cluster]] {
+      def isDone(cluster: Option[Cluster]): Boolean =
+        cluster.exists(_.getStatus.getState.toString == "RUNNING")
+    }
 }
