@@ -20,6 +20,7 @@ import org.broadinstitute.dsde.workbench.model.{ErrorReportSource, TraceId}
 import io.circe.syntax._
 
 import scala.concurrent.duration._
+import scala.util.control.NoStackTrace
 
 package object google2 {
   implicit val errorReportSource = ErrorReportSource("google2")
@@ -149,10 +150,30 @@ package object google2 {
   def recoverF[F[_]: Sync, A](fa: F[A], pred: Throwable => Boolean): F[Option[A]] =
     fa.map(Option(_)).recover { case e if pred(e) => None }
 
+  // Note that this method may reach maxAttempts without hitting the Done condition.
+  // If you need to check whether the Done condition was met, you may want to use the
+  // method streamUntilDoneOrTimeout() instead.
   def streamFUntilDone[F[_]: Timer, A: DoneCheckable](fa: F[A], maxAttempts: Int, delay: FiniteDuration): Stream[F, A] =
     (Stream.sleep_(delay) ++ Stream.eval(fa))
       .repeatN(maxAttempts)
       .takeThrough(!_.isDone)
+
+  // Distinctly from the method streamFUntilDone(), this method raises an error if the Done condition is not met
+  // by the time maxAttempts are exhausted. Therefore callers should use this method instead of streamFUntilDone()
+  // if they want to make sure of hitting the Done condition and take action otherwise.
+  def streamUntilDoneOrTimeout[F[_]: Sync: Timer, A: DoneCheckable](fa: F[A],
+                                                                    maxAttempts: Int,
+                                                                    delay: FiniteDuration
+  ): F[Either[StreamTimeoutError.type, A]] =
+    streamFUntilDone(fa, maxAttempts, delay)
+      .evalMap { a =>
+        if (a.isDone)
+          Sync[F].pure(a.asRight: Either[StreamTimeoutError.type, A])
+        else
+          Sync[F].raiseError(StreamTimeoutError): F[Either[StreamTimeoutError.type, A]]
+      }
+      .compile
+      .lastOrError
 
   val showOperation: Show[Operation] = Show.show[Operation](op =>
     if (op == null)
@@ -162,6 +183,7 @@ package object google2 {
   )
 }
 
+case object StreamTimeoutError extends NoStackTrace
 final case class RetryConfig(retryInitialDelay: FiniteDuration,
                              retryNextDelay: FiniteDuration => FiniteDuration,
                              maxAttempts: Int,
