@@ -49,6 +49,7 @@ trait WorkspaceFixtures extends ExceptionHandling with RandomUtil { self: TestSu
    * @param authDomain optional auth domain for the test workspace
    * @param testCode test code to run
    * @param token auth token for service API calls
+   * @param bucketLocation optional region where the bucket associated with workspace should be created
    */
   def withWorkspace(
     namespace: String,
@@ -57,10 +58,10 @@ trait WorkspaceFixtures extends ExceptionHandling with RandomUtil { self: TestSu
     aclEntries: List[AclEntry] = List(),
     attributes: Option[Map[String, Any]] = None,
     cleanUp: Boolean = true,
-    workspaceRegion: Option[String] = None
+    bucketLocation: Option[String] = None
   )(testCode: (String) => Any)(implicit token: AuthToken): Unit = {
     val workspaceName = uuidWithPrefix(namePrefix, " ")
-    Orchestration.workspaces.create(namespace, workspaceName, authDomain, workspaceRegion)
+    Orchestration.workspaces.create(namespace, workspaceName, authDomain, bucketLocation)
 
     setupWorkspace(namespace, workspaceName, aclEntries, attributes, cleanUp)(testCode)
   }
@@ -75,6 +76,7 @@ trait WorkspaceFixtures extends ExceptionHandling with RandomUtil { self: TestSu
    * @param authDomain optional auth domain for the test workspace
    * @param testCode test code to run
    * @param token auth token for service API calls
+   * @param bucketLocation optional region where the bucket associated with workspace should be created
    */
   def withClonedWorkspace(
     namespace: String,
@@ -83,11 +85,11 @@ trait WorkspaceFixtures extends ExceptionHandling with RandomUtil { self: TestSu
     aclEntries: List[AclEntry] = List(),
     attributes: Option[Map[String, Any]] = None,
     cleanUp: Boolean = true,
-    workspaceRegion: Option[String] = None
+    bucketLocation: Option[String] = None
   )(testCode: (String) => Any)(implicit token: AuthToken): Unit = {
     // create a workspace
     val workspaceName = uuidWithPrefix(namePrefix, " ")
-    Orchestration.workspaces.create(namespace, workspaceName, authDomain, workspaceRegion)
+    Orchestration.workspaces.create(namespace, workspaceName, authDomain, bucketLocation)
 
     setupWorkspace(namespace, workspaceName, aclEntries, attributes, cleanUp) { _ =>
       // clone the newly created workspace
