@@ -16,6 +16,29 @@ import scala.util.Try
  */
 trait WorkspaceFixtures extends ExceptionHandling with RandomUtil { self: TestSuite =>
 
+  private def setupWorkspace(namespace: String,
+                             workspaceName: String,
+                             aclEntries: List[AclEntry],
+                             attributes: Option[Map[String, Any]],
+                             cleanUp: Boolean,
+                            )(testCode: (String) => Any)(implicit token: AuthToken): Unit = {
+    if (aclEntries.nonEmpty)
+      Orchestration.workspaces.updateAcl(namespace, workspaceName, aclEntries)
+    if (attributes.isDefined)
+      Orchestration.workspaces.setAttributes(namespace, workspaceName, attributes.get)
+    val testTrial = Try {
+      testCode(workspaceName)
+    }
+
+    val cleanupTrial = Try {
+      if (cleanUp) {
+        Orchestration.workspaces.delete(namespace, workspaceName)
+      }
+    }
+
+    CleanUp.runCodeWithCleanup(testTrial, cleanupTrial)
+  }
+
   /**
    * Loan method that creates a workspace that will be cleaned up after the
    * test code is run. The workspace name will contain a random and highly
@@ -37,28 +60,27 @@ trait WorkspaceFixtures extends ExceptionHandling with RandomUtil { self: TestSu
   )(testCode: (String) => Any)(implicit token: AuthToken): Unit = {
     val workspaceName = uuidWithPrefix(namePrefix, " ")
     Orchestration.workspaces.create(namespace, workspaceName, authDomain, workspaceRegion)
-    if (aclEntries.nonEmpty)
-      Orchestration.workspaces.updateAcl(namespace, workspaceName, aclEntries)
-    if (attributes.isDefined)
-      Orchestration.workspaces.setAttributes(namespace, workspaceName, attributes.get)
-    val testTrial = Try {
-      testCode(workspaceName)
-    }
 
-    val cleanupTrial = Try {
-      if (cleanUp) {
-        Orchestration.workspaces.delete(namespace, workspaceName)
-      }
-    }
-
-    CleanUp.runCodeWithCleanup(testTrial, cleanupTrial)
+    setupWorkspace(namespace, workspaceName, aclEntries, attributes, cleanUp)(testCode)
   }
 
-  def withClonedWorkspace(namespace: String, namePrefix: String, authDomain: Set[String] = Set.empty)(
-    testCode: (String) => Any
-  )(implicit token: AuthToken): Unit =
-    withWorkspace(namespace, namePrefix, authDomain) { _ =>
-      val cloneNamePrefix = appendUnderscore(namePrefix) + "clone"
-      withWorkspace(namespace, cloneNamePrefix, authDomain)(testCode)
+  def withClonedWorkspace(namespace: String,
+                          namePrefix: String,
+                          authDomain: Set[String] = Set.empty,
+                          aclEntries: List[AclEntry] = List(),
+                          attributes: Option[Map[String, Any]] = None,
+                          cleanUp: Boolean = true,
+                          workspaceRegion: Option[String] = None
+                         )(testCode: (String) => Any)(implicit token: AuthToken): Unit = {
+    val workspaceName = uuidWithPrefix(namePrefix, " ")
+    Orchestration.workspaces.create(namespace, workspaceName, authDomain, workspaceRegion)
+
+    setupWorkspace(namespace, workspaceName, aclEntries, attributes, cleanUp) { _ =>
+      val cloneNamePrefix = appendUnderscore(workspaceName) + "clone"
+      val clonedWorkspaceName = uuidWithPrefix(cloneNamePrefix, " ")
+
+      Orchestration.workspaces.clone(namespace, workspaceName, namespace, clonedWorkspaceName, authDomain)
+      setupWorkspace(namespace, clonedWorkspaceName, aclEntries, attributes, cleanUp)(testCode)
     }
+  }
 }
