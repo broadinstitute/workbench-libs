@@ -475,7 +475,7 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
   }
 
   object methods {
-    def createMethod(testname: String, numSnapshots: Int = 1)(implicit token: AuthToken): String = {
+    def createMethod(testname: String, method: Method, numSnapshots: Int = 1)(implicit token: AuthToken): String = {
       val methodName = uuidWithPrefix(testname)
       for (_ <- 1 to numSnapshots)
         createMethod(SimpleMethod.creationAttributes + ("name" -> methodName))

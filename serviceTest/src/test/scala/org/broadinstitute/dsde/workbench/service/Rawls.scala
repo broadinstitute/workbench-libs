@@ -252,8 +252,6 @@ trait Rawls extends RestClient with LazyLogging {
 
       val updatedRequest: Map[String, Object] = request ++ bucketLocation.map("bucketLocation" -> _)
 
-      println(s"***** FIND ME: Creating workspace with properties: $updatedRequest")
-
       postRequest(url + s"api/workspaces", updatedRequest)
     }
 
@@ -411,18 +409,13 @@ trait Rawls extends RestClient with LazyLogging {
       (status, ids)
     }
 
-    def getWorkflowMetadata(billingProject: String,
-                            workspaceName: String,
-                            submissionId: String,
-                            workflowId: String,
-                            expandSubworkflows: Boolean = false
-    )(implicit
-      token: AuthToken
+    def getWorkflowMetadata(billingProject: String, workspaceName: String, submissionId: String, workflowId: String)(
+      implicit token: AuthToken
     ): String = {
       logger.info(s"Get workflow metadata: $billingProject/$workspaceName/$submissionId/$workflowId")
       parseResponse(
         getRequest(
-          url + s"api/workspaces/$billingProject/$workspaceName/submissions/$submissionId/workflows/$workflowId?expandSubWorkflows=$expandSubworkflows"
+          url + s"api/workspaces/$billingProject/$workspaceName/submissions/$submissionId/workflows/$workflowId"
         )
       )
     }

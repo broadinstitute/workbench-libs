@@ -316,7 +316,7 @@ private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer](
       bucketInfoBuilder.setLogging(logging)
     }
 
-    // set the location is passed else the bucket will default to `us multi-region`
+    // set the location if passed, else the bucket will default to `us multi-region`
     location.foreach(bucketInfoBuilder.setLocation)
 
     val bucketInfo = acl
@@ -328,8 +328,6 @@ private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer](
           .build()
       }
       .getOrElse(bucketInfoBuilder.build())
-
-    println(s"**** FIND ME: BUCKET NAME- ${bucketInfo.getName}\t BUCKET LOCATION- ${bucketInfo.getLocation}")
 
     val dbForProject = db.getOptions.toBuilder.setProjectId(googleProject.value).build().getService
 
