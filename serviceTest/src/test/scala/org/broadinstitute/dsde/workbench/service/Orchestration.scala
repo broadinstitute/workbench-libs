@@ -30,8 +30,7 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
 
   object billing {
 
-    def addUserToBillingProject(projectName: String, email: String, billingProjectRole: BillingProjectRole)(
-      implicit
+    def addUserToBillingProject(projectName: String, email: String, billingProjectRole: BillingProjectRole)(implicit
       token: AuthToken
     ): Unit = {
       logger.info(s"Adding user to billing project: $projectName $email ${billingProjectRole.toString}")
@@ -45,16 +44,14 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
       deleteRequest(apiUrl(s"api/billing/$projectName/${billingProjectRole.toString}/$email"))
     }
 
-    def addGoogleRoleToBillingProjectUser(projectName: String, email: String, googleRole: String)(
-      implicit
+    def addGoogleRoleToBillingProjectUser(projectName: String, email: String, googleRole: String)(implicit
       token: AuthToken
     ): Unit = {
       logger.info(s"Adding google role $googleRole to user $email in billing project $projectName")
       putRequest(apiUrl(s"api/billing/$projectName/googleRole/$googleRole/$email"))
     }
 
-    def removeGoogleRoleFromBillingProjectUser(projectName: String, email: String, googleRole: String)(
-      implicit
+    def removeGoogleRoleFromBillingProjectUser(projectName: String, email: String, googleRole: String)(implicit
       token: AuthToken
     ): Unit = {
       logger.info(s"Removing google role $googleRole from user $email in billing project $projectName")
@@ -74,7 +71,8 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
               .map { p =>
                 BillingProject(p("projectName"),
                                BillingProjectRole.withName(p("role")),
-                               BillingProjectStatus.withName(p("creationStatus")))
+                               BillingProjectStatus.withName(p("creationStatus"))
+                )
               }
               .find(p => p.projectName == projectName && BillingProjectStatus.isTerminal(p.creationStatus))
           case Failure(t) => logger.info(s"Billing project creation encountered an error: ${t.getStackTrace}"); None
@@ -101,7 +99,8 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
                              NAGR: Boolean = false,
                              POA: Boolean = false,
                              NCU: Boolean = false,
-                             prefix: String = "")(implicit token: AuthToken): String = {
+                             prefix: String = ""
+    )(implicit token: AuthToken): String = {
       val request: Map[String, Any] = Map(
         "DS" -> DS,
         "NMDS" -> NMDS,
@@ -157,16 +156,17 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
     def create(namespace: String,
                name: String,
                authDomain: Set[String] = Set.empty,
-               bucketLocation: Option[String] = None)(implicit
-                                                      token: AuthToken): Unit = {
+               bucketLocation: Option[String] = None
+    )(implicit token: AuthToken): Unit = {
       logger.info(s"Creating workspace: $namespace/$name authDomain: $authDomain")
 
       val authDomainGroups = authDomain.map(a => Map("membersGroupName" -> a))
 
-      val request = Map("namespace" -> namespace,
-                        "name" -> name,
-                        "attributes" -> Map.empty,
-                        "authorizationDomain" -> authDomainGroups)
+      val request: Map[String, Object] = Map("namespace" -> namespace,
+                                             "name" -> name,
+                                             "attributes" -> Map.empty,
+                                             "authorizationDomain" -> authDomainGroups
+      )
 
       val requestWithRegion: Map[String, Object] = request ++ bucketLocation.map("bucketLocation" -> _)
 
@@ -177,15 +177,17 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
               originName: String,
               cloneNamespace: String,
               cloneName: String,
-              authDomain: Set[String] = Set.empty)(implicit token: AuthToken): Unit = {
+              authDomain: Set[String] = Set.empty
+    )(implicit token: AuthToken): Unit = {
       logger.info(s"Copying workspace: $originNamespace/$originName authDomain: $authDomain")
 
       val authDomainGroups = authDomain.map(a => Map("membersGroupName" -> a))
 
-      val request = Map("namespace" -> cloneNamespace,
-                        "name" -> cloneName,
-                        "attributes" -> Map.empty,
-                        "authorizationDomain" -> authDomainGroups)
+      val request: Map[String, Object] = Map("namespace" -> cloneNamespace,
+                                             "name" -> cloneName,
+                                             "attributes" -> Map.empty,
+                                             "authorizationDomain" -> authDomainGroups
+      )
 
       postRequest(apiUrl(s"api/workspaces/$originNamespace/$originName/clone"), request)
     }
@@ -200,15 +202,19 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
                   email: String,
                   accessLevel: WorkspaceAccessLevel,
                   canShare: Option[Boolean],
-                  canCompute: Option[Boolean])(implicit token: AuthToken): Unit =
+                  canCompute: Option[Boolean]
+    )(implicit token: AuthToken): Unit =
       updateAcl(namespace, name, List(AclEntry(email, accessLevel, canCompute, canShare)))
 
     def updateAcl(namespace: String, name: String, aclEntries: List[AclEntry] = List())(implicit
-                                                                                        token: AuthToken): Unit = {
+      token: AuthToken
+    ): Unit = {
       logger.info(s"Updating ACLs for workspace: $namespace/$name $aclEntries")
-      patchRequest(apiUrl(s"api/workspaces/$namespace/$name/acl"), aclEntries.map { e =>
-        e.toMap
-      })
+      patchRequest(apiUrl(s"api/workspaces/$namespace/$name/acl"),
+                   aclEntries.map { e =>
+                     e.toMap
+                   }
+      )
     }
 
     /*
@@ -216,7 +222,8 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
      * mapper that converts scala to json represents the either in the json string.
      */
     def setAttributes(namespace: String, name: String, attributes: Map[String, Any])(implicit
-                                                                                     token: AuthToken): Unit = {
+      token: AuthToken
+    ): Unit = {
       logger.info(s"Setting attributes for workspace: $namespace/$name $attributes")
       patchRequest(apiUrl(s"api/workspaces/$namespace/$name/setAttributes"), attributes)
     }
@@ -254,7 +261,8 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
 
   object library {
     def setLibraryAttributes(ns: String, name: String, attributes: Map[String, Any])(implicit
-                                                                                     token: AuthToken): String = {
+      token: AuthToken
+    ): String = {
       logger.info(s"Setting library attributes for workspace: $ns/$name $attributes")
       putRequest(apiUrl(s"api/library/$ns/$name/metadata"), attributes)
     }
@@ -340,7 +348,8 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
                                        configurationName: String,
                                        configurationSnapshotId: Int,
                                        destinationNamespace: String,
-                                       destinationName: String)(implicit token: AuthToken): String = {
+                                       destinationName: String
+    )(implicit token: AuthToken): String = {
       logger.info(
         s"Copying method config from method repo: $ns/$wsName config: $configurationNamespace/$configurationName $configurationSnapshotId destination: $destinationNamespace/$destinationName"
       )
@@ -364,7 +373,8 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
                                       methodConfigVersion: Int,
                                       inputs: Map[String, String],
                                       outputs: Map[String, String],
-                                      rootEntityType: String)(implicit token: AuthToken): Unit = {
+                                      rootEntityType: String
+    )(implicit token: AuthToken): Unit = {
       logger.info(
         s"Creating method config: $wsNs/$wsName $methodConfigVersion method: ${method.methodNamespace}/${method.methodName} config: $configNamespace/$configName"
       )
@@ -388,7 +398,8 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
                                                wsName: String,
                                                dockstoreMethod: DockstoreMethod,
                                                configNamespace: String,
-                                               configName: String)(implicit token: AuthToken): Unit = {
+                                               configName: String
+    )(implicit token: AuthToken): Unit = {
       logger.info(
         s"Creating dockstore method config: $wsNs/$wsName method: ${dockstoreMethod.methodPath}${dockstoreMethod.methodVersion} config: $configNamespace/$configName"
       )
@@ -416,7 +427,8 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
                          workspaceName: String,
                          methodConfigNamespace: String,
                          methodConfigName: String,
-                         methodConfigData: Map[String, Any])(implicit token: AuthToken): String = {
+                         methodConfigData: Map[String, Any]
+    )(implicit token: AuthToken): String = {
       logger.info(
         s"Editing method config $methodConfigNamespace/$methodConfigName in workspace $workspaceNamespace/$workspaceName"
       )
@@ -431,7 +443,8 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
     def deleteMethodConfig(workspaceNamespace: String,
                            workspaceName: String,
                            methodConfigNamespace: String,
-                           methodConfigName: String)(implicit token: AuthToken): String = {
+                           methodConfigName: String
+    )(implicit token: AuthToken): String = {
       logger.info(
         s"Deleting method config $methodConfigNamespace/$methodConfigName in workspace $workspaceNamespace/$workspaceName"
       )
@@ -450,17 +463,19 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
                                   configName: String,
                                   configSnapshotId: Int,
                                   user: String,
-                                  role: String)(implicit token: AuthToken): String = {
+                                  role: String
+    )(implicit token: AuthToken): String = {
       logger.info(
         s"Setting permissions for method config: $configNamespace/$configName/$configSnapshotId and user: $user to role: $role"
       )
       postRequest(apiUrl(s"api/configurations/$configNamespace/$configName/$configSnapshotId/permissions"),
-                  Seq(Map("user" -> user, "role" -> role)))
+                  Seq(Map("user" -> user, "role" -> role))
+      )
     }
   }
 
   object methods {
-    def createMethod(testname: String, method: Method, numSnapshots: Int = 1)(implicit token: AuthToken): String = {
+    def createMethod(testname: String, numSnapshots: Int = 1)(implicit token: AuthToken): String = {
       val methodName = uuidWithPrefix(testname)
       for (_ <- 1 to numSnapshots)
         createMethod(SimpleMethod.creationAttributes + ("name" -> methodName))
@@ -490,8 +505,7 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
       parseResponse(getRequest(apiUrl(s"api/methods/$ns/$name/$snapshotId/permissions")))
     }
 
-    def setMethodPermissions(ns: String, name: String, snapshotId: Int, userId: String, role: String)(
-      implicit
+    def setMethodPermissions(ns: String, name: String, snapshotId: Int, userId: String, role: String)(implicit
       token: AuthToken
     ): Unit = {
       logger.info(s"Setting method permissions for $ns / $name")
@@ -507,7 +521,8 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
 
     case class NihStatus(linkedNihUsername: Option[String] = None,
                          datasetPermissions: Set[NihDatasetPermission],
-                         linkExpireTime: Option[Long] = None)
+                         linkExpireTime: Option[Long] = None
+    )
 
     case class NihDatasetPermission(name: String, authorized: Boolean)
 
@@ -549,7 +564,8 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
                        expression: String,
                        useCallCache: Boolean,
                        deleteIntermediateOutputFiles: Boolean,
-                       workflowFailureMode: String = "NoNewCalls")(implicit token: AuthToken): String = {
+                       workflowFailureMode: String = "NoNewCalls"
+    )(implicit token: AuthToken): String = {
       logger.info(s"Creating a submission: $ns/$wsName config: $methodConfigurationNamespace/$methodConfigurationName")
       postRequest(
         apiUrl(s"api/workspaces/$ns/$wsName/submissions"),
@@ -607,7 +623,8 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
   }
 
   def importMetaData(ns: String, wsName: String, fileName: String, fileContent: String)(implicit
-                                                                                        token: AuthToken): String = {
+    token: AuthToken
+  ): String = {
     logger.info(s"Importing metadata: $ns/$wsName $fileName, $fileContent")
     postRequestWithMultipart(apiUrl(s"api/workspaces/$ns/$wsName/importEntities"), fileName, fileContent)
   }
@@ -619,7 +636,8 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
     case class TrialProjectReport(name: String,
                                   verified: Boolean,
                                   user: Option[UserStatusDetails],
-                                  status: Option[String])
+                                  status: Option[String]
+    )
 
     private def checkUserStatusUpdate(userEmail: String, update: String, response: String): Unit = {
       val successfulResponseKeys = Seq("Success", "NoChangeRequired")
@@ -765,7 +783,8 @@ object WorkspaceAccessLevel extends Enumeration {
 case class AclEntry(email: String,
                     accessLevel: WorkspaceAccessLevel,
                     canShare: Option[Boolean] = None,
-                    canCompute: Option[Boolean] = None) {
+                    canCompute: Option[Boolean] = None
+) {
   def toMap: Map[String, Any] = {
     val resp: Map[String, Any] = Map("email" -> email, "accessLevel" -> accessLevel.toString)
     val shared = canShare match {

@@ -43,8 +43,7 @@ trait Rawls extends RestClient with LazyLogging {
       parseResponseAs[List[Map[String, String]]](getRequest(s"${url}api/billing/$projectName/members"))
     }
 
-    def addUserToBillingProject(projectName: String, email: String, billingProjectRole: BillingProjectRole)(
-      implicit
+    def addUserToBillingProject(projectName: String, email: String, billingProjectRole: BillingProjectRole)(implicit
       token: AuthToken
     ): String = {
       logger.info(s"Adding user to billing project: $projectName $email ${billingProjectRole.toString}")
@@ -58,16 +57,14 @@ trait Rawls extends RestClient with LazyLogging {
       deleteRequest(s"${url}api/billing/$projectName/${billingProjectRole.toString}/$email")
     }
 
-    def addGoogleRoleToBillingProjectUser(projectName: String, email: String, googleRole: String)(
-      implicit
+    def addGoogleRoleToBillingProjectUser(projectName: String, email: String, googleRole: String)(implicit
       token: AuthToken
     ): String = {
       logger.info(s"Adding google role $googleRole to user $email in billing project $projectName")
       putRequest(s"${url}api/billing/$projectName/googleRole/$googleRole/$email")
     }
 
-    def removeGoogleRoleFromBillingProjectUser(projectName: String, email: String, googleRole: String)(
-      implicit
+    def removeGoogleRoleFromBillingProjectUser(projectName: String, email: String, googleRole: String)(implicit
       token: AuthToken
     ): String = {
       logger.info(s"Removing google role $googleRole from user $email in billing project $projectName")
@@ -100,8 +97,7 @@ trait Rawls extends RestClient with LazyLogging {
       parseResponseAs[List[Map[String, String]]](getRequest(s"${url}api/billing/v2/$projectName/members"))
     }
 
-    def addUserToBillingProject(projectName: String, email: String, billingProjectRole: BillingProjectRole)(
-      implicit
+    def addUserToBillingProject(projectName: String, email: String, billingProjectRole: BillingProjectRole)(implicit
       token: AuthToken
     ): String = {
       logger.info(s"Adding user to billing project: $projectName $email ${billingProjectRole.toString}")
@@ -132,7 +128,8 @@ trait Rawls extends RestClient with LazyLogging {
     def getMethodConfigInWorkspace(workspaceNamespace: String,
                                    workspaceName: String,
                                    configNamespace: String,
-                                   configName: String)(implicit token: AuthToken): String = {
+                                   configName: String
+    )(implicit token: AuthToken): String = {
       logger.info(
         s"Getting method configuration $configNamespace/$configName for workspace ${workspaceNamespace}/${workspaceName}"
       )
@@ -151,7 +148,8 @@ trait Rawls extends RestClient with LazyLogging {
     def getMethodConfigSyntaxValidationInWorkspace(workspaceNamespace: String,
                                                    workspaceName: String,
                                                    configNamespace: String,
-                                                   configName: String)(implicit token: AuthToken): String = {
+                                                   configName: String
+    )(implicit token: AuthToken): String = {
       logger.info("Getting syntax validation for method configuration in workspace")
       parseResponse(
         getRequest(
@@ -168,7 +166,8 @@ trait Rawls extends RestClient with LazyLogging {
                                       methodConfigVersion: Int,
                                       inputs: Map[String, String],
                                       outputs: Map[String, String],
-                                      rootEntityType: String)(implicit token: AuthToken): String = {
+                                      rootEntityType: String
+    )(implicit token: AuthToken): String = {
       logger.info(
         s"Creating method config: $workspaceNamespace/$workspaceName $methodConfigVersion method: ${method.methodNamespace}/${method.methodName} config: $configNamespace/$configName"
       )
@@ -199,14 +198,16 @@ trait Rawls extends RestClient with LazyLogging {
     }
 
     def claimProject(projectName: String, cromwellAuthBucket: String, newOwner: UserInfo)(implicit
-                                                                                          token: AuthToken): Unit = {
+      token: AuthToken
+    ): Unit = {
       logger.info(s"Claiming ownership of billing project: $projectName ${newOwner.userEmail}")
       postRequest(
         url + s"api/admin/project/registration",
         Map("project" -> projectName,
             "bucket" -> cromwellAuthBucket,
             "newOwnerEmail" -> newOwner.userEmail.value,
-            "newOwnerToken" -> newOwner.accessToken.token)
+            "newOwnerToken" -> newOwner.accessToken.token
+        )
       )
     }
 
@@ -222,8 +223,7 @@ trait Rawls extends RestClient with LazyLogging {
 
   object entities {
 
-    def importMetaData(namespace: String, workspaceName: String, upsertJson: Array[Map[String, Any]])(
-      implicit
+    def importMetaData(namespace: String, workspaceName: String, upsertJson: Array[Map[String, Any]])(implicit
       token: AuthToken
     ): String = {
       logger.info(s"Importing metadata: $namespace/$workspaceName $upsertJson")
@@ -237,8 +237,8 @@ trait Rawls extends RestClient with LazyLogging {
     def create(namespace: String,
                name: String,
                authDomain: Set[String] = Set.empty,
-               bucketLocation: Option[String] = None)(implicit
-                                                      token: AuthToken): Unit = {
+               bucketLocation: Option[String] = None
+    )(implicit token: AuthToken): Unit = {
       logger.info(s"Creating workspace: $namespace/$name authDomain: $authDomain")
 
       val authDomainGroups = authDomain.map(a => Map("membersGroupName" -> a))
@@ -262,7 +262,8 @@ trait Rawls extends RestClient with LazyLogging {
               destNamespace: String,
               destName: String,
               authDomain: Set[String] = Set.empty,
-              copyFilesWithPrefix: Option[String] = None)(implicit token: AuthToken): Unit = {
+              copyFilesWithPrefix: Option[String] = None
+    )(implicit token: AuthToken): Unit = {
       logger.info(
         s"Cloning workspace: $sourceNamespace/$sourceName into $destNamespace/$destName authDomain: $authDomain, copyFilesWithPrefix: $copyFilesWithPrefix"
       )
@@ -310,7 +311,8 @@ trait Rawls extends RestClient with LazyLogging {
     ): String = {
       logger.info(s"Updating acl for workspace $name in $namespace")
       patchRequest(url + s"api/workspaces/$namespace/$name/acl?inviteUsersNotFound=$inviteUsersNotFound",
-                   aclUpdates.map(e => e.toMap))
+                   aclUpdates.map(e => e.toMap)
+      )
     }
 
     def getAuthDomainsInWorkspace(namespace: String, name: String)(implicit token: AuthToken): List[String] = {
@@ -325,8 +327,7 @@ trait Rawls extends RestClient with LazyLogging {
       mapper.readTree(response).findValuesAsText("name").asScala.toList
     }
 
-    def updateAttributes(namespace: String, name: String, attributeUpdates: List[AttributeUpdateOperation])(
-      implicit
+    def updateAttributes(namespace: String, name: String, attributeUpdates: List[AttributeUpdateOperation])(implicit
       token: AuthToken
     ): String = {
       logger.info(s"Setting attributes for workspace: $namespace/$name $attributeUpdates")
@@ -353,7 +354,8 @@ trait Rawls extends RestClient with LazyLogging {
                        expression: String,
                        useCallCache: Boolean,
                        deleteIntermediateOutputFiles: Boolean,
-                       workflowFailureMode: String = "NoNewCalls")(implicit token: AuthToken): String = {
+                       workflowFailureMode: String = "NoNewCalls"
+    )(implicit token: AuthToken): String = {
       val body: Map[String, Any] = Map(
         "methodConfigurationNamespace" -> methodConfigurationNamespace,
         "methodConfigurationName" -> methodConfigurationName,
@@ -380,8 +382,7 @@ trait Rawls extends RestClient with LazyLogging {
     }
 
     // returns a tuple of (submission status, workflow IDs if any)
-    def getSubmissionStatus(billingProject: String, workspaceName: String, submissionId: String)(
-      implicit
+    def getSubmissionStatus(billingProject: String, workspaceName: String, submissionId: String)(implicit
       token: AuthToken
     ): (String, List[String]) = {
       logger.info(s"Get submission status: $billingProject/$workspaceName/$submissionId")
@@ -414,8 +415,9 @@ trait Rawls extends RestClient with LazyLogging {
                             workspaceName: String,
                             submissionId: String,
                             workflowId: String,
-                            expandSubworkflows: Boolean = false)(
-      implicit token: AuthToken
+                            expandSubworkflows: Boolean = false
+    )(implicit
+      token: AuthToken
     ): String = {
       logger.info(s"Get workflow metadata: $billingProject/$workspaceName/$submissionId/$workflowId")
       parseResponse(
@@ -436,8 +438,7 @@ trait Rawls extends RestClient with LazyLogging {
       )
     }
 
-    def abortSubmission(billingProject: String, workspaceName: String, submissionId: String)(
-      implicit
+    def abortSubmission(billingProject: String, workspaceName: String, submissionId: String)(implicit
       token: AuthToken
     ): String = {
       logger.info(s"Abort submission: $billingProject/$workspaceName/$submissionId")

@@ -20,8 +20,8 @@ trait WorkspaceFixtures extends ExceptionHandling with RandomUtil { self: TestSu
                              workspaceName: String,
                              aclEntries: List[AclEntry],
                              attributes: Option[Map[String, Any]],
-                             cleanUp: Boolean,
-                            )(testCode: (String) => Any)(implicit token: AuthToken): Unit = {
+                             cleanUp: Boolean
+  )(testCode: (String) => Any)(implicit token: AuthToken): Unit = {
     if (aclEntries.nonEmpty)
       Orchestration.workspaces.updateAcl(namespace, workspaceName, aclEntries)
     if (attributes.isDefined)
@@ -57,7 +57,7 @@ trait WorkspaceFixtures extends ExceptionHandling with RandomUtil { self: TestSu
                     attributes: Option[Map[String, Any]] = None,
                     cleanUp: Boolean = true,
                     workspaceRegion: Option[String] = None
-                   )(testCode: (String) => Any)(implicit token: AuthToken): Unit = {
+  )(testCode: (String) => Any)(implicit token: AuthToken): Unit = {
     val workspaceName = uuidWithPrefix(namePrefix, " ")
     Orchestration.workspaces.create(namespace, workspaceName, authDomain, workspaceRegion)
 
@@ -71,7 +71,7 @@ trait WorkspaceFixtures extends ExceptionHandling with RandomUtil { self: TestSu
                           attributes: Option[Map[String, Any]] = None,
                           cleanUp: Boolean = true,
                           workspaceRegion: Option[String] = None
-                         )(testCode: (String) => Any)(implicit token: AuthToken): Unit = {
+  )(testCode: (String) => Any)(implicit token: AuthToken): Unit = {
     val workspaceName = uuidWithPrefix(namePrefix, " ")
     Orchestration.workspaces.create(namespace, workspaceName, authDomain, workspaceRegion)
 
