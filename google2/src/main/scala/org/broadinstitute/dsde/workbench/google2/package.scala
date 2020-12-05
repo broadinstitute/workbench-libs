@@ -150,7 +150,7 @@ package object google2 {
   def recoverF[F[_]: Sync, A](fa: F[A], pred: Throwable => Boolean): F[Option[A]] =
     fa.map(Option(_)).recover { case e if pred(e) => None }
 
-  // Note that this method may reach maxAttempts without hitting the Done condition.
+  // Note: This method may reach maxAttempts without hitting the Done condition.
   // If you need to check whether the Done condition was met, you may want to use the
   // method streamUntilDoneOrTimeout() instead.
   def streamFUntilDone[F[_]: Timer, A: DoneCheckable](fa: F[A], maxAttempts: Int, delay: FiniteDuration): Stream[F, A] =
@@ -159,18 +159,17 @@ package object google2 {
       .takeThrough(!_.isDone)
 
   // Distinctly from the method streamFUntilDone(), this method raises an error if the Done condition is not met
-  // by the time maxAttempts are exhausted. Therefore callers should use this method instead of streamFUntilDone()
-  // if they want to make sure of hitting the Done condition and take action otherwise.
+  // by the time maxAttempts are exhausted. Therefore callers may want to use this method instead of streamFUntilDone()
+  // if they want to ascertain the Done condition was satisfied and take action otherwise.
+  // See org.broadinstitute.dsde.workbench.google2.GoogleDataprocInterpreter.stopCluster() for examples.
   def streamUntilDoneOrTimeout[F[_]: Sync: Timer, A: DoneCheckable](fa: F[A],
                                                                     maxAttempts: Int,
                                                                     delay: FiniteDuration
-  ): F[Either[StreamTimeoutError.type, A]] =
-    streamFUntilDone(fa, maxAttempts, delay)
-      .evalMap { a =>
-        if (a.isDone)
-          Sync[F].pure(a.asRight: Either[StreamTimeoutError.type, A])
-        else
-          Sync[F].raiseError(StreamTimeoutError): F[Either[StreamTimeoutError.type, A]]
+  ): F[A] =
+    streamFUntilDone(fa, maxAttempts, delay).last
+      .evalMap {
+        case Some(a) if a.isDone => Sync[F].pure(a)
+        case _                   => Sync[F].raiseError[A](StreamTimeoutError)
       }
       .compile
       .lastOrError
@@ -184,6 +183,7 @@ package object google2 {
 }
 
 case object StreamTimeoutError extends NoStackTrace
+
 final case class RetryConfig(retryInitialDelay: FiniteDuration,
                              retryNextDelay: FiniteDuration => FiniteDuration,
                              maxAttempts: Int,

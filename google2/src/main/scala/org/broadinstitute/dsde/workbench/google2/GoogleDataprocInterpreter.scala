@@ -12,10 +12,10 @@ import com.google.cloud.dataproc.v1.{RegionName => _, _}
 import com.google.common.util.concurrent.MoreExecutors
 import com.google.protobuf.FieldMask
 import io.chrisdavenport.log4cats.StructuredLogger
-import org.broadinstitute.dsde.workbench.{DoneCheckable, RetryConfig}
+import org.broadinstitute.dsde.workbench.{DoneCheckable, RetryConfig, StreamTimeoutError}
 import org.broadinstitute.dsde.workbench.google2.DataprocRole.Master
 import org.broadinstitute.dsde.workbench.google2.util.RetryPredicates._
-import org.broadinstitute.dsde.workbench.model.TraceId
+import org.broadinstitute.dsde.workbench.model.{TraceId, WorkbenchException}
 import org.broadinstitute.dsde.workbench.model.google.GoogleProject
 import org.broadinstitute.dsde.workbench.google2.GoogleDataprocInterpreter._
 
@@ -107,16 +107,26 @@ private[google2] class GoogleDataprocInterpreter[F[_]: StructuredLogger: Timer: 
       // First, remove preemptible instances (if any) and wait until the removal is done
       remainingClusterInstances <-
         if (containsPreemptibles(clusterInstances))
-          resizeCluster(project, region, clusterName, numWorkers = None, numPreemptibles = Some(0)) >> streamFUntilDone(
+          resizeCluster(project,
+                        region,
+                        clusterName,
+                        numWorkers = None,
+                        numPreemptibles = Some(0)
+          ) >> streamUntilDoneOrTimeout(
             getClusterInstances(project, region, clusterName),
             15,
             6 seconds
-          ).compile.lastOrError
+          ).adaptError { case StreamTimeoutError =>
+            ResizingNotDoneException(project, clusterName)
+          }
         else F.pure(clusterInstances)
 
-      // Then, wait until the cluster's status transitions back to RUNNING (from UPDATING)
+      // If removal of preemptibles is done, wait until the cluster's status transitions back to RUNNING (from UPDATING)
       // Otherwise, stopping the remaining instances may cause the cluster to get in to ERROR status
-      _ <- streamFUntilDone(getCluster(project, region, clusterName), 15, 3 seconds).compile.lastOrError
+      _ <- streamUntilDoneOrTimeout(getCluster(project, region, clusterName), 15, 3 seconds)
+        .adaptError { case StreamTimeoutError =>
+          ClusterUpdatingNotDoneException(project, clusterName)
+        }
 
       // Then, stop each remaining instance individually
       operations <- remainingClusterInstances.toList.parFlatTraverse {
@@ -351,14 +361,20 @@ object GoogleDataprocInterpreter {
   }
 
   implicit val resizingDoneCheckable: DoneCheckable[Map[DataprocRoleZonePreemptibility, Set[InstanceName]]] =
-    new DoneCheckable[Map[DataprocRoleZonePreemptibility, Set[InstanceName]]] {
-      def isDone(instances: Map[DataprocRoleZonePreemptibility, Set[InstanceName]]): Boolean =
-        !containsPreemptibles(instances)
-    }
+    instances => !containsPreemptibles(instances)
 
   implicit val clusterRunningCheckable: DoneCheckable[Option[Cluster]] =
-    new DoneCheckable[Option[com.google.cloud.dataproc.v1.Cluster]] {
-      def isDone(cluster: Option[Cluster]): Boolean =
-        cluster.exists(_.getStatus.getState.toString == "RUNNING")
-    }
+    clusterOpt => clusterOpt.exists(_.getStatus.getState.toString == "RUNNING")
+
+  final case class ResizingNotDoneException(project: GoogleProject, cluster: DataprocClusterName)
+      extends WorkbenchException {
+    override def getMessage: String =
+      s"Cannot stop the instances of cluster ${project.value}/${cluster.value} before removing its preemptible instances first."
+  }
+
+  final case class ClusterUpdatingNotDoneException(project: GoogleProject, cluster: DataprocClusterName)
+      extends WorkbenchException {
+    override def getMessage: String =
+      s"Cannot stop the instances of cluster ${project.value}/${cluster.value} unless the cluster is in RUNNING status."
+  }
 }
