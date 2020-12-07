@@ -2,28 +2,21 @@
 
 This file documents changes to the `workbench-google2` library, including notes on how to upgrade to new versions.
 
-## 0.18
-Added:
-- `GoogleDataprocInterpreter` can resize clusters and stop cluster VMs.
-- `publishNativeOne` to `GooglePublisher[F]`
-
-Changed:
-- [BREAKING CHANGE] `GoogleDataprocInterpreter` requires a `GoogleComputeService` instance so it can stop and resize Dataproc
-cluster nodes. Note that this is a breaking change for existing `GoogleDataprocInterpreter` clients.
-
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.18-TRAVIS-REPLACE-ME"`
-
 ## 0.17
 Added:
 - `list` to `GoogleTopicAdmin`
 - `GoogleSubscriptionAdmin`
 - `setNodepoolAutoscaling` and `setNodepoolSize` to `GKEService`
+- `GoogleDataprocInterpreter` can resize clusters and stop cluster VMs.
+- `publishNativeOne` to `GooglePublisher[F]`
 
 Changed:
 - Remove `retryConfig` from `PublisherConfig`
 - Update Kubernetes client library
 - Format getCluster response (currently it prints out cert, which seems not ideal and noisy)
 - print out more useful info for kubernetes error
+- [BREAKING CHANGE] `GoogleDataprocInterpreter` requires a `GoogleComputeService` instance so it can stop and resize Dataproc
+  cluster nodes. Note that this is a breaking change for existing `GoogleDataprocInterpreter` clients.
 
 Dependency Upgrades
 ```
@@ -42,7 +35,7 @@ Update guava to 30.0-jre (#390)
 Update `io.kubernetes client-java` from `5.0.0` to `10.0.0` (This has some breaking changes if you're using the library's API directly)
 ```
       
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.17-1e1f697"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.17-TRAVIS-REPLACE-ME"`
 
 ## 0.16
 Added:
