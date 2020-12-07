@@ -2,13 +2,21 @@
 
 This file documents changes to the `workbench-google2` library, including notes on how to upgrade to new versions.
 
-## 0.17
-Add
-- Add `list` to `GoogleTopicAdmin`
-- Add `GoogleSubscriptionAdmin`
-- Add `setNodepoolAutoscaling` and `setNodepoolSize` to `GKEService`
+## 0.18
+Added:
+- `GoogleDataprocInterpreter` can resize clusters and stop cluster VMs.
 
-Changed
+Changed:
+- [BREAKING CHANGE] `GoogleDataprocInterpreter` requires a `GoogleComputeService` instance so it can stop and resize Dataproc
+cluster nodes. Note that this is a breaking change for existing `GoogleDataprocInterpreter` clients.
+
+## 0.17
+Added:
+- `list` to `GoogleTopicAdmin`
+- `GoogleSubscriptionAdmin`
+- `setNodepoolAutoscaling` and `setNodepoolSize` to `GKEService`
+
+Changed:
 - Remove `retryConfig` from `PublisherConfig`
 - Update Kubernetes client library
 - Format getCluster response (currently it prints out cert, which seems not ideal and noisy)
@@ -34,10 +42,9 @@ Update `io.kubernetes client-java` from `5.0.0` to `10.0.0` (This has some break
 SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.17-1e1f697"`
 
 ## 0.16
-
-Add:
-- Add `subscriptionName: Option[ProjectSubscriptionName]`, `deadLetterPolicy: Option[SubscriberDeadLetterPolicy]` and `filter: Option[String]` to `SubscriberConfig`
-- Add a `GoogleBigQueryService.resource()` method that accepts the Google project to be billed
+Added:
+- `subscriptionName: Option[ProjectSubscriptionName]`, `deadLetterPolicy: Option[SubscriberDeadLetterPolicy]` and `filter: Option[String]` to `SubscriberConfig`
+- `GoogleBigQueryService.resource()` method that accepts the Google project to be billed
 
 Changed:
 - Scala Steward:
@@ -71,7 +78,6 @@ Update fs2-io to 2.4.5 (#379)
 SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.16-42883ed"`
 
 ## 0.15
-
 Added:
 - Add `FakeGooglePublisher` mock	
 - Add `publishOne` to `GooglePublisher`	
