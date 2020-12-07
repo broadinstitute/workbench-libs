@@ -115,18 +115,19 @@ private[google2] class GoogleDataprocInterpreter[F[_]: StructuredLogger: Timer: 
           ) >> streamUntilDoneOrTimeout(
             getClusterInstances(project, region, clusterName),
             15,
-            6 seconds
-          ).adaptError { case StreamTimeoutError =>
-            ResizingNotDoneException(project, clusterName)
-          }
+            6 seconds,
+            s"Cannot stop the instances of cluster ${project.value}/${clusterName.value} before removing its preemptible instances first."
+          )
         else F.pure(clusterInstances)
 
       // If removal of preemptibles is done, wait until the cluster's status transitions back to RUNNING (from UPDATING)
       // Otherwise, stopping the remaining instances may cause the cluster to get in to ERROR status
-      _ <- streamUntilDoneOrTimeout(getCluster(project, region, clusterName), 15, 3 seconds)
-        .adaptError { case StreamTimeoutError =>
-          ClusterUpdatingNotDoneException(project, clusterName)
-        }
+      _ <- streamUntilDoneOrTimeout(
+        getCluster(project, region, clusterName),
+        15,
+        3 seconds,
+        s"Cannot stop the instances of cluster ${project.value}/${clusterName.value} unless the cluster is in RUNNING status."
+      )
 
       // Then, stop each remaining instance individually
       operations <- remainingClusterInstances.toList.parFlatTraverse {
@@ -365,16 +366,4 @@ object GoogleDataprocInterpreter {
 
   implicit val clusterRunningCheckable: DoneCheckable[Option[Cluster]] =
     clusterOpt => clusterOpt.exists(_.getStatus.getState.toString == "RUNNING")
-
-  final case class ResizingNotDoneException(project: GoogleProject, cluster: DataprocClusterName)
-      extends WorkbenchException {
-    override def getMessage: String =
-      s"Cannot stop the instances of cluster ${project.value}/${cluster.value} before removing its preemptible instances first."
-  }
-
-  final case class ClusterUpdatingNotDoneException(project: GoogleProject, cluster: DataprocClusterName)
-      extends WorkbenchException {
-    override def getMessage: String =
-      s"Cannot stop the instances of cluster ${project.value}/${cluster.value} unless the cluster is in RUNNING status."
-  }
 }

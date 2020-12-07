@@ -19,13 +19,15 @@ final class PackageSpec extends AnyFlatSpecLike with Matchers with WorkbenchTest
       count
     }
 
-    val resultWhenReachingMaxAttemptsBeforeDone = streamUntilDoneOrTimeout(incrUpTo(5), 2, 1 milliseconds)
-    intercept[StreamTimeoutError.type] {
+    val resultWhenReachingMaxAttemptsBeforeDone =
+      streamUntilDoneOrTimeout(incrUpTo(5), 2, 1 milliseconds, "should have timeout error")
+    intercept[StreamTimeoutError] {
       resultWhenReachingMaxAttemptsBeforeDone.unsafeRunSync()
     }
     count shouldBe 2
 
-    val resultWhenReachingDoneBeforeMaxAttempts = streamUntilDoneOrTimeout(incrUpTo(5), 4, 1 milliseconds)
+    val resultWhenReachingDoneBeforeMaxAttempts =
+      streamUntilDoneOrTimeout(incrUpTo(5), 4, 1 milliseconds, "shouldn't have timeout error")
     resultWhenReachingDoneBeforeMaxAttempts.unsafeRunSync() shouldBe 5
     count shouldBe 5
   }

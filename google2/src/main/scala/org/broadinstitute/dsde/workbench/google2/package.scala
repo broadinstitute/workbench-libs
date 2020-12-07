@@ -16,7 +16,7 @@ import com.google.cloud.compute.v1.Operation
 import fs2.{RaiseThrowable, Stream}
 import io.chrisdavenport.log4cats.StructuredLogger
 import io.circe.Encoder
-import org.broadinstitute.dsde.workbench.model.{ErrorReportSource, TraceId}
+import org.broadinstitute.dsde.workbench.model.{ErrorReportSource, TraceId, WorkbenchException}
 import io.circe.syntax._
 
 import scala.concurrent.duration._
@@ -158,18 +158,19 @@ package object google2 {
       .repeatN(maxAttempts)
       .takeThrough(!_.isDone)
 
-  // Distinctly from the method streamFUntilDone(), this method raises an error if the Done condition is not met
+  // Distinctly from the method streamFUntilDone(), this method raises a StreamTimeoutError if the Done condition is not met
   // by the time maxAttempts are exhausted. Therefore callers may want to use this method instead of streamFUntilDone()
   // if they want to ascertain the Done condition was satisfied and take action otherwise.
   // See org.broadinstitute.dsde.workbench.google2.GoogleDataprocInterpreter.stopCluster() for examples.
   def streamUntilDoneOrTimeout[F[_]: Sync: Timer, A: DoneCheckable](fa: F[A],
                                                                     maxAttempts: Int,
-                                                                    delay: FiniteDuration
+                                                                    delay: FiniteDuration,
+                                                                    timeoutErrorMessage: String
   ): F[A] =
     streamFUntilDone(fa, maxAttempts, delay).last
       .evalMap {
         case Some(a) if a.isDone => Sync[F].pure(a)
-        case _                   => Sync[F].raiseError[A](StreamTimeoutError)
+        case _                   => Sync[F].raiseError[A](StreamTimeoutError(timeoutErrorMessage))
       }
       .compile
       .lastOrError
@@ -182,7 +183,7 @@ package object google2 {
   )
 }
 
-case object StreamTimeoutError extends NoStackTrace
+final case class StreamTimeoutError(override val getMessage: String) extends WorkbenchException
 
 final case class RetryConfig(retryInitialDelay: FiniteDuration,
                              retryNextDelay: FiniteDuration => FiniteDuration,
