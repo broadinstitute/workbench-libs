@@ -16,16 +16,12 @@ import scala.util.Try
  */
 trait WorkspaceFixtures extends ExceptionHandling with RandomUtil { self: TestSuite =>
 
-  private def setupWorkspace(namespace: String,
-                             workspaceName: String,
-                             aclEntries: List[AclEntry],
-                             attributes: Option[Map[String, Any]],
-                             cleanUp: Boolean
-  )(testCode: (String) => Any)(implicit token: AuthToken): Unit = {
-    if (aclEntries.nonEmpty)
-      Orchestration.workspaces.updateAcl(namespace, workspaceName, aclEntries)
-    if (attributes.isDefined)
-      Orchestration.workspaces.setAttributes(namespace, workspaceName, attributes.get)
+  /**
+   * Cleans up the workspace once the test code has been run
+   */
+  private def withRunAndCleanUpWorkspace(namespace: String, workspaceName: String, cleanUp: Boolean)(
+    testCode: (String) => Any
+  )(implicit token: AuthToken): Unit = {
     val testTrial = Try {
       testCode(workspaceName)
     }
@@ -45,11 +41,13 @@ trait WorkspaceFixtures extends ExceptionHandling with RandomUtil { self: TestSu
    * likely unique series of characters.
    *
    * @param namespace the namespace for the test workspace
-   * @param namePrefix optional prefix for the workspace name
+   * @param namePrefix prefix for the workspace name
    * @param authDomain optional auth domain for the test workspace
-   * @param testCode test code to run
-   * @param token auth token for service API calls
+   * @param aclEntries optional access level entries for the workspace
+   * @param attributes optional workspace attributes
+   * @param cleanUp optional boolean parameter to indicate whether to delete the workspace. Default is true
    * @param bucketLocation optional region where the bucket associated with workspace should be created
+   * @param testCode test code to run
    */
   def withWorkspace(
     namespace: String,
@@ -63,7 +61,12 @@ trait WorkspaceFixtures extends ExceptionHandling with RandomUtil { self: TestSu
     val workspaceName = uuidWithPrefix(namePrefix, " ")
     Orchestration.workspaces.create(namespace, workspaceName, authDomain, bucketLocation)
 
-    setupWorkspace(namespace, workspaceName, aclEntries, attributes, cleanUp)(testCode)
+    if (aclEntries.nonEmpty)
+      Orchestration.workspaces.updateAcl(namespace, workspaceName, aclEntries)
+    if (attributes.isDefined)
+      Orchestration.workspaces.setAttributes(namespace, workspaceName, attributes.get)
+
+    withRunAndCleanUpWorkspace(namespace, workspaceName, cleanUp)(testCode)
   }
 
   /**
@@ -72,11 +75,13 @@ trait WorkspaceFixtures extends ExceptionHandling with RandomUtil { self: TestSu
    * likely unique series of characters.
    *
    * @param namespace the namespace for the test workspace
-   * @param namePrefix optional prefix for the workspace name
+   * @param namePrefix prefix for the workspace name
    * @param authDomain optional auth domain for the test workspace
-   * @param testCode test code to run
-   * @param token auth token for service API calls
+   * @param aclEntries optional access level entries for the workspace
+   * @param attributes optional workspace attributes
+   * @param cleanUp optional boolean parameter to indicate whether to delete the workspace. Default is true
    * @param bucketLocation optional region where the bucket associated with workspace should be created
+   * @param testCode test code to run
    */
   def withClonedWorkspace(
     namespace: String,
@@ -91,13 +96,19 @@ trait WorkspaceFixtures extends ExceptionHandling with RandomUtil { self: TestSu
     val workspaceName = uuidWithPrefix(namePrefix, " ")
     Orchestration.workspaces.create(namespace, workspaceName, authDomain, bucketLocation)
 
-    setupWorkspace(namespace, workspaceName, aclEntries, attributes, cleanUp) { _ =>
+    // set up the original workspace
+    if (aclEntries.nonEmpty)
+      Orchestration.workspaces.updateAcl(namespace, workspaceName, aclEntries)
+    if (attributes.isDefined)
+      Orchestration.workspaces.setAttributes(namespace, workspaceName, attributes.get)
+
+    withRunAndCleanUpWorkspace(namespace, workspaceName, cleanUp) { _ =>
       // clone the newly created workspace
       val cloneNamePrefix = appendUnderscore(workspaceName) + "clone"
       val clonedWorkspaceName = uuidWithPrefix(cloneNamePrefix, " ")
 
       Orchestration.workspaces.clone(namespace, workspaceName, namespace, clonedWorkspaceName, authDomain)
-      setupWorkspace(namespace, clonedWorkspaceName, aclEntries, attributes, cleanUp)(testCode)
+      withRunAndCleanUpWorkspace(namespace, clonedWorkspaceName, cleanUp)(testCode)
     }
   }
 }
