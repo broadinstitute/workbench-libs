@@ -17,4 +17,6 @@ class FakeGooglePublisher extends GooglePublisher[IO] {
   override def publishString: Pipe[IO, String, Unit] = in => in.evalMap(_ => IO.unit)
 
   override def publishOne[MessageType: Encoder](message: MessageType)(implicit ev: Ask[IO, TraceId]): IO[Unit] = IO.unit
+
+  override def publishNativeOne(message: PubsubMessage): IO[Unit] = IO.unit
 }

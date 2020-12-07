@@ -5,10 +5,13 @@ This file documents changes to the `workbench-google2` library, including notes 
 ## 0.18
 Added:
 - `GoogleDataprocInterpreter` can resize clusters and stop cluster VMs.
+- `publishNativeOne` to `GooglePublisher[F]`
 
 Changed:
 - [BREAKING CHANGE] `GoogleDataprocInterpreter` requires a `GoogleComputeService` instance so it can stop and resize Dataproc
 cluster nodes. Note that this is a breaking change for existing `GoogleDataprocInterpreter` clients.
+
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.18-TRAVIS-REPLACE-ME"`
 
 ## 0.17
 Added:
