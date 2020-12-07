@@ -19,7 +19,7 @@ trait WorkspaceFixtures extends ExceptionHandling with RandomUtil { self: TestSu
   /**
    * Cleans up the workspace once the test code has been run
    */
-  private def withRunAndCleanUpWorkspace(namespace: String, workspaceName: String, cleanUp: Boolean)(
+  private def runTestAndCleanUpWorkspace(namespace: String, workspaceName: String, cleanUp: Boolean)(
     testCode: (String) => Any
   )(implicit token: AuthToken): Unit = {
     val testTrial = Try {
@@ -66,7 +66,7 @@ trait WorkspaceFixtures extends ExceptionHandling with RandomUtil { self: TestSu
     if (attributes.isDefined)
       Orchestration.workspaces.setAttributes(namespace, workspaceName, attributes.get)
 
-    withRunAndCleanUpWorkspace(namespace, workspaceName, cleanUp)(testCode)
+    runTestAndCleanUpWorkspace(namespace, workspaceName, cleanUp)(testCode)
   }
 
   /**
@@ -102,13 +102,13 @@ trait WorkspaceFixtures extends ExceptionHandling with RandomUtil { self: TestSu
     if (attributes.isDefined)
       Orchestration.workspaces.setAttributes(namespace, workspaceName, attributes.get)
 
-    withRunAndCleanUpWorkspace(namespace, workspaceName, cleanUp) { _ =>
+    runTestAndCleanUpWorkspace(namespace, workspaceName, cleanUp) { _ =>
       // clone the newly created workspace
       val cloneNamePrefix = appendUnderscore(workspaceName) + "clone"
       val clonedWorkspaceName = uuidWithPrefix(cloneNamePrefix, " ")
 
       Orchestration.workspaces.clone(namespace, workspaceName, namespace, clonedWorkspaceName, authDomain)
-      withRunAndCleanUpWorkspace(namespace, clonedWorkspaceName, cleanUp)(testCode)
+      runTestAndCleanUpWorkspace(namespace, clonedWorkspaceName, cleanUp)(testCode)
     }
   }
 }
