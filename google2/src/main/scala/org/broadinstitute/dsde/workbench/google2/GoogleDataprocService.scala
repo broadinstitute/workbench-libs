@@ -13,8 +13,10 @@ import org.broadinstitute.dsde.workbench.google2.util.RetryPredicates
 import org.broadinstitute.dsde.workbench.model.TraceId
 import org.broadinstitute.dsde.workbench.model.google.{GcsBucketName, GoogleProject}
 import ca.mrvisser.sealerate
+import cats.Parallel
+import com.google.cloud.compute.v1.Operation
+
 import scala.collection.JavaConverters._
-import scala.language.higherKinds
 
 /**
  * Algebra for Google Dataproc access
@@ -29,6 +31,23 @@ trait GoogleDataprocService[F[_]] {
     createClusterConfig: Option[CreateClusterConfig]
   )(implicit ev: Ask[F, TraceId]): F[CreateClusterResponse]
 
+  def stopCluster(project: GoogleProject,
+                  region: RegionName,
+                  clusterName: DataprocClusterName,
+                  metadata: Option[Map[String, String]]
+  )(implicit
+    ev: Ask[F, TraceId]
+  ): F[List[Operation]]
+
+  def resizeCluster(project: GoogleProject,
+                    region: RegionName,
+                    clusterName: DataprocClusterName,
+                    numWorkers: Option[Int],
+                    numPreemptibles: Option[Int]
+  )(implicit
+    ev: Ask[F, TraceId]
+  ): F[Option[ClusterOperationMetadata]]
+
   def deleteCluster(project: GoogleProject, region: RegionName, clusterName: DataprocClusterName)(implicit
     ev: Ask[F, TraceId]
   ): F[Option[ClusterOperationMetadata]]
@@ -39,13 +58,14 @@ trait GoogleDataprocService[F[_]] {
 
   def getClusterInstances(project: GoogleProject, region: RegionName, clusterName: DataprocClusterName)(implicit
     ev: Ask[F, TraceId]
-  ): F[Map[DataprocRole, Set[InstanceName]]]
+  ): F[Map[DataprocRoleZonePreemptibility, Set[InstanceName]]]
 
   def getClusterError(operationName: OperationName)(implicit ev: Ask[F, TraceId]): F[Option[ClusterError]]
 }
 
 object GoogleDataprocService {
-  def resource[F[_]: StructuredLogger: Async: Timer: ContextShift](
+  def resource[F[_]: StructuredLogger: Async: Timer: Parallel: ContextShift](
+    googleComputeService: GoogleComputeService[F],
     pathToCredential: String,
     blocker: Blocker,
     blockerBound: Semaphore[F],
@@ -55,10 +75,17 @@ object GoogleDataprocService {
     for {
       credential <- credentialResource(pathToCredential)
       scopedCredential = credential.createScoped(Seq(ComputeScopes.CLOUD_PLATFORM).asJava)
-      interpreter <- fromCredential(scopedCredential, blocker, regionName, blockerBound, retryConfig)
+      interpreter <- fromCredential(googleComputeService,
+                                    scopedCredential,
+                                    blocker,
+                                    regionName,
+                                    blockerBound,
+                                    retryConfig
+      )
     } yield interpreter
 
-  def resourceFromUserCredential[F[_]: StructuredLogger: Async: Timer: ContextShift](
+  def resourceFromUserCredential[F[_]: StructuredLogger: Async: Timer: Parallel: ContextShift](
+    googleComputeService: GoogleComputeService[F],
     pathToCredential: String,
     blocker: Blocker,
     blockerBound: Semaphore[F],
@@ -68,10 +95,17 @@ object GoogleDataprocService {
     for {
       credential <- userCredentials(pathToCredential)
       scopedCredential = credential.createScoped(Seq(ComputeScopes.CLOUD_PLATFORM).asJava)
-      interpreter <- fromCredential(scopedCredential, blocker, regionName, blockerBound, retryConfig)
+      interpreter <- fromCredential(googleComputeService,
+                                    scopedCredential,
+                                    blocker,
+                                    regionName,
+                                    blockerBound,
+                                    retryConfig
+      )
     } yield interpreter
 
-  def fromCredential[F[_]: StructuredLogger: Async: Timer: ContextShift](
+  def fromCredential[F[_]: StructuredLogger: Async: Timer: Parallel: ContextShift](
+    googleComputeService: GoogleComputeService[F],
     googleCredentials: GoogleCredentials,
     blocker: Blocker,
     regionName: RegionName,
@@ -86,12 +120,17 @@ object GoogleDataprocService {
 
     for {
       client <- backgroundResourceF(ClusterControllerClient.create(settings))
-    } yield new GoogleDataprocInterpreter[F](client, blocker, blockerBound, retryConfig)
+    } yield new GoogleDataprocInterpreter[F](client, googleComputeService, blocker, blockerBound, retryConfig)
   }
 }
 
 final case class DataprocClusterName(value: String) extends AnyVal
-final case class ClusterErrorDetails(code: Int, message: Option[String])
+
+final case class DataprocInstance(name: InstanceName,
+                                  project: GoogleProject,
+                                  zone: ZoneName,
+                                  dataprocRole: DataprocRole
+)
 
 sealed abstract class CreateClusterResponse
 object CreateClusterResponse {
@@ -111,9 +150,12 @@ sealed trait DataprocRole extends Product with Serializable
 object DataprocRole {
   case object Master extends DataprocRole
   case object Worker extends DataprocRole
-  case object SecondaryWorker extends DataprocRole // alias to Preemptible Worker
+  case object SecondaryWorker extends DataprocRole
 
   val stringToDataprocRole = sealerate.values[DataprocRole].map(p => (p.toString, p)).toMap
 }
 
+final case class DataprocRoleZonePreemptibility(role: DataprocRole, zone: ZoneName, isPreemptible: Boolean)
+
 final case class ClusterError(code: Int, message: String)
+final case class ClusterErrorDetails(code: Int, message: Option[String])

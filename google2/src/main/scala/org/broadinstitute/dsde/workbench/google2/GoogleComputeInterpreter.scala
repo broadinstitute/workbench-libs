@@ -150,6 +150,7 @@ private[google2] class GoogleComputeInterpreter[F[_]: Parallel: StructuredLogger
     ev: Ask[F, TraceId]
   ): F[Operation] = {
     val projectZoneInstanceName = ProjectZoneInstanceName.of(instanceName.value, project.value, zone.value)
+
     retryF(
       F.delay(instanceClient.stopInstance(projectZoneInstanceName)),
       s"com.google.cloud.compute.v1.InstanceClient.stopInstance(${projectZoneInstanceName.toString})"

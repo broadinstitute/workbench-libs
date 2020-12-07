@@ -10,7 +10,7 @@ import cats.syntax.all._
 import scala.concurrent.ExecutionContext.global
 import scala.concurrent.duration._
 
-object GooglePubSubMannualTest {
+object GooglePubSubManualTest {
   implicit val cs = IO.contextShift(global)
   implicit val t = IO.timer(global)
   implicit def logger = Slf4jLogger.getLogger[IO]
@@ -20,13 +20,13 @@ object GooglePubSubMannualTest {
   val projectTopicName = ProjectTopicName.of("your google project", "your topic name")
   val path = "your service account path"
 
-  val printPipe: Pipe[IO, Event[Messagee], Unit] = in =>
+  val printPipe: Pipe[IO, Event[Message], Unit] = in =>
     in.evalMap(s => IO(println("processed " + s)) >> IO(s.consumer.ack()))
 
   /**
    * How to use this:
    * 1. sbt "project workbenchGoogle2" test:console
-   * 2. val res = org.broadinstitute.dsde.workbench.google2.GooglePubSubMannualTest.publish()
+   * 2. val res = org.broadinstitute.dsde.workbench.google2.GooglePubSubManualTest.publish()
    * 3. res.unsafeRunSync
    *
    * You can now see messages being published
@@ -40,12 +40,12 @@ object GooglePubSubMannualTest {
     pub.use(x => (Stream.eval(IO.pure("yes")) through x.publish).compile.drain)
   }
 
-  implicit val msgDecoder: Decoder[Messagee] = Decoder.forProduct1("msg")(Messagee)
+  implicit val msgDecoder: Decoder[Message] = Decoder.forProduct1("msg")(Message)
 
   /**
    * How to use this:
    * 1. sbt "project workbenchGoogle2" test:console
-   * 2. val res = org.broadinstitute.dsde.workbench.google2.GooglePubSubMannualTest.subscriber()
+   * 2. val res = org.broadinstitute.dsde.workbench.google2.GooglePubSubManualTest.subscriber()
    * 3. res.unsafeRunSync
    *
    * You can now publish messages in console and watch messages being printed out
@@ -53,8 +53,8 @@ object GooglePubSubMannualTest {
   def subscriber() = {
     val config = SubscriberConfig(path, projectTopicName, None, 1 minute, None, None, None)
     for {
-      queue <- InspectableQueue.bounded[IO, Event[Messagee]](100)
-      sub = GoogleSubscriber.resource[IO, Messagee](config, queue)
+      queue <- InspectableQueue.bounded[IO, Event[Message]](100)
+      sub = GoogleSubscriber.resource[IO, Message](config, queue)
       _ <- sub.use { s =>
         val stream = Stream(
           Stream.eval(s.start),
@@ -66,4 +66,4 @@ object GooglePubSubMannualTest {
   }
 }
 
-final case class Messagee(msg: String)
+final case class Message(msg: String)

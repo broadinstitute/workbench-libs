@@ -16,10 +16,11 @@ import com.google.cloud.compute.v1.Operation
 import fs2.{RaiseThrowable, Stream}
 import io.chrisdavenport.log4cats.StructuredLogger
 import io.circe.Encoder
-import org.broadinstitute.dsde.workbench.model.{ErrorReportSource, TraceId}
+import org.broadinstitute.dsde.workbench.model.{ErrorReportSource, TraceId, WorkbenchException}
 import io.circe.syntax._
 
 import scala.concurrent.duration._
+import scala.util.control.NoStackTrace
 
 package object google2 {
   implicit val errorReportSource = ErrorReportSource("google2")
@@ -149,10 +150,30 @@ package object google2 {
   def recoverF[F[_]: Sync, A](fa: F[A], pred: Throwable => Boolean): F[Option[A]] =
     fa.map(Option(_)).recover { case e if pred(e) => None }
 
+  // Note: This method may reach maxAttempts without hitting the Done condition.
+  // If you need to check whether the Done condition was met, you may want to use the
+  // method streamUntilDoneOrTimeout() instead.
   def streamFUntilDone[F[_]: Timer, A: DoneCheckable](fa: F[A], maxAttempts: Int, delay: FiniteDuration): Stream[F, A] =
     (Stream.sleep_(delay) ++ Stream.eval(fa))
       .repeatN(maxAttempts)
       .takeThrough(!_.isDone)
+
+  // Distinctly from the method streamFUntilDone(), this method raises a StreamTimeoutError if the Done condition is not met
+  // by the time maxAttempts are exhausted. Therefore callers may want to use this method instead of streamFUntilDone()
+  // if they want to ascertain the Done condition was satisfied and take action otherwise.
+  // See org.broadinstitute.dsde.workbench.google2.GoogleDataprocInterpreter.stopCluster() for examples.
+  def streamUntilDoneOrTimeout[F[_]: Sync: Timer, A: DoneCheckable](fa: F[A],
+                                                                    maxAttempts: Int,
+                                                                    delay: FiniteDuration,
+                                                                    timeoutErrorMessage: String
+  ): F[A] =
+    streamFUntilDone(fa, maxAttempts, delay).last
+      .evalMap {
+        case Some(a) if a.isDone => Sync[F].pure(a)
+        case _                   => Sync[F].raiseError[A](StreamTimeoutError(timeoutErrorMessage))
+      }
+      .compile
+      .lastOrError
 
   val showOperation: Show[Operation] = Show.show[Operation](op =>
     if (op == null)
@@ -161,6 +182,8 @@ package object google2 {
       s"operationType=${op.getOperationType}, progress=${op.getProgress}, status=${op.getStatus}, startTime=${op.getStartTime}"
   )
 }
+
+final case class StreamTimeoutError(override val getMessage: String) extends WorkbenchException
 
 final case class RetryConfig(retryInitialDelay: FiniteDuration,
                              retryNextDelay: FiniteDuration => FiniteDuration,
