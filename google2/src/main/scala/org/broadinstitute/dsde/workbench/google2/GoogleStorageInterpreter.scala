@@ -22,7 +22,6 @@ import org.broadinstitute.dsde.workbench.google2.util.RetryPredicates.standardRe
 import org.broadinstitute.dsde.workbench.model.{TraceId, WorkbenchException}
 import org.broadinstitute.dsde.workbench.model.google.{GcsBucketName, GcsObjectName, GoogleProject}
 import com.google.auth.Credentials
-import com.google.cloud.Policy.Builder
 
 import scala.collection.JavaConverters._
 
@@ -303,7 +302,6 @@ private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer](
       .of(bucketName.value)
       .toBuilder
       .setLabels(labels.asJava)
-      .setAcl(List.empty.asJava)
       .setIamConfiguration(iamConfig)
 
     logBucket.map { logBucketName =>
