@@ -129,6 +129,12 @@ class BaseFakeGoogleStorage extends GoogleStorageService[IO] {
                             retryConfig: RetryConfig
   ): Stream[IO, Unit] = Stream.empty
 
+  override def overrideIamPolicy(bucketName: GcsBucketName,
+                            roles: Map[StorageRole, NonEmptyList[Identity]],
+                            traceId: Option[TraceId] = None,
+                            retryConfig: RetryConfig
+                           ): Stream[IO, Policy] = localStorage.getIamPolicy(bucketName, traceId)
+
   override def createBlob(bucketName: GcsBucketName,
                           objectName: GcsBlobName,
                           objectContents: Array[Byte],

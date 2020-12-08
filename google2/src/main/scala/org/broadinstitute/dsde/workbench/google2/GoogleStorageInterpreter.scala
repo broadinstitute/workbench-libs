@@ -11,17 +11,10 @@ import cats.effect.concurrent.Semaphore
 import cats.syntax.all._
 import com.google.auth.oauth2.ServiceAccountCredentials
 import com.google.cloud.storage.BucketInfo.LifecycleRule
-import com.google.cloud.storage.Storage.{
-  BlobListOption,
-  BlobSourceOption,
-  BlobTargetOption,
-  BlobWriteOption,
-  BucketGetOption,
-  BucketSourceOption
-}
+import com.google.cloud.storage.Storage.{BlobListOption, BlobSourceOption, BlobTargetOption, BlobWriteOption, BucketGetOption, BucketSourceOption}
 import com.google.cloud.storage.{Acl, Blob, BlobId, BlobInfo, Bucket, BucketInfo, Storage, StorageOptions}
 import com.google.cloud.{Identity, Policy, Role}
-import fs2.{text, Pipe, Stream}
+import fs2.{Pipe, Stream, text}
 import io.chrisdavenport.log4cats.StructuredLogger
 import io.circe.Decoder
 import io.circe.fs2._
@@ -29,6 +22,7 @@ import org.broadinstitute.dsde.workbench.google2.util.RetryPredicates.standardRe
 import org.broadinstitute.dsde.workbench.model.{TraceId, WorkbenchException}
 import org.broadinstitute.dsde.workbench.model.google.{GcsBucketName, GcsObjectName, GoogleProject}
 import com.google.auth.Credentials
+import com.google.cloud.Policy.Builder
 
 import scala.collection.JavaConverters._
 
@@ -309,6 +303,7 @@ private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer](
       .of(bucketName.value)
       .toBuilder
       .setLabels(labels.asJava)
+      .setAcl(List.empty.asJava)
       .setIamConfiguration(iamConfig)
 
     logBucket.map { logBucketName =>
@@ -444,6 +439,28 @@ private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer](
       getAndSetIamPolicy,
       traceId,
       s"com.google.cloud.storage.Storage.getIamPolicy(${bucketName}), com.google.cloud.storage.Storage.setIamPolicy(${bucketName}, $roles)"
+    )
+  }
+
+  override def overrideIamPolicy(bucketName: GcsBucketName,
+                                 roles: Map[StorageRole, NonEmptyList[Identity]],
+                                 traceId: Option[TraceId] = None,
+                                 retryConfig: RetryConfig
+  ): Stream[F, Policy] = {
+
+    val policyBuilder = Policy.newBuilder()
+    val overrideIamPolicy = roles
+      .foldLeft(policyBuilder)((currentBuilder, item) =>
+        currentBuilder.addIdentity(Role.of(item._1.name), item._2.head, item._2.tail: _*)
+      )
+      .build()
+
+    val overrideIam = blockingF(Async[F].delay(db.setIamPolicy(bucketName.value, overrideIamPolicy)))
+
+    retryGoogleF(retryConfig)(
+      overrideIam,
+      traceId,
+      s"com.google.cloud.storage.Storage.setIamPolicy(${bucketName}, $roles)"
     )
   }
 
