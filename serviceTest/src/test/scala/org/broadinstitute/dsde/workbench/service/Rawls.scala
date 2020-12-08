@@ -234,8 +234,8 @@ trait Rawls extends RestClient with LazyLogging {
 
   object workspaces {
 
-    def create(namespace: String, name: String, authDomain: Set[String] = Set.empty, bucketLocation: String = null)(implicit
-      token: AuthToken
+    def create(namespace: String, name: String, authDomain: Set[String] = Set.empty, bucketLocation: String = null)(
+      implicit token: AuthToken
     ): Unit = {
       logger.info(s"Creating workspace: $namespace/$name authDomain: $authDomain")
 
