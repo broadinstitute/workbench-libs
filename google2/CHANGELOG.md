@@ -11,7 +11,7 @@ Changed:
 - [BREAKING CHANGE] `GoogleDataprocInterpreter` requires a `GoogleComputeService` instance so it can stop and resize Dataproc
   cluster nodes. Note that this is a breaking change for existing `GoogleDataprocInterpreter` clients.
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.18-TRAVIS-REPLACE-ME"` 
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.18-200cb94"` 
   
 ## 0.17
 Added:
