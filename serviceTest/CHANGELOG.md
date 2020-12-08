@@ -11,8 +11,10 @@ Changed
 
 Added
 - Rawls billing v2 support
+- add optional `bucketLocation` parameter to `WorkspaceFixtures.withWorkspace` and `WorkspaceFixtures.withClonedWorkspace`
+- add optional `bucketLocation` parameter to `Orchestration.workspaces.create`
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "0.18-d7bebc7"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "0.18-TRAVIS-REPLACE-ME"`
 
 ## 0.17
 

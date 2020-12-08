@@ -153,18 +153,23 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
 
   object workspaces {
 
-    def create(namespace: String, name: String, authDomain: Set[String] = Set.empty)(implicit
-      token: AuthToken
-    ): Unit = {
-      logger.info(s"Creating workspace: $namespace/$name authDomain: $authDomain")
+    def create(namespace: String,
+               name: String,
+               authDomain: Set[String] = Set.empty,
+               bucketLocation: Option[String] = None
+    )(implicit token: AuthToken): Unit = {
+      logger.info(
+        s"Creating workspace: $namespace/$name authDomain: $authDomain with bucket " +
+          s"location: ${bucketLocation.getOrElse("US")}"
+      )
 
       val authDomainGroups = authDomain.map(a => Map("membersGroupName" -> a))
 
-      val request = Map("namespace" -> namespace,
-                        "name" -> name,
-                        "attributes" -> Map.empty,
-                        "authorizationDomain" -> authDomainGroups
-      )
+      val request: Map[String, Object] = Map("namespace" -> namespace,
+                                             "name" -> name,
+                                             "attributes" -> Map.empty,
+                                             "authorizationDomain" -> authDomainGroups
+      ) ++ bucketLocation.map("bucketLocation" -> _)
 
       postRequest(apiUrl(s"api/workspaces"), request)
     }
@@ -179,10 +184,10 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
 
       val authDomainGroups = authDomain.map(a => Map("membersGroupName" -> a))
 
-      val request = Map("namespace" -> cloneNamespace,
-                        "name" -> cloneName,
-                        "attributes" -> Map.empty,
-                        "authorizationDomain" -> authDomainGroups
+      val request: Map[String, Object] = Map("namespace" -> cloneNamespace,
+                                             "name" -> cloneName,
+                                             "attributes" -> Map.empty,
+                                             "authorizationDomain" -> authDomainGroups
       )
 
       postRequest(apiUrl(s"api/workspaces/$originNamespace/$originName/clone"), request)
