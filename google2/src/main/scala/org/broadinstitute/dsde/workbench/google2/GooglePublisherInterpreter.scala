@@ -30,22 +30,27 @@ private[google2] class GooglePublisherInterpreter[F[_]: Async: Timer: Structured
   def publishNative: Pipe[F, PubsubMessage, Unit] = in => {
     in.flatMap { message =>
       Stream.eval(
-        withLogging(
-          Async[F]
-            .async[String] { callback =>
-              ApiFutures.addCallback(
-                publisher.publish(message),
-                callBack(callback),
-                MoreExecutors.directExecutor()
-              )
-            }
-            .void,
-          Option(message.getAttributesMap.get("traceId")).map(s => TraceId(s)),
-          s"Publishing ${message}"
-        )
+        publishNativeOne(message)
       )
     }
   }
+
+  /**
+   * Watch out message size quota and limitations https://cloud.google.com/pubsub/quotas
+   */
+  override def publishNativeOne(message: PubsubMessage): F[Unit] = withLogging(
+    Async[F]
+      .async[String] { callback =>
+        ApiFutures.addCallback(
+          publisher.publish(message),
+          callBack(callback),
+          MoreExecutors.directExecutor()
+        )
+      }
+      .void,
+    Option(message.getAttributesMap.get("traceId")).map(s => TraceId(s)),
+    s"Publishing ${message}"
+  )
 
   def publishString: Pipe[F, String, Unit] = in => {
     in.flatMap(s => Stream.eval(publishMessage(s, None)))
