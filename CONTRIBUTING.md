@@ -61,6 +61,15 @@ We run coverage tests on this repo. Please try to avoid merging PRs that fail co
 
 Defining your mocks in `src/test` rather than `src/main` will help greatly.
 
+## Linting
+
+The project uses [Scalafmt](https://scalameta.org/scalafmt/docs/installation.html) for linting. If there is a formatting error 
+during `Compile and check scalafmt` step during the `Unit tests` check for a PR, the below command will make the required
+formatting changes.
+```
+sbt -Denv.type=test "test:compile" scalafmtAll
+```
+
 ## Publishing
 
 Travis automatically builds Scala 2.12 and 2.13 versions of these libraries and publishes them to [Artifactory](https://broadinstitute.jfrog.io/broadinstitute/webapp/#/artifacts/browse/tree/General/libs-release-local/org/broadinstitute/dsde/workbench/). Commits to any other branch than develop will be labelled `<version>-<githash>-SNAP`; commits to develop will be labelled `<version>-<githash>`. In both cases, the `<githash>` is the first 7 characters of the commit hash. You probably shouldn't be using `-SNAP` versions in downstream code.

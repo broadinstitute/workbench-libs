@@ -236,7 +236,8 @@ trait GoogleStorageService[F[_]] {
                    traceId: Option[TraceId] = None,
                    bucketPolicyOnlyEnabled: Boolean = false,
                    logBucket: Option[GcsBucketName] = None,
-                   retryConfig: RetryConfig = standardRetryConfig
+                   retryConfig: RetryConfig = standardRetryConfig,
+                   location: Option[String] = None
   ): Stream[F, Unit]
 
   /**
