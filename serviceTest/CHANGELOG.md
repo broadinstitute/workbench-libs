@@ -14,7 +14,7 @@ Added
 - add optional `bucketLocation` parameter to `WorkspaceFixtures.withWorkspace` and `WorkspaceFixtures.withClonedWorkspace`
 - add optional `bucketLocation` parameter to `Orchestration.workspaces.create`
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "0.18-TRAVIS-REPLACE-ME"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "0.18-c9edd8e"`
 
 ## 0.17
 
