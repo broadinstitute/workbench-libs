@@ -447,6 +447,28 @@ private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer](
     )
   }
 
+  override def overrideIamPolicy(bucketName: GcsBucketName,
+                                 roles: Map[StorageRole, NonEmptyList[Identity]],
+                                 traceId: Option[TraceId] = None,
+                                 retryConfig: RetryConfig
+  ): Stream[F, Policy] = {
+
+    val policyBuilder = Policy.newBuilder()
+    val overrideIamPolicy = roles
+      .foldLeft(policyBuilder)((currentBuilder, item) =>
+        currentBuilder.addIdentity(Role.of(item._1.name), item._2.head, item._2.tail: _*)
+      )
+      .build()
+
+    val overrideIam = blockingF(Async[F].delay(db.setIamPolicy(bucketName.value, overrideIamPolicy)))
+
+    retryGoogleF(retryConfig)(
+      overrideIam,
+      traceId,
+      s"com.google.cloud.storage.Storage.setIamPolicy(${bucketName}, $roles)"
+    )
+  }
+
   override def getIamPolicy(bucketName: GcsBucketName,
                             traceId: Option[TraceId] = None,
                             retryConfig: RetryConfig
