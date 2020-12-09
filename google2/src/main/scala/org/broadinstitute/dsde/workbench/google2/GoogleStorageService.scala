@@ -277,6 +277,15 @@ trait GoogleStorageService[F[_]] {
                    retryConfig: RetryConfig = standardRetryConfig
   ): Stream[F, Unit]
 
+  /**
+   * @param traceId uuid for tracing a unique call flow in logging
+   */
+  def overrideIamPolicy(bucketName: GcsBucketName,
+                        roles: Map[StorageRole, NonEmptyList[Identity]],
+                        traceId: Option[TraceId] = None,
+                        retryConfig: RetryConfig = standardRetryConfig
+  ): Stream[F, Policy]
+
   def getIamPolicy(bucketName: GcsBucketName,
                    traceId: Option[TraceId] = None,
                    retryConfig: RetryConfig = standardRetryConfig
