@@ -13,7 +13,23 @@ Changed:
 - [BREAKING CHANGE] `GoogleDataprocInterpreter` requires a `GoogleComputeService` instance so it can stop and resize Dataproc
   cluster nodes. Note that this is a breaking change for existing `GoogleDataprocInterpreter` clients.
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.18-4631ebf"` 
+Dependency Upgrades
+```
+Update sbt-scalafix from 0.9.23 to 0.9.24 (#424)
+Update cats-core, cats-effect from 2.2.0 to 2.3.0 (#438)
+Update google-cloud-dataproc from 1.1.7 to 1.1.8 (#429)
+Update akka-http, akka-http-spray-json, ... from 10.2.1 to 10.2.2 (#435)
+Update google-api-services-container from v1-rev20201007-1.30.10 to v1-rev20201007-1.31.0 (#426)
+Update google-cloud-nio from 0.122.1 to 0.122.3 (#432)
+Update grpc-core from 1.33.1 to 1.34.0 (#436)
+Update google-cloud-container from 1.2.0 to 1.2.1 (#428)
+Update google-cloud-errorreporting from 0.120.8-beta to 0.120.9-beta (#430)
+Update google-cloud-storage from 1.113.4 to 1.113.5 (#434)
+Update google-cloud-bigquery from 1.125.0 to 1.125.2 (#427)
+Update google-cloud-kms from 1.40.2 to 1.40.3 (#431)
+```
+
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.18-TRAVIS-REPLACE-ME"` 
   
 ## 0.17
 Added:
