@@ -61,6 +61,7 @@ class FutureSupportSpec
     }
   }
 
+  // Ignore due to flakiness
   "withTimeout" should "return the future if it completes quickly enough" ignore {
     val theFuture = Future { Thread.sleep(100); 42 }
     whenReady(theFuture.withTimeout(200 milliseconds, "timeout")) { f =>
@@ -68,6 +69,7 @@ class FutureSupportSpec
     }
   }
 
+  // Ignore due to flakiness
   it should "timeout if the future takes too long" ignore {
     val theFuture = Future { Thread.sleep(200); 42 }
     whenReady(theFuture.withTimeout(100 milliseconds, "timeout").failed) { f =>
