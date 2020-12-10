@@ -2,7 +2,7 @@ import sbt._
 
 object Dependencies {
   val akkaV         = "2.6.10"
-  val akkaHttpV     = "10.2.1"
+  val akkaHttpV     = "10.2.2"
   val jacksonV      = "2.11.3"
   val googleV       = "1.22.0"
   val scalaLoggingV = "3.9.2"
@@ -30,7 +30,7 @@ object Dependencies {
 
   val jacksonModule: ModuleID =   "com.fasterxml.jackson.module" %% "jackson-module-scala"   % jacksonV % "test"
 
-  val catsEffect: ModuleID = "org.typelevel" %% "cats-effect" % "2.2.0"
+  val catsEffect: ModuleID = "org.typelevel" %% "cats-effect" % "2.3.0"
 
   // metrics-scala transitively pulls in io.dropwizard.metrics:metrics-core
   val metricsScala: ModuleID =      "nl.grons"              %% "metrics4-scala"    % "4.1.14"
@@ -51,21 +51,21 @@ object Dependencies {
   val googleIam: ModuleID =                  "com.google.apis"       % "google-api-services-iam"                  % s"v1-rev215-$googleV"
   val googleBigQuery: ModuleID =             "com.google.apis"       % "google-api-services-bigquery"             % s"v2-rev377-$googleV"
   val googleGuava: ModuleID = "com.google.guava"  % "guava" % "30.0-jre"
-  val googleRpc: ModuleID =               "io.grpc" % "grpc-core" % "1.33.1"
+  val googleRpc: ModuleID =               "io.grpc" % "grpc-core" % "1.34.0"
 
-  val googleRpc2: ModuleID =               "io.grpc" % "grpc-core" % "1.33.1"
+  val googleRpc2: ModuleID =               "io.grpc" % "grpc-core" % "1.34.0"
   val googleFirestore: ModuleID = "com.google.cloud" % "google-cloud-firestore" % "2.1.0"
-  val googleStorageNew: ModuleID = "com.google.cloud" % "google-cloud-storage" % "1.113.5"
-  val googleStorageLocal: ModuleID = "com.google.cloud" % "google-cloud-nio" % "0.122.1" % "test"
+  val googleStorageNew: ModuleID = "com.google.cloud" % "google-cloud-storage" % "1.113.4"
+  val googleStorageLocal: ModuleID = "com.google.cloud" % "google-cloud-nio" % "0.122.3" % "test"
   val googlePubsubNew: ModuleID = "com.google.cloud" % "google-cloud-pubsub" % "1.109.0"
   val googleKms: ModuleID = "com.google.cloud" % "google-cloud-kms" % "1.40.2"
-  val googleDataproc: ModuleID =    "com.google.cloud" % "google-cloud-dataproc" % "1.1.7"
+  val googleDataproc: ModuleID =    "com.google.cloud" % "google-cloud-dataproc" % "1.1.8"
   val googleComputeNew: ModuleID = "com.google.cloud" % "google-cloud-compute" % "0.118.0-alpha"
-  val googleContainer: ModuleID = "com.google.cloud" % "google-cloud-container" % "1.2.0"
+  val googleContainer: ModuleID = "com.google.cloud" % "google-cloud-container" % "1.2.1"
   val kubernetesClient: ModuleID = "io.kubernetes" % "client-java" % "10.0.0"
   val googleBigQueryNew: ModuleID = "com.google.cloud" % "google-cloud-bigquery" % "1.125.0"
   //the below v1 module is a dependency for v2 because it contains the OAuth scopes necessary to created scoped credentials
-  val googleContainerV1: ModuleID = "com.google.apis" % "google-api-services-container" % "v1-rev20201007-1.30.10"
+  val googleContainerV1: ModuleID = "com.google.apis" % "google-api-services-container" % "v1-rev20201007-1.31.0"
 
 
   val circeCore: ModuleID = "io.circe" %% "circe-core" % circeVersion
@@ -101,7 +101,7 @@ object Dependencies {
     akkaTestkit,
     mockito,
     scalaTestMockito,
-    "org.typelevel" %% "cats-core" % "2.2.0"
+    "org.typelevel" %% "cats-core" % "2.3.0"
   )
 
   val modelDependencies = commonDependencies ++ Seq(
@@ -181,7 +181,7 @@ object Dependencies {
 
   val errorReportingDependencies = List(
     catsEffect,
-    "com.google.cloud" % "google-cloud-errorreporting" % "0.120.8-beta"
+    "com.google.cloud" % "google-cloud-errorreporting" % "0.120.9-beta"
   )
 
   val util2Dependencies = commonDependencies ++ List(
