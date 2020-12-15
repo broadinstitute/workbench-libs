@@ -2,6 +2,12 @@
 
 This file documents changes to the `workbench-service-test` library, including notes on how to upgrade to new versions.
 
+## 0.19
+Changed
+- Updated Rawls model for v2 workspaces, with a google project per workspace
+
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "0.19-TRAVIS-REPLACE-ME"`
+
 ## 0.18
 Changed
 - Bump selenium version
