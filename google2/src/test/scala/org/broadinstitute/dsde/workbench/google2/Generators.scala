@@ -77,7 +77,7 @@ object Generators {
   val genDataprocRoleZonePreemptibility = for {
     role <- genDataprocRole
     zone <- genZoneName
-    isPreemptible <- Gen.oneOf(true, false)
+    isPreemptible <- if (role == SecondaryWorker) Gen.oneOf(true, false) else Gen.const(false)
   } yield DataprocRoleZonePreemptibility(role, zone, isPreemptible)
   val genDataprocRoleZonePreemptibilityInstancesTuple = for {
     dataprocRoleZonePreemptibility <- genDataprocRoleZonePreemptibility
