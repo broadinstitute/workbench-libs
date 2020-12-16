@@ -7,7 +7,8 @@ Added:
 - `GoogleDataprocInterpreter` can resize clusters and stop cluster VMs.
 - `publishNativeOne` to `GooglePublisher[F]`
 - optional `location` parameter to `GoogleStorageService.insertBucket`
-- Added `overrideIamPolicy` to `GoogleStorageService`
+- `overrideIamPolicy` to `GoogleStorageService`
+- Scalacheck generators for more of the Dataproc models
 
 Changed:
 - [BREAKING CHANGE] `GoogleDataprocInterpreter` requires a `GoogleComputeService` instance so it can stop and resize Dataproc
@@ -32,7 +33,7 @@ Update jackson-module-scala from 2.11.3 to 2.12.0 (#425)
 Update cats-mtl from 1.0.0 to 1.1.0
 ```
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.18-74c9fc2"` 
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.18-TRAVIS-REPLACE-ME"` 
   
 ## 0.17
 Added:
