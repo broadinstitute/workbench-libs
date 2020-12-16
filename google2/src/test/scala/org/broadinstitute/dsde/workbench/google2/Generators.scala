@@ -79,11 +79,12 @@ object Generators {
     zone <- genZoneName
     isPreemptible <- if (role == SecondaryWorker) Gen.oneOf(true, false) else Gen.const(false)
   } yield DataprocRoleZonePreemptibility(role, zone, isPreemptible)
-  val genDataprocRoleZonePreemptibilityInstancesTuple = for {
+  val genDataprocRoleZonePreemptibilityInstancesTuple: Gen[(DataprocRoleZonePreemptibility, Set[InstanceName])] = for {
     dataprocRoleZonePreemptibility <- genDataprocRoleZonePreemptibility
     instanceNames <- Gen.listOfN(3, Gen.uuid.map(i => InstanceName(i.toString)))
   } yield (dataprocRoleZonePreemptibility, instanceNames.toSet)
-  val genDataprocRoleZonePreemptibilityInstancesMap = Gen.mapOfN(3, genDataprocRoleZonePreemptibilityInstancesTuple)
+  val genDataprocRoleZonePreemptibilityInstancesMap: Gen[Map[DataprocRoleZonePreemptibility, Set[InstanceName]]] =
+    Gen.mapOfN(3, genDataprocRoleZonePreemptibilityInstancesTuple)
 
   def alphaLowerStrOfLength(n: Int): Gen[String] = Gen.listOfN(n, Gen.alphaLowerChar).map(_.mkString)
 
