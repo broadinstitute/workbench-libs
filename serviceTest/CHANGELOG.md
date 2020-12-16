@@ -15,7 +15,7 @@ Added
 - add optional `bucketLocation` parameter to `Orchestration.workspaces.create`
 - Add `getBucket` to `Google.storage` object
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "0.18-TRAVIS-REPLACE-ME"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "0.18-47f40f2"`
 
 ## 0.17
 
