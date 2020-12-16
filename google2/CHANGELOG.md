@@ -33,7 +33,7 @@ Update jackson-module-scala from 2.11.3 to 2.12.0 (#425)
 Update cats-mtl from 1.0.0 to 1.1.0
 ```
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.18-TRAVIS-REPLACE-ME"` 
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.18-1ad5c90"` 
   
 ## 0.17
 Added:
