@@ -13,8 +13,9 @@ Added
 - Rawls billing v2 support
 - add optional `bucketLocation` parameter to `WorkspaceFixtures.withWorkspace` and `WorkspaceFixtures.withClonedWorkspace`
 - add optional `bucketLocation` parameter to `Orchestration.workspaces.create`
+- Add `getBucket` to `Google.storage` object
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "0.18-c9edd8e"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "0.18-TRAVIS-REPLACE-ME"`
 
 ## 0.17
 

@@ -1,5 +1,6 @@
 package org.broadinstitute.dsde.workbench.service
 
+import akka.http.scaladsl.model.HttpResponse
 import com.typesafe.scalalogging.LazyLogging
 import org.broadinstitute.dsde.workbench.auth.AuthToken
 
@@ -26,5 +27,16 @@ object Google extends FireCloudClient with LazyLogging {
         )
       ).get("billingAccountName")
     }
+  }
+
+  object storage {
+
+    def getBucket(bucketName: String)(implicit token: AuthToken): HttpResponse = {
+      logger.info(s"Getting bucket $bucketName")
+      getRequest(
+        uri = s"https://storage.googleapis.com/storage/v1/b/$bucketName"
+      )
+    }
+
   }
 }
