@@ -7,7 +7,8 @@ Added:
 - `GoogleDataprocInterpreter` can resize clusters and stop cluster VMs.
 - `publishNativeOne` to `GooglePublisher[F]`
 - optional `location` parameter to `GoogleStorageService.insertBucket`
-- Added `overrideIamPolicy` to `GoogleStorageService`
+- `overrideIamPolicy` to `GoogleStorageService`
+- Scalacheck generators for more of the Dataproc models
 
 Changed:
 - [BREAKING CHANGE] `GoogleDataprocInterpreter` requires a `GoogleComputeService` instance so it can stop and resize Dataproc
