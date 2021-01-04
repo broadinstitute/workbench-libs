@@ -30,7 +30,7 @@ object Dependencies {
 
   val jacksonModule: ModuleID =   "com.fasterxml.jackson.module" %% "jackson-module-scala"   % jacksonV % "test"
 
-  val catsEffect: ModuleID = "org.typelevel" %% "cats-effect" % "2.3.0"
+  val catsEffect: ModuleID = "org.typelevel" %% "cats-effect" % "2.3.1"
 
   // metrics-scala transitively pulls in io.dropwizard.metrics:metrics-core
   val metricsScala: ModuleID =      "nl.grons"              %% "metrics4-scala"    % "4.1.14"
@@ -101,7 +101,7 @@ object Dependencies {
     akkaTestkit,
     mockito,
     scalaTestMockito,
-    "org.typelevel" %% "cats-core" % "2.3.0"
+    "org.typelevel" %% "cats-core" % "2.3.1"
   )
 
   val modelDependencies = commonDependencies ++ Seq(
