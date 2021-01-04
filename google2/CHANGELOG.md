@@ -58,7 +58,7 @@ Update google-cloud-firestore to 2.1.0 (#412)
 Update grpc-core to 1.33.1 (#395) (Note: if your project explicitly specify grpc-core version, you need to update it to match this version)
 Update metrics4-scala to 4.1.14 (#413)
 Update http4s-blaze-client, http4s-circe, ... to 0.21.12 (#415)
-Update http4s-blaze-client, http4s-circe, ... to 0.21.13
+Update http4s-blaze-client, http4s-circe, ... to 0.21.14
 Update mockito-core to 3.6.28 (#414)
 Update guava to 30.0-jre (#390)
 Update `io.kubernetes client-java` from `5.0.0` to `10.0.0` (This has some breaking changes if you're using the library's API directly)
