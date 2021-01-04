@@ -8,6 +8,7 @@ SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util" % "0.3-
 
 ### Changed
 - Moved `SamModel`
+- Drop support for Scala 2.12
 
 ### Added
 - Support scala 2.13
