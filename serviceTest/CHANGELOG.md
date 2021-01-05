@@ -16,7 +16,7 @@ Added
 - Add `getBucket` to `Google.storage` object
 - Added more Scalatest tag descriptors intended to target tests to specific environments
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "0.18-TRAVIS-REPLACE-ME"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "0.18-b16970a"`
 
 ## 0.17
 
