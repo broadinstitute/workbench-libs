@@ -112,13 +112,17 @@ object Settings {
   })
 
   val cross212and213 = Seq(
-    crossScalaVersions := List("2.12.12", "2.13.3")
+    crossScalaVersions := List("2.12.12", "2.13.4")
+  )
+
+  val only213 = Seq(
+    crossScalaVersions := List("2.13.4")
   )
 
   //common settings for all sbt subprojects
   val commonSettings = commonBuildSettings ++ commonTestSettings ++ List(
     organization := "org.broadinstitute.dsde.workbench",
-    scalaVersion := "2.13.3",
+    scalaVersion := "2.13.4",
     resolvers ++= commonResolvers,
     commonCompilerSettings
   )
@@ -160,13 +164,13 @@ object Settings {
     version := createVersion("0.18")
   ) ++ publishSettings
 
-  val openTelemetrySettings = cross212and213 ++ commonSettings ++ List(
+  val openTelemetrySettings = only213 ++ commonSettings ++ List(
     name := "workbench-openTelemetry",
     libraryDependencies ++= openTelemetryDependencies,
     version := createVersion("0.1")
   ) ++ publishSettings
 
-  val errorReportingSettings = cross212and213 ++ commonSettings ++ List(
+  val errorReportingSettings = only213 ++ commonSettings ++ List(
     name := "workbench-error-reporting",
     libraryDependencies ++= errorReportingDependencies,
     version := createVersion("0.1")
@@ -178,7 +182,7 @@ object Settings {
     version := createVersion("0.18")
   ) ++ publishSettings
 
-  val notificationsSettings = cross212and213 ++ commonSettings ++ List(
+  val notificationsSettings = only213 ++ commonSettings ++ List(
     name := "workbench-notifications",
     libraryDependencies ++= notificationsDependencies,
     version := createVersion("0.3")
