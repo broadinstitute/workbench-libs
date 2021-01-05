@@ -14,8 +14,9 @@ Added
 - add optional `bucketLocation` parameter to `WorkspaceFixtures.withWorkspace` and `WorkspaceFixtures.withClonedWorkspace`
 - add optional `bucketLocation` parameter to `Orchestration.workspaces.create`
 - Add `getBucket` to `Google.storage` object
+- Added more Scalatest tag descriptors intended to target tests to specific environments
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "0.18-47f40f2"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "0.18-TRAVIS-REPLACE-ME"`
 
 ## 0.17
 
