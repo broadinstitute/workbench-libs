@@ -36,17 +36,21 @@ private[google2] class GoogleDataprocInterpreter[F[_]: StructuredLogger: Timer: 
     region: RegionName,
     clusterName: DataprocClusterName,
     createClusterConfig: Option[CreateClusterConfig]
-  )(implicit ev: Ask[F, TraceId]): F[CreateClusterResponse] = {
+  )(implicit ev: Ask[F, TraceId]): F[ClusterOperationMetadata] = {
     val config: ClusterConfig = createClusterConfig
-      .map(config =>
-        ClusterConfig.newBuilder
+      .map { config =>
+        val bldr = ClusterConfig.newBuilder
           .setGceClusterConfig(config.gceClusterConfig)
-          .setInitializationActions(0, config.nodeInitializationAction)
-          .setMasterConfig(config.instanceGroupConfig)
+          .addAllInitializationActions(config.nodeInitializationActions.asJava)
+          .setMasterConfig(config.masterConfig)
           .setConfigBucket(config.stagingBucket.value)
           .setSoftwareConfig(config.softwareConfig)
-          .build()
-      )
+
+        config.workerConfig.foreach(bldr.setWorkerConfig)
+        config.secondaryWorkerConfig.foreach(bldr.setSecondaryWorkerConfig)
+
+        bldr.build()
+      }
       .getOrElse(ClusterConfig.newBuilder.build())
 
     val cluster = Cluster
@@ -69,23 +73,10 @@ private[google2] class GoogleDataprocInterpreter[F[_]: StructuredLogger: Timer: 
         MoreExecutors.directExecutor()
       )
     }
-
-    for {
-      createCluster <- retryF(
-        createCluster,
-        s"com.google.cloud.dataproc.v1.ClusterControllerClient.createClusterAsync(${region}, ${clusterName}, ${createClusterConfig})"
-      ).attempt
-
-      result <- createCluster match {
-        case Left(e: com.google.api.gax.rpc.ApiException) =>
-          if (e.getStatusCode.getCode == Code.ALREADY_EXISTS)
-            Async[F].pure(CreateClusterResponse.AlreadyExists: CreateClusterResponse)
-          else
-            Async[F].raiseError(e): F[CreateClusterResponse]
-        case Left(e)  => Async[F].raiseError(e): F[CreateClusterResponse]
-        case Right(v) => Async[F].pure(CreateClusterResponse.Success(v): CreateClusterResponse)
-      }
-    } yield result
+    retryF(
+      createCluster,
+      s"com.google.cloud.dataproc.v1.ClusterControllerClient.createClusterAsync(${region}, ${clusterName}, ${createClusterConfig}))"
+    )
   }
 
   /**

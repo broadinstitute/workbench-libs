@@ -29,7 +29,7 @@ trait GoogleDataprocService[F[_]] {
     region: RegionName,
     clusterName: DataprocClusterName,
     createClusterConfig: Option[CreateClusterConfig]
-  )(implicit ev: Ask[F, TraceId]): F[CreateClusterResponse]
+  )(implicit ev: Ask[F, TraceId]): F[ClusterOperationMetadata]
 
   def stopCluster(project: GoogleProject,
                   region: RegionName,
@@ -132,16 +132,12 @@ final case class DataprocInstance(name: InstanceName,
                                   dataprocRole: DataprocRole
 )
 
-sealed abstract class CreateClusterResponse
-object CreateClusterResponse {
-  final case class Success(clusterOperationMetadata: ClusterOperationMetadata) extends CreateClusterResponse
-  case object AlreadyExists extends CreateClusterResponse
-}
-
 final case class CreateClusterConfig(
   gceClusterConfig: GceClusterConfig,
-  nodeInitializationAction: NodeInitializationAction,
-  instanceGroupConfig: InstanceGroupConfig,
+  nodeInitializationActions: List[NodeInitializationAction],
+  masterConfig: InstanceGroupConfig,
+  workerConfig: Option[InstanceGroupConfig],
+  secondaryWorkerConfig: Option[InstanceGroupConfig],
   stagingBucket: GcsBucketName,
   softwareConfig: SoftwareConfig
 ) //valid properties are https://cloud.google.com/dataproc/docs/concepts/configuring-clusters/cluster-properties
