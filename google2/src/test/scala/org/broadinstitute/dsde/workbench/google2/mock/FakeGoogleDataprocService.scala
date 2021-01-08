@@ -16,7 +16,9 @@ class BaseFakeGoogleDataprocService extends GoogleDataprocService[IO] {
     clusterName: DataprocClusterName,
     createClusterConfig: Option[CreateClusterConfig]
   )(implicit ev: Ask[IO, TraceId]): IO[ClusterOperationMetadata] =
-    IO.pure(ClusterOperationMetadata.newBuilder().setClusterName(clusterName.value).build())
+    IO.pure(
+      ClusterOperationMetadata.newBuilder().setClusterName(clusterName.value).setClusterUuid("clusterUuid").build()
+    )
 
   override def stopCluster(project: GoogleProject,
                            region: RegionName,
