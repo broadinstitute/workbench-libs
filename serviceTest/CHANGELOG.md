@@ -17,7 +17,7 @@ Added
 - Added more Scalatest tag descriptors intended to target tests to specific environments
 - Added dataRepoApiUrl to CommonConfig
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "0.18-TRAVIS-REPLACE-ME"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "0.18-23f5ae7"`
 
 ## 0.17
 
