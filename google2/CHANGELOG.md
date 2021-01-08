@@ -7,11 +7,13 @@ Changed:
 - Renamed and added fields in `GoogleDataprocService.CreateClusterConfig` to support creating Dataproc clusters with secondary preemptible workers.
 - Changed return type of `GoogleDataprocService.{createCluster, deleteCluster, resizeCluster}`
 - Removed `RetryConfig` from `GoogleDataprocService` constructors
+- `GoogleComputeInterpreter` now returns none if it encounters a disabled billing project during `getInstance`
+- Added `GoogleBillingInterpreter` and `GoogleBillingService`
 
 Added:
 - Added `GoogleDataprocService.startCluster`
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.19-4d379e3"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.19-TRAVIS-REPLACE-ME"`
 
 ## 0.18
 Added:
@@ -50,7 +52,7 @@ Update sbt-scalafix from 0.9.23 to 0.9.24 (#424)
 ```
 
 SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.18-7fe0192"` 
-  
+
 ## 0.17
 Added:
 - `list` to `GoogleTopicAdmin`
