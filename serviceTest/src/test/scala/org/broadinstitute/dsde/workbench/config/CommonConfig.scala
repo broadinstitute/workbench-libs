@@ -55,6 +55,11 @@ trait CommonConfig {
     val samApiUrl: String = fireCloudConfig.getString("samApiUrl")
     val thurloeApiUrl: String = fireCloudConfig.getString("thurloeApiUrl")
     val gpAllocApiUrl: String = fireCloudConfig.getString("gpAllocApiUrl")
+    lazy val dataRepoApiUrl: String = if (fireCloudConfig.hasPath("dataRepoApiUrl")) {
+      fireCloudConfig.getString("dataRepoApiUrl")
+    } else {
+      "dataRepoApiUrl-value-not-in-config-file"
+    }
   }
 
   trait CommonChromeSettings {
