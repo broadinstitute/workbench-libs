@@ -370,7 +370,7 @@ object GoogleDataprocInterpreter {
   // WARNING: Be very careful refactoring this function and make sure you test this out in console.
   // Incorrectness in this function can cause leonardo fail to stop all instances for a Dataproc cluster, which
   // incurs compute cost for users
-  private[google2] def getAllInstanceNames(cluster: Cluster): Map[DataprocRoleZonePreemptibility, Set[InstanceName]] = {
+  def getAllInstanceNames(cluster: Cluster): Map[DataprocRoleZonePreemptibility, Set[InstanceName]] = {
     val res = Option(cluster.getConfig).map { config =>
       val zoneUri = config.getGceClusterConfig.getZoneUri
       val zone = ZoneName.fromUriString(zoneUri).getOrElse(ZoneName(""))
