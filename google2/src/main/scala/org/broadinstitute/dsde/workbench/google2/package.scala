@@ -79,7 +79,7 @@ package object google2 {
         case Right(r) =>
           val response = Option(resultFormatter.show(r))
           val loggableGoogleCall = LoggableGoogleCall(response, "Succeeded")
-          val ctx = loggingCtx ++ Map("result" -> "Failed")
+          val ctx = loggingCtx ++ Map("result" -> "Succeeded")
           logger.info(ctx)(loggableGoogleCall.asJson.noSpaces)
       }
       result <- Sync[F].fromEither(attempted)
