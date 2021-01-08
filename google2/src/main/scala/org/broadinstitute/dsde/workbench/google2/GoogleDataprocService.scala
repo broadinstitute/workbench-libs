@@ -39,6 +39,15 @@ trait GoogleDataprocService[F[_]] {
     ev: Ask[F, TraceId]
   ): F[List[Operation]]
 
+  def startCluster(project: GoogleProject,
+                   region: RegionName,
+                   clusterName: DataprocClusterName,
+                   numPreemptibles: Option[Int],
+                   metadata: Option[Map[String, String]]
+  )(implicit
+    ev: Ask[F, TraceId]
+  ): F[List[Operation]]
+
   def resizeCluster(project: GoogleProject,
                     region: RegionName,
                     clusterName: DataprocClusterName,

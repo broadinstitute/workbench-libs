@@ -26,6 +26,15 @@ class BaseFakeGoogleDataprocService extends GoogleDataprocService[IO] {
     ev: Ask[IO, TraceId]
   ): IO[List[Operation]] = IO.pure(List.empty[Operation])
 
+  def startCluster(project: GoogleProject,
+                   region: RegionName,
+                   clusterName: DataprocClusterName,
+                   numPreemptibles: Option[Int],
+                   metadata: Option[Map[String, String]]
+  )(implicit
+    ev: Ask[IO, TraceId]
+  ): IO[List[Operation]] = IO.pure(List.empty[Operation])
+
   override def resizeCluster(project: GoogleProject,
                              region: RegionName,
                              clusterName: DataprocClusterName,

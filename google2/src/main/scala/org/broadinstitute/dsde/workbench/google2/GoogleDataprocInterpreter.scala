@@ -97,7 +97,7 @@ private[google2] class GoogleDataprocInterpreter[F[_]: StructuredLogger: Timer: 
 
       // First, remove preemptible instances (if any) and wait until the removal is done
       remainingClusterInstances <-
-        if (containsPreemptibles(clusterInstances))
+        if (countPreemptibles(clusterInstances) > 0)
           resizeCluster(project,
                         region,
                         clusterName,
@@ -108,7 +108,7 @@ private[google2] class GoogleDataprocInterpreter[F[_]: StructuredLogger: Timer: 
             15,
             6 seconds,
             s"Cannot stop the instances of cluster ${project.value}/${clusterName.value} before removing its preemptible instances first."
-          )
+          )(implicitly, implicitly, instances => countPreemptibles(instances) == 0)
         else F.pure(clusterInstances)
 
       // If removal of preemptibles is done, wait until the cluster's status transitions back to RUNNING (from UPDATING)
@@ -136,6 +136,67 @@ private[google2] class GoogleDataprocInterpreter[F[_]: StructuredLogger: Timer: 
                 } >> googleComputeService.stopInstance(project, zone, instance)
               case _ =>
                 googleComputeService.stopInstance(project, zone, instance)
+            }).recoverWith {
+              case _: com.google.api.gax.rpc.NotFoundException => F.pure(Operation.getDefaultInstance)
+              case e                                           => F.raiseError[Operation](e)
+            }
+          }
+      }
+    } yield operations
+
+  override def startCluster(project: GoogleProject,
+                            region: RegionName,
+                            clusterName: DataprocClusterName,
+                            numPreemptibles: Option[Int],
+                            metadata: Option[Map[String, String]]
+  )(implicit
+    ev: Ask[F, TraceId]
+  ): F[List[Operation]] =
+    for {
+      clusterInstances <- getClusterInstances(project, region, clusterName)
+
+      // Add back the preemptible instances, if any
+      _ <- numPreemptibles match {
+        case Some(n) =>
+          resizeCluster(project,
+                        region,
+                        clusterName,
+                        numWorkers = None,
+                        numPreemptibles = Some(n)
+          ) >> streamUntilDoneOrTimeout(
+            getClusterInstances(project, region, clusterName),
+            15,
+            6 seconds,
+            s"Cannot stop the instances of cluster ${project.value}/${clusterName.value} before removing its preemptible instances first."
+          )(implicitly, implicitly, instances => countPreemptibles(instances) == n).void
+        case None => F.unit
+      }
+
+      // If adding of preemptibles is done, wait until the cluster's status transitions back to RUNNING (from UPDATING)
+      // Otherwise, starting the remaining instances may cause the cluster to get in to ERROR status
+      _ <- streamUntilDoneOrTimeout(
+        getCluster(project, region, clusterName),
+        15,
+        3 seconds,
+        s"Cannot start the instances of cluster ${project.value}/${clusterName.value} unless the cluster is in RUNNING status."
+      )
+
+      // Then, start each remaining instance individually
+      operations <- clusterInstances.toList.parFlatTraverse {
+        case (DataprocRoleZonePreemptibility(role, zone, _), instances) =>
+          instances.toList.parTraverse { instance =>
+            (role match {
+              case Master =>
+                metadata.traverse { md =>
+                  googleComputeService.addInstanceMetadata(
+                    project,
+                    zone,
+                    instance,
+                    md
+                  )
+                } >> googleComputeService.startInstance(project, zone, instance)
+              case _ =>
+                googleComputeService.startInstance(project, zone, instance)
             }).recoverWith {
               case _: com.google.api.gax.rpc.NotFoundException => F.pure(Operation.getDefaultInstance)
               case e                                           => F.raiseError[Operation](e)
@@ -309,7 +370,7 @@ object GoogleDataprocInterpreter {
   // WARNING: Be very careful refactoring this function and make sure you test this out in console.
   // Incorrectness in this function can cause leonardo fail to stop all instances for a Dataproc cluster, which
   // incurs compute cost for users
-  def getAllInstanceNames(cluster: Cluster): Map[DataprocRoleZonePreemptibility, Set[InstanceName]] = {
+  private[google2] def getAllInstanceNames(cluster: Cluster): Map[DataprocRoleZonePreemptibility, Set[InstanceName]] = {
     val res = Option(cluster.getConfig).map { config =>
       val zoneUri = config.getGceClusterConfig.getZoneUri
       val zone = ZoneName.fromUriString(zoneUri).getOrElse(ZoneName(""))
@@ -332,9 +393,9 @@ object GoogleDataprocInterpreter {
     res.getOrElse(Map.empty)
   }
 
-  def containsPreemptibles(instances: Map[DataprocRoleZonePreemptibility, Set[InstanceName]]): Boolean =
-    instances.exists { case (DataprocRoleZonePreemptibility(_, _, isPreemptible), instanceNames) =>
-      isPreemptible && instanceNames.nonEmpty
+  private def countPreemptibles(instances: Map[DataprocRoleZonePreemptibility, Set[InstanceName]]): Int =
+    instances.foldLeft(0) { case (r, (DataprocRoleZonePreemptibility(_, _, isPreemptible), instanceNames)) =>
+      r + (if (isPreemptible) instanceNames.size else 0)
     }
 
   private def getFromGroup(role: DataprocRole,
@@ -352,9 +413,6 @@ object GoogleDataprocInterpreter {
     else Map(DataprocRoleZonePreemptibility(role, zone, groupConfig.getIsPreemptible) -> instances)
   }
 
-  implicit val resizingDoneCheckable: DoneCheckable[Map[DataprocRoleZonePreemptibility, Set[InstanceName]]] =
-    instances => !containsPreemptibles(instances)
-
-  implicit val clusterRunningCheckable: DoneCheckable[Option[Cluster]] =
+  implicit private[google2] val clusterRunningCheckable: DoneCheckable[Option[Cluster]] =
     clusterOpt => clusterOpt.exists(_.getStatus.getState.toString == "RUNNING")
 }
