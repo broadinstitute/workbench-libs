@@ -4,8 +4,11 @@ This file documents changes to the `workbench-google2` library, including notes 
 
 ## 0.19
 Changed:
-- Renamed and added fields in `CreateClusterConfig` to support creating Dataproc clusters with secondary preemptible workers.
-- Removed `CreateClusterResponse` ADT from `GoogleDataprocService`
+- Renamed and added fields in `GoogleDataprocService.CreateClusterConfig` to support creating Dataproc clusters with secondary preemptible workers.
+- Changed return type of `GoogleDataprocService.createCluster`
+
+Added:
+- Added `GoogleDataprocService.startCluster`
 
 SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.19-TRAVIS-REPLACE-ME"`
 
