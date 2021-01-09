@@ -8,7 +8,7 @@ object Dependencies {
   val scalaLoggingV = "3.9.2"
   val scalaTestV    = "3.2.3"
   val circeVersion = "0.13.0"
-  val http4sVersion = "0.21.14"
+  val http4sVersion = "0.21.15"
 
   def excludeGuavaJDK5(m: ModuleID): ModuleID = m.exclude("com.google.guava", "guava-jdk5")
 
@@ -56,8 +56,8 @@ object Dependencies {
   val googleRpc2: ModuleID =               "io.grpc" % "grpc-core" % "1.34.0"
   val googleFirestore: ModuleID = "com.google.cloud" % "google-cloud-firestore" % "2.1.0"
   val googleStorageNew: ModuleID = "com.google.cloud" % "google-cloud-storage" % "1.113.6"
-  val googleStorageLocal: ModuleID = "com.google.cloud" % "google-cloud-nio" % "0.122.4" % "test"
-  val googlePubsubNew: ModuleID = "com.google.cloud" % "google-cloud-pubsub" % "1.110.1"
+  val googleStorageLocal: ModuleID = "com.google.cloud" % "google-cloud-nio" % "0.122.3" % "test"
+  val googlePubsubNew: ModuleID = "com.google.cloud" % "google-cloud-pubsub" % "1.110.3"
   val googleKms: ModuleID = "com.google.cloud" % "google-cloud-kms" % "1.40.5"
   val googleDataproc: ModuleID =    "com.google.cloud" % "google-cloud-dataproc" % "1.1.10"
   val googleComputeNew: ModuleID = "com.google.cloud" % "google-cloud-compute" % "0.118.0-alpha"
