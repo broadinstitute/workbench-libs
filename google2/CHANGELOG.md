@@ -29,7 +29,7 @@ Update google-cloud-storage from 1.113.4 to 1.113.5 (#434)
 Update google-cloud-bigquery from 1.125.0 to 1.125.2 (#427)
 Update google-cloud-kms from 1.40.2 to 1.40.3 (#431)
 Update google-cloud-pubsub from 1.109.0 to 1.110.0
-Update jackson-module-scala from 2.11.3 to 2.12.0 (#425)
+Update jackson-module-scala from 2.11.3 to 2.12.1 (#425)
 Update cats-mtl from 1.0.0 to 1.1.0
 ```
 
