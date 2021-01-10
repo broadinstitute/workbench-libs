@@ -6,6 +6,7 @@ This file documents changes to the `workbench-google2` library, including notes 
 Changed:
 - Renamed and added fields in `GoogleDataprocService.CreateClusterConfig` to support creating Dataproc clusters with secondary preemptible workers.
 - Changed return type of `GoogleDataprocService.createCluster`
+- Removed `RetryConfig` from `GoogleDataprocService` constructors
 
 Added:
 - Added `GoogleDataprocService.startCluster`
