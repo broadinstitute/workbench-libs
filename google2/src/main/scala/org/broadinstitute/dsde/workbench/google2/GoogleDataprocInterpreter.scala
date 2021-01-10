@@ -382,7 +382,7 @@ object GoogleDataprocInterpreter {
     res.getOrElse(Map.empty)
   }
 
-  private def countPreemptibles(instances: Map[DataprocRoleZonePreemptibility, Set[InstanceName]]): Int =
+  private[google2] def countPreemptibles(instances: Map[DataprocRoleZonePreemptibility, Set[InstanceName]]): Int =
     instances.foldLeft(0) { case (r, (DataprocRoleZonePreemptibility(_, _, isPreemptible), instanceNames)) =>
       r + (if (isPreemptible) instanceNames.size else 0)
     }
