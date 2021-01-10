@@ -18,8 +18,8 @@ import org.broadinstitute.dsde.workbench.google2.util.RetryPredicates._
 import org.broadinstitute.dsde.workbench.model.TraceId
 import org.broadinstitute.dsde.workbench.model.google.GoogleProject
 
+import scala.collection.JavaConverters._
 import scala.concurrent.duration._
-import scala.jdk.CollectionConverters._
 
 private[google2] class GoogleDataprocInterpreter[F[_]: StructuredLogger: Timer: Parallel: ContextShift](
   clusterControllerClient: ClusterControllerClient,
