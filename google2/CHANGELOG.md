@@ -16,24 +16,29 @@ Changed:
 
 Dependency Upgrades
 ```
-Update sbt-scalafix from 0.9.23 to 0.9.24 (#424)
-Update cats-core, cats-effect from 2.2.0 to 2.3.0 (#438)
-Update google-cloud-dataproc from 1.1.7 to 1.1.8 (#429)
 Update akka-http, akka-http-spray-json, ... from 10.2.1 to 10.2.2 (#435)
-Update google-api-services-container from v1-rev20201007-1.30.10 to v1-rev20201007-1.31.0 (#426)
-Update google-cloud-nio from 0.122.1 to 0.122.3 (#432)
-Update grpc-core from 1.33.1 to 1.34.0 (#436)
-Update google-cloud-container from 1.2.0 to 1.2.1 (#428)
-Update google-cloud-errorreporting from 0.120.8-beta to 0.120.9-beta (#430)
-Update google-cloud-storage from 1.113.4 to 1.113.5 (#434)
-Update google-cloud-bigquery from 1.125.0 to 1.125.2 (#427)
-Update google-cloud-kms from 1.40.2 to 1.40.3 (#431)
-Update google-cloud-pubsub from 1.109.0 to 1.110.0
-Update jackson-module-scala from 2.11.3 to 2.12.1 (#425)
+Update cats-core, cats-effect from 2.2.0 to 2.3.0 (#438)
 Update cats-mtl from 1.0.0 to 1.1.0
+Update google-api-services-container from v1-rev20201007-1.30.10 to v1-rev20201007-1.31.0 (#426)
+Update google-cloud-bigquery from 1.125.0 to 1.125.2 (#427)
+Update google-cloud-container from 1.2.0 to 1.2.1 (#428)
+Update google-cloud-dataproc from 1.1.7 to 1.1.8 (#429)
+Update google-cloud-errorreporting from 0.120.8-beta to 0.120.9-beta (#430)
+Update google-cloud-kms from 1.40.2 to 1.40.3 (#431)
+Update google-cloud-nio from 0.122.1 to 0.122.3 (#432)
+Update google-cloud-pubsub from 1.109.0 to 1.110.0
+Update google-cloud-pubsub from 1.110.1 to 1.110.3 (#468) (2 days ago)
+Update google-cloud-storage from 1.113.4 to 1.113.5 (#434)
+Update google-cloud-storage from 1.113.6 to 1.113.8 (#469) (3 hours ago)
+Update grpc-core from 1.33.1 to 1.34.0 (#436)
+Update http4s-blaze-client, http4s-circe, ... from 0.21.14 to 0.21.15 (#471) (2 days ago)
+Update jackson-module-scala from 2.11.3 to 2.12.1 (#425)
+Update jackson-module-scala from 2.12.0 to 2.12.1 (#466) (3 hours ago)
+Update mockito-core from 3.6.28 to 3.7.0 (#472) (3 hours ago)
+Update sbt-scalafix from 0.9.23 to 0.9.24 (#424)
 ```
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.18-1ad5c90"` 
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.18-TRAVIS-REPLACE-ME"` 
   
 ## 0.17
 Added:
