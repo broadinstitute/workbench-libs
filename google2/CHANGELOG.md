@@ -38,7 +38,7 @@ Update mockito-core from 3.6.28 to 3.7.0 (#472) (3 hours ago)
 Update sbt-scalafix from 0.9.23 to 0.9.24 (#424)
 ```
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.18-TRAVIS-REPLACE-ME"` 
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.18-7fe0192"` 
   
 ## 0.17
 Added:
