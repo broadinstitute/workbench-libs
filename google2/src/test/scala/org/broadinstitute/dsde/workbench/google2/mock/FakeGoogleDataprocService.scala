@@ -16,7 +16,9 @@ class BaseFakeGoogleDataprocService extends GoogleDataprocService[IO] {
     createClusterConfig: Option[CreateClusterConfig]
   )(implicit ev: Ask[IO, TraceId]): IO[DataprocOperation] =
     IO.pure(
-      DataprocOperation("opName", ClusterOperationMetadata.newBuilder().setClusterUuid("clusterUuid").build)
+      DataprocOperation(OperationName("opName"),
+                        ClusterOperationMetadata.newBuilder().setClusterUuid("clusterUuid").build
+      )
     )
 
   override def stopCluster(project: GoogleProject,
@@ -44,13 +46,21 @@ class BaseFakeGoogleDataprocService extends GoogleDataprocService[IO] {
   )(implicit
     ev: Ask[IO, TraceId]
   ): IO[Option[DataprocOperation]] = IO.pure(
-    Some(DataprocOperation("opName", ClusterOperationMetadata.newBuilder().setClusterUuid("clusterUuid").build))
+    Some(
+      DataprocOperation(OperationName("opName"),
+                        ClusterOperationMetadata.newBuilder().setClusterUuid("clusterUuid").build
+      )
+    )
   )
 
   override def deleteCluster(project: GoogleProject, region: RegionName, clusterName: DataprocClusterName)(implicit
     ev: Ask[IO, TraceId]
   ): IO[Option[DataprocOperation]] = IO.pure(
-    Some(DataprocOperation("opName", ClusterOperationMetadata.newBuilder().setClusterUuid("clusterUuid").build))
+    Some(
+      DataprocOperation(OperationName("opName"),
+                        ClusterOperationMetadata.newBuilder().setClusterUuid("clusterUuid").build
+      )
+    )
   )
 
   override def getCluster(project: GoogleProject, region: RegionName, clusterName: DataprocClusterName)(implicit

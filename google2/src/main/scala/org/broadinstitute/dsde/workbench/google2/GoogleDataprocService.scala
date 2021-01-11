@@ -148,4 +148,4 @@ final case class DataprocRoleZonePreemptibility(role: DataprocRole, zone: ZoneNa
 final case class ClusterError(code: Int, message: String)
 final case class ClusterErrorDetails(code: Int, message: Option[String])
 
-final case class DataprocOperation(name: String, metadata: ClusterOperationMetadata)
+final case class DataprocOperation(name: OperationName, metadata: ClusterOperationMetadata)

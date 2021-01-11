@@ -73,7 +73,7 @@ private[google2] class GoogleDataprocInterpreter[F[_]: StructuredLogger: Timer: 
           MoreExecutors.directExecutor()
         )
       }
-    } yield DataprocOperation(op.getName, metadata)
+    } yield DataprocOperation(OperationName(op.getName), metadata)
 
     tracedLogging(
       blockF(createCluster),
@@ -273,7 +273,7 @@ private[google2] class GoogleDataprocInterpreter[F[_]: StructuredLogger: Timer: 
               MoreExecutors.directExecutor()
             )
           }
-        } yield DataprocOperation(op.getName, metadata)
+        } yield DataprocOperation(OperationName(op.getName), metadata)
       }
       .handleErrorWith {
         case _: com.google.api.gax.rpc.NotFoundException => F.pure(none[DataprocOperation])
@@ -305,7 +305,7 @@ private[google2] class GoogleDataprocInterpreter[F[_]: StructuredLogger: Timer: 
           MoreExecutors.directExecutor()
         )
       }
-    } yield DataprocOperation(op.getName, metadata))
+    } yield DataprocOperation(OperationName(op.getName), metadata))
       .map(Option(_))
       .handleErrorWith {
         case _: com.google.api.gax.rpc.NotFoundException => F.pure(none[DataprocOperation])
