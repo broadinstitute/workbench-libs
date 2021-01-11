@@ -101,7 +101,7 @@ class KubernetesInterpreter[F[_]: Effect: Timer: ContextShift](
       client <- blockingF(getClient(clusterId, new CoreV1Api(_)))
       call = blockingF(
         F.delay(
-          client.listNamespacedPod(namespace.name.value, "true", null, null, null, null, null, null, null, null)
+          client.listNamespacedPod(namespace.name.value, "true", null, null, null, null, null, null, null, null, null)
         )
       )
       response <- withLogging(
@@ -161,7 +161,18 @@ class KubernetesInterpreter[F[_]: Effect: Timer: ContextShift](
       client <- blockingF(getClient(clusterId, new CoreV1Api(_)))
       call = blockingF(
         F.delay(
-          client.listNamespacedService(namespace.name.value, "true", null, null, null, null, null, null, null, null)
+          client.listNamespacedService(namespace.name.value,
+                                       "true",
+                                       null,
+                                       null,
+                                       null,
+                                       null,
+                                       null,
+                                       null,
+                                       null,
+                                       null,
+                                       null
+          )
         )
       ).map(Option(_)).handleErrorWith {
         case e: io.kubernetes.client.openapi.ApiException if e.getCode == 404 => F.pure(None)
