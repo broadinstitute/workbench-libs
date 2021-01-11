@@ -3,7 +3,7 @@ import sbt._
 object Dependencies {
   val akkaV         = "2.6.10"
   val akkaHttpV     = "10.2.2"
-  val jacksonV      = "2.12.0"
+  val jacksonV      = "2.12.1"
   val googleV       = "1.22.0"
   val scalaLoggingV = "3.9.2"
   val scalaTestV    = "3.2.3"
@@ -17,7 +17,7 @@ object Dependencies {
   val scalaTestScalaCheck = "org.scalatestplus" %% "scalacheck-1-14" % "3.2.2.0" % Test //Since scalatest 3.1.0, scalacheck support is moved to `scalatestplus`
   val scalaTestMockito = "org.scalatestplus" %% "mockito-3-4" % "3.2.3.0" % Test //Since scalatest 3.1.0, mockito support is moved to `scalatestplus`
   val scalaTestSelenium =  "org.scalatestplus" %% "selenium-3-141" % "3.2.2.0" % Test //Since scalatest 3.1.0, selenium support is moved to `scalatestplus`
-  val mockito: ModuleID =      "org.mockito"                   %  "mockito-core"  % "3.6.28" % "test"
+  val mockito: ModuleID =      "org.mockito"                   %  "mockito-core"  % "3.7.0" % "test"
 
   val akkaActor: ModuleID =         "com.typesafe.akka" %% "akka-actor"           % akkaV     % "provided"
   val akkaStream: ModuleID =         "com.typesafe.akka" %% "akka-stream"           % akkaV     % "provided"
@@ -55,8 +55,8 @@ object Dependencies {
 
   val googleRpc2: ModuleID =               "io.grpc" % "grpc-core" % "1.34.0"
   val googleFirestore: ModuleID = "com.google.cloud" % "google-cloud-firestore" % "2.1.0"
-  val googleStorageNew: ModuleID = "com.google.cloud" % "google-cloud-storage" % "1.113.6"
-  val googleStorageLocal: ModuleID = "com.google.cloud" % "google-cloud-nio" % "0.122.4" % "test"
+  val googleStorageNew: ModuleID = "com.google.cloud" % "google-cloud-storage" % "1.113.8"
+  val googleStorageLocal: ModuleID = "com.google.cloud" % "google-cloud-nio" % "0.122.3" % "test"
   val googlePubsubNew: ModuleID = "com.google.cloud" % "google-cloud-pubsub" % "1.110.3"
   val googleKms: ModuleID = "com.google.cloud" % "google-cloud-kms" % "1.40.5"
   val googleDataproc: ModuleID =    "com.google.cloud" % "google-cloud-dataproc" % "1.1.10"
