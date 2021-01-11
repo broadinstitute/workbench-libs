@@ -6,6 +6,7 @@ import cats.mtl.Ask
 import cats.syntax.all._
 import cats.{Parallel, Show}
 import com.google.api.core.ApiFutures
+import com.google.api.gax.longrunning.OperationSnapshot
 import com.google.cloud.compute.v1.Operation
 import com.google.cloud.dataproc.v1.{RegionName => _, _}
 import com.google.common.util.concurrent.MoreExecutors
@@ -34,7 +35,7 @@ private[google2] class GoogleDataprocInterpreter[F[_]: StructuredLogger: Timer: 
     region: RegionName,
     clusterName: DataprocClusterName,
     createClusterConfig: Option[CreateClusterConfig]
-  )(implicit ev: Ask[F, TraceId]): F[ClusterOperationMetadata] = {
+  )(implicit ev: Ask[F, TraceId]): F[OperationSnapshot] = {
     val config: ClusterConfig = createClusterConfig
       .map { config =>
         val bldr = ClusterConfig.newBuilder
@@ -64,9 +65,9 @@ private[google2] class GoogleDataprocInterpreter[F[_]: StructuredLogger: Timer: 
       .setProjectId(project.value)
       .build()
 
-    val createCluster = Async[F].async[ClusterOperationMetadata] { cb =>
+    val createCluster = Async[F].async[OperationSnapshot] { cb =>
       ApiFutures.addCallback(
-        clusterControllerClient.createClusterAsync(request).getMetadata,
+        clusterControllerClient.createClusterAsync(request).getInitialFuture,
         callBack(cb),
         MoreExecutors.directExecutor()
       )
@@ -210,7 +211,7 @@ private[google2] class GoogleDataprocInterpreter[F[_]: StructuredLogger: Timer: 
                              numPreemptibles: Option[Int]
   )(implicit
     ev: Ask[F, TraceId]
-  ): F[Option[ClusterOperationMetadata]] = {
+  ): F[Option[OperationSnapshot]] = {
     val workerMask = "config.worker_config.num_instances"
     val preemptibleMask = "config.secondary_worker_config.num_instances"
 
@@ -261,17 +262,17 @@ private[google2] class GoogleDataprocInterpreter[F[_]: StructuredLogger: Timer: 
     val updateCluster = updateClusterRequest
       .traverse { request =>
         Async[F]
-          .async[ClusterOperationMetadata] { cb =>
+          .async[OperationSnapshot] { cb =>
             ApiFutures.addCallback(
-              clusterControllerClient.updateClusterAsync(request).getMetadata,
+              clusterControllerClient.updateClusterAsync(request).getInitialFuture,
               callBack(cb),
               MoreExecutors.directExecutor()
             )
           }
       }
       .handleErrorWith {
-        case _: com.google.api.gax.rpc.NotFoundException => F.pure(none[ClusterOperationMetadata])
-        case e                                           => F.raiseError[Option[ClusterOperationMetadata]](e)
+        case _: com.google.api.gax.rpc.NotFoundException => F.pure(none[OperationSnapshot])
+        case e                                           => F.raiseError[Option[OperationSnapshot]](e)
       }
 
     tracedLogging(
@@ -282,7 +283,7 @@ private[google2] class GoogleDataprocInterpreter[F[_]: StructuredLogger: Timer: 
 
   override def deleteCluster(project: GoogleProject, region: RegionName, clusterName: DataprocClusterName)(implicit
     ev: Ask[F, TraceId]
-  ): F[Option[ClusterOperationMetadata]] = {
+  ): F[Option[OperationSnapshot]] = {
     val request = DeleteClusterRequest
       .newBuilder()
       .setRegion(region.value)
@@ -291,17 +292,17 @@ private[google2] class GoogleDataprocInterpreter[F[_]: StructuredLogger: Timer: 
       .build()
 
     val deleteCluster = Async[F]
-      .async[ClusterOperationMetadata] { cb =>
+      .async[OperationSnapshot] { cb =>
         ApiFutures.addCallback(
-          clusterControllerClient.deleteClusterAsync(request).getMetadata,
+          clusterControllerClient.deleteClusterAsync(request).getInitialFuture,
           callBack(cb),
           MoreExecutors.directExecutor()
         )
       }
       .map(Option(_))
       .handleErrorWith {
-        case _: com.google.api.gax.rpc.NotFoundException => F.pure(none[ClusterOperationMetadata])
-        case e                                           => F.raiseError[Option[ClusterOperationMetadata]](e)
+        case _: com.google.api.gax.rpc.NotFoundException => F.pure(none[OperationSnapshot])
+        case e                                           => F.raiseError[Option[OperationSnapshot]](e)
       }
 
     tracedLogging(

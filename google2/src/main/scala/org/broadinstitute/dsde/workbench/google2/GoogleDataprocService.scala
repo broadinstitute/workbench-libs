@@ -6,13 +6,12 @@ import cats.effect._
 import cats.effect.concurrent.Semaphore
 import cats.mtl.Ask
 import com.google.api.gax.core.FixedCredentialsProvider
+import com.google.api.gax.longrunning.OperationSnapshot
 import com.google.api.services.compute.ComputeScopes
 import com.google.auth.oauth2.GoogleCredentials
 import com.google.cloud.compute.v1.Operation
 import com.google.cloud.dataproc.v1.{RegionName => _, _}
 import io.chrisdavenport.log4cats.StructuredLogger
-import org.broadinstitute.dsde.workbench.RetryConfig
-import org.broadinstitute.dsde.workbench.google2.util.RetryPredicates
 import org.broadinstitute.dsde.workbench.model.TraceId
 import org.broadinstitute.dsde.workbench.model.google.{GcsBucketName, GoogleProject}
 
@@ -29,7 +28,7 @@ trait GoogleDataprocService[F[_]] {
     region: RegionName,
     clusterName: DataprocClusterName,
     createClusterConfig: Option[CreateClusterConfig]
-  )(implicit ev: Ask[F, TraceId]): F[ClusterOperationMetadata]
+  )(implicit ev: Ask[F, TraceId]): F[OperationSnapshot]
 
   def stopCluster(project: GoogleProject,
                   region: RegionName,
@@ -55,11 +54,11 @@ trait GoogleDataprocService[F[_]] {
                     numPreemptibles: Option[Int]
   )(implicit
     ev: Ask[F, TraceId]
-  ): F[Option[ClusterOperationMetadata]]
+  ): F[Option[OperationSnapshot]]
 
   def deleteCluster(project: GoogleProject, region: RegionName, clusterName: DataprocClusterName)(implicit
     ev: Ask[F, TraceId]
-  ): F[Option[ClusterOperationMetadata]]
+  ): F[Option[OperationSnapshot]]
 
   def getCluster(project: GoogleProject, region: RegionName, clusterName: DataprocClusterName)(implicit
     ev: Ask[F, TraceId]
