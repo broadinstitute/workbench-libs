@@ -1,11 +1,8 @@
 package org.broadinstitute.dsde.workbench.google2
 package mock
 
-import cats.syntax.all._
 import cats.effect.IO
 import cats.mtl.Ask
-import com.google.api.gax.longrunning.OperationSnapshot
-import com.google.api.gax.rpc.StatusCode
 import com.google.cloud.compute.v1.Operation
 import com.google.cloud.dataproc.v1.{Cluster, ClusterOperationMetadata}
 import org.broadinstitute.dsde.workbench.model.TraceId
@@ -17,16 +14,9 @@ class BaseFakeGoogleDataprocService extends GoogleDataprocService[IO] {
     region: RegionName,
     clusterName: DataprocClusterName,
     createClusterConfig: Option[CreateClusterConfig]
-  )(implicit ev: Ask[IO, TraceId]): IO[OperationSnapshot] =
+  )(implicit ev: Ask[IO, TraceId]): IO[DataprocOperation] =
     IO.pure(
-      new OperationSnapshot {
-        override def getName: String = "opName"
-        override def getMetadata: AnyRef = ???
-        override def isDone: Boolean = true
-        override def getResponse: AnyRef = ???
-        override def getErrorCode: StatusCode = null
-        override def getErrorMessage: String = null
-      }
+      DataprocOperation("opName", ClusterOperationMetadata.newBuilder().setClusterUuid("clusterUuid").build)
     )
 
   override def stopCluster(project: GoogleProject,
@@ -53,11 +43,15 @@ class BaseFakeGoogleDataprocService extends GoogleDataprocService[IO] {
                              numPreemptibles: Option[Int] = None
   )(implicit
     ev: Ask[IO, TraceId]
-  ): IO[Option[OperationSnapshot]] = IO.pure(none[OperationSnapshot])
+  ): IO[Option[DataprocOperation]] = IO.pure(
+    Some(DataprocOperation("opName", ClusterOperationMetadata.newBuilder().setClusterUuid("clusterUuid").build))
+  )
 
   override def deleteCluster(project: GoogleProject, region: RegionName, clusterName: DataprocClusterName)(implicit
     ev: Ask[IO, TraceId]
-  ): IO[Option[OperationSnapshot]] = IO.pure(none[OperationSnapshot])
+  ): IO[Option[DataprocOperation]] = IO.pure(
+    Some(DataprocOperation("opName", ClusterOperationMetadata.newBuilder().setClusterUuid("clusterUuid").build))
+  )
 
   override def getCluster(project: GoogleProject, region: RegionName, clusterName: DataprocClusterName)(implicit
     ev: Ask[IO, TraceId]

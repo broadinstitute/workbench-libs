@@ -6,7 +6,6 @@ import cats.mtl.Ask
 import cats.syntax.all._
 import cats.{Parallel, Show}
 import com.google.api.core.ApiFutures
-import com.google.api.gax.longrunning.OperationSnapshot
 import com.google.cloud.compute.v1.Operation
 import com.google.cloud.dataproc.v1.{RegionName => _, _}
 import com.google.common.util.concurrent.MoreExecutors
@@ -35,7 +34,7 @@ private[google2] class GoogleDataprocInterpreter[F[_]: StructuredLogger: Timer: 
     region: RegionName,
     clusterName: DataprocClusterName,
     createClusterConfig: Option[CreateClusterConfig]
-  )(implicit ev: Ask[F, TraceId]): F[OperationSnapshot] = {
+  )(implicit ev: Ask[F, TraceId]): F[DataprocOperation] = {
     val config: ClusterConfig = createClusterConfig
       .map { config =>
         val bldr = ClusterConfig.newBuilder
@@ -65,13 +64,17 @@ private[google2] class GoogleDataprocInterpreter[F[_]: StructuredLogger: Timer: 
       .setProjectId(project.value)
       .build()
 
-    val createCluster = Async[F].async[OperationSnapshot] { cb =>
-      ApiFutures.addCallback(
-        clusterControllerClient.createClusterAsync(request).getInitialFuture,
-        callBack(cb),
-        MoreExecutors.directExecutor()
-      )
-    }
+    val createCluster = for {
+      op <- Async[F].delay(clusterControllerClient.createClusterAsync(request))
+      metadata <- Async[F].async[ClusterOperationMetadata] { cb =>
+        ApiFutures.addCallback(
+          op.getMetadata,
+          callBack(cb),
+          MoreExecutors.directExecutor()
+        )
+      }
+    } yield DataprocOperation(op.getName, metadata)
+
     tracedLogging(
       blockF(createCluster),
       s"com.google.cloud.dataproc.v1.ClusterControllerClient.createClusterAsync(${region}, ${clusterName}, ${createClusterConfig}))"
@@ -211,7 +214,7 @@ private[google2] class GoogleDataprocInterpreter[F[_]: StructuredLogger: Timer: 
                              numPreemptibles: Option[Int]
   )(implicit
     ev: Ask[F, TraceId]
-  ): F[Option[OperationSnapshot]] = {
+  ): F[Option[DataprocOperation]] = {
     val workerMask = "config.worker_config.num_instances"
     val preemptibleMask = "config.secondary_worker_config.num_instances"
 
@@ -261,18 +264,20 @@ private[google2] class GoogleDataprocInterpreter[F[_]: StructuredLogger: Timer: 
 
     val updateCluster = updateClusterRequest
       .traverse { request =>
-        Async[F]
-          .async[OperationSnapshot] { cb =>
+        for {
+          op <- Async[F].delay(clusterControllerClient.updateClusterAsync(request))
+          metadata <- Async[F].async[ClusterOperationMetadata] { cb =>
             ApiFutures.addCallback(
-              clusterControllerClient.updateClusterAsync(request).getInitialFuture,
+              op.getMetadata,
               callBack(cb),
               MoreExecutors.directExecutor()
             )
           }
+        } yield DataprocOperation(op.getName, metadata)
       }
       .handleErrorWith {
-        case _: com.google.api.gax.rpc.NotFoundException => F.pure(none[OperationSnapshot])
-        case e                                           => F.raiseError[Option[OperationSnapshot]](e)
+        case _: com.google.api.gax.rpc.NotFoundException => F.pure(none[DataprocOperation])
+        case e                                           => F.raiseError[Option[DataprocOperation]](e)
       }
 
     tracedLogging(
@@ -283,7 +288,7 @@ private[google2] class GoogleDataprocInterpreter[F[_]: StructuredLogger: Timer: 
 
   override def deleteCluster(project: GoogleProject, region: RegionName, clusterName: DataprocClusterName)(implicit
     ev: Ask[F, TraceId]
-  ): F[Option[OperationSnapshot]] = {
+  ): F[Option[DataprocOperation]] = {
     val request = DeleteClusterRequest
       .newBuilder()
       .setRegion(region.value)
@@ -291,18 +296,20 @@ private[google2] class GoogleDataprocInterpreter[F[_]: StructuredLogger: Timer: 
       .setClusterName(clusterName.value)
       .build()
 
-    val deleteCluster = Async[F]
-      .async[OperationSnapshot] { cb =>
+    val deleteCluster = (for {
+      op <- Async[F].delay(clusterControllerClient.deleteClusterAsync(request))
+      metadata <- Async[F].async[ClusterOperationMetadata] { cb =>
         ApiFutures.addCallback(
-          clusterControllerClient.deleteClusterAsync(request).getInitialFuture,
+          op.getMetadata,
           callBack(cb),
           MoreExecutors.directExecutor()
         )
       }
+    } yield DataprocOperation(op.getName, metadata))
       .map(Option(_))
       .handleErrorWith {
-        case _: com.google.api.gax.rpc.NotFoundException => F.pure(none[OperationSnapshot])
-        case e                                           => F.raiseError[Option[OperationSnapshot]](e)
+        case _: com.google.api.gax.rpc.NotFoundException => F.pure(none[DataprocOperation])
+        case e                                           => F.raiseError[Option[DataprocOperation]](e)
       }
 
     tracedLogging(

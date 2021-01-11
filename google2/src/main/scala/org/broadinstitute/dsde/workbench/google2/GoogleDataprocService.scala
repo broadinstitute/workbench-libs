@@ -6,7 +6,6 @@ import cats.effect._
 import cats.effect.concurrent.Semaphore
 import cats.mtl.Ask
 import com.google.api.gax.core.FixedCredentialsProvider
-import com.google.api.gax.longrunning.OperationSnapshot
 import com.google.api.services.compute.ComputeScopes
 import com.google.auth.oauth2.GoogleCredentials
 import com.google.cloud.compute.v1.Operation
@@ -28,7 +27,7 @@ trait GoogleDataprocService[F[_]] {
     region: RegionName,
     clusterName: DataprocClusterName,
     createClusterConfig: Option[CreateClusterConfig]
-  )(implicit ev: Ask[F, TraceId]): F[OperationSnapshot]
+  )(implicit ev: Ask[F, TraceId]): F[DataprocOperation]
 
   def stopCluster(project: GoogleProject,
                   region: RegionName,
@@ -54,11 +53,11 @@ trait GoogleDataprocService[F[_]] {
                     numPreemptibles: Option[Int]
   )(implicit
     ev: Ask[F, TraceId]
-  ): F[Option[OperationSnapshot]]
+  ): F[Option[DataprocOperation]]
 
   def deleteCluster(project: GoogleProject, region: RegionName, clusterName: DataprocClusterName)(implicit
     ev: Ask[F, TraceId]
-  ): F[Option[OperationSnapshot]]
+  ): F[Option[DataprocOperation]]
 
   def getCluster(project: GoogleProject, region: RegionName, clusterName: DataprocClusterName)(implicit
     ev: Ask[F, TraceId]
@@ -148,3 +147,5 @@ final case class DataprocRoleZonePreemptibility(role: DataprocRole, zone: ZoneNa
 
 final case class ClusterError(code: Int, message: String)
 final case class ClusterErrorDetails(code: Int, message: Option[String])
+
+final case class DataprocOperation(name: String, metadata: ClusterOperationMetadata)

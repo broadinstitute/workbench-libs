@@ -5,9 +5,8 @@ import java.util.UUID
 import cats.effect.concurrent.Semaphore
 import cats.effect.{Blocker, IO}
 import cats.mtl.Ask
-import com.google.api.gax.longrunning.OperationSnapshot
 import com.google.cloud.compute.v1.Operation
-import com.google.cloud.dataproc.v1.{Cluster, ClusterOperationMetadata}
+import com.google.cloud.dataproc.v1.Cluster
 import io.chrisdavenport.log4cats.slf4j.Slf4jLogger
 import org.broadinstitute.dsde.workbench.model.TraceId
 import org.broadinstitute.dsde.workbench.model.google.GoogleProject
@@ -46,7 +45,7 @@ final class GoogleDataprocManualTest(pathToCredential: String,
   def callResizeCluster(cluster: String,
                         numWorkers: Option[Int],
                         numPreemptibles: Option[Int]
-  ): IO[Option[OperationSnapshot]] =
+  ): IO[Option[DataprocOperation]] =
     dataprocServiceResource.use { dataprocService =>
       dataprocService.resizeCluster(project, region, DataprocClusterName(cluster), numWorkers, numPreemptibles)
     }
