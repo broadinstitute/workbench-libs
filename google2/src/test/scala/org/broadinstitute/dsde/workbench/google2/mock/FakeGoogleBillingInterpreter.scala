@@ -8,9 +8,10 @@ import org.broadinstitute.dsde.workbench.model.TraceId
 import org.broadinstitute.dsde.workbench.model.google.GoogleProject
 
 class FakeGoogleBillingInterpreter extends GoogleBillingService[IO] {
-  override def getBillingInfo(project: GoogleProject)(implicit ev: Ask[IO, TraceId]): IO[Option[ProjectBillingInfo]] = IO(
-    Some(ProjectBillingInfo.newBuilder().build())
-  )
+  override def getBillingInfo(project: GoogleProject)(implicit ev: Ask[IO, TraceId]): IO[Option[ProjectBillingInfo]] =
+    IO(
+      Some(ProjectBillingInfo.newBuilder().build())
+    )
 
   override def isBillingEnabled(project: GoogleProject)(implicit ev: Ask[IO, TraceId]): IO[Boolean] = IO.pure(true)
 }
