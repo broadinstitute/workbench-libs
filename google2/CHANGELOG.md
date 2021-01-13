@@ -2,6 +2,17 @@
 
 This file documents changes to the `workbench-google2` library, including notes on how to upgrade to new versions.
 
+## 0.19
+Changed:
+- Renamed and added fields in `GoogleDataprocService.CreateClusterConfig` to support creating Dataproc clusters with secondary preemptible workers.
+- Changed return type of `GoogleDataprocService.{createCluster, deleteCluster, resizeCluster}`
+- Removed `RetryConfig` from `GoogleDataprocService` constructors
+
+Added:
+- Added `GoogleDataprocService.startCluster`
+
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.19-TRAVIS-REPLACE-ME"`
+
 ## 0.18
 Added:
 - `GoogleDataprocInterpreter` can resize clusters and stop cluster VMs.

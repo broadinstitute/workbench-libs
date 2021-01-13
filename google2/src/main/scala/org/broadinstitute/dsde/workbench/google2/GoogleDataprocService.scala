@@ -1,20 +1,18 @@
 package org.broadinstitute.dsde.workbench.google2
 
+import ca.mrvisser.sealerate
+import cats.Parallel
 import cats.effect._
 import cats.effect.concurrent.Semaphore
 import cats.mtl.Ask
 import com.google.api.gax.core.FixedCredentialsProvider
 import com.google.api.services.compute.ComputeScopes
 import com.google.auth.oauth2.GoogleCredentials
+import com.google.cloud.compute.v1.Operation
 import com.google.cloud.dataproc.v1.{RegionName => _, _}
 import io.chrisdavenport.log4cats.StructuredLogger
-import org.broadinstitute.dsde.workbench.RetryConfig
-import org.broadinstitute.dsde.workbench.google2.util.RetryPredicates
 import org.broadinstitute.dsde.workbench.model.TraceId
 import org.broadinstitute.dsde.workbench.model.google.{GcsBucketName, GoogleProject}
-import ca.mrvisser.sealerate
-import cats.Parallel
-import com.google.cloud.compute.v1.Operation
 
 import scala.collection.JavaConverters._
 
@@ -29,12 +27,21 @@ trait GoogleDataprocService[F[_]] {
     region: RegionName,
     clusterName: DataprocClusterName,
     createClusterConfig: Option[CreateClusterConfig]
-  )(implicit ev: Ask[F, TraceId]): F[CreateClusterResponse]
+  )(implicit ev: Ask[F, TraceId]): F[DataprocOperation]
 
   def stopCluster(project: GoogleProject,
                   region: RegionName,
                   clusterName: DataprocClusterName,
                   metadata: Option[Map[String, String]]
+  )(implicit
+    ev: Ask[F, TraceId]
+  ): F[List[Operation]]
+
+  def startCluster(project: GoogleProject,
+                   region: RegionName,
+                   clusterName: DataprocClusterName,
+                   numPreemptibles: Option[Int],
+                   metadata: Option[Map[String, String]]
   )(implicit
     ev: Ask[F, TraceId]
   ): F[List[Operation]]
@@ -46,11 +53,11 @@ trait GoogleDataprocService[F[_]] {
                     numPreemptibles: Option[Int]
   )(implicit
     ev: Ask[F, TraceId]
-  ): F[Option[ClusterOperationMetadata]]
+  ): F[Option[DataprocOperation]]
 
   def deleteCluster(project: GoogleProject, region: RegionName, clusterName: DataprocClusterName)(implicit
     ev: Ask[F, TraceId]
-  ): F[Option[ClusterOperationMetadata]]
+  ): F[Option[DataprocOperation]]
 
   def getCluster(project: GoogleProject, region: RegionName, clusterName: DataprocClusterName)(implicit
     ev: Ask[F, TraceId]
@@ -69,19 +76,12 @@ object GoogleDataprocService {
     pathToCredential: String,
     blocker: Blocker,
     blockerBound: Semaphore[F],
-    regionName: RegionName,
-    retryConfig: RetryConfig = RetryPredicates.standardRetryConfig
+    regionName: RegionName
   ): Resource[F, GoogleDataprocService[F]] =
     for {
       credential <- credentialResource(pathToCredential)
       scopedCredential = credential.createScoped(Seq(ComputeScopes.CLOUD_PLATFORM).asJava)
-      interpreter <- fromCredential(googleComputeService,
-                                    scopedCredential,
-                                    blocker,
-                                    regionName,
-                                    blockerBound,
-                                    retryConfig
-      )
+      interpreter <- fromCredential(googleComputeService, scopedCredential, blocker, regionName, blockerBound)
     } yield interpreter
 
   def resourceFromUserCredential[F[_]: StructuredLogger: Async: Timer: Parallel: ContextShift](
@@ -89,19 +89,12 @@ object GoogleDataprocService {
     pathToCredential: String,
     blocker: Blocker,
     blockerBound: Semaphore[F],
-    regionName: RegionName,
-    retryConfig: RetryConfig = RetryPredicates.standardRetryConfig
+    regionName: RegionName
   ): Resource[F, GoogleDataprocService[F]] =
     for {
       credential <- userCredentials(pathToCredential)
       scopedCredential = credential.createScoped(Seq(ComputeScopes.CLOUD_PLATFORM).asJava)
-      interpreter <- fromCredential(googleComputeService,
-                                    scopedCredential,
-                                    blocker,
-                                    regionName,
-                                    blockerBound,
-                                    retryConfig
-      )
+      interpreter <- fromCredential(googleComputeService, scopedCredential, blocker, regionName, blockerBound)
     } yield interpreter
 
   def fromCredential[F[_]: StructuredLogger: Async: Timer: Parallel: ContextShift](
@@ -109,8 +102,7 @@ object GoogleDataprocService {
     googleCredentials: GoogleCredentials,
     blocker: Blocker,
     regionName: RegionName,
-    blockerBound: Semaphore[F],
-    retryConfig: RetryConfig
+    blockerBound: Semaphore[F]
   ): Resource[F, GoogleDataprocService[F]] = {
     val settings = ClusterControllerSettings
       .newBuilder()
@@ -120,7 +112,7 @@ object GoogleDataprocService {
 
     for {
       client <- backgroundResourceF(ClusterControllerClient.create(settings))
-    } yield new GoogleDataprocInterpreter[F](client, googleComputeService, blocker, blockerBound, retryConfig)
+    } yield new GoogleDataprocInterpreter[F](client, googleComputeService, blocker, blockerBound)
   }
 }
 
@@ -132,16 +124,12 @@ final case class DataprocInstance(name: InstanceName,
                                   dataprocRole: DataprocRole
 )
 
-sealed abstract class CreateClusterResponse
-object CreateClusterResponse {
-  final case class Success(clusterOperationMetadata: ClusterOperationMetadata) extends CreateClusterResponse
-  case object AlreadyExists extends CreateClusterResponse
-}
-
 final case class CreateClusterConfig(
   gceClusterConfig: GceClusterConfig,
-  nodeInitializationAction: NodeInitializationAction,
-  instanceGroupConfig: InstanceGroupConfig,
+  nodeInitializationActions: List[NodeInitializationAction],
+  masterConfig: InstanceGroupConfig,
+  workerConfig: Option[InstanceGroupConfig],
+  secondaryWorkerConfig: Option[InstanceGroupConfig],
   stagingBucket: GcsBucketName,
   softwareConfig: SoftwareConfig
 ) //valid properties are https://cloud.google.com/dataproc/docs/concepts/configuring-clusters/cluster-properties
@@ -159,3 +147,5 @@ final case class DataprocRoleZonePreemptibility(role: DataprocRole, zone: ZoneNa
 
 final case class ClusterError(code: Int, message: String)
 final case class ClusterErrorDetails(code: Int, message: Option[String])
+
+final case class DataprocOperation(name: OperationName, metadata: ClusterOperationMetadata)

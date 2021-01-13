@@ -51,4 +51,33 @@ class GoogleDataprocInterpreterSpec
     )
     res shouldBe expectedResult
   }
+
+  "countPreemptibles" should "count preemptibles correctly" in {
+    val singleNode = Map(
+      DataprocRoleZonePreemptibility(Master, ZoneName("us-central1-a"), false) -> Set(InstanceName("master"))
+    )
+    GoogleDataprocInterpreter.countPreemptibles(singleNode) shouldBe 0
+
+    val workersNoPreemptibles = Map(
+      DataprocRoleZonePreemptibility(Master, ZoneName("us-central1-a"), false) -> Set(InstanceName("master")),
+      DataprocRoleZonePreemptibility(Worker, ZoneName("us-central1-a"), false) -> Set(InstanceName("worker1"),
+                                                                                      InstanceName("worker2")
+      )
+    )
+    GoogleDataprocInterpreter.countPreemptibles(workersNoPreemptibles) shouldBe 0
+
+    val workersAndPreemptibles = Map(
+      DataprocRoleZonePreemptibility(Master, ZoneName("us-central1-a"), false) -> Set(InstanceName("master")),
+      DataprocRoleZonePreemptibility(Worker, ZoneName("us-central1-a"), false) -> Set(InstanceName("worker1"),
+                                                                                      InstanceName("worker2")
+      ),
+      DataprocRoleZonePreemptibility(Worker, ZoneName("us-central1-a"), true) -> Set(InstanceName("preemptible1"),
+                                                                                     InstanceName("preemptible2"),
+                                                                                     InstanceName("preemptible3"),
+                                                                                     InstanceName("preemptible4"),
+                                                                                     InstanceName("preemptible5")
+      )
+    )
+    GoogleDataprocInterpreter.countPreemptibles(workersAndPreemptibles) shouldBe 5
+  }
 }
