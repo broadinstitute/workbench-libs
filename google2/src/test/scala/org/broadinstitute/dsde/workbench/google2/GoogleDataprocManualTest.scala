@@ -10,6 +10,7 @@ import com.google.cloud.dataproc.v1.Cluster
 import io.chrisdavenport.log4cats.slf4j.Slf4jLogger
 import org.broadinstitute.dsde.workbench.model.TraceId
 import org.broadinstitute.dsde.workbench.model.google.GoogleProject
+import org.broadinstitute.dsde.workbench.util2.{ConsoleLogger, LogLevel}
 
 final class GoogleDataprocManualTest(pathToCredential: String,
                                      projectStr: String = "broad-dsde-dev",
@@ -22,7 +23,7 @@ final class GoogleDataprocManualTest(pathToCredential: String,
   implicit val t = IO.timer(global)
   implicit val traceId = Ask.const[IO, TraceId](TraceId(UUID.randomUUID()))
 
-  implicit def logger = Slf4jLogger.getLogger[IO]
+  implicit def logger = new ConsoleLogger("dataproc-manual-test", LogLevel(true, true, true, true))
 
   val blocker = Blocker.liftExecutionContext(global)
   val blockerBound = Semaphore[IO](10).unsafeRunSync

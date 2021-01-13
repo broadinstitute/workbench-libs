@@ -137,7 +137,10 @@ private[google2] class GoogleComputeInterpreter[F[_]: Parallel: StructuredLogger
             .map(Option(_))
             .handleErrorWith {
               case e: ApiException if e.getStatusCode.getCode.getHttpStatusCode == 404 => F.pure(none[Instance])
-              case e                                                                   => F.raiseError[Option[Instance]](e)
+              case e: com.google.api.gax.rpc.PermissionDeniedException
+                  if e.getCause.getMessage.contains("requires billing to be enabled") =>
+                F.pure(none[Instance])
+              case e => F.raiseError[Option[Instance]](e)
             },
           Some(traceId),
           s"com.google.cloud.compute.v1.InstanceClient.getInstance(${projectZoneInstanceName.toString})",
