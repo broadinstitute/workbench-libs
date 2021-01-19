@@ -171,7 +171,7 @@ package object google2 {
     streamFUntilDone(fa, maxAttempts, delay).last
       .evalMap {
         case Some(a) if a.isDone => Sync[F].pure(a)
-        case _                   => Sync[F].raiseError[A](StreamTimeoutError(timeoutErrorMessage))
+        case res                 => Sync[F].raiseError[A](StreamTimeoutError(timeoutErrorMessage, res))
       }
       .compile
       .lastOrError
@@ -187,7 +187,7 @@ package object google2 {
     Show.show[Option[ProjectBillingInfo]](info => s"isBillingEnabled: ${info.map(_.getBillingEnabled)}")
 }
 
-final case class StreamTimeoutError(override val getMessage: String) extends WorkbenchException
+final case class StreamTimeoutError[A](override val getMessage: String, result: Option[A]) extends WorkbenchException
 
 final case class RetryConfig(retryInitialDelay: FiniteDuration,
                              retryNextDelay: FiniteDuration => FiniteDuration,

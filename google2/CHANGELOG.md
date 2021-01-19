@@ -12,8 +12,9 @@ Changed:
 
 Added:
 - Added `GoogleDataprocService.startCluster`
+- Added `StreamTimeoutError.result` field for obtaining the last result of a `streamUntilDoneOrTimeout` error occurred
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.19-bc594f9"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.19-TRAVIS-REPLACE-ME"`
 
 ## 0.18
 Added:
