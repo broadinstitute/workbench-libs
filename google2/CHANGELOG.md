@@ -13,7 +13,7 @@ Changed:
 Added:
 - Added `GoogleDataprocService.startCluster`
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.19-bc594f9"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.19-TRAVIS-REPLACE-ME"`
 
 ## 0.18
 Added:
@@ -26,6 +26,7 @@ Added:
 Changed:
 - [BREAKING CHANGE] `GoogleDataprocInterpreter` requires a `GoogleComputeService` instance so it can stop and resize Dataproc
   cluster nodes. Note that this is a breaking change for existing `GoogleDataprocInterpreter` clients.
+- Remove duplicate logging in mdc and regular log message for google calls. Add `result` field to mdc logging context.
 
 Dependency Upgrades
 ```
