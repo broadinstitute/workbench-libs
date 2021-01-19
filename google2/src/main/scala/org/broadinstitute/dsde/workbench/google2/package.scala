@@ -70,21 +70,17 @@ package object google2 {
       _ <- attempted match {
         case Left(e: io.kubernetes.client.openapi.ApiException) =>
           val loggableGoogleCall = LoggableGoogleCall(Some(e.getResponseBody), "Failed")
-
-          val msg = loggingCtx.asJson.deepMerge(loggableGoogleCall.asJson)
-          // Duplicate MDC context in regular logging until log formats can be changed in apps
-          logger.error(loggingCtx, e)(msg.noSpaces)
+          val ctx = loggingCtx ++ Map("result" -> "Failed")
+          logger.error(ctx, e)(loggableGoogleCall.asJson.noSpaces)
         case Left(e) =>
           val loggableGoogleCall = LoggableGoogleCall(None, "Failed")
-
-          val msg = loggingCtx.asJson.deepMerge(loggableGoogleCall.asJson)
-          // Duplicate MDC context in regular logging until log formats can be changed in apps
-          logger.error(loggingCtx, e)(msg.noSpaces)
+          val ctx = loggingCtx ++ Map("result" -> "Failed")
+          logger.error(ctx, e)(loggableGoogleCall.asJson.noSpaces)
         case Right(r) =>
           val response = Option(resultFormatter.show(r))
           val loggableGoogleCall = LoggableGoogleCall(response, "Succeeded")
-          val msg = loggingCtx.asJson.deepMerge(loggableGoogleCall.asJson)
-          logger.info(loggingCtx)(msg.noSpaces)
+          val ctx = loggingCtx ++ Map("result" -> "Succeeded")
+          logger.info(ctx)(loggableGoogleCall.asJson.noSpaces)
       }
       result <- Sync[F].fromEither(attempted)
     } yield result
