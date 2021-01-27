@@ -23,11 +23,11 @@ trait GoogleResourceService[F[_]] {
   ): F[List[Project]]
 
   def getLabels(project: GoogleProject)(implicit
-                                        ev: Ask[F, TraceId]
+    ev: Ask[F, TraceId]
   ): F[Option[Map[String, String]]]
 
   def getProjectNumber(project: GoogleProject)(implicit
-                                               ev: Ask[F, TraceId]
+    ev: Ask[F, TraceId]
   ): F[Option[Long]]
 }
 

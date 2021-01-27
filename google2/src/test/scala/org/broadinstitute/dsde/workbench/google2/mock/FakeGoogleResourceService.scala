@@ -14,7 +14,9 @@ class FakeGoogleResourceService extends GoogleResourceService[IO] {
     List.empty
   )
 
-  override def getLabels(project: GoogleProject)(implicit ev: Ask[IO, TraceId]): IO[Option[Map[String, String]]] = IO(None)
+  override def getLabels(project: GoogleProject)(implicit ev: Ask[IO, TraceId]): IO[Option[Map[String, String]]] = IO(
+    None
+  )
 
   override def getProjectNumber(project: GoogleProject)(implicit ev: Ask[IO, TraceId]): IO[Option[Long]] = IO(None)
 }
