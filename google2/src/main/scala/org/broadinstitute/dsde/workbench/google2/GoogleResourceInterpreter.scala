@@ -55,4 +55,14 @@ private[google2] class GoogleResourceInterpreter[F[_]: StructuredLogger: Paralle
         showProjects
       )
     } yield projects
+
+  override def getLabels(project: GoogleProject)(implicit ev: Ask[F, TraceId]): F[Option[Map[String, String]]] =
+    for {
+      project <- getProject(project)
+    } yield project.map(_.getLabels.asScala.toMap)
+
+  override def getProjectNumber(project: GoogleProject)(implicit ev: Ask[F, TraceId]): F[Option[Long]] =
+    for {
+      project <- getProject(project)
+    } yield project.map(_.getProjectNumber)
 }

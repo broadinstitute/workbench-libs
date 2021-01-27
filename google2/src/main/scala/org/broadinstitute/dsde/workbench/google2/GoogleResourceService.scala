@@ -21,6 +21,14 @@ trait GoogleResourceService[F[_]] {
   def listProject(filter: Option[GoogleProject])(implicit
     ev: Ask[F, TraceId]
   ): F[List[Project]]
+
+  def getLabels(project: GoogleProject)(implicit
+                                        ev: Ask[F, TraceId]
+  ): F[Option[Map[String, String]]]
+
+  def getProjectNumber(project: GoogleProject)(implicit
+                                               ev: Ask[F, TraceId]
+  ): F[Option[Long]]
 }
 
 object GoogleResourceService {
