@@ -183,10 +183,10 @@ package object google2 {
   val showBillingInfo: Show[Option[ProjectBillingInfo]] =
     Show.show[Option[ProjectBillingInfo]](info => s"isBillingEnabled: ${info.map(_.getBillingEnabled)}")
 
-  val showProject: Show[Option[Project]] =
+  implicit val showProject: Show[Option[Project]] =
     Show.show[Option[Project]](project => s"project name: ${project.map(_.getName)}")
 
-  val showProjects: Show[List[Project]] =
+  implicit val showProjects: Show[List[Project]] =
     Show.show[List[Project]](project => s"project names: ${project.map(_.getName).toString()}")
 }
 
