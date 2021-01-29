@@ -4,7 +4,7 @@ This file documents changes to the `workbench-notifications` library, including 
 
 ## 0.3
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util" % "0.3-426a0c2"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util" % "0.3-TRAVIS-REPLACE-ME"`
 
 ### Changed
 - Moved `SamModel`

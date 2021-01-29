@@ -116,6 +116,6 @@ Workbench utility libraries, built for Scala 2.12 and 2.13. You can find the ful
 
 Contains utilities for publishing email notifications to PubSub for delivery via SendGrid.
 
-Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-notifications" % "0.3-426a0c2"`
+Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-notifications" % "0.3-TRAVIS-REPLACE-ME"`
 
 [Changelog](notifications/CHANGELOG.md)
