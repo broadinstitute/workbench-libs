@@ -18,10 +18,6 @@ trait GoogleResourceService[F[_]] {
     ev: Ask[F, TraceId]
   ): F[Option[Project]]
 
-  def listProject(filter: Option[GoogleProject])(implicit
-    ev: Ask[F, TraceId]
-  ): F[List[Project]]
-
   // Here, a return of None indicates that the project does not exist.
   def getLabels(project: GoogleProject)(implicit
     ev: Ask[F, TraceId]

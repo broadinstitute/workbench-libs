@@ -35,27 +35,6 @@ private[google2] class GoogleResourceInterpreter[F[_]: StructuredLogger: Paralle
       )
     } yield project
 
-  override def listProject(filter: Option[GoogleProject])(implicit ev: Ask[F, TraceId]): F[List[Project]] =
-    for {
-      projects <- tracedLogging(
-        blockerBound.withPermit(
-          blocker.blockOn(
-            F.delay(
-              filter
-                .fold(resourceClient.list())(project =>
-                  resourceClient.list(ResourceManager.ProjectListOption.filter(s"name:${project.value}"))
-                )
-                .getValues()
-                .asScala
-                .toList
-            )
-          )
-        ),
-        s"com.google.cloud.resourcemanager.ResourceManager.list(${filter.getOrElse("")})",
-        showProjects
-      )
-    } yield projects
-
   override def getLabels(project: GoogleProject)(implicit ev: Ask[F, TraceId]): F[Option[Map[String, String]]] =
     for {
       project <- getProject(project)
