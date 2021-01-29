@@ -2,13 +2,13 @@ import sbt._
 
 object Dependencies {
   val akkaV         = "2.6.10"
-  val akkaHttpV     = "10.2.2"
+  val akkaHttpV     = "10.2.3"
   val jacksonV      = "2.12.1"
   val googleV       = "1.22.0"
   val scalaLoggingV = "3.9.2"
   val scalaTestV    = "3.2.3"
   val circeVersion = "0.13.0"
-  val http4sVersion = "0.21.15"
+  val http4sVersion = "0.21.16"
 
   def excludeGuavaJDK5(m: ModuleID): ModuleID = m.exclude("com.google.guava", "guava-jdk5")
 
@@ -54,16 +54,16 @@ object Dependencies {
   val googleRpc: ModuleID =               "io.grpc" % "grpc-core" % "1.34.0"
 
   val googleRpc2: ModuleID =               "io.grpc" % "grpc-core" % "1.34.0"
-  val googleFirestore: ModuleID = "com.google.cloud" % "google-cloud-firestore" % "2.1.0"
-  val googleStorageNew: ModuleID = "com.google.cloud" % "google-cloud-storage" % "1.113.9"
+  val googleFirestore: ModuleID = "com.google.cloud" % "google-cloud-firestore" % "2.2.0"
+  val googleStorageNew: ModuleID = "com.google.cloud" % "google-cloud-storage" % "1.113.8"
   val googleStorageLocal: ModuleID = "com.google.cloud" % "google-cloud-nio" % "0.122.3" % "test"
   val googlePubsubNew: ModuleID = "com.google.cloud" % "google-cloud-pubsub" % "1.110.3"
   val googleKms: ModuleID = "com.google.cloud" % "google-cloud-kms" % "1.40.5"
   val googleDataproc: ModuleID =    "com.google.cloud" % "google-cloud-dataproc" % "1.1.10"
   val googleComputeNew: ModuleID = "com.google.cloud" % "google-cloud-compute" % "0.118.0-alpha"
-  val googleContainer: ModuleID = "com.google.cloud" % "google-cloud-container" % "1.2.3"
+  val googleContainer: ModuleID = "com.google.cloud" % "google-cloud-container" % "1.2.4"
   val kubernetesClient: ModuleID = "io.kubernetes" % "client-java" % "11.0.0"
-  val googleBigQueryNew: ModuleID = "com.google.cloud" % "google-cloud-bigquery" % "1.126.3"
+  val googleBigQueryNew: ModuleID = "com.google.cloud" % "google-cloud-bigquery" % "1.126.6"
   val google2CloudBilling = "com.google.cloud" % "google-cloud-billing" % "1.1.11"
   //the below v1 module is a dependency for v2 because it contains the OAuth scopes necessary to created scoped credentials
   val googleContainerV1: ModuleID = "com.google.apis" % "google-api-services-container" % "v1-rev20201209-1.31.0"
@@ -82,10 +82,10 @@ object Dependencies {
 
   val fs2Io: ModuleID = "co.fs2" %% "fs2-io" % "2.5.0"
   val rawlsModel: ModuleID = "org.broadinstitute.dsde" %% "rawls-model" % "0.1-2356e282" exclude("com.typesafe.scala-logging", "scala-logging_2.11") exclude("com.typesafe.akka", "akka-stream_2.11")
-  val openCensusApi: ModuleID = "io.opencensus" % "opencensus-api" % "0.28.2"
-  val openCensusImpl: ModuleID = "io.opencensus" % "opencensus-impl" % "0.28.2"
-  val openCensusStatsStackDriver: ModuleID = "io.opencensus" % "opencensus-exporter-stats-stackdriver" % "0.28.2"
-  val openCensusTraceStackDriver: ModuleID = "io.opencensus" % "opencensus-exporter-trace-stackdriver" % "0.28.2"
+  val openCensusApi: ModuleID = "io.opencensus" % "opencensus-api" % "0.28.3"
+  val openCensusImpl: ModuleID = "io.opencensus" % "opencensus-impl" % "0.28.3"
+  val openCensusStatsStackDriver: ModuleID = "io.opencensus" % "opencensus-exporter-stats-stackdriver" % "0.28.3"
+  val openCensusTraceStackDriver: ModuleID = "io.opencensus" % "opencensus-exporter-trace-stackdriver" % "0.28.3"
   val openCensusTraceLogging: ModuleID = "io.opencensus" % "opencensus-exporter-trace-logging" % "0.26.0"
   val sealerate: ModuleID = "ca.mrvisser" %% "sealerate" % "0.0.6"
 
