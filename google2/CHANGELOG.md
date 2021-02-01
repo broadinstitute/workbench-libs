@@ -13,7 +13,7 @@ Changed:
 Added:
 - Added `GoogleDataprocService.startCluster`
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.19-TRAVIS-REPLACE-ME"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.19-1aba7fd"`
 
 ## 0.18
 Added:
