@@ -79,7 +79,7 @@ class FakeGoogleComputeService extends GoogleComputeService[IO] {
 
   override def getNetwork(project: GoogleProject, networkName: NetworkName)(implicit
     ev: Ask[IO, TraceId]
-  ): IO[Option[Network]] = IO(None)
+  ): IO[Option[Network]] = IO.pure(None)
 
   override def createNetwork(project: GoogleProject, network: Network)(implicit
     ev: Ask[IO, TraceId]
@@ -87,7 +87,7 @@ class FakeGoogleComputeService extends GoogleComputeService[IO] {
 
   override def getSubnetwork(project: GoogleProject, region: RegionName, subnetwork: SubnetworkName)(implicit
     ev: Ask[IO, TraceId]
-  ): IO[Option[Subnetwork]] = IO(None)
+  ): IO[Option[Subnetwork]] = IO.pure(None)
 
   override def createSubnetwork(project: GoogleProject, region: RegionName, subnetwork: Subnetwork)(implicit
     ev: Ask[IO, TraceId]
