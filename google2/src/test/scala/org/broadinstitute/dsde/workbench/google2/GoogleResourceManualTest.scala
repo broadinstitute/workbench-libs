@@ -29,11 +29,6 @@ class GoogleResourceManualTest(pathToCredential: String) {
 
   val resourceService = GoogleResourceService.resource(credPath, blocker, blockerBound)
 
-  def callListProject(): IO[List[Project]] =
-    resourceService.use { b =>
-      b.listProject(None)
-    }
-
   def callGetProject(project: GoogleProject = project): IO[Option[Project]] =
     resourceService.use { b =>
       b.getProject(project)

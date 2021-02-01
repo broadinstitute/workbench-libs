@@ -31,7 +31,7 @@ class MockGKEService extends GKEService[IO] {
 
   override def getNodepool(nodepoolId: GKEModels.NodepoolId)(implicit
     ev: Ask[IO, TraceId]
-  ): IO[Option[NodePool]] = IO(None)
+  ): IO[Option[NodePool]] = IO.pure(None)
 
   override def deleteNodepool(nodepoolId: GKEModels.NodepoolId)(implicit
     ev: Ask[IO, TraceId]
