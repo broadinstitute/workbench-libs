@@ -185,9 +185,6 @@ package object google2 {
 
   implicit val showProject: Show[Option[Project]] =
     Show.show[Option[Project]](project => s"project name: ${project.map(_.getName)}")
-
-  implicit val showProjects: Show[List[Project]] =
-    Show.show[List[Project]](project => s"project names: ${project.map(_.getName).toString()}")
 }
 
 final case class StreamTimeoutError(override val getMessage: String) extends WorkbenchException
