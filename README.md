@@ -72,7 +72,7 @@ Workbench utility libraries, built for Scala 2.12 and 2.13. You can find the ful
 
 Contains utility functions for talking to Google APIs via com.google.cloud client library (more recent) via gRPC. 
 
-Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.19-f0578d6"`
+Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.19-1aba7fd"`
 
 To start the Google PubSub emulator for unit testing:
 
@@ -116,6 +116,6 @@ Workbench utility libraries, built for Scala 2.12 and 2.13. You can find the ful
 
 Contains utilities for publishing email notifications to PubSub for delivery via SendGrid.
 
-Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-notifications" % "0.3-426a0c2"`
+Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-notifications" % "0.3-d74ff96"`
 
 [Changelog](notifications/CHANGELOG.md)

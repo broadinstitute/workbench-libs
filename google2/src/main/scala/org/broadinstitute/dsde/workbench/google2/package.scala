@@ -14,6 +14,7 @@ import com.google.api.services.container.ContainerScopes
 import com.google.auth.oauth2.{ServiceAccountCredentials, UserCredentials}
 import com.google.cloud.billing.v1.ProjectBillingInfo
 import com.google.cloud.compute.v1.Operation
+import com.google.cloud.resourcemanager.Project
 import fs2.{RaiseThrowable, Stream}
 import io.chrisdavenport.log4cats.StructuredLogger
 import io.circe.Encoder
@@ -181,6 +182,9 @@ package object google2 {
 
   val showBillingInfo: Show[Option[ProjectBillingInfo]] =
     Show.show[Option[ProjectBillingInfo]](info => s"isBillingEnabled: ${info.map(_.getBillingEnabled)}")
+
+  implicit val showProject: Show[Option[Project]] =
+    Show.show[Option[Project]](project => s"project name: ${project.map(_.getName)}")
 }
 
 final case class StreamTimeoutError(override val getMessage: String) extends WorkbenchException
