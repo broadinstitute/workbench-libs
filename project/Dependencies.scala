@@ -54,17 +54,17 @@ object Dependencies {
   val googleRpc: ModuleID =               "io.grpc" % "grpc-core" % "1.34.0"
 
   val googleRpc2: ModuleID =               "io.grpc" % "grpc-core" % "1.34.0"
-  val googleFirestore: ModuleID = "com.google.cloud" % "google-cloud-firestore" % "2.2.0"
+  val googleFirestore: ModuleID = "com.google.cloud" % "google-cloud-firestore" % "2.2.1"
   val googleStorageNew: ModuleID = "com.google.cloud" % "google-cloud-storage" % "1.113.9"
   val googleStorageLocal: ModuleID = "com.google.cloud" % "google-cloud-nio" % "0.122.3" % "test"
-  val googlePubsubNew: ModuleID = "com.google.cloud" % "google-cloud-pubsub" % "1.110.3"
-  val googleKms: ModuleID = "com.google.cloud" % "google-cloud-kms" % "1.40.6"
+  val googlePubsubNew: ModuleID = "com.google.cloud" % "google-cloud-pubsub" % "1.111.0"
+  val googleKms: ModuleID = "com.google.cloud" % "google-cloud-kms" % "1.40.5"
   val googleDataproc: ModuleID =    "com.google.cloud" % "google-cloud-dataproc" % "1.1.10"
   val googleComputeNew: ModuleID = "com.google.cloud" % "google-cloud-compute" % "0.118.0-alpha"
   val googleContainer: ModuleID = "com.google.cloud" % "google-cloud-container" % "1.2.4"
   val kubernetesClient: ModuleID = "io.kubernetes" % "client-java" % "11.0.0"
   val googleBigQueryNew: ModuleID = "com.google.cloud" % "google-cloud-bigquery" % "1.126.6"
-  val google2CloudBilling = "com.google.cloud" % "google-cloud-billing" % "1.1.11"
+  val google2CloudBilling = "com.google.cloud" % "google-cloud-billing" % "1.1.12"
   val googleResourceManager =  "com.google.cloud" % "google-cloud-resourcemanager" % "0.118.7-alpha"
   //the below v1 module is a dependency for v2 because it contains the OAuth scopes necessary to created scoped credentials
   val googleContainerV1: ModuleID = "com.google.apis" % "google-api-services-container" % "v1-rev20201209-1.31.0"
@@ -185,7 +185,7 @@ object Dependencies {
 
   val errorReportingDependencies = List(
     catsEffect,
-    "com.google.cloud" % "google-cloud-errorreporting" % "0.120.12-beta"
+    "com.google.cloud" % "google-cloud-errorreporting" % "0.120.13-beta"
   )
 
   val util2Dependencies = commonDependencies ++ List(
