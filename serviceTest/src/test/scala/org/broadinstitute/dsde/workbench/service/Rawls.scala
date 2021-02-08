@@ -336,7 +336,7 @@ trait Rawls extends RestClient with LazyLogging {
       patchRequest(url + s"api/workspaces/$namespace/$name", formattedOperations)
     }
 
-    def enableRequesterPays(namespace:String, name: String)(implicit token: AuthToken): String = {
+    def enableRequesterPays(namespace: String, name: String)(implicit token: AuthToken): String = {
       logger.info(s"Enable Requester Pays on workspace $namespace/$name")
 
       putRequest(url + s"api/workspaces/$namespace/$name/enableRequesterPaysForLinkedServiceAccounts")
