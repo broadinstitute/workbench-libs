@@ -2,7 +2,7 @@ package org.broadinstitute.dsde.workbench.google2
 
 import cats.Show
 import cats.effect.{Blocker, ContextShift, Sync, Timer}
-import com.google.cloud.bigquery.{BigQuery, JobId, QueryJobConfiguration, TableResult}
+import com.google.cloud.bigquery.{BigQuery, Dataset, DatasetInfo, JobId, QueryJobConfiguration, TableResult}
 import io.chrisdavenport.log4cats.StructuredLogger
 
 private[google2] class GoogleBigQueryInterpreter[F[_]: Sync: ContextShift: Timer: StructuredLogger](client: BigQuery,
@@ -36,6 +36,15 @@ private[google2] class GoogleBigQueryInterpreter[F[_]: Sync: ContextShift: Timer
       s"com.google.cloud.bigquery.BigQuery.query(${queryJobConfiguration.getQuery})",
       tableResultFormatter
     )
+
+  override def createDataset(datasetName: String): F[Dataset] = {
+    val datasetInfo = DatasetInfo.newBuilder(datasetName).build
+
+    //TODO: add logging
+    blockingF(Sync[F].delay[Dataset] {
+      client.create(datasetInfo)
+    })
+  }
 
   private def blockingF[A](fa: F[A]): F[A] = blocker.blockOn(fa)
 }
