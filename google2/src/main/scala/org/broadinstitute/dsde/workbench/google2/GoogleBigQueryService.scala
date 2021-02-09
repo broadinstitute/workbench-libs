@@ -24,6 +24,13 @@ object GoogleBigQueryService {
     credentialResource(pathToJson) flatMap (resource(_, blocker))
 
   def resource[F[_]: Sync: ContextShift: Timer: StructuredLogger](
+    pathToJson: String,
+    projectId: GoogleProject,
+    blocker: Blocker
+  ): Resource[F, GoogleBigQueryService[F]] =
+    credentialResource(pathToJson) flatMap (resource(_, blocker, projectId))
+
+  def resource[F[_]: Sync: ContextShift: Timer: StructuredLogger](
     credentials: Credentials,
     blocker: Blocker
   ): Resource[F, GoogleBigQueryService[F]] =
