@@ -6,7 +6,7 @@ import com.google.cloud.bigquery.Acl.Group
 import com.google.cloud.bigquery.{Acl, BigQuery, BigQueryOptions, Dataset, DatasetInfo, JobId, QueryJobConfiguration, TableResult}
 import io.chrisdavenport.log4cats.StructuredLogger
 
-import scala.jdk.CollectionConverters._
+import scala.collection.JavaConverters._
 
 private[google2] class GoogleBigQueryInterpreter[F[_]: Sync: ContextShift: Timer: StructuredLogger](client: BigQuery,
                                                                                                     blocker: Blocker
