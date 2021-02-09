@@ -4,7 +4,7 @@ import cats.effect.{Blocker, ContextShift, Resource, Sync, Timer}
 import com.google.auth.Credentials
 import com.google.cloud.ServiceOptions.getDefaultProjectId
 import com.google.cloud.bigquery.BigQueryOptions.DefaultBigQueryFactory
-import com.google.cloud.bigquery.{BigQuery, BigQueryOptions, Dataset, JobId, QueryJobConfiguration, TableResult}
+import com.google.cloud.bigquery.{Acl, BigQuery, BigQueryOptions, Dataset, JobId, QueryJobConfiguration, TableResult}
 import io.chrisdavenport.log4cats.StructuredLogger
 import org.broadinstitute.dsde.workbench.model.google.GoogleProject
 
@@ -14,6 +14,8 @@ trait GoogleBigQueryService[F[_]] {
   def query(queryJobConfiguration: QueryJobConfiguration, jobId: JobId, options: BigQuery.JobOption*): F[TableResult]
 
   def createDataset(datasetName: String): F[Dataset]
+
+  def setDatasetIam(datasetName: String, bindings: Map[Acl.Entity, Acl.Role]): F[Dataset]
 }
 
 object GoogleBigQueryService {
