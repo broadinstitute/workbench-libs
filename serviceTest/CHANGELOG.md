@@ -16,8 +16,9 @@ Added
 - Add `getBucket` to `Google.storage` object
 - Added more Scalatest tag descriptors intended to target tests to specific environments
 - Added dataRepoApiUrl to CommonConfig
+- Added enableRequesterPays for workspaces
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "0.18-23f5ae7"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "0.18-TRAVIS-REPLACE-ME"`
 
 ## 0.17
 
