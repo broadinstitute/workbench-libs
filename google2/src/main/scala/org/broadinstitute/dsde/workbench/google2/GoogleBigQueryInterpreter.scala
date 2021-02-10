@@ -2,9 +2,10 @@ package org.broadinstitute.dsde.workbench.google2
 
 import cats.Show
 import cats.effect.{Blocker, ContextShift, Sync, Timer}
-import com.google.cloud.bigquery.Acl.Group
+import com.google.cloud.bigquery.Acl.{Group, User}
 import com.google.cloud.bigquery.{Acl, BigQuery, BigQueryOptions, Dataset, DatasetInfo, JobId, QueryJobConfiguration, TableResult}
 import io.chrisdavenport.log4cats.StructuredLogger
+import org.broadinstitute.dsde.workbench.model.{WorkbenchEmail, WorkbenchException}
 
 import scala.collection.JavaConverters._
 
@@ -49,10 +50,14 @@ private[google2] class GoogleBigQueryInterpreter[F[_]: Sync: ContextShift: Timer
     })
   }
 
-  override def setDatasetIam(datasetName: String, bindings: Map[Acl.Entity, Acl.Role]): F[Dataset] = {
+  override def setDatasetIam(datasetName: String, bindings: Map[(WorkbenchEmail, String), Acl.Role]): F[Dataset] = {
     val dataset = client.getDataset(datasetName)
-    val newAclList = bindings.map { case (email, role) =>
-      Acl.of(email, role)
+    val newAclList = bindings.map { case ((email, emailType), role) =>
+      emailType match {
+        case "group" => Acl.of(new Group(email.value), role)
+        case "user" => Acl.of(new User(email.value), role)
+        case _ => throw new WorkbenchException("unexpected email type")
+      }
     }
 
     blockingF(Sync[F].delay[Dataset] {
