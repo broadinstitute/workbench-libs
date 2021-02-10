@@ -6,6 +6,7 @@ import com.google.cloud.ServiceOptions.getDefaultProjectId
 import com.google.cloud.bigquery.BigQueryOptions.DefaultBigQueryFactory
 import com.google.cloud.bigquery.{Acl, BigQuery, BigQueryOptions, Dataset, JobId, QueryJobConfiguration, TableResult}
 import io.chrisdavenport.log4cats.StructuredLogger
+import org.broadinstitute.dsde.workbench.model.WorkbenchEmail
 import org.broadinstitute.dsde.workbench.model.google.GoogleProject
 
 trait GoogleBigQueryService[F[_]] {
@@ -15,7 +16,7 @@ trait GoogleBigQueryService[F[_]] {
 
   def createDataset(datasetName: String): F[Dataset]
 
-  def setDatasetIam(datasetName: String, bindings: Map[Acl.Entity, Acl.Role]): F[Dataset]
+  def setDatasetIam(datasetName: String, bindings: Map[(WorkbenchEmail, String), Acl.Role]): F[Dataset]
 }
 
 object GoogleBigQueryService {
