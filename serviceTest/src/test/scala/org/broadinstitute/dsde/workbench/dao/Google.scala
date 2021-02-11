@@ -33,22 +33,14 @@ object Google {
     new HttpGoogleIamDAO(appName, pemMode, metricBaseName)(system, ec)
 
   def googleBigQueryDAO(authToken: AuthToken): HttpGoogleBigQueryDAO =
-    new HttpGoogleBigQueryDAO(appName,
-                              RawGoogleCredential(authToken.buildCredential()),
-                              metricBaseName
-    )(system, ec)
+    new HttpGoogleBigQueryDAO(appName, RawGoogleCredential(authToken.buildCredential()), metricBaseName)(system, ec)
 
   lazy val googleStorageDAO =
     new HttpGoogleStorageDAO(appName, pemMode, metricBaseName)(system, ec)
   lazy val googleDirectoryDAO =
-    new HttpGoogleDirectoryDAO(appName,
-                               pemModeWithServiceAccountUser,
-                               metricBaseName
-    )(system, ec)
+    new HttpGoogleDirectoryDAO(appName, pemModeWithServiceAccountUser, metricBaseName)(system, ec)
 
-  def storageOptions(projectName: String,
-                     googleCredentials: GoogleCredentials
-  ): Storage = StorageOptions.newBuilder
+  def storageOptions(projectName: String, googleCredentials: GoogleCredentials): Storage = StorageOptions.newBuilder
     .setProjectId(projectName)
     .setCredentials(googleCredentials)
     .build
