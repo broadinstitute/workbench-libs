@@ -207,7 +207,8 @@ object Dependencies {
     jacksonModule,
     akkaStream,
     rawlsModel,
-    scalaTestSelenium
+    scalaTestSelenium,
+    googleStorageNew
   )
 
   val notificationsDependencies = commonDependencies ++ Seq(

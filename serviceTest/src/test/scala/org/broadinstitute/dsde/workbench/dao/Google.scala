@@ -3,6 +3,8 @@ package org.broadinstitute.dsde.workbench.dao
 import java.io.File
 
 import akka.actor.ActorSystem
+import com.google.auth.oauth2.GoogleCredentials
+import com.google.cloud.storage.StorageOptions
 import org.broadinstitute.dsde.workbench.auth.AuthToken
 import org.broadinstitute.dsde.workbench.config.ServiceTestConfig
 import org.broadinstitute.dsde.workbench.google._
@@ -31,4 +33,9 @@ object Google {
   lazy val googleStorageDAO = new HttpGoogleStorageDAO(appName, pemMode, metricBaseName)(system, ec)
   lazy val googleDirectoryDAO =
     new HttpGoogleDirectoryDAO(appName, pemModeWithServiceAccountUser, metricBaseName)(system, ec)
+
+  def storageOptions(projectName: String, googleCredentials: GoogleCredentials) = StorageOptions.newBuilder
+    .setProjectId(projectName)
+    .setCredentials(googleCredentials)
+    .build.getService
 }
