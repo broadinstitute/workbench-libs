@@ -41,8 +41,8 @@ private[google2] class GoogleBigQueryInterpreter[F[_]: Sync: ContextShift: Timer
       tableResultFormatter
     )
 
-  override def createDataset(datasetName: String): F[Dataset] = {
-    val datasetInfo = DatasetInfo.newBuilder(datasetName).build
+  override def createDataset(datasetName: String, labels: Map[String, String]): F[Dataset] = {
+    val datasetInfo = DatasetInfo.newBuilder(datasetName).setLabels(labels.asJava).build
 
     withLogging(
       blockingF(Sync[F].delay[Dataset] {
@@ -52,6 +52,12 @@ private[google2] class GoogleBigQueryInterpreter[F[_]: Sync: ContextShift: Timer
       s"com.google.cloud.bigquery.BigQuery.create(${datasetName})"
     )
   }
+
+//  def updateDataset(datasetName: String, labels: Map[String, String]): F[Dataset] = {
+//
+//
+//    val datasetInfo = DatasetInfo.newBuilder(datasetName).setLa
+//  }
 
   override def setDatasetIam(datasetName: String, bindings: Map[(WorkbenchEmail, Acl.Entity.Type), Acl.Role]): F[Dataset] = {
     val dataset = client.getDataset(datasetName)
