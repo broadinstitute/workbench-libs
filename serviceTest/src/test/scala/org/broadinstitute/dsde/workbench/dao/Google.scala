@@ -20,16 +20,18 @@ object Google {
   val ec: ExecutionContextExecutor = ExecutionContext.global
 
   val pemMode = GoogleCredentialModes.Pem(WorkbenchEmail(ServiceTestConfig.GCS.qaEmail),
-                                          new File(ServiceTestConfig.GCS.pathToQAPem)
+    new File(ServiceTestConfig.GCS.pathToQAPem)
   )
   val pemModeWithServiceAccountUser = GoogleCredentialModes.Pem(WorkbenchEmail(ServiceTestConfig.GCS.qaEmail),
-                                                                new File(ServiceTestConfig.GCS.pathToQAPem),
-                                                                Option(WorkbenchEmail(ServiceTestConfig.GCS.subEmail))
+    new File(ServiceTestConfig.GCS.pathToQAPem),
+    Option(WorkbenchEmail(ServiceTestConfig.GCS.subEmail))
   )
 
   lazy val googleIamDAO = new HttpGoogleIamDAO(appName, pemMode, metricBaseName)(system, ec)
+
   def googleBigQueryDAO(authToken: AuthToken): HttpGoogleBigQueryDAO =
     new HttpGoogleBigQueryDAO(appName, RawGoogleCredential(authToken.buildCredential()), metricBaseName)(system, ec)
+
   lazy val googleStorageDAO = new HttpGoogleStorageDAO(appName, pemMode, metricBaseName)(system, ec)
   lazy val googleDirectoryDAO =
     new HttpGoogleDirectoryDAO(appName, pemModeWithServiceAccountUser, metricBaseName)(system, ec)
