@@ -52,6 +52,7 @@ private[google2] class GoogleBigQueryInterpreter[F[_]: Sync: ContextShift: Timer
 
   override def setDatasetIam(datasetName: String, bindings: Map[(WorkbenchEmail, String), Acl.Role]): F[Dataset] = {
     val dataset = client.getDataset(datasetName)
+    
     val newAclList = bindings.map { case ((email, emailType), role) =>
       emailType match {
         case "group" => Acl.of(new Group(email.value), role)
