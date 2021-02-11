@@ -44,26 +44,33 @@ private[google2] class GoogleBigQueryInterpreter[F[_]: Sync: ContextShift: Timer
   override def createDataset(datasetName: String): F[Dataset] = {
     val datasetInfo = DatasetInfo.newBuilder(datasetName).build
 
-    //TODO: add logging
-    blockingF(Sync[F].delay[Dataset] {
-      client.create(datasetInfo)
-    })
+    withLogging(
+      blockingF(Sync[F].delay[Dataset] {
+        client.create(datasetInfo)
+      }),
+      None,
+      s"com.google.cloud.bigquery.BigQuery.create(${datasetName})"
+    )
   }
 
-  override def setDatasetIam(datasetName: String, bindings: Map[(WorkbenchEmail, String), Acl.Role]): F[Dataset] = {
+  override def setDatasetIam(datasetName: String, bindings: Map[(WorkbenchEmail, Acl.Entity.Type), Acl.Role]): F[Dataset] = {
     val dataset = client.getDataset(datasetName)
     
     val newAclList = bindings.map { case ((email, emailType), role) =>
       emailType match {
-        case "group" => Acl.of(new Group(email.value), role)
-        case "user" => Acl.of(new User(email.value), role)
+        case Acl.Entity.Type.GROUP => Acl.of(new Group(email.value), role)
+        case Acl.Entity.Type.USER => Acl.of(new User(email.value), role)
         case _ => throw new WorkbenchException("unexpected email type")
       }
     }
 
-    blockingF(Sync[F].delay[Dataset] {
-      client.update(dataset.toBuilder.setAcl(newAclList.toList.asJava).build())
-    })
+    withLogging(
+      blockingF(Sync[F].delay[Dataset] {
+        client.update(dataset.toBuilder.setAcl(newAclList.toList.asJava).build())
+      }),
+      None,
+      s"com.google.cloud.bigquery.BigQuery.update(${datasetName})"
+    )
   }
 
   private def blockingF[A](fa: F[A]): F[A] = blocker.blockOn(fa)
