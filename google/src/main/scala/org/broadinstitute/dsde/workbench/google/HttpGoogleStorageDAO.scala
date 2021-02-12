@@ -398,18 +398,17 @@ class HttpGoogleStorageDAO(appName: String,
     }
 
   override def setRequesterPays(bucketName: GcsBucketName, requesterPays: Boolean): Future[Unit] = {
-    import com.google.api.services.storage.model.{Bucket => GoogleBucket}
-    getBucket(bucketName).map { bucket =>
-      // if the current requester pays setting not the same as the requested setting,
-      //   change requester pays setting to the requested setting.
-      // else do nothing
-      if (bucket.getBilling.getRequesterPays != requesterPays) {
-        val rp = new Bucket.Billing().setRequesterPays(requesterPays)
-        retry(when5xx, whenUsageLimited, when404, whenInvalidValueOnBucketCreation, whenNonHttpIOException) { () =>
-          executeGoogleRequest(storage.buckets().patch(bucketName.value, bucket.setBilling(rp)))
-        }
-      }
-    }
+     getBucket(bucketName).map { bucket =>
+       // if the billing object is null or the current requester pays setting not the same as the requested setting,
+       //   change requester pays setting to the requested setting.
+       // else do nothing
+       if (bucket.getBilling == null || bucket.getBilling.getRequesterPays != requesterPays) {
+         val rp = new Bucket.Billing().setRequesterPays(requesterPays)
+         retry(when5xx, whenUsageLimited, when404, whenInvalidValueOnBucketCreation, whenNonHttpIOException) { () =>
+           executeGoogleRequest(storage.buckets().patch(bucketName.value, bucket.setBilling(rp)))
+         }
+       }
+     }
   }
 
 }
