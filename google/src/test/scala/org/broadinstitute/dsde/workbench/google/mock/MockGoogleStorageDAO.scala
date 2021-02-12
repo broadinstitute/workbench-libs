@@ -178,5 +178,6 @@ class MockGoogleStorageDAO(implicit val executionContext: ExecutionContext) exte
     Future.successful(new BucketAccessControls())
   override def getDefaultObjectAccessControls(bucketName: GcsBucketName): Future[ObjectAccessControls] =
     Future.successful(new ObjectAccessControls())
-  override def enableRequesterPays(projectName: String, bucketName: String): Future[Unit] = Future.successful(())
+
+  override def setRequesterPays(bucketName: GcsBucketName, requesterPays: Boolean): Future[Unit] = Future.successful(())
 }

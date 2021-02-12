@@ -59,51 +59,6 @@ class HttpGoogleStorageDAO(appName: String,
   private lazy val storage =
     new Storage.Builder(httpTransport, jsonFactory, googleCredential).setApplicationName(appName).build()
 
-  def enableRequesterPays(projectName: String, bucketName: String): Future[Unit] = {
-    import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
-    import org.broadinstitute.dsde.workbench.google.GoogleRequestJsonSupport._
-    import spray.json._
-
-    googleCredential.refreshToken()
-
-    val url = s"https://storage.googleapis.com/storage/v1/b/$bucketName?fields=billing"
-    val header = headers.Authorization(OAuth2BearerToken(googleCredential.getAccessToken))
-
-    val entity = JsObject(
-      Map(
-        "billing" -> JsObject(
-          Map(
-            "requesterPays" -> JsBoolean(true)
-          )
-        )
-      )
-    )
-
-    Marshal(entity).to[RequestEntity].flatMap { requestEntity =>
-      val request = HttpRequest(
-        HttpMethods.PATCH,
-        uri = url,
-        headers = List(header),
-        entity = requestEntity
-      )
-
-      val startTime = System.currentTimeMillis()
-      Http().singleRequest(request).map { response =>
-        val endTime = System.currentTimeMillis()
-        logger.debug(
-          GoogleRequest(HttpMethods.POST.value,
-                        url,
-                        Option(entity),
-                        endTime - startTime,
-                        Option(response.status.intValue),
-                        None
-          ).toJson(GoogleRequestFormat).compactPrint
-        )
-        ()
-      }
-    }
-  }
-
   override def createBucket(billingProject: GoogleProject,
                             bucketName: GcsBucketName,
                             readers: List[GcsEntity] = List.empty,
@@ -441,4 +396,20 @@ class HttpGoogleStorageDAO(appName: String,
     retry(when5xx, whenUsageLimited, when404, whenInvalidValueOnBucketCreation, whenNonHttpIOException) { () =>
       executeGoogleRequest(storage.defaultObjectAccessControls().list(bucketName.value))
     }
+
+  override def setRequesterPays(bucketName: GcsBucketName, requesterPays: Boolean): Future[Unit] = {
+    import com.google.api.services.storage.model.{Bucket => GoogleBucket}
+    getBucket(bucketName).map { bucket =>
+      // if the current requester pays setting not the same as the requested setting,
+      //   change requester pays setting to the requested setting.
+      // else do nothing
+      if (bucket.getBilling.getRequesterPays != requesterPays) {
+        val rp = new Bucket.Billing().setRequesterPays(requesterPays)
+        retry(when5xx, whenUsageLimited, when404, whenInvalidValueOnBucketCreation, whenNonHttpIOException) { () =>
+          executeGoogleRequest(storage.buckets().patch(bucketName.value, new GoogleBucket().setBilling(rp)))
+        }
+      }
+    }
+  }
+
 }
