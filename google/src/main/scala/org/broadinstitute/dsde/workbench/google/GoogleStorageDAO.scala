@@ -67,5 +67,5 @@ trait GoogleStorageDAO {
 
   def getBucketAccessControls(bucketName: GcsBucketName): Future[BucketAccessControls]
   def getDefaultObjectAccessControls(bucketName: GcsBucketName): Future[ObjectAccessControls]
-  def enableRequesterPays(projectName: String, bucketName: String): Future[String]
+  def enableRequesterPays(projectName: String, bucketName: String): Future[Unit]
 }

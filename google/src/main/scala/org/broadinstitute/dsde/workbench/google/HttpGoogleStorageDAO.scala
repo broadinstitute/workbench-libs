@@ -59,7 +59,7 @@ class HttpGoogleStorageDAO(appName: String,
   private lazy val storage =
     new Storage.Builder(httpTransport, jsonFactory, googleCredential).setApplicationName(appName).build()
 
-  def enableRequesterPays(projectName: String, bucketName: String): Future[String] = {
+  def enableRequesterPays(projectName: String, bucketName: String): Future[Unit] = {
     import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
     import org.broadinstitute.dsde.workbench.google.GoogleRequestJsonSupport._
     import spray.json._
@@ -92,14 +92,14 @@ class HttpGoogleStorageDAO(appName: String,
         val endTime = System.currentTimeMillis()
         logger.debug(
           GoogleRequest(HttpMethods.POST.value,
-            url,
-            Option(entity),
-            endTime - startTime,
-            Option(response.status.intValue),
-            None
+                        url,
+                        Option(entity),
+                        endTime - startTime,
+                        Option(response.status.intValue),
+                        None
           ).toJson(GoogleRequestFormat).compactPrint
         )
-        bucketName
+        ()
       }
     }
   }
