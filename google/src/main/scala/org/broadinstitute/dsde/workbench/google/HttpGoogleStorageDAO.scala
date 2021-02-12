@@ -406,7 +406,7 @@ class HttpGoogleStorageDAO(appName: String,
       if (bucket.getBilling.getRequesterPays != requesterPays) {
         val rp = new Bucket.Billing().setRequesterPays(requesterPays)
         retry(when5xx, whenUsageLimited, when404, whenInvalidValueOnBucketCreation, whenNonHttpIOException) { () =>
-          executeGoogleRequest(storage.buckets().patch(bucketName.value, new GoogleBucket().setBilling(rp)))
+          executeGoogleRequest(storage.buckets().patch(bucketName.value, bucket.setBilling(rp)))
         }
       }
     }
