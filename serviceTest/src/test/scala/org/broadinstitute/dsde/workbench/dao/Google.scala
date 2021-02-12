@@ -18,11 +18,11 @@ object Google {
   val ec: ExecutionContextExecutor = ExecutionContext.global
 
   val pemMode = GoogleCredentialModes.Pem(WorkbenchEmail(ServiceTestConfig.GCS.qaEmail),
-    new File(ServiceTestConfig.GCS.pathToQAPem)
+                                          new File(ServiceTestConfig.GCS.pathToQAPem)
   )
   val pemModeWithServiceAccountUser = GoogleCredentialModes.Pem(WorkbenchEmail(ServiceTestConfig.GCS.qaEmail),
-    new File(ServiceTestConfig.GCS.pathToQAPem),
-    Option(WorkbenchEmail(ServiceTestConfig.GCS.subEmail))
+                                                                new File(ServiceTestConfig.GCS.pathToQAPem),
+                                                                Option(WorkbenchEmail(ServiceTestConfig.GCS.subEmail))
   )
 
   lazy val googleIamDAO = new HttpGoogleIamDAO(appName, pemMode, metricBaseName)(system, ec)
