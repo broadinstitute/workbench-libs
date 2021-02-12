@@ -40,9 +40,4 @@ object Google {
   lazy val googleDirectoryDAO =
     new HttpGoogleDirectoryDAO(appName, pemModeWithServiceAccountUser, metricBaseName)(system, ec)
 
-  def storageOptions(projectName: String, googleCredentials: GoogleCredentials): Storage = StorageOptions.newBuilder
-    .setProjectId(projectName)
-    .setCredentials(googleCredentials)
-    .build
-    .getService
 }
