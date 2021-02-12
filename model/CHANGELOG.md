@@ -9,6 +9,7 @@ SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-model" % "0.1
 ### Changed
 - added IdentityConcentratorId to WorkbenchUser 
 - Cross build 2.13
+- added TraceId to ErrorReport
 
 SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-model" % "0.14-65bba14"`
 
