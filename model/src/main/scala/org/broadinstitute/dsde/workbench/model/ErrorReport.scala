@@ -80,7 +80,7 @@ object ErrorReport {
             causes: Seq[ErrorReport],
             stackTrace: Seq[StackTraceElement],
             exceptionClass: Option[Class[_]],
-            traceId: Option[TraceId]
+            traceId: Option[TraceId] = None
   )(implicit source: ErrorReportSource): ErrorReport =
     ErrorReport(source.source, message, statusCode, causes, stackTrace, exceptionClass, traceId)
   // $COVERAGE-ON$
