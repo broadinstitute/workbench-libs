@@ -9,7 +9,7 @@ case class ErrorReport(source: String,
                        causes: Seq[ErrorReport],
                        stackTrace: Seq[StackTraceElement],
                        exceptionClass: Option[Class[_]],
-                       traceId: Option[TraceId]
+                       traceId: Option[TraceId] = None
 )
 
 case class ErrorReportSource(source: String)
@@ -80,7 +80,7 @@ object ErrorReport {
             causes: Seq[ErrorReport],
             stackTrace: Seq[StackTraceElement],
             exceptionClass: Option[Class[_]],
-            traceId: Option[TraceId] = None
+            traceId: Option[TraceId]
   )(implicit source: ErrorReportSource): ErrorReport =
     ErrorReport(source.source, message, statusCode, causes, stackTrace, exceptionClass, traceId)
   // $COVERAGE-ON$
