@@ -8,7 +8,8 @@ case class ErrorReport(source: String,
                        statusCode: Option[StatusCode],
                        causes: Seq[ErrorReport],
                        stackTrace: Seq[StackTraceElement],
-                       exceptionClass: Option[Class[_]]
+                       exceptionClass: Option[Class[_]],
+                       traceId: Option[TraceId] = None
 )
 
 case class ErrorReportSource(source: String)
@@ -28,13 +29,13 @@ case class ErrorReportSource(source: String)
 object ErrorReport {
   // $COVERAGE-OFF$Pointless testing this. -hussein
   def apply(message: String)(implicit source: ErrorReportSource): ErrorReport =
-    ErrorReport(source.source, message, None, Seq.empty, Seq.empty, None)
+    ErrorReport(source.source, message, None, Seq.empty, Seq.empty, None, None)
 
   def apply(message: String, cause: ErrorReport)(implicit source: ErrorReportSource): ErrorReport =
-    ErrorReport(source.source, message, None, Seq(cause), Seq.empty, None)
+    ErrorReport(source.source, message, None, Seq(cause), Seq.empty, None, None)
 
   def apply(message: String, causes: Seq[ErrorReport])(implicit source: ErrorReportSource): ErrorReport =
-    ErrorReport(source.source, message, None, causes, Seq.empty, None)
+    ErrorReport(source.source, message, None, causes, Seq.empty, None, None)
 
   def apply(statusCode: StatusCode, throwable: Throwable)(implicit source: ErrorReportSource): ErrorReport =
     ErrorReport(source.source,
@@ -42,26 +43,27 @@ object ErrorReport {
                 Some(statusCode),
                 causes(throwable),
                 throwable.getStackTrace,
-                Option(throwable.getClass)
+                Option(throwable.getClass),
+                None
     )
 
   def apply(statusCode: StatusCode, message: String)(implicit source: ErrorReportSource): ErrorReport =
-    ErrorReport(source.source, message, Option(statusCode), Seq.empty, Seq.empty, None)
+    ErrorReport(source.source, message, Option(statusCode), Seq.empty, Seq.empty, None, None)
 
   def apply(statusCode: StatusCode, message: String, throwable: Throwable)(implicit
     source: ErrorReportSource
   ): ErrorReport =
-    ErrorReport(source.source, message, Option(statusCode), causes(throwable), throwable.getStackTrace, None)
+    ErrorReport(source.source, message, Option(statusCode), causes(throwable), throwable.getStackTrace, None, None)
 
   def apply(statusCode: StatusCode, message: String, cause: ErrorReport)(implicit
     source: ErrorReportSource
   ): ErrorReport =
-    ErrorReport(source.source, message, Option(statusCode), Seq(cause), Seq.empty, None)
+    ErrorReport(source.source, message, Option(statusCode), Seq(cause), Seq.empty, None, None)
 
   def apply(statusCode: StatusCode, message: String, causes: Seq[ErrorReport])(implicit
     source: ErrorReportSource
   ): ErrorReport =
-    ErrorReport(source.source, message, Option(statusCode), causes, Seq.empty, None)
+    ErrorReport(source.source, message, Option(statusCode), causes, Seq.empty, None, None)
 
   def apply(throwable: Throwable)(implicit source: ErrorReportSource): ErrorReport =
     ErrorReport(source.source,
@@ -69,16 +71,18 @@ object ErrorReport {
                 None,
                 causes(throwable),
                 throwable.getStackTrace,
-                Option(throwable.getClass)
+                Option(throwable.getClass),
+                None
     )
 
   def apply(message: String,
             statusCode: Option[StatusCode],
             causes: Seq[ErrorReport],
             stackTrace: Seq[StackTraceElement],
-            exceptionClass: Option[Class[_]]
+            exceptionClass: Option[Class[_]],
+            traceId: Option[TraceId]
   )(implicit source: ErrorReportSource): ErrorReport =
-    ErrorReport(source.source, message, statusCode, causes, stackTrace, exceptionClass)
+    ErrorReport(source.source, message, statusCode, causes, stackTrace, exceptionClass, traceId)
   // $COVERAGE-ON$
 
   def message(throwable: Throwable): String = Option(throwable.getMessage).getOrElse(throwable.getClass.getSimpleName)
@@ -152,9 +156,27 @@ object ErrorReportJsonSupport {
     }
   }
 
+  implicit object traceIdFormat extends JsonFormat[TraceId] {
+
+    override def write(obj: TraceId): JsValue = JsString(obj.asString)
+
+    override def read(json: JsValue): TraceId = json match {
+      case JsString(s) => TraceId(s)
+      case s           => throw DeserializationException(s"unable to deserialize ${s} to TraceId")
+    }
+  }
+
   implicit val ErrorReportFormat: RootJsonFormat[ErrorReport] = rootFormat(
     lazyFormat(
-      jsonFormat(ErrorReport.apply, "source", "message", "statusCode", "causes", "stackTrace", "exceptionClass")
+      jsonFormat(ErrorReport.apply,
+                 "source",
+                 "message",
+                 "statusCode",
+                 "causes",
+                 "stackTrace",
+                 "exceptionClass",
+                 "traceId"
+      )
     )
   )
 }

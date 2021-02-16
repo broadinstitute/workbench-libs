@@ -15,7 +15,13 @@ class ErrorReportSpec extends AnyFlatSpecLike with BeforeAndAfterAll with Matche
     val internalEr = ErrorReport("internalERMessage")
     val stacktrace = Seq(new StackTraceElement("testClass", "testMethod", "fileName", 42))
     val er =
-      ErrorReport("testMessage", Some(StatusCodes.OK), Seq(internalEr), stacktrace, Some(classOf[RuntimeException]))
+      ErrorReport("testMessage",
+                  Some(StatusCodes.OK),
+                  Seq(internalEr),
+                  stacktrace,
+                  Some(classOf[RuntimeException]),
+                  None
+      )
 
     val erJson = er.toJson
     val erRead = erJson.convertTo[ErrorReport]

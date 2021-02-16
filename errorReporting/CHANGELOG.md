@@ -7,4 +7,4 @@ This file documents changes to the `workbench-error-reporting` library, includin
 ### Added
 - Add `ErrorReporting`
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-error-reporting" % "0.1-92fcd96"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-error-reporting" % "0.1-TRAVIS-REPLACE-ME"`
