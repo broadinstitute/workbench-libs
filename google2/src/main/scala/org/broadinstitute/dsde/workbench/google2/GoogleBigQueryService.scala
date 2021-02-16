@@ -16,7 +16,7 @@ trait GoogleBigQueryService[F[_]] {
 
   def createDataset(datasetName: String, labels: Map[String, String]): F[Dataset]
 
-  def setDatasetIam(datasetName: String, bindings: Map[(WorkbenchEmail, Acl.Entity.Type), Acl.Role]): F[Dataset]
+  def setDatasetIam(datasetName: String, bindings: Map[Acl.Role, Seq[(WorkbenchEmail, Acl.Entity.Type)]]): F[Dataset]
 }
 
 object GoogleBigQueryService {
