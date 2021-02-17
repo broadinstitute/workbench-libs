@@ -3,7 +3,7 @@ package org.broadinstitute.dsde.workbench.google2
 import cats.Show
 import cats.effect.{Blocker, ContextShift, Sync, Timer}
 import com.google.cloud.bigquery.Acl.{Group, User}
-import com.google.cloud.bigquery.{Acl, BigQuery, BigQueryOptions, Dataset, DatasetInfo, JobId, QueryJobConfiguration, TableResult}
+import com.google.cloud.bigquery.{Acl, BigQuery, DatasetId, DatasetInfo, JobId, QueryJobConfiguration, TableResult}
 import io.chrisdavenport.log4cats.StructuredLogger
 import org.broadinstitute.dsde.workbench.model.{WorkbenchEmail, WorkbenchException}
 
@@ -41,19 +41,19 @@ private[google2] class GoogleBigQueryInterpreter[F[_]: Sync: ContextShift: Timer
       tableResultFormatter
     )
 
-  override def createDataset(datasetName: String, labels: Map[String, String]): F[Dataset] = {
+  override def createDataset(datasetName: String, labels: Map[String, String]): F[DatasetId] = {
     val datasetInfo = DatasetInfo.newBuilder(datasetName).setLabels(labels.asJava).build
 
     withLogging(
-      blockingF(Sync[F].delay[Dataset] {
-        client.create(datasetInfo)
+      blockingF(Sync[F].delay[DatasetId] {
+        client.create(datasetInfo).getDatasetId
       }),
       None,
       s"com.google.cloud.bigquery.BigQuery.create(${datasetName})"
     )
   }
 
-  override def setDatasetIam(datasetName: String, bindings: Map[Acl.Role, Seq[(WorkbenchEmail, Acl.Entity.Type)]]): F[Dataset] = {
+  override def setDatasetIam(datasetName: String, bindings: Map[Acl.Role, Seq[(WorkbenchEmail, Acl.Entity.Type)]]): F[DatasetId] = {
     val dataset = client.getDataset(datasetName)
     
     val newAclList = bindings.flatMap { case (role, members) =>
@@ -67,8 +67,8 @@ private[google2] class GoogleBigQueryInterpreter[F[_]: Sync: ContextShift: Timer
     }
 
     withLogging(
-      blockingF(Sync[F].delay[Dataset] {
-        client.update(dataset.toBuilder.setAcl(newAclList.toList.asJava).build())
+      blockingF(Sync[F].delay[DatasetId] {
+        client.update(dataset.toBuilder.setAcl(newAclList.toList.asJava).build()).getDatasetId
       }),
       None,
       s"com.google.cloud.bigquery.BigQuery.update(${datasetName})"
