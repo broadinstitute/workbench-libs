@@ -8,12 +8,22 @@ Changed:
 - Changed return type of `GoogleDataprocService.{createCluster, deleteCluster, resizeCluster}`
 - Removed `RetryConfig` from `GoogleDataprocService` constructors
 - `GoogleComputeInterpreter` now returns none if it encounters a disabled billing project during `getInstance`
-- Added `GoogleBillingInterpreter` and `GoogleBillingService`
 
 Added:
 - Added `GoogleDataprocService.startCluster`
+- Added `getPersistentVolumeClaims` to `KubernetesService`
+- Added `GoogleBillingInterpreter` and `GoogleBillingService`
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.19-1aba7fd"`
+Dependency Updates:
+```
+Update akka-actor, akka-stream, ... from 2.6.10 to 2.6.12 (#498) (56 seconds ago) <Scala Steward>
+Update google-cloud-nio from 0.122.3 to 0.122.5 (#482) (76 seconds ago) <Scala Steward>
+Update google-cloud-resourcemanager from 0.118.7-alpha to 0.118.8-alpha (#497) (2 minutes ago) <Scala Steward>
+Update http4s-blaze-client, http4s-circe, ... from 0.21.16 to 0.21.18 (#499) (2 minutes ago) <Scala Steward>
+Update sbt from 1.4.6 to 1.4.7 (#500) (2 minutes ago) <Scala Steward>
+```
+
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.19-TRAVIS-REPLACE-ME"`
 
 ## 0.18
 Added:
