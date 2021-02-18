@@ -1,12 +1,12 @@
 package org.broadinstitute.dsde.workbench.google2
 
 import java.nio.file.Path
-
 import cats.effect.concurrent.Semaphore
 import cats.effect.{Async, Blocker, ContextShift, Effect, Resource, Timer}
 import cats.mtl.Ask
 import com.google.api.services.container.ContainerScopes
 import io.chrisdavenport.log4cats.StructuredLogger
+import io.kubernetes.client.openapi.models.V1PersistentVolumeClaim
 import org.broadinstitute.dsde.workbench.google2.GKEModels.KubernetesClusterId
 import org.broadinstitute.dsde.workbench.google2.KubernetesModels._
 import org.broadinstitute.dsde.workbench.google2.KubernetesSerializableName.ServiceName
@@ -53,6 +53,10 @@ trait KubernetesService[F[_]] {
   def getServiceExternalIp(clusterId: KubernetesClusterId, namespace: KubernetesNamespace, serviceName: ServiceName)(
     implicit ev: Ask[F, TraceId]
   ): F[Option[IP]]
+
+  def getPersistentVolumeClaims(clusterId: KubernetesClusterId, namespace: KubernetesNamespace)(implicit
+    ev: Ask[F, TraceId]
+  ): F[List[V1PersistentVolumeClaim]]
 
   def createRole(clusterId: KubernetesClusterId, role: KubernetesRole, namespace: KubernetesNamespace)(implicit
     ev: Ask[F, TraceId]

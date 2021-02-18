@@ -3,7 +3,6 @@ package org.broadinstitute.dsde.workbench.google2
 import java.io.ByteArrayInputStream
 import java.util.UUID
 import java.util.concurrent.TimeUnit
-
 import cats.effect.concurrent.Semaphore
 import cats.effect.implicits._
 import cats.effect.{Async, Blocker, ContextShift, Effect, Timer}
@@ -15,6 +14,7 @@ import com.google.container.v1.Cluster
 import io.chrisdavenport.log4cats.StructuredLogger
 import io.kubernetes.client.openapi.ApiClient
 import io.kubernetes.client.openapi.apis.{CoreV1Api, RbacAuthorizationV1Api}
+import io.kubernetes.client.openapi.models.V1PersistentVolumeClaim
 import io.kubernetes.client.util.Config
 import org.broadinstitute.dsde.workbench.google2.GKEModels.KubernetesClusterId
 import org.broadinstitute.dsde.workbench.google2.JavaSerializableInstances._
@@ -198,6 +198,38 @@ class KubernetesInterpreter[F[_]: Effect: Timer: ContextShift](
       } yield res
 
     } yield ipOpt
+
+  override def getPersistentVolumeClaims(clusterId: KubernetesClusterId, namespace: KubernetesNamespace)(implicit
+    ev: Ask[F, TraceId]
+  ): F[List[V1PersistentVolumeClaim]] =
+    for {
+      traceId <- ev.ask
+      client <- blockingF(getClient(clusterId, new CoreV1Api(_)))
+      call = blockingF(
+        F.delay(
+          client.listNamespacedPersistentVolumeClaim(namespace.name.value,
+                                                     "true",
+                                                     null,
+                                                     null,
+                                                     null,
+                                                     null,
+                                                     null,
+                                                     null,
+                                                     null,
+                                                     null,
+                                                     null
+          )
+        )
+      ).map(Option(_)).handleErrorWith {
+        case e: io.kubernetes.client.openapi.ApiException if e.getCode == 404 => F.pure(None)
+        case e: Throwable                                                     => F.raiseError(e)
+      }
+      responseOpt <- withLogging(
+        call,
+        Some(traceId),
+        s"io.kubernetes.client.apis.CoreV1Api.listNamespacedPersistentVolumeClaim(${namespace.name.value}, true, null, null, null, null, null, null, null, null)"
+      )
+    } yield responseOpt.map(_.getItems.asScala.toList).getOrElse(List.empty[V1PersistentVolumeClaim])
 
   override def createNamespace(clusterId: KubernetesClusterId, namespace: KubernetesNamespace)(implicit
     ev: Ask[F, TraceId]
