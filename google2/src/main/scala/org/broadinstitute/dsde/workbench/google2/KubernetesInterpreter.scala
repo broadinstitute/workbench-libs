@@ -224,26 +224,6 @@ class KubernetesInterpreter[F[_]: Effect: Timer: ContextShift](
         case e: io.kubernetes.client.openapi.ApiException if e.getCode == 404 => F.pure(None)
         case e: Throwable                                                     => F.raiseError(e)
       }
-
-      _ <- recoverF(
-        blockingF(
-          F.delay(
-            client.listNamespacedPersistentVolumeClaim(namespace.name.value,
-                                                       "true",
-                                                       null,
-                                                       null,
-                                                       null,
-                                                       null,
-                                                       null,
-                                                       null,
-                                                       null,
-                                                       null,
-                                                       null
-            )
-          )
-        ),
-        whenStatusCode(404)
-      )
       responseOpt <- withLogging(
         call,
         Some(traceId),
