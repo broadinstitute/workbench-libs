@@ -23,7 +23,7 @@ Update http4s-blaze-client, http4s-circe, ... from 0.21.16 to 0.21.18 (#499) (2 
 Update sbt from 1.4.6 to 1.4.7 (#500) (2 minutes ago) <Scala Steward>
 ```
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.19-7d332e0"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.19-TRAVIS-REPLACE-ME"`
 
 ## 0.18
 Added:

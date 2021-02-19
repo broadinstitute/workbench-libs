@@ -199,7 +199,7 @@ class KubernetesInterpreter[F[_]: Effect: Timer: ContextShift](
 
     } yield ipOpt
 
-  override def getPersistentVolumeClaims(clusterId: KubernetesClusterId, namespace: KubernetesNamespace)(implicit
+  override def listPersistentVolumeClaims(clusterId: KubernetesClusterId, namespace: KubernetesNamespace)(implicit
     ev: Ask[F, TraceId]
   ): F[List[V1PersistentVolumeClaim]] =
     for {
