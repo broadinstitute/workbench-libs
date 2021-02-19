@@ -54,7 +54,7 @@ trait KubernetesService[F[_]] {
     implicit ev: Ask[F, TraceId]
   ): F[Option[IP]]
 
-  def getPersistentVolumeClaims(clusterId: KubernetesClusterId, namespace: KubernetesNamespace)(implicit
+  def listPersistentVolumeClaims(clusterId: KubernetesClusterId, namespace: KubernetesNamespace)(implicit
     ev: Ask[F, TraceId]
   ): F[List[V1PersistentVolumeClaim]]
 

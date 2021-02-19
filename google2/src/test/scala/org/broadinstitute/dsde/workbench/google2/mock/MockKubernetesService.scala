@@ -50,7 +50,7 @@ class MockKubernetesService extends org.broadinstitute.dsde.workbench.google2.Ku
     ev: Ask[IO, TraceId]
   ): IO[Option[IP]] = IO(Some(IP("1.2.3.4")))
 
-  override def getPersistentVolumeClaims(clusterId: KubernetesClusterId, namespace: KubernetesNamespace)(implicit
+  override def listPersistentVolumeClaims(clusterId: KubernetesClusterId, namespace: KubernetesNamespace)(implicit
     ev: Ask[IO, TraceId]
   ): IO[List[V1PersistentVolumeClaim]] = IO.pure(List.empty)
 
