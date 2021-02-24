@@ -53,15 +53,17 @@ private[google2] class GoogleBigQueryInterpreter[F[_]: Sync: ContextShift: Timer
     )
   }
 
-  override def setDatasetIam(datasetName: String, bindings: Map[Acl.Role, Seq[(WorkbenchEmail, Acl.Entity.Type)]]): F[DatasetId] = {
+  override def setDatasetIam(datasetName: String,
+                             bindings: Map[Acl.Role, Seq[(WorkbenchEmail, Acl.Entity.Type)]]
+  ): F[DatasetId] = {
     val dataset = client.getDataset(datasetName)
-    
+
     val newAclList = bindings.flatMap { case (role, members) =>
       members.map { case (email, emailType) =>
         emailType match {
           case Acl.Entity.Type.GROUP => Acl.of(new Group(email.value), role)
-          case Acl.Entity.Type.USER => Acl.of(new User(email.value), role)
-          case _ => throw new WorkbenchException("unexpected email type")
+          case Acl.Entity.Type.USER  => Acl.of(new User(email.value), role)
+          case _                     => throw new WorkbenchException("unexpected email type")
         }
       }
     }
