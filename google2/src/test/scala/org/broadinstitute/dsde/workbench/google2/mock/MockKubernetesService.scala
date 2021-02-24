@@ -3,6 +3,7 @@ package mock
 
 import cats.effect.IO
 import cats.mtl.Ask
+import io.kubernetes.client.openapi.models.V1PersistentVolumeClaim
 import org.broadinstitute.dsde.workbench.google2.GKEModels.KubernetesClusterId
 import org.broadinstitute.dsde.workbench.google2.KubernetesModels.{KubernetesNamespace, KubernetesPodStatus}
 import org.broadinstitute.dsde.workbench.google2.KubernetesSerializableName.{PodName, ServiceName}
@@ -48,6 +49,10 @@ class MockKubernetesService extends org.broadinstitute.dsde.workbench.google2.Ku
   )(implicit
     ev: Ask[IO, TraceId]
   ): IO[Option[IP]] = IO(Some(IP("1.2.3.4")))
+
+  override def listPersistentVolumeClaims(clusterId: KubernetesClusterId, namespace: KubernetesNamespace)(implicit
+    ev: Ask[IO, TraceId]
+  ): IO[List[V1PersistentVolumeClaim]] = IO.pure(List.empty)
 
   override def createRole(
     clusterId: GKEModels.KubernetesClusterId,

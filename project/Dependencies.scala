@@ -1,14 +1,14 @@
 import sbt._
 
 object Dependencies {
-  val akkaV         = "2.6.10"
+  val akkaV         = "2.6.12"
   val akkaHttpV     = "10.2.3"
   val jacksonV      = "2.12.1"
   val googleV       = "1.22.0"
   val scalaLoggingV = "3.9.2"
   val scalaTestV    = "3.2.3"
   val circeVersion = "0.13.0"
-  val http4sVersion = "0.21.16"
+  val http4sVersion = "0.21.18"
 
   def excludeGuavaJDK5(m: ModuleID): ModuleID = m.exclude("com.google.guava", "guava-jdk5")
 
@@ -17,7 +17,7 @@ object Dependencies {
   val scalaTestScalaCheck = "org.scalatestplus" %% "scalacheck-1-14" % "3.2.2.0" % Test //Since scalatest 3.1.0, scalacheck support is moved to `scalatestplus`
   val scalaTestMockito = "org.scalatestplus" %% "mockito-3-4" % "3.2.3.0" % Test //Since scalatest 3.1.0, mockito support is moved to `scalatestplus`
   val scalaTestSelenium =  "org.scalatestplus" %% "selenium-3-141" % "3.2.2.0" % Test //Since scalatest 3.1.0, selenium support is moved to `scalatestplus`
-  val mockito: ModuleID =      "org.mockito"                   %  "mockito-core"  % "3.7.0" % "test"
+  val mockito: ModuleID =      "org.mockito"                   %  "mockito-core"  % "3.7.7" % "test"
 
   val akkaActor: ModuleID =         "com.typesafe.akka" %% "akka-actor"           % akkaV     % "provided"
   val akkaStream: ModuleID =         "com.typesafe.akka" %% "akka-stream"           % akkaV     % "provided"
@@ -54,18 +54,18 @@ object Dependencies {
   val googleRpc: ModuleID =               "io.grpc" % "grpc-core" % "1.34.0"
 
   val googleRpc2: ModuleID =               "io.grpc" % "grpc-core" % "1.34.0"
-  val googleFirestore: ModuleID = "com.google.cloud" % "google-cloud-firestore" % "2.2.0"
+  val googleFirestore: ModuleID = "com.google.cloud" % "google-cloud-firestore" % "2.2.1"
   val googleStorageNew: ModuleID = "com.google.cloud" % "google-cloud-storage" % "1.113.9"
-  val googleStorageLocal: ModuleID = "com.google.cloud" % "google-cloud-nio" % "0.122.3" % "test"
-  val googlePubsubNew: ModuleID = "com.google.cloud" % "google-cloud-pubsub" % "1.110.3"
+  val googleStorageLocal: ModuleID = "com.google.cloud" % "google-cloud-nio" % "0.122.5" % "test"
+  val googlePubsubNew: ModuleID = "com.google.cloud" % "google-cloud-pubsub" % "1.111.0"
   val googleKms: ModuleID = "com.google.cloud" % "google-cloud-kms" % "1.40.5"
   val googleDataproc: ModuleID =    "com.google.cloud" % "google-cloud-dataproc" % "1.1.10"
   val googleComputeNew: ModuleID = "com.google.cloud" % "google-cloud-compute" % "0.118.0-alpha"
   val googleContainer: ModuleID = "com.google.cloud" % "google-cloud-container" % "1.2.4"
   val kubernetesClient: ModuleID = "io.kubernetes" % "client-java" % "11.0.0"
   val googleBigQueryNew: ModuleID = "com.google.cloud" % "google-cloud-bigquery" % "1.126.6"
-  val google2CloudBilling = "com.google.cloud" % "google-cloud-billing" % "1.1.11"
-  val googleResourceManager =  "com.google.cloud" % "google-cloud-resourcemanager" % "0.118.7-alpha"
+  val google2CloudBilling = "com.google.cloud" % "google-cloud-billing" % "1.1.12"
+  val googleResourceManager =  "com.google.cloud" % "google-cloud-resourcemanager" % "0.118.8-alpha"
   //the below v1 module is a dependency for v2 because it contains the OAuth scopes necessary to created scoped credentials
   val googleContainerV1: ModuleID = "com.google.apis" % "google-api-services-container" % "v1-rev20201209-1.31.0"
 
@@ -185,7 +185,7 @@ object Dependencies {
 
   val errorReportingDependencies = List(
     catsEffect,
-    "com.google.cloud" % "google-cloud-errorreporting" % "0.120.12-beta"
+    "com.google.cloud" % "google-cloud-errorreporting" % "0.120.13-beta"
   )
 
   val util2Dependencies = commonDependencies ++ List(
