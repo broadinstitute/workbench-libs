@@ -8,14 +8,13 @@ Changed:
 - Changed return type of `GoogleDataprocService.{createCluster, deleteCluster, resizeCluster}`
 - Removed `RetryConfig` from `GoogleDataprocService` constructors
 - `GoogleComputeInterpreter` now returns none if it encounters a disabled billing project during `getInstance`
-- Added `GoogleBillingInterpreter` and `GoogleBillingService`
-- Added `createDataset` and `setDatasetIam` to `GoogleBigQueryService`
-- Added new constructor to `GoogleBigQueryService` that accepts path to credentials JSON
 
 Added:
 - Added `GoogleDataprocService.startCluster`
 - Added `getPersistentVolumeClaims` to `KubernetesService`
 - Added `GoogleBillingInterpreter` and `GoogleBillingService`
+- Added `createDataset` and `setDatasetIam` to `GoogleBigQueryService`
+- Added new constructor to `GoogleBigQueryService` that accepts path to credentials JSON
 
 Dependency Updates:
 ```
