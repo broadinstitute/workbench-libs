@@ -527,3 +527,5 @@ object KubernetesModels {
   )
 
 }
+
+final case class PvName(asString: String) extends AnyVal
