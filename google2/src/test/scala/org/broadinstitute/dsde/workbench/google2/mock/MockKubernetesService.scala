@@ -20,6 +20,10 @@ class MockKubernetesService extends org.broadinstitute.dsde.workbench.google2.Ku
     namespace: KubernetesModels.KubernetesNamespace
   )(implicit ev: Ask[IO, TraceId]): IO[Unit] = IO.unit
 
+  def deletePv(clusterId: KubernetesClusterId, pv: PvName)(implicit
+    ev: Ask[IO, TraceId]
+  ): IO[Unit] = IO.unit
+
   override def createServiceAccount(
     clusterId: GKEModels.KubernetesClusterId,
     serviceAccount: KubernetesModels.KubernetesServiceAccount,

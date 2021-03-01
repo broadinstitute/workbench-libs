@@ -27,6 +27,10 @@ trait KubernetesService[F[_]] {
     ev: Ask[F, TraceId]
   ): F[Unit]
 
+  def deletePv(clusterId: KubernetesClusterId, pv: PvName)(implicit
+    ev: Ask[F, TraceId]
+  ): F[Unit]
+
   // A Kubernetes service account is an automatically enabled authenticator that uses signed bearer tokens to verify requests.
   // NB: It is distinct from Google service accounts.
   def createServiceAccount(clusterId: KubernetesClusterId,
