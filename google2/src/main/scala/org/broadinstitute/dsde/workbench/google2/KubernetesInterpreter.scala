@@ -231,6 +231,27 @@ class KubernetesInterpreter[F[_]: Effect: Timer: ContextShift](
       )
     } yield responseOpt.map(_.getItems.asScala.toList).getOrElse(List.empty[V1PersistentVolumeClaim])
 
+  override def deletePv(clusterId: KubernetesClusterId, pv: PvName)(implicit
+    ev: Ask[F, TraceId]
+  ): F[Unit] =
+    for {
+      traceId <- ev.ask
+      client <- blockingF(getClient(clusterId, new CoreV1Api(_)))
+      call = blockingF(
+        F.delay(
+          client.deletePersistentVolume(pv.asString, "true", null, null, null, null, null)
+        )
+      ).map(Option(_)).handleErrorWith {
+        case e: io.kubernetes.client.openapi.ApiException if e.getCode == 404 => F.pure(None)
+        case e: Throwable                                                     => F.raiseError(e)
+      }
+      _ <- withLogging(
+        call,
+        Some(traceId),
+        s"io.kubernetes.client.apis.CoreV1Api.deletePersistentVolume(${pv.asString}, true, null, null, null, null, null)"
+      )
+    } yield ()
+
   override def createNamespace(clusterId: KubernetesClusterId, namespace: KubernetesNamespace)(implicit
     ev: Ask[F, TraceId]
   ): F[Unit] =
