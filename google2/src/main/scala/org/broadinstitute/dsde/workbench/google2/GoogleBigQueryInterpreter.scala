@@ -41,24 +41,8 @@ private[google2] class GoogleBigQueryInterpreter[F[_]: Sync: ContextShift: Timer
       tableResultFormatter
     )
 
-  override def createDataset(datasetName: String, labels: Map[String, String]): F[DatasetId] = {
-    val datasetInfo = DatasetInfo.newBuilder(datasetName).setLabels(labels.asJava).build
-
-    withLogging(
-      blockingF(Sync[F].delay[DatasetId] {
-        client.create(datasetInfo).getDatasetId
-      }),
-      None,
-      s"com.google.cloud.bigquery.BigQuery.create(${datasetName})"
-    )
-  }
-
-  override def setDatasetIam(datasetName: String,
-                             bindings: Map[Acl.Role, Seq[(WorkbenchEmail, Acl.Entity.Type)]]
-  ): F[DatasetId] = {
-    val dataset = client.getDataset(datasetName)
-
-    val newAclList = bindings.flatMap { case (role, members) =>
+  override def createDataset(datasetName: String, labels: Map[String, String], aclBindings: Map[Acl.Role, Seq[(WorkbenchEmail, Acl.Entity.Type)]]): F[DatasetId] = {
+    val newAclList = aclBindings.flatMap { case (role, members) =>
       members.map { case (email, emailType) =>
         emailType match {
           case Acl.Entity.Type.GROUP => Acl.of(new Group(email.value), role)
@@ -68,12 +52,14 @@ private[google2] class GoogleBigQueryInterpreter[F[_]: Sync: ContextShift: Timer
       }
     }
 
+    val datasetInfo = DatasetInfo.newBuilder(datasetName).setLabels(labels.asJava).setAcl(newAclList.toList.asJava).build
+
     withLogging(
       blockingF(Sync[F].delay[DatasetId] {
-        client.update(dataset.toBuilder.setAcl(newAclList.toList.asJava).build()).getDatasetId
+        client.create(datasetInfo).getDatasetId
       }),
       None,
-      s"com.google.cloud.bigquery.BigQuery.update(${datasetName})"
+      s"com.google.cloud.bigquery.BigQuery.create(${datasetName})"
     )
   }
 
