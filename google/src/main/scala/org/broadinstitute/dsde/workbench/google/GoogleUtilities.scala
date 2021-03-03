@@ -2,17 +2,17 @@ package org.broadinstitute.dsde.workbench.google
 
 import java.io.{ByteArrayOutputStream, IOException, InputStream}
 import java.util.concurrent.TimeUnit
-
 import com.google.api.client.googleapis.json.GoogleJsonResponseException
 import com.google.api.client.googleapis.services.AbstractGoogleClientRequest
 import com.google.api.client.http.{HttpResponseException => GoogleHttpResponseException}
 import com.google.api.client.http.{HttpResponse => GoogleHttpResponse}
 import com.google.api.client.http.json.JsonHttpContent
 import com.typesafe.scalalogging.LazyLogging
+import net.logstash.logback.argument.StructuredArguments
 import org.broadinstitute.dsde.workbench.metrics.GoogleInstrumented.GoogleCounters
 import org.broadinstitute.dsde.workbench.metrics.{GoogleInstrumented, Histogram, InstrumentedRetry}
 import org.broadinstitute.dsde.workbench.model.ErrorReport
-import spray.json.JsValue
+import spray.json.{JsValue, RootJsonFormat}
 
 import scala.collection.JavaConverters._
 import scala.concurrent._
@@ -222,7 +222,6 @@ trait GoogleUtilities extends LazyLogging with InstrumentedRetry with GoogleInst
                                   statusCode: Option[Int],
                                   errorReport: Option[ErrorReport]
   ): Unit = {
-    import GoogleRequestJsonSupport._
     import spray.json._
 
     val payload =
@@ -240,14 +239,24 @@ trait GoogleUtilities extends LazyLogging with InstrumentedRetry with GoogleInst
         None
       }
 
+    val googleRequest = GoogleRequest(request.getRequestMethod,
+      request.buildHttpRequestUrl().toString,
+      payload,
+      System.currentTimeMillis() - startTime,
+      statusCode,
+      errorReport
+    )
+    logGoogleRequest(googleRequest)
+  }
+
+  protected def logGoogleRequest(googleRequest: GoogleRequest): Unit = {
+    import GoogleRequestJsonSupport._
+    import spray.json._
+
+    val googleRequestJson = googleRequest.toJson(GoogleRequestFormat).compactPrint
     logger.debug(
-      GoogleRequest(request.getRequestMethod,
-                    request.buildHttpRequestUrl().toString,
-                    payload,
-                    System.currentTimeMillis() - startTime,
-                    statusCode,
-                    errorReport
-      ).toJson(GoogleRequestFormat).compactPrint
+      googleRequestJson,
+      StructuredArguments.raw("googleRequest", googleRequestJson)
     )
   }
 
