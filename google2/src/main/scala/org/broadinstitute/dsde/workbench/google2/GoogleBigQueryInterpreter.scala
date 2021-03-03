@@ -41,7 +41,10 @@ private[google2] class GoogleBigQueryInterpreter[F[_]: Sync: ContextShift: Timer
       tableResultFormatter
     )
 
-  override def createDataset(datasetName: String, labels: Map[String, String], aclBindings: Map[Acl.Role, Seq[(WorkbenchEmail, Acl.Entity.Type)]]): F[DatasetId] = {
+  override def createDataset(datasetName: String,
+                             labels: Map[String, String],
+                             aclBindings: Map[Acl.Role, Seq[(WorkbenchEmail, Acl.Entity.Type)]]
+  ): F[DatasetId] = {
     val newAclList = aclBindings.flatMap { case (role, members) =>
       members.map { case (email, emailType) =>
         emailType match {
@@ -52,7 +55,8 @@ private[google2] class GoogleBigQueryInterpreter[F[_]: Sync: ContextShift: Timer
       }
     }
 
-    val datasetInfo = DatasetInfo.newBuilder(datasetName).setLabels(labels.asJava).setAcl(newAclList.toList.asJava).build
+    val datasetInfo =
+      DatasetInfo.newBuilder(datasetName).setLabels(labels.asJava).setAcl(newAclList.toList.asJava).build
 
     withLogging(
       blockingF(Sync[F].delay[DatasetId] {
