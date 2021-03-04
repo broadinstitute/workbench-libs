@@ -15,7 +15,8 @@ SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.
 - `getProjectNumber` in `GoogleProjectDAO`
 - `addWorkloadIdentityUserRoleForUser` in `GoogleIamDAO`
 - Added enableRequesterPays for workspaces
-- Support stuctured logging for google requests
+- Support structured logging for google requests
+  - requires dependency "net.logstash.logback" % "logstash-logback-encoder" % "6.6"
 
 ### Changed
 
