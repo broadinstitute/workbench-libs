@@ -215,15 +215,14 @@ class HttpGoogleStorageDAO(appName: String,
       val startTime = System.currentTimeMillis()
       Http().singleRequest(request).map { response =>
         val endTime = System.currentTimeMillis()
-        logger.debug(
-          GoogleRequest(HttpMethods.POST.value,
-                        url,
-                        Option(entity),
-                        endTime - startTime,
-                        Option(response.status.intValue),
-                        None
-          ).toJson(GoogleRequestFormat).compactPrint
+        val googleRequest = GoogleRequest(HttpMethods.POST.value,
+                                          url,
+                                          Option(entity),
+                                          endTime - startTime,
+                                          Option(response.status.intValue),
+                                          None
         )
+        logGoogleRequest(googleRequest)
         ()
       }
     }
