@@ -18,6 +18,8 @@ trait GoogleBigQueryService[F[_]] {
                     labels: Map[String, String],
                     aclBindings: Map[Acl.Role, Seq[(WorkbenchEmail, Acl.Entity.Type)]]
   ): F[DatasetId]
+
+  def deleteDataset(datasetName: String): F[Boolean]
 }
 
 object GoogleBigQueryService {
