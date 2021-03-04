@@ -12,6 +12,7 @@ object Dependencies {
 
   def excludeGuavaJDK5(m: ModuleID): ModuleID = m.exclude("com.google.guava", "guava-jdk5")
 
+  val logstashLogback: ModuleID = "net.logstash.logback"      % "logstash-logback-encoder" % "6.6" % "provided"
   val scalaLogging: ModuleID = "com.typesafe.scala-logging"    %% "scala-logging" % scalaLoggingV  % "provided"
   val scalatest: ModuleID =    "org.scalatest"                 %% "scalatest"     % scalaTestV  % "test"
   val scalaTestScalaCheck = "org.scalatestplus" %% "scalacheck-1-14" % "3.2.2.0" % Test //Since scalatest 3.1.0, scalacheck support is moved to `scalatestplus`
@@ -147,7 +148,8 @@ object Dependencies {
     akkaStream,
     akkaHttpSprayJson,
     akkaTestkit,
-    sealerate
+    sealerate,
+    logstashLogback
   ).map(excludeGuavaJDK5)
 
   val google2Dependencies = commonDependencies ++ Seq(
