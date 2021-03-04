@@ -67,7 +67,7 @@ private[google2] class GoogleBigQueryInterpreter[F[_]: Sync: ContextShift: Timer
     )
   }
 
-  override def deleteDataset(datasetName: String): F[Boolean] = {
+  override def deleteDataset(datasetName: String): F[Boolean] =
     withLogging(
       blockingF(Sync[F].delay[Boolean] {
         client.delete(datasetName)
@@ -75,7 +75,6 @@ private[google2] class GoogleBigQueryInterpreter[F[_]: Sync: ContextShift: Timer
       None,
       s"com.google.cloud.bigquery.BigQuery.delete(${datasetName})"
     )
-  }
 
   private def blockingF[A](fa: F[A]): F[A] = blocker.blockOn(fa)
 }
