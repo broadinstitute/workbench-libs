@@ -240,11 +240,11 @@ trait GoogleUtilities extends LazyLogging with InstrumentedRetry with GoogleInst
       }
 
     val googleRequest = GoogleRequest(request.getRequestMethod,
-      request.buildHttpRequestUrl().toString,
-      payload,
-      System.currentTimeMillis() - startTime,
-      statusCode,
-      errorReport
+                                      request.buildHttpRequestUrl().toString,
+                                      payload,
+                                      System.currentTimeMillis() - startTime,
+                                      statusCode,
+                                      errorReport
     )
     logGoogleRequest(googleRequest)
   }

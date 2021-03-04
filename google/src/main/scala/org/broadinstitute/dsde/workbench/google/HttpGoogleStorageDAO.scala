@@ -216,11 +216,11 @@ class HttpGoogleStorageDAO(appName: String,
       Http().singleRequest(request).map { response =>
         val endTime = System.currentTimeMillis()
         val googleRequest = GoogleRequest(HttpMethods.POST.value,
-          url,
-          Option(entity),
-          endTime - startTime,
-          Option(response.status.intValue),
-          None
+                                          url,
+                                          Option(entity),
+                                          endTime - startTime,
+                                          Option(response.status.intValue),
+                                          None
         )
         logGoogleRequest(googleRequest)
         ()
