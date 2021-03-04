@@ -13,7 +13,7 @@ Added:
 - Added `GoogleDataprocService.startCluster`
 - Added `listPersistentVolumeClaims` to `KubernetesService`
 - Added `GoogleBillingInterpreter` and `GoogleBillingService`
-- Added `createDataset` and `setDatasetIam` to `GoogleBigQueryService`
+- Added `createDataset` to `GoogleBigQueryService`
 - Added new constructor to `GoogleBigQueryService` that accepts path to credentials JSON
 - Added `deletePv` to `KubernetesService`
 
