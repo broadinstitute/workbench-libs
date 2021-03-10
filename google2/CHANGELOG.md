@@ -126,7 +126,7 @@ Update commons-codec to 20041127.091804 (#406)
 Update scalafmt-core to 2.7.5 (#402)
 Update http4s-blaze-client, http4s-circe, ... to 0.21.11 (#398)
 Update google-cloud-dataproc to 1.1.7 (#408)
-Update scalatest to 3.2.3 (#403)
+Update scalatest to 3.2.6 (#403)
 Update fs2-io to 2.4.5 (#379)
 ```
 
