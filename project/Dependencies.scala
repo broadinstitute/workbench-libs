@@ -75,7 +75,7 @@ object Dependencies {
   val circeParser: ModuleID = "io.circe" %% "circe-parser" % circeVersion
   val circeGeneric: ModuleID = "io.circe" %% "circe-generic" % circeVersion % "test"
   val circeFs2: ModuleID = "io.circe" %% "circe-fs2" % circeVersion
-  val log4cats = "io.chrisdavenport" %% "log4cats-slf4j"   % "1.1.1"
+  val log4cats = "org.typelevel" %% "log4cats-slf4j"   % "1.2.0"
   val catsMtl = "org.typelevel" %% "cats-mtl" % "1.1.1"
 
   val http4sCirce = "org.http4s" %% "http4s-circe" % http4sVersion
