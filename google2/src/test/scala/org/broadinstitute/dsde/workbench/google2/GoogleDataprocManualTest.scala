@@ -7,7 +7,7 @@ import cats.effect.{Blocker, IO}
 import cats.mtl.Ask
 import com.google.cloud.compute.v1.Operation
 import com.google.cloud.dataproc.v1.Cluster
-import io.chrisdavenport.log4cats.slf4j.Slf4jLogger
+import org.typelevel.log4cats.slf4j.Slf4jLogger
 import org.broadinstitute.dsde.workbench.model.TraceId
 import org.broadinstitute.dsde.workbench.model.google.GoogleProject
 import org.broadinstitute.dsde.workbench.util2.{ConsoleLogger, LogLevel}

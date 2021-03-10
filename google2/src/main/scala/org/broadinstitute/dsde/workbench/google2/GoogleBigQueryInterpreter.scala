@@ -3,7 +3,7 @@ package org.broadinstitute.dsde.workbench.google2
 import cats.Show
 import cats.effect.{Blocker, ContextShift, Sync, Timer}
 import com.google.cloud.bigquery.{BigQuery, JobId, QueryJobConfiguration, TableResult}
-import io.chrisdavenport.log4cats.StructuredLogger
+import org.typelevel.log4cats.StructuredLogger
 
 private[google2] class GoogleBigQueryInterpreter[F[_]: Sync: ContextShift: Timer: StructuredLogger](client: BigQuery,
                                                                                                     blocker: Blocker

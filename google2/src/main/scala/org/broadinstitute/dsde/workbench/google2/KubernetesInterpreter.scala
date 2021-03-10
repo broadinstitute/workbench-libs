@@ -11,7 +11,7 @@ import cats.syntax.all._
 import com.google.auth.oauth2.{AccessToken, GoogleCredentials}
 import com.google.common.cache.{CacheBuilder, CacheLoader}
 import com.google.container.v1.Cluster
-import io.chrisdavenport.log4cats.StructuredLogger
+import org.typelevel.log4cats.StructuredLogger
 import io.kubernetes.client.openapi.ApiClient
 import io.kubernetes.client.openapi.apis.{CoreV1Api, RbacAuthorizationV1Api}
 import io.kubernetes.client.openapi.models.V1PersistentVolumeClaim
