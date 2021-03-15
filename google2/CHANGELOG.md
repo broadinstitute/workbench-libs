@@ -13,6 +13,8 @@ Added:
 - Added `GoogleDataprocService.startCluster`
 - Added `listPersistentVolumeClaims` to `KubernetesService`
 - Added `GoogleBillingInterpreter` and `GoogleBillingService`
+- Added `createDataset` and `deleteDataset` to `GoogleBigQueryService`
+- Added new constructor to `GoogleBigQueryService` that accepts path to credentials JSON
 - Added `deletePv` to `KubernetesService`
 
 Dependency Updates:
@@ -24,7 +26,7 @@ Update http4s-blaze-client, http4s-circe, ... from 0.21.16 to 0.21.18 (#499) (2 
 Update sbt from 1.4.6 to 1.4.7 (#500) (2 minutes ago) <Scala Steward>
 ```
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.19-244a616"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.19-3a6194b"`
 
 ## 0.18
 Added:
