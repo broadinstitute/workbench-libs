@@ -6,7 +6,7 @@ import cats.mtl.Ask
 import io.kubernetes.client.openapi.models.V1PersistentVolumeClaim
 import org.broadinstitute.dsde.workbench.google2.GKEModels.KubernetesClusterId
 import org.broadinstitute.dsde.workbench.google2.KubernetesModels.{KubernetesNamespace, KubernetesPodStatus}
-import org.broadinstitute.dsde.workbench.google2.KubernetesSerializableName.{PodName, ServiceName}
+import org.broadinstitute.dsde.workbench.google2.KubernetesSerializableName.{NamespaceName, PodName, ServiceName}
 import org.broadinstitute.dsde.workbench.model.{IP, TraceId}
 
 class MockKubernetesService extends org.broadinstitute.dsde.workbench.google2.KubernetesService[IO] {
@@ -19,6 +19,10 @@ class MockKubernetesService extends org.broadinstitute.dsde.workbench.google2.Ku
     clusterId: GKEModels.KubernetesClusterId,
     namespace: KubernetesModels.KubernetesNamespace
   )(implicit ev: Ask[IO, TraceId]): IO[Unit] = IO.unit
+
+  def namespaceExists(clusterId: KubernetesClusterId, namespace: KubernetesNamespace)(implicit
+    ev: Ask[IO, TraceId]
+  ): IO[Boolean] = IO.pure(false)
 
   def deletePv(clusterId: KubernetesClusterId, pv: PvName)(implicit
     ev: Ask[IO, TraceId]
