@@ -24,7 +24,7 @@ Dependency Updates:
 Update akka-actor, akka-stream, ... from 2.6.10 to 2.6.13 (#498) (56 seconds ago) <Scala Steward>
 Update google-cloud-nio from 0.122.3 to 0.122.5 (#482) (76 seconds ago) <Scala Steward>
 Update google-cloud-resourcemanager from 0.118.7-alpha to 0.118.8-alpha (#497) (2 minutes ago) <Scala Steward>
-Update http4s-blaze-client, http4s-circe, ... from 0.21.16 to 0.21.18 (#499) (2 minutes ago) <Scala Steward>
+Update http4s-blaze-client, http4s-circe, ... from 0.21.16 to 0.21.19 (#499) (2 minutes ago) <Scala Steward>
 Update sbt from 1.4.6 to 1.4.7 (#500) (2 minutes ago) <Scala Steward>
 ```
 
@@ -60,7 +60,7 @@ Update google-cloud-pubsub from 1.110.1 to 1.110.3 (#468) (2 days ago)
 Update google-cloud-storage from 1.113.4 to 1.113.5 (#434)
 Update google-cloud-storage from 1.113.6 to 1.113.8 (#469) (3 hours ago)
 Update grpc-core from 1.33.1 to 1.34.0 (#436)
-Update http4s-blaze-client, http4s-circe, ... from 0.21.14 to 0.21.18 (#471) (2 days ago)
+Update http4s-blaze-client, http4s-circe, ... from 0.21.14 to 0.21.19 (#471) (2 days ago)
 Update jackson-module-scala from 2.11.3 to 2.12.1 (#425)
 Update jackson-module-scala from 2.12.0 to 2.12.1 (#466) (3 hours ago)
 Update mockito-core from 3.6.28 to 3.7.0 (#472) (3 hours ago)
@@ -92,7 +92,7 @@ Update google-cloud-firestore to 2.1.0 (#412)
 Update grpc-core to 1.33.1 (#395) (Note: if your project explicitly specify grpc-core version, you need to update it to match this version)
 Update metrics4-scala to 4.1.14 (#413)
 Update http4s-blaze-client, http4s-circe, ... to 0.21.12 (#415)
-Update http4s-blaze-client, http4s-circe, ... to 0.21.18
+Update http4s-blaze-client, http4s-circe, ... to 0.21.19
 Update mockito-core to 3.6.28 (#414)
 Update guava to 30.0-jre (#390)
 Update `io.kubernetes client-java` from `5.0.0` to `10.0.0` (This has some breaking changes if you're using the library's API directly)
