@@ -155,7 +155,7 @@ final class GKEInterpreter[F[_]: StructuredLogger: Timer: ContextShift](
           if (op == null)
             "null"
           else
-            s"operationType=${op.getOperationType}, progress=${op.getProgress}, status=${op.getStatus}, startTime=${op.getStartTime}"
+            s"operationType=${op.getOperationType}, progress=${op.getProgress}, status=${op.getStatus}, startTime=${op.getStartTime}, statusMessage=${op.getStatusMessage}"
         )
       )
       _ <-
