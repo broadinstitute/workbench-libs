@@ -2,14 +2,14 @@ package org.broadinstitute.dsde.workbench.google2
 
 import java.nio.file.Path
 import cats.effect.concurrent.Semaphore
-import cats.effect.{Async, Blocker, ContextShift, Effect, Resource, Timer}
+import cats.effect.{Async, Blocker, ContextShift, Effect, IO, Resource, Timer}
 import cats.mtl.Ask
 import com.google.api.services.container.ContainerScopes
 import org.typelevel.log4cats.StructuredLogger
 import io.kubernetes.client.openapi.models.V1PersistentVolumeClaim
 import org.broadinstitute.dsde.workbench.google2.GKEModels.KubernetesClusterId
 import org.broadinstitute.dsde.workbench.google2.KubernetesModels._
-import org.broadinstitute.dsde.workbench.google2.KubernetesSerializableName.ServiceName
+import org.broadinstitute.dsde.workbench.google2.KubernetesSerializableName.{NamespaceName, ServiceName}
 import org.broadinstitute.dsde.workbench.model.{IP, TraceId}
 
 import scala.collection.JavaConverters._
@@ -26,6 +26,10 @@ trait KubernetesService[F[_]] {
   def deleteNamespace(clusterId: KubernetesClusterId, namespace: KubernetesNamespace)(implicit
     ev: Ask[F, TraceId]
   ): F[Unit]
+
+  def namespaceExists(clusterId: KubernetesClusterId, namespace: KubernetesNamespace)(implicit
+    ev: Ask[F, TraceId]
+  ): F[Boolean]
 
   def deletePv(clusterId: KubernetesClusterId, pv: PvName)(implicit
     ev: Ask[F, TraceId]
