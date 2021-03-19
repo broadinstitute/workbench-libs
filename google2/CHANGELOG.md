@@ -8,6 +8,7 @@ Changed:
 - Changed return type of `GoogleDataprocService.{createCluster, deleteCluster, resizeCluster}`
 - Removed `RetryConfig` from `GoogleDataprocService` constructors
 - `GoogleComputeInterpreter` now returns none if it encounters a disabled billing project during `getInstance`
+- Update `GKEInterpreter.pollOperation` to log each polling call
 
 Added:
 - Added `GoogleDataprocService.startCluster`

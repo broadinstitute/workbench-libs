@@ -146,7 +146,18 @@ final class GKEInterpreter[F[_]: StructuredLogger: Timer: ContextShift](
       .build()
 
     val getOperation = for {
-      op <- F.delay(clusterManagerClient.getOperation(request))
+      traceId <- ev.ask
+      op <- withLogging(
+        F.delay(clusterManagerClient.getOperation(request)),
+        Some(traceId),
+        s"com.google.cloud.container.v1.ClusterManagerClient.getOperation(${operationId})",
+        Show[Operation](op =>
+          if (op == null)
+            "null"
+          else
+            s"operationType=${op.getOperationType}, progress=${op.getProgress}, status=${op.getStatus}, startTime=${op.getStartTime}"
+        )
+      )
       _ <-
         if (op.getStatusMessage.isEmpty) F.unit
         else F.raiseError[Unit](new RuntimeException("Operation failed due to: " + op.getStatusMessage))
