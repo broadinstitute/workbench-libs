@@ -81,16 +81,18 @@ object GoogleSubscriberInterpreter {
         res <- parseEvent.attempt
         _ <- res match {
           case Right(event) =>
+            val loggingContext = Map("traceId" -> event.traceId.map(_.asString).getOrElse("None"))
+
             for {
               r <- queue.enqueue1(event).attempt
 
               _ <- r match {
                 case Left(e) =>
-                  logger.info(s"Subscriber fail to enqueue $message due to $e") >> F.delay(
+                  logger.info(loggingContext)(s"Subscriber fail to enqueue $message due to $e") >> F.delay(
                     consumer.nack()
                   ) //pubsub will resend the message up to ackDeadlineSeconds (this is configed during subscription creation)
                 case Right(_) =>
-                  logger.info(s"Subscriber Successfully received $message.")
+                  logger.info(loggingContext)(s"Subscriber Successfully received $message.")
               }
             } yield ()
           case Left(e) =>

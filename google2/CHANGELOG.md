@@ -9,6 +9,7 @@ Changed:
 - Removed `RetryConfig` from `GoogleDataprocService` constructors
 - `GoogleComputeInterpreter` now returns none if it encounters a disabled billing project during `getInstance`
 - Update `GKEInterpreter.pollOperation` to log each polling call
+- Log `traceId` as mdc context in `GoogleSubscriberInterpreter` 
 
 Added:
 - Added `GoogleDataprocService.startCluster`
