@@ -31,7 +31,7 @@ import ca.mrvisser.sealerate
 /** Common Kubernetes models */
 final case class KubernetesClusterNotFoundException(message: String) extends WorkbenchException {
   override def getMessage: String =
-    message + " If you are a user, please contact support. It is possible your cluster was cleaned up."
+    s"${message}. If you are a user, please contact support. It is possible your cluster was cleaned up."
 }
 
 final case class KubernetesInvalidNameException(message: String) extends WorkbenchException {
