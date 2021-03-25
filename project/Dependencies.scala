@@ -187,7 +187,7 @@ object Dependencies {
 
   val errorReportingDependencies = List(
     catsEffect,
-    "com.google.cloud" % "google-cloud-errorreporting" % "0.120.34-beta"
+    "com.google.cloud" % "google-cloud-errorreporting" % "0.120.36-beta"
   )
 
   val util2Dependencies = commonDependencies ++ List(
