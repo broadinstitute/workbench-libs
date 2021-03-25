@@ -51,7 +51,7 @@ object Dependencies {
   val googleServicemanagement: ModuleID =    "com.google.apis"       % "google-api-services-servicemanagement"    % s"v1-rev359-$googleV"
   val googleIam: ModuleID =                  "com.google.apis"       % "google-api-services-iam"                  % s"v1-rev215-$googleV"
   val googleBigQuery: ModuleID =             "com.google.apis"       % "google-api-services-bigquery"             % s"v2-rev377-$googleV"
-  val googleGuava: ModuleID = "com.google.guava"  % "guava" % "30.1-jre"
+  val googleGuava: ModuleID = "com.google.guava"  % "guava" % "30.1.1-jre"
   val googleRpc: ModuleID =               "io.grpc" % "grpc-core" % "1.34.0"
 
   val googleRpc2: ModuleID =               "io.grpc" % "grpc-core" % "1.34.0"
