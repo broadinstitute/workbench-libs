@@ -308,7 +308,7 @@ object GoogleStorageService {
     blockerBound: Option[Semaphore[F]] = None
   ): Resource[F, GoogleStorageService[F]] =
     for {
-      db <- Resource.liftF(
+      db <- Resource.eval(
         Sync[F].delay(
           StorageOptions
             .newBuilder()
@@ -325,7 +325,7 @@ object GoogleStorageService {
     blockerBound: Option[Semaphore[F]] = None
   ): Resource[F, GoogleStorageService[F]] =
     for {
-      db <- Resource.liftF(
+      db <- Resource.eval(
         Sync[F].delay(
           StorageOptions
             .newBuilder()
