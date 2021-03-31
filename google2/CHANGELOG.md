@@ -7,6 +7,11 @@ Breaking Changes:
 - Make `GoogleDataprocService` support multiple regions
 
 Dependency Updates:
+- Update google-cloud-nio from 0.122.5 to 0.122.11 (#563) (2 hours ago) <Scala Steward>
+- Update jackson-module-scala from 2.12.1 to 2.12.2 (#532) (2 hours ago) <Scala Steward>
+- Update client-java from 11.0.0 to 11.0.1 (#546) (2 hours ago) <Scala Steward>
+- Update scalatest from 3.2.3 to 3.2.6 (#549) (2 hours ago) <Scala Steward>
+- Update google-cloud-firestore from 2.2.1 to 2.2.5 (#562) (2 hours ago) <Scala Steward>
 - Update cats-effect from 2.3.3 to 2.4.0 (#569) (82 seconds ago) <Scala Steward>
 - Update google-cloud-errorreporting from 0.120.34-beta to 0.120.36-beta (#561) (2 hours ago) <Scala Steward>
 - Update akka-http, akka-http-spray-json, ... from 10.2.3 to 10.2.4 (#544) (2 hours ago) <Scala Steward>
