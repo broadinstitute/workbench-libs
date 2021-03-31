@@ -3,6 +3,7 @@ package org.broadinstitute.dsde.workbench.google2
 import ca.mrvisser.sealerate
 import cats.Parallel
 import cats.effect._
+import cats.syntax.all._
 import cats.effect.concurrent.Semaphore
 import cats.mtl.Ask
 import com.google.api.gax.core.FixedCredentialsProvider
@@ -67,7 +68,9 @@ trait GoogleDataprocService[F[_]] {
     ev: Ask[F, TraceId]
   ): F[Map[DataprocRoleZonePreemptibility, Set[InstanceName]]]
 
-  def getClusterError(operationName: OperationName)(implicit ev: Ask[F, TraceId]): F[Option[ClusterError]]
+  def getClusterError(region: RegionName, operationName: OperationName)(implicit
+    ev: Ask[F, TraceId]
+  ): F[Option[ClusterError]]
 }
 
 object GoogleDataprocService {
@@ -76,12 +79,12 @@ object GoogleDataprocService {
     pathToCredential: String,
     blocker: Blocker,
     blockerBound: Semaphore[F],
-    regionName: RegionName
+    supportedRegions: Set[RegionName]
   ): Resource[F, GoogleDataprocService[F]] =
     for {
       credential <- credentialResource(pathToCredential)
       scopedCredential = credential.createScoped(Seq(ComputeScopes.CLOUD_PLATFORM).asJava)
-      interpreter <- fromCredential(googleComputeService, scopedCredential, blocker, regionName, blockerBound)
+      interpreter <- fromCredential(googleComputeService, scopedCredential, blocker, supportedRegions, blockerBound)
     } yield interpreter
 
   def resourceFromUserCredential[F[_]: StructuredLogger: Async: Timer: Parallel: ContextShift](
@@ -89,30 +92,33 @@ object GoogleDataprocService {
     pathToCredential: String,
     blocker: Blocker,
     blockerBound: Semaphore[F],
-    regionName: RegionName
+    supportedRegions: Set[RegionName]
   ): Resource[F, GoogleDataprocService[F]] =
     for {
       credential <- userCredentials(pathToCredential)
       scopedCredential = credential.createScoped(Seq(ComputeScopes.CLOUD_PLATFORM).asJava)
-      interpreter <- fromCredential(googleComputeService, scopedCredential, blocker, regionName, blockerBound)
+      interpreter <- fromCredential(googleComputeService, scopedCredential, blocker, supportedRegions, blockerBound)
     } yield interpreter
 
   def fromCredential[F[_]: StructuredLogger: Async: Timer: Parallel: ContextShift](
     googleComputeService: GoogleComputeService[F],
     googleCredentials: GoogleCredentials,
     blocker: Blocker,
-    regionName: RegionName,
+    supportedRegions: Set[RegionName],
     blockerBound: Semaphore[F]
   ): Resource[F, GoogleDataprocService[F]] = {
-    val settings = ClusterControllerSettings
-      .newBuilder()
-      .setEndpoint(s"${regionName.value}-dataproc.googleapis.com:443")
-      .setCredentialsProvider(FixedCredentialsProvider.create(googleCredentials))
-      .build()
+    val regionalSettings = supportedRegions.toList.traverse { region =>
+      val settings = ClusterControllerSettings
+        .newBuilder()
+        .setEndpoint(s"${region.value}-dataproc.googleapis.com:443")
+        .setCredentialsProvider(FixedCredentialsProvider.create(googleCredentials))
+        .build()
+      backgroundResourceF(ClusterControllerClient.create(settings)).map(client => region -> client)
+    }
 
     for {
-      client <- backgroundResourceF(ClusterControllerClient.create(settings))
-    } yield new GoogleDataprocInterpreter[F](client, googleComputeService, blocker, blockerBound)
+      clients <- regionalSettings
+    } yield new GoogleDataprocInterpreter[F](clients.toMap, googleComputeService, blocker, blockerBound)
   }
 }
 

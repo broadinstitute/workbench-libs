@@ -71,7 +71,7 @@ class BaseFakeGoogleDataprocService extends GoogleDataprocService[IO] {
     implicit ev: Ask[IO, TraceId]
   ): IO[Map[DataprocRoleZonePreemptibility, Set[InstanceName]]] = IO.pure(Map.empty)
 
-  override def getClusterError(operationName: OperationName)(implicit
+  override def getClusterError(region: RegionName, operationName: OperationName)(implicit
     ev: Ask[IO, TraceId]
   ): IO[Option[ClusterError]] = IO.pure(None)
 }
