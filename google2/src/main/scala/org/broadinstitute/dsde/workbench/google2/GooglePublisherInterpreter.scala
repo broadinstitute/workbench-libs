@@ -98,7 +98,7 @@ object GooglePublisherInterpreter {
   private def createTopic[F[_]: Sync](topicName: TopicName, topicAdminClient: TopicAdminClient)(implicit
     logger: StructuredLogger[F]
   ): Resource[F, Unit] =
-    Resource.liftF(
+    Resource.eval(
       Sync[F]
         .delay(topicAdminClient.createTopic(topicName))
         .void

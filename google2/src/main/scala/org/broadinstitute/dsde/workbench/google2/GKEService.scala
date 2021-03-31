@@ -83,7 +83,7 @@ object GKEService {
     pathToCredential: Path
   ): Resource[F, com.google.api.services.container.Container] =
     for {
-      httpTransport <- Resource.liftF(Sync[F].delay(GoogleNetHttpTransport.newTrustedTransport))
+      httpTransport <- Resource.eval(Sync[F].delay(GoogleNetHttpTransport.newTrustedTransport))
       jsonFactory = JacksonFactory.getDefaultInstance
       googleCredential <- legacyGoogleCredential(pathToCredential.toString)
       legacyClient = new Container.Builder(httpTransport, jsonFactory, googleCredential)
