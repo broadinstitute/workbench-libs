@@ -133,7 +133,7 @@ object GoogleServiceHttpInterpreter {
   def credentialResourceWithScope[F[_]: Sync](pathToCredential: String): Resource[F, GoogleCredentials] =
     for {
       credentialFile <- org.broadinstitute.dsde.workbench.util2.readFile(pathToCredential)
-      credential <- Resource.liftF(
+      credential <- Resource.eval(
         Sync[F].delay(ServiceAccountCredentials.fromStream(credentialFile).createScoped(StorageScopes.all()))
       )
     } yield credential

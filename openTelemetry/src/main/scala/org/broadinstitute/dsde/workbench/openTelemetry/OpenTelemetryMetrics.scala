@@ -47,7 +47,7 @@ object OpenTelemetryMetrics {
     F: Async[F]
   ): Resource[F, OpenTelemetryMetricsInterpreter[F]] =
     for {
-      projectId <- Resource.liftF(parseProject[F](pathToCredential, blocker).compile.lastOrError)
+      projectId <- Resource.eval(parseProject[F](pathToCredential, blocker).compile.lastOrError)
       stream <- org.broadinstitute.dsde.workbench.util2.readFile(pathToCredential.toString)
       credential = ServiceAccountCredentials
         .fromStream(stream)
@@ -68,7 +68,7 @@ object OpenTelemetryMetrics {
     F: Async[F]
   ): Resource[F, Unit] =
     for {
-      projectId <- Resource.liftF(parseProject[F](pathToCredential, blocker).compile.lastOrError)
+      projectId <- Resource.eval(parseProject[F](pathToCredential, blocker).compile.lastOrError)
       stream <- org.broadinstitute.dsde.workbench.util2.readFile(pathToCredential.toString)
       credential = ServiceAccountCredentials
         .fromStream(stream)
