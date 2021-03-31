@@ -563,9 +563,9 @@ object GoogleStorageInterpreter {
       credential <- org.broadinstitute.dsde.workbench.util2.readFile(pathToJson)
       project <- project match { //Use explicitly passed in project if it's defined; else use `project_id` in json credential; if neither has project defined, raise error
         case Some(p) => Resource.pure[F, GoogleProject](p)
-        case None    => Resource.liftF(parseProject(pathToJson, blocker).compile.lastOrError)
+        case None    => Resource.eval(parseProject(pathToJson, blocker).compile.lastOrError)
       }
-      db <- Resource.liftF(
+      db <- Resource.eval(
         Sync[F].delay(
           StorageOptions
             .newBuilder()
