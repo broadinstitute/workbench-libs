@@ -112,7 +112,7 @@ object Settings {
   })
 
   val cross212and213 = Seq(
-    crossScalaVersions := List("2.12.12", "2.13.3")
+    crossScalaVersions := List("2.12.12", "2.13.5")
   )
 
   //common settings for all sbt subprojects
@@ -157,7 +157,7 @@ object Settings {
   val google2Settings = cross212and213 ++ commonSettings ++ List(
     name := "workbench-google2",
     libraryDependencies ++= google2Dependencies,
-    version := createVersion("0.19")
+    version := createVersion("0.20")
   ) ++ publishSettings
 
   val openTelemetrySettings = cross212and213 ++ commonSettings ++ List(

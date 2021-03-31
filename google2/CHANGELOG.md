@@ -2,6 +2,21 @@
 
 This file documents changes to the `workbench-google2` library, including notes on how to upgrade to new versions.
 
+## 0.20
+Breaking Changes:
+- Make `GoogleDataprocService` support multiple regions
+
+Dependency Updates:
+- Update cats-effect from 2.3.3 to 2.4.0 (#569) (82 seconds ago) <Scala Steward>
+- Update google-cloud-errorreporting from 0.120.34-beta to 0.120.36-beta (#561) (2 hours ago) <Scala Steward>
+- Update akka-http, akka-http-spray-json, ... from 10.2.3 to 10.2.4 (#544) (2 hours ago) <Scala Steward>
+- Update google-cloud-kms from 1.40.5 to 1.40.8 (#539) (2 hours ago) <Scala Steward>
+- Update google-cloud-billing from 1.1.12 to 1.1.15 (#558) (2 hours ago) <Scala Steward>
+- Update google-cloud-storage from 1.113.13 to 1.113.14 (#566) (2 hours ago) <Scala Steward>
+- Update scala-logging from 3.9.2 to 3.9.3 (#568) (2 hours ago) <Scala Steward>
+
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.20-TRAVIS-REPLACE-ME"`
+
 ## 0.19
 Changed:
 - Renamed and added fields in `GoogleDataprocService.CreateClusterConfig` to support creating Dataproc clusters with secondary preemptible workers.
@@ -9,6 +24,7 @@ Changed:
 - Removed `RetryConfig` from `GoogleDataprocService` constructors
 - `GoogleComputeInterpreter` now returns none if it encounters a disabled billing project during `getInstance`
 - Update `GKEInterpreter.pollOperation` to log each polling call
+- Log `traceId` as mdc context in `GoogleSubscriberInterpreter` 
 
 Added:
 - Added `GoogleDataprocService.startCluster`

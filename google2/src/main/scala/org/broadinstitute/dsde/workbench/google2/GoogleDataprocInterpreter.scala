@@ -22,7 +22,7 @@ import scala.collection.JavaConverters._
 import scala.concurrent.duration._
 
 private[google2] class GoogleDataprocInterpreter[F[_]: StructuredLogger: Timer: Parallel: ContextShift](
-  clusterControllerClient: ClusterControllerClient,
+  clusterControllerClients: Map[RegionName, ClusterControllerClient],
   googleComputeService: GoogleComputeService[F],
   blocker: Blocker,
   blockerBound: Semaphore[F]
@@ -65,7 +65,8 @@ private[google2] class GoogleDataprocInterpreter[F[_]: StructuredLogger: Timer: 
       .build()
 
     val createCluster = for {
-      op <- Async[F].delay(clusterControllerClient.createClusterAsync(request))
+      client <- F.fromOption(clusterControllerClients.get(region), new Exception(s"Unsupported region ${region.value}"))
+      op <- Async[F].delay(client.createClusterAsync(request))
       metadata <- Async[F].async[ClusterOperationMetadata] { cb =>
         ApiFutures.addCallback(
           op.getMetadata,
@@ -96,7 +97,6 @@ private[google2] class GoogleDataprocInterpreter[F[_]: StructuredLogger: Timer: 
   ): F[List[Operation]] =
     for {
       clusterInstances <- getClusterInstances(project, region, clusterName)
-
       // First, remove preemptible instances (if any) and wait until the removal is done
       remainingClusterInstances <-
         if (countPreemptibles(clusterInstances) > 0)
@@ -265,7 +265,11 @@ private[google2] class GoogleDataprocInterpreter[F[_]: StructuredLogger: Timer: 
     val updateCluster = updateClusterRequest
       .traverse { request =>
         for {
-          op <- Async[F].delay(clusterControllerClient.updateClusterAsync(request))
+          client <- F.fromOption(clusterControllerClients.get(region),
+                                 new Exception(s"Unsupported region ${region.value}")
+          )
+
+          op <- Async[F].delay(client.updateClusterAsync(request))
           metadata <- Async[F].async[ClusterOperationMetadata] { cb =>
             ApiFutures.addCallback(
               op.getMetadata,
@@ -297,7 +301,9 @@ private[google2] class GoogleDataprocInterpreter[F[_]: StructuredLogger: Timer: 
       .build()
 
     val deleteCluster = (for {
-      op <- Async[F].delay(clusterControllerClient.deleteClusterAsync(request))
+      client <- F.fromOption(clusterControllerClients.get(region), new Exception(s"Unsupported region ${region.value}"))
+
+      op <- Async[F].delay(client.deleteClusterAsync(request))
       metadata <- Async[F].async[ClusterOperationMetadata] { cb =>
         ApiFutures.addCallback(
           op.getMetadata,
@@ -321,20 +327,22 @@ private[google2] class GoogleDataprocInterpreter[F[_]: StructuredLogger: Timer: 
   override def getCluster(project: GoogleProject, region: RegionName, clusterName: DataprocClusterName)(implicit
     ev: Ask[F, TraceId]
   ): F[Option[Cluster]] = {
-    val fa =
-      F.delay(clusterControllerClient.getCluster(project.value, region.value, clusterName.value))
+    val fa = for {
+      client <- F.fromOption(clusterControllerClients.get(region), new Exception(s"Unsupported region ${region.value}"))
+      res <- F
+        .delay(client.getCluster(project.value, region.value, clusterName.value))
         .map(Option(_))
         .handleErrorWith {
           case _: com.google.api.gax.rpc.NotFoundException => F.pure(none[Cluster])
           case e                                           => F.raiseError[Option[Cluster]](e)
         }
+    } yield res
 
     tracedLogging(
       blockF(fa),
       s"com.google.cloud.dataproc.v1.ClusterControllerClient.getCluster(${project.value}, ${region.value}, ${clusterName.value})",
       Show.show[Option[Cluster]](c => s"${c.map(_.getStatus.getState.toString).getOrElse("Not found")}")
     )
-
   }
 
   override def getClusterInstances(project: GoogleProject, region: RegionName, clusterName: DataprocClusterName)(
@@ -345,13 +353,16 @@ private[google2] class GoogleDataprocInterpreter[F[_]: StructuredLogger: Timer: 
     } yield cluster.map(getAllInstanceNames).getOrElse(Map.empty)
 
   override def getClusterError(
+    region: RegionName,
     operationName: OperationName
   )(implicit ev: Ask[F, TraceId]): F[Option[ClusterError]] =
     for {
+      client <- F.fromOption(clusterControllerClients.get(region), new Exception(s"Unsupported region ${region.value}"))
+
       error <- tracedLogging(
         recoverF(
           blockF(
-            Async[F].delay(clusterControllerClient.getOperationsClient.getOperation(operationName.value).getError)
+            Async[F].delay(client.getOperationsClient.getOperation(operationName.value).getError)
           ),
           whenStatusCode(404)
         ),
