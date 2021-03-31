@@ -120,20 +120,20 @@ package object google2 {
   def credentialResource[F[_]: Sync](pathToCredential: String): Resource[F, ServiceAccountCredentials] =
     for {
       credentialFile <- org.broadinstitute.dsde.workbench.util2.readFile(pathToCredential)
-      credential <- Resource.liftF(Sync[F].delay(ServiceAccountCredentials.fromStream(credentialFile)))
+      credential <- Resource.eval(Sync[F].delay(ServiceAccountCredentials.fromStream(credentialFile)))
     } yield credential
 
   def userCredentials[F[_]: Sync](pathToCredential: String): Resource[F, UserCredentials] =
     for {
       credentialFile <- org.broadinstitute.dsde.workbench.util2.readFile(pathToCredential)
-      credential <- Resource.liftF(Sync[F].delay(UserCredentials.fromStream(credentialFile)))
+      credential <- Resource.eval(Sync[F].delay(UserCredentials.fromStream(credentialFile)))
     } yield credential
 
   // returns legacy GoogleCredential object which is only used for the legacy com.google.api.services client
   def legacyGoogleCredential[F[_]: Sync](pathToCredential: String): Resource[F, GoogleCredential] =
     for {
       credentialFile <- org.broadinstitute.dsde.workbench.util2.readFile(pathToCredential)
-      credential <- Resource.liftF(
+      credential <- Resource.eval(
         Sync[F].delay(GoogleCredential.fromStream(credentialFile).createScoped(ContainerScopes.all()))
       )
     } yield credential

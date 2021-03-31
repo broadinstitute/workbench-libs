@@ -48,7 +48,7 @@ object GoogleBigQueryService {
     projectId: GoogleProject
   ): Resource[F, GoogleBigQueryService[F]] =
     for {
-      client <- Resource.liftF[F, BigQuery](
+      client <- Resource.eval[F, BigQuery](
         Sync[F].delay(
           new DefaultBigQueryFactory().create(
             BigQueryOptions
