@@ -20,7 +20,11 @@ Dependency Updates:
 - Update google-cloud-storage from 1.113.13 to 1.113.14 (#566) (2 hours ago) <Scala Steward>
 - Update scala-logging from 3.9.2 to 3.9.3 (#568) (2 hours ago) <Scala Steward>
 - Update log4cats-slf4j
+- Update google-cloud-pubsub 
+- Update google-cloud-bigquery from 1.127.7 to 1.127.11
 - Update guava from 30.1-jre to 30.1.1-jre (#567)
+- Update google-cloud-container from 1.2.6 to 1.3.0
+- Update mockito-3-4 from 3.2.3.0 to 3.2.6.0
 
 SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.20-TRAVIS-REPLACE-ME"`
 
