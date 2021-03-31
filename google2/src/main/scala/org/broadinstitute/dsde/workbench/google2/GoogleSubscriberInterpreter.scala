@@ -229,7 +229,7 @@ object GoogleSubscriberInterpreter {
       subWithDeadLetterPolicy.setFilter(ft).build()
     }
 
-    Resource.liftF(
+    Resource.eval(
       Async[F]
         .delay(
           subscriptionAdminClient.createSubscription(sub)
