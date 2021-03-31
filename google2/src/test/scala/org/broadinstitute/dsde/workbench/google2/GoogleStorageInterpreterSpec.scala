@@ -10,7 +10,7 @@ import org.broadinstitute.dsde.workbench.google2.GoogleStorageInterpreterSpec._
 import org.broadinstitute.dsde.workbench.util2.WorkbenchTestSuite
 import org.scalacheck.Gen
 import org.scalatest.flatspec.AsyncFlatSpec
-import io.chrisdavenport.log4cats.slf4j.Slf4jLogger
+import org.typelevel.log4cats.slf4j.Slf4jLogger
 import org.scalatest.matchers.should.Matchers
 
 import scala.concurrent.ExecutionContext.global
