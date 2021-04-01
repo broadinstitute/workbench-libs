@@ -5,7 +5,7 @@ import cats.mtl.Ask
 import com.google.cloud.pubsub.v1.SubscriptionAdminClient
 import com.google.pubsub.v1.{ProjectName, ProjectSubscriptionName, Subscription}
 import fs2.Stream
-import io.chrisdavenport.log4cats.StructuredLogger
+import org.typelevel.log4cats.StructuredLogger
 import org.broadinstitute.dsde.workbench.model.TraceId
 import org.broadinstitute.dsde.workbench.model.google.GoogleProject
 

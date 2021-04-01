@@ -10,7 +10,7 @@ import com.google.cloud.pubsub.v1.{TopicAdminClient, TopicAdminSettings}
 import com.google.iam.v1.{Binding, GetIamPolicyRequest, Policy, SetIamPolicyRequest}
 import com.google.pubsub.v1.{ProjectName, Topic, TopicName}
 import fs2.Stream
-import io.chrisdavenport.log4cats.StructuredLogger
+import org.typelevel.log4cats.StructuredLogger
 import org.broadinstitute.dsde.workbench.model.TraceId
 import org.broadinstitute.dsde.workbench.model.google.GoogleProject
 

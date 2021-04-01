@@ -7,6 +7,11 @@ Breaking Changes:
 - Make `GoogleDataprocService` support multiple regions
 
 Dependency Updates:
+- Update google-cloud-nio from 0.122.5 to 0.122.11 (#563) (2 hours ago) <Scala Steward>
+- Update jackson-module-scala from 2.12.1 to 2.12.2 (#532) (2 hours ago) <Scala Steward>
+- Update client-java from 11.0.0 to 11.0.1 (#546) (2 hours ago) <Scala Steward>
+- Update scalatest from 3.2.3 to 3.2.6 (#549) (2 hours ago) <Scala Steward>
+- Update google-cloud-firestore from 2.2.1 to 2.2.5 (#562) (2 hours ago) <Scala Steward>
 - Update cats-effect from 2.3.3 to 2.4.0 (#569) (82 seconds ago) <Scala Steward>
 - Update google-cloud-errorreporting from 0.120.34-beta to 0.120.36-beta (#561) (2 hours ago) <Scala Steward>
 - Update akka-http, akka-http-spray-json, ... from 10.2.3 to 10.2.4 (#544) (2 hours ago) <Scala Steward>
@@ -14,6 +19,12 @@ Dependency Updates:
 - Update google-cloud-billing from 1.1.12 to 1.1.15 (#558) (2 hours ago) <Scala Steward>
 - Update google-cloud-storage from 1.113.13 to 1.113.14 (#566) (2 hours ago) <Scala Steward>
 - Update scala-logging from 3.9.2 to 3.9.3 (#568) (2 hours ago) <Scala Steward>
+- Update log4cats-slf4j
+- Update google-cloud-pubsub 
+- Update google-cloud-bigquery from 1.127.7 to 1.127.11
+- Update guava from 30.1-jre to 30.1.1-jre (#567)
+- Update google-cloud-container from 1.2.6 to 1.3.0
+- Update mockito-3-4 from 3.2.3.0 to 3.2.6.0
 
 SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.20-TRAVIS-REPLACE-ME"`
 

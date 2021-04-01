@@ -6,7 +6,7 @@ import cats.effect.concurrent.Semaphore
 import cats.effect.{Blocker, IO}
 import cats.mtl.Ask
 import com.google.cloud.compute.v1.Instance
-import io.chrisdavenport.log4cats.slf4j.Slf4jLogger
+import org.typelevel.log4cats.slf4j.Slf4jLogger
 import org.broadinstitute.dsde.workbench.model.TraceId
 import org.broadinstitute.dsde.workbench.model.google.GoogleProject
 

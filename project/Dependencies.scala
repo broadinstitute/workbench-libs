@@ -8,7 +8,7 @@ object Dependencies {
   val scalaLoggingV = "3.9.3"
   val scalaTestV    = "3.2.6"
   val circeVersion = "0.13.0"
-  val http4sVersion = "0.21.19"
+  val http4sVersion = "0.21.20"
 
   def excludeGuavaJDK5(m: ModuleID): ModuleID = m.exclude("com.google.guava", "guava-jdk5")
 
@@ -16,9 +16,8 @@ object Dependencies {
   val scalaLogging: ModuleID = "com.typesafe.scala-logging"    %% "scala-logging" % scalaLoggingV  % "provided"
   val scalatest: ModuleID =    "org.scalatest"                 %% "scalatest"     % scalaTestV  % "test"
   val scalaTestScalaCheck = "org.scalatestplus" %% "scalacheck-1-14" % "3.2.2.0" % Test //Since scalatest 3.1.0, scalacheck support is moved to `scalatestplus`
-  val scalaTestMockito = "org.scalatestplus" %% "mockito-3-4" % "3.2.3.0" % Test //Since scalatest 3.1.0, mockito support is moved to `scalatestplus`
-  val scalaTestSelenium =  "org.scalatestplus" %% "selenium-3-141" % "3.2.2.0" % Test //Since scalatest 3.1.0, selenium support is moved to `scalatestplus`
-  val mockito: ModuleID =      "org.mockito"                   %  "mockito-core"  % "3.7.7" % "test"
+  val scalaTestMockito = "org.scalatestplus" %% "mockito-3-4" % "3.2.6.0" % Test //Since scalatest 3.1.0, mockito support is moved to `scalatestplus`
+  val scalaTestSelenium =  "org.scalatestplus" %% "selenium-3-141" % "3.2.6.0" % Test //Since scalatest 3.1.0, selenium support is moved to `scalatestplus`
 
   val akkaActor: ModuleID =         "com.typesafe.akka" %% "akka-actor"           % akkaV     % "provided"
   val akkaStream: ModuleID =         "com.typesafe.akka" %% "akka-stream"           % akkaV     % "provided"
@@ -58,24 +57,24 @@ object Dependencies {
   val googleFirestore: ModuleID = "com.google.cloud" % "google-cloud-firestore" % "2.2.5"
   val googleStorageNew: ModuleID = "com.google.cloud" % "google-cloud-storage" % "1.113.14"
   val googleStorageLocal: ModuleID = "com.google.cloud" % "google-cloud-nio" % "0.122.11" % "test"
-  val googlePubsubNew: ModuleID = "com.google.cloud" % "google-cloud-pubsub" % "1.111.4"
+  val googlePubsubNew: ModuleID = "com.google.cloud" % "google-cloud-pubsub" % "1.112.0"
   val googleKms: ModuleID = "com.google.cloud" % "google-cloud-kms" % "1.40.8"
   val googleDataproc: ModuleID =    "com.google.cloud" % "google-cloud-dataproc" % "1.3.0"
   val googleComputeNew: ModuleID = "com.google.cloud" % "google-cloud-compute" % "0.118.0-alpha"
-  val googleContainer: ModuleID = "com.google.cloud" % "google-cloud-container" % "1.2.6"
+  val googleContainer: ModuleID = "com.google.cloud" % "google-cloud-container" % "1.3.0"
   val kubernetesClient: ModuleID = "io.kubernetes" % "client-java" % "11.0.1"
-  val googleBigQueryNew: ModuleID = "com.google.cloud" % "google-cloud-bigquery" % "1.127.7"
+  val googleBigQueryNew: ModuleID = "com.google.cloud" % "google-cloud-bigquery" % "1.127.11"
   val google2CloudBilling = "com.google.cloud" % "google-cloud-billing" % "1.1.15"
-  val googleResourceManager =  "com.google.cloud" % "google-cloud-resourcemanager" % "0.118.8-alpha"
+  val googleResourceManager =  "com.google.cloud" % "google-cloud-resourcemanager" % "0.118.12-alpha"
   //the below v1 module is a dependency for v2 because it contains the OAuth scopes necessary to created scoped credentials
-  val googleContainerV1: ModuleID = "com.google.apis" % "google-api-services-container" % "v1-rev20201209-1.31.0"
+  val googleContainerV1: ModuleID = "com.google.apis" % "google-api-services-container" % "v1-rev20210312-1.31.0"
 
 
   val circeCore: ModuleID = "io.circe" %% "circe-core" % circeVersion
   val circeParser: ModuleID = "io.circe" %% "circe-parser" % circeVersion
   val circeGeneric: ModuleID = "io.circe" %% "circe-generic" % circeVersion % "test"
   val circeFs2: ModuleID = "io.circe" %% "circe-fs2" % circeVersion
-  val log4cats = "io.chrisdavenport" %% "log4cats-slf4j"   % "1.1.1"
+  val log4cats = "org.typelevel" %% "log4cats-slf4j"   % "1.2.0"
   val catsMtl = "org.typelevel" %% "cats-mtl" % "1.1.2"
 
   val http4sCirce = "org.http4s" %% "http4s-circe" % http4sVersion
@@ -102,7 +101,6 @@ object Dependencies {
     akkaActor,
     akkaHttpSprayJson,
     akkaTestkit,
-    mockito,
     scalaTestMockito,
     "org.typelevel" %% "cats-core" % "2.4.2"
   )
@@ -122,7 +120,6 @@ object Dependencies {
     akkaStream,
     akkaTestkit,
     akkaHttpTestkit,
-    mockito,
     scalaTestMockito
   )
 

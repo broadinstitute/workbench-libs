@@ -8,7 +8,7 @@ import cats.effect.concurrent.Semaphore
 import cats.mtl.Ask
 import com.google.api.services.compute.ComputeScopes
 import com.google.auth.oauth2.GoogleCredentials
-import io.chrisdavenport.log4cats.StructuredLogger
+import org.typelevel.log4cats.StructuredLogger
 import com.google.cloud.resourcemanager.{Project, ResourceManagerOptions}
 import org.broadinstitute.dsde.workbench.model.TraceId
 import org.broadinstitute.dsde.workbench.model.google.GoogleProject
