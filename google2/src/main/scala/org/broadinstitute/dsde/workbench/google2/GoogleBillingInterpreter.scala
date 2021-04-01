@@ -5,7 +5,7 @@ import cats.effect.concurrent.Semaphore
 import cats.effect.{Async, Blocker, ContextShift, Timer}
 import cats.mtl.Ask
 import com.google.cloud.billing.v1.{CloudBillingClient, ProjectBillingInfo}
-import io.chrisdavenport.log4cats.StructuredLogger
+import org.typelevel.log4cats.StructuredLogger
 import org.broadinstitute.dsde.workbench.model.google.GoogleProject
 import cats.syntax.all._
 import org.broadinstitute.dsde.workbench.model.TraceId

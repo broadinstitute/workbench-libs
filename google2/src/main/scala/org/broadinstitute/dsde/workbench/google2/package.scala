@@ -16,7 +16,7 @@ import com.google.cloud.billing.v1.ProjectBillingInfo
 import com.google.cloud.compute.v1.Operation
 import com.google.cloud.resourcemanager.Project
 import fs2.{RaiseThrowable, Stream}
-import io.chrisdavenport.log4cats.StructuredLogger
+import org.typelevel.log4cats.StructuredLogger
 import io.circe.Encoder
 import org.broadinstitute.dsde.workbench.model.{ErrorReportSource, TraceId, WorkbenchException}
 import io.circe.syntax._

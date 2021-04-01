@@ -4,7 +4,7 @@ import cats.effect.IO
 import com.google.pubsub.v1.ProjectTopicName
 import fs2.concurrent.InspectableQueue
 import fs2.{Pipe, Stream}
-import io.chrisdavenport.log4cats.slf4j.Slf4jLogger
+import org.typelevel.log4cats.slf4j.Slf4jLogger
 import io.circe.Decoder
 import cats.syntax.all._
 import scala.concurrent.ExecutionContext.global

@@ -4,7 +4,7 @@ import cats.effect.{Async, ContextShift, Resource, Timer}
 import cats.mtl.Ask
 import com.google.pubsub.v1.PubsubMessage
 import fs2.Pipe
-import io.chrisdavenport.log4cats.StructuredLogger
+import org.typelevel.log4cats.StructuredLogger
 import io.circe.Encoder
 import org.broadinstitute.dsde.workbench.model.TraceId
 

@@ -1,6 +1,6 @@
 package org.broadinstitute.dsde.workbench.google2
 
-import _root_.io.chrisdavenport.log4cats.StructuredLogger
+import _root_.org.typelevel.log4cats.StructuredLogger
 import cats.Parallel
 import cats.effect._
 import cats.effect.concurrent.Semaphore

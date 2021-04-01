@@ -1,7 +1,7 @@
 package org.broadinstitute.dsde.workbench.util2
 
 import cats.data.Kleisli
-import io.chrisdavenport.log4cats.Logger
+import org.typelevel.log4cats.Logger
 import io.circe.Encoder
 import io.circe.syntax._
 

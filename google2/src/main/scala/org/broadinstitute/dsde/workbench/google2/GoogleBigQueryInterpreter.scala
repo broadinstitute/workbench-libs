@@ -4,7 +4,7 @@ import cats.Show
 import cats.effect.{Blocker, ContextShift, Sync, Timer}
 import com.google.cloud.bigquery.Acl.{Group, User}
 import com.google.cloud.bigquery.{Acl, BigQuery, DatasetId, DatasetInfo, JobId, QueryJobConfiguration, TableResult}
-import io.chrisdavenport.log4cats.StructuredLogger
+import org.typelevel.log4cats.StructuredLogger
 import org.broadinstitute.dsde.workbench.model.{WorkbenchEmail, WorkbenchException}
 
 import scala.collection.JavaConverters._

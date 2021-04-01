@@ -14,7 +14,7 @@ import com.google.protobuf.Timestamp
 import com.google.pubsub.v1.{PubsubMessage, _}
 import fs2.Stream
 import fs2.concurrent.Queue
-import io.chrisdavenport.log4cats.{Logger, StructuredLogger}
+import org.typelevel.log4cats.{Logger, StructuredLogger}
 import io.circe.Decoder
 import io.circe.parser._
 import org.broadinstitute.dsde.workbench.model.TraceId
