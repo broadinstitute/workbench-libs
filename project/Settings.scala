@@ -118,7 +118,7 @@ object Settings {
   //common settings for all sbt subprojects
   val commonSettings = commonBuildSettings ++ commonTestSettings ++ List(
     organization := "org.broadinstitute.dsde.workbench",
-    scalaVersion := "2.13.3",
+    scalaVersion := "2.13.5",
     resolvers ++= commonResolvers,
     commonCompilerSettings
   )
