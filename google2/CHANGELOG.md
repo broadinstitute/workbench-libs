@@ -5,8 +5,9 @@ This file documents changes to the `workbench-google2` library, including notes 
 ## 0.20
 Breaking Changes:
 - Make `GoogleDataprocService` support multiple regions
+- Make `GoogleComputeService.createInstance` return `F[Option[Operation]]`
 
-Dependency Updates:
+Dependency Updates (latest):
 - Update google-cloud-nio from 0.122.5 to 0.122.11 (#563) (2 hours ago) <Scala Steward>
 - Update jackson-module-scala from 2.12.1 to 2.12.2 (#532) (2 hours ago) <Scala Steward>
 - Update client-java from 11.0.0 to 11.0.1 (#546) (2 hours ago) <Scala Steward>
@@ -26,7 +27,7 @@ Dependency Updates:
 - Update google-cloud-container from 1.2.6 to 1.3.0
 - Update mockito-3-4 from 3.2.3.0 to 3.2.6.0
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.20-0adbb3b"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.20-TRAVIS-REPLACE-ME"`
 
 ## 0.19
 Changed:
