@@ -33,10 +33,10 @@ private[google2] class GoogleComputeInterpreter[F[_]: Parallel: StructuredLogger
 
   override def createInstance(project: GoogleProject, zone: ZoneName, instance: Instance)(implicit
     ev: Ask[F, TraceId]
-  ): F[Operation] = {
+  ): F[Option[Operation]] = {
     val projectZone = ProjectZoneName.of(project.value, zone.value)
     retryF(
-      F.delay(instanceClient.insertInstance(projectZone, instance)),
+      recoverF(F.delay(instanceClient.insertInstance(projectZone, instance)), whenStatusCode(409)),
       s"com.google.cloud.compute.v1.InstanceClient.insertInstance(${projectZone.toString}, ${instance.getName})"
     )
   }

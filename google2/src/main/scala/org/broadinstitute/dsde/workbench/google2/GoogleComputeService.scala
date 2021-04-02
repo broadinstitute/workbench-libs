@@ -22,7 +22,7 @@ import scala.collection.JavaConverters._
 trait GoogleComputeService[F[_]] {
   def createInstance(project: GoogleProject, zone: ZoneName, instance: Instance)(implicit
     ev: Ask[F, TraceId]
-  ): F[Operation]
+  ): F[Option[Operation]]
 
   def deleteInstance(project: GoogleProject, zone: ZoneName, instanceName: InstanceName)(implicit
     ev: Ask[F, TraceId]

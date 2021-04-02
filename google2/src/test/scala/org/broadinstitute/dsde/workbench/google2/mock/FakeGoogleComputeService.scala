@@ -22,7 +22,8 @@ import org.broadinstitute.dsde.workbench.model.google.GoogleProject
 class FakeGoogleComputeService extends GoogleComputeService[IO] {
   override def createInstance(project: GoogleProject, zone: ZoneName, instance: Instance)(implicit
     ev: Ask[IO, TraceId]
-  ): IO[Operation] = IO.pure(Operation.newBuilder().setId("op").setName("opName").setTargetId("target").build())
+  ): IO[Option[Operation]] =
+    IO.pure(Some(Operation.newBuilder().setId("op").setName("opName").setTargetId("target").build()))
 
   override def deleteInstance(project: GoogleProject, zone: ZoneName, instanceName: InstanceName)(implicit
     ev: Ask[IO, TraceId]
