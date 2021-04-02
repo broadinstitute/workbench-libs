@@ -33,12 +33,16 @@ private[google2] class GoogleComputeInterpreter[F[_]: Parallel: StructuredLogger
 
   override def createInstance(project: GoogleProject, zone: ZoneName, instance: Instance)(implicit
     ev: Ask[F, TraceId]
-  ): F[Operation] = {
+  ): F[Option[Operation]] = {
     val projectZone = ProjectZoneName.of(project.value, zone.value)
     retryF(
       F.delay(instanceClient.insertInstance(projectZone, instance)),
       s"com.google.cloud.compute.v1.InstanceClient.insertInstance(${projectZone.toString}, ${instance.getName})"
-    )
+    ).map(Option(_))
+      .handleErrorWith {
+        case _: com.google.api.gax.rpc.AlreadyExistsException => F.pure(none[Operation])
+        case e                                                => F.raiseError[Option[Operation]](e)
+      }
   }
 
   override def deleteInstanceWithAutoDeleteDisk(project: GoogleProject,
