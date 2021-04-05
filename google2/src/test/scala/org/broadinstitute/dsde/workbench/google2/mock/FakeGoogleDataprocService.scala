@@ -14,10 +14,12 @@ class BaseFakeGoogleDataprocService extends GoogleDataprocService[IO] {
     region: RegionName,
     clusterName: DataprocClusterName,
     createClusterConfig: Option[CreateClusterConfig]
-  )(implicit ev: Ask[IO, TraceId]): IO[DataprocOperation] =
+  )(implicit ev: Ask[IO, TraceId]): IO[Option[DataprocOperation]] =
     IO.pure(
-      DataprocOperation(OperationName("opName"),
-                        ClusterOperationMetadata.newBuilder().setClusterUuid("clusterUuid").build
+      Some(
+        DataprocOperation(OperationName("opName"),
+                          ClusterOperationMetadata.newBuilder().setClusterUuid("clusterUuid").build
+        )
       )
     )
 
