@@ -28,7 +28,7 @@ trait GoogleDataprocService[F[_]] {
     region: RegionName,
     clusterName: DataprocClusterName,
     createClusterConfig: Option[CreateClusterConfig]
-  )(implicit ev: Ask[F, TraceId]): F[DataprocOperation]
+  )(implicit ev: Ask[F, TraceId]): F[Option[DataprocOperation]]
 
   def stopCluster(project: GoogleProject,
                   region: RegionName,

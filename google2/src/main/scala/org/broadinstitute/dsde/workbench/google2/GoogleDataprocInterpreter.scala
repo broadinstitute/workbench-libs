@@ -34,7 +34,7 @@ private[google2] class GoogleDataprocInterpreter[F[_]: StructuredLogger: Timer: 
     region: RegionName,
     clusterName: DataprocClusterName,
     createClusterConfig: Option[CreateClusterConfig]
-  )(implicit ev: Ask[F, TraceId]): F[DataprocOperation] = {
+  )(implicit ev: Ask[F, TraceId]): F[Option[DataprocOperation]] = {
     val config: ClusterConfig = createClusterConfig
       .map { config =>
         val bldr = ClusterConfig.newBuilder
@@ -66,15 +66,19 @@ private[google2] class GoogleDataprocInterpreter[F[_]: StructuredLogger: Timer: 
 
     val createCluster = for {
       client <- F.fromOption(clusterControllerClients.get(region), new Exception(s"Unsupported region ${region.value}"))
-      op <- Async[F].delay(client.createClusterAsync(request))
-      metadata <- Async[F].async[ClusterOperationMetadata] { cb =>
-        ApiFutures.addCallback(
-          op.getMetadata,
-          callBack(cb),
-          MoreExecutors.directExecutor()
-        )
+      operationOpt <- recoverF(Async[F].delay(client.createClusterAsync(request)), whenStatusCode(409))
+      opAndMetadata <- operationOpt.traverse { op =>
+        Async[F]
+          .async[ClusterOperationMetadata] { cb =>
+            ApiFutures.addCallback(
+              op.getMetadata,
+              callBack(cb),
+              MoreExecutors.directExecutor()
+            )
+          }
+          .map(metadata => (op, metadata))
       }
-    } yield DataprocOperation(OperationName(op.getName), metadata)
+    } yield opAndMetadata.map(x => DataprocOperation(OperationName(x._1.getName), x._2))
 
     tracedLogging(
       blockF(createCluster),
