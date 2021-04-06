@@ -27,7 +27,7 @@ Dependency Updates (latest):
 - Update google-cloud-container from 1.2.6 to 1.3.0
 - Update mockito-3-4 from 3.2.3.0 to 3.2.6.0
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.20-TRAVIS-REPLACE-ME"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.20-cba9b6c"`
 
 ## 0.19
 Changed:
