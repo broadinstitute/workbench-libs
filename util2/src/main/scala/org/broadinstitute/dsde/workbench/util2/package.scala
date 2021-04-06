@@ -35,9 +35,7 @@ package object util2 {
    * res0: List[String] = List(this is great)
    *
    */
-  def readJsonFileToA[F[_]: Sync: ContextShift: Concurrent, A: Decoder](path: Path,
-                                                                        blocker: Option[Blocker]
-  ): Stream[F, A] =
+  def readJsonFileToA[F[_]: Sync: ContextShift, A: Decoder](path: Path, blocker: Option[Blocker]): Stream[F, A] =
     io.file
       .readAll[F](path, blocker.getOrElse(Blocker.liftExecutionContext(global)), 4096)
       .through(fs2.text.utf8Decode)
