@@ -1,0 +1,32 @@
+name: dependency-bot
+
+on:
+  workflow_dispatch:
+    inputs:
+      commit:
+        description: 'last commit hash from which we should accumulate commit messages '
+        required: true
+#  push:
+#    branches:
+#      - workflow
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Merge scala-steward PRs
+      id: msp
+      run: |
+        export GITHUB_TOKEN=${{ secrets.BROADBOT_GITHUB_TOKEN }}
+
+        git config --global user.email "broadbot@broadinstitute.org"
+        git config --global user.name "broadbot"
+
+        message=`git log --pretty=format:'%s' --no-merges ${{ github.event.inputs.name }}..HEAD | sed 's/^/\- /g'`
+
+        sed '/Dependency Updates (latest)/r'<(echo $message) google2/CHANGELOG.md
+
+        git push origin update-changelog
+        gh pr create --title "[No Ticket] Update changelog for dependency bumps" --body "Update changelog"
