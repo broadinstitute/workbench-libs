@@ -19,7 +19,7 @@ object RetryPredicates {
   val standardGoogleRetryConfig = standardRetryConfig.copy(retryable = standardGoogleRetryPredicate)
 
   def retryConfigWithPredicates(predicates: (Throwable => Boolean)*): RetryConfig =
-    standardGoogleRetryConfig.copy(retryable = combine(predicates))
+    standardRetryConfig.copy(retryable = combine(predicates))
 
   /**
    * Retries anything google thinks is ok to retry plus any IOException
