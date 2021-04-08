@@ -13,17 +13,19 @@ object RetryPredicates {
     org.broadinstitute.dsde.workbench.util2.addJitter(1 seconds, 1 seconds),
     x => x * 2,
     5,
-    standardRetryPredicate
+    _ => true
   )
 
+  val standardGoogleRetryConfig = standardRetryConfig.copy(retryable = standardGoogleRetryPredicate)
+
   def retryConfigWithPredicates(predicates: (Throwable => Boolean)*): RetryConfig =
-    standardRetryConfig.copy(retryable = combine(predicates))
+    standardGoogleRetryConfig.copy(retryable = combine(predicates))
 
   /**
    * Retries anything google thinks is ok to retry plus any IOException
    * @return
    */
-  def standardRetryPredicate: Throwable => Boolean = {
+  def standardGoogleRetryPredicate: Throwable => Boolean = {
     case e: BaseServiceException => e.isRetryable
     case _: IOException          => true
     case _                       => false

@@ -123,7 +123,7 @@ object GoogleComputeService {
     pathToCredential: String,
     blocker: Blocker,
     blockerBound: Semaphore[F],
-    retryConfig: RetryConfig = RetryPredicates.standardRetryConfig
+    retryConfig: RetryConfig = RetryPredicates.standardGoogleRetryConfig
   ): Resource[F, GoogleComputeService[F]] =
     for {
       credential <- credentialResource(pathToCredential)
@@ -135,7 +135,7 @@ object GoogleComputeService {
     pathToCredential: String,
     blocker: Blocker,
     blockerBound: Semaphore[F],
-    retryConfig: RetryConfig = RetryPredicates.standardRetryConfig
+    retryConfig: RetryConfig = RetryPredicates.standardGoogleRetryConfig
   ): Resource[F, GoogleComputeService[F]] =
     for {
       credential <- userCredentials(pathToCredential)

@@ -34,7 +34,7 @@ package object google2 {
     "result"
   )(x => LoggableGoogleCall.unapply(x).get)
 
-  def retryGoogleF[F[_]: Sync: Timer: RaiseThrowable, A](
+  def retryF[F[_]: Sync: Timer: RaiseThrowable, A](
     retryConfig: RetryConfig
   )(fa: F[A],
     traceId: Option[TraceId],
@@ -99,7 +99,7 @@ package object google2 {
       result <- withLogging(fa, Some(traceId), action, resultFormatter)
     } yield result
 
-  def tracedRetryGoogleF[F[_]: Sync: Timer: RaiseThrowable: StructuredLogger, A](
+  def tracedRetryF[F[_]: Sync: Timer: RaiseThrowable: StructuredLogger, A](
     retryConfig: RetryConfig
   )(fa: F[A],
     action: String,
@@ -107,7 +107,7 @@ package object google2 {
   )(implicit ev: Ask[F, TraceId]): Stream[F, A] =
     for {
       traceId <- Stream.eval(ev.ask)
-      result <- retryGoogleF(retryConfig)(fa, Some(traceId), action, resultFormatter)
+      result <- retryF(retryConfig)(fa, Some(traceId), action, resultFormatter)
     } yield result
 
   def callBack[A](cb: Either[Throwable, A] => Unit): ApiFutureCallback[A] =
