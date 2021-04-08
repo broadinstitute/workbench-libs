@@ -189,8 +189,8 @@ private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer](
     val metadataUpdate = blockingF(Async[F].delay(db.update(blobInfo)))
 
     retryF(retryConfig)(metadataUpdate,
-                              traceId,
-                              s"com.google.cloud.storage.Storage.update($bucketName/${objectName.value})"
+                        traceId,
+                        s"com.google.cloud.storage.Storage.update($bucketName/${objectName.value})"
     ).void
   }
 
@@ -257,8 +257,8 @@ private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer](
     }
 
     retryF(retryConfig)(storeObject,
-                              traceId,
-                              s"com.google.cloud.storage.Storage.create($bucketName/${objectName.value}, xxx)"
+                        traceId,
+                        s"com.google.cloud.storage.Storage.create($bucketName/${objectName.value}, xxx)"
     )
   }
 
@@ -495,8 +495,8 @@ private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer](
       .setLifecycleRules(lifecycleRules.asJava)
       .build()
     retryF(retryConfig)(blockingF(Async[F].delay(db.update(bucketInfo))),
-                              traceId,
-                              s"com.google.cloud.storage.Storage.update($bucketInfo)"
+                        traceId,
+                        s"com.google.cloud.storage.Storage.update($bucketInfo)"
     ).void
   }
 
