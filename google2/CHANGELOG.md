@@ -30,7 +30,7 @@ Dependency Updates (latest):
 Changed:
 - Fix a bug in `genZoneName`
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.20-TRAVIS-REPLACE-ME"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.20-52e271f"`
 
 ## 0.19
 Changed:
