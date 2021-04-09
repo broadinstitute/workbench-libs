@@ -59,7 +59,7 @@ object Generators {
   val genZoneName = for {
     zoneRegion <- genRegionName
     zoneLetter <- Gen.oneOf('a', 'b', 'c')
-  } yield ZoneName(s"${zoneRegion}-${zoneLetter}")
+  } yield ZoneName(s"${zoneRegion.value}-${zoneLetter}")
   val genLocation = for {
     zoneLetter <- Gen.oneOf('a', 'b', 'c')
   } yield Location(s"us-central1-${zoneLetter}")
