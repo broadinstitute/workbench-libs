@@ -98,7 +98,7 @@ class HttpGoogleProjectDAO(appName: String,
       case e: HttpResponseException if e.getStatusCode == StatusCodes.NotFound.intValue => None
     } map {
       // return true if billing is enabled for the project, false otherwise
-      case Some(billingInfo) => billingInfo.getBillingEnabled == true
+      case Some(billingInfo) => billingInfo.getBillingEnabled
       case None              => false
     }
 
