@@ -134,4 +134,12 @@ class HttpGoogleProjectDAO(appName: String,
       // if the project doesn't exist, don't fail
       case e: HttpResponseException if e.getStatusCode == StatusCodes.NotFound.intValue => None
     }
+
+  override def getProjectName(projectId: String): Future[Option[String]] =
+    retryWithRecover(when5xx, whenUsageLimited, whenInvalidValueOnBucketCreation, whenNonHttpIOException) { () =>
+      Option(executeGoogleRequest(cloudResManager.projects().get(projectId))).map(_.getName)
+    } {
+      // if the project doesn't exist, don't fail
+      case e: HttpResponseException if e.getStatusCode == StatusCodes.NotFound.intValue => None
+    }
 }
