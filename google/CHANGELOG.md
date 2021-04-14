@@ -4,7 +4,7 @@ This file documents changes to the `workbench-google` library, including notes o
 
 ## 0.21
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.21-51d7fff"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.21-TRAVIS-REPLACE-ME"`
 
 ### Added
 
@@ -17,6 +17,7 @@ SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.
 - Added enableRequesterPays for workspaces
 - Support structured logging for google requests
   - requires dependency "net.logstash.logback" % "logstash-logback-encoder" % "6.6"
+- `getProjectName` in `GoogleProjectDAO`
 
 ### Changed
 
