@@ -333,7 +333,7 @@ private[google2] class GoogleComputeInterpreter[F[_]: Parallel: StructuredLogger
     s"https://www.googleapis.com/compute/v1/projects/${googleProject.value}/regions/${regionName.value}"
 
   private def retryF[A](fa: F[A], loggingMsg: String)(implicit ev: Ask[F, TraceId]): F[A] =
-    tracedRetryGoogleF(retryConfig)(blockerBound.withPermit(blocker.blockOn(fa)), loggingMsg).compile.lastOrError
+    tracedRetryF(retryConfig)(blockerBound.withPermit(blocker.blockOn(fa)), loggingMsg).compile.lastOrError
 
 }
 
