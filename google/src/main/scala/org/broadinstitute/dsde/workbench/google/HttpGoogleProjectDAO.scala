@@ -13,9 +13,10 @@ import org.broadinstitute.dsde.workbench.google.GoogleCredentialModes._
 import org.broadinstitute.dsde.workbench.google.GoogleCredentialModes.GoogleCredentialMode
 import org.broadinstitute.dsde.workbench.google.GoogleUtilities.RetryPredicates._
 import org.broadinstitute.dsde.workbench.metrics.GoogleInstrumentedService
+import org.broadinstitute.dsde.workbench.metrics.GoogleInstrumentedService.GoogleInstrumentedService
 import org.broadinstitute.dsde.workbench.model.google.GoogleResourceTypes.GoogleParentResourceType
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import scala.concurrent.{ExecutionContext, Future}
 
 class HttpGoogleProjectDAO(appName: String,
@@ -29,7 +30,7 @@ class HttpGoogleProjectDAO(appName: String,
 
   override val scopes = Seq(ComputeScopes.CLOUD_PLATFORM)
 
-  implicit override val service = GoogleInstrumentedService.Projects
+  implicit override val service: GoogleInstrumentedService = GoogleInstrumentedService.Projects
 
   private def cloudResManager =
     new CloudResourceManager.Builder(httpTransport, jsonFactory, googleCredential).setApplicationName(appName).build()
