@@ -6,7 +6,7 @@ This file documents changes to the `workbench-google2` library, including notes 
 Breaking Changes:
 - Rename `retryGoogleF` and `tracedRetryGoogleF` to `retryF` and `tracedRetryF`
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.21-TRAVIS-REPLACE-ME"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.21-8d080f2"`
 
 ## 0.20
 Breaking Changes:
