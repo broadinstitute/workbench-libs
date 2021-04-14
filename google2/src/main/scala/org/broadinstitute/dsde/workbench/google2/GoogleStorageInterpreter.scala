@@ -25,7 +25,7 @@ import fs2.{text, Pipe, Stream}
 import org.typelevel.log4cats.StructuredLogger
 import io.circe.Decoder
 import io.circe.fs2._
-import org.broadinstitute.dsde.workbench.google2.util.RetryPredicates.standardRetryConfig
+import org.broadinstitute.dsde.workbench.google2.util.RetryPredicates.standardGoogleRetryConfig
 import org.broadinstitute.dsde.workbench.model.{TraceId, WorkbenchException}
 import org.broadinstitute.dsde.workbench.model.google.{GcsBucketName, GcsObjectName, GoogleProject}
 import com.google.auth.Credentials
@@ -92,7 +92,7 @@ private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer](
     val getBlobs = blockingF(F.delay(db.get(BlobId.of(bucketName.value, blobName.value)))).map(Option(_))
 
     for {
-      blobOpt <- retryGoogleF(retryConfig)(
+      blobOpt <- retryF(retryConfig)(
         getBlobs,
         traceId,
         s"com.google.cloud.storage.Storage.get(${BlobId.of(bucketName.value, blobName.value)})"
@@ -132,7 +132,7 @@ private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer](
     val getBlobs =
       blockingF(Async[F].delay(dbForCredential.get(BlobId.of(bucketName.value, blobName.value)))).map(Option(_))
 
-    retryGoogleF(retryConfig)(
+    retryF(retryConfig)(
       getBlobs,
       traceId,
       s"com.google.cloud.storage.Storage.get(${BlobId.of(bucketName.value, blobName.value)})"
@@ -146,7 +146,7 @@ private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer](
   ): Stream[F, Unit] = {
     val downLoad = blockingF(Async[F].delay(db.get(blobId).downloadTo(path)))
 
-    retryGoogleF(retryConfig)(downLoad, traceId, s"com.google.cloud.storage.Storage.get($blobId).download")
+    retryF(retryConfig)(downLoad, traceId, s"com.google.cloud.storage.Storage.get($blobId).download")
   }
 
   override def getObjectMetadata(bucketName: GcsBucketName,
@@ -157,7 +157,7 @@ private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer](
     val getBlobs = blockingF(Async[F].delay(db.get(BlobId.of(bucketName.value, blobName.value)))).map(Option(_))
 
     for {
-      blobOpt <- retryGoogleF(retryConfig)(
+      blobOpt <- retryF(retryConfig)(
         getBlobs,
         traceId,
         s"com.google.cloud.storage.Storage.get(${BlobId.of(bucketName.value, blobName.value)})"
@@ -188,9 +188,9 @@ private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer](
 
     val metadataUpdate = blockingF(Async[F].delay(db.update(blobInfo)))
 
-    retryGoogleF(retryConfig)(metadataUpdate,
-                              traceId,
-                              s"com.google.cloud.storage.Storage.update($bucketName/${objectName.value})"
+    retryF(retryConfig)(metadataUpdate,
+                        traceId,
+                        s"com.google.cloud.storage.Storage.update($bucketName/${objectName.value})"
     ).void
   }
 
@@ -256,9 +256,9 @@ private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer](
         blockingF(Async[F].delay(db.create(blobInfo, objectContents)))
     }
 
-    retryGoogleF(retryConfig)(storeObject,
-                              traceId,
-                              s"com.google.cloud.storage.Storage.create($bucketName/${objectName.value}, xxx)"
+    retryF(retryConfig)(storeObject,
+                        traceId,
+                        s"com.google.cloud.storage.Storage.create($bucketName/${objectName.value}, xxx)"
     )
   }
 
@@ -277,7 +277,7 @@ private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer](
     }
 
     for {
-      deleted <- retryGoogleF(retryConfig)(
+      deleted <- retryF(retryConfig)(
         deleteObject,
         traceId,
         s"com.google.cloud.storage.Storage.delete(${bucketName.value}/${blobName.value})"
@@ -336,7 +336,7 @@ private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer](
         StructuredLogger[F].info(s"$bucketName already exists")
     }
 
-    retryGoogleF(retryConfig)(
+    retryF(retryConfig)(
       createBucket,
       traceId,
       s"com.google.cloud.storage.Storage.create($bucketInfo, ${googleProject.value})"
@@ -348,7 +348,7 @@ private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer](
                             isRecursive: Boolean,
                             bucketSourceOptions: List[BucketSourceOption] = List.empty,
                             traceId: Option[TraceId] = None,
-                            retryConfig: RetryConfig = standardRetryConfig
+                            retryConfig: RetryConfig = standardGoogleRetryConfig
   ): Stream[F, Boolean] = {
     val dbForProject = db.getOptions.toBuilder.setProjectId(googleProject.value).build().getService
 
@@ -372,7 +372,7 @@ private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer](
           Stream.eval(r)
         } else Stream.eval(Async[F].unit)
       deleteBucket = Async[F].delay(dbForProject.delete(bucketName.value, bucketSourceOptions: _*))
-      res <- retryGoogleF(retryConfig)(
+      res <- retryF(retryConfig)(
         deleteBucket,
         traceId,
         s"com.google.cloud.storage.Storage.delete(${bucketName.value}, ${bucketSourceOptions})"
@@ -401,7 +401,7 @@ private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer](
       Async[F].delay(db.update(BucketInfo.newBuilder(bucketName.value).setIamConfiguration(iamConfiguration).build()))
     )
 
-    retryGoogleF(retryConfig)(
+    retryF(retryConfig)(
       updateBucket,
       traceId,
       s"com.google.cloud.storage.Storage.update($bucketName)"
@@ -417,7 +417,7 @@ private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer](
       Async[F].delay(db.update(BucketInfo.newBuilder(bucketName.value).setLabels(labels.asJava).build()))
     )
 
-    retryGoogleF(retryConfig)(
+    retryF(retryConfig)(
       updateBucket,
       traceId,
       s"com.google.cloud.storage.Storage.update($bucketName, $labels)"
@@ -440,7 +440,7 @@ private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer](
       _ <- blockingF(Async[F].delay(db.setIamPolicy(bucketName.value, updatedPolicy)))
     } yield ()
 
-    retryGoogleF(retryConfig)(
+    retryF(retryConfig)(
       getAndSetIamPolicy,
       traceId,
       s"com.google.cloud.storage.Storage.getIamPolicy(${bucketName}), com.google.cloud.storage.Storage.setIamPolicy(${bucketName}, $roles)"
@@ -462,7 +462,7 @@ private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer](
 
     val overrideIam = blockingF(Async[F].delay(db.setIamPolicy(bucketName.value, overrideIamPolicy)))
 
-    retryGoogleF(retryConfig)(
+    retryF(retryConfig)(
       overrideIam,
       traceId,
       s"com.google.cloud.storage.Storage.setIamPolicy(${bucketName}, $roles)"
@@ -477,7 +477,7 @@ private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer](
       policy <- blockingF(Async[F].delay(db.getIamPolicy(bucketName.value)))
     } yield policy
 
-    retryGoogleF(retryConfig)(
+    retryF(retryConfig)(
       getIamPolicy,
       traceId,
       s"com.google.cloud.storage.Storage.getIamPolicy(${bucketName})"
@@ -494,9 +494,9 @@ private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer](
       .toBuilder
       .setLifecycleRules(lifecycleRules.asJava)
       .build()
-    retryGoogleF(retryConfig)(blockingF(Async[F].delay(db.update(bucketInfo))),
-                              traceId,
-                              s"com.google.cloud.storage.Storage.update($bucketInfo)"
+    retryF(retryConfig)(blockingF(Async[F].delay(db.update(bucketInfo))),
+                        traceId,
+                        s"com.google.cloud.storage.Storage.update($bucketInfo)"
     ).void
   }
 
@@ -518,14 +518,14 @@ private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer](
       }
 
     for {
-      firstPage <- retryGoogleF(retryConfig)(
+      firstPage <- retryF(retryConfig)(
         blockingF(listFirstPage),
         traceId,
         s"com.google.cloud.storage.Storage.list($bucketName, ${blobListOptions})"
       ).unNone
       page <- Stream.unfoldEval(firstPage) { currentPage =>
         Option(currentPage).traverse { p =>
-          val fetchNext = retryGoogleF(retryConfig)(
+          val fetchNext = retryF(retryConfig)(
             blockingF(Async[F].delay(p.getNextPage)),
             traceId,
             s"com.google.api.gax.paging.Page.getNextPage"
