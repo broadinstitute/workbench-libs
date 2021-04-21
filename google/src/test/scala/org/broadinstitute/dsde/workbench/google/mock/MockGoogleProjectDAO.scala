@@ -34,4 +34,6 @@ class MockGoogleProjectDAO extends GoogleProjectDAO {
     )
 
   override def getProjectNumber(projectName: String): Future[Option[Long]] = Future.successful(Some(1234))
+
+  override def getProjectName(projectId: String): Future[Option[String]] = Future.successful(Some("mock-project-name"))
 }
