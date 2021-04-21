@@ -30,6 +30,7 @@ SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.
 - Creating a group sometimes returns a 5xx error code and leaves behind a partially created group which caused problems 
 when we retried creation. Changed to delete the partially created group before retrying
 - Cross build to scala 2.13
+- Fix potential NPE in `HttpGoogleProjectDAO.isBillingActive()`
 
 ## 0.20
 
