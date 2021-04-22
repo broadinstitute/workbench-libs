@@ -43,7 +43,7 @@ ARTIFACTORY_PASSWORD=$(docker run -e VAULT_TOKEN=$VAULT_TOKEN broadinstitute/dsd
 ## Sharing Artifacts with the World
 
 1. Double-check [CONTRIBUTING.md](CONTRIBUTING.md) to decide whether or not you need a major or minor version bump
-1. Update [README.md](README.md) for new artifact version(s). Find the relevant "Latest SBT dependency" lines, update the version number if required, and replace the short hash with `TRAVIS-REPLACE-ME`, for example `0.9-e094fde` => `0.9-TRAVIS-REPLACE-ME`
+1. Update [README.md](README.md) for new artifact version(s). Find the relevant "Latest SBT dependency" lines, update the version number if required, and replace the short hash with the string "`TRAVIS-REPLACE-ME`", for example `0.9-e094fde` => `0.9-TRAVIS-REPLACE-ME`
 1. Update the `CHANGELOG.md`s for modified libraries. On the "SBT dependency" line, use the same `TRAVIS-REPLACE-ME` version as above.
 1. Create PR, get thumbs, and merge. travis will automatically insert the short git commit hash.
 1. Update dependent projects with new non-`-SNAP` versions as needed

@@ -9,7 +9,7 @@ import com.google.cloud.pubsub.v1._
 import com.google.pubsub.v1.{ProjectSubscriptionName, PushConfig, TopicName}
 import fs2.Stream
 import fs2.concurrent.SignallingRef
-import io.chrisdavenport.log4cats.StructuredLogger
+import org.typelevel.log4cats.StructuredLogger
 import io.circe.Decoder
 import io.circe.generic.auto._
 import io.grpc.ManagedChannelBuilder
@@ -131,7 +131,7 @@ object GooglePubSubSpec {
       )(_ => /*IO(p.shutdown()) >>*/ IO.unit) //TODO: shutdown properly. Somehow this hangs the publisher unit test
       subscription = ProjectSubscriptionName.of(projectTopicName.getProject, projectTopicName.getTopic)
       receiver = GoogleSubscriberInterpreter.receiver(queue)
-      sub <- Resource.liftF(
+      sub <- Resource.eval(
         IO(
           Subscriber
             .newBuilder(subscription, receiver) //TODO: set credentials correctly

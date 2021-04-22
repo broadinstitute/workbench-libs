@@ -6,6 +6,7 @@ import java.time.Instant
 
 import cats.data.NonEmptyList
 import com.google.pubsub.v1.TopicName
+import org.broadinstitute.dsde.workbench.google2.DataprocRole.{Master, SecondaryWorker, Worker}
 import org.broadinstitute.dsde.workbench.google2.GKEModels.{
   KubernetesClusterId,
   KubernetesClusterName,
@@ -52,6 +53,13 @@ object Generators {
     filters <- genFilters
   } yield NotificationRequest(topic, "JSON_API_V1", filters.eventTypes, filters.objectNamePrefix)
   val genDiskName = alphaLowerStrOfLength(10).map(DiskName)
+  val genRegionName = for {
+    usRegion <- Gen.oneOf("us-east1", "us-central1", "us-west1")
+  } yield RegionName(usRegion)
+  val genZoneName = for {
+    zoneRegion <- genRegionName
+    zoneLetter <- Gen.oneOf('a', 'b', 'c')
+  } yield ZoneName(s"${zoneRegion.value}-${zoneLetter}")
   val genLocation = for {
     zoneLetter <- Gen.oneOf('a', 'b', 'c')
   } yield Location(s"us-central1-${zoneLetter}")
@@ -65,6 +73,18 @@ object Generators {
     clusterId <- genKubernetesClusterId
     nodepoolName <- genNodepoolName
   } yield NodepoolId(clusterId, nodepoolName)
+  val genDataprocRole = Gen.oneOf(Master, Worker, SecondaryWorker)
+  val genDataprocRoleZonePreemptibility = for {
+    role <- genDataprocRole
+    zone <- genZoneName
+    isPreemptible <- if (role == SecondaryWorker) Gen.oneOf(true, false) else Gen.const(false)
+  } yield DataprocRoleZonePreemptibility(role, zone, isPreemptible)
+  val genDataprocRoleZonePreemptibilityInstancesTuple: Gen[(DataprocRoleZonePreemptibility, Set[InstanceName])] = for {
+    dataprocRoleZonePreemptibility <- genDataprocRoleZonePreemptibility
+    instanceNames <- Gen.listOfN(3, Gen.uuid.map(i => InstanceName(i.toString)))
+  } yield (dataprocRoleZonePreemptibility, instanceNames.toSet)
+  val genDataprocRoleZonePreemptibilityInstancesMap: Gen[Map[DataprocRoleZonePreemptibility, Set[InstanceName]]] =
+    Gen.mapOfN(3, genDataprocRoleZonePreemptibilityInstancesTuple)
 
   def alphaLowerStrOfLength(n: Int): Gen[String] = Gen.listOfN(n, Gen.alphaLowerChar).map(_.mkString)
 
@@ -72,4 +92,14 @@ object Generators {
   implicit val arbNotificationResponse: Arbitrary[NotificationResponse] = Arbitrary(genNotificationResponse)
   implicit val arbNotificationRequest: Arbitrary[NotificationRequest] = Arbitrary(genNotificationRequest)
   implicit val arbDiskName: Arbitrary[DiskName] = Arbitrary(genDiskName)
+  implicit val arbRegionName: Arbitrary[RegionName] = Arbitrary(genRegionName)
+  implicit val arbZoneName: Arbitrary[ZoneName] = Arbitrary(genZoneName)
+  implicit val arbLocation: Arbitrary[Location] = Arbitrary(genLocation)
+  implicit val arbDataprocRoleZonePreemptibility: Arbitrary[DataprocRoleZonePreemptibility] = Arbitrary(
+    genDataprocRoleZonePreemptibility
+  )
+  implicit val arbDataprocRoleZonePreemptibilityInstancesMap
+    : Arbitrary[Map[DataprocRoleZonePreemptibility, Set[InstanceName]]] = Arbitrary(
+    genDataprocRoleZonePreemptibilityInstancesMap
+  )
 }

@@ -1,7 +1,7 @@
 package org.broadinstitute.dsde.workbench
 package google2
 
-import _root_.io.chrisdavenport.log4cats.StructuredLogger
+import _root_.org.typelevel.log4cats.StructuredLogger
 import cats.Parallel
 import cats.effect.concurrent.Semaphore
 import cats.effect.{Async, Blocker, ContextShift, Timer}
@@ -33,10 +33,10 @@ private[google2] class GoogleComputeInterpreter[F[_]: Parallel: StructuredLogger
 
   override def createInstance(project: GoogleProject, zone: ZoneName, instance: Instance)(implicit
     ev: Ask[F, TraceId]
-  ): F[Operation] = {
+  ): F[Option[Operation]] = {
     val projectZone = ProjectZoneName.of(project.value, zone.value)
     retryF(
-      F.delay(instanceClient.insertInstance(projectZone, instance)),
+      recoverF(F.delay(instanceClient.insertInstance(projectZone, instance)), whenStatusCode(409)),
       s"com.google.cloud.compute.v1.InstanceClient.insertInstance(${projectZone.toString}, ${instance.getName})"
     )
   }
@@ -137,7 +137,10 @@ private[google2] class GoogleComputeInterpreter[F[_]: Parallel: StructuredLogger
             .map(Option(_))
             .handleErrorWith {
               case e: ApiException if e.getStatusCode.getCode.getHttpStatusCode == 404 => F.pure(none[Instance])
-              case e                                                                   => F.raiseError[Option[Instance]](e)
+              case e: com.google.api.gax.rpc.PermissionDeniedException
+                  if e.getCause.getMessage.contains("requires billing to be enabled") =>
+                F.pure(none[Instance])
+              case e => F.raiseError[Option[Instance]](e)
             },
           Some(traceId),
           s"com.google.cloud.compute.v1.InstanceClient.getInstance(${projectZoneInstanceName.toString})",

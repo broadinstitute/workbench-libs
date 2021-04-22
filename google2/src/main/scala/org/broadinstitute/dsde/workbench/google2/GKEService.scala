@@ -12,7 +12,7 @@ import com.google.api.gax.core.FixedCredentialsProvider
 import com.google.api.services.container.Container
 import com.google.cloud.container.v1.{ClusterManagerClient, ClusterManagerSettings}
 import fs2.Stream
-import io.chrisdavenport.log4cats.StructuredLogger
+import org.typelevel.log4cats.StructuredLogger
 import org.broadinstitute.dsde.workbench.{DoneCheckable, RetryConfig}
 import org.broadinstitute.dsde.workbench.google2.GKEModels._
 import org.broadinstitute.dsde.workbench.model.TraceId
@@ -83,7 +83,7 @@ object GKEService {
     pathToCredential: Path
   ): Resource[F, com.google.api.services.container.Container] =
     for {
-      httpTransport <- Resource.liftF(Sync[F].delay(GoogleNetHttpTransport.newTrustedTransport))
+      httpTransport <- Resource.eval(Sync[F].delay(GoogleNetHttpTransport.newTrustedTransport))
       jsonFactory = JacksonFactory.getDefaultInstance
       googleCredential <- legacyGoogleCredential(pathToCredential.toString)
       legacyClient = new Container.Builder(httpTransport, jsonFactory, googleCredential)

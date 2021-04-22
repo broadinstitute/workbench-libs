@@ -1,6 +1,6 @@
 package org.broadinstitute.dsde.workbench.google2
 
-import _root_.io.chrisdavenport.log4cats.StructuredLogger
+import _root_.org.typelevel.log4cats.StructuredLogger
 import cats.Parallel
 import cats.effect._
 import cats.effect.concurrent.Semaphore
@@ -22,7 +22,7 @@ import scala.collection.JavaConverters._
 trait GoogleComputeService[F[_]] {
   def createInstance(project: GoogleProject, zone: ZoneName, instance: Instance)(implicit
     ev: Ask[F, TraceId]
-  ): F[Operation]
+  ): F[Option[Operation]]
 
   def deleteInstance(project: GoogleProject, zone: ZoneName, instanceName: InstanceName)(implicit
     ev: Ask[F, TraceId]

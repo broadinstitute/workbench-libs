@@ -4,7 +4,7 @@ package google2
 import cats.effect.{Concurrent, Resource, Timer}
 import com.google.cloud.Identity
 import com.google.pubsub.v1.TopicName
-import io.chrisdavenport.log4cats.Logger
+import org.typelevel.log4cats.Logger
 import org.broadinstitute.dsde.workbench.google2.GoogleServiceHttpInterpreter.credentialResourceWithScope
 import org.broadinstitute.dsde.workbench.model.TraceId
 import org.broadinstitute.dsde.workbench.model.google.{GcsBucketName, GoogleProject}

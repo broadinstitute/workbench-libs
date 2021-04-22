@@ -22,7 +22,7 @@ import com.google.cloud.storage.Storage.{
 import com.google.cloud.storage.{Acl, Blob, BlobId, BlobInfo, Bucket, BucketInfo, Storage, StorageOptions}
 import com.google.cloud.{Identity, Policy, Role}
 import fs2.{text, Pipe, Stream}
-import io.chrisdavenport.log4cats.StructuredLogger
+import org.typelevel.log4cats.StructuredLogger
 import io.circe.Decoder
 import io.circe.fs2._
 import org.broadinstitute.dsde.workbench.google2.util.RetryPredicates.standardRetryConfig
@@ -563,9 +563,9 @@ object GoogleStorageInterpreter {
       credential <- org.broadinstitute.dsde.workbench.util2.readFile(pathToJson)
       project <- project match { //Use explicitly passed in project if it's defined; else use `project_id` in json credential; if neither has project defined, raise error
         case Some(p) => Resource.pure[F, GoogleProject](p)
-        case None    => Resource.liftF(parseProject(pathToJson, blocker).compile.lastOrError)
+        case None    => Resource.eval(parseProject(pathToJson, blocker).compile.lastOrError)
       }
-      db <- Resource.liftF(
+      db <- Resource.eval(
         Sync[F].delay(
           StorageOptions
             .newBuilder()

@@ -38,7 +38,7 @@ object Settings {
         "-language:higherKinds", // Allow higher-kinded types
         "-language:implicitConversions", // Allow definition of implicit functions called views
         "-unchecked", // Enable additional warnings where generated code depends on assumptions.
-        "-Xcheckinit", // Wrap field accessors to throw an exception on uninitialized access.
+//        "-Xcheckinit", // Wrap field accessors to throw an exception on uninitialized access.
 //        "-Xfatal-warnings", // Fail the compilation if there are any warnings.
         "-Xfuture", // Turn on future language features.
         "-Xlint:adapted-args", // Warn if an argument list is modified to match the receiver.
@@ -81,7 +81,7 @@ object Settings {
         "-language:higherKinds", // Allow higher-kinded types
         "-language:implicitConversions", // Allow definition of implicit functions called views
         "-unchecked", // Enable additional warnings where generated code depends on assumptions.
-        "-Xcheckinit", // Wrap field accessors to throw an exception on uninitialized access.
+//        "-Xcheckinit", // Wrap field accessors to throw an exception on uninitialized access.
 //      "-Xfatal-warnings", // Fail the compilation if there are any warnings.
         "-Xlint:adapted-args", // Warn if an argument list is modified to match the receiver.
         "-Xlint:constant", // Evaluation of a constant arithmetic expression results in an error.
@@ -112,13 +112,13 @@ object Settings {
   })
 
   val cross212and213 = Seq(
-    crossScalaVersions := List("2.12.12", "2.13.3")
+    crossScalaVersions := List("2.12.12", "2.13.5")
   )
 
   //common settings for all sbt subprojects
   val commonSettings = commonBuildSettings ++ commonTestSettings ++ List(
     organization := "org.broadinstitute.dsde.workbench",
-    scalaVersion := "2.13.3",
+    scalaVersion := "2.13.5",
     resolvers ++= commonResolvers,
     commonCompilerSettings
   )
@@ -157,7 +157,7 @@ object Settings {
   val google2Settings = cross212and213 ++ commonSettings ++ List(
     name := "workbench-google2",
     libraryDependencies ++= google2Dependencies,
-    version := createVersion("0.18")
+    version := createVersion("0.20")
   ) ++ publishSettings
 
   val openTelemetrySettings = cross212and213 ++ commonSettings ++ List(

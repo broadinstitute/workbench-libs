@@ -2,38 +2,104 @@
 
 This file documents changes to the `workbench-google2` library, including notes on how to upgrade to new versions.
 
+## 0.20
+Breaking Changes:
+- Make `GoogleDataprocService` support multiple regions
+- Make `GoogleComputeService.createInstance` and `GoogleDataprocService.createCluster` return `F[Option[Operation]]`
+
+Dependency Updates (latest):
+- Update google-cloud-nio from 0.122.5 to 0.122.11 (#563) (2 hours ago) <Scala Steward>
+- Update jackson-module-scala from 2.12.1 to 2.12.2 (#532) (2 hours ago) <Scala Steward>
+- Update client-java from 11.0.0 to 11.0.1 (#546) (2 hours ago) <Scala Steward>
+- Update scalatest from 3.2.3 to 3.2.6 (#549) (2 hours ago) <Scala Steward>
+- Update google-cloud-firestore from 2.2.1 to 2.2.5 (#562) (2 hours ago) <Scala Steward>
+- Update cats-effect from 2.3.3 to 2.4.0 (#569) (82 seconds ago) <Scala Steward>
+- Update google-cloud-errorreporting from 0.120.34-beta to 0.120.36-beta (#561) (2 hours ago) <Scala Steward>
+- Update akka-http, akka-http-spray-json, ... from 10.2.3 to 10.2.4 (#544) (2 hours ago) <Scala Steward>
+- Update google-cloud-kms from 1.40.5 to 1.40.8 (#539) (2 hours ago) <Scala Steward>
+- Update google-cloud-billing from 1.1.12 to 1.1.15 (#558) (2 hours ago) <Scala Steward>
+- Update google-cloud-storage from 1.113.13 to 1.113.14 (#566) (2 hours ago) <Scala Steward>
+- Update scala-logging from 3.9.2 to 3.9.3 (#568) (2 hours ago) <Scala Steward>
+- Update log4cats-slf4j
+- Update google-cloud-pubsub 
+- Update google-cloud-bigquery from 1.127.7 to 1.127.11
+- Update guava from 30.1-jre to 30.1.1-jre (#567)
+- Update google-cloud-container from 1.2.6 to 1.3.0
+- Update mockito-3-4 from 3.2.3.0 to 3.2.6.0
+
+Changed:
+- Fix a bug in `genZoneName`
+
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.20-52e271f"`
+
+## 0.19
+Changed:
+- Renamed and added fields in `GoogleDataprocService.CreateClusterConfig` to support creating Dataproc clusters with secondary preemptible workers.
+- Changed return type of `GoogleDataprocService.{createCluster, deleteCluster, resizeCluster}`
+- Removed `RetryConfig` from `GoogleDataprocService` constructors
+- `GoogleComputeInterpreter` now returns none if it encounters a disabled billing project during `getInstance`
+- Update `GKEInterpreter.pollOperation` to log each polling call
+- Log `traceId` as mdc context in `GoogleSubscriberInterpreter` 
+
+Added:
+- Added `GoogleDataprocService.startCluster`
+- Added `listPersistentVolumeClaims` to `KubernetesService`
+- Added `GoogleBillingInterpreter` and `GoogleBillingService`
+- Added `createDataset` and `deleteDataset` to `GoogleBigQueryService`
+- Added new constructor to `GoogleBigQueryService` that accepts path to credentials JSON
+- Added `deletePv` to `KubernetesService`
+- Added `namespaceExists` to `KubernetesService`
+
+Dependency Updates:
+```
+Update akka-actor, akka-stream, ... from 2.6.10 to 2.6.14 (#498) (56 seconds ago) <Scala Steward>
+Update google-cloud-nio from 0.122.3 to 0.122.5 (#482) (76 seconds ago) <Scala Steward>
+Update google-cloud-resourcemanager from 0.118.7-alpha to 0.118.8-alpha (#497) (2 minutes ago) <Scala Steward>
+Update http4s-blaze-client, http4s-circe, ... from 0.21.16 to 0.21.19 (#499) (2 minutes ago) <Scala Steward>
+Update sbt from 1.4.6 to 1.4.7 (#500) (2 minutes ago) <Scala Steward>
+```
+
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.19-e0826b1"`
+
 ## 0.18
 Added:
 - `GoogleDataprocInterpreter` can resize clusters and stop cluster VMs.
 - `publishNativeOne` to `GooglePublisher[F]`
 - optional `location` parameter to `GoogleStorageService.insertBucket`
-- Added `overrideIamPolicy` to `GoogleStorageService`
+- `overrideIamPolicy` to `GoogleStorageService`
+- Scalacheck generators for more of the Dataproc models
 
 Changed:
 - [BREAKING CHANGE] `GoogleDataprocInterpreter` requires a `GoogleComputeService` instance so it can stop and resize Dataproc
   cluster nodes. Note that this is a breaking change for existing `GoogleDataprocInterpreter` clients.
+- Remove duplicate logging in mdc and regular log message for google calls. Add `result` field to mdc logging context.
 
 Dependency Upgrades
 ```
-Update sbt-scalafix from 0.9.23 to 0.9.24 (#424)
-Update cats-core, cats-effect from 2.2.0 to 2.3.0 (#438)
-Update google-cloud-dataproc from 1.1.7 to 1.1.8 (#429)
 Update akka-http, akka-http-spray-json, ... from 10.2.1 to 10.2.2 (#435)
-Update google-api-services-container from v1-rev20201007-1.30.10 to v1-rev20201007-1.31.0 (#426)
-Update google-cloud-nio from 0.122.1 to 0.122.3 (#432)
-Update grpc-core from 1.33.1 to 1.34.0 (#436)
-Update google-cloud-container from 1.2.0 to 1.2.1 (#428)
-Update google-cloud-errorreporting from 0.120.8-beta to 0.120.9-beta (#430)
-Update google-cloud-storage from 1.113.4 to 1.113.5 (#434)
-Update google-cloud-bigquery from 1.125.0 to 1.125.2 (#427)
-Update google-cloud-kms from 1.40.2 to 1.40.3 (#431)
-Update google-cloud-pubsub from 1.109.0 to 1.110.0
-Update jackson-module-scala from 2.11.3 to 2.12.0 (#425)
+Update cats-core, cats-effect from 2.2.0 to 2.3.0 (#438)
 Update cats-mtl from 1.0.0 to 1.1.0
+Update google-api-services-container from v1-rev20201007-1.30.10 to v1-rev20201007-1.31.0 (#426)
+Update google-cloud-bigquery from 1.125.0 to 1.125.2 (#427)
+Update google-cloud-container from 1.2.0 to 1.2.1 (#428)
+Update google-cloud-dataproc from 1.1.7 to 1.1.8 (#429)
+Update google-cloud-errorreporting from 0.120.8-beta to 0.120.9-beta (#430)
+Update google-cloud-kms from 1.40.2 to 1.40.3 (#431)
+Update google-cloud-nio from 0.122.1 to 0.122.3 (#432)
+Update google-cloud-pubsub from 1.109.0 to 1.110.0
+Update google-cloud-pubsub from 1.110.1 to 1.110.3 (#468) (2 days ago)
+Update google-cloud-storage from 1.113.4 to 1.113.5 (#434)
+Update google-cloud-storage from 1.113.6 to 1.113.8 (#469) (3 hours ago)
+Update grpc-core from 1.33.1 to 1.34.0 (#436)
+Update http4s-blaze-client, http4s-circe, ... from 0.21.14 to 0.21.19 (#471) (2 days ago)
+Update jackson-module-scala from 2.11.3 to 2.12.2 (#425)
+Update jackson-module-scala from 2.12.0 to 2.12.2 (#466) (3 hours ago)
+Update mockito-core from 3.6.28 to 3.7.0 (#472) (3 hours ago)
+Update sbt-scalafix from 0.9.23 to 0.9.24 (#424)
 ```
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.18-74c9fc2"` 
-  
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.18-7fe0192"` 
+
 ## 0.17
 Added:
 - `list` to `GoogleTopicAdmin`
@@ -57,7 +123,7 @@ Update google-cloud-firestore to 2.1.0 (#412)
 Update grpc-core to 1.33.1 (#395) (Note: if your project explicitly specify grpc-core version, you need to update it to match this version)
 Update metrics4-scala to 4.1.14 (#413)
 Update http4s-blaze-client, http4s-circe, ... to 0.21.12 (#415)
-Update http4s-blaze-client, http4s-circe, ... to 0.21.13
+Update http4s-blaze-client, http4s-circe, ... to 0.21.19
 Update mockito-core to 3.6.28 (#414)
 Update guava to 30.0-jre (#390)
 Update `io.kubernetes client-java` from `5.0.0` to `10.0.0` (This has some breaking changes if you're using the library's API directly)
@@ -82,7 +148,7 @@ Update google-cloud-container to 1.2.0 (#382)
 Update google-cloud-errorreporting to 0.120.8-beta (#384)
 Update google-api-services-container to v1-rev20201007-1.30.10 (#380)
 Update google-cloud-nio to 0.122.1 (#387) (Note: upgrade to this version if your project explicitly specifies version)
-Update akka-actor, akka-stream, ... to 2.6.10 (#391)
+Update akka-actor, akka-stream, ... to 2.6.14 (#391)
 Update mockito-core to 3.6.0 (#407)
 Update opencensus-api, ... to 0.28.2 (#397)
 Update log4cats-slf4j to 1.1.1 (#394)
@@ -95,7 +161,7 @@ Update commons-codec to 20041127.091804 (#406)
 Update scalafmt-core to 2.7.5 (#402)
 Update http4s-blaze-client, http4s-circe, ... to 0.21.11 (#398)
 Update google-cloud-dataproc to 1.1.7 (#408)
-Update scalatest to 3.2.3 (#403)
+Update scalatest to 3.2.6 (#403)
 Update fs2-io to 2.4.5 (#379)
 ```
 

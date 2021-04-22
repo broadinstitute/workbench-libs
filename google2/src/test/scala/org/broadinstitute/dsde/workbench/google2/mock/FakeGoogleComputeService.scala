@@ -22,7 +22,8 @@ import org.broadinstitute.dsde.workbench.model.google.GoogleProject
 class FakeGoogleComputeService extends GoogleComputeService[IO] {
   override def createInstance(project: GoogleProject, zone: ZoneName, instance: Instance)(implicit
     ev: Ask[IO, TraceId]
-  ): IO[Operation] = IO.pure(Operation.newBuilder().setId("op").setName("opName").setTargetId("target").build())
+  ): IO[Option[Operation]] =
+    IO.pure(Some(Operation.newBuilder().setId("op").setName("opName").setTargetId("target").build()))
 
   override def deleteInstance(project: GoogleProject, zone: ZoneName, instanceName: InstanceName)(implicit
     ev: Ask[IO, TraceId]
@@ -79,7 +80,7 @@ class FakeGoogleComputeService extends GoogleComputeService[IO] {
 
   override def getNetwork(project: GoogleProject, networkName: NetworkName)(implicit
     ev: Ask[IO, TraceId]
-  ): IO[Option[Network]] = IO(None)
+  ): IO[Option[Network]] = IO.pure(None)
 
   override def createNetwork(project: GoogleProject, network: Network)(implicit
     ev: Ask[IO, TraceId]
@@ -87,7 +88,7 @@ class FakeGoogleComputeService extends GoogleComputeService[IO] {
 
   override def getSubnetwork(project: GoogleProject, region: RegionName, subnetwork: SubnetworkName)(implicit
     ev: Ask[IO, TraceId]
-  ): IO[Option[Subnetwork]] = IO(None)
+  ): IO[Option[Subnetwork]] = IO.pure(None)
 
   override def createSubnetwork(project: GoogleProject, region: RegionName, subnetwork: Subnetwork)(implicit
     ev: Ask[IO, TraceId]

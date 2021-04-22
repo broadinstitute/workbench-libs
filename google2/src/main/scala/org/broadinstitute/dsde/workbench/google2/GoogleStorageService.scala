@@ -14,7 +14,7 @@ import com.google.cloud.storage.{Acl, Blob, BlobId, Bucket, StorageOptions}
 import com.google.cloud.{Identity, Policy}
 import fs2.{Pipe, Stream}
 import com.google.cloud.storage.Storage.{BucketGetOption, BucketSourceOption}
-import io.chrisdavenport.log4cats.StructuredLogger
+import org.typelevel.log4cats.StructuredLogger
 import org.broadinstitute.dsde.workbench.google2.util.RetryPredicates.standardRetryConfig
 import org.broadinstitute.dsde.workbench.model.TraceId
 import org.broadinstitute.dsde.workbench.model.google.{GcsBucketName, GcsObjectName, GoogleProject}
@@ -308,7 +308,7 @@ object GoogleStorageService {
     blockerBound: Option[Semaphore[F]] = None
   ): Resource[F, GoogleStorageService[F]] =
     for {
-      db <- Resource.liftF(
+      db <- Resource.eval(
         Sync[F].delay(
           StorageOptions
             .newBuilder()
@@ -325,7 +325,7 @@ object GoogleStorageService {
     blockerBound: Option[Semaphore[F]] = None
   ): Resource[F, GoogleStorageService[F]] =
     for {
-      db <- Resource.liftF(
+      db <- Resource.eval(
         Sync[F].delay(
           StorageOptions
             .newBuilder()

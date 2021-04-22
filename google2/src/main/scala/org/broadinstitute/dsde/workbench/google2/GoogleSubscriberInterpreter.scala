@@ -14,7 +14,7 @@ import com.google.protobuf.Timestamp
 import com.google.pubsub.v1.{PubsubMessage, _}
 import fs2.Stream
 import fs2.concurrent.Queue
-import io.chrisdavenport.log4cats.{Logger, StructuredLogger}
+import org.typelevel.log4cats.{Logger, StructuredLogger}
 import io.circe.Decoder
 import io.circe.parser._
 import org.broadinstitute.dsde.workbench.model.TraceId
@@ -81,16 +81,18 @@ object GoogleSubscriberInterpreter {
         res <- parseEvent.attempt
         _ <- res match {
           case Right(event) =>
+            val loggingContext = Map("traceId" -> event.traceId.map(_.asString).getOrElse("None"))
+
             for {
               r <- queue.enqueue1(event).attempt
 
               _ <- r match {
                 case Left(e) =>
-                  logger.info(s"Subscriber fail to enqueue $message due to $e") >> F.delay(
+                  logger.info(loggingContext)(s"Subscriber fail to enqueue $message due to $e") >> F.delay(
                     consumer.nack()
                   ) //pubsub will resend the message up to ackDeadlineSeconds (this is configed during subscription creation)
                 case Right(_) =>
-                  logger.info(s"Subscriber Successfully received $message.")
+                  logger.info(loggingContext)(s"Subscriber Successfully received $message.")
               }
             } yield ()
           case Left(e) =>
@@ -229,7 +231,7 @@ object GoogleSubscriberInterpreter {
       subWithDeadLetterPolicy.setFilter(ft).build()
     }
 
-    Resource.liftF(
+    Resource.eval(
       Async[F]
         .delay(
           subscriptionAdminClient.createSubscription(sub)

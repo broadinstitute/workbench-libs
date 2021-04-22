@@ -1,33 +1,31 @@
 package org.broadinstitute.dsde.workbench.google2
 
-import cats.{Parallel, Show}
 import cats.effect._
 import cats.effect.concurrent.Semaphore
-import cats.syntax.all._
 import cats.mtl.Ask
+import cats.syntax.all._
+import cats.{Parallel, Show}
 import com.google.api.core.ApiFutures
-import com.google.api.gax.rpc.StatusCode.Code
 import com.google.cloud.compute.v1.Operation
 import com.google.cloud.dataproc.v1.{RegionName => _, _}
 import com.google.common.util.concurrent.MoreExecutors
 import com.google.protobuf.FieldMask
-import io.chrisdavenport.log4cats.StructuredLogger
-import org.broadinstitute.dsde.workbench.{DoneCheckable, RetryConfig, StreamTimeoutError}
+import org.typelevel.log4cats.StructuredLogger
+import org.broadinstitute.dsde.workbench.DoneCheckable
 import org.broadinstitute.dsde.workbench.google2.DataprocRole.Master
-import org.broadinstitute.dsde.workbench.google2.util.RetryPredicates._
-import org.broadinstitute.dsde.workbench.model.{TraceId, WorkbenchException}
-import org.broadinstitute.dsde.workbench.model.google.GoogleProject
 import org.broadinstitute.dsde.workbench.google2.GoogleDataprocInterpreter._
+import org.broadinstitute.dsde.workbench.google2.util.RetryPredicates._
+import org.broadinstitute.dsde.workbench.model.TraceId
+import org.broadinstitute.dsde.workbench.model.google.GoogleProject
 
-import scala.concurrent.duration._
 import scala.collection.JavaConverters._
+import scala.concurrent.duration._
 
 private[google2] class GoogleDataprocInterpreter[F[_]: StructuredLogger: Timer: Parallel: ContextShift](
-  clusterControllerClient: ClusterControllerClient,
+  clusterControllerClients: Map[RegionName, ClusterControllerClient],
   googleComputeService: GoogleComputeService[F],
   blocker: Blocker,
-  blockerBound: Semaphore[F],
-  retryConfig: RetryConfig
+  blockerBound: Semaphore[F]
 )(implicit F: Async[F])
     extends GoogleDataprocService[F] {
 
@@ -36,17 +34,21 @@ private[google2] class GoogleDataprocInterpreter[F[_]: StructuredLogger: Timer: 
     region: RegionName,
     clusterName: DataprocClusterName,
     createClusterConfig: Option[CreateClusterConfig]
-  )(implicit ev: Ask[F, TraceId]): F[CreateClusterResponse] = {
+  )(implicit ev: Ask[F, TraceId]): F[Option[DataprocOperation]] = {
     val config: ClusterConfig = createClusterConfig
-      .map(config =>
-        ClusterConfig.newBuilder
+      .map { config =>
+        val bldr = ClusterConfig.newBuilder
           .setGceClusterConfig(config.gceClusterConfig)
-          .setInitializationActions(0, config.nodeInitializationAction)
-          .setMasterConfig(config.instanceGroupConfig)
+          .addAllInitializationActions(config.nodeInitializationActions.asJava)
+          .setMasterConfig(config.masterConfig)
           .setConfigBucket(config.stagingBucket.value)
           .setSoftwareConfig(config.softwareConfig)
-          .build()
-      )
+
+        config.workerConfig.foreach(bldr.setWorkerConfig)
+        config.secondaryWorkerConfig.foreach(bldr.setSecondaryWorkerConfig)
+
+        bldr.build()
+      }
       .getOrElse(ClusterConfig.newBuilder.build())
 
     val cluster = Cluster
@@ -62,30 +64,26 @@ private[google2] class GoogleDataprocInterpreter[F[_]: StructuredLogger: Timer: 
       .setProjectId(project.value)
       .build()
 
-    val createCluster = Async[F].async[ClusterOperationMetadata] { cb =>
-      ApiFutures.addCallback(
-        clusterControllerClient.createClusterAsync(request).getMetadata,
-        callBack(cb),
-        MoreExecutors.directExecutor()
-      )
-    }
-
-    for {
-      createCluster <- retryF(
-        createCluster,
-        s"com.google.cloud.dataproc.v1.ClusterControllerClient.createClusterAsync(${region}, ${clusterName}, ${createClusterConfig})"
-      ).attempt
-
-      result <- createCluster match {
-        case Left(e: com.google.api.gax.rpc.ApiException) =>
-          if (e.getStatusCode.getCode == Code.ALREADY_EXISTS)
-            Async[F].pure(CreateClusterResponse.AlreadyExists: CreateClusterResponse)
-          else
-            Async[F].raiseError(e): F[CreateClusterResponse]
-        case Left(e)  => Async[F].raiseError(e): F[CreateClusterResponse]
-        case Right(v) => Async[F].pure(CreateClusterResponse.Success(v): CreateClusterResponse)
+    val createCluster = for {
+      client <- F.fromOption(clusterControllerClients.get(region), new Exception(s"Unsupported region ${region.value}"))
+      operationOpt <- recoverF(Async[F].delay(client.createClusterAsync(request)), whenStatusCode(409))
+      opAndMetadata <- operationOpt.traverse { op =>
+        Async[F]
+          .async[ClusterOperationMetadata] { cb =>
+            ApiFutures.addCallback(
+              op.getMetadata,
+              callBack(cb),
+              MoreExecutors.directExecutor()
+            )
+          }
+          .map(metadata => (op, metadata))
       }
-    } yield result
+    } yield opAndMetadata.map(x => DataprocOperation(OperationName(x._1.getName), x._2))
+
+    tracedLogging(
+      blockF(createCluster),
+      s"com.google.cloud.dataproc.v1.ClusterControllerClient.createClusterAsync(${region}, ${clusterName}, ${createClusterConfig}))"
+    )
   }
 
   /**
@@ -103,10 +101,9 @@ private[google2] class GoogleDataprocInterpreter[F[_]: StructuredLogger: Timer: 
   ): F[List[Operation]] =
     for {
       clusterInstances <- getClusterInstances(project, region, clusterName)
-
       // First, remove preemptible instances (if any) and wait until the removal is done
       remainingClusterInstances <-
-        if (containsPreemptibles(clusterInstances))
+        if (countPreemptibles(clusterInstances) > 0)
           resizeCluster(project,
                         region,
                         clusterName,
@@ -116,8 +113,8 @@ private[google2] class GoogleDataprocInterpreter[F[_]: StructuredLogger: Timer: 
             getClusterInstances(project, region, clusterName),
             15,
             6 seconds,
-            s"Cannot stop the instances of cluster ${project.value}/${clusterName.value} before removing its preemptible instances first."
-          )
+            s"Timeout occurred removing preemptible instances from cluster ${project.value}/${clusterName.value}"
+          )(implicitly, implicitly, instances => countPreemptibles(instances) == 0)
         else F.pure(clusterInstances)
 
       // If removal of preemptibles is done, wait until the cluster's status transitions back to RUNNING (from UPDATING)
@@ -153,6 +150,67 @@ private[google2] class GoogleDataprocInterpreter[F[_]: StructuredLogger: Timer: 
       }
     } yield operations
 
+  override def startCluster(project: GoogleProject,
+                            region: RegionName,
+                            clusterName: DataprocClusterName,
+                            numPreemptibles: Option[Int],
+                            metadata: Option[Map[String, String]]
+  )(implicit
+    ev: Ask[F, TraceId]
+  ): F[List[Operation]] =
+    for {
+      clusterInstances <- getClusterInstances(project, region, clusterName)
+
+      // Add back the preemptible instances, if any
+      _ <- numPreemptibles match {
+        case Some(n) =>
+          resizeCluster(project,
+                        region,
+                        clusterName,
+                        numWorkers = None,
+                        numPreemptibles = Some(n)
+          ) >> streamUntilDoneOrTimeout(
+            getClusterInstances(project, region, clusterName),
+            15,
+            6 seconds,
+            s"Timeout occurred adding preemptible instances to cluster ${project.value}/${clusterName.value}"
+          )(implicitly, implicitly, instances => countPreemptibles(instances) == n).void
+        case None => F.unit
+      }
+
+      // If adding of preemptibles is done, wait until the cluster's status transitions back to RUNNING (from UPDATING)
+      // Otherwise, starting the remaining instances may cause the cluster to get in to ERROR status
+      _ <- streamUntilDoneOrTimeout(
+        getCluster(project, region, clusterName),
+        15,
+        3 seconds,
+        s"Cannot start the instances of cluster ${project.value}/${clusterName.value} unless the cluster is in RUNNING status."
+      )
+
+      // Then, start each remaining instance individually
+      operations <- clusterInstances.toList.parFlatTraverse {
+        case (DataprocRoleZonePreemptibility(role, zone, _), instances) =>
+          instances.toList.parTraverse { instance =>
+            (role match {
+              case Master =>
+                metadata.traverse { md =>
+                  googleComputeService.addInstanceMetadata(
+                    project,
+                    zone,
+                    instance,
+                    md
+                  )
+                } >> googleComputeService.startInstance(project, zone, instance)
+              case _ =>
+                googleComputeService.startInstance(project, zone, instance)
+            }).recoverWith {
+              case _: com.google.api.gax.rpc.NotFoundException => F.pure(Operation.getDefaultInstance)
+              case e                                           => F.raiseError[Operation](e)
+            }
+          }
+      }
+    } yield operations
+
   override def resizeCluster(project: GoogleProject,
                              region: RegionName,
                              clusterName: DataprocClusterName,
@@ -160,7 +218,7 @@ private[google2] class GoogleDataprocInterpreter[F[_]: StructuredLogger: Timer: 
                              numPreemptibles: Option[Int]
   )(implicit
     ev: Ask[F, TraceId]
-  ): F[Option[ClusterOperationMetadata]] = {
+  ): F[Option[DataprocOperation]] = {
     val workerMask = "config.worker_config.num_instances"
     val preemptibleMask = "config.secondary_worker_config.num_instances"
 
@@ -210,33 +268,35 @@ private[google2] class GoogleDataprocInterpreter[F[_]: StructuredLogger: Timer: 
 
     val updateCluster = updateClusterRequest
       .traverse { request =>
-        Async[F]
-          .async[ClusterOperationMetadata] { cb =>
+        for {
+          client <- F.fromOption(clusterControllerClients.get(region),
+                                 new Exception(s"Unsupported region ${region.value}")
+          )
+
+          op <- Async[F].delay(client.updateClusterAsync(request))
+          metadata <- Async[F].async[ClusterOperationMetadata] { cb =>
             ApiFutures.addCallback(
-              clusterControllerClient.updateClusterAsync(request).getMetadata,
+              op.getMetadata,
               callBack(cb),
               MoreExecutors.directExecutor()
             )
           }
+        } yield DataprocOperation(OperationName(op.getName), metadata)
       }
       .handleErrorWith {
-        case _: com.google.api.gax.rpc.NotFoundException => F.pure(none[ClusterOperationMetadata])
-        case e                                           => F.raiseError[Option[ClusterOperationMetadata]](e)
+        case _: com.google.api.gax.rpc.NotFoundException => F.pure(none[DataprocOperation])
+        case e                                           => F.raiseError[Option[DataprocOperation]](e)
       }
 
-    for {
-      traceId <- ev.ask
-      res <- withLogging(
-        updateCluster,
-        Some(traceId),
-        s"com.google.cloud.dataproc.v1.ClusterControllerClient.updateClusterAsync(${updateClusterRequest})"
-      )
-    } yield res
+    tracedLogging(
+      blockF(updateCluster),
+      s"com.google.cloud.dataproc.v1.ClusterControllerClient.updateClusterAsync(${updateClusterRequest})"
+    )
   }
 
   override def deleteCluster(project: GoogleProject, region: RegionName, clusterName: DataprocClusterName)(implicit
     ev: Ask[F, TraceId]
-  ): F[Option[ClusterOperationMetadata]] = {
+  ): F[Option[DataprocOperation]] = {
     val request = DeleteClusterRequest
       .newBuilder()
       .setRegion(region.value)
@@ -244,50 +304,49 @@ private[google2] class GoogleDataprocInterpreter[F[_]: StructuredLogger: Timer: 
       .setClusterName(clusterName.value)
       .build()
 
-    val deleteCluster = Async[F]
-      .async[ClusterOperationMetadata] { cb =>
+    val deleteCluster = (for {
+      client <- F.fromOption(clusterControllerClients.get(region), new Exception(s"Unsupported region ${region.value}"))
+
+      op <- Async[F].delay(client.deleteClusterAsync(request))
+      metadata <- Async[F].async[ClusterOperationMetadata] { cb =>
         ApiFutures.addCallback(
-          clusterControllerClient.deleteClusterAsync(request).getMetadata,
+          op.getMetadata,
           callBack(cb),
           MoreExecutors.directExecutor()
         )
       }
+    } yield DataprocOperation(OperationName(op.getName), metadata))
       .map(Option(_))
       .handleErrorWith {
-        case _: com.google.api.gax.rpc.NotFoundException => F.pure(none[ClusterOperationMetadata])
-        case e                                           => F.raiseError[Option[ClusterOperationMetadata]](e)
+        case _: com.google.api.gax.rpc.NotFoundException => F.pure(none[DataprocOperation])
+        case e                                           => F.raiseError[Option[DataprocOperation]](e)
       }
 
-    for {
-      traceId <- ev.ask
-      res <- withLogging(
-        deleteCluster,
-        Some(traceId),
-        s"com.google.cloud.dataproc.v1.ClusterControllerClient.deleteClusterAsync(${request})"
-      )
-    } yield res
+    tracedLogging(
+      blockF(deleteCluster),
+      s"com.google.cloud.dataproc.v1.ClusterControllerClient.deleteClusterAsync(${request})"
+    )
   }
 
   override def getCluster(project: GoogleProject, region: RegionName, clusterName: DataprocClusterName)(implicit
     ev: Ask[F, TraceId]
   ): F[Option[Cluster]] = {
-    val fa =
-      F.delay(clusterControllerClient.getCluster(project.value, region.value, clusterName.value))
+    val fa = for {
+      client <- F.fromOption(clusterControllerClients.get(region), new Exception(s"Unsupported region ${region.value}"))
+      res <- F
+        .delay(client.getCluster(project.value, region.value, clusterName.value))
         .map(Option(_))
         .handleErrorWith {
           case _: com.google.api.gax.rpc.NotFoundException => F.pure(none[Cluster])
           case e                                           => F.raiseError[Option[Cluster]](e)
         }
+    } yield res
 
-    ev.ask
-      .flatMap { traceId =>
-        withLogging(
-          fa,
-          Some(traceId),
-          s"com.google.cloud.dataproc.v1.ClusterControllerClient.getCluster(${project.value}, ${region.value}, ${clusterName.value})",
-          Show.show[Option[Cluster]](c => s"${c.map(_.getStatus.getState.toString).getOrElse("Not found")}")
-        )
-      }
+    tracedLogging(
+      blockF(fa),
+      s"com.google.cloud.dataproc.v1.ClusterControllerClient.getCluster(${project.value}, ${region.value}, ${clusterName.value})",
+      Show.show[Option[Cluster]](c => s"${c.map(_.getStatus.getState.toString).getOrElse("Not found")}")
+    )
   }
 
   override def getClusterInstances(project: GoogleProject, region: RegionName, clusterName: DataprocClusterName)(
@@ -298,20 +357,25 @@ private[google2] class GoogleDataprocInterpreter[F[_]: StructuredLogger: Timer: 
     } yield cluster.map(getAllInstanceNames).getOrElse(Map.empty)
 
   override def getClusterError(
+    region: RegionName,
     operationName: OperationName
   )(implicit ev: Ask[F, TraceId]): F[Option[ClusterError]] =
     for {
-      error <- retryF(
+      client <- F.fromOption(clusterControllerClients.get(region), new Exception(s"Unsupported region ${region.value}"))
+
+      error <- tracedLogging(
         recoverF(
-          Async[F].delay(clusterControllerClient.getOperationsClient.getOperation(operationName.value).getError),
+          blockF(
+            Async[F].delay(client.getOperationsClient.getOperation(operationName.value).getError)
+          ),
           whenStatusCode(404)
         ),
         s"com.google.cloud.dataproc.v1.ClusterControllerClient.getOperationsClient.getOperation(${operationName.value}).getError()"
       )
     } yield error.map(e => ClusterError(e.getCode, e.getMessage))
 
-  private def retryF[A](fa: F[A], loggingMsg: String)(implicit ev: Ask[F, TraceId]): F[A] =
-    tracedRetryGoogleF(retryConfig)(blockerBound.withPermit(blocker.blockOn(fa)), loggingMsg).compile.lastOrError
+  private def blockF[A](fa: F[A]): F[A] =
+    blockerBound.withPermit(blocker.blockOn(fa))
 }
 
 object GoogleDataprocInterpreter {
@@ -341,9 +405,9 @@ object GoogleDataprocInterpreter {
     res.getOrElse(Map.empty)
   }
 
-  def containsPreemptibles(instances: Map[DataprocRoleZonePreemptibility, Set[InstanceName]]): Boolean =
-    instances.exists { case (DataprocRoleZonePreemptibility(_, _, isPreemptible), instanceNames) =>
-      isPreemptible && instanceNames.nonEmpty
+  private[google2] def countPreemptibles(instances: Map[DataprocRoleZonePreemptibility, Set[InstanceName]]): Int =
+    instances.foldLeft(0) { case (r, (DataprocRoleZonePreemptibility(_, _, isPreemptible), instanceNames)) =>
+      r + (if (isPreemptible) instanceNames.size else 0)
     }
 
   private def getFromGroup(role: DataprocRole,
@@ -361,9 +425,6 @@ object GoogleDataprocInterpreter {
     else Map(DataprocRoleZonePreemptibility(role, zone, groupConfig.getIsPreemptible) -> instances)
   }
 
-  implicit val resizingDoneCheckable: DoneCheckable[Map[DataprocRoleZonePreemptibility, Set[InstanceName]]] =
-    instances => !containsPreemptibles(instances)
-
-  implicit val clusterRunningCheckable: DoneCheckable[Option[Cluster]] =
+  implicit private[google2] val clusterRunningCheckable: DoneCheckable[Option[Cluster]] =
     clusterOpt => clusterOpt.exists(_.getStatus.getState.toString == "RUNNING")
 }

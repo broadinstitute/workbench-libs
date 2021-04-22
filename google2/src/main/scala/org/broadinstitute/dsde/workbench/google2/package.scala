@@ -12,9 +12,11 @@ import com.google.api.core.ApiFutureCallback
 import com.google.api.gax.core.BackgroundResource
 import com.google.api.services.container.ContainerScopes
 import com.google.auth.oauth2.{ServiceAccountCredentials, UserCredentials}
+import com.google.cloud.billing.v1.ProjectBillingInfo
 import com.google.cloud.compute.v1.Operation
+import com.google.cloud.resourcemanager.Project
 import fs2.{RaiseThrowable, Stream}
-import io.chrisdavenport.log4cats.StructuredLogger
+import org.typelevel.log4cats.StructuredLogger
 import io.circe.Encoder
 import org.broadinstitute.dsde.workbench.model.{ErrorReportSource, TraceId, WorkbenchException}
 import io.circe.syntax._
@@ -69,21 +71,17 @@ package object google2 {
       _ <- attempted match {
         case Left(e: io.kubernetes.client.openapi.ApiException) =>
           val loggableGoogleCall = LoggableGoogleCall(Some(e.getResponseBody), "Failed")
-
-          val msg = loggingCtx.asJson.deepMerge(loggableGoogleCall.asJson)
-          // Duplicate MDC context in regular logging until log formats can be changed in apps
-          logger.error(loggingCtx, e)(msg.noSpaces)
+          val ctx = loggingCtx ++ Map("result" -> "Failed")
+          logger.error(ctx, e)(loggableGoogleCall.asJson.noSpaces)
         case Left(e) =>
           val loggableGoogleCall = LoggableGoogleCall(None, "Failed")
-
-          val msg = loggingCtx.asJson.deepMerge(loggableGoogleCall.asJson)
-          // Duplicate MDC context in regular logging until log formats can be changed in apps
-          logger.error(loggingCtx, e)(msg.noSpaces)
+          val ctx = loggingCtx ++ Map("result" -> "Failed")
+          logger.error(ctx, e)(loggableGoogleCall.asJson.noSpaces)
         case Right(r) =>
           val response = Option(resultFormatter.show(r))
           val loggableGoogleCall = LoggableGoogleCall(response, "Succeeded")
-          val msg = loggingCtx.asJson.deepMerge(loggableGoogleCall.asJson)
-          logger.info(loggingCtx)(msg.noSpaces)
+          val ctx = loggingCtx ++ Map("result" -> "Succeeded")
+          logger.info(ctx)(loggableGoogleCall.asJson.noSpaces)
       }
       result <- Sync[F].fromEither(attempted)
     } yield result
@@ -122,20 +120,20 @@ package object google2 {
   def credentialResource[F[_]: Sync](pathToCredential: String): Resource[F, ServiceAccountCredentials] =
     for {
       credentialFile <- org.broadinstitute.dsde.workbench.util2.readFile(pathToCredential)
-      credential <- Resource.liftF(Sync[F].delay(ServiceAccountCredentials.fromStream(credentialFile)))
+      credential <- Resource.eval(Sync[F].delay(ServiceAccountCredentials.fromStream(credentialFile)))
     } yield credential
 
   def userCredentials[F[_]: Sync](pathToCredential: String): Resource[F, UserCredentials] =
     for {
       credentialFile <- org.broadinstitute.dsde.workbench.util2.readFile(pathToCredential)
-      credential <- Resource.liftF(Sync[F].delay(UserCredentials.fromStream(credentialFile)))
+      credential <- Resource.eval(Sync[F].delay(UserCredentials.fromStream(credentialFile)))
     } yield credential
 
   // returns legacy GoogleCredential object which is only used for the legacy com.google.api.services client
   def legacyGoogleCredential[F[_]: Sync](pathToCredential: String): Resource[F, GoogleCredential] =
     for {
       credentialFile <- org.broadinstitute.dsde.workbench.util2.readFile(pathToCredential)
-      credential <- Resource.liftF(
+      credential <- Resource.eval(
         Sync[F].delay(GoogleCredential.fromStream(credentialFile).createScoped(ContainerScopes.all()))
       )
     } yield credential
@@ -181,6 +179,12 @@ package object google2 {
     else
       s"operationType=${op.getOperationType}, progress=${op.getProgress}, status=${op.getStatus}, startTime=${op.getStartTime}"
   )
+
+  val showBillingInfo: Show[Option[ProjectBillingInfo]] =
+    Show.show[Option[ProjectBillingInfo]](info => s"isBillingEnabled: ${info.map(_.getBillingEnabled)}")
+
+  implicit val showProject: Show[Option[Project]] =
+    Show.show[Option[Project]](project => s"project name: ${project.map(_.getName)}")
 }
 
 final case class StreamTimeoutError(override val getMessage: String) extends WorkbenchException

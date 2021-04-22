@@ -215,15 +215,14 @@ class HttpGoogleStorageDAO(appName: String,
       val startTime = System.currentTimeMillis()
       Http().singleRequest(request).map { response =>
         val endTime = System.currentTimeMillis()
-        logger.debug(
-          GoogleRequest(HttpMethods.POST.value,
-                        url,
-                        Option(entity),
-                        endTime - startTime,
-                        Option(response.status.intValue),
-                        None
-          ).toJson(GoogleRequestFormat).compactPrint
+        val googleRequest = GoogleRequest(HttpMethods.POST.value,
+                                          url,
+                                          Option(entity),
+                                          endTime - startTime,
+                                          Option(response.status.intValue),
+                                          None
         )
+        logGoogleRequest(googleRequest)
         ()
       }
     }
@@ -396,4 +395,18 @@ class HttpGoogleStorageDAO(appName: String,
     retry(when5xx, whenUsageLimited, when404, whenInvalidValueOnBucketCreation, whenNonHttpIOException) { () =>
       executeGoogleRequest(storage.defaultObjectAccessControls().list(bucketName.value))
     }
+
+  override def setRequesterPays(bucketName: GcsBucketName, requesterPays: Boolean): Future[Unit] =
+    getBucket(bucketName).map { bucket =>
+      // if the billing object is null or the current requester pays setting not the same as the requested setting,
+      //   change requester pays setting to the requested setting.
+      // else do nothing
+      if (bucket.getBilling == null || bucket.getBilling.getRequesterPays != requesterPays) {
+        val rp = new Bucket.Billing().setRequesterPays(requesterPays)
+        retry(when5xx, whenUsageLimited, when404, whenInvalidValueOnBucketCreation, whenNonHttpIOException) { () =>
+          executeGoogleRequest(storage.buckets().patch(bucketName.value, bucket.setBilling(rp)))
+        }
+      }
+    }
+
 }

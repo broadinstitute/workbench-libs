@@ -12,7 +12,7 @@ import com.google.common.util.concurrent.MoreExecutors
 import com.google.protobuf.ByteString
 import com.google.pubsub.v1.{ProjectTopicName, PubsubMessage, TopicName}
 import fs2.{Pipe, Stream}
-import io.chrisdavenport.log4cats.StructuredLogger
+import org.typelevel.log4cats.StructuredLogger
 import io.circe.Encoder
 import io.circe.syntax._
 import org.broadinstitute.dsde.workbench.model.TraceId
@@ -98,7 +98,7 @@ object GooglePublisherInterpreter {
   private def createTopic[F[_]: Sync](topicName: TopicName, topicAdminClient: TopicAdminClient)(implicit
     logger: StructuredLogger[F]
   ): Resource[F, Unit] =
-    Resource.liftF(
+    Resource.eval(
       Sync[F]
         .delay(topicAdminClient.createTopic(topicName))
         .void

@@ -1,7 +1,7 @@
 package org.broadinstitute.dsde.workbench.util2
 
 import cats.effect.IO
-import io.chrisdavenport.log4cats.StructuredLogger
+import org.typelevel.log4cats.StructuredLogger
 
 // This is useful for testing library locally to see logs, or use this in ammonite scripts
 // To use this in console test:

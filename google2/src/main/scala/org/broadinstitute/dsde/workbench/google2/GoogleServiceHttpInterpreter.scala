@@ -9,7 +9,7 @@ import com.google.api.services.storage.StorageScopes
 import com.google.auth.oauth2.{GoogleCredentials, ServiceAccountCredentials}
 import com.google.cloud.Identity
 import com.google.pubsub.v1.TopicName
-import io.chrisdavenport.log4cats.Logger
+import org.typelevel.log4cats.Logger
 import io.circe.syntax._
 import io.circe.{Decoder, Encoder}
 import org.broadinstitute.dsde.workbench.google2.GoogleServiceHttpInterpreter._
@@ -133,7 +133,7 @@ object GoogleServiceHttpInterpreter {
   def credentialResourceWithScope[F[_]: Sync](pathToCredential: String): Resource[F, GoogleCredentials] =
     for {
       credentialFile <- org.broadinstitute.dsde.workbench.util2.readFile(pathToCredential)
-      credential <- Resource.liftF(
+      credential <- Resource.eval(
         Sync[F].delay(ServiceAccountCredentials.fromStream(credentialFile).createScoped(StorageScopes.all()))
       )
     } yield credential
