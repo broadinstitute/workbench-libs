@@ -24,4 +24,6 @@ trait GoogleProjectDAO {
   def getAncestry(projectName: String): Future[Seq[Ancestor]]
 
   def getProjectNumber(projectName: String): Future[Option[Long]]
+
+  def getProjectName(projectId: String): Future[Option[String]]
 }

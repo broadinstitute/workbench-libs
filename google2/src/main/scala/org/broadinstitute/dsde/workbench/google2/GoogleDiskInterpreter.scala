@@ -96,6 +96,6 @@ private[google2] class GoogleDiskInterpreter[F[_]: StructuredLogger: Timer: Cont
   }
 
   private def retryF[A](fa: F[A], loggingMsg: String)(implicit ev: Ask[F, TraceId]): Stream[F, A] =
-    tracedRetryGoogleF(retryConfig)(blockerBound.withPermit(blocker.blockOn(fa)), loggingMsg)
+    tracedRetryF(retryConfig)(blockerBound.withPermit(blocker.blockOn(fa)), loggingMsg)
 
 }

@@ -4,7 +4,7 @@ This file documents changes to the `workbench-google` library, including notes o
 
 ## 0.21
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.21-51d7fff"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.21-3f3c0e4"`
 
 ### Added
 
@@ -17,6 +17,7 @@ SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.
 - Added enableRequesterPays for workspaces
 - Support structured logging for google requests
   - requires dependency "net.logstash.logback" % "logstash-logback-encoder" % "6.6"
+- `getProjectName` in `GoogleProjectDAO`
 
 ### Changed
 
@@ -29,6 +30,7 @@ SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.
 - Creating a group sometimes returns a 5xx error code and leaves behind a partially created group which caused problems 
 when we retried creation. Changed to delete the partially created group before retrying
 - Cross build to scala 2.13
+- Fix potential NPE in `HttpGoogleProjectDAO.isBillingActive()`
 
 ## 0.20
 

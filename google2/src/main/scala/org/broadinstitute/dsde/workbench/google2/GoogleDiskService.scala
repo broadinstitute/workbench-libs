@@ -46,7 +46,7 @@ object GoogleDiskService {
     pathToCredential: String,
     blocker: Blocker,
     blockerBound: Semaphore[F],
-    retryConfig: RetryConfig = RetryPredicates.standardRetryConfig
+    retryConfig: RetryConfig = RetryPredicates.standardGoogleRetryConfig
   ): Resource[F, GoogleDiskService[F]] =
     for {
       credential <- credentialResource(pathToCredential)
