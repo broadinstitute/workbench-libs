@@ -16,8 +16,8 @@ object Dependencies {
   val scalaLogging: ModuleID = "com.typesafe.scala-logging"    %% "scala-logging" % scalaLoggingV  % "provided"
   val scalatest: ModuleID =    "org.scalatest"                 %% "scalatest"     % scalaTestV  % "test"
   val scalaTestScalaCheck = "org.scalatestplus" %% "scalacheck-1-14" % "3.2.2.0" % Test //Since scalatest 3.1.0, scalacheck support is moved to `scalatestplus`
-  val scalaTestMockito = "org.scalatestplus" %% "mockito-3-4" % "3.2.7.0" % Test //Since scalatest 3.1.0, mockito support is moved to `scalatestplus`
-  val scalaTestSelenium =  "org.scalatestplus" %% "selenium-3-141" % "3.2.7.0" % Test //Since scalatest 3.1.0, selenium support is moved to `scalatestplus`
+  val scalaTestMockito = "org.scalatestplus" %% "mockito-3-4" % "3.2.8.0" % Test //Since scalatest 3.1.0, mockito support is moved to `scalatestplus`
+  val scalaTestSelenium =  "org.scalatestplus" %% "selenium-3-141" % "3.2.8.0" % Test //Since scalatest 3.1.0, selenium support is moved to `scalatestplus`
 
   val akkaActor: ModuleID =         "com.typesafe.akka" %% "akka-actor"           % akkaV     % "provided"
   val akkaStream: ModuleID =         "com.typesafe.akka" %% "akka-stream"           % akkaV     % "provided"
