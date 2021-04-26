@@ -21,7 +21,7 @@ Dependency Updates (latest):
 - Update google-cloud-nio from 0.122.5 to 0.122.11 (#563) (2 hours ago) <Scala Steward>
 - Update jackson-module-scala from 2.12.1 to 2.12.2 (#532) (2 hours ago) <Scala Steward>
 - Update client-java from 11.0.0 to 11.0.1 (#546) (2 hours ago) <Scala Steward>
-- Update scalatest from 3.2.3 to 3.2.6 (#549) (2 hours ago) <Scala Steward>
+- Update scalatest from 3.2.3 to 3.2.8 (#549) (2 hours ago) <Scala Steward>
 - Update google-cloud-firestore from 2.2.1 to 2.2.5 (#562) (2 hours ago) <Scala Steward>
 - Update cats-effect from 2.3.3 to 2.4.0 (#569) (82 seconds ago) <Scala Steward>
 - Update google-cloud-errorreporting from 0.120.34-beta to 0.120.36-beta (#561) (2 hours ago) <Scala Steward>
@@ -171,7 +171,7 @@ Update commons-codec to 20041127.091804 (#406)
 Update scalafmt-core to 2.7.5 (#402)
 Update http4s-blaze-client, http4s-circe, ... to 0.21.11 (#398)
 Update google-cloud-dataproc to 1.1.7 (#408)
-Update scalatest to 3.2.6 (#403)
+Update scalatest to 3.2.8 (#403)
 Update fs2-io to 2.4.5 (#379)
 ```
 
