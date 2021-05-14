@@ -4,7 +4,17 @@ import cats.effect.{Blocker, ContextShift, Resource, Sync, Timer}
 import com.google.auth.Credentials
 import com.google.cloud.ServiceOptions.getDefaultProjectId
 import com.google.cloud.bigquery.BigQueryOptions.DefaultBigQueryFactory
-import com.google.cloud.bigquery.{Acl, BigQuery, BigQueryOptions, Dataset, DatasetId, JobId, QueryJobConfiguration, Table, TableResult}
+import com.google.cloud.bigquery.{
+  Acl,
+  BigQuery,
+  BigQueryOptions,
+  Dataset,
+  DatasetId,
+  JobId,
+  QueryJobConfiguration,
+  Table,
+  TableResult
+}
 import org.typelevel.log4cats.StructuredLogger
 import org.broadinstitute.dsde.workbench.model.WorkbenchEmail
 import org.broadinstitute.dsde.workbench.model.google.GoogleProject

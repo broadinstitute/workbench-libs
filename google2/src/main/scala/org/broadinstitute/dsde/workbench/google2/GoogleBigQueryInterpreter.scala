@@ -3,7 +3,18 @@ package org.broadinstitute.dsde.workbench.google2
 import cats.Show
 import cats.effect.{Blocker, ContextShift, Sync, Timer}
 import com.google.cloud.bigquery.Acl.{Group, User}
-import com.google.cloud.bigquery.{Acl, BigQuery, Dataset, DatasetId, DatasetInfo, JobId, QueryJobConfiguration, Table, TableId, TableResult}
+import com.google.cloud.bigquery.{
+  Acl,
+  BigQuery,
+  Dataset,
+  DatasetId,
+  DatasetInfo,
+  JobId,
+  QueryJobConfiguration,
+  Table,
+  TableId,
+  TableResult
+}
 import org.typelevel.log4cats.StructuredLogger
 import org.broadinstitute.dsde.workbench.model.{WorkbenchEmail, WorkbenchException}
 
@@ -76,7 +87,7 @@ private[google2] class GoogleBigQueryInterpreter[F[_]: Sync: ContextShift: Timer
       s"com.google.cloud.bigquery.BigQuery.delete(${datasetName})"
     )
 
-  override def getTable(datasetName: String, tableName: String): F[Option[Table]] = {
+  override def getTable(datasetName: String, tableName: String): F[Option[Table]] =
     withLogging(
       blockingF(Sync[F].delay[Option[Table]] {
         Option(client.getTable(TableId.of(datasetName, tableName)))
@@ -84,9 +95,8 @@ private[google2] class GoogleBigQueryInterpreter[F[_]: Sync: ContextShift: Timer
       None,
       s"com.google.cloud.bigquery.BigQuery.getTable($datasetName, $tableName)"
     )
-  }
 
-  override def getDataset(datasetName: String): F[Option[Dataset]] = {
+  override def getDataset(datasetName: String): F[Option[Dataset]] =
     withLogging(
       blockingF(Sync[F].delay[Option[Dataset]] {
         Option(client.getDataset(DatasetId.of(datasetName)))
@@ -94,7 +104,6 @@ private[google2] class GoogleBigQueryInterpreter[F[_]: Sync: ContextShift: Timer
       None,
       s"com.google.cloud.bigquery.BigQuery.getDataset($datasetName, $datasetName)"
     )
-  }
 
   private def blockingF[A](fa: F[A]): F[A] = blocker.blockOn(fa)
 }
