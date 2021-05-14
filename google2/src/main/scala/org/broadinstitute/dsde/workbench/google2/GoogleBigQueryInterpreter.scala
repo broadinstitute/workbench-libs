@@ -102,7 +102,7 @@ private[google2] class GoogleBigQueryInterpreter[F[_]: Sync: ContextShift: Timer
         Option(client.getDataset(DatasetId.of(datasetName)))
       }),
       None,
-      s"com.google.cloud.bigquery.BigQuery.getDataset($datasetName, $datasetName)"
+      s"com.google.cloud.bigquery.BigQuery.getDataset($datasetName)"
     )
 
   private def blockingF[A](fa: F[A]): F[A] = blocker.blockOn(fa)
