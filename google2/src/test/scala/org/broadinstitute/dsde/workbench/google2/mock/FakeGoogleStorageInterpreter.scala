@@ -12,7 +12,7 @@ import com.google.cloud.{Identity, Policy}
 import fs2.{Pipe, Stream}
 import org.broadinstitute.dsde.workbench.RetryConfig
 import org.broadinstitute.dsde.workbench.google2.GoogleStorageInterpreterSpec._
-import org.broadinstitute.dsde.workbench.google2.util.RetryPredicates.standardRetryConfig
+import org.broadinstitute.dsde.workbench.google2.util.RetryPredicates.standardGoogleRetryConfig
 import org.broadinstitute.dsde.workbench.model.TraceId
 import org.broadinstitute.dsde.workbench.model.google.{GcsBucketName, GcsObjectName, GoogleProject}
 
@@ -107,7 +107,7 @@ class BaseFakeGoogleStorage extends GoogleStorageService[IO] {
                             isRecursive: Boolean,
                             bucketSourceOptions: List[BucketSourceOption] = List.empty,
                             traceId: Option[TraceId] = None,
-                            retryConfig: RetryConfig = standardRetryConfig
+                            retryConfig: RetryConfig = standardGoogleRetryConfig
   ): Stream[IO, Boolean] =
     Stream.emit(true).covary[IO]
 
