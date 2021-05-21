@@ -5,8 +5,11 @@ This file documents changes to the `workbench-google2` library, including notes 
 ## 0.21
 Breaking Changes:
 - Rename `retryGoogleF` and `tracedRetryGoogleF` to `retryF` and `tracedRetryF`
+  
+Added:
+- Added `getDataset` and `getTable` to `GoogleBigQueryService`
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.21-197294d"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.21-0e310bc"`
 
 Dependency Updates:
 - Update google-cloud-compute from 0.118.0-alpha to 0.119.8-alpha
