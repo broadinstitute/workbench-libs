@@ -2,10 +2,23 @@
 
 This file documents changes to the `workbench-google2` library, including notes on how to upgrade to new versions.
 
+## 0.21
+Breaking Changes:
+- Rename `retryGoogleF` and `tracedRetryGoogleF` to `retryF` and `tracedRetryF`
+  
+Added:
+- Added `getDataset` and `getTable` to `GoogleBigQueryService`
+
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.21-0e310bc"`
+
+Dependency Updates:
+- Update google-cloud-compute from 0.118.0-alpha to 0.119.8-alpha
+
 ## 0.20
 Breaking Changes:
 - Make `GoogleDataprocService` support multiple regions
 - Make `GoogleComputeService.createInstance` and `GoogleDataprocService.createCluster` return `F[Option[Operation]]`
+- Rename `retryGoogleF` and `tracedRetryGoogleF` to `retryF` and `tracedRetryF`
 
 Dependency Updates (latest):
 - Update google-cloud-nio from 0.122.5 to 0.122.11 (#563) (2 hours ago) <Scala Steward>

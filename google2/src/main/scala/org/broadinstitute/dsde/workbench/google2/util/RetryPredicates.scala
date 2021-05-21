@@ -9,21 +9,23 @@ import org.broadinstitute.dsde.workbench.RetryConfig
 import scala.concurrent.duration._
 
 object RetryPredicates {
-  val standardRetryConfig = RetryConfig(
+  val retryAllConfig = RetryConfig(
     org.broadinstitute.dsde.workbench.util2.addJitter(1 seconds, 1 seconds),
     x => x * 2,
     5,
-    standardRetryPredicate
+    _ => true
   )
 
+  val standardGoogleRetryConfig = retryAllConfig.copy(retryable = standardGoogleRetryPredicate)
+
   def retryConfigWithPredicates(predicates: (Throwable => Boolean)*): RetryConfig =
-    standardRetryConfig.copy(retryable = combine(predicates))
+    retryAllConfig.copy(retryable = combine(predicates))
 
   /**
    * Retries anything google thinks is ok to retry plus any IOException
    * @return
    */
-  def standardRetryPredicate: Throwable => Boolean = {
+  def standardGoogleRetryPredicate: Throwable => Boolean = {
     case e: BaseServiceException => e.isRetryable
     case _: IOException          => true
     case _                       => false

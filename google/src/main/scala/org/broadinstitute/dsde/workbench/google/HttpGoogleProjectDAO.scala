@@ -97,7 +97,8 @@ class HttpGoogleProjectDAO(appName: String,
       case e: HttpResponseException if e.getStatusCode == StatusCodes.NotFound.intValue => None
     } map {
       // return true if billing is enabled for the project, false otherwise
-      case Some(billingInfo) => billingInfo.getBillingEnabled
+      // billingInfo.getBillingEnabled returns null or Boolean so we need to make sure we handle the null case
+      case Some(billingInfo) => billingInfo.getBillingEnabled == true
       case None              => false
     }
 
@@ -130,6 +131,14 @@ class HttpGoogleProjectDAO(appName: String,
   override def getProjectNumber(projectName: String): Future[Option[Long]] =
     retryWithRecover(when5xx, whenUsageLimited, whenInvalidValueOnBucketCreation, whenNonHttpIOException) { () =>
       Option(executeGoogleRequest(cloudResManager.projects().get(projectName))).map(_.getProjectNumber).map(_.toLong)
+    } {
+      // if the project doesn't exist, don't fail
+      case e: HttpResponseException if e.getStatusCode == StatusCodes.NotFound.intValue => None
+    }
+
+  override def getProjectName(projectId: String): Future[Option[String]] =
+    retryWithRecover(when5xx, whenUsageLimited, whenInvalidValueOnBucketCreation, whenNonHttpIOException) { () =>
+      Option(executeGoogleRequest(cloudResManager.projects().get(projectId))).map(_.getName)
     } {
       // if the project doesn't exist, don't fail
       case e: HttpResponseException if e.getStatusCode == StatusCodes.NotFound.intValue => None

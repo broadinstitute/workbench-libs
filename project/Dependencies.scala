@@ -30,7 +30,7 @@ object Dependencies {
 
   val jacksonModule: ModuleID =   "com.fasterxml.jackson.module" %% "jackson-module-scala"   % jacksonV % "test"
 
-  val catsEffect: ModuleID = "org.typelevel" %% "cats-effect" % "2.4.1"
+  val catsEffect: ModuleID = "org.typelevel" %% "cats-effect" % "2.5.0"
 
   // metrics-scala transitively pulls in io.dropwizard.metrics:metrics-core
   val metricsScala: ModuleID =      "nl.grons"              %% "metrics4-scala"    % "4.1.14"
@@ -55,16 +55,16 @@ object Dependencies {
 
   val googleRpc2: ModuleID =               "io.grpc" % "grpc-core" % "1.34.0"
   val googleFirestore: ModuleID = "com.google.cloud" % "google-cloud-firestore" % "2.2.5"
-  val googleStorageNew: ModuleID = "com.google.cloud" % "google-cloud-storage" % "1.113.14"
+  val googleStorageNew: ModuleID = "com.google.cloud" % "google-cloud-storage" % "1.113.16"
   val googleStorageLocal: ModuleID = "com.google.cloud" % "google-cloud-nio" % "0.122.11" % "test"
-  val googlePubsubNew: ModuleID = "com.google.cloud" % "google-cloud-pubsub" % "1.112.0"
+  val googlePubsubNew: ModuleID = "com.google.cloud" % "google-cloud-pubsub" % "1.112.3"
   val googleKms: ModuleID = "com.google.cloud" % "google-cloud-kms" % "1.40.8"
-  val googleDataproc: ModuleID =    "com.google.cloud" % "google-cloud-dataproc" % "1.4.0"
-  val googleComputeNew: ModuleID = "com.google.cloud" % "google-cloud-compute" % "0.118.0-alpha"
-  val googleContainer: ModuleID = "com.google.cloud" % "google-cloud-container" % "1.3.0"
+  val googleDataproc: ModuleID =    "com.google.cloud" % "google-cloud-dataproc" % "1.4.2"
+  val googleComputeNew: ModuleID = "com.google.cloud" % "google-cloud-compute" % "0.119.8-alpha"
+  val googleContainer: ModuleID = "com.google.cloud" % "google-cloud-container" % "1.3.3"
   val kubernetesClient: ModuleID = "io.kubernetes" % "client-java" % "11.0.1"
   val googleBigQueryNew: ModuleID = "com.google.cloud" % "google-cloud-bigquery" % "1.127.11"
-  val google2CloudBilling = "com.google.cloud" % "google-cloud-billing" % "1.1.16"
+  val google2CloudBilling = "com.google.cloud" % "google-cloud-billing" % "1.1.18"
   val googleResourceManager =  "com.google.cloud" % "google-cloud-resourcemanager" % "0.118.12-alpha"
   //the below v1 module is a dependency for v2 because it contains the OAuth scopes necessary to created scoped credentials
   val googleContainerV1: ModuleID = "com.google.apis" % "google-api-services-container" % "v1-rev20210312-1.31.0"
@@ -74,8 +74,8 @@ object Dependencies {
   val circeParser: ModuleID = "io.circe" %% "circe-parser" % circeVersion
   val circeGeneric: ModuleID = "io.circe" %% "circe-generic" % circeVersion % "test"
   val circeFs2: ModuleID = "io.circe" %% "circe-fs2" % circeVersion
-  val log4cats = "org.typelevel" %% "log4cats-slf4j"   % "1.2.2"
-  val catsMtl = "org.typelevel" %% "cats-mtl" % "1.1.3"
+  val log4cats = "org.typelevel" %% "log4cats-slf4j"   % "1.2.0"
+  val catsMtl = "org.typelevel" %% "cats-mtl" % "1.2.0"
 
   val http4sCirce = "org.http4s" %% "http4s-circe" % http4sVersion
   val http4sBlazeClient = "org.http4s" %% "http4s-blaze-client" % http4sVersion
