@@ -565,6 +565,8 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
                        expression: String,
                        useCallCache: Boolean,
                        deleteIntermediateOutputFiles: Boolean,
+                       useReferenceDisks: Boolean,
+                       memoryRetryMultiplier: Double,
                        workflowFailureMode: String = "NoNewCalls"
     )(implicit token: AuthToken): String = {
       logger.info(s"Creating a submission: $ns/$wsName config: $methodConfigurationNamespace/$methodConfigurationName")
@@ -578,6 +580,8 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
           "expression" -> expression,
           "useCallCache" -> useCallCache,
           "deleteIntermediateOutputFiles" -> deleteIntermediateOutputFiles,
+          "useReferenceDisks" -> useReferenceDisks,
+          "memoryRetryMultiplier" -> memoryRetryMultiplier,
           "workflowFailureMode" -> workflowFailureMode
         )
       )
