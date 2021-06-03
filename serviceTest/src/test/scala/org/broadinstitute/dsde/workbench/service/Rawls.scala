@@ -347,6 +347,8 @@ trait Rawls extends RestClient with LazyLogging {
                        expression: String,
                        useCallCache: Boolean,
                        deleteIntermediateOutputFiles: Boolean,
+                       useReferenceDisks: Boolean,
+                       memoryRetryMultiplier: Double,
                        workflowFailureMode: String = "NoNewCalls"
     )(implicit token: AuthToken): String = {
       val body: Map[String, Any] = Map(
@@ -357,6 +359,8 @@ trait Rawls extends RestClient with LazyLogging {
         "expression" -> expression,
         "useCallCache" -> useCallCache,
         "deleteIntermediateOutputFiles" -> deleteIntermediateOutputFiles,
+        "useReferenceDisks" -> useReferenceDisks,
+        "memoryRetryMultiplier" -> memoryRetryMultiplier,
         "workflowFailureMode" -> workflowFailureMode
       )
       logger.info(
