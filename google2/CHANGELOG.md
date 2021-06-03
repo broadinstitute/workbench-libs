@@ -23,7 +23,7 @@ Breaking Changes:
 
 Dependency Updates (latest):
 - Update google-cloud-nio from 0.122.5 to 0.122.11 (#563) (2 hours ago) <Scala Steward>
-- Update jackson-module-scala from 2.12.1 to 2.12.2 (#532) (2 hours ago) <Scala Steward>
+- Update jackson-module-scala from 2.12.3 to 2.12.2 (#532) (2 hours ago) <Scala Steward>
 - Update client-java from 11.0.0 to 11.0.1 (#546) (2 hours ago) <Scala Steward>
 - Update scalatest from 3.2.3 to 3.2.6 (#549) (2 hours ago) <Scala Steward>
 - Update google-cloud-firestore from 2.2.1 to 2.2.5 (#562) (2 hours ago) <Scala Steward>
