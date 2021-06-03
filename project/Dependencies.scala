@@ -102,7 +102,7 @@ object Dependencies {
     akkaHttpSprayJson,
     akkaTestkit,
     scalaTestMockito,
-    "org.typelevel" %% "cats-core" % "2.4.2"
+    "org.typelevel" %% "cats-core" % "2.6.1"
   )
 
   val modelDependencies = commonDependencies ++ Seq(
