@@ -4,17 +4,7 @@ import cats.effect.{Blocker, ContextShift, Resource, Sync, Timer}
 import com.google.auth.Credentials
 import com.google.cloud.ServiceOptions.getDefaultProjectId
 import com.google.cloud.bigquery.BigQueryOptions.DefaultBigQueryFactory
-import com.google.cloud.bigquery.{
-  Acl,
-  BigQuery,
-  BigQueryOptions,
-  Dataset,
-  DatasetId,
-  JobId,
-  QueryJobConfiguration,
-  Table,
-  TableResult
-}
+import com.google.cloud.bigquery.{Acl, BigQuery, BigQueryOptions, Dataset, DatasetId, DatasetInfo, JobId, QueryJobConfiguration, Table, TableResult}
 import org.typelevel.log4cats.StructuredLogger
 import org.broadinstitute.dsde.workbench.model.WorkbenchEmail
 import org.broadinstitute.dsde.workbench.model.google.GoogleProject
@@ -34,6 +24,8 @@ trait GoogleBigQueryService[F[_]] {
   def getTable(datasetName: String, tableName: String): F[Option[Table]]
 
   def getDataset(datasetName: String): F[Option[Dataset]]
+
+  def getDataset(googleProjectName: GoogleProject, datasetName: String): F[Option[DatasetInfo]]
 }
 
 object GoogleBigQueryService {
