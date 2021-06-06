@@ -95,7 +95,7 @@ private[google2] class GoogleBigQueryInterpreter[F[_]: Sync: ContextShift: Timer
       s"com.google.cloud.bigquery.BigQuery.getDataset($datasetName)"
     )
 
-  override def getDataset(googleProjectName: GoogleProject, datasetName: String): F[Option[DatasetInfo]] =
+  override def getDataset(googleProjectName: GoogleProject, datasetName: String): F[Option[Dataset]] =
     withLogging(
       blockingF(Sync[F].delay[Option[Dataset]] {
         Option(client.getDataset(DatasetId.of(googleProjectName.value, datasetName)))

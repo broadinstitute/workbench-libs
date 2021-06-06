@@ -25,7 +25,7 @@ trait GoogleBigQueryService[F[_]] {
 
   def getDataset(datasetName: String): F[Option[Dataset]]
 
-  def getDataset(googleProjectName: GoogleProject, datasetName: String): F[Option[DatasetInfo]]
+  def getDataset(googleProjectName: GoogleProject, datasetName: String): F[Option[Dataset]]
 }
 
 object GoogleBigQueryService {
