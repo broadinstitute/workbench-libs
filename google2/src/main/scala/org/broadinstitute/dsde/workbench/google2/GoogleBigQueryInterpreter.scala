@@ -86,6 +86,15 @@ private[google2] class GoogleBigQueryInterpreter[F[_]: Sync: ContextShift: Timer
       s"com.google.cloud.bigquery.BigQuery.getTable($datasetName, $tableName)"
     )
 
+  override def getTable(googleProjectName: GoogleProject, datasetName: String, tableName: String): F[Option[Table]] =
+    withLogging(
+      blockingF(Sync[F].delay[Option[Table]] {
+        Option(client.getTable(TableId.of(googleProjectName.value, datasetName, tableName)))
+      }),
+      None,
+      s"com.google.cloud.bigquery.BigQuery.getTable($datasetName, $tableName)"
+    )
+
   override def getDataset(datasetName: String): F[Option[Dataset]] =
     withLogging(
       blockingF(Sync[F].delay[Option[Dataset]] {

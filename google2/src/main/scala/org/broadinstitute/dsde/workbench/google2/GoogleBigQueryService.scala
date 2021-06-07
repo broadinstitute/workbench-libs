@@ -23,6 +23,8 @@ trait GoogleBigQueryService[F[_]] {
 
   def getTable(datasetName: String, tableName: String): F[Option[Table]]
 
+  def getTable(googleProjectName: GoogleProject, datasetName: String, tableName: String): F[Option[Table]]
+
   def getDataset(datasetName: String): F[Option[Dataset]]
 
   def getDataset(googleProjectName: GoogleProject, datasetName: String): F[Option[Dataset]]
