@@ -103,7 +103,7 @@ private[google2] class GoogleBigQueryInterpreter[F[_]: Sync: ContextShift: Timer
         Option(client.getTable(TableId.of(googleProjectName.value, datasetName, tableName)))
       }),
       None,
-      s"com.google.cloud.bigquery.BigQuery.getTable($datasetName, $tableName)"
+      s"com.google.cloud.bigquery.BigQuery.getTable(${googleProjectName.value}, $datasetName, $tableName)"
     )
 
   override def getDataset(datasetName: String): F[Option[Dataset]] =
@@ -121,7 +121,7 @@ private[google2] class GoogleBigQueryInterpreter[F[_]: Sync: ContextShift: Timer
         Option(client.getDataset(DatasetId.of(googleProjectName.value, datasetName)))
       }),
       None,
-      s"com.google.cloud.bigquery.BigQuery.getDataset(${googleProjectName.value},$datasetName)"
+      s"com.google.cloud.bigquery.BigQuery.getDataset(${googleProjectName.value}, $datasetName)"
     )
 
   private def blockingF[A](fa: F[A]): F[A] = blocker.blockOn(fa)
