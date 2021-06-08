@@ -3,7 +3,18 @@ package org.broadinstitute.dsde.workbench.google2
 import cats.Show
 import cats.effect.{Blocker, ContextShift, Sync, Timer}
 import com.google.cloud.bigquery.Acl.{Group, User}
-import com.google.cloud.bigquery.{Acl, BigQuery, Dataset, DatasetId, DatasetInfo, JobId, QueryJobConfiguration, Table, TableId, TableResult}
+import com.google.cloud.bigquery.{
+  Acl,
+  BigQuery,
+  Dataset,
+  DatasetId,
+  DatasetInfo,
+  JobId,
+  QueryJobConfiguration,
+  Table,
+  TableId,
+  TableResult
+}
 import org.broadinstitute.dsde.workbench.model.google.GoogleProject
 import org.typelevel.log4cats.StructuredLogger
 import org.broadinstitute.dsde.workbench.model.{WorkbenchEmail, WorkbenchException}
