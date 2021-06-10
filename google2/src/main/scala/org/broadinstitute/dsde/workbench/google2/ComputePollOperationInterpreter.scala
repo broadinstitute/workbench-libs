@@ -1,12 +1,13 @@
 package org.broadinstitute.dsde.workbench.google2
 
-import cats.effect.concurrent.Semaphore
-import cats.effect.{Blocker, Concurrent, ContextShift, Timer}
+import cats.effect.Concurrent
 import cats.mtl.Ask
 import com.google.cloud.compute.v1._
 import org.typelevel.log4cats.StructuredLogger
 import org.broadinstitute.dsde.workbench.model.TraceId
 import org.broadinstitute.dsde.workbench.model.google.GoogleProject
+import cats.effect.Temporal
+import cats.effect.std.Semaphore
 
 class ComputePollOperationInterpreter[F[_]: StructuredLogger: ContextShift](
   zoneOperationClient: ZoneOperationClient,
@@ -14,7 +15,7 @@ class ComputePollOperationInterpreter[F[_]: StructuredLogger: ContextShift](
   globalOperationClient: GlobalOperationClient,
   blocker: Blocker,
   blockerBound: Semaphore[F]
-)(implicit override val F: Concurrent[F], override val timer: Timer[F])
+)(implicit override val F: Concurrent[F], override val timer: Temporal[F])
     extends ComputePollOperation[F] {
   override def getZoneOperation(project: GoogleProject, zoneName: ZoneName, operationName: OperationName)(implicit
     ev: Ask[F, TraceId]

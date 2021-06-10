@@ -1,7 +1,6 @@
 package org.broadinstitute.dsde.workbench.google2
 
-import cats.effect.concurrent.Semaphore
-import cats.effect.{Async, Blocker, ContextShift, Resource, Timer}
+import cats.effect.{Async, Resource}
 import cats.mtl.Ask
 import com.google.api.gax.core.FixedCredentialsProvider
 import com.google.api.services.compute.ComputeScopes
@@ -15,6 +14,8 @@ import org.broadinstitute.dsde.workbench.google2.util.RetryPredicates
 import org.broadinstitute.dsde.workbench.model.TraceId
 
 import scala.collection.JavaConverters._
+import cats.effect.Temporal
+import cats.effect.std.Semaphore
 
 /**
  * Algebra for Google Disk access.
@@ -42,9 +43,8 @@ trait GoogleDiskService[F[_]] {
 }
 
 object GoogleDiskService {
-  def resource[F[_]: StructuredLogger: Async: Timer: ContextShift](
+  def resource[F[_]: StructuredLogger: Async: Temporal: ContextShift](
     pathToCredential: String,
-    blocker: Blocker,
     blockerBound: Semaphore[F],
     retryConfig: RetryConfig = RetryPredicates.standardGoogleRetryConfig
   ): Resource[F, GoogleDiskService[F]] =
@@ -54,9 +54,8 @@ object GoogleDiskService {
       interpreter <- fromCredential(scopedCredential, blocker, blockerBound, retryConfig)
     } yield interpreter
 
-  private def fromCredential[F[_]: StructuredLogger: Async: Timer: ContextShift](
+  private def fromCredential[F[_]: StructuredLogger: Async: Temporal: ContextShift](
     googleCredentials: GoogleCredentials,
-    blocker: Blocker,
     blockerBound: Semaphore[F],
     retryConfig: RetryConfig
   ): Resource[F, GoogleDiskService[F]] = {

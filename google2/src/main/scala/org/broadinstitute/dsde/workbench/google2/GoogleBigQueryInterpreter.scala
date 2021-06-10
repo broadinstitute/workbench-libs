@@ -1,7 +1,7 @@
 package org.broadinstitute.dsde.workbench.google2
 
 import cats.Show
-import cats.effect.{Blocker, ContextShift, Sync, Timer}
+import cats.effect.Sync
 import com.google.cloud.bigquery.Acl.{Group, User}
 import com.google.cloud.bigquery.{
   Acl,
@@ -19,8 +19,9 @@ import org.typelevel.log4cats.StructuredLogger
 import org.broadinstitute.dsde.workbench.model.{WorkbenchEmail, WorkbenchException}
 
 import scala.collection.JavaConverters._
+import cats.effect.Temporal
 
-private[google2] class GoogleBigQueryInterpreter[F[_]: Sync: ContextShift: Timer: StructuredLogger](client: BigQuery,
+private[google2] class GoogleBigQueryInterpreter[F[_]: Sync: ContextShift: Temporal: StructuredLogger](client: BigQuery,
                                                                                                     blocker: Blocker
 ) extends GoogleBigQueryService[F] {
 

@@ -16,8 +16,9 @@ import org.typelevel.log4cats.StructuredLogger
 import io.circe.Encoder
 import io.circe.syntax._
 import org.broadinstitute.dsde.workbench.model.TraceId
+import cats.effect.Temporal
 
-private[google2] class GooglePublisherInterpreter[F[_]: Async: Timer: StructuredLogger](
+private[google2] class GooglePublisherInterpreter[F[_]: Async: Temporal: StructuredLogger](
   publisher: Publisher
 ) extends GooglePublisher[F] {
   def publish[MessageType: Encoder]: Pipe[F, MessageType, Unit] = in => {
@@ -40,7 +41,7 @@ private[google2] class GooglePublisherInterpreter[F[_]: Async: Timer: Structured
    */
   override def publishNativeOne(message: PubsubMessage): F[Unit] = withLogging(
     Async[F]
-      .async[String] { callback =>
+      .async_[String] { callback =>
         ApiFutures.addCallback(
           publisher.publish(message),
           callBack(callback),
@@ -68,7 +69,7 @@ private[google2] class GooglePublisherInterpreter[F[_]: Async: Timer: Structured
 
   private def asyncPublishMessage(byteString: ByteString): F[Unit] =
     Async[F]
-      .async[String] { callback =>
+      .async_[String] { callback =>
         val message = PubsubMessage
           .newBuilder()
           .setData(byteString)
@@ -83,7 +84,7 @@ private[google2] class GooglePublisherInterpreter[F[_]: Async: Timer: Structured
 }
 
 object GooglePublisherInterpreter {
-  def apply[F[_]: Async: Timer: ContextShift: StructuredLogger](
+  def apply[F[_]: Async: Temporal: ContextShift: StructuredLogger](
     publisher: Publisher
   ): GooglePublisherInterpreter[F] = new GooglePublisherInterpreter(publisher)
 

@@ -1,6 +1,6 @@
 package org.broadinstitute.dsde.workbench.google2
 
-import cats.effect.{ContextShift, IO, Resource, Timer}
+import cats.effect.{IO, Resource}
 import cats.syntax.all._
 import com.google.api.gax.core.NoCredentialsProvider
 import com.google.api.gax.grpc.GrpcTransportChannel
@@ -22,6 +22,7 @@ import org.scalatest.matchers.should.Matchers
 
 import scala.concurrent.duration._
 import scala.util.Try
+import cats.effect.Temporal
 
 class GooglePubSubSpec extends AnyFlatSpecLike with Matchers with WorkbenchTestSuite {
   "GooglePublisherInterpreter" should "be able to publish message successfully" in {
@@ -88,8 +89,7 @@ class GooglePubSubSpec extends AnyFlatSpecLike with Matchers with WorkbenchTestS
 
 object GooglePubSubSpec {
   def localPubsub[A: Decoder](projectTopicName: TopicName, queue: fs2.concurrent.Queue[IO, Event[A]])(implicit
-    timer: Timer[IO],
-    cs: ContextShift[IO],
+    timer: Temporal[IO],
     logger: StructuredLogger[IO]
   ): Resource[IO, (GooglePublisherInterpreter[IO], GoogleSubscriberInterpreter[IO, A])] =
     for {

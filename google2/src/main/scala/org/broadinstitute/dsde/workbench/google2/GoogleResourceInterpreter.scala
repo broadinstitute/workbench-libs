@@ -1,8 +1,7 @@
 package org.broadinstitute.dsde.workbench.google2
 
 import cats.Parallel
-import cats.effect.concurrent.Semaphore
-import cats.effect.{Async, Blocker, ContextShift, Timer}
+import cats.effect.Async
 import cats.mtl.Ask
 import com.google.cloud.resourcemanager.{Project, ResourceManager}
 import org.typelevel.log4cats.StructuredLogger
@@ -12,8 +11,10 @@ import cats.syntax.all._
 import org.broadinstitute.dsde.workbench.google2.util.RetryPredicates._
 
 import scala.collection.JavaConverters._
+import cats.effect.Temporal
+import cats.effect.std.Semaphore
 
-private[google2] class GoogleResourceInterpreter[F[_]: StructuredLogger: Parallel: Timer: ContextShift](
+private[google2] class GoogleResourceInterpreter[F[_]: StructuredLogger: Parallel: Temporal: ContextShift](
   resourceClient: ResourceManager,
   blocker: Blocker,
   blockerBound: Semaphore[F]

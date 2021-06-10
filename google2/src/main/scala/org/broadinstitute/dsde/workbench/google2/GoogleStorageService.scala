@@ -5,7 +5,6 @@ import java.nio.file.Path
 
 import cats.data.NonEmptyList
 import cats.effect._
-import cats.effect.concurrent.Semaphore
 import cats.syntax.all._
 import com.google.auth.Credentials
 import com.google.auth.oauth2.{AccessToken, GoogleCredentials}
@@ -20,6 +19,8 @@ import org.broadinstitute.dsde.workbench.model.TraceId
 import org.broadinstitute.dsde.workbench.model.google.{GcsBucketName, GcsObjectName, GoogleProject}
 
 import scala.language.higherKinds
+import cats.effect.Temporal
+import cats.effect.std.Semaphore
 
 /**
  * Algebra for Google storage access
@@ -293,9 +294,8 @@ trait GoogleStorageService[F[_]] {
 }
 
 object GoogleStorageService {
-  def resource[F[_]: ContextShift: Timer: Async: StructuredLogger](
+  def resource[F[_]: ContextShift: Temporal: Async: StructuredLogger](
     pathToCredentialJson: String,
-    blocker: Blocker,
     blockerBound: Option[Semaphore[F]] = None,
     project: Option[GoogleProject] = None
   ): Resource[F, GoogleStorageService[F]] =
@@ -303,9 +303,7 @@ object GoogleStorageService {
       db <- GoogleStorageInterpreter.storage[F](pathToCredentialJson, blocker, project)
     } yield GoogleStorageInterpreter[F](db, blocker, blockerBound)
 
-  def fromApplicationDefault[F[_]: ContextShift: Timer: Async: StructuredLogger](
-    blocker: Blocker,
-    blockerBound: Option[Semaphore[F]] = None
+  def fromApplicationDefault[F[_]: ContextShift: Temporal: Async: StructuredLogger](blockerBound: Option[Semaphore[F]] = None
   ): Resource[F, GoogleStorageService[F]] =
     for {
       db <- Resource.eval(
@@ -319,9 +317,8 @@ object GoogleStorageService {
       )
     } yield GoogleStorageInterpreter[F](db, blocker, blockerBound)
 
-  def fromAccessToken[F[_]: ContextShift: Timer: Async: StructuredLogger](
+  def fromAccessToken[F[_]: ContextShift: Temporal: Async: StructuredLogger](
     accessToken: AccessToken,
-    blocker: Blocker,
     blockerBound: Option[Semaphore[F]] = None
   ): Resource[F, GoogleStorageService[F]] =
     for {

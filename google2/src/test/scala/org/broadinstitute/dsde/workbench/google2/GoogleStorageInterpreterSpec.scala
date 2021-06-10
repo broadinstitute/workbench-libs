@@ -1,7 +1,6 @@
 package org.broadinstitute.dsde.workbench.google2
 
-import cats.effect.concurrent.Semaphore
-import cats.effect.{Blocker, IO}
+import cats.effect.IO
 import cats.syntax.all._
 import fs2.Stream
 import com.google.cloud.storage.contrib.nio.testing.LocalStorageHelper
@@ -15,6 +14,7 @@ import org.scalatest.matchers.should.Matchers
 
 import scala.concurrent.ExecutionContext.global
 import scala.concurrent.ExecutionContext
+import cats.effect.std.Semaphore
 
 // AsyncFlatSpec currently doesn't work with scalacheck's forAll. It'll be supported in scalatest 3
 class GoogleStorageInterpreterSpec extends AsyncFlatSpec with Matchers with WorkbenchTestSuite {

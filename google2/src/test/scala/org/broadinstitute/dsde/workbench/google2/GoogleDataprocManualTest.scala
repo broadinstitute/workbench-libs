@@ -2,14 +2,14 @@ package org.broadinstitute.dsde.workbench.google2
 
 import java.util.UUID
 
-import cats.effect.concurrent.Semaphore
-import cats.effect.{Blocker, IO}
+import cats.effect.IO
 import cats.mtl.Ask
 import com.google.cloud.compute.v1.Operation
 import com.google.cloud.dataproc.v1.Cluster
 import org.broadinstitute.dsde.workbench.model.TraceId
 import org.broadinstitute.dsde.workbench.model.google.GoogleProject
 import org.broadinstitute.dsde.workbench.util2.{ConsoleLogger, LogLevel}
+import cats.effect.std.Semaphore
 
 final class GoogleDataprocManualTest(pathToCredential: String,
                                      projectStr: String = "broad-dsde-dev",

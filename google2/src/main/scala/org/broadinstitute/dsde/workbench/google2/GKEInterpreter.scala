@@ -1,8 +1,7 @@
 package org.broadinstitute.dsde.workbench.google2
 
 import cats.Show
-import cats.effect.concurrent.Semaphore
-import cats.effect.{Async, Blocker, ContextShift, Timer}
+import cats.effect.Async
 import cats.mtl.Ask
 import com.google.cloud.container.v1.ClusterManagerClient
 import com.google.container.v1.{
@@ -24,8 +23,10 @@ import org.broadinstitute.dsde.workbench.model.TraceId
 import cats.syntax.all._
 
 import scala.concurrent.duration.FiniteDuration
+import cats.effect.Temporal
+import cats.effect.std.Semaphore
 
-final class GKEInterpreter[F[_]: StructuredLogger: Timer: ContextShift](
+final class GKEInterpreter[F[_]: StructuredLogger: Temporal: ContextShift](
   clusterManagerClient: ClusterManagerClient,
   legacyClient: com.google.api.services.container.Container,
   blocker: Blocker,

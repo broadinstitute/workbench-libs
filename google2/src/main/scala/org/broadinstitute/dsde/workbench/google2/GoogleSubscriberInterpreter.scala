@@ -20,15 +20,16 @@ import io.circe.parser._
 import org.broadinstitute.dsde.workbench.model.TraceId
 
 import scala.concurrent.duration.FiniteDuration
+import cats.effect.Temporal
 
-private[google2] class GoogleSubscriberInterpreter[F[_]: Timer: ContextShift, MessageType](
+private[google2] class GoogleSubscriberInterpreter[F[_]: Temporal: ContextShift, MessageType](
   subscriber: Subscriber,
   queue: fs2.concurrent.Queue[F, Event[MessageType]]
 )(implicit F: Async[F])
     extends GoogleSubscriber[F, MessageType] {
   val messages: Stream[F, Event[MessageType]] = queue.dequeue
 
-  def start: F[Unit] = F.async[Unit] { callback =>
+  def start: F[Unit] = F.async_[Unit] { callback =>
     subscriber.addListener(
       new ApiService.Listener() {
         override def failed(from: ApiService.State, failure: Throwable): Unit =
@@ -42,7 +43,7 @@ private[google2] class GoogleSubscriberInterpreter[F[_]: Timer: ContextShift, Me
   }
 
   def stop: F[Unit] =
-    F.async[Unit] { callback =>
+    F.async_[Unit] { callback =>
       subscriber.addListener(
         new ApiService.Listener() {
           override def failed(from: ApiService.State, failure: Throwable): Unit =
@@ -57,7 +58,7 @@ private[google2] class GoogleSubscriberInterpreter[F[_]: Timer: ContextShift, Me
 }
 
 object GoogleSubscriberInterpreter {
-  def apply[F[_]: Async: Timer: ContextShift, MessageType](
+  def apply[F[_]: Async: Temporal: ContextShift, MessageType](
     subscriber: Subscriber,
     queue: fs2.concurrent.Queue[F, Event[MessageType]]
   ): GoogleSubscriberInterpreter[F, MessageType] = new GoogleSubscriberInterpreter[F, MessageType](subscriber, queue)

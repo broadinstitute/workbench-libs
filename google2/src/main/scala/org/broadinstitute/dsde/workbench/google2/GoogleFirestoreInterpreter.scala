@@ -19,7 +19,7 @@ private[google2] class GoogleFirestoreInterpreter[F[_]](db: Firestore)(implicit 
     val docRef =
       db.collection(collectionName.asString).document(document.asString)
     effect
-      .async[WriteResult] { cb =>
+      .async_[WriteResult] { cb =>
         ApiFutures
           .addCallback(docRef.set(dataMap.asJava), callBack(cb), executor)
       }
@@ -27,7 +27,7 @@ private[google2] class GoogleFirestoreInterpreter[F[_]](db: Firestore)(implicit 
   }
 
   override def get(collectionName: CollectionName, document: Document): F[DocumentSnapshot] =
-    effect.async[DocumentSnapshot] { cb =>
+    effect.async_[DocumentSnapshot] { cb =>
       ApiFutures.addCallback(
         db.collection(collectionName.asString)
           .document(document.asString)
@@ -38,7 +38,7 @@ private[google2] class GoogleFirestoreInterpreter[F[_]](db: Firestore)(implicit 
     }
 
   def transaction[A](ops: (Firestore, Transaction) => F[A]): F[A] =
-    effect.async[A] { cb =>
+    effect.async_[A] { cb =>
       ApiFutures.addCallback(
         db.runTransaction((transaction: Transaction) => ops.apply(db, transaction).toIO.unsafeRunSync()),
         callBack(cb),
