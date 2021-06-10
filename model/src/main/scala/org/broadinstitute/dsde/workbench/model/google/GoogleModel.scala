@@ -32,6 +32,10 @@ case class ServiceAccountKey(id: ServiceAccountKeyId,
 // Test IAM types.
 case class IamPermission(value: String) extends ValueObject
 
+// BigQuery types
+case class BigQueryDatasetName(value: String) extends ValueObject
+case class BigQueryTableName(value: String) extends ValueObject
+
 // Storage
 final case class GcsBucketName(value: String) extends ValueObject {
   require(value.length <= 63)

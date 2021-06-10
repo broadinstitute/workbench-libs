@@ -18,7 +18,7 @@ import com.google.cloud.bigquery.{
 }
 import org.typelevel.log4cats.StructuredLogger
 import org.broadinstitute.dsde.workbench.model.WorkbenchEmail
-import org.broadinstitute.dsde.workbench.model.google.GoogleProject
+import org.broadinstitute.dsde.workbench.model.google.{BigQueryDatasetName, BigQueryTableName, GoogleProject}
 
 trait GoogleBigQueryService[F[_]] {
   def query(queryJobConfiguration: QueryJobConfiguration, options: BigQuery.JobOption*): F[TableResult]
@@ -32,13 +32,22 @@ trait GoogleBigQueryService[F[_]] {
 
   def deleteDataset(datasetName: String): F[Boolean]
 
+  @deprecated(message = "Use getTable(BigQueryDatasetName, BigQueryTableName) instead", since = "0.21")
   def getTable(datasetName: String, tableName: String): F[Option[Table]]
 
-  def getTable(googleProjectName: GoogleProject, datasetName: String, tableName: String): F[Option[Table]]
+  def getTable(datasetName: BigQueryDatasetName, tableName: BigQueryTableName): F[Option[Table]]
 
+  def getTable(googleProjectName: GoogleProject,
+               datasetName: BigQueryDatasetName,
+               tableName: BigQueryTableName
+  ): F[Option[Table]]
+
+  @deprecated(message = "Use getDataset(BigQueryDatasetName) instead", since = "0.21")
   def getDataset(datasetName: String): F[Option[Dataset]]
 
-  def getDataset(googleProjectName: GoogleProject, datasetName: String): F[Option[Dataset]]
+  def getDataset(datasetName: BigQueryDatasetName): F[Option[Dataset]]
+
+  def getDataset(googleProjectName: GoogleProject, datasetName: BigQueryDatasetName): F[Option[Dataset]]
 }
 
 object GoogleBigQueryService {
