@@ -301,7 +301,7 @@ Changed:
 - Renamed `GoogleDataproc` to `GoogleDataprocService`
 - Updated `GoogleDataprocService` methods to take a `GoogleProject`
 - Added `scalafmt` plugin and formatted the `google2` module
-- Upgrade `circe` version to `0.13.0`
+- Upgrade `circe` version to `0.14.0`
 - Bump `http4s` version to `0.21.0`
 - Bump `cats-effect` version to `2.1.2`
 - Bump `scalacheck` version to `1.14.3`
