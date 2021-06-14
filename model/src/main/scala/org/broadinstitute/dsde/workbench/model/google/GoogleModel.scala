@@ -142,6 +142,8 @@ object GoogleModelJsonSupport {
   }
 
   implicit val GoogleProjectFormat = ValueObjectFormat(GoogleProject)
+  implicit val BigQueryDatasetNameFormat = ValueObjectFormat(BigQueryDatasetName)
+  implicit val BigQueryTableNameFormat = ValueObjectFormat(BigQueryTableName)
 
   implicit val ServiceAccountUniqueIdFormat = ValueObjectFormat(ServiceAccountSubjectId)
   implicit val ServiceAccountNameFormat = ValueObjectFormat(ServiceAccountName)
