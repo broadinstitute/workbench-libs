@@ -10,7 +10,7 @@ Added:
 - Added `getDataset` and `getTable` to `GoogleBigQueryService`
 - Added `RetryConfig` parameter to `GoogleDataprocService`. Defaults to `standardRetryConfig`.
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.21-e17afdf"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.21-92b078c"`
 
 Dependency Updates:
 - Update google-cloud-compute from 0.118.0-alpha to 0.119.8-alpha
