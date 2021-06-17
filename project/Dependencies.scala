@@ -30,6 +30,10 @@ object Dependencies {
 
   val jacksonModule: ModuleID =   "com.fasterxml.jackson.module" %% "jackson-module-scala"   % jacksonV % "test"
 
+  val bouncyCastle: ModuleID = "org.bouncycastle" % "bcpkix-jdk15on" % "1.68"
+  val bouncyCastleProviderExt: ModuleID = "org.bouncycastle" % "bcprov-ext-jdk15on" % "1.68"
+  val bouncyCastleProvider: ModuleID = "org.bouncycastle" % "bcprov-jdk15on" % "1.68"
+
   val catsEffect: ModuleID = "org.typelevel" %% "cats-effect" % "2.5.1"
 
   // metrics-scala transitively pulls in io.dropwizard.metrics:metrics-core
@@ -150,6 +154,9 @@ object Dependencies {
   ).map(excludeGuavaJDK5)
 
   val google2Dependencies = commonDependencies ++ Seq(
+    bouncyCastle,
+    bouncyCastleProviderExt,
+    bouncyCastleProvider,
     googleRpc2,
     googleFirestore,
     googleStorageNew,
