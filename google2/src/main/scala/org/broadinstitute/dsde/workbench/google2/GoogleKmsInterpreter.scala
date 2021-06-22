@@ -1,7 +1,7 @@
 package org.broadinstitute.dsde.workbench
 package google2
 
-import cats.effect.{Blocker, ContextShift, Resource, Sync}
+import cats.effect.{Resource, Sync}
 import cats.syntax.all._
 import com.google.api.gax.core.FixedCredentialsProvider
 import com.google.auth.oauth2.ServiceAccountCredentials
@@ -169,7 +169,7 @@ private[google2] class GoogleKmsInterpreter[F[_]: Sync: ContextShift](client: Ke
 }
 
 object GoogleKmsInterpreter {
-  def apply[F[_]: Sync: ContextShift](client: KeyManagementServiceClient, blocker: Blocker): GoogleKmsInterpreter[F] =
+  def apply[F[_]: Sync: ContextShift](client: KeyManagementServiceClient): GoogleKmsInterpreter[F] =
     new GoogleKmsInterpreter[F](client, blocker)
 
   def client[F[_]: Sync](pathToJson: String): Resource[F, KeyManagementServiceClient] =

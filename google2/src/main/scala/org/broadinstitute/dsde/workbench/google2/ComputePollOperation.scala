@@ -2,8 +2,7 @@ package org.broadinstitute.dsde.workbench.google2
 
 import cats.syntax.all._
 import cats.Parallel
-import cats.effect.concurrent.Semaphore
-import cats.effect.{Blocker, Concurrent, ContextShift, Resource, Timer}
+import cats.effect.{Concurrent, Resource}
 import cats.mtl.Ask
 import com.google.api.gax.core.FixedCredentialsProvider
 import com.google.api.services.compute.ComputeScopes
@@ -18,9 +17,11 @@ import org.broadinstitute.dsde.workbench.DoneCheckableSyntax._
 
 import scala.collection.JavaConverters._
 import scala.concurrent.duration.FiniteDuration
+import cats.effect.Temporal
+import cats.effect.std.Semaphore
 
 trait ComputePollOperation[F[_]] {
-  implicit def timer: Timer[F]
+  implicit def timer: Temporal[F]
   implicit def F: Concurrent[F]
 
   def getZoneOperation(project: GoogleProject, zoneName: ZoneName, operationName: OperationName)(implicit
@@ -153,9 +154,8 @@ trait ComputePollOperation[F[_]] {
 }
 
 object ComputePollOperation {
-  def resource[F[_]: StructuredLogger: Concurrent: Parallel: Timer: ContextShift](
+  def resource[F[_]: StructuredLogger: Concurrent: Parallel: Temporal: ContextShift](
     pathToCredential: String,
-    blocker: Blocker,
     blockerBound: Semaphore[F]
   ): Resource[F, ComputePollOperation[F]] =
     for {
@@ -164,9 +164,8 @@ object ComputePollOperation {
       interpreter <- resourceFromCredential(scopedCredential, blocker, blockerBound)
     } yield interpreter
 
-  def resourceFromCredential[F[_]: StructuredLogger: Concurrent: Parallel: Timer: ContextShift](
+  def resourceFromCredential[F[_]: StructuredLogger: Concurrent: Parallel: Temporal: ContextShift](
     googleCredentials: GoogleCredentials,
-    blocker: Blocker,
     blockerBound: Semaphore[F]
   ): Resource[F, ComputePollOperation[F]] = {
     val credentialsProvider = FixedCredentialsProvider.create(googleCredentials)

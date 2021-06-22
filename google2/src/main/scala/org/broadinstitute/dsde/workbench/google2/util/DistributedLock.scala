@@ -15,12 +15,13 @@ import org.broadinstitute.dsde.workbench.model.WorkbenchException
 import scala.collection.JavaConverters._
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.FiniteDuration
+import cats.effect.Temporal
 
 class DistributedLock[F[_]](
   lockPathPrefix: String,
   config: DistributedLockConfig,
   val googleFirestoreOps: GoogleFirestoreService[F]
-)(implicit ec: ExecutionContext, timer: Timer[F], asyncF: Async[F])
+)(implicit ec: ExecutionContext, timer: Temporal[F], asyncF: Async[F])
     extends DistributedLockAlgebra[F] {
   val retryable: Function1[Throwable, Boolean] = {
     case _: FailToObtainLock => true
@@ -59,7 +60,7 @@ class DistributedLock[F[_]](
     val res = for {
       documentSnapshot <- OptionT(
         asyncF
-          .async[DocumentSnapshot] { cb =>
+          .async_[DocumentSnapshot] { cb =>
             ApiFutures.addCallback(
               tx.get(documentReference),
               callBack(cb),
@@ -102,7 +103,7 @@ object DistributedLock {
   private[dsde] val EXPIRESAT = "expiresAt"
   private[dsde] val EXPIRESATTIMEUNIT = TimeUnit.MILLISECONDS
 
-  def apply[F[_]: Async: Timer](
+  def apply[F[_]: Async: Temporal](
     lockPathPrefix: String,
     config: DistributedLockConfig,
     googleFirestoreOps: GoogleFirestoreService[F]

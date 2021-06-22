@@ -2,7 +2,7 @@ package org.broadinstitute.dsde.workbench.google2
 
 import java.nio.file.Path
 
-import cats.effect.{Resource, Sync, Timer}
+import cats.effect.{Resource, Sync}
 import cats.mtl.Ask
 import com.google.api.gax.core.FixedCredentialsProvider
 import com.google.auth.oauth2.ServiceAccountCredentials
@@ -12,6 +12,7 @@ import fs2.Stream
 import org.typelevel.log4cats.StructuredLogger
 import org.broadinstitute.dsde.workbench.model.TraceId
 import org.broadinstitute.dsde.workbench.model.google.GoogleProject
+import cats.effect.Temporal
 
 trait GoogleSubscriptionAdmin[F[_]] {
   def list(project: GoogleProject)(implicit ev: Ask[F, TraceId]): Stream[F, Subscription]
@@ -19,7 +20,7 @@ trait GoogleSubscriptionAdmin[F[_]] {
 }
 
 object GoogleSubscriptionAdmin {
-  def fromCredentialPath[F[_]: StructuredLogger: Sync: Timer](
+  def fromCredentialPath[F[_]: StructuredLogger: Sync: Temporal](
     pathToCredential: Path
   ): Resource[F, GoogleSubscriptionAdmin[F]] =
     for {
@@ -27,7 +28,7 @@ object GoogleSubscriptionAdmin {
       topicAdmin <- fromServiceAccountCredential(credential)
     } yield topicAdmin
 
-  def fromServiceAccountCredential[F[_]: StructuredLogger: Sync: Timer](
+  def fromServiceAccountCredential[F[_]: StructuredLogger: Sync: Temporal](
     serviceAccountCredentials: ServiceAccountCredentials
   ): Resource[F, GoogleSubscriptionAdmin[F]] =
     for {

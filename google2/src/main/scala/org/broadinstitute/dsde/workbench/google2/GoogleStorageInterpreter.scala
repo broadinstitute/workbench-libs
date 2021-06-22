@@ -7,7 +7,6 @@ import java.time.Instant
 
 import cats.data.NonEmptyList
 import cats.effect._
-import cats.effect.concurrent.Semaphore
 import cats.syntax.all._
 import com.google.auth.oauth2.ServiceAccountCredentials
 import com.google.cloud.storage.BucketInfo.LifecycleRule
@@ -31,8 +30,10 @@ import org.broadinstitute.dsde.workbench.model.google.{GcsBucketName, GcsObjectN
 import com.google.auth.Credentials
 
 import scala.collection.JavaConverters._
+import cats.effect.Temporal
+import cats.effect.std.Semaphore
 
-private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer](
+private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Temporal](
   db: Storage,
   blocker: Blocker,
   blockerBound: Option[Semaphore[F]]
@@ -546,16 +547,14 @@ private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer](
 }
 
 object GoogleStorageInterpreter {
-  def apply[F[_]: Timer: Async: ContextShift: StructuredLogger](
+  def apply[F[_]: Temporal: Async: ContextShift: StructuredLogger](
     db: Storage,
-    blocker: Blocker,
     blockerBound: Option[Semaphore[F]]
   ): GoogleStorageInterpreter[F] =
     new GoogleStorageInterpreter(db, blocker, blockerBound)
 
   def storage[F[_]: Sync: ContextShift](
     pathToJson: String,
-    blocker: Blocker,
     project: Option[GoogleProject] =
       None // legacy credential file doesn't have `project_id` field. Hence we need to pass in explicitly
   ): Resource[F, Storage] =
@@ -581,7 +580,7 @@ object GoogleStorageInterpreter {
     "project_id"
   )(GoogleProject.apply)
 
-  def parseProject[F[_]: ContextShift: Sync](pathToJson: String, blocker: Blocker): Stream[F, GoogleProject] =
+  def parseProject[F[_]: ContextShift: Sync](pathToJson: String): Stream[F, GoogleProject] =
     fs2.io.file
       .readAll[F](Paths.get(pathToJson), blocker, 4096)
       .through(byteStreamParser)

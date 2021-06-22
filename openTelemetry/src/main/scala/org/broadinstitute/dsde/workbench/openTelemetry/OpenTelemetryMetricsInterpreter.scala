@@ -3,7 +3,7 @@ package org.broadinstitute.dsde.workbench.openTelemetry
 import java.util.concurrent.TimeUnit
 
 import cats.ApplicativeError
-import cats.effect.{Async, Timer}
+import cats.effect.Async
 import cats.syntax.all._
 import io.opencensus.stats.Aggregation.Distribution
 import io.opencensus.stats.Measure.{MeasureDouble, MeasureLong}
@@ -13,6 +13,7 @@ import io.opencensus.tags.{TagContext, TagKey, TagValue, Tags}
 
 import scala.collection.JavaConverters._
 import scala.concurrent.duration.FiniteDuration
+import cats.effect.Temporal
 
 class OpenTelemetryMetricsInterpreter[F[_]](appName: String)(implicit F: Async[F]) extends OpenTelemetryMetrics[F] {
   private val viewManager = Stats.getViewManager
@@ -30,7 +31,7 @@ class OpenTelemetryMetricsInterpreter[F[_]](appName: String)(implicit F: Async[F
   // Aggregation doc: https://opencensus.io/stats/view/#aggregations
   def time[A](name: String, distributionBucket: List[FiniteDuration], tags: Map[String, String] = Map.empty)(
     fa: F[A]
-  )(implicit timer: Timer[F], ae: ApplicativeError[F, Throwable]): F[A] = {
+  )(implicit timer: Temporal[F], ae: ApplicativeError[F, Throwable]): F[A] = {
     val latencySuccess =
       MeasureDouble.create(s"${name}_success_latency", "The successful io latency in milliseconds", "ms")
     val countFailure = MeasureLong.create(s"${name}_failure_count", s"count of ${name}", "1")
@@ -111,7 +112,7 @@ class OpenTelemetryMetricsInterpreter[F[_]](appName: String)(implicit F: Async[F
                      duration: FiniteDuration,
                      distributionBucket: List[FiniteDuration],
                      tags: Map[String, String] = Map.empty
-  )(implicit timer: Timer[F]): F[Unit] = {
+  )(implicit timer: Temporal[F]): F[Unit] = {
     val latency = MeasureDouble.create(s"${name}_duration", s"The latency of ${name} in milliseconds", "ms")
 
     val latencyDistribution =

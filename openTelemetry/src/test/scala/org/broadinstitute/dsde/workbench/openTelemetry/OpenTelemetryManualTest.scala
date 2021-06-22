@@ -2,7 +2,7 @@ package org.broadinstitute.dsde.workbench.openTelemetry
 
 import java.nio.file.Paths
 
-import cats.effect.{Blocker, IO}
+import cats.effect.IO
 import io.opencensus.trace.Tracing
 import io.opencensus.trace.samplers.Samplers
 import scala.concurrent.ExecutionContext.global

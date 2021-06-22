@@ -1,6 +1,6 @@
 package org.broadinstitute.dsde.workbench.google2
 
-import cats.effect.{Sync, Timer}
+import cats.effect.Sync
 import cats.mtl.Ask
 import com.google.cloud.pubsub.v1.SubscriptionAdminClient
 import com.google.pubsub.v1.{ProjectName, ProjectSubscriptionName, Subscription}
@@ -10,8 +10,9 @@ import org.broadinstitute.dsde.workbench.model.TraceId
 import org.broadinstitute.dsde.workbench.model.google.GoogleProject
 
 import scala.collection.JavaConverters._
+import cats.effect.Temporal
 
-private[google2] class GoogleSubscriptionAdminInterpreter[F[_]: Timer](client: SubscriptionAdminClient)(implicit
+private[google2] class GoogleSubscriptionAdminInterpreter[F[_]: Temporal](client: SubscriptionAdminClient)(implicit
   F: Sync[F],
   logger: StructuredLogger[F]
 ) extends GoogleSubscriptionAdmin[F] {

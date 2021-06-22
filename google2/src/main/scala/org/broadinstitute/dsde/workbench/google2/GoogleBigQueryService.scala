@@ -1,6 +1,6 @@
 package org.broadinstitute.dsde.workbench.google2
 
-import cats.effect.{Blocker, ContextShift, Resource, Sync, Timer}
+import cats.effect.{Resource, Sync}
 import com.google.auth.Credentials
 import com.google.cloud.ServiceOptions.getDefaultProjectId
 import com.google.cloud.bigquery.BigQueryOptions.DefaultBigQueryFactory
@@ -51,28 +51,21 @@ trait GoogleBigQueryService[F[_]] {
 }
 
 object GoogleBigQueryService {
-  def resource[F[_]: Sync: ContextShift: Timer: StructuredLogger](
-    pathToJson: String,
-    blocker: Blocker
-  ): Resource[F, GoogleBigQueryService[F]] =
+  def resource[F[_]: Sync: ContextShift: Temporal: StructuredLogger](
+    pathToJson: String): Resource[F, GoogleBigQueryService[F]] =
     credentialResource(pathToJson) flatMap (resource(_, blocker))
 
-  def resource[F[_]: Sync: ContextShift: Timer: StructuredLogger](
+  def resource[F[_]: Sync: ContextShift: Temporal: StructuredLogger](
     pathToJson: String,
-    projectId: GoogleProject,
-    blocker: Blocker
-  ): Resource[F, GoogleBigQueryService[F]] =
+    projectId: GoogleProject): Resource[F, GoogleBigQueryService[F]] =
     credentialResource(pathToJson) flatMap (resource(_, blocker, projectId))
 
-  def resource[F[_]: Sync: ContextShift: Timer: StructuredLogger](
-    credentials: Credentials,
-    blocker: Blocker
-  ): Resource[F, GoogleBigQueryService[F]] =
+  def resource[F[_]: Sync: ContextShift: Temporal: StructuredLogger](
+    credentials: Credentials): Resource[F, GoogleBigQueryService[F]] =
     resource(credentials, blocker, GoogleProject(getDefaultProjectId))
 
-  def resource[F[_]: Sync: ContextShift: Timer: StructuredLogger](
+  def resource[F[_]: Sync: ContextShift: Temporal: StructuredLogger](
     credentials: Credentials,
-    blocker: Blocker,
     projectId: GoogleProject
   ): Resource[F, GoogleBigQueryService[F]] =
     for {

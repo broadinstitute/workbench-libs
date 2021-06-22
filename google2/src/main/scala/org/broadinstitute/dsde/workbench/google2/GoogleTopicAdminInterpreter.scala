@@ -1,6 +1,6 @@
 package org.broadinstitute.dsde.workbench.google2
 
-import cats.effect.{Resource, Sync, Timer}
+import cats.effect.{Resource, Sync}
 import cats.syntax.all._
 import cats.mtl.Ask
 import com.google.api.gax.core.FixedCredentialsProvider
@@ -15,8 +15,9 @@ import org.broadinstitute.dsde.workbench.model.TraceId
 import org.broadinstitute.dsde.workbench.model.google.GoogleProject
 
 import scala.collection.JavaConverters._
+import cats.effect.Temporal
 
-class GoogleTopicAdminInterpreter[F[_]: StructuredLogger: Timer](topicAdminClient: TopicAdminClient)(implicit
+class GoogleTopicAdminInterpreter[F[_]: StructuredLogger: Temporal](topicAdminClient: TopicAdminClient)(implicit
   F: Sync[F]
 ) extends GoogleTopicAdmin[F] {
   def create(projectTopicName: TopicName, traceId: Option[TraceId] = None): F[Unit] = {

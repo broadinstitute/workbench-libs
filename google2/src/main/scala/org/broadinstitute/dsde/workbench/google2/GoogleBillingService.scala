@@ -1,8 +1,7 @@
 package org.broadinstitute.dsde.workbench.google2
 
 import cats.Parallel
-import cats.effect.concurrent.Semaphore
-import cats.effect.{Async, Blocker, ContextShift, Resource, Timer}
+import cats.effect.{Async, Resource}
 import cats.mtl.Ask
 import com.google.api.gax.core.FixedCredentialsProvider
 import com.google.api.services.compute.ComputeScopes
@@ -12,6 +11,8 @@ import org.typelevel.log4cats.StructuredLogger
 import org.broadinstitute.dsde.workbench.model.TraceId
 import org.broadinstitute.dsde.workbench.model.google.GoogleProject
 import java.nio.file.Path
+import cats.effect.Temporal
+import cats.effect.std.Semaphore
 
 trait GoogleBillingService[F[_]] {
   def getBillingInfo(project: GoogleProject)(implicit
@@ -24,9 +25,8 @@ trait GoogleBillingService[F[_]] {
 
 object GoogleBillingService {
 
-  def resource[F[_]: StructuredLogger: Async: Parallel: Timer: ContextShift](
+  def resource[F[_]: StructuredLogger: Async: Parallel: Temporal: ContextShift](
     pathToCredential: Path,
-    blocker: Blocker,
     blockerBound: Semaphore[F]
   ): Resource[F, GoogleBillingService[F]] =
     for {
@@ -35,9 +35,8 @@ object GoogleBillingService {
       interpreter <- fromCredential(scopedCredential, blocker, blockerBound)
     } yield interpreter
 
-  def fromCredential[F[_]: StructuredLogger: Async: Parallel: Timer: ContextShift](
+  def fromCredential[F[_]: StructuredLogger: Async: Parallel: Temporal: ContextShift](
     googleCredentials: GoogleCredentials,
-    blocker: Blocker,
     blockerBound: Semaphore[F]
   ): Resource[F, GoogleBillingService[F]] = {
     val credentialsProvider = FixedCredentialsProvider.create(googleCredentials)

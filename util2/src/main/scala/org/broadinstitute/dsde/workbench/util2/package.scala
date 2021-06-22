@@ -3,7 +3,7 @@ package org.broadinstitute.dsde.workbench
 import java.io.FileInputStream
 import java.nio.file.Path
 
-import cats.effect.{Blocker, Concurrent, ContextShift, Resource, Sync}
+import cats.effect.{Concurrent, Resource, Sync}
 import io.circe.Decoder
 import io.circe.fs2.decoder
 import fs2.{io, Stream}

@@ -2,8 +2,7 @@ package org.broadinstitute.dsde.workbench.google2
 
 import java.nio.file.Path
 
-import cats.effect.concurrent.Semaphore
-import cats.effect.{Async, Blocker, ContextShift, Resource, Sync, Timer}
+import cats.effect.{Async, Resource, Sync}
 import cats.mtl.Ask
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport
 import com.google.api.client.json.jackson2.JacksonFactory
@@ -19,6 +18,8 @@ import org.broadinstitute.dsde.workbench.model.TraceId
 import org.broadinstitute.dsde.workbench.google2.util.RetryPredicates._
 
 import scala.concurrent.duration.FiniteDuration
+import cats.effect.Temporal
+import cats.effect.std.Semaphore
 
 trait GKEService[F[_]] {
 
@@ -62,9 +63,8 @@ trait GKEService[F[_]] {
 
 object GKEService {
 
-  def resource[F[_]: StructuredLogger: Async: Timer: ContextShift](
+  def resource[F[_]: StructuredLogger: Async: Temporal: ContextShift](
     pathToCredential: Path,
-    blocker: Blocker,
     blockerBound: Semaphore[F],
     retryConfig: RetryConfig =
       retryConfigWithPredicates(whenStatusCode(404), standardGoogleRetryPredicate, gkeRetryPredicate)

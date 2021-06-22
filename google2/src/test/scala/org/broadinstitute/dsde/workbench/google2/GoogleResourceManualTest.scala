@@ -3,13 +3,13 @@ package org.broadinstitute.dsde.workbench.google2
 import java.util.UUID
 import java.nio.file.Paths
 
-import cats.effect.{Blocker, IO}
-import cats.effect.concurrent.Semaphore
+import cats.effect.IO
 import cats.mtl.Ask
 import com.google.cloud.resourcemanager.Project
 import org.broadinstitute.dsde.workbench.model.TraceId
 import org.broadinstitute.dsde.workbench.model.google.GoogleProject
 import org.broadinstitute.dsde.workbench.util2.{ConsoleLogger, LogLevel}
+import cats.effect.std.Semaphore
 
 class GoogleResourceManualTest(pathToCredential: String) {
   import scala.concurrent.ExecutionContext.global

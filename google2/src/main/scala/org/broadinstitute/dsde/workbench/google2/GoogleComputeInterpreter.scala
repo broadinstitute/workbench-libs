@@ -3,8 +3,7 @@ package google2
 
 import _root_.org.typelevel.log4cats.StructuredLogger
 import cats.Parallel
-import cats.effect.concurrent.Semaphore
-import cats.effect.{Async, Blocker, ContextShift, Timer}
+import cats.effect.Async
 import cats.syntax.all._
 import cats.mtl.Ask
 import com.google.cloud.compute.v1._
@@ -17,8 +16,10 @@ import com.google.api.gax.rpc.ApiException
 import scala.collection.JavaConverters._
 import scala.concurrent.TimeoutException
 import scala.concurrent.duration._
+import cats.effect.Temporal
+import cats.effect.std.Semaphore
 
-private[google2] class GoogleComputeInterpreter[F[_]: Parallel: StructuredLogger: Timer: ContextShift](
+private[google2] class GoogleComputeInterpreter[F[_]: Parallel: StructuredLogger: Temporal: ContextShift](
   instanceClient: InstanceClient,
   firewallClient: FirewallClient,
   zoneClient: ZoneClient,

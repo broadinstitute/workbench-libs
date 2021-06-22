@@ -5,8 +5,7 @@ import java.nio.file.Paths
 import java.util.UUID
 
 import scala.collection.JavaConverters._
-import cats.effect.concurrent.Semaphore
-import cats.effect.{Blocker, IO}
+import cats.effect.IO
 import cats.mtl.Ask
 import com.google.container.v1._
 import org.typelevel.log4cats.slf4j.Slf4jLogger
@@ -18,6 +17,7 @@ import org.broadinstitute.dsde.workbench.model.TraceId
 import org.broadinstitute.dsde.workbench.model.google.GoogleProject
 
 import scala.concurrent.duration._
+import cats.effect.std.Semaphore
 
 //TODO: migrate to a unit test
 //TODO: investigate running minikube in a docker for unit/automation tests https://banzaicloud.com/blog/minikube-ci/

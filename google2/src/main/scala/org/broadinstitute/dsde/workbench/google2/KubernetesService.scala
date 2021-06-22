@@ -1,8 +1,7 @@
 package org.broadinstitute.dsde.workbench.google2
 
 import java.nio.file.Path
-import cats.effect.concurrent.Semaphore
-import cats.effect.{Async, Blocker, ContextShift, Effect, IO, Resource, Timer}
+import cats.effect.{Async, Effect, IO, Resource}
 import cats.mtl.Ask
 import com.google.api.services.container.ContainerScopes
 import org.typelevel.log4cats.StructuredLogger
@@ -13,6 +12,8 @@ import org.broadinstitute.dsde.workbench.google2.KubernetesSerializableName.{Nam
 import org.broadinstitute.dsde.workbench.model.{IP, TraceId}
 
 import scala.collection.JavaConverters._
+import cats.effect.Temporal
+import cats.effect.std.Semaphore
 
 trait KubernetesService[F[_]] {
   // These methods do not fail on 409 in the case of create and 404 in the case of delete
@@ -90,10 +91,9 @@ trait KubernetesService[F[_]] {
 // Service account user
 
 object KubernetesService {
-  def resource[F[_]: StructuredLogger: Async: Effect: Timer: ContextShift](
+  def resource[F[_]: StructuredLogger: Async: Effect: Temporal: ContextShift](
     pathToCredential: Path,
     gkeService: GKEService[F],
-    blocker: Blocker,
     blockerBound: Semaphore[F]
   ): Resource[F, KubernetesService[F]] =
     for {
