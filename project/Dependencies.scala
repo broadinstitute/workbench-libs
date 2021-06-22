@@ -8,7 +8,8 @@ object Dependencies {
   val scalaLoggingV = "3.9.3"
   val scalaTestV    = "3.2.6"
   val circeVersion = "0.13.0"
-  val http4sVersion = "0.21.24"
+  val http4sVersion = "0.21.23"
+  val bouncyCastleVersion = "1.68"
 
   def excludeGuavaJDK5(m: ModuleID): ModuleID = m.exclude("com.google.guava", "guava-jdk5")
 
@@ -29,6 +30,10 @@ object Dependencies {
   val commonsCodec: ModuleID = "commons-codec" % "commons-codec" % "20041127.091804" % "test"
 
   val jacksonModule: ModuleID =   "com.fasterxml.jackson.module" %% "jackson-module-scala"   % jacksonV % "test"
+
+  val bouncyCastle: ModuleID = "org.bouncycastle" % "bcpkix-jdk15on" % bouncyCastleVersion
+  val bouncyCastleProviderExt: ModuleID = "org.bouncycastle" % "bcprov-ext-jdk15on" % bouncyCastleVersion
+  val bouncyCastleProvider: ModuleID = "org.bouncycastle" % "bcprov-jdk15on" % bouncyCastleVersion
 
   val catsEffect: ModuleID = "org.typelevel" %% "cats-effect" % "2.5.1"
 
@@ -150,6 +155,9 @@ object Dependencies {
   ).map(excludeGuavaJDK5)
 
   val google2Dependencies = commonDependencies ++ Seq(
+    bouncyCastle,
+    bouncyCastleProviderExt,
+    bouncyCastleProvider,
     googleRpc2,
     googleFirestore,
     googleStorageNew,

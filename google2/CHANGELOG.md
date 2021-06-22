@@ -9,8 +9,9 @@ Breaking Changes:
 Added:
 - Added `getDataset` and `getTable` to `GoogleBigQueryService`
 - Added `RetryConfig` parameter to `GoogleDataprocService`. Defaults to `standardRetryConfig`.
+- Updated Bouncy Castle transitive dependency
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.21-e17afdf"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.21-9d25534"`
 
 Dependency Updates:
 - Update google-cloud-compute from 0.118.0-alpha to 0.119.8-alpha
