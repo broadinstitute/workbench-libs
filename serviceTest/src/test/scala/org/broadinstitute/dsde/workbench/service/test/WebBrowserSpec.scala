@@ -18,7 +18,6 @@ import org.openqa.selenium.{OutputType, TakesScreenshot, WebDriver}
 import org.scalatest.Suite
 
 import scala.collection.JavaConverters._
-import scala.sys.SystemProperties
 import scala.util.{Failure, Success, Try}
 
 /**
@@ -27,9 +26,10 @@ import scala.util.{Failure, Success, Try}
 trait WebBrowserSpec extends WebBrowserUtil with ExceptionHandling with LazyLogging { self: Suite =>
 
   lazy val api: Orchestration.type = Orchestration
-  lazy val headless: Option[String] = new SystemProperties().get("headless")
+  lazy val headless: Option[String] = sys.props.get("headless")
 
   val isHeadless: Boolean = {
+    logger.info(s"Is running in headless mode? ${headless}")
     headless match {
       case Some("false") => false
       case _             => true
@@ -44,7 +44,7 @@ trait WebBrowserSpec extends WebBrowserUtil with ExceptionHandling with LazyLogg
    * @param testCode the test code to run
    */
   def withWebDriver(testCode: WebDriver => Any): Unit =
-    withWebDriver(s"/app/${System.getProperty("java.io.tmpdir")}")(testCode)
+    withWebDriver(s"/app/${sys.props.get("java.io.tmpdir")}")(testCode)
 
   /**
    * Executes a test in a fixture with a managed WebDriver. A test that uses
@@ -57,8 +57,10 @@ trait WebBrowserSpec extends WebBrowserUtil with ExceptionHandling with LazyLogg
   def withWebDriver(downloadPath: String)(testCode: WebDriver => Any): Unit = {
     val options = getChromeIncognitoOption(downloadPath)
     if (isHeadless) {
+      logger.info("Using chromedriver service from docker")
       runDockerChrome(options, testCode)
     } else {
+      logger.info("starting local chromedriver service")
       runLocalChrome(options, testCode)
     }
   }
