@@ -27,12 +27,15 @@ trait WebBrowserSpec extends WebBrowserUtil with ExceptionHandling with LazyLogg
 
   lazy val api: Orchestration.type = Orchestration
   lazy val headless: Option[String] = sys.props.get("headless")
-
-  val isHeadless: Boolean = {
+  lazy val isHeadless: Boolean = {
     logger.info(s"Is running in headless mode? ${headless}")
     headless match {
-      case Some("false") => false
-      case _             => true
+      case Some("false") =>
+        logger.info(s"Running in non headless mode")
+        false
+      case _ =>
+        logger.info(s"Running in headless mode")
+        true
     }
   }
 
