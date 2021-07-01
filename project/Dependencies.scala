@@ -7,7 +7,7 @@ object Dependencies {
   val googleV       = "1.22.0"
   val scalaLoggingV = "3.9.4"
   val scalaTestV    = "3.2.9"
-  val circeVersion = "0.13.0"
+  val circeVersion = "0.14.0"
   val http4sVersion = "0.21.23"
   val bouncyCastleVersion = "1.68"
 
