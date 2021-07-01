@@ -2,6 +2,16 @@
 
 This file documents changes to the `workbench-service-test` library, including notes on how to upgrade to new versions.
 
+## 0.19
+
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "0.19-24ab8f3"`
+
+###
+
+### Added
+
+- Added `useReferenceDisks` and `memoryRetryMultiplier` parameters to `Rawls.submissions.launchWorkflow` and `Orchestration.submissions.launchWorkflow`
+
 ## 0.18
 Changed
 - Bump selenium version

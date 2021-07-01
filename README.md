@@ -36,7 +36,7 @@ Workbench utility libraries, built for Scala 2.12 and 2.13. You can find the ful
 
 Contains generic, externally-facing model classes used across Workbench.
 
-Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-model" % "0.14-c86d5c5"`
+Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-model" % "0.14-d415128"`
 
 [Changelog](model/CHANGELOG.md)
 
@@ -72,7 +72,7 @@ Workbench utility libraries, built for Scala 2.12 and 2.13. You can find the ful
 
 Contains utility functions for talking to Google APIs via com.google.cloud client library (more recent) via gRPC. 
 
-Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.21-e17afdf"`
+Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.21-9d25534"`
 
 To start the Google PubSub emulator for unit testing:
 
@@ -106,7 +106,7 @@ Workbench utility libraries, built for Scala 2.12 and 2.13. You can find the ful
 
 Contains common classes and utilities for writing tests against Workbench REST web services.
 
-Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "0.18-23f5ae7" % "test" classifier "tests"`
+Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "0.19-24ab8f3" % "test" classifier "tests"`
 
 [Changelog](serviceTest/CHANGELOG.md)
 
