@@ -9,8 +9,9 @@ Breaking Changes:
 Added:
 - Added `getDataset` and `getTable` to `GoogleBigQueryService`
 - Added `RetryConfig` parameter to `GoogleDataprocService`. Defaults to `standardRetryConfig`.
+- Updated Bouncy Castle transitive dependency
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.21-e17afdf"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.21-9d25534"`
 
 Dependency Updates:
 - Update google-cloud-compute from 0.118.0-alpha to 0.119.8-alpha
@@ -33,7 +34,7 @@ Dependency Updates (latest):
 - Update google-cloud-kms from 1.40.5 to 1.40.8 (#539) (2 hours ago) <Scala Steward>
 - Update google-cloud-billing from 1.1.12 to 1.1.15 (#558) (2 hours ago) <Scala Steward>
 - Update google-cloud-storage from 1.113.13 to 1.113.14 (#566) (2 hours ago) <Scala Steward>
-- Update scala-logging from 3.9.2 to 3.9.3 (#568) (2 hours ago) <Scala Steward>
+- Update scala-logging from 3.9.2 to 3.9.4 (#568) (2 hours ago) <Scala Steward>
 - Update log4cats-slf4j
 - Update google-cloud-pubsub 
 - Update google-cloud-bigquery from 1.127.7 to 1.127.11
