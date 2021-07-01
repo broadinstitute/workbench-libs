@@ -6,7 +6,7 @@ object Dependencies {
   val jacksonV      = "2.12.1"
   val googleV       = "1.22.0"
   val scalaLoggingV = "3.9.4"
-  val scalaTestV    = "3.2.6"
+  val scalaTestV    = "3.2.9"
   val circeVersion = "0.13.0"
   val http4sVersion = "0.21.23"
   val bouncyCastleVersion = "1.68"
@@ -38,7 +38,7 @@ object Dependencies {
   val catsEffect: ModuleID = "org.typelevel" %% "cats-effect" % "2.5.1"
 
   // metrics-scala transitively pulls in io.dropwizard.metrics:metrics-core
-  val metricsScala: ModuleID =      "nl.grons"              %% "metrics4-scala"    % "4.1.14"
+  val metricsScala: ModuleID =      "nl.grons"              %% "metrics4-scala"    % "4.1.19"
   val metricsStatsd: ModuleID =     "com.readytalk"         %  "metrics3-statsd"  % "4.2.0"
 
   val googleApiClient: ModuleID =            "com.google.api-client" % "google-api-client"                        % googleV
@@ -61,7 +61,7 @@ object Dependencies {
   val googleRpc2: ModuleID =               "io.grpc" % "grpc-core" % "1.34.0"
   val googleFirestore: ModuleID = "com.google.cloud" % "google-cloud-firestore" % "2.5.1"
   val googleStorageNew: ModuleID = "com.google.cloud" % "google-cloud-storage" % "1.113.16"
-  val googleStorageLocal: ModuleID = "com.google.cloud" % "google-cloud-nio" % "0.122.11" % "test"
+  val googleStorageLocal: ModuleID = "com.google.cloud" % "google-cloud-nio" % "0.122.14" % "test"
   val googlePubsubNew: ModuleID = "com.google.cloud" % "google-cloud-pubsub" % "1.113.4"
   val googleKms: ModuleID = "com.google.cloud" % "google-cloud-kms" % "1.40.8"
   val googleDataproc: ModuleID =    "com.google.cloud" % "google-cloud-dataproc" % "1.5.2"
