@@ -4,13 +4,14 @@ This file documents changes to the `workbench-service-test` library, including n
 
 ## 0.19
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "0.19-24ab8f3"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "0.19-TRAVIS-REPLACE-ME"`
 
 ###
 
 ### Added
 
 - Added `useReferenceDisks` and `memoryRetryMultiplier` parameters to `Rawls.submissions.launchWorkflow` and `Orchestration.submissions.launchWorkflow`
+- Add a big more logging in `WebBrowserSpec`
 
 ## 0.18
 Changed
