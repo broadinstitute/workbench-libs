@@ -20,10 +20,10 @@ object Settings {
   //coreDefaultSettings + defaultConfigs = the now deprecated defaultSettings
   lazy val commonBuildSettings = Defaults.coreDefaultSettings ++ Defaults.defaultConfigs ++ Seq(
     javaOptions += "-Xmx2G",
-    javacOptions ++= Seq("-source", "1.8", "-target", "1.8"),
-    scalacOptions in (Compile, console) --= Seq("-Ywarn-unused:imports", "-Xfatal-warnings"),
-    scalacOptions in (Test, console) --= Seq("-Ywarn-unused:imports", "-Xfatal-warnings"),
-    scalacOptions in Test -= "-Ywarn-dead-code" // due to https://github.com/mockito/mockito-scala#notes
+    javacOptions ++= Seq("--release", "11", "-target:jvm-11"),
+    Compile / console / scalacOptions --= Seq("-Ywarn-unused:imports", "-Xfatal-warnings"),
+    Test / console / scalacOptions --= Seq("-Ywarn-unused:imports", "-Xfatal-warnings"),
+    Test / scalacOptions -= "-Ywarn-dead-code" // due to https://github.com/mockito/mockito-scala#notes
   )
 
   lazy val commonCompilerSettings = scalacOptions ++= (CrossVersion.partialVersion(scalaVersion.value) match {
@@ -118,7 +118,7 @@ object Settings {
   //common settings for all sbt subprojects
   val commonSettings = commonBuildSettings ++ commonTestSettings ++ List(
     organization := "org.broadinstitute.dsde.workbench",
-    scalaVersion := "2.13.5",
+    scalaVersion := "2.13.6",
     resolvers ++= commonResolvers,
     commonCompilerSettings
   )
