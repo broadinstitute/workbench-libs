@@ -10,4 +10,4 @@ This file documents changes to the `workbench-error-reporting` library, includin
 ### Changed
 - Target java 11
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-error-reporting" % "0.1-TRAVIS-REPLACE-ME"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-error-reporting" % "0.1-89d0d9e"`

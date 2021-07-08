@@ -12,4 +12,4 @@ This file documents changes to the `workbench-openTelemetry` library, including 
 - Bump `scalatest` to `3.1.1`
 - Target java 11
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-opentelemetry" % "0.1-TRAVIS-REPLACE-ME"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-opentelemetry" % "0.1-89d0d9e"`

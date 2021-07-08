@@ -4,7 +4,7 @@ This file documents changes to the `workbench-service-test` library, including n
 
 ## 0.19
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "0.19-TRAVIS-REPLACE-ME"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "0.19-89d0d9e"`
 
 ###
 
@@ -29,7 +29,7 @@ Added
 - Added more Scalatest tag descriptors intended to target tests to specific environments
 - Added dataRepoApiUrl to CommonConfig
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "0.18-TRAVIS-REPLACE-ME"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "0.18-89d0d9e"`
 
 ## 0.17
 
