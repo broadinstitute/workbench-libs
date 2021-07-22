@@ -10,11 +10,12 @@ Added:
 - Added `getDataset` and `getTable` to `GoogleBigQueryService`
 - Added `RetryConfig` parameter to `GoogleDataprocService`. Defaults to `standardRetryConfig`.
 - Updated Bouncy Castle transitive dependency
+- Added optional `EndpointConfig` to Dataproc `CreateClusterConfig`. Used for accessing Dataproc web interfaces.
 
 Changed
 - Target java 11
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.21-89d0d9e"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.21-TRAVIS-REPLACE-ME"`
 
 Dependency Updates:
 - Update google-cloud-compute from 0.118.0-alpha to 0.119.8-alpha

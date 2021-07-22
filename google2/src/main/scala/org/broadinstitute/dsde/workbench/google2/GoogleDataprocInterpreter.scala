@@ -47,6 +47,7 @@ private[google2] class GoogleDataprocInterpreter[F[_]: StructuredLogger: Timer: 
 
         config.workerConfig.foreach(bldr.setWorkerConfig)
         config.secondaryWorkerConfig.foreach(bldr.setSecondaryWorkerConfig)
+        config.endpointConfig.foreach(bldr.setEndpointConfig)
 
         bldr.build()
       }
