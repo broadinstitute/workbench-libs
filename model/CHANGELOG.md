@@ -4,13 +4,14 @@ This file documents changes to the `workbench-model` library, including notes on
 
 ## 0.14
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-model" % "0.14-d415128"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-model" % "0.14-89d0d9e"`
 
 ### Changed
 - added IdentityConcentratorId to WorkbenchUser 
 - Cross build 2.13
 - added TraceId to ErrorReport
 - added BigQuery dataset and table types
+- Target java 11
 
 SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-model" % "0.14-65bba14"`
 

@@ -6,10 +6,10 @@ object Dependencies {
   val jacksonV      = "2.12.1"
   val googleV       = "1.22.0"
   val scalaLoggingV = "3.9.4"
-  val scalaTestV    = "3.2.6"
+  val scalaTestV    = "3.2.9"
   val circeVersion = "0.13.0"
   val http4sVersion = "0.21.23"
-  val bouncyCastleVersion = "1.68"
+  val bouncyCastleVersion = "1.69"
 
   def excludeGuavaJDK5(m: ModuleID): ModuleID = m.exclude("com.google.guava", "guava-jdk5")
 
@@ -38,7 +38,7 @@ object Dependencies {
   val catsEffect: ModuleID = "org.typelevel" %% "cats-effect" % "2.5.1"
 
   // metrics-scala transitively pulls in io.dropwizard.metrics:metrics-core
-  val metricsScala: ModuleID =      "nl.grons"              %% "metrics4-scala"    % "4.1.14"
+  val metricsScala: ModuleID =      "nl.grons"              %% "metrics4-scala"    % "4.1.19"
   val metricsStatsd: ModuleID =     "com.readytalk"         %  "metrics3-statsd"  % "4.2.0"
 
   val googleApiClient: ModuleID =            "com.google.api-client" % "google-api-client"                        % googleV
@@ -59,17 +59,17 @@ object Dependencies {
   val googleRpc: ModuleID =               "io.grpc" % "grpc-core" % "1.34.0"
 
   val googleRpc2: ModuleID =               "io.grpc" % "grpc-core" % "1.34.0"
-  val googleFirestore: ModuleID = "com.google.cloud" % "google-cloud-firestore" % "2.5.1"
+  val googleFirestore: ModuleID = "com.google.cloud" % "google-cloud-firestore" % "2.6.1"
   val googleStorageNew: ModuleID = "com.google.cloud" % "google-cloud-storage" % "1.113.16"
-  val googleStorageLocal: ModuleID = "com.google.cloud" % "google-cloud-nio" % "0.122.11" % "test"
+  val googleStorageLocal: ModuleID = "com.google.cloud" % "google-cloud-nio" % "0.122.14" % "test"
   val googlePubsubNew: ModuleID = "com.google.cloud" % "google-cloud-pubsub" % "1.113.4"
-  val googleKms: ModuleID = "com.google.cloud" % "google-cloud-kms" % "1.40.8"
-  val googleDataproc: ModuleID =    "com.google.cloud" % "google-cloud-dataproc" % "1.5.2"
+  val googleKms: ModuleID = "com.google.cloud" % "google-cloud-kms" % "1.43.0"
+  val googleDataproc: ModuleID =    "com.google.cloud" % "google-cloud-dataproc" % "1.5.3"
   val googleComputeNew: ModuleID = "com.google.cloud" % "google-cloud-compute" % "0.119.11-alpha"
   val googleContainer: ModuleID = "com.google.cloud" % "google-cloud-container" % "1.4.0"
-  val kubernetesClient: ModuleID = "io.kubernetes" % "client-java" % "11.0.2"
-  val googleBigQueryNew: ModuleID = "com.google.cloud" % "google-cloud-bigquery" % "1.134.0"
-  val google2CloudBilling = "com.google.cloud" % "google-cloud-billing" % "1.1.18"
+  val kubernetesClient: ModuleID = "io.kubernetes" % "client-java" % "11.0.1"
+  val googleBigQueryNew: ModuleID = "com.google.cloud" % "google-cloud-bigquery" % "1.134.1"
+  val google2CloudBilling = "com.google.cloud" % "google-cloud-billing" % "1.2.2"
   val googleResourceManager =  "com.google.cloud" % "google-cloud-resourcemanager" % "0.118.12-alpha"
   //the below v1 module is a dependency for v2 because it contains the OAuth scopes necessary to created scoped credentials
   val googleContainerV1: ModuleID = "com.google.apis" % "google-api-services-container" % "v1-rev20210607-1.31.5"
@@ -87,7 +87,7 @@ object Dependencies {
   val http4sDsl = "org.http4s"      %% "http4s-dsl"          % http4sVersion
 
   val fs2Io: ModuleID = "co.fs2" %% "fs2-io" % "2.5.6"
-  val rawlsModel: ModuleID = "org.broadinstitute.dsde" %% "rawls-model" % "0.1-2356e282" exclude("com.typesafe.scala-logging", "scala-logging_2.11") exclude("com.typesafe.akka", "akka-stream_2.11")
+  val rawlsModel: ModuleID = "org.broadinstitute.dsde" %% "rawls-model" % "0.1-90eae81cd" exclude("com.typesafe.scala-logging", "scala-logging_2.11") exclude("com.typesafe.akka", "akka-stream_2.11")
   val openCensusApi: ModuleID = "io.opencensus" % "opencensus-api" % "0.28.3"
   val openCensusImpl: ModuleID = "io.opencensus" % "opencensus-impl" % "0.28.3"
   val openCensusStatsStackDriver: ModuleID = "io.opencensus" % "opencensus-exporter-stats-stackdriver" % "0.28.3"

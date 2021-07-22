@@ -4,13 +4,17 @@ This file documents changes to the `workbench-service-test` library, including n
 
 ## 0.19
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "0.19-24ab8f3"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "0.19-5edfa7a"`
 
 ###
 
 ### Added
 
 - Added `useReferenceDisks` and `memoryRetryMultiplier` parameters to `Rawls.submissions.launchWorkflow` and `Orchestration.submissions.launchWorkflow`
+- Add a big more logging in `WebBrowserSpec`
+
+### Changed
+- Updated `rawls-model` dependency to `0.1-90eae81cd`
 
 ## 0.18
 Changed
@@ -18,6 +22,7 @@ Changed
 - Check if log type is available before trying to get the log
 - Add a few more helful chrome option
 - Supports scala 2.13
+- Target java 11
 
 Added
 - Rawls billing v2 support
@@ -27,7 +32,7 @@ Added
 - Added more Scalatest tag descriptors intended to target tests to specific environments
 - Added dataRepoApiUrl to CommonConfig
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "0.18-23f5ae7"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "0.18-89d0d9e"`
 
 ## 0.17
 
