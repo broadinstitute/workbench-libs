@@ -10,7 +10,7 @@ Added:
 - Added `getDataset` and `getTable` to `GoogleBigQueryService`
 - Added `RetryConfig` parameter to `GoogleDataprocService`. Defaults to `standardRetryConfig`.
 - Updated Bouncy Castle transitive dependency
-- Added optional `EndpointConfig` to Dataproc `CreateClusterConfig`. Used for accessing Dataproc web interfaces.
+- Added `EndpointConfig` to Dataproc `CreateClusterConfig`. Used for accessing Dataproc web interfaces.
 
 Changed
 - Target java 11
