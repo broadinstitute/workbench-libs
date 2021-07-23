@@ -70,7 +70,7 @@ Added:
 
 Dependency Updates:
 ```
-Update akka-actor, akka-stream, ... from 2.6.10 to 2.6.14 (#498) (56 seconds ago) <Scala Steward>
+Update akka-actor, akka-stream, ... from 2.6.10 to 2.6.15 (#498) (56 seconds ago) <Scala Steward>
 Update google-cloud-nio from 0.122.3 to 0.122.5 (#482) (76 seconds ago) <Scala Steward>
 Update google-cloud-resourcemanager from 0.118.7-alpha to 0.118.8-alpha (#497) (2 minutes ago) <Scala Steward>
 Update http4s-blaze-client, http4s-circe, ... from 0.21.16 to 0.21.19 (#499) (2 minutes ago) <Scala Steward>
@@ -166,7 +166,7 @@ Update google-cloud-container to 1.2.0 (#382)
 Update google-cloud-errorreporting to 0.120.8-beta (#384)
 Update google-api-services-container to v1-rev20201007-1.30.10 (#380)
 Update google-cloud-nio to 0.122.1 (#387) (Note: upgrade to this version if your project explicitly specifies version)
-Update akka-actor, akka-stream, ... to 2.6.14 (#391)
+Update akka-actor, akka-stream, ... to 2.6.15 (#391)
 Update mockito-core to 3.6.0 (#407)
 Update opencensus-api, ... to 0.28.2 (#397)
 Update log4cats-slf4j to 1.1.1 (#394)
