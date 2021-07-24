@@ -1,17 +1,17 @@
 package org.broadinstitute.dsde.workbench.google2
 
-import java.nio.file.Path
-import cats.effect.concurrent.Semaphore
-import cats.effect.{Async, Blocker, ContextShift, Effect, IO, Resource, Timer}
+import cats.effect.std.{Dispatcher, Semaphore}
+import cats.effect.{Async, Resource}
 import cats.mtl.Ask
 import com.google.api.services.container.ContainerScopes
-import org.typelevel.log4cats.StructuredLogger
 import io.kubernetes.client.openapi.models.V1PersistentVolumeClaim
 import org.broadinstitute.dsde.workbench.google2.GKEModels.KubernetesClusterId
 import org.broadinstitute.dsde.workbench.google2.KubernetesModels._
-import org.broadinstitute.dsde.workbench.google2.KubernetesSerializableName.{NamespaceName, ServiceName}
+import org.broadinstitute.dsde.workbench.google2.KubernetesSerializableName.ServiceName
 import org.broadinstitute.dsde.workbench.model.{IP, TraceId}
+import org.typelevel.log4cats.StructuredLogger
 
+import java.nio.file.Path
 import scala.collection.JavaConverters._
 
 trait KubernetesService[F[_]] {
@@ -90,14 +90,13 @@ trait KubernetesService[F[_]] {
 // Service account user
 
 object KubernetesService {
-  def resource[F[_]: StructuredLogger: Async: Effect: Timer: ContextShift](
+  def resource[F[_]: StructuredLogger: Async](
     pathToCredential: Path,
     gkeService: GKEService[F],
-    blocker: Blocker,
-    blockerBound: Semaphore[F]
+    dispatcher: Dispatcher[F]
   ): Resource[F, KubernetesService[F]] =
     for {
       credentials <- credentialResource(pathToCredential.toString)
       scopedCredential = credentials.createScoped(Seq(ContainerScopes.CLOUD_PLATFORM).asJava)
-    } yield new KubernetesInterpreter(scopedCredential, gkeService, blocker, blockerBound)
+    } yield new KubernetesInterpreter(scopedCredential, gkeService, dispatcher)
 }

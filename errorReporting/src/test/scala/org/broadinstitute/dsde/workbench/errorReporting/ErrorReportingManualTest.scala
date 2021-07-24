@@ -1,16 +1,13 @@
 package org.broadinstitute.dsde.workbench.errorReporting
 
-import java.nio.file.Paths
-
 import cats.effect.IO
+import cats.effect.unsafe.implicits.global
 import com.google.devtools.clouderrorreporting.v1beta1.{ProjectName, SourceLocation}
 
-import scala.concurrent.ExecutionContext.global
+import java.nio.file.Paths
 import scala.util.control.NoStackTrace
 
 object ErrorReportingManualTest {
-  implicit val cs = IO.contextShift(global)
-
   private def test(reporting: ErrorReporting[IO]): IO[Unit] =
     for {
       _ <- reporting.reportError(new Exception("eeee2"))

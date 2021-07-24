@@ -1,23 +1,24 @@
 package org.broadinstitute.dsde.workbench.openTelemetry
 
-import java.nio.file.Path
-
 import cats.ApplicativeError
-import cats.effect.{Async, Blocker, ContextShift, Resource, Sync, Timer}
+import cats.effect.kernel.Temporal
+import cats.effect.{Async, Resource, Sync}
 import com.google.auth.oauth2.ServiceAccountCredentials
 import fs2.Stream
+import fs2.io.file.Files
 import io.circe.Decoder
 import io.circe.fs2.{byteStreamParser, decoder}
 import io.opencensus.exporter.stats.stackdriver.{StackdriverStatsConfiguration, StackdriverStatsExporter}
 import io.opencensus.exporter.trace.stackdriver.{StackdriverTraceConfiguration, StackdriverTraceExporter}
 
+import java.nio.file.Path
 import scala.collection.JavaConverters._
 import scala.concurrent.duration.FiniteDuration
 
 trait OpenTelemetryMetrics[F[_]] {
   def time[A](name: String, distributionBucket: List[FiniteDuration], tags: Map[String, String] = Map.empty)(
     fa: F[A]
-  )(implicit timer: Timer[F], ae: ApplicativeError[F, Throwable]): F[A]
+  )(implicit temporal: Temporal[F], ae: ApplicativeError[F, Throwable]): F[A]
 
   def gauge[A](name: String, value: Double, tags: Map[String, String] = Map.empty): F[Unit]
 
@@ -27,7 +28,7 @@ trait OpenTelemetryMetrics[F[_]] {
                      duration: FiniteDuration,
                      distributionBucket: List[FiniteDuration],
                      tags: Map[String, String] = Map.empty
-  )(implicit timer: Timer[F]): F[Unit]
+  )(implicit temporal: Temporal[F]): F[Unit]
 }
 
 object OpenTelemetryMetrics {
@@ -35,19 +36,18 @@ object OpenTelemetryMetrics {
     "project_id"
   )(GoogleProjectId.apply)
 
-  private def parseProject[F[_]: ContextShift: Sync](pathToCredential: Path,
-                                                     blocker: Blocker
+  private def parseProject[F[_]: Files: Sync](pathToCredential: Path
   ): Stream[F, GoogleProjectId] =
-    fs2.io.file
-      .readAll[F](pathToCredential, blocker, 4096)
+    fs2.io.file.Files[F]
+      .readAll(pathToCredential, 4096)
       .through(byteStreamParser)
       .through(decoder[F, GoogleProjectId])
 
-  def resource[F[_]: ContextShift](pathToCredential: Path, appName: String, blocker: Blocker)(implicit
+  def resource[F[_]](pathToCredential: Path, appName: String)(implicit
     F: Async[F]
   ): Resource[F, OpenTelemetryMetricsInterpreter[F]] =
     for {
-      projectId <- Resource.eval(parseProject[F](pathToCredential, blocker).compile.lastOrError)
+      projectId <- Resource.eval(parseProject[F](pathToCredential).compile.lastOrError)
       stream <- org.broadinstitute.dsde.workbench.util2.readFile(pathToCredential.toString)
       credential = ServiceAccountCredentials
         .fromStream(stream)
@@ -64,11 +64,11 @@ object OpenTelemetryMetrics {
       )
     } yield new OpenTelemetryMetricsInterpreter[F](appName)
 
-  def registerTracing[F[_]: ContextShift](pathToCredential: Path, blocker: Blocker)(implicit
+  def registerTracing[F[_]](pathToCredential: Path)(implicit
     F: Async[F]
   ): Resource[F, Unit] =
     for {
-      projectId <- Resource.eval(parseProject[F](pathToCredential, blocker).compile.lastOrError)
+      projectId <- Resource.eval(parseProject[F](pathToCredential).compile.lastOrError)
       stream <- org.broadinstitute.dsde.workbench.util2.readFile(pathToCredential.toString)
       credential = ServiceAccountCredentials
         .fromStream(stream)

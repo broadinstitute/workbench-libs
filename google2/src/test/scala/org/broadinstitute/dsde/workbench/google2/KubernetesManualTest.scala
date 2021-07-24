@@ -1,22 +1,22 @@
 package org.broadinstitute.dsde.workbench
 package google2
 
-import java.nio.file.Paths
-import java.util.UUID
-
-import scala.collection.JavaConverters._
-import cats.effect.concurrent.Semaphore
-import cats.effect.{Blocker, IO}
+import cats.effect.IO
+import cats.effect.std.{Dispatcher, Semaphore}
+import cats.effect.unsafe.implicits.global
 import cats.mtl.Ask
 import com.google.container.v1._
-import org.typelevel.log4cats.slf4j.Slf4jLogger
 import org.broadinstitute.dsde.workbench.google2.GKEModels._
 import org.broadinstitute.dsde.workbench.google2.KubernetesConstants._
 import org.broadinstitute.dsde.workbench.google2.KubernetesModels._
 import org.broadinstitute.dsde.workbench.google2.KubernetesSerializableName._
 import org.broadinstitute.dsde.workbench.model.TraceId
 import org.broadinstitute.dsde.workbench.model.google.GoogleProject
+import org.typelevel.log4cats.slf4j.Slf4jLogger
 
+import java.nio.file.Paths
+import java.util.UUID
+import scala.collection.JavaConverters._
 import scala.concurrent.duration._
 
 //TODO: migrate to a unit test
@@ -30,15 +30,10 @@ final class Test(credPathStr: String,
                  networkNameStr: String = "kube-test"
 ) {
 
-  import scala.concurrent.ExecutionContext.global
-
-  implicit val cs = IO.contextShift(global)
-  implicit val t = IO.timer(global)
   implicit val traceId = Ask.const[IO, TraceId](TraceId(UUID.randomUUID()))
 
   implicit def logger = Slf4jLogger.getLogger[IO]
 
-  val blocker = Blocker.liftExecutionContext(global)
   val semaphore = Semaphore[IO](10).unsafeRunSync
 
   val project = GoogleProject(projectStr)
@@ -54,7 +49,7 @@ final class Test(credPathStr: String,
   val clusterId = KubernetesClusterId(project, region, clusterName.right.get)
 
   val credPath = Paths.get(credPathStr)
-  val serviceResource = GKEService.resource(credPath, blocker, semaphore)
+  val serviceResource = GKEService.resource(credPath, semaphore)
 
   val secrets: Map[SecretKey, Array[Byte]] = Map(
     SecretKey("example-secret") -> "supersecretsecretsaresecretive".getBytes()
@@ -120,8 +115,9 @@ final class Test(credPathStr: String,
   }
 
   val kubeService = for {
-    gs <- GKEService.resource(credPath, blocker, semaphore)
-    ks <- KubernetesService.resource(credPath, gs, blocker, semaphore)
+    gs <- GKEService.resource(credPath,  semaphore)
+    dispatcher <- Dispatcher[IO]
+    ks <- KubernetesService.resource(credPath, gs, dispatcher)
   } yield ks
 
   def callCreateNamespace(

@@ -3,7 +3,7 @@ import sbt._
 object Dependencies {
   val akkaV         = "2.6.15"
   val akkaHttpV     = "10.2.4"
-  val jacksonV      = "2.12.1"
+  val jacksonV      = "2.12.4"
   val googleV       = "1.22.0"
   val scalaLoggingV = "3.9.4"
   val scalaTestV    = "3.2.9"
@@ -66,8 +66,8 @@ object Dependencies {
   val googleKms: ModuleID = "com.google.cloud" % "google-cloud-kms" % "1.43.0"
   val googleDataproc: ModuleID =    "com.google.cloud" % "google-cloud-dataproc" % "1.5.2"
   val googleComputeNew: ModuleID = "com.google.cloud" % "google-cloud-compute" % "0.119.11-alpha"
-  val googleContainer: ModuleID = "com.google.cloud" % "google-cloud-container" % "1.4.0"
-  val kubernetesClient: ModuleID = "io.kubernetes" % "client-java" % "11.0.1"
+  val googleContainer: ModuleID = "com.google.cloud" % "google-cloud-container" % "1.5.0"
+  val kubernetesClient: ModuleID = "io.kubernetes" % "client-java" % "12.0.0"
   val googleBigQueryNew: ModuleID = "com.google.cloud" % "google-cloud-bigquery" % "1.134.1"
   val google2CloudBilling = "com.google.cloud" % "google-cloud-billing" % "1.2.2"
   val googleResourceManager =  "com.google.cloud" % "google-cloud-resourcemanager" % "0.118.12-alpha"
@@ -78,16 +78,21 @@ object Dependencies {
   val circeCore: ModuleID = "io.circe" %% "circe-core" % circeVersion
   val circeParser: ModuleID = "io.circe" %% "circe-parser" % circeVersion
   val circeGeneric: ModuleID = "io.circe" %% "circe-generic" % circeVersion % "test"
-  val circeFs2: ModuleID = "io.circe" %% "circe-fs2" % circeVersion
-  val log4cats = "org.typelevel" %% "log4cats-slf4j"   % "1.2.2"
+  val circeFs2: ModuleID = "io.circe" %% "circe-fs2" % "0.14.0"
+  val log4cats = "org.typelevel" %% "log4cats-slf4j"   % "2.1.1"
   val catsMtl = "org.typelevel" %% "cats-mtl" % "1.2.1"
 
   val http4sCirce = "org.http4s" %% "http4s-circe" % http4sVersion
   val http4sBlazeClient = "org.http4s" %% "http4s-blaze-client" % http4sVersion
   val http4sDsl = "org.http4s"      %% "http4s-dsl"          % http4sVersion
 
+<<<<<<< HEAD
   val fs2Io: ModuleID = "co.fs2" %% "fs2-io" % "2.5.6"
   val rawlsModel: ModuleID = "org.broadinstitute.dsde" %% "rawls-model" % "0.1-90eae81cd" exclude("com.typesafe.scala-logging", "scala-logging_2.11") exclude("com.typesafe.akka", "akka-stream_2.11")
+=======
+  val fs2Io: ModuleID = "co.fs2" %% "fs2-io" % "3.0.6"
+  val rawlsModel: ModuleID = "org.broadinstitute.dsde" %% "rawls-model" % "0.1-2356e282" exclude("com.typesafe.scala-logging", "scala-logging_2.13") exclude("com.typesafe.akka", "akka-stream_2.13")
+>>>>>>> migrate to cats-effect 3
   val openCensusApi: ModuleID = "io.opencensus" % "opencensus-api" % "0.28.3"
   val openCensusImpl: ModuleID = "io.opencensus" % "opencensus-impl" % "0.28.3"
   val openCensusStatsStackDriver: ModuleID = "io.opencensus" % "opencensus-exporter-stats-stackdriver" % "0.28.3"

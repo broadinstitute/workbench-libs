@@ -1,6 +1,7 @@
 package org.broadinstitute.dsde.workbench.google2
 
 import cats.effect._
+import cats.effect.std.{Dispatcher, Queue}
 import fs2.Stream
 import org.typelevel.log4cats.StructuredLogger
 import io.circe.Decoder
@@ -13,19 +14,22 @@ trait GoogleSubscriber[F[_], A] {
 }
 
 object GoogleSubscriber {
-  def resource[F[_]: Effect: Timer: ContextShift: StructuredLogger, MessageType: Decoder](
+  def resource[F[_]: Async: StructuredLogger, MessageType: Decoder](
     subscriberConfig: SubscriberConfig,
-    queue: fs2.concurrent.Queue[F, Event[MessageType]]
-  ): Resource[F, GoogleSubscriber[F, MessageType]] =
+    queue:Queue[F, Event[MessageType]],    dispatcher: Dispatcher[F]
+
+                                                                               ): Resource[F, GoogleSubscriber[F, MessageType]] =
     for {
-      subscriberClient <- GoogleSubscriberInterpreter.subscriber(subscriberConfig, queue)
+      subscriberClient <- GoogleSubscriberInterpreter.subscriber(subscriberConfig, queue,dispatcher)
     } yield GoogleSubscriberInterpreter(subscriberClient, queue)
 
-  def stringResource[F[_]: Effect: Timer: ContextShift: StructuredLogger](
+  def stringResource[F[_]: Async: StructuredLogger](
     subscriberConfig: SubscriberConfig,
-    queue: fs2.concurrent.Queue[F, Event[String]]
-  ): Resource[F, GoogleSubscriber[F, String]] =
+    queue:Queue[F, Event[String]],
+    dispatcher: Dispatcher[F]
+
+                                                   ): Resource[F, GoogleSubscriber[F, String]] =
     for {
-      subscriberClient <- GoogleSubscriberInterpreter.stringSubscriber(subscriberConfig, queue)
+      subscriberClient <- GoogleSubscriberInterpreter.stringSubscriber(subscriberConfig, queue,dispatcher)
     } yield GoogleSubscriberInterpreter(subscriberClient, queue)
 }

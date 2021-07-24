@@ -1,12 +1,10 @@
 package org.broadinstitute.dsde.workbench
 
-import java.util.concurrent.TimeUnit
-
-import DoneCheckableSyntax._
 import cats.Show
-import cats.syntax.all._
-import cats.effect.{Resource, Sync, Timer}
+import cats.effect.{Resource, Sync, Temporal}
 import cats.mtl.Ask
+import cats.syntax.all._
+import cats.effect.syntax.all._
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential
 import com.google.api.core.ApiFutureCallback
 import com.google.api.gax.core.BackgroundResource
@@ -16,13 +14,13 @@ import com.google.cloud.billing.v1.ProjectBillingInfo
 import com.google.cloud.compute.v1.Operation
 import com.google.cloud.resourcemanager.Project
 import fs2.{RaiseThrowable, Stream}
-import org.typelevel.log4cats.StructuredLogger
 import io.circe.Encoder
-import org.broadinstitute.dsde.workbench.model.{ErrorReportSource, TraceId, WorkbenchException}
 import io.circe.syntax._
+import org.broadinstitute.dsde.workbench.DoneCheckableSyntax._
+import org.broadinstitute.dsde.workbench.model.{ErrorReportSource, TraceId, WorkbenchException}
+import org.typelevel.log4cats.StructuredLogger
 
 import scala.concurrent.duration._
-import scala.util.control.NoStackTrace
 
 package object google2 {
   implicit val errorReportSource = ErrorReportSource("google2")
@@ -34,7 +32,7 @@ package object google2 {
     "result"
   )(x => LoggableGoogleCall.unapply(x).get)
 
-  def retryF[F[_]: Sync: Timer: RaiseThrowable, A](
+  def retryF[F[_]: RaiseThrowable: Temporal, A](
     retryConfig: RetryConfig
   )(fa: F[A],
     traceId: Option[TraceId],
@@ -51,24 +49,22 @@ package object google2 {
     )
   }
 
-  def withLogging[F[_]: Sync: Timer, A](fa: F[A],
-                                        traceId: Option[TraceId],
-                                        action: String,
-                                        resultFormatter: Show[A] =
+  def withLogging[F[_]: Temporal, A](fa: F[A],
+                                                             traceId: Option[TraceId],
+                                                             action: String,
+                                                             resultFormatter: Show[A] =
                                           Show.show[A](a => if (a == null) "null" else a.toString.take(1024))
   )(implicit
     logger: StructuredLogger[F]
   ): F[A] =
     for {
-      startTime <- Timer[F].clock.realTime(TimeUnit.MILLISECONDS)
-      attempted <- fa.attempt
-      endTime <- Timer[F].clock.realTime(TimeUnit.MILLISECONDS)
+      res <- Temporal[F].timed(fa.attempt)
       loggingCtx = Map(
         "traceId" -> traceId.map(_.asString).getOrElse(""),
         "googleCall" -> action,
-        "duration" -> (endTime - startTime).milliseconds.toString
+        "duration" -> res._1.toMillis.toString
       )
-      _ <- attempted match {
+      _ <- res._2 match {
         case Left(e: io.kubernetes.client.openapi.ApiException) =>
           val loggableGoogleCall = LoggableGoogleCall(Some(e.getResponseBody), "Failed")
           val ctx = loggingCtx ++ Map("result" -> "Failed")
@@ -83,10 +79,10 @@ package object google2 {
           val ctx = loggingCtx ++ Map("result" -> "Succeeded")
           logger.info(ctx)(loggableGoogleCall.asJson.noSpaces)
       }
-      result <- Sync[F].fromEither(attempted)
+      result <- Temporal[F].fromEither(res._2)
     } yield result
 
-  def tracedLogging[F[_]: Timer: Sync, A](fa: F[A],
+  def tracedLogging[F[_]: Temporal, A](fa: F[A],
                                           action: String,
                                           resultFormatter: Show[A] =
                                             Show.show[A](a => if (a == null) "null" else a.toString.take(1024))
@@ -99,7 +95,7 @@ package object google2 {
       result <- withLogging(fa, Some(traceId), action, resultFormatter)
     } yield result
 
-  def tracedRetryF[F[_]: Sync: Timer: RaiseThrowable: StructuredLogger, A](
+  def tracedRetryF[F[_]: Temporal: RaiseThrowable: StructuredLogger, A](
     retryConfig: RetryConfig
   )(fa: F[A],
     action: String,
@@ -151,7 +147,7 @@ package object google2 {
   // Note: This method may reach maxAttempts without hitting the Done condition.
   // If you need to check whether the Done condition was met, you may want to use the
   // method streamUntilDoneOrTimeout() instead.
-  def streamFUntilDone[F[_]: Timer, A: DoneCheckable](fa: F[A], maxAttempts: Int, delay: FiniteDuration): Stream[F, A] =
+  def streamFUntilDone[F[_]: Temporal, A: DoneCheckable](fa: F[A], maxAttempts: Int, delay: FiniteDuration): Stream[F, A] =
     (Stream.sleep_(delay) ++ Stream.eval(fa))
       .repeatN(maxAttempts)
       .takeThrough(!_.isDone)
@@ -160,15 +156,15 @@ package object google2 {
   // by the time maxAttempts are exhausted. Therefore callers may want to use this method instead of streamFUntilDone()
   // if they want to ascertain the Done condition was satisfied and take action otherwise.
   // See org.broadinstitute.dsde.workbench.google2.GoogleDataprocInterpreter.stopCluster() for examples.
-  def streamUntilDoneOrTimeout[F[_]: Sync: Timer, A: DoneCheckable](fa: F[A],
+  def streamUntilDoneOrTimeout[F[_]: Temporal, A: DoneCheckable](fa: F[A],
                                                                     maxAttempts: Int,
                                                                     delay: FiniteDuration,
                                                                     timeoutErrorMessage: String
   ): F[A] =
     streamFUntilDone(fa, maxAttempts, delay).last
       .evalMap {
-        case Some(a) if a.isDone => Sync[F].pure(a)
-        case _                   => Sync[F].raiseError[A](StreamTimeoutError(timeoutErrorMessage))
+        case Some(a) if a.isDone => Temporal[F].pure(a)
+        case _                   => Temporal[F].raiseError[A](StreamTimeoutError(timeoutErrorMessage))
       }
       .compile
       .lastOrError

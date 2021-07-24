@@ -2,6 +2,16 @@
 
 This file documents changes to the `workbench-google2` library, including notes on how to upgrade to new versions.
 
+## 0.22
+Breaking Changes:
+- Upgrade cats-effect to `3.1.1` and a few other dependencies
+
+Dependency Upgrades:
+- `google-cloud-container` to `1.5.0`
+- `io.kubernetes` to `12.0.0`
+
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.22-TRAVIS-REPLACE-ME"`
+
 ## 0.21
 Breaking Changes:
 - Rename `retryGoogleF` and `tracedRetryGoogleF` to `retryF` and `tracedRetryF`

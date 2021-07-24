@@ -3,7 +3,8 @@ package org.broadinstitute.dsde.workbench.google2
 import ca.mrvisser.sealerate
 import cats.Parallel
 import cats.effect._
-import cats.effect.concurrent.Semaphore
+import cats.effect.std.Semaphore
+import cats.effect.std.Semaphore
 import cats.mtl.Ask
 import cats.syntax.all._
 import com.google.api.gax.core.FixedCredentialsProvider
@@ -76,10 +77,9 @@ trait GoogleDataprocService[F[_]] {
 }
 
 object GoogleDataprocService {
-  def resource[F[_]: StructuredLogger: Async: Timer: Parallel: ContextShift](
+  def resource[F[_]: StructuredLogger: Async: Parallel](
     googleComputeService: GoogleComputeService[F],
     pathToCredential: String,
-    blocker: Blocker,
     blockerBound: Semaphore[F],
     supportedRegions: Set[RegionName],
     retryConfig: RetryConfig = RetryPredicates.standardGoogleRetryConfig
@@ -89,17 +89,15 @@ object GoogleDataprocService {
       scopedCredential = credential.createScoped(Seq(ComputeScopes.CLOUD_PLATFORM).asJava)
       interpreter <- fromCredential(googleComputeService,
                                     scopedCredential,
-                                    blocker,
                                     supportedRegions,
-                                    blockerBound,
-                                    retryConfig
+        blockerBound,
+        retryConfig
       )
     } yield interpreter
 
-  def resourceFromUserCredential[F[_]: StructuredLogger: Async: Timer: Parallel: ContextShift](
+  def resourceFromUserCredential[F[_]: StructuredLogger: Async: Parallel](
     googleComputeService: GoogleComputeService[F],
     pathToCredential: String,
-    blocker: Blocker,
     blockerBound: Semaphore[F],
     supportedRegions: Set[RegionName],
     retryConfig: RetryConfig = RetryPredicates.standardGoogleRetryConfig
@@ -109,17 +107,15 @@ object GoogleDataprocService {
       scopedCredential = credential.createScoped(Seq(ComputeScopes.CLOUD_PLATFORM).asJava)
       interpreter <- fromCredential(googleComputeService,
                                     scopedCredential,
-                                    blocker,
                                     supportedRegions,
                                     blockerBound,
                                     retryConfig
       )
     } yield interpreter
 
-  def fromCredential[F[_]: StructuredLogger: Async: Timer: Parallel: ContextShift](
+  def fromCredential[F[_]: StructuredLogger: Async: Parallel](
     googleComputeService: GoogleComputeService[F],
     googleCredentials: GoogleCredentials,
-    blocker: Blocker,
     supportedRegions: Set[RegionName],
     blockerBound: Semaphore[F],
     retryConfig: RetryConfig = RetryPredicates.standardGoogleRetryConfig
@@ -135,7 +131,7 @@ object GoogleDataprocService {
 
     for {
       clients <- regionalSettings
-    } yield new GoogleDataprocInterpreter[F](clients.toMap, googleComputeService, blocker, blockerBound, retryConfig)
+    } yield new GoogleDataprocInterpreter[F](clients.toMap, googleComputeService, blockerBound, retryConfig)
   }
 }
 

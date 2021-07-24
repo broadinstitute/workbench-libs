@@ -1,29 +1,17 @@
 package org.broadinstitute.dsde.workbench.google2
 
 import cats.Show
-import cats.effect.{Blocker, ContextShift, Sync, Timer}
+import cats.effect.Async
 import com.google.cloud.bigquery.Acl.{Group, User}
-import com.google.cloud.bigquery.{
-  Acl,
-  BigQuery,
-  Dataset,
-  DatasetId,
-  DatasetInfo,
-  JobId,
-  QueryJobConfiguration,
-  Table,
-  TableId,
-  TableResult
-}
+import com.google.cloud.bigquery._
 import org.broadinstitute.dsde.workbench.model.google.{BigQueryDatasetName, BigQueryTableName, GoogleProject}
-import org.typelevel.log4cats.StructuredLogger
 import org.broadinstitute.dsde.workbench.model.{WorkbenchEmail, WorkbenchException}
+import org.typelevel.log4cats.StructuredLogger
 
 import scala.collection.JavaConverters._
 
-private[google2] class GoogleBigQueryInterpreter[F[_]: Sync: ContextShift: Timer: StructuredLogger](client: BigQuery,
-                                                                                                    blocker: Blocker
-) extends GoogleBigQueryService[F] {
+private[google2] class GoogleBigQueryInterpreter[F[_]: StructuredLogger](client: BigQuery
+)(implicit F: Async[F]) extends GoogleBigQueryService[F] {
 
   private val tableResultFormatter: Show[TableResult] =
     Show.show((tableResult: TableResult) =>
@@ -32,9 +20,9 @@ private[google2] class GoogleBigQueryInterpreter[F[_]: Sync: ContextShift: Timer
 
   override def query(queryJobConfiguration: QueryJobConfiguration, options: BigQuery.JobOption*): F[TableResult] =
     withLogging(
-      blockingF(Sync[F].delay[TableResult] {
+      F.blocking[TableResult] {
         client.query(queryJobConfiguration, options: _*)
-      }),
+      },
       None,
       s"com.google.cloud.bigquery.BigQuery.query(${queryJobConfiguration.getQuery})",
       tableResultFormatter
@@ -45,9 +33,9 @@ private[google2] class GoogleBigQueryInterpreter[F[_]: Sync: ContextShift: Timer
                      options: BigQuery.JobOption*
   ): F[TableResult] =
     withLogging(
-      blockingF(Sync[F].delay[TableResult] {
+      F.blocking[TableResult] {
         client.query(queryJobConfiguration, jobId, options: _*)
-      }),
+      },
       None,
       s"com.google.cloud.bigquery.BigQuery.query(${queryJobConfiguration.getQuery})",
       tableResultFormatter
@@ -71,9 +59,9 @@ private[google2] class GoogleBigQueryInterpreter[F[_]: Sync: ContextShift: Timer
       DatasetInfo.newBuilder(datasetName).setLabels(labels.asJava).setAcl(newAclList.toList.asJava).build
 
     withLogging(
-      blockingF(Sync[F].delay[DatasetId] {
+      F.blocking[DatasetId] {
         client.create(datasetInfo).getDatasetId
-      }),
+      },
       None,
       s"com.google.cloud.bigquery.BigQuery.create(${datasetName})"
     )
@@ -81,9 +69,9 @@ private[google2] class GoogleBigQueryInterpreter[F[_]: Sync: ContextShift: Timer
 
   override def deleteDataset(datasetName: String): F[Boolean] =
     withLogging(
-      blockingF(Sync[F].delay[Boolean] {
+      F.blocking[Boolean] {
         client.delete(datasetName)
-      }),
+      },
       None,
       s"com.google.cloud.bigquery.BigQuery.delete(${datasetName})"
     )
@@ -94,9 +82,9 @@ private[google2] class GoogleBigQueryInterpreter[F[_]: Sync: ContextShift: Timer
 
   override def getTable(datasetName: BigQueryDatasetName, tableName: BigQueryTableName): F[Option[Table]] =
     withLogging(
-      blockingF(Sync[F].delay[Option[Table]] {
+      F.blocking[Option[Table]] {
         Option(client.getTable(TableId.of(datasetName.value, tableName.value)))
-      }),
+      },
       None,
       s"com.google.cloud.bigquery.BigQuery.getTable(${datasetName.value}, ${tableName.value})"
     )
@@ -106,9 +94,9 @@ private[google2] class GoogleBigQueryInterpreter[F[_]: Sync: ContextShift: Timer
                         tableName: BigQueryTableName
   ): F[Option[Table]] =
     withLogging(
-      blockingF(Sync[F].delay[Option[Table]] {
+      F.blocking[Option[Table]] {
         Option(client.getTable(TableId.of(googleProjectName.value, datasetName.value, tableName.value)))
-      }),
+      },
       None,
       s"com.google.cloud.bigquery.BigQuery.getTable(${googleProjectName.value}, ${datasetName.value}, ${tableName.value})"
     )
@@ -118,21 +106,19 @@ private[google2] class GoogleBigQueryInterpreter[F[_]: Sync: ContextShift: Timer
 
   override def getDataset(datasetName: BigQueryDatasetName): F[Option[Dataset]] =
     withLogging(
-      blockingF(Sync[F].delay[Option[Dataset]] {
+      F.blocking[Option[Dataset]] {
         Option(client.getDataset(DatasetId.of(datasetName.value)))
-      }),
+      },
       None,
       s"com.google.cloud.bigquery.BigQuery.getDataset(${datasetName.value})"
     )
 
   override def getDataset(googleProjectName: GoogleProject, datasetName: BigQueryDatasetName): F[Option[Dataset]] =
     withLogging(
-      blockingF(Sync[F].delay[Option[Dataset]] {
+      F.blocking[Option[Dataset]] {
         Option(client.getDataset(DatasetId.of(googleProjectName.value, datasetName.value)))
-      }),
+      },
       None,
       s"com.google.cloud.bigquery.BigQuery.getDataset(${googleProjectName.value}, ${datasetName.value})"
     )
-
-  private def blockingF[A](fa: F[A]): F[A] = blocker.blockOn(fa)
 }

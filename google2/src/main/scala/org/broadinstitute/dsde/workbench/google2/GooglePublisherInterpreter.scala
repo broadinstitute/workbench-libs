@@ -17,7 +17,7 @@ import io.circe.Encoder
 import io.circe.syntax._
 import org.broadinstitute.dsde.workbench.model.TraceId
 
-private[google2] class GooglePublisherInterpreter[F[_]: Async: Timer: StructuredLogger](
+private[google2] class GooglePublisherInterpreter[F[_]: Async: StructuredLogger](
   publisher: Publisher
 ) extends GooglePublisher[F] {
   def publish[MessageType: Encoder]: Pipe[F, MessageType, Unit] = in => {
@@ -41,11 +41,11 @@ private[google2] class GooglePublisherInterpreter[F[_]: Async: Timer: Structured
   override def publishNativeOne(message: PubsubMessage): F[Unit] = withLogging(
     Async[F]
       .async[String] { callback =>
-        ApiFutures.addCallback(
+        Async[F].delay(ApiFutures.addCallback(
           publisher.publish(message),
           callBack(callback),
           MoreExecutors.directExecutor()
-        )
+        )).as(None)
       }
       .void,
     Option(message.getAttributesMap.get("traceId")).map(s => TraceId(s)),
@@ -73,21 +73,21 @@ private[google2] class GooglePublisherInterpreter[F[_]: Async: Timer: Structured
           .newBuilder()
           .setData(byteString)
           .build()
-        ApiFutures.addCallback(
+        Async[F].delay(ApiFutures.addCallback(
           publisher.publish(message),
           callBack(callback),
           MoreExecutors.directExecutor()
-        )
+        )).as(None)
       }
       .void
 }
 
 object GooglePublisherInterpreter {
-  def apply[F[_]: Async: Timer: ContextShift: StructuredLogger](
+  def apply[F[_]: Async: StructuredLogger](
     publisher: Publisher
   ): GooglePublisherInterpreter[F] = new GooglePublisherInterpreter(publisher)
 
-  def publisher[F[_]: Sync: StructuredLogger](config: PublisherConfig): Resource[F, Publisher] =
+  def publisher[F[_]: Async: StructuredLogger](config: PublisherConfig): Resource[F, Publisher] =
     for {
       credential <- credentialResource(config.pathToCredentialJson)
       publisher <- publisherResource(config.projectTopicName, credential)

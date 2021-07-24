@@ -1,16 +1,17 @@
 package org.broadinstitute.dsde.workbench.google2
 
 import cats.Parallel
-import cats.effect.concurrent.Semaphore
-import cats.effect.{Async, Blocker, ContextShift, Resource, Timer}
+import cats.effect.std.Semaphore
+import cats.effect.{Async, Resource}
 import cats.mtl.Ask
 import com.google.api.gax.core.FixedCredentialsProvider
 import com.google.api.services.compute.ComputeScopes
 import com.google.auth.oauth2.GoogleCredentials
 import com.google.cloud.billing.v1.{CloudBillingClient, CloudBillingSettings, ProjectBillingInfo}
-import org.typelevel.log4cats.StructuredLogger
 import org.broadinstitute.dsde.workbench.model.TraceId
 import org.broadinstitute.dsde.workbench.model.google.GoogleProject
+import org.typelevel.log4cats.StructuredLogger
+
 import java.nio.file.Path
 
 trait GoogleBillingService[F[_]] {
@@ -24,20 +25,18 @@ trait GoogleBillingService[F[_]] {
 
 object GoogleBillingService {
 
-  def resource[F[_]: StructuredLogger: Async: Parallel: Timer: ContextShift](
+  def resource[F[_]: StructuredLogger: Async: Parallel](
     pathToCredential: Path,
-    blocker: Blocker,
     blockerBound: Semaphore[F]
   ): Resource[F, GoogleBillingService[F]] =
     for {
       credential <- credentialResource(pathToCredential.toString)
       scopedCredential = credential.createScoped(ComputeScopes.CLOUD_PLATFORM)
-      interpreter <- fromCredential(scopedCredential, blocker, blockerBound)
+      interpreter <- fromCredential(scopedCredential, blockerBound)
     } yield interpreter
 
-  def fromCredential[F[_]: StructuredLogger: Async: Parallel: Timer: ContextShift](
+  def fromCredential[F[_]: StructuredLogger: Async: Parallel](
     googleCredentials: GoogleCredentials,
-    blocker: Blocker,
     blockerBound: Semaphore[F]
   ): Resource[F, GoogleBillingService[F]] = {
     val credentialsProvider = FixedCredentialsProvider.create(googleCredentials)
@@ -49,6 +48,6 @@ object GoogleBillingService {
 
     for {
       billingClient <- backgroundResourceF(CloudBillingClient.create(billingSettings))
-    } yield new GoogleBillingInterpreter[F](billingClient, blocker, blockerBound)
+    } yield new GoogleBillingInterpreter[F](billingClient, blockerBound)
   }
 }

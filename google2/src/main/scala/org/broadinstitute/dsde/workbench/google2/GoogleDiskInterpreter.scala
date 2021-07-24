@@ -1,30 +1,22 @@
 package org.broadinstitute.dsde.workbench.google2
 
-import cats.effect.concurrent.Semaphore
-import cats.effect.{Async, Blocker, ContextShift, Timer}
-import cats.syntax.all._
+import cats.effect.Async
+import cats.effect.std.Semaphore
 import cats.mtl.Ask
-import com.google.cloud.compute.v1.{
-  Disk,
-  DiskClient,
-  DisksResizeRequest,
-  Operation,
-  ProjectZoneDiskName,
-  ProjectZoneName
-}
+import cats.syntax.all._
+import com.google.cloud.compute.v1._
 import fs2.Stream
-import org.typelevel.log4cats.StructuredLogger
 import org.broadinstitute.dsde.workbench.RetryConfig
+import org.broadinstitute.dsde.workbench.google2.util.RetryPredicates._
 import org.broadinstitute.dsde.workbench.model.TraceId
 import org.broadinstitute.dsde.workbench.model.google.GoogleProject
-import org.broadinstitute.dsde.workbench.google2.util.RetryPredicates._
+import org.typelevel.log4cats.StructuredLogger
 
 import scala.collection.JavaConverters._
 
-private[google2] class GoogleDiskInterpreter[F[_]: StructuredLogger: Timer: ContextShift](
+private[google2] class GoogleDiskInterpreter[F[_]: StructuredLogger](
   diskClient: DiskClient,
   retryConfig: RetryConfig,
-  blocker: Blocker,
   blockerBound: Semaphore[F]
 )(implicit F: Async[F])
     extends GoogleDiskService[F] {
@@ -34,7 +26,7 @@ private[google2] class GoogleDiskInterpreter[F[_]: StructuredLogger: Timer: Cont
   ): F[Option[Operation]] = {
     val projectZone = ProjectZoneName.of(project.value, zone.value)
     retryF(
-      recoverF(F.delay(diskClient.insertDisk(projectZone, disk)), whenStatusCode(409)),
+      recoverF(F.blocking(diskClient.insertDisk(projectZone, disk)), whenStatusCode(409)),
       s"com.google.cloud.compute.v1DiskClient.insertDisk(${projectZone.toString}, ${disk.getName})"
     ).compile.lastOrError
   }
@@ -43,7 +35,7 @@ private[google2] class GoogleDiskInterpreter[F[_]: StructuredLogger: Timer: Cont
     ev: Ask[F, TraceId]
   ): F[Option[Disk]] = {
     val projectZoneDiskName = ProjectZoneDiskName.of(diskName.value, project.value, zone.value)
-    val fa = recoverF(F.delay(diskClient.getDisk(projectZoneDiskName)), whenStatusCode(404))
+    val fa = recoverF(F.blocking(diskClient.getDisk(projectZoneDiskName)), whenStatusCode(404))
 
     ev.ask.flatMap(traceId =>
       withLogging(
@@ -58,7 +50,7 @@ private[google2] class GoogleDiskInterpreter[F[_]: StructuredLogger: Timer: Cont
     ev: Ask[F, TraceId]
   ): F[Option[Operation]] = {
     val projectZoneDiskName = ProjectZoneDiskName.of(diskName.value, project.value, zone.value)
-    val fa = recoverF(F.delay(diskClient.deleteDisk(projectZoneDiskName)), whenStatusCode(404))
+    val fa = recoverF(F.blocking(diskClient.deleteDisk(projectZoneDiskName)), whenStatusCode(404))
 
     ev.ask.flatMap(traceId =>
       withLogging(
@@ -76,11 +68,11 @@ private[google2] class GoogleDiskInterpreter[F[_]: StructuredLogger: Timer: Cont
     val projectZone = ProjectZoneName.of(project.value, zone.value)
     for {
       pagedResults <- retryF(
-        F.delay(diskClient.listDisks(projectZone)),
+        F.blocking(diskClient.listDisks(projectZone)),
         s"com.google.cloud.compute.v1.DiskClient.listDisks(${projectZone.toString})"
       )
 
-      res <- Stream.fromIterator[F](pagedResults.iterateAll().iterator().asScala)
+      res <- Stream.fromIterator[F](pagedResults.iterateAll().iterator().asScala, 1024)
     } yield res
   }
 
@@ -90,12 +82,12 @@ private[google2] class GoogleDiskInterpreter[F[_]: StructuredLogger: Timer: Cont
     val projectZoneDiskName = ProjectZoneDiskName.of(diskName.value, project.value, zone.value)
     val request = DisksResizeRequest.newBuilder().setSizeGb(newSizeGb.toString).build()
     retryF(
-      F.delay(diskClient.resizeDisk(projectZoneDiskName, request)),
+      F.blocking(diskClient.resizeDisk(projectZoneDiskName, request)),
       s"com.google.cloud.compute.v1.DiskClient.resizeDisk(${projectZoneDiskName.toString}, $newSizeGb)"
     ).compile.lastOrError
   }
 
   private def retryF[A](fa: F[A], loggingMsg: String)(implicit ev: Ask[F, TraceId]): Stream[F, A] =
-    tracedRetryF(retryConfig)(blockerBound.withPermit(blocker.blockOn(fa)), loggingMsg)
+    tracedRetryF(retryConfig)(blockerBound.permit.use(_ => fa), loggingMsg)
 
 }

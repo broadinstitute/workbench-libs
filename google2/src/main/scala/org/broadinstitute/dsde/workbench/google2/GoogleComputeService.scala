@@ -3,7 +3,7 @@ package org.broadinstitute.dsde.workbench.google2
 import _root_.org.typelevel.log4cats.StructuredLogger
 import cats.Parallel
 import cats.effect._
-import cats.effect.concurrent.Semaphore
+import cats.effect.std.Semaphore
 import cats.mtl.Ask
 import com.google.api.gax.core.FixedCredentialsProvider
 import com.google.api.services.compute.ComputeScopes
@@ -119,33 +119,30 @@ trait GoogleComputeService[F[_]] {
 }
 
 object GoogleComputeService {
-  def resource[F[_]: StructuredLogger: Async: Parallel: Timer: ContextShift](
+  def resource[F[_]: StructuredLogger: Async: Parallel](
     pathToCredential: String,
-    blocker: Blocker,
     blockerBound: Semaphore[F],
     retryConfig: RetryConfig = RetryPredicates.standardGoogleRetryConfig
   ): Resource[F, GoogleComputeService[F]] =
     for {
       credential <- credentialResource(pathToCredential)
       scopedCredential = credential.createScoped(Seq(ComputeScopes.COMPUTE).asJava)
-      interpreter <- fromCredential(scopedCredential, blocker, blockerBound, retryConfig)
+      interpreter <- fromCredential(scopedCredential, blockerBound, retryConfig)
     } yield interpreter
 
-  def resourceFromUserCredential[F[_]: StructuredLogger: Async: Parallel: Timer: ContextShift](
+  def resourceFromUserCredential[F[_]: StructuredLogger: Async: Parallel](
     pathToCredential: String,
-    blocker: Blocker,
     blockerBound: Semaphore[F],
     retryConfig: RetryConfig = RetryPredicates.standardGoogleRetryConfig
   ): Resource[F, GoogleComputeService[F]] =
     for {
       credential <- userCredentials(pathToCredential)
       scopedCredential = credential.createScoped(Seq(ComputeScopes.COMPUTE).asJava)
-      interpreter <- fromCredential(scopedCredential, blocker, blockerBound, retryConfig)
+      interpreter <- fromCredential(scopedCredential, blockerBound, retryConfig)
     } yield interpreter
 
-  def fromCredential[F[_]: StructuredLogger: Async: Parallel: Timer: ContextShift](
+  def fromCredential[F[_]: StructuredLogger: Async: Parallel](
     googleCredentials: GoogleCredentials,
-    blocker: Blocker,
     blockerBound: Semaphore[F],
     retryConfig: RetryConfig
   ): Resource[F, GoogleComputeService[F]] = {
@@ -190,7 +187,6 @@ object GoogleComputeService {
                                             networkClient,
                                             subnetworkClient,
                                             retryConfig,
-                                            blocker,
                                             blockerBound
     )
   }

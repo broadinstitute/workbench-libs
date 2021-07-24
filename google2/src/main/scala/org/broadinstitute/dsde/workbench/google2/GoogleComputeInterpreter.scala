@@ -2,23 +2,22 @@ package org.broadinstitute.dsde.workbench
 package google2
 
 import _root_.org.typelevel.log4cats.StructuredLogger
-import cats.Parallel
-import cats.effect.concurrent.Semaphore
-import cats.effect.{Async, Blocker, ContextShift, Timer}
-import cats.syntax.all._
+import cats.{Parallel, Show}
+import cats.effect.Async
+import cats.effect.std.Semaphore
 import cats.mtl.Ask
+import cats.syntax.all._
+import com.google.api.gax.rpc.ApiException
 import com.google.cloud.compute.v1._
 import org.broadinstitute.dsde.workbench.google2.util.RetryPredicates._
 import org.broadinstitute.dsde.workbench.model.google.GoogleProject
 import org.broadinstitute.dsde.workbench.model.{TraceId, WorkbenchException}
-import cats.Show
-import com.google.api.gax.rpc.ApiException
 
 import scala.collection.JavaConverters._
 import scala.concurrent.TimeoutException
 import scala.concurrent.duration._
 
-private[google2] class GoogleComputeInterpreter[F[_]: Parallel: StructuredLogger: Timer: ContextShift](
+private[google2] class GoogleComputeInterpreter[F[_]: Parallel: StructuredLogger](
   instanceClient: InstanceClient,
   firewallClient: FirewallClient,
   zoneClient: ZoneClient,
@@ -26,7 +25,6 @@ private[google2] class GoogleComputeInterpreter[F[_]: Parallel: StructuredLogger
   networkClient: NetworkClient,
   subnetworkClient: SubnetworkClient,
   retryConfig: RetryConfig,
-  blocker: Blocker,
   blockerBound: Semaphore[F]
 )(implicit F: Async[F])
     extends GoogleComputeService[F] {
@@ -333,7 +331,7 @@ private[google2] class GoogleComputeInterpreter[F[_]: Parallel: StructuredLogger
     s"https://www.googleapis.com/compute/v1/projects/${googleProject.value}/regions/${regionName.value}"
 
   private def retryF[A](fa: F[A], loggingMsg: String)(implicit ev: Ask[F, TraceId]): F[A] =
-    tracedRetryF(retryConfig)(blockerBound.withPermit(blocker.blockOn(fa)), loggingMsg).compile.lastOrError
+    tracedRetryF(retryConfig)(blockerBound.permit.use(_ =>fa), loggingMsg).compile.lastOrError
 
 }
 

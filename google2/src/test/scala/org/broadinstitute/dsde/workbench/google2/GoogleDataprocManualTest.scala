@@ -1,9 +1,8 @@
 package org.broadinstitute.dsde.workbench.google2
 
-import java.util.UUID
-
-import cats.effect.concurrent.Semaphore
-import cats.effect.{Blocker, IO}
+import cats.effect.IO
+import cats.effect.std.Semaphore
+import cats.effect.unsafe.implicits.global
 import cats.mtl.Ask
 import com.google.cloud.compute.v1.Operation
 import com.google.cloud.dataproc.v1.Cluster
@@ -11,20 +10,17 @@ import org.broadinstitute.dsde.workbench.model.TraceId
 import org.broadinstitute.dsde.workbench.model.google.GoogleProject
 import org.broadinstitute.dsde.workbench.util2.{ConsoleLogger, LogLevel}
 
+import java.util.UUID
+
 final class GoogleDataprocManualTest(pathToCredential: String,
                                      projectStr: String = "broad-dsde-dev",
                                      regionStr: String = "us-central1"
 ) {
 
-  import scala.concurrent.ExecutionContext.global
-
-  implicit val cs = IO.contextShift(global)
-  implicit val t = IO.timer(global)
   implicit val traceId = Ask.const[IO, TraceId](TraceId(UUID.randomUUID()))
 
   implicit def logger = new ConsoleLogger("dataproc-manual-test", LogLevel(true, true, true, true))
 
-  val blocker = Blocker.liftExecutionContext(global)
   val blockerBound = Semaphore[IO](10).unsafeRunSync
 
   val project = GoogleProject(projectStr)
@@ -32,9 +28,9 @@ final class GoogleDataprocManualTest(pathToCredential: String,
   val zone = ZoneName(s"${regionStr}-a")
 
   val dataprocServiceResource = GoogleComputeService
-    .resource(pathToCredential, blocker, blockerBound)
+    .resource(pathToCredential, blockerBound)
     .flatMap(computeService =>
-      GoogleDataprocService.resource(computeService, pathToCredential, blocker, blockerBound, Set(region))
+      GoogleDataprocService.resource(computeService, pathToCredential, blockerBound, Set(region))
     )
 
   def callStopCluster(cluster: String): IO[List[Operation]] =

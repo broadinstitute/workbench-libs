@@ -1,20 +1,12 @@
 package org.broadinstitute.dsde.workbench
 package google2
 
-import cats.effect.{Blocker, ContextShift, Resource, Sync}
+import cats.effect.{Resource, Sync}
 import cats.syntax.all._
 import com.google.api.gax.core.FixedCredentialsProvider
 import com.google.auth.oauth2.ServiceAccountCredentials
 import com.google.cloud.kms.v1.CryptoKey.CryptoKeyPurpose
-import com.google.cloud.kms.v1.{
-  CryptoKey,
-  CryptoKeyName,
-  KeyManagementServiceClient,
-  KeyManagementServiceSettings,
-  KeyRing,
-  KeyRingName,
-  LocationName
-}
+import com.google.cloud.kms.v1._
 import com.google.iam.v1.{Binding, Policy}
 import com.google.protobuf.{Duration, Timestamp}
 import org.broadinstitute.dsde.workbench.model.google.GoogleProject
@@ -27,21 +19,20 @@ import scala.language.higherKinds
  *
  * created by mtalbott on 1/18/19
  */
-private[google2] class GoogleKmsInterpreter[F[_]: Sync: ContextShift](client: KeyManagementServiceClient,
-                                                                      blocker: Blocker
-) extends GoogleKmsService[F] {
+private[google2] class GoogleKmsInterpreter[F[_]](client: KeyManagementServiceClient
+)(implicit F: Sync[F]) extends GoogleKmsService[F] {
   override def createKeyRing(project: GoogleProject, location: Location, keyRingId: KeyRingId): F[KeyRing] = {
     val locationName = LocationName.format(project.value, location.value)
-    blockingF(Sync[F].delay[KeyRing] {
+    F.blocking[KeyRing] {
       client.createKeyRing(locationName, keyRingId.value, KeyRing.newBuilder().build())
-    })
+    }
   }
 
   override def getKeyRing(project: GoogleProject, location: Location, keyRingId: KeyRingId): F[Option[KeyRing]] = {
     val keyRingName = KeyRingName.format(project.value, location.value, keyRingId.value)
-    blockingF(Sync[F].delay[Option[KeyRing]] {
+    F.blocking[Option[KeyRing]] {
       Option(client.getKeyRing(keyRingName))
-    })
+    }
   }
 
   override def createKey(project: GoogleProject,
@@ -54,7 +45,7 @@ private[google2] class GoogleKmsInterpreter[F[_]: Sync: ContextShift](client: Ke
     val keyRingName = KeyRingName.format(project.value, location.value, keyRingId.value)
     (nextRotationTimeOpt, rotationPeriodOpt) match {
       case (Some(nextRotationTime), Some(rotationPeriod)) =>
-        blockingF(Sync[F].delay[CryptoKey] {
+        F.blocking[CryptoKey] {
           client.createCryptoKey(
             keyRingName,
             keyId.value,
@@ -65,9 +56,9 @@ private[google2] class GoogleKmsInterpreter[F[_]: Sync: ContextShift](client: Ke
               .setRotationPeriod(rotationPeriod)
               .build()
           )
-        })
+        }
       case (_, _) =>
-        blockingF(Sync[F].delay[CryptoKey] {
+        F.blocking[CryptoKey] {
           client.createCryptoKey(keyRingName,
                                  keyId.value,
                                  CryptoKey
@@ -75,7 +66,7 @@ private[google2] class GoogleKmsInterpreter[F[_]: Sync: ContextShift](client: Ke
                                    .setPurpose(CryptoKeyPurpose.ENCRYPT_DECRYPT)
                                    .build()
           )
-        })
+        }
     }
   }
 
@@ -85,9 +76,9 @@ private[google2] class GoogleKmsInterpreter[F[_]: Sync: ContextShift](client: Ke
                       keyId: KeyId
   ): F[Option[CryptoKey]] = {
     val keyName = CryptoKeyName.format(project.value, location.value, keyRingId.value, keyId.value)
-    blockingF(Sync[F].delay[Option[CryptoKey]] {
+    F.blocking[Option[CryptoKey]] {
       Option(client.getCryptoKey(keyName))
-    })
+    }
   }
 
   override def addMemberToKeyPolicy(project: GoogleProject,
@@ -148,9 +139,9 @@ private[google2] class GoogleKmsInterpreter[F[_]: Sync: ContextShift](client: Ke
                            keyId: KeyId
   ): F[Policy] = {
     val keyName = CryptoKeyName.format(project.value, location.value, keyRingId.value, keyId.value)
-    blockingF(Sync[F].delay[Policy] {
+    F.blocking[Policy] {
       client.getIamPolicy(keyName)
-    })
+    }
   }
 
   private def setIamPolicy(project: GoogleProject,
@@ -160,17 +151,15 @@ private[google2] class GoogleKmsInterpreter[F[_]: Sync: ContextShift](client: Ke
                            newPolicy: Policy
   ): F[Policy] = {
     val keyName = CryptoKeyName.format(project.value, location.value, keyRingId.value, keyId.value)
-    blockingF(Sync[F].delay[Policy] {
+    F.blocking[Policy] {
       client.setIamPolicy(keyName, newPolicy)
-    })
+    }
   }
-
-  private def blockingF[A](fa: F[A]): F[A] = blocker.blockOn(fa)
 }
 
 object GoogleKmsInterpreter {
-  def apply[F[_]: Sync: ContextShift](client: KeyManagementServiceClient, blocker: Blocker): GoogleKmsInterpreter[F] =
-    new GoogleKmsInterpreter[F](client, blocker)
+  def apply[F[_]: Sync](client: KeyManagementServiceClient): GoogleKmsInterpreter[F] =
+    new GoogleKmsInterpreter[F](client)
 
   def client[F[_]: Sync](pathToJson: String): Resource[F, KeyManagementServiceClient] =
     for {

@@ -1,27 +1,26 @@
 package org.broadinstitute.dsde.workbench.google2
 
-import cats.syntax.all._
 import cats.Parallel
-import cats.effect.concurrent.Semaphore
-import cats.effect.{Blocker, Concurrent, ContextShift, Resource, Timer}
+import cats.effect.std.Semaphore
+import cats.effect.{Async, Resource}
 import cats.mtl.Ask
+import cats.syntax.all._
 import com.google.api.gax.core.FixedCredentialsProvider
 import com.google.api.services.compute.ComputeScopes
 import com.google.auth.oauth2.GoogleCredentials
 import com.google.cloud.compute.v1._
 import fs2.Stream
-import org.typelevel.log4cats.StructuredLogger
-import org.broadinstitute.dsde.workbench.model.TraceId
-import org.broadinstitute.dsde.workbench.model.google.GoogleProject
 import org.broadinstitute.dsde.workbench.DoneCheckableInstances.computeDoneCheckable
 import org.broadinstitute.dsde.workbench.DoneCheckableSyntax._
+import org.broadinstitute.dsde.workbench.model.TraceId
+import org.broadinstitute.dsde.workbench.model.google.GoogleProject
+import org.typelevel.log4cats.StructuredLogger
 
 import scala.collection.JavaConverters._
 import scala.concurrent.duration.FiniteDuration
 
 trait ComputePollOperation[F[_]] {
-  implicit def timer: Timer[F]
-  implicit def F: Concurrent[F]
+  implicit def F: Async[F]
 
   def getZoneOperation(project: GoogleProject, zoneName: ZoneName, operationName: OperationName)(implicit
     ev: Ask[F, TraceId]
@@ -153,20 +152,18 @@ trait ComputePollOperation[F[_]] {
 }
 
 object ComputePollOperation {
-  def resource[F[_]: StructuredLogger: Concurrent: Parallel: Timer: ContextShift](
+  def resource[F[_]: StructuredLogger: Async: Parallel](
     pathToCredential: String,
-    blocker: Blocker,
     blockerBound: Semaphore[F]
   ): Resource[F, ComputePollOperation[F]] =
     for {
       credential <- credentialResource(pathToCredential)
       scopedCredential = credential.createScoped(Seq(ComputeScopes.COMPUTE).asJava)
-      interpreter <- resourceFromCredential(scopedCredential, blocker, blockerBound)
+      interpreter <- resourceFromCredential(scopedCredential, blockerBound)
     } yield interpreter
 
-  def resourceFromCredential[F[_]: StructuredLogger: Concurrent: Parallel: Timer: ContextShift](
+  def resourceFromCredential[F[_]: StructuredLogger: Async: Parallel](
     googleCredentials: GoogleCredentials,
-    blocker: Blocker,
     blockerBound: Semaphore[F]
   ): Resource[F, ComputePollOperation[F]] = {
     val credentialsProvider = FixedCredentialsProvider.create(googleCredentials)
@@ -191,7 +188,6 @@ object ComputePollOperation {
     } yield new ComputePollOperationInterpreter[F](zoneOperationClient,
                                                    regionOperationClient,
                                                    globalOperationClient,
-                                                   blocker,
                                                    blockerBound
     )
   }

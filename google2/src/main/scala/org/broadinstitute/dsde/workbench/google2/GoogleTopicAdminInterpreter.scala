@@ -1,8 +1,8 @@
 package org.broadinstitute.dsde.workbench.google2
 
-import cats.effect.{Resource, Sync, Timer}
-import cats.syntax.all._
+import cats.effect.{Async, Resource}
 import cats.mtl.Ask
+import cats.syntax.all._
 import com.google.api.gax.core.FixedCredentialsProvider
 import com.google.auth.oauth2.ServiceAccountCredentials
 import com.google.cloud.Identity
@@ -10,18 +10,18 @@ import com.google.cloud.pubsub.v1.{TopicAdminClient, TopicAdminSettings}
 import com.google.iam.v1.{Binding, GetIamPolicyRequest, Policy, SetIamPolicyRequest}
 import com.google.pubsub.v1.{ProjectName, Topic, TopicName}
 import fs2.Stream
-import org.typelevel.log4cats.StructuredLogger
 import org.broadinstitute.dsde.workbench.model.TraceId
 import org.broadinstitute.dsde.workbench.model.google.GoogleProject
+import org.typelevel.log4cats.StructuredLogger
 
 import scala.collection.JavaConverters._
 
-class GoogleTopicAdminInterpreter[F[_]: StructuredLogger: Timer](topicAdminClient: TopicAdminClient)(implicit
-  F: Sync[F]
+class GoogleTopicAdminInterpreter[F[_]: StructuredLogger](topicAdminClient: TopicAdminClient)(implicit
+                                                                                                        F: Async[F]
 ) extends GoogleTopicAdmin[F] {
   def create(projectTopicName: TopicName, traceId: Option[TraceId] = None): F[Unit] = {
     val loggingCtx = Map("topic" -> projectTopicName.toString, "traceId" -> traceId.map(_.asString).getOrElse(""))
-    val createTopic = F.delay(topicAdminClient.createTopic(projectTopicName)).void.recoverWith {
+    val createTopic = F.blocking(topicAdminClient.createTopic(projectTopicName)).void.recoverWith {
       case _: com.google.api.gax.rpc.AlreadyExistsException =>
         StructuredLogger[F].debug(loggingCtx)(s"$projectTopicName already exists")
     }
@@ -42,8 +42,8 @@ class GoogleTopicAdminInterpreter[F[_]: StructuredLogger: Timer](topicAdminClien
       resp <- Stream.eval(
         tracedLogging(listTopics, s"com.google.cloud.pubsub.v1.TopicAdminClient.listTopics(${project})")
       )
-      pagedResponse <- Stream.fromIterator(resp.iteratePages().iterator().asScala)
-      topics <- Stream.fromIterator(pagedResponse.getValues.iterator().asScala)
+      pagedResponse <- Stream.fromIterator(resp.iteratePages().iterator().asScala, 1024)
+      topics <- Stream.fromIterator(pagedResponse.getValues.iterator().asScala, 1024)
     } yield topics
   }
 
@@ -52,7 +52,7 @@ class GoogleTopicAdminInterpreter[F[_]: StructuredLogger: Timer](topicAdminClien
                                  traceId: Option[TraceId] = None
   ): F[Unit] = {
     val loggingCtx = Map("topic" -> topicName.toString, "traceId" -> traceId.map(_.asString).getOrElse(""))
-    val createTopic = Sync[F].delay(topicAdminClient.createTopic(topicName)).void.recoverWith {
+    val createTopic = F.blocking(topicAdminClient.createTopic(topicName)).void.recoverWith {
       case _: com.google.api.gax.rpc.AlreadyExistsException =>
         StructuredLogger[F].debug(loggingCtx)(s"$topicName topic already exists")
     }
@@ -62,7 +62,7 @@ class GoogleTopicAdminInterpreter[F[_]: StructuredLogger: Timer](topicAdminClien
 
       topicNameString = TopicName.format(topicName.getProject, topicName.getTopic)
       request = GetIamPolicyRequest.newBuilder().setResource(topicNameString).build()
-      getPolicy = Sync[F].delay(
+      getPolicy = F.blocking(
         topicAdminClient.getIamPolicy(request)
       ) //getIamPolicy requires `roles/pubsub.admin` role, see https://cloud.google.com/pubsub/docs/access-control
 
@@ -79,7 +79,7 @@ class GoogleTopicAdminInterpreter[F[_]: StructuredLogger: Timer](topicAdminClien
         .setResource(topicNameString)
         .setPolicy(updatedPolicy)
         .build()
-      updatePolicy = Sync[F].delay(topicAdminClient.setIamPolicy(request)).void
+      updatePolicy = F.blocking(topicAdminClient.setIamPolicy(request)).void
       _ <- withLogging(updatePolicy,
                        traceId,
                        s"com.google.cloud.pubsub.v1.TopicAdminClient.setIamPolicy($topicName, $updatedPolicy)"
@@ -89,11 +89,11 @@ class GoogleTopicAdminInterpreter[F[_]: StructuredLogger: Timer](topicAdminClien
 }
 
 object GoogleTopicAdminInterpreter {
-  private[google2] def topicAdminClientResource[F[_]: Sync](
+  private[google2] def topicAdminClientResource[F[_]: Async](
     credential: ServiceAccountCredentials
   ): Resource[F, TopicAdminClient] =
     Resource.make(
-      Sync[F].delay(
+      Async[F].delay(
         TopicAdminClient.create(
           TopicAdminSettings
             .newBuilder()
@@ -101,5 +101,5 @@ object GoogleTopicAdminInterpreter {
             .build()
         )
       )
-    )(client => Sync[F].delay(client.shutdown()))
+    )(client => Async[F].delay(client.shutdown()))
 }
