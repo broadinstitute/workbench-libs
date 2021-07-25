@@ -1,7 +1,6 @@
 package org.broadinstitute.dsde.workbench.google2
 
-import cats.effect.concurrent.Semaphore
-import cats.effect.{Async, Blocker, ContextShift, Timer}
+import cats.effect.Async
 import cats.syntax.all._
 import cats.mtl.Ask
 import com.google.cloud.compute.v1.{
@@ -20,8 +19,10 @@ import org.broadinstitute.dsde.workbench.model.google.GoogleProject
 import org.broadinstitute.dsde.workbench.google2.util.RetryPredicates._
 
 import scala.collection.JavaConverters._
+import cats.effect.Temporal
+import cats.effect.std.Semaphore
 
-private[google2] class GoogleDiskInterpreter[F[_]: StructuredLogger: Timer: ContextShift](
+private[google2] class GoogleDiskInterpreter[F[_]: StructuredLogger: Temporal: ContextShift](
   diskClient: DiskClient,
   retryConfig: RetryConfig,
   blocker: Blocker,

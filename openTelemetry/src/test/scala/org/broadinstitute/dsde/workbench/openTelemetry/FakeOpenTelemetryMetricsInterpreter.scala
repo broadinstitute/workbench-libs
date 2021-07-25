@@ -4,11 +4,12 @@ import cats.ApplicativeError
 import cats.effect._
 
 import scala.concurrent.duration.FiniteDuration
+import cats.effect.Temporal
 
 object FakeOpenTelemetryMetricsInterpreter extends OpenTelemetryMetrics[IO] {
   def time[A](name: String, distributionBucket: List[FiniteDuration], tags: Map[String, String] = Map.empty)(
     fa: IO[A]
-  )(implicit timer: Timer[IO], ae: ApplicativeError[IO, Throwable]): IO[A] = fa
+  )(implicit timer: Temporal[IO], ae: ApplicativeError[IO, Throwable]): IO[A] = fa
 
   def gauge[A](name: String, value: Double, tags: Map[String, String] = Map.empty): IO[Unit] = IO.unit
 
@@ -18,5 +19,5 @@ object FakeOpenTelemetryMetricsInterpreter extends OpenTelemetryMetrics[IO] {
                      duration: FiniteDuration,
                      distributionBucket: List[FiniteDuration],
                      tags: Map[String, String] = Map.empty
-  )(implicit timer: Timer[IO]): IO[Unit] = IO.unit
+  )(implicit timer: Temporal[IO]): IO[Unit] = IO.unit
 }

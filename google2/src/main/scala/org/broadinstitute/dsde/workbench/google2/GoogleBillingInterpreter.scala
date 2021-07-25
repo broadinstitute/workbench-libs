@@ -1,8 +1,7 @@
 package org.broadinstitute.dsde.workbench.google2
 
 import cats.Parallel
-import cats.effect.concurrent.Semaphore
-import cats.effect.{Async, Blocker, ContextShift, Timer}
+import cats.effect.Async
 import cats.mtl.Ask
 import com.google.cloud.billing.v1.{CloudBillingClient, ProjectBillingInfo}
 import org.typelevel.log4cats.StructuredLogger
@@ -10,8 +9,10 @@ import org.broadinstitute.dsde.workbench.model.google.GoogleProject
 import cats.syntax.all._
 import org.broadinstitute.dsde.workbench.model.TraceId
 import org.broadinstitute.dsde.workbench.google2.util.RetryPredicates._
+import cats.effect.Temporal
+import cats.effect.std.Semaphore
 
-private[google2] class GoogleBillingInterpreter[F[_]: StructuredLogger: Parallel: Timer: ContextShift](
+private[google2] class GoogleBillingInterpreter[F[_]: StructuredLogger: Parallel: Temporal: ContextShift](
   billingClient: CloudBillingClient,
   blocker: Blocker,
   blockerBound: Semaphore[F]

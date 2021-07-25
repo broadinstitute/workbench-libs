@@ -4,6 +4,7 @@ import cats.effect._
 import fs2.Stream
 import org.typelevel.log4cats.StructuredLogger
 import io.circe.Decoder
+import cats.effect.Temporal
 
 trait GoogleSubscriber[F[_], A] {
   def messages: Stream[F, Event[A]]
@@ -13,7 +14,7 @@ trait GoogleSubscriber[F[_], A] {
 }
 
 object GoogleSubscriber {
-  def resource[F[_]: Effect: Timer: ContextShift: StructuredLogger, MessageType: Decoder](
+  def resource[F[_]: Effect: Temporal: ContextShift: StructuredLogger, MessageType: Decoder](
     subscriberConfig: SubscriberConfig,
     queue: fs2.concurrent.Queue[F, Event[MessageType]]
   ): Resource[F, GoogleSubscriber[F, MessageType]] =
@@ -21,7 +22,7 @@ object GoogleSubscriber {
       subscriberClient <- GoogleSubscriberInterpreter.subscriber(subscriberConfig, queue)
     } yield GoogleSubscriberInterpreter(subscriberClient, queue)
 
-  def stringResource[F[_]: Effect: Timer: ContextShift: StructuredLogger](
+  def stringResource[F[_]: Effect: Temporal: ContextShift: StructuredLogger](
     subscriberConfig: SubscriberConfig,
     queue: fs2.concurrent.Queue[F, Event[String]]
   ): Resource[F, GoogleSubscriber[F, String]] =

@@ -1,7 +1,6 @@
 package org.broadinstitute.dsde.workbench.google2
 
 import cats.effect._
-import cats.effect.concurrent.Semaphore
 import cats.mtl.Ask
 import cats.syntax.all._
 import cats.{Parallel, Show}
@@ -20,8 +19,10 @@ import org.typelevel.log4cats.StructuredLogger
 
 import scala.collection.JavaConverters._
 import scala.concurrent.duration._
+import cats.effect.Temporal
+import cats.effect.std.Semaphore
 
-private[google2] class GoogleDataprocInterpreter[F[_]: StructuredLogger: Timer: Parallel: ContextShift](
+private[google2] class GoogleDataprocInterpreter[F[_]: StructuredLogger: Temporal: Parallel: ContextShift](
   clusterControllerClients: Map[RegionName, ClusterControllerClient],
   googleComputeService: GoogleComputeService[F],
   blocker: Blocker,
@@ -70,7 +71,7 @@ private[google2] class GoogleDataprocInterpreter[F[_]: StructuredLogger: Timer: 
       operationOpt <- recoverF(Async[F].delay(client.createClusterAsync(request)), whenStatusCode(409))
       opAndMetadata <- operationOpt.traverse { op =>
         Async[F]
-          .async[ClusterOperationMetadata] { cb =>
+          .async_[ClusterOperationMetadata] { cb =>
             ApiFutures.addCallback(
               op.getMetadata,
               callBack(cb),
@@ -275,7 +276,7 @@ private[google2] class GoogleDataprocInterpreter[F[_]: StructuredLogger: Timer: 
           )
 
           op <- Async[F].delay(client.updateClusterAsync(request))
-          metadata <- Async[F].async[ClusterOperationMetadata] { cb =>
+          metadata <- Async[F].async_[ClusterOperationMetadata] { cb =>
             ApiFutures.addCallback(
               op.getMetadata,
               callBack(cb),
@@ -308,7 +309,7 @@ private[google2] class GoogleDataprocInterpreter[F[_]: StructuredLogger: Timer: 
       client <- F.fromOption(clusterControllerClients.get(region), new Exception(s"Unsupported region ${region.value}"))
 
       op <- Async[F].delay(client.deleteClusterAsync(request))
-      metadata <- Async[F].async[ClusterOperationMetadata] { cb =>
+      metadata <- Async[F].async_[ClusterOperationMetadata] { cb =>
         ApiFutures.addCallback(
           op.getMetadata,
           callBack(cb),

@@ -1,15 +1,16 @@
 package org.broadinstitute.dsde.workbench.util2
 
-import cats.effect.{ContextShift, IO, Timer}
+import cats.effect.IO
 import org.scalatest.Assertion
 import org.scalatest.prop.Configuration
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.global
+import cats.effect.Temporal
 
 trait WorkbenchTestSuite {
-  implicit val timer: Timer[IO] = IO.timer(global)
+  implicit val timer: Temporal[IO] = IO.timer(global)
   implicit val cs: ContextShift[IO] = IO.contextShift(global)
   implicit val logger = new ConsoleLogger("unit_test", LogLevel(false, false, false, true))
 

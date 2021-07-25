@@ -1,7 +1,7 @@
 package org.broadinstitute.dsde.workbench
 package google2
 
-import cats.effect.{Resource, Sync, Timer}
+import cats.effect.{Resource, Sync}
 import cats.mtl.Ask
 import com.google.auth.oauth2.ServiceAccountCredentials
 import com.google.cloud.Identity
@@ -11,6 +11,7 @@ import org.typelevel.log4cats.StructuredLogger
 import org.broadinstitute.dsde.workbench.google2.GoogleTopicAdminInterpreter._
 import org.broadinstitute.dsde.workbench.model.TraceId
 import org.broadinstitute.dsde.workbench.model.google.GoogleProject
+import cats.effect.Temporal
 
 trait GoogleTopicAdmin[F[_]] {
 
@@ -47,7 +48,7 @@ trait GoogleTopicAdmin[F[_]] {
 }
 
 object GoogleTopicAdmin {
-  def fromCredentialPath[F[_]: StructuredLogger: Sync: Timer](
+  def fromCredentialPath[F[_]: StructuredLogger: Sync: Temporal](
     pathToCredential: String
   ): Resource[F, GoogleTopicAdmin[F]] =
     for {
@@ -55,7 +56,7 @@ object GoogleTopicAdmin {
       topicAdmin <- fromServiceAccountCrendential(credential)
     } yield topicAdmin
 
-  def fromServiceAccountCrendential[F[_]: StructuredLogger: Sync: Timer](
+  def fromServiceAccountCrendential[F[_]: StructuredLogger: Sync: Temporal](
     serviceAccountCredentials: ServiceAccountCredentials
   ): Resource[F, GoogleTopicAdmin[F]] =
     for {
