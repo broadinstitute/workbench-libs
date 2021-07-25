@@ -14,6 +14,7 @@ Added:
 
 Changed
 - Target java 11
+- Upgrade `google-cloud-compute` to `0.120.2-alpha`
 
 SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.21-TRAVIS-REPLACE-ME"`
 
