@@ -12,39 +12,47 @@ import java.util.concurrent.Executor
 import scala.collection.JavaConverters._
 import scala.concurrent.ExecutionContext
 
-private[google2] class GoogleFirestoreInterpreter[F[_]](db: Firestore, dispatcher: Dispatcher[F])(implicit F: Async[F], ec: ExecutionContext)
-    extends GoogleFirestoreService[F] {
+private[google2] class GoogleFirestoreInterpreter[F[_]](db: Firestore, dispatcher: Dispatcher[F])(implicit
+  F: Async[F],
+  ec: ExecutionContext
+) extends GoogleFirestoreService[F] {
   override def set(collectionName: CollectionName, document: Document, dataMap: Map[String, Any]): F[Instant] = {
     val docRef =
       db.collection(collectionName.asString).document(document.asString)
     F
       .async[WriteResult] { cb =>
-        F.delay(ApiFutures
-          .addCallback(docRef.set(dataMap.asJava), callBack(cb), executor)).as(None)
+        F.delay(
+          ApiFutures
+            .addCallback(docRef.set(dataMap.asJava), callBack(cb), executor)
+        ).as(None)
       }
       .map(x => Instant.ofEpochSecond(x.getUpdateTime.getSeconds))
   }
 
   override def get(collectionName: CollectionName, document: Document): F[DocumentSnapshot] =
     F.async[DocumentSnapshot] { cb =>
-      F.delay(ApiFutures.addCallback(
-        db.collection(collectionName.asString)
-          .document(document.asString)
-          .get(),
-        callBack(cb),
-        executor
-      )).as(None)
+      F.delay(
+        ApiFutures.addCallback(
+          db.collection(collectionName.asString)
+            .document(document.asString)
+            .get(),
+          callBack(cb),
+          executor
+        )
+      ).as(None)
     }
 
   def transaction[A](ops: (Firestore, Transaction) => F[A]): F[A] =
     F.async[A] { cb =>
-      F.delay(ApiFutures.addCallback(
-        db.runTransaction{(transaction: Transaction) =>
+      F.delay(
+        ApiFutures.addCallback(
+          db.runTransaction { (transaction: Transaction) =>
             dispatcher.unsafeRunSync(ops.apply(db, transaction))
           },
-        callBack(cb),
-        executor
-      )).as(None)
+          callBack(cb),
+          executor
+        )
+      ).as(None)
     }
 
   private val executor = new Executor {

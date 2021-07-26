@@ -23,7 +23,7 @@ import org.typelevel.log4cats.StructuredLogger
 import scala.concurrent.duration._
 
 package object google2 {
- val CLOUD_PLATFORM_SCOPE="https://www.googleapis.com/auth/cloud-platform"
+  val CLOUD_PLATFORM_SCOPE = "https://www.googleapis.com/auth/cloud-platform"
 
   implicit val errorReportSource = ErrorReportSource("google2")
 
@@ -52,10 +52,10 @@ package object google2 {
   }
 
   def withLogging[F[_]: Temporal, A](fa: F[A],
-                                                             traceId: Option[TraceId],
-                                                             action: String,
-                                                             resultFormatter: Show[A] =
-                                          Show.show[A](a => if (a == null) "null" else a.toString.take(1024))
+                                     traceId: Option[TraceId],
+                                     action: String,
+                                     resultFormatter: Show[A] =
+                                       Show.show[A](a => if (a == null) "null" else a.toString.take(1024))
   )(implicit
     logger: StructuredLogger[F]
   ): F[A] =
@@ -85,9 +85,9 @@ package object google2 {
     } yield result
 
   def tracedLogging[F[_]: Temporal, A](fa: F[A],
-                                          action: String,
-                                          resultFormatter: Show[A] =
-                                            Show.show[A](a => if (a == null) "null" else a.toString.take(1024))
+                                       action: String,
+                                       resultFormatter: Show[A] =
+                                         Show.show[A](a => if (a == null) "null" else a.toString.take(1024))
   )(implicit
     logger: StructuredLogger[F],
     ev: Ask[F, TraceId]
@@ -149,7 +149,10 @@ package object google2 {
   // Note: This method may reach maxAttempts without hitting the Done condition.
   // If you need to check whether the Done condition was met, you may want to use the
   // method streamUntilDoneOrTimeout() instead.
-  def streamFUntilDone[F[_]: Temporal, A: DoneCheckable](fa: F[A], maxAttempts: Int, delay: FiniteDuration): Stream[F, A] =
+  def streamFUntilDone[F[_]: Temporal, A: DoneCheckable](fa: F[A],
+                                                         maxAttempts: Int,
+                                                         delay: FiniteDuration
+  ): Stream[F, A] =
     (Stream.sleep_(delay) ++ Stream.eval(fa))
       .repeatN(maxAttempts)
       .takeThrough(!_.isDone)
@@ -159,9 +162,9 @@ package object google2 {
   // if they want to ascertain the Done condition was satisfied and take action otherwise.
   // See org.broadinstitute.dsde.workbench.google2.GoogleDataprocInterpreter.stopCluster() for examples.
   def streamUntilDoneOrTimeout[F[_]: Temporal, A: DoneCheckable](fa: F[A],
-                                                                    maxAttempts: Int,
-                                                                    delay: FiniteDuration,
-                                                                    timeoutErrorMessage: String
+                                                                 maxAttempts: Int,
+                                                                 delay: FiniteDuration,
+                                                                 timeoutErrorMessage: String
   ): F[A] =
     streamFUntilDone(fa, maxAttempts, delay).last
       .evalMap {

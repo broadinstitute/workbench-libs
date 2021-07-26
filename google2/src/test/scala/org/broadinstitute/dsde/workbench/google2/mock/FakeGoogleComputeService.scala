@@ -105,7 +105,17 @@ class FakeGoogleComputeService extends GoogleComputeService[IO] {
     instanceName: InstanceName,
     autoDeleteDisks: Set[DiskName]
   )(implicit ev: Ask[IO, TraceId], computePollOperation: ComputePollOperation[IO]): IO[Option[Operation]] =
-    IO.pure(Some(Operation.newBuilder().setId(123).setName("opName").setStatus(Operation.Status.DONE).setTargetId(258165385).build()))
+    IO.pure(
+      Some(
+        Operation
+          .newBuilder()
+          .setId(123)
+          .setName("opName")
+          .setStatus(Operation.Status.DONE)
+          .setTargetId(258165385)
+          .build()
+      )
+    )
 }
 
 object FakeGoogleComputeService extends FakeGoogleComputeService

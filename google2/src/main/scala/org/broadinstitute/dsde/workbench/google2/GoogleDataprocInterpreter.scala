@@ -69,14 +69,15 @@ private[google2] class GoogleDataprocInterpreter[F[_]: StructuredLogger: Paralle
       client <- F.fromOption(clusterControllerClients.get(region), new Exception(s"Unsupported region ${region.value}"))
       operationOpt <- recoverF(Async[F].delay(client.createClusterAsync(request)), whenStatusCode(409))
       opAndMetadata <- operationOpt.traverse { op =>
-F.async[ClusterOperationMetadata] { cb =>
-            F.delay(ApiFutures.addCallback(
+        F.async[ClusterOperationMetadata] { cb =>
+          F.delay(
+            ApiFutures.addCallback(
               op.getMetadata,
               callBack(cb),
               MoreExecutors.directExecutor()
-            )).as(None)
-          }
-          .map(metadata => (op, metadata))
+            )
+          ).as(None)
+        }.map(metadata => (op, metadata))
       }
     } yield opAndMetadata.map(x => DataprocOperation(OperationName(x._1.getName), x._2))
 
@@ -275,11 +276,13 @@ F.async[ClusterOperationMetadata] { cb =>
 
           op <- F.delay(client.updateClusterAsync(request))
           metadata <- F.async[ClusterOperationMetadata] { cb =>
-            F.delay(ApiFutures.addCallback(
-              op.getMetadata,
-              callBack(cb),
-              MoreExecutors.directExecutor()
-            )).as(None)
+            F.delay(
+              ApiFutures.addCallback(
+                op.getMetadata,
+                callBack(cb),
+                MoreExecutors.directExecutor()
+              )
+            ).as(None)
           }
         } yield DataprocOperation(OperationName(op.getName), metadata)
       }
@@ -308,11 +311,13 @@ F.async[ClusterOperationMetadata] { cb =>
 
       op <- F.blocking(client.deleteClusterAsync(request))
       metadata <- F.async[ClusterOperationMetadata] { cb =>
-        F.delay(ApiFutures.addCallback(
-          op.getMetadata,
-          callBack(cb),
-          MoreExecutors.directExecutor()
-        )).as(None)
+        F.delay(
+          ApiFutures.addCallback(
+            op.getMetadata,
+            callBack(cb),
+            MoreExecutors.directExecutor()
+          )
+        ).as(None)
       }
     } yield DataprocOperation(OperationName(op.getName), metadata))
       .map(Option(_))

@@ -25,7 +25,7 @@ class ComputePollOperationInterpreter[F[_]: StructuredLogger](
       .setOperation(operationName.value)
       .build
     tracedLogging(
-      blockOn( F.blocking(zoneOperationClient.get(request))),
+      blockOn(F.blocking(zoneOperationClient.get(request))),
       s"com.google.cloud.compute.v1.ZoneOperationClient.getZoneOperation(${request.toString})",
       showOperation
     )

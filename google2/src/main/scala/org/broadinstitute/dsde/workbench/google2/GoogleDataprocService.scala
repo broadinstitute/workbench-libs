@@ -85,12 +85,7 @@ object GoogleDataprocService {
     for {
       credential <- credentialResource(pathToCredential)
       scopedCredential = credential.createScoped(Seq(CLOUD_PLATFORM_SCOPE).asJava)
-      interpreter <- fromCredential(googleComputeService,
-                                    scopedCredential,
-                                    supportedRegions,
-        blockerBound,
-        retryConfig
-      )
+      interpreter <- fromCredential(googleComputeService, scopedCredential, supportedRegions, blockerBound, retryConfig)
     } yield interpreter
 
   def resourceFromUserCredential[F[_]: StructuredLogger: Async: Parallel](
@@ -103,12 +98,7 @@ object GoogleDataprocService {
     for {
       credential <- userCredentials(pathToCredential)
       scopedCredential = credential.createScoped(Seq(CLOUD_PLATFORM_SCOPE).asJava)
-      interpreter <- fromCredential(googleComputeService,
-                                    scopedCredential,
-                                    supportedRegions,
-                                    blockerBound,
-                                    retryConfig
-      )
+      interpreter <- fromCredential(googleComputeService, scopedCredential, supportedRegions, blockerBound, retryConfig)
     } yield interpreter
 
   def fromCredential[F[_]: StructuredLogger: Async: Parallel](

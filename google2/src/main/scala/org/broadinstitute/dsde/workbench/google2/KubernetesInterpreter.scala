@@ -157,22 +157,13 @@ class KubernetesInterpreter[F[_]](
       client <- getClient(clusterId, new CoreV1Api(_))
       call =
         F.blocking(
-          client.listNamespacedService(namespace.name.value,
-                                       "true",
-                                       null,
-                                       null,
-                                       null,
-                                       null,
-                                       null,
-                                       null,
-                                       null,
-                                       null,
-                                       null
-          )
-      ).map(Option(_)).handleErrorWith {
-        case e: io.kubernetes.client.openapi.ApiException if e.getCode == 404 => F.pure(None)
-        case e: Throwable                                                     => F.raiseError(e)
-      }
+          client
+            .listNamespacedService(namespace.name.value, "true", null, null, null, null, null, null, null, null, null)
+        ).map(Option(_))
+          .handleErrorWith {
+            case e: io.kubernetes.client.openapi.ApiException if e.getCode == 404 => F.pure(None)
+            case e: Throwable                                                     => F.raiseError(e)
+          }
       responseOpt <- withLogging(
         call,
         Some(traceId),
@@ -214,10 +205,11 @@ class KubernetesInterpreter[F[_]](
                                                      null,
                                                      null
           )
-      ).map(Option(_)).handleErrorWith {
-        case e: io.kubernetes.client.openapi.ApiException if e.getCode == 404 => F.pure(None)
-        case e: Throwable                                                     => F.raiseError(e)
-      }
+        ).map(Option(_))
+          .handleErrorWith {
+            case e: io.kubernetes.client.openapi.ApiException if e.getCode == 404 => F.pure(None)
+            case e: Throwable                                                     => F.raiseError(e)
+          }
       responseOpt <- withLogging(
         call,
         Some(traceId),
@@ -234,10 +226,11 @@ class KubernetesInterpreter[F[_]](
       call =
         F.delay(
           client.deletePersistentVolume(pv.asString, "true", null, null, null, null, null)
-      ).map(Option(_)).handleErrorWith {
-        case e: io.kubernetes.client.openapi.ApiException if e.getCode == 404 => F.pure(None)
-        case e: Throwable                                                     => F.raiseError(e)
-      }
+        ).map(Option(_))
+          .handleErrorWith {
+            case e: io.kubernetes.client.openapi.ApiException if e.getCode == 404 => F.pure(None)
+            case e: Throwable                                                     => F.raiseError(e)
+          }
       _ <- withLogging(
         call,
         Some(traceId),
@@ -317,7 +310,7 @@ class KubernetesInterpreter[F[_]](
             } // see https://github.com/kubernetes-client/java/wiki/6.-Known-Issues#1-exception-on-deleting-resources-javalangillegalstateexception-expected-a-string-but-was-begin_object
           ,
           whenStatusCode(404)
-      )
+        )
       _ <- withLogging(
         call,
         Some(traceId),
@@ -418,7 +411,7 @@ class KubernetesInterpreter[F[_]](
                    )
                  ),
                  whenStatusCode(409)
-      )
+        )
       _ <- withLogging(
         call,
         Some(traceId),

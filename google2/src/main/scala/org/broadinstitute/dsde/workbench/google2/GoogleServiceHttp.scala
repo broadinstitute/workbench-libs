@@ -36,7 +36,7 @@ object GoogleServiceHttp {
     } yield new GoogleServiceHttpInterpreter[F](clientWithRetryAndLogging, config, credentials)
   }
 
-  def withoutRetryAndLogging[F[_]:Temporal:Async: Logger](
+  def withoutRetryAndLogging[F[_]: Temporal: Async: Logger](
     httpClient: Client[F],
     config: NotificationCreaterConfig
   ): Resource[F, GoogleServiceHttp[F]] =

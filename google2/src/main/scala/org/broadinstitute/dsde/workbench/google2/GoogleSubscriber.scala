@@ -16,20 +16,19 @@ trait GoogleSubscriber[F[_], A] {
 object GoogleSubscriber {
   def resource[F[_]: Async: StructuredLogger, MessageType: Decoder](
     subscriberConfig: SubscriberConfig,
-    queue:Queue[F, Event[MessageType]],    dispatcher: Dispatcher[F]
-
-                                                                               ): Resource[F, GoogleSubscriber[F, MessageType]] =
+    queue: Queue[F, Event[MessageType]],
+    dispatcher: Dispatcher[F]
+  ): Resource[F, GoogleSubscriber[F, MessageType]] =
     for {
-      subscriberClient <- GoogleSubscriberInterpreter.subscriber(subscriberConfig, queue,dispatcher)
+      subscriberClient <- GoogleSubscriberInterpreter.subscriber(subscriberConfig, queue, dispatcher)
     } yield GoogleSubscriberInterpreter(subscriberClient, queue)
 
   def stringResource[F[_]: Async: StructuredLogger](
     subscriberConfig: SubscriberConfig,
-    queue:Queue[F, Event[String]],
+    queue: Queue[F, Event[String]],
     dispatcher: Dispatcher[F]
-
-                                                   ): Resource[F, GoogleSubscriber[F, String]] =
+  ): Resource[F, GoogleSubscriber[F, String]] =
     for {
-      subscriberClient <- GoogleSubscriberInterpreter.stringSubscriber(subscriberConfig, queue,dispatcher)
+      subscriberClient <- GoogleSubscriberInterpreter.stringSubscriber(subscriberConfig, queue, dispatcher)
     } yield GoogleSubscriberInterpreter(subscriberClient, queue)
 }

@@ -13,8 +13,8 @@ import org.typelevel.log4cats.StructuredLogger
 import scala.collection.JavaConverters._
 
 private[google2] class GoogleSubscriptionAdminInterpreter[F[_]: Temporal](client: SubscriptionAdminClient)(implicit
-                                                                                                           F: Sync[F],
-                                                                                                           logger: StructuredLogger[F]
+  F: Sync[F],
+  logger: StructuredLogger[F]
 ) extends GoogleSubscriptionAdmin[F] {
   def list(project: GoogleProject)(implicit ev: Ask[F, TraceId]): Stream[F, Subscription] = {
     val fa = F.delay(client.listSubscriptions(ProjectName.of(project.value)))

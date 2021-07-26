@@ -50,7 +50,7 @@ object GooglePubSubManualTest {
    *
    * You can now publish messages in console and watch messages being printed out
    */
-  def subscriber() = Dispatcher[IO].use{d =>
+  def subscriber() = Dispatcher[IO].use { d =>
     val config = SubscriberConfig(path, projectTopicName, None, 1 minute, None, None, None)
     for {
       queue <- Queue.bounded[IO, Event[Message]](100)

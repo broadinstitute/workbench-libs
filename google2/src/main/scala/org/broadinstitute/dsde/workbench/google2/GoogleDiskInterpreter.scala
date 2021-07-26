@@ -23,12 +23,11 @@ private[google2] class GoogleDiskInterpreter[F[_]: StructuredLogger](
 
   override def createDisk(project: GoogleProject, zone: ZoneName, disk: Disk)(implicit
     ev: Ask[F, TraceId]
-  ): F[Option[Operation]] = {
+  ): F[Option[Operation]] =
     retryF(
       recoverF(F.blocking(diskClient.insert(project.value, zone.value, disk)), whenStatusCode(409)),
       s"com.google.cloud.compute.v1DiskClient.insertDisk(${project.value}, ${zone.value}, ${disk.getName})"
     ).compile.lastOrError
-  }
 
   def getDisk(project: GoogleProject, zone: ZoneName, diskName: DiskName)(implicit
     ev: Ask[F, TraceId]
@@ -61,7 +60,7 @@ private[google2] class GoogleDiskInterpreter[F[_]: StructuredLogger](
 
   override def listDisks(project: GoogleProject, zone: ZoneName)(implicit
     ev: Ask[F, TraceId]
-  ): Stream[F, Disk] = {
+  ): Stream[F, Disk] =
     for {
       pagedResults <- retryF(
         F.blocking(diskClient.list(project.value, zone.value)),
@@ -70,14 +69,13 @@ private[google2] class GoogleDiskInterpreter[F[_]: StructuredLogger](
 
       res <- Stream.fromIterator[F](pagedResults.iterateAll().iterator().asScala, 1024)
     } yield res
-  }
 
   override def resizeDisk(project: GoogleProject, zone: ZoneName, diskName: DiskName, newSizeGb: Int)(implicit
     ev: Ask[F, TraceId]
   ): F[Operation] = {
     val request = DisksResizeRequest.newBuilder().setSizeGb(newSizeGb).build()
     retryF(
-      F.blocking(diskClient.resize(project.value, zone.value,diskName.value, request)),
+      F.blocking(diskClient.resize(project.value, zone.value, diskName.value, request)),
       s"com.google.cloud.compute.v1.DiskClient.resizeDisk(${project.value}, ${zone.value}, ${diskName.value}, $newSizeGb)"
     ).compile.lastOrError
   }

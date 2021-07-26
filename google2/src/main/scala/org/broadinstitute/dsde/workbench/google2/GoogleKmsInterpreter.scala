@@ -19,8 +19,8 @@ import scala.language.higherKinds
  *
  * created by mtalbott on 1/18/19
  */
-private[google2] class GoogleKmsInterpreter[F[_]](client: KeyManagementServiceClient
-)(implicit F: Sync[F]) extends GoogleKmsService[F] {
+private[google2] class GoogleKmsInterpreter[F[_]](client: KeyManagementServiceClient)(implicit F: Sync[F])
+    extends GoogleKmsService[F] {
   override def createKeyRing(project: GoogleProject, location: Location, keyRingId: KeyRingId): F[KeyRing] = {
     val locationName = LocationName.format(project.value, location.value)
     F.blocking[KeyRing] {

@@ -538,7 +538,7 @@ private[google2] class GoogleStorageInterpreter[F[_]](
 
   private def blockingF[A](fa: F[A]): F[A] = blockerBound match {
     case None    => fa
-    case Some(s) => s.permit.use(_ =>fa)
+    case Some(s) => s.permit.use(_ => fa)
   }
 
   private val chunkSize = 1024 * 1024 * 2 // com.google.cloud.storage.BlobReadChannel.DEFAULT_CHUNK_SIZE
@@ -578,7 +578,7 @@ object GoogleStorageInterpreter {
     "project_id"
   )(GoogleProject.apply)
 
-  def parseProject[F[_]:Files: Sync](pathToJson: String): Stream[F, GoogleProject] =
+  def parseProject[F[_]: Files: Sync](pathToJson: String): Stream[F, GoogleProject] =
     Files[F]
       .readAll(Paths.get(pathToJson), 4096)
       .through(byteStreamParser)

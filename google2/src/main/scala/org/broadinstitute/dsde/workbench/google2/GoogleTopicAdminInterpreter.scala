@@ -17,7 +17,7 @@ import org.typelevel.log4cats.StructuredLogger
 import scala.collection.JavaConverters._
 
 class GoogleTopicAdminInterpreter[F[_]: StructuredLogger](topicAdminClient: TopicAdminClient)(implicit
-                                                                                                        F: Async[F]
+  F: Async[F]
 ) extends GoogleTopicAdmin[F] {
   def create(projectTopicName: TopicName, traceId: Option[TraceId] = None): F[Unit] = {
     val loggingCtx = Map("topic" -> projectTopicName.toString, "traceId" -> traceId.map(_.asString).getOrElse(""))

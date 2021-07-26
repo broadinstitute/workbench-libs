@@ -25,8 +25,8 @@ import org.http4s.headers.Authorization
 import org.http4s.{AuthScheme, Credentials, Headers, Method, Request, Response, Status, Uri}
 
 class GoogleServiceHttpInterpreter[F[_]: Concurrent: Logger](httpClient: Client[F],
-                                                       config: NotificationCreaterConfig,
-                                                       googleCredentials: GoogleCredentials
+                                                             config: NotificationCreaterConfig,
+                                                             googleCredentials: GoogleCredentials
 ) extends GoogleServiceHttp[F]
     with Http4sClientDsl[F] {
   val authHeader = Authorization(
@@ -39,7 +39,8 @@ class GoogleServiceHttpInterpreter[F[_]: Concurrent: Logger](httpClient: Client[
                          filters: Filters,
                          traceId: Option[TraceId]
   ): F[Unit] = {
-    val notificationUri = config.googleUrl.withPath(Uri.Path.unsafeFromString(s"/storage/v1/b/${bucketName.value}/notificationConfigs"))
+    val notificationUri =
+      config.googleUrl.withPath(Uri.Path.unsafeFromString(s"/storage/v1/b/${bucketName.value}/notificationConfigs"))
     val notificationBody = NotificationRequest(topic, "JSON_API_V1", filters.eventTypes, filters.objectNamePrefix)
     val headers = Headers(authHeader)
 

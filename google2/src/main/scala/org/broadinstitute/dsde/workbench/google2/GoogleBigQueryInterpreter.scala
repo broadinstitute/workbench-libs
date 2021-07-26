@@ -10,8 +10,8 @@ import org.typelevel.log4cats.StructuredLogger
 
 import scala.collection.JavaConverters._
 
-private[google2] class GoogleBigQueryInterpreter[F[_]: StructuredLogger](client: BigQuery
-)(implicit F: Async[F]) extends GoogleBigQueryService[F] {
+private[google2] class GoogleBigQueryInterpreter[F[_]: StructuredLogger](client: BigQuery)(implicit F: Async[F])
+    extends GoogleBigQueryService[F] {
 
   private val tableResultFormatter: Show[TableResult] =
     Show.show((tableResult: TableResult) =>

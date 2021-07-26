@@ -23,7 +23,7 @@ private[google2] class GoogleBillingInterpreter[F[_]: StructuredLogger: Parallel
     for {
       info <- tracedLogging(
         blockerBound.permit.use(_ =>
-            recoverF(F.blocking(billingClient.getProjectBillingInfo(s"projects/${project.value}")), whenStatusCode(404))
+          recoverF(F.blocking(billingClient.getProjectBillingInfo(s"projects/${project.value}")), whenStatusCode(404))
         ),
         s"com.google.cloud.billing.v1.CloudBillingClient.getProjectBillingInfo(${project.value})",
         showBillingInfo

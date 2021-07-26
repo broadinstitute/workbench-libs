@@ -60,11 +60,13 @@ class DistributedLock[F[_]](
       documentSnapshot <- OptionT(
         F
           .async[DocumentSnapshot] { cb =>
-            F.delay(ApiFutures.addCallback(
-              tx.get(documentReference),
-              callBack(cb),
-              executor
-            )).as(None)
+            F.delay(
+              ApiFutures.addCallback(
+                tx.get(documentReference),
+                callBack(cb),
+                executor
+              )
+            ).as(None)
           }
           .map(Option(_))
       )

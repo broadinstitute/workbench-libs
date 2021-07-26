@@ -115,7 +115,7 @@ final class Test(credPathStr: String,
   }
 
   val kubeService = for {
-    gs <- GKEService.resource(credPath,  semaphore)
+    gs <- GKEService.resource(credPath, semaphore)
     dispatcher <- Dispatcher[IO]
     ks <- KubernetesService.resource(credPath, gs, dispatcher)
   } yield ks

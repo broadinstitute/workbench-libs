@@ -176,6 +176,6 @@ object GoogleStorageInterpreterSpec {
 
   val db = LocalStorageHelper.getOptions().getService()
   val semaphore = Semaphore[IO](1).unsafeRunSync
-  val localStorage = GoogleStorageInterpreter[IO](db,  Some(semaphore))
+  val localStorage = GoogleStorageInterpreter[IO](db, Some(semaphore))
   val objectType = "text/plain"
 }

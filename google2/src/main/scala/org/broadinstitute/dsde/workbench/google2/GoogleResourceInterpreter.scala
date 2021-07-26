@@ -24,9 +24,7 @@ private[google2] class GoogleResourceInterpreter[F[_]: StructuredLogger: Paralle
   ): F[Option[Project]] =
     for {
       project <- tracedLogging(
-        blockerBound.permit.use(_ =>
-            recoverF(F.blocking(resourceClient.get(project.value)), whenStatusCode(404))
-        ),
+        blockerBound.permit.use(_ => recoverF(F.blocking(resourceClient.get(project.value)), whenStatusCode(404))),
         s"com.google.cloud.resourcemanager.ResourceManager.get(${project.value})",
         showProject
       )

@@ -1,6 +1,6 @@
 package org.broadinstitute.dsde.workbench.google2
 
-import cats.effect.{Async, Resource, Sync}
+import cats.effect.{Async, Resource}
 import com.google.auth.Credentials
 import com.google.cloud.ServiceOptions.getDefaultProjectId
 import com.google.cloud.bigquery.BigQueryOptions.DefaultBigQueryFactory
@@ -41,18 +41,18 @@ trait GoogleBigQueryService[F[_]] {
 
 object GoogleBigQueryService {
   def resource[F[_]: Async: StructuredLogger](
-    pathToJson: String,
+    pathToJson: String
   ): Resource[F, GoogleBigQueryService[F]] =
     credentialResource(pathToJson) flatMap (resource(_))
 
   def resource[F[_]: Async: StructuredLogger](
     pathToJson: String,
-    projectId: GoogleProject,
+    projectId: GoogleProject
   ): Resource[F, GoogleBigQueryService[F]] =
     credentialResource(pathToJson) flatMap (resource(_, projectId))
 
   def resource[F[_]: Async: StructuredLogger](
-    credentials: Credentials,
+    credentials: Credentials
   ): Resource[F, GoogleBigQueryService[F]] =
     resource(credentials, GoogleProject(getDefaultProjectId))
 

@@ -161,10 +161,5 @@ final class GKEInterpreter[F[_]: StructuredLogger](
                                               resultFormatter: Show[A] =
                                                 Show.show[A](a => if (a == null) "null" else a.toString.take(1024))
   )(implicit ev: Ask[F, TraceId]): F[A] =
-    tracedRetryF(retryConfig)(blockerBound.permit.use(_ =>
-                                fa
-                              ),
-                              action,
-                              resultFormatter
-    ).compile.lastOrError
+    tracedRetryF(retryConfig)(blockerBound.permit.use(_ => fa), action, resultFormatter).compile.lastOrError
 }

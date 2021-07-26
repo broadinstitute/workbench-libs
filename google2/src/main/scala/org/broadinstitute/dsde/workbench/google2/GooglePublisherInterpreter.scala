@@ -41,11 +41,15 @@ private[google2] class GooglePublisherInterpreter[F[_]: Async: StructuredLogger]
   override def publishNativeOne(message: PubsubMessage): F[Unit] = withLogging(
     Async[F]
       .async[String] { callback =>
-        Async[F].delay(ApiFutures.addCallback(
-          publisher.publish(message),
-          callBack(callback),
-          MoreExecutors.directExecutor()
-        )).as(None)
+        Async[F]
+          .delay(
+            ApiFutures.addCallback(
+              publisher.publish(message),
+              callBack(callback),
+              MoreExecutors.directExecutor()
+            )
+          )
+          .as(None)
       }
       .void,
     Option(message.getAttributesMap.get("traceId")).map(s => TraceId(s)),
@@ -73,11 +77,15 @@ private[google2] class GooglePublisherInterpreter[F[_]: Async: StructuredLogger]
           .newBuilder()
           .setData(byteString)
           .build()
-        Async[F].delay(ApiFutures.addCallback(
-          publisher.publish(message),
-          callBack(callback),
-          MoreExecutors.directExecutor()
-        )).as(None)
+        Async[F]
+          .delay(
+            ApiFutures.addCallback(
+              publisher.publish(message),
+              callBack(callback),
+              MoreExecutors.directExecutor()
+            )
+          )
+          .as(None)
       }
       .void
 }

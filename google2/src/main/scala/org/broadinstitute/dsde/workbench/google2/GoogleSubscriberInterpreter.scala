@@ -66,7 +66,8 @@ object GoogleSubscriberInterpreter {
   def apply[F[_], MessageType](
     subscriber: Subscriber,
     queue: cats.effect.std.Queue[F, Event[MessageType]]
-  )(implicit F: Async[F]): GoogleSubscriberInterpreter[F, MessageType] = new GoogleSubscriberInterpreter[F, MessageType](subscriber, queue)
+  )(implicit F: Async[F]): GoogleSubscriberInterpreter[F, MessageType] =
+    new GoogleSubscriberInterpreter[F, MessageType](subscriber, queue)
 
   private[google2] def receiver[F[_], MessageType: Decoder](
     queue: cats.effect.std.Queue[F, Event[MessageType]],
@@ -113,8 +114,9 @@ object GoogleSubscriberInterpreter {
     }
   }
 
-  private[google2] def stringReceiver[F[_]](queue: cats.effect.std.Queue[F, Event[String]],     dispatcher: Dispatcher[F]
-                                           ): MessageReceiver =
+  private[google2] def stringReceiver[F[_]](queue: cats.effect.std.Queue[F, Event[String]],
+                                            dispatcher: Dispatcher[F]
+  ): MessageReceiver =
     new MessageReceiver() {
       override def receiveMessage(message: PubsubMessage, consumer: AckReplyConsumer): Unit = {
         val enqueueAction = queue.offer(
@@ -128,10 +130,10 @@ object GoogleSubscriberInterpreter {
       }
     }
 
-  def subscriber[F[_]: Async: StructuredLogger, MessageType: Decoder](
-    subscriberConfig: SubscriberConfig,
-    queue: Queue[F, Event[MessageType]],
-    dispatcher: Dispatcher[F]  ): Resource[F, Subscriber] = {
+  def subscriber[F[_]: Async: StructuredLogger, MessageType: Decoder](subscriberConfig: SubscriberConfig,
+                                                                      queue: Queue[F, Event[MessageType]],
+                                                                      dispatcher: Dispatcher[F]
+  ): Resource[F, Subscriber] = {
     val subscription = subscriberConfig.subscriptionName.getOrElse(
       ProjectSubscriptionName.of(subscriberConfig.topicName.getProject, subscriberConfig.topicName.getTopic)
     )
@@ -146,14 +148,15 @@ object GoogleSubscriberInterpreter {
           .setMaxOutstandingRequestBytes(config.maxOutstandingRequestBytes)
           .build
       )
-      sub <- subscriberResource(queue, dispatcher,subscription, credential, flowControlSettings)
+      sub <- subscriberResource(queue, dispatcher, subscription, credential, flowControlSettings)
     } yield sub
   }
 
   def stringSubscriber[F[_]: Async: StructuredLogger](
     subscriberConfig: SubscriberConfig,
-    queue: Queue[F, Event[String]],dispatcher: Dispatcher[F]
-                                                                 ): Resource[F, Subscriber] = {
+    queue: Queue[F, Event[String]],
+    dispatcher: Dispatcher[F]
+  ): Resource[F, Subscriber] = {
     val subscription = subscriberConfig.subscriptionName.getOrElse(
       ProjectSubscriptionName.of(subscriberConfig.topicName.getProject, subscriberConfig.topicName.getTopic)
     )
@@ -168,7 +171,7 @@ object GoogleSubscriberInterpreter {
           .setMaxOutstandingRequestBytes(config.maxOutstandingRequestBytes)
           .build
       )
-      sub <- stringSubscriberResource(queue, dispatcher,subscription, credential, flowControlSettings)
+      sub <- stringSubscriberResource(queue, dispatcher, subscription, credential, flowControlSettings)
     } yield sub
   }
 
@@ -180,16 +183,17 @@ object GoogleSubscriberInterpreter {
     flowControlSettings: Option[FlowControlSettings]
   ): Resource[F, Subscriber] = {
     val subscriber = for {
-      builder <-Async[F].blocking(
+      builder <- Async[F].blocking(
         Subscriber
           .newBuilder(subscription, receiver(queue, dispatcher))
           .setCredentialsProvider(FixedCredentialsProvider.create(credential))
       )
-      builderWithFlowControlSetting <- flowControlSettings.traverse { fcs =>Async[F].blocking(builder.setFlowControlSettings(fcs))
+      builderWithFlowControlSetting <- flowControlSettings.traverse { fcs =>
+        Async[F].blocking(builder.setFlowControlSettings(fcs))
       }
     } yield builderWithFlowControlSetting.getOrElse(builder).build()
 
-    Resource.make(subscriber)(s =>Async[F].delay(s.stopAsync()))
+    Resource.make(subscriber)(s => Async[F].delay(s.stopAsync()))
   }
 
   private def stringSubscriberResource[F[_]: Sync](
@@ -242,9 +246,8 @@ object GoogleSubscriberInterpreter {
 
     Resource.eval(
       F.blocking(
-          subscriptionAdminClient.createSubscription(sub)
-        )
-        .void
+        subscriptionAdminClient.createSubscription(sub)
+      ).void
         .recover { case _: AlreadyExistsException =>
           Logger[F].info(s"subscription ${subscription} already exists")
         }
