@@ -4,11 +4,9 @@ import ca.mrvisser.sealerate
 import cats.Parallel
 import cats.effect._
 import cats.effect.std.Semaphore
-import cats.effect.std.Semaphore
 import cats.mtl.Ask
 import cats.syntax.all._
 import com.google.api.gax.core.FixedCredentialsProvider
-import com.google.api.services.compute.ComputeScopes
 import com.google.auth.oauth2.GoogleCredentials
 import com.google.cloud.compute.v1.Operation
 import com.google.cloud.dataproc.v1.{RegionName => _, _}
@@ -86,7 +84,7 @@ object GoogleDataprocService {
   ): Resource[F, GoogleDataprocService[F]] =
     for {
       credential <- credentialResource(pathToCredential)
-      scopedCredential = credential.createScoped(Seq(ComputeScopes.CLOUD_PLATFORM).asJava)
+      scopedCredential = credential.createScoped(Seq(CLOUD_PLATFORM_SCOPE).asJava)
       interpreter <- fromCredential(googleComputeService,
                                     scopedCredential,
                                     supportedRegions,
@@ -104,7 +102,7 @@ object GoogleDataprocService {
   ): Resource[F, GoogleDataprocService[F]] =
     for {
       credential <- userCredentials(pathToCredential)
-      scopedCredential = credential.createScoped(Seq(ComputeScopes.CLOUD_PLATFORM).asJava)
+      scopedCredential = credential.createScoped(Seq(CLOUD_PLATFORM_SCOPE).asJava)
       interpreter <- fromCredential(googleComputeService,
                                     scopedCredential,
                                     supportedRegions,

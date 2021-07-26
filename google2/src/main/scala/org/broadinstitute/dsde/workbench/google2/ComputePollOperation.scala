@@ -6,7 +6,6 @@ import cats.effect.{Async, Resource}
 import cats.mtl.Ask
 import cats.syntax.all._
 import com.google.api.gax.core.FixedCredentialsProvider
-import com.google.api.services.compute.ComputeScopes
 import com.google.auth.oauth2.GoogleCredentials
 import com.google.cloud.compute.v1._
 import fs2.Stream
@@ -158,33 +157,33 @@ object ComputePollOperation {
   ): Resource[F, ComputePollOperation[F]] =
     for {
       credential <- credentialResource(pathToCredential)
-      scopedCredential = credential.createScoped(Seq(ComputeScopes.COMPUTE).asJava)
+      scopedCredential = credential.createScoped(Seq(CLOUD_PLATFORM_SCOPE).asJava)
       interpreter <- resourceFromCredential(scopedCredential, blockerBound)
     } yield interpreter
 
-  def resourceFromCredential[F[_]: StructuredLogger: Async: Parallel](
+  def resourceFromCredential[F[_]: StructuredLogger: Async](
     googleCredentials: GoogleCredentials,
     blockerBound: Semaphore[F]
   ): Resource[F, ComputePollOperation[F]] = {
     val credentialsProvider = FixedCredentialsProvider.create(googleCredentials)
 
-    val zoneOperationSettings = ZoneOperationSettings
+    val zoneOperationSettings = ZoneOperationsSettings
       .newBuilder()
       .setCredentialsProvider(credentialsProvider)
       .build()
-    val regionOperationSettings = RegionOperationSettings
+    val regionOperationSettings = RegionOperationsSettings
       .newBuilder()
       .setCredentialsProvider(credentialsProvider)
       .build()
-    val globalOperationSettings = GlobalOperationSettings
+    val globalOperationSettings = GlobalOperationsSettings
       .newBuilder()
       .setCredentialsProvider(credentialsProvider)
       .build()
 
     for {
-      zoneOperationClient <- backgroundResourceF(ZoneOperationClient.create(zoneOperationSettings))
-      regionOperationClient <- backgroundResourceF(RegionOperationClient.create(regionOperationSettings))
-      globalOperationClient <- backgroundResourceF(GlobalOperationClient.create(globalOperationSettings))
+      zoneOperationClient <- backgroundResourceF(ZoneOperationsClient.create(zoneOperationSettings))
+      regionOperationClient <- backgroundResourceF(RegionOperationsClient.create(regionOperationSettings))
+      globalOperationClient <- backgroundResourceF(GlobalOperationsClient.create(globalOperationSettings))
     } yield new ComputePollOperationInterpreter[F](zoneOperationClient,
                                                    regionOperationClient,
                                                    globalOperationClient,

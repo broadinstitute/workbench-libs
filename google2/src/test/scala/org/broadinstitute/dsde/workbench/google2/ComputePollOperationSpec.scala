@@ -17,7 +17,7 @@ class ComputePollOperationSpec extends AnyFlatSpec with Matchers with WorkbenchT
   // Ignore this test for now since it doesn't pass reliably in travis
   ignore should "handle interruption" in {
     val interruption = Stream.emits(List(false, false, true)).covary[IO].interleave(Stream.sleep_[IO](2 seconds))
-    val op = Operation.newBuilder().setId("op").setName("opName").setTargetId("target").setStatus("PENDING").build()
+    val op = Operation.newBuilder().setId(123).setName("opName").setTargetId(258165385).setStatus(Operation.Status.PENDING).build()
 
     val res = computePollOperation.pollHelper(
       IO.pure(op),
@@ -35,7 +35,7 @@ class ComputePollOperationSpec extends AnyFlatSpec with Matchers with WorkbenchT
 
   it should "handle timeout when interruption is defined" in {
     val interruption = (Stream.eval(IO.pure(false)) ++ Stream.sleep_[IO](1 seconds)).repeat
-    val op = Operation.newBuilder().setId("op").setName("opName").setTargetId("target").setStatus("PENDING").build()
+    val op = Operation.newBuilder().setId(123).setName("opName").setTargetId(258165385).setStatus(Operation.Status.PENDING).build()
 
     val res = computePollOperation.pollHelper(
       IO.pure(op),
@@ -52,7 +52,7 @@ class ComputePollOperationSpec extends AnyFlatSpec with Matchers with WorkbenchT
   }
 
   it should "handle timeout" in {
-    val op = Operation.newBuilder().setId("op").setName("opName").setTargetId("target").setStatus("PENDING").build()
+    val op = Operation.newBuilder().setId(123).setName("opName").setTargetId(258165385).setStatus(Operation.Status.PENDING).build()
 
     val res = computePollOperation.pollHelper(
       IO.pure(op),

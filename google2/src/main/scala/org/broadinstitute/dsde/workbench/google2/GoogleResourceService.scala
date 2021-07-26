@@ -4,7 +4,6 @@ import cats.Parallel
 import cats.effect.std.Semaphore
 import cats.effect.{Async, Resource, Sync}
 import cats.mtl.Ask
-import com.google.api.services.compute.ComputeScopes
 import com.google.auth.oauth2.GoogleCredentials
 import com.google.cloud.resourcemanager.{Project, ResourceManagerOptions}
 import org.broadinstitute.dsde.workbench.model.TraceId
@@ -35,7 +34,7 @@ object GoogleResourceService {
   ): Resource[F, GoogleResourceService[F]] =
     for {
       credential <- credentialResource(pathToCredential.toString)
-      scopedCredential = credential.createScoped(ComputeScopes.CLOUD_PLATFORM)
+      scopedCredential = credential.createScoped("https://www.googleapis.com/auth/cloud-platform")
       interpreter <- fromCredential(scopedCredential, blockerBound)
     } yield interpreter
 

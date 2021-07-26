@@ -6,7 +6,6 @@ import cats.effect._
 import cats.effect.std.Semaphore
 import cats.mtl.Ask
 import com.google.api.gax.core.FixedCredentialsProvider
-import com.google.api.services.compute.ComputeScopes
 import com.google.auth.oauth2.GoogleCredentials
 import com.google.cloud.compute.v1._
 import org.broadinstitute.dsde.workbench.RetryConfig
@@ -126,7 +125,7 @@ object GoogleComputeService {
   ): Resource[F, GoogleComputeService[F]] =
     for {
       credential <- credentialResource(pathToCredential)
-      scopedCredential = credential.createScoped(Seq(ComputeScopes.COMPUTE).asJava)
+      scopedCredential = credential.createScoped(Seq(CLOUD_PLATFORM_SCOPE).asJava)
       interpreter <- fromCredential(scopedCredential, blockerBound, retryConfig)
     } yield interpreter
 
@@ -137,7 +136,7 @@ object GoogleComputeService {
   ): Resource[F, GoogleComputeService[F]] =
     for {
       credential <- userCredentials(pathToCredential)
-      scopedCredential = credential.createScoped(Seq(ComputeScopes.COMPUTE).asJava)
+      scopedCredential = credential.createScoped(Seq(CLOUD_PLATFORM_SCOPE).asJava)
       interpreter <- fromCredential(scopedCredential, blockerBound, retryConfig)
     } yield interpreter
 
@@ -148,38 +147,38 @@ object GoogleComputeService {
   ): Resource[F, GoogleComputeService[F]] = {
     val credentialsProvider = FixedCredentialsProvider.create(googleCredentials)
 
-    val instanceSettings = InstanceSettings
+    val instanceSettings = InstancesSettings
       .newBuilder()
       .setCredentialsProvider(credentialsProvider)
       .build()
-    val firewallSettings = FirewallSettings
+    val firewallSettings = FirewallsSettings
       .newBuilder()
       .setCredentialsProvider(credentialsProvider)
       .build()
-    val zoneSettings = ZoneSettings
+    val zoneSettings = ZonesSettings
       .newBuilder()
       .setCredentialsProvider(credentialsProvider)
       .build()
-    val machineTypeSettings = MachineTypeSettings
+    val machineTypeSettings = MachineTypesSettings
       .newBuilder()
       .setCredentialsProvider(credentialsProvider)
       .build()
-    val networkSettings = NetworkSettings
+    val networkSettings = NetworksSettings
       .newBuilder()
       .setCredentialsProvider(credentialsProvider)
       .build()
-    val subnetworkSettings = SubnetworkSettings
+    val subnetworkSettings = SubnetworksSettings
       .newBuilder()
       .setCredentialsProvider(credentialsProvider)
       .build()
 
     for {
-      instanceClient <- backgroundResourceF(InstanceClient.create(instanceSettings))
-      firewallClient <- backgroundResourceF(FirewallClient.create(firewallSettings))
-      zoneClient <- backgroundResourceF(ZoneClient.create(zoneSettings))
-      machineTypeClient <- backgroundResourceF(MachineTypeClient.create(machineTypeSettings))
-      networkClient <- backgroundResourceF(NetworkClient.create(networkSettings))
-      subnetworkClient <- backgroundResourceF(SubnetworkClient.create(subnetworkSettings))
+      instanceClient <- backgroundResourceF(InstancesClient.create(instanceSettings))
+      firewallClient <- backgroundResourceF(FirewallsClient.create(firewallSettings))
+      zoneClient <- backgroundResourceF(ZonesClient.create(zoneSettings))
+      machineTypeClient <- backgroundResourceF(MachineTypesClient.create(machineTypeSettings))
+      networkClient <- backgroundResourceF(NetworksClient.create(networkSettings))
+      subnetworkClient <- backgroundResourceF(SubnetworksClient.create(subnetworkSettings))
     } yield new GoogleComputeInterpreter[F](instanceClient,
                                             firewallClient,
                                             zoneClient,

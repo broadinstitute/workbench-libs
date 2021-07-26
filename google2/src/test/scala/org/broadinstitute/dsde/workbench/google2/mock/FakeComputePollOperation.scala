@@ -13,15 +13,15 @@ class MockComputePollOperation(implicit override val F: Async[IO])
   override def getZoneOperation(project: GoogleProject, zoneName: ZoneName, operationName: OperationName)(implicit
     ev: Ask[IO, TraceId]
   ): IO[Operation] =
-    IO.pure(Operation.newBuilder().setId("op").setName("opName").setTargetId("target").setStatus("DONE").build())
+    IO.pure(Operation.newBuilder().setId(123).setName("opName").setTargetId(258165385).setStatus(Operation.Status.DONE).build())
 
   override def getRegionOperation(project: GoogleProject, regionName: RegionName, operationName: OperationName)(implicit
     ev: Ask[IO, TraceId]
   ): IO[Operation] =
-    IO.pure(Operation.newBuilder().setId("op").setName("opName").setTargetId("target").setStatus("DONE").build())
+    IO.pure(Operation.newBuilder().setId(123).setName("opName").setTargetId(258165385).setStatus(Operation.Status.DONE).build())
 
   override def getGlobalOperation(project: GoogleProject, operationName: OperationName)(implicit
     ev: Ask[IO, TraceId]
   ): IO[Operation] =
-    IO.pure(Operation.newBuilder().setId("op").setName("opName").setTargetId("target").setStatus("DONE").build())
+    IO.pure(Operation.newBuilder().setId(123).setName("opName").setTargetId(258165385).setStatus(Operation.Status.DONE).build())
 }

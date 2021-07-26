@@ -5,7 +5,6 @@ import cats.effect.std.Semaphore
 import cats.effect.{Async, Resource}
 import cats.mtl.Ask
 import com.google.api.gax.core.FixedCredentialsProvider
-import com.google.api.services.compute.ComputeScopes
 import com.google.auth.oauth2.GoogleCredentials
 import com.google.cloud.billing.v1.{CloudBillingClient, CloudBillingSettings, ProjectBillingInfo}
 import org.broadinstitute.dsde.workbench.model.TraceId
@@ -31,7 +30,7 @@ object GoogleBillingService {
   ): Resource[F, GoogleBillingService[F]] =
     for {
       credential <- credentialResource(pathToCredential.toString)
-      scopedCredential = credential.createScoped(ComputeScopes.CLOUD_PLATFORM)
+      scopedCredential = credential.createScoped(CLOUD_PLATFORM_SCOPE)
       interpreter <- fromCredential(scopedCredential, blockerBound)
     } yield interpreter
 

@@ -23,6 +23,8 @@ import org.typelevel.log4cats.StructuredLogger
 import scala.concurrent.duration._
 
 package object google2 {
+ val CLOUD_PLATFORM_SCOPE="https://www.googleapis.com/auth/cloud-platform"
+
   implicit val errorReportSource = ErrorReportSource("google2")
 
   implicit val finiteDurationEncoder: Encoder[FiniteDuration] = Encoder.encodeString.contramap(_.toString())

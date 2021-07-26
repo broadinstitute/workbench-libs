@@ -4,7 +4,7 @@ import cats.effect.std.Semaphore
 import cats.effect.{Async, Resource}
 import cats.mtl.Ask
 import com.google.api.gax.core.FixedCredentialsProvider
-import com.google.api.services.compute.ComputeScopes
+import com.google.cloud.compute.v1.Disk
 import com.google.auth.oauth2.GoogleCredentials
 import com.google.cloud.compute.v1._
 import fs2.Stream
@@ -49,7 +49,7 @@ object GoogleDiskService {
   ): Resource[F, GoogleDiskService[F]] =
     for {
       credential <- credentialResource(pathToCredential)
-      scopedCredential = credential.createScoped(Seq(ComputeScopes.COMPUTE).asJava)
+      scopedCredential = credential.createScoped(Seq(CLOUD_PLATFORM_SCOPE).asJava)
       interpreter <- fromCredential(scopedCredential, blockerBound, retryConfig)
     } yield interpreter
 
@@ -60,13 +60,13 @@ object GoogleDiskService {
   ): Resource[F, GoogleDiskService[F]] = {
     val credentialsProvider = FixedCredentialsProvider.create(googleCredentials)
 
-    val diskSettings = DiskSettings
+    val diskSettings = DisksSettings
       .newBuilder()
       .setCredentialsProvider(credentialsProvider)
       .build()
 
     for {
-      diskClient <- backgroundResourceF(DiskClient.create(diskSettings))
+      diskClient <- backgroundResourceF(DisksClient.create(diskSettings))
     } yield new GoogleDiskInterpreter[F](
       diskClient,
       retryConfig,

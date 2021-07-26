@@ -5,6 +5,7 @@ This file documents changes to the `workbench-google2` library, including notes 
 ## 0.22
 Breaking Changes:
 - Upgrade cats-effect to `3.1.1` and a few other dependencies
+- Upgrade `google-cloud-compute` to `1.3.0-alpha`
 
 Dependency Upgrades:
 - `google-cloud-container` to `1.5.0`
