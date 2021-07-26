@@ -4,7 +4,7 @@ This file documents changes to the `workbench-google2` library, including notes 
 
 ## 0.22
 Breaking Changes:
-- Upgrade cats-effect to `3.1.1` and a few other dependencies
+- Upgrade cats-effect to `3.1.1` (see [migration guide](https://typelevel.org/cats-effect/docs/migration-guide#run-the-scalafix-migration)) and a few other dependencies
 - Upgrade `google-cloud-compute` to `1.3.0-alpha`
 
 Dependency Upgrades:
