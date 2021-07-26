@@ -254,7 +254,7 @@ object GoogleSubscriberInterpreter {
     )
   }
 
-  private def subscriptionAdminClientResource[F[_]: Async: Logger](credential: ServiceAccountCredentials) =
+  private def subscriptionAdminClientResource[F[_]: Async](credential: ServiceAccountCredentials) =
     Resource.make[F, SubscriptionAdminClient](
       Async[F].delay(
         SubscriptionAdminClient.create(
