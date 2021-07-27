@@ -30,8 +30,7 @@ import scala.collection.JavaConverters._
 
 class KubernetesInterpreter[F[_]](
   credentials: GoogleCredentials,
-  gkeService: GKEService[F],
-  dispatcher: Dispatcher[F]
+  gkeService: GKEService[F]
 )(implicit F: Async[F], logger: StructuredLogger[F])
     extends KubernetesService[F] {
 
@@ -42,8 +41,9 @@ class KubernetesInterpreter[F[_]](
     // TODO: Unhardcode expiration time
     .expireAfterWrite(2, TimeUnit.HOURS)
     .build(
-      new CacheLoader[KubernetesClusterId, ApiClient] {
-        def load(clusterId: KubernetesClusterId): ApiClient = {
+      new CacheLoader[(KubernetesClusterId, Dispatcher[F]), ApiClient] {
+        def load(key: (KubernetesClusterId, Dispatcher[F])): ApiClient = {
+          val (clusterId, d) = key
           //we do not want to have to specify this at resource (class) creation time, so we create one on each load here
           implicit val traceId = Ask.const[F, TraceId](TraceId(UUID.randomUUID()))
           val res = for {
@@ -64,7 +64,7 @@ class KubernetesInterpreter[F[_]](
             )
           } yield client
 
-          dispatcher.unsafeRunSync(res)
+          d.unsafeRunSync(res)
         }
       }
     )
@@ -423,12 +423,15 @@ class KubernetesInterpreter[F[_]](
   //There is a wrapper method that is necessary to ensure the token is refreshed
   //we never make the entry stale, because we always need to refresh the token (see comment above getToken)
   //if we did stale the entry we would have to unnecessarily re-do the google call
-  private def getClient[A](clusterId: KubernetesClusterId, fa: ApiClient => A): F[A] =
-    for {
-      client <- F.blocking(cache.get(clusterId))
-      token <- getToken()
-      _ <- F.blocking(client.setApiKey(token.getTokenValue))
-    } yield fa(client)
+  private def getClient[A](clusterId: KubernetesClusterId, fa: ApiClient => A): F[A] = Dispatcher[F].use {
+    d =>
+      for {
+        client <- F.blocking(cache.get((clusterId, d)))
+        token <- getToken()
+        _ <- F.blocking(client.setApiKey(token.getTokenValue))
+      } yield fa(client)
+  }
+
 
   //we always update the token, even for existing clients, so we don't have to maintain a reference to the last time each client was updated
   //unfortunately, the kubernetes client does not implement a gcp authenticator, so we must do this ourselves.

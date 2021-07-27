@@ -92,11 +92,10 @@ trait KubernetesService[F[_]] {
 object KubernetesService {
   def resource[F[_]: StructuredLogger: Async](
     pathToCredential: Path,
-    gkeService: GKEService[F],
-    dispatcher: Dispatcher[F]
+    gkeService: GKEService[F]
   ): Resource[F, KubernetesService[F]] =
     for {
       credentials <- credentialResource(pathToCredential.toString)
       scopedCredential = credentials.createScoped(Seq(ContainerScopes.CLOUD_PLATFORM).asJava)
-    } yield new KubernetesInterpreter(scopedCredential, gkeService, dispatcher)
+    } yield new KubernetesInterpreter(scopedCredential, gkeService)
 }

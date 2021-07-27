@@ -12,7 +12,7 @@ import java.util.concurrent.Executor
 import scala.collection.JavaConverters._
 import scala.concurrent.ExecutionContext
 
-private[google2] class GoogleFirestoreInterpreter[F[_]](db: Firestore, dispatcher: Dispatcher[F])(implicit
+private[google2] class GoogleFirestoreInterpreter[F[_]](db: Firestore)(implicit
   F: Async[F],
   ec: ExecutionContext
 ) extends GoogleFirestoreService[F] {
@@ -42,18 +42,20 @@ private[google2] class GoogleFirestoreInterpreter[F[_]](db: Firestore, dispatche
       ).as(None)
     }
 
-  def transaction[A](ops: (Firestore, Transaction) => F[A]): F[A] =
+  def transaction[A](ops: (Firestore, Transaction) => F[A]): F[A] = Dispatcher[F].use {
+d =>
     F.async[A] { cb =>
       F.delay(
         ApiFutures.addCallback(
           db.runTransaction { (transaction: Transaction) =>
-            dispatcher.unsafeRunSync(ops.apply(db, transaction))
+            d.unsafeRunSync(ops.apply(db, transaction))
           },
           callBack(cb),
           executor
         )
       ).as(None)
     }
+  }
 
   private val executor = new Executor {
     override def execute(command: Runnable): Unit = ec.execute(command)
@@ -61,10 +63,10 @@ private[google2] class GoogleFirestoreInterpreter[F[_]](db: Firestore, dispatche
 }
 
 object GoogleFirestoreInterpreter {
-  def apply[F[_]](db: Firestore, dispatcher: Dispatcher[F])(implicit
+  def apply[F[_]](db: Firestore)(implicit
     F: Async[F],
     ec: ExecutionContext
-  ): GoogleFirestoreInterpreter[F] = new GoogleFirestoreInterpreter[F](db, dispatcher)
+  ): GoogleFirestoreInterpreter[F] = new GoogleFirestoreInterpreter[F](db)
 
   def firestore[F[_]](
     pathToJson: String

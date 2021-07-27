@@ -1,7 +1,6 @@
 package org.broadinstitute.dsde.workbench.google2
 
 import cats.effect._
-import cats.effect.implicits._
 import cats.effect.std.{Dispatcher, Queue}
 import cats.syntax.all._
 import com.google.api.core.ApiService
@@ -131,8 +130,7 @@ object GoogleSubscriberInterpreter {
     }
 
   def subscriber[F[_]: Async: StructuredLogger, MessageType: Decoder](subscriberConfig: SubscriberConfig,
-                                                                      queue: Queue[F, Event[MessageType]],
-                                                                      dispatcher: Dispatcher[F]
+                                                                      queue: Queue[F, Event[MessageType]]
   ): Resource[F, Subscriber] = {
     val subscription = subscriberConfig.subscriptionName.getOrElse(
       ProjectSubscriptionName.of(subscriberConfig.topicName.getProject, subscriberConfig.topicName.getTopic)
@@ -148,14 +146,13 @@ object GoogleSubscriberInterpreter {
           .setMaxOutstandingRequestBytes(config.maxOutstandingRequestBytes)
           .build
       )
-      sub <- subscriberResource(queue, dispatcher, subscription, credential, flowControlSettings)
+      sub <- subscriberResource(queue, subscription, credential, flowControlSettings)
     } yield sub
   }
 
   def stringSubscriber[F[_]: Async: StructuredLogger](
     subscriberConfig: SubscriberConfig,
     queue: Queue[F, Event[String]],
-    dispatcher: Dispatcher[F]
   ): Resource[F, Subscriber] = {
     val subscription = subscriberConfig.subscriptionName.getOrElse(
       ProjectSubscriptionName.of(subscriberConfig.topicName.getProject, subscriberConfig.topicName.getTopic)
@@ -171,21 +168,21 @@ object GoogleSubscriberInterpreter {
           .setMaxOutstandingRequestBytes(config.maxOutstandingRequestBytes)
           .build
       )
+      dispatcher <- Dispatcher[F]
       sub <- stringSubscriberResource(queue, dispatcher, subscription, credential, flowControlSettings)
     } yield sub
   }
 
   private def subscriberResource[MessageType: Decoder, F[_]: Async: StructuredLogger](
     queue: Queue[F, Event[MessageType]],
-    dispatcher: Dispatcher[F],
     subscription: ProjectSubscriptionName,
     credential: ServiceAccountCredentials,
     flowControlSettings: Option[FlowControlSettings]
-  ): Resource[F, Subscriber] = {
+  ): Resource[F, Subscriber] = Dispatcher[F].flatMap{d =>
     val subscriber = for {
       builder <- Async[F].blocking(
         Subscriber
-          .newBuilder(subscription, receiver(queue, dispatcher))
+          .newBuilder(subscription, receiver(queue, d))
           .setCredentialsProvider(FixedCredentialsProvider.create(credential))
       )
       builderWithFlowControlSetting <- flowControlSettings.traverse { fcs =>
