@@ -154,7 +154,8 @@ final case class CreateClusterConfig(
   workerConfig: Option[InstanceGroupConfig],
   secondaryWorkerConfig: Option[InstanceGroupConfig],
   stagingBucket: GcsBucketName,
-  softwareConfig: SoftwareConfig
+  softwareConfig: SoftwareConfig,
+  endpointConfig: EndpointConfig
 ) //valid properties are https://cloud.google.com/dataproc/docs/concepts/configuring-clusters/cluster-properties
 
 sealed trait DataprocRole extends Product with Serializable
