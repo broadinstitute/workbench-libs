@@ -1,18 +1,17 @@
 package org.broadinstitute.dsde.workbench.util.health
 
-import java.util.concurrent.atomic.AtomicInteger
-
 import akka.actor.ActorSystem
 import akka.pattern.ask
 import akka.testkit.TestKit
 import akka.util.Timeout
-import org.broadinstitute.dsde.workbench.util.health.Subsystems.Agora
 import org.broadinstitute.dsde.workbench.model.WorkbenchException
+import org.broadinstitute.dsde.workbench.util.health.Subsystems.{Agora, Rawls}
 import org.scalatest.BeforeAndAfterAll
-import org.scalatest.matchers.should.Matchers
 import org.scalatest.flatspec.AnyFlatSpecLike
-import scala.concurrent.{Await, Future}
+import org.scalatest.matchers.should.Matchers
+
 import scala.concurrent.duration._
+import scala.concurrent.{Await, Future}
 
 class HealthMonitorSpec
     extends TestKit(ActorSystem("HealthMonitorSpec"))
@@ -26,24 +25,19 @@ class HealthMonitorSpec
   implicit val askTimeout = Timeout(5 seconds)
 
   "HealthMonitor" should "monitor health" in {
-    val callCount = new AtomicInteger(0)
+    // simulate a failed and a successful subsystem check
+    def testCheckFailed = Future.failed(new WorkbenchException("subsystem failed"))
+    def testCheck = Future.successful(HealthMonitor.OkStatus)
 
-    // simulate a subsystem test function
-    def testCheck() = Future {
-      val count = callCount.incrementAndGet()
-      if (count > 5 && count <= 10) {
-        throw new WorkbenchException("subsystem failed")
-      } else {
-        HealthMonitor.OkStatus
-      }
-    }
-
-    // instantiate health monitor actor
-    val healthMonitorRef = system.actorOf(HealthMonitor.props(Set(Agora)) { () =>
-      Map(Agora -> testCheck())
+    // instantiate health monitor actor with both checks
+    val healthMonitorRef = system.actorOf(HealthMonitor.props(Set(Agora, Rawls)) { () =>
+      Map(Agora -> testCheck, Rawls -> testCheckFailed)
     })
 
-    assertResult(StatusCheckResponse(false, Map(Agora -> HealthMonitor.UnknownStatus))) {
+    // initial health check result should be unknown
+    assertResult(
+      StatusCheckResponse(false, Map(Agora -> HealthMonitor.UnknownStatus, Rawls -> HealthMonitor.UnknownStatus))
+    ) {
       Await.result(healthMonitorRef ? HealthMonitor.GetCurrentStatus, Duration.Inf)
     }
 
@@ -54,24 +48,15 @@ class HealthMonitorSpec
                                             HealthMonitor.CheckAll
     )
 
+    // now the actor should return the correct results
     awaitAssert(
-      assertResult(StatusCheckResponse(true, Map(Agora -> HealthMonitor.OkStatus))) {
-        Await.result(healthMonitorRef ? HealthMonitor.GetCurrentStatus, Duration.Inf)
-      },
-      1 second,
-      10 milliseconds
-    )
-
-    awaitAssert(
-      assertResult(StatusCheckResponse(false, Map(Agora -> HealthMonitor.failedStatus("subsystem failed")))) {
-        Await.result(healthMonitorRef ? HealthMonitor.GetCurrentStatus, Duration.Inf)
-      },
-      1 second,
-      10 milliseconds
-    )
-
-    awaitAssert(
-      assertResult(StatusCheckResponse(true, Map(Agora -> HealthMonitor.OkStatus))) {
+      assertResult(
+        StatusCheckResponse(false,
+                            Map(Rawls -> HealthMonitor.failedStatus("subsystem failed"),
+                                Agora -> HealthMonitor.OkStatus
+                            )
+        )
+      ) {
         Await.result(healthMonitorRef ? HealthMonitor.GetCurrentStatus, Duration.Inf)
       },
       1 second,
