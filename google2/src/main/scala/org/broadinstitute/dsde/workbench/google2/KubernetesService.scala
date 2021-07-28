@@ -96,6 +96,7 @@ object KubernetesService {
   ): Resource[F, KubernetesService[F]] =
     for {
       credentials <- credentialResource(pathToCredential.toString)
+      dispatcher <- Dispatcher[F]
       scopedCredential = credentials.createScoped(Seq(ContainerScopes.CLOUD_PLATFORM).asJava)
-    } yield new KubernetesInterpreter(scopedCredential, gkeService)
+    } yield new KubernetesInterpreter(scopedCredential, gkeService, dispatcher)
 }

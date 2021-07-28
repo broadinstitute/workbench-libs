@@ -35,7 +35,8 @@ package object util2 {
    *
    */
   def readJsonFileToA[F[_]: Sync: Files, A: Decoder](path: Path): Stream[F, A] =
-    Files[F].readAll(path, 4096)
+    Files[F]
+      .readAll(path, 4096)
       .through(fs2.text.utf8Decode)
       .through(_root_.io.circe.fs2.stringParser(AsyncParser.SingleValue))
       .through(decoder)

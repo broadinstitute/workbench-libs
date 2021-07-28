@@ -42,8 +42,7 @@ private[google2] class GoogleFirestoreInterpreter[F[_]](db: Firestore)(implicit
       ).as(None)
     }
 
-  def transaction[A](ops: (Firestore, Transaction) => F[A]): F[A] = Dispatcher[F].use {
-d =>
+  def transaction[A](ops: (Firestore, Transaction) => F[A]): F[A] = Dispatcher[F].use { d =>
     F.async[A] { cb =>
       F.delay(
         ApiFutures.addCallback(

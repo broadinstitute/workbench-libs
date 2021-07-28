@@ -152,7 +152,7 @@ object GoogleSubscriberInterpreter {
 
   def stringSubscriber[F[_]: Async: StructuredLogger](
     subscriberConfig: SubscriberConfig,
-    queue: Queue[F, Event[String]],
+    queue: Queue[F, Event[String]]
   ): Resource[F, Subscriber] = {
     val subscription = subscriberConfig.subscriptionName.getOrElse(
       ProjectSubscriptionName.of(subscriberConfig.topicName.getProject, subscriberConfig.topicName.getTopic)
@@ -178,7 +178,7 @@ object GoogleSubscriberInterpreter {
     subscription: ProjectSubscriptionName,
     credential: ServiceAccountCredentials,
     flowControlSettings: Option[FlowControlSettings]
-  ): Resource[F, Subscriber] = Dispatcher[F].flatMap{d =>
+  ): Resource[F, Subscriber] = Dispatcher[F].flatMap { d =>
     val subscriber = for {
       builder <- Async[F].blocking(
         Subscriber

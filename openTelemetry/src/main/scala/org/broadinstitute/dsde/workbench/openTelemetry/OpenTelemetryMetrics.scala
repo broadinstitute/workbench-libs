@@ -36,9 +36,9 @@ object OpenTelemetryMetrics {
     "project_id"
   )(GoogleProjectId.apply)
 
-  private def parseProject[F[_]: Files: Sync](pathToCredential: Path
-  ): Stream[F, GoogleProjectId] =
-    fs2.io.file.Files[F]
+  private def parseProject[F[_]: Files: Sync](pathToCredential: Path): Stream[F, GoogleProjectId] =
+    fs2.io.file
+      .Files[F]
       .readAll(pathToCredential, 4096)
       .through(byteStreamParser)
       .through(decoder[F, GoogleProjectId])
