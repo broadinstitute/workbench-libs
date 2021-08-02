@@ -129,7 +129,7 @@ trait ComputePollOperation[F[_]] {
       }
       res <-
         if (op.isDone) {
-          if (op.getError == null)
+          if (op.getError == com.google.cloud.compute.v1.Error.getDefaultInstance)
             whenDone
           else F.raiseError(PollError(op))
         } else {
