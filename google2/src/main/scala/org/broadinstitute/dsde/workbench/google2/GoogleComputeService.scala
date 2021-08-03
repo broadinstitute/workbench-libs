@@ -200,10 +200,20 @@ final case class OperationName(value: String) extends AnyVal
 
 final case class RegionName(value: String) extends AnyVal
 object RegionName {
-  def fromUriString(uri: String): Option[RegionName] = Option(uri).flatMap(_.split("/").lastOption).map(RegionName(_))
+  def fromUriString(uri: String): Option[RegionName] = Option(uri).flatMap{x =>
+    if(x.isEmpty)
+      None
+    else
+      (x.split("/").lastOption).map(RegionName(_))
+  }
 }
 
 final case class ZoneName(value: String) extends AnyVal
 object ZoneName {
-  def fromUriString(uri: String): Option[ZoneName] = Option(uri).flatMap(_.split("/").lastOption).map(ZoneName(_))
+  def fromUriString(uri: String): Option[ZoneName] = Option(uri).flatMap{x =>
+    if(x.isEmpty)
+      None
+    else
+      (x.split("/").lastOption).map(ZoneName(_))
+  }
 }
