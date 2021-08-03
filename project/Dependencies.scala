@@ -86,13 +86,8 @@ object Dependencies {
   val http4sBlazeClient = "org.http4s" %% "http4s-blaze-client" % http4sVersion
   val http4sDsl = "org.http4s"      %% "http4s-dsl"          % http4sVersion
 
-<<<<<<< HEAD
-  val fs2Io: ModuleID = "co.fs2" %% "fs2-io" % "2.5.6"
-  val rawlsModel: ModuleID = "org.broadinstitute.dsde" %% "rawls-model" % "0.1-90eae81cd" exclude("com.typesafe.scala-logging", "scala-logging_2.11") exclude("com.typesafe.akka", "akka-stream_2.11")
-=======
   val fs2Io: ModuleID = "co.fs2" %% "fs2-io" % "3.0.6"
-  val rawlsModel: ModuleID = "org.broadinstitute.dsde" %% "rawls-model" % "0.1-2356e282" exclude("com.typesafe.scala-logging", "scala-logging_2.13") exclude("com.typesafe.akka", "akka-stream_2.13")
->>>>>>> migrate to cats-effect 3
+  val rawlsModel: ModuleID = "org.broadinstitute.dsde" %% "rawls-model" % "0.1-90eae81cd" exclude("com.typesafe.scala-logging", "scala-logging_2.13") exclude("com.typesafe.akka", "akka-stream_2.13")
   val openCensusApi: ModuleID = "io.opencensus" % "opencensus-api" % "0.28.3"
   val openCensusImpl: ModuleID = "io.opencensus" % "opencensus-impl" % "0.28.3"
   val openCensusStatsStackDriver: ModuleID = "io.opencensus" % "opencensus-exporter-stats-stackdriver" % "0.28.3"
