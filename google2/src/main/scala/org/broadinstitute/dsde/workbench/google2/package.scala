@@ -207,9 +207,8 @@ object DoneCheckableInstances {
       op.getStatus == com.google.container.v1.Operation.Status.DONE
   }
   implicit val computeDoneCheckable = new DoneCheckable[com.google.cloud.compute.v1.Operation] {
-    def isDone(op: com.google.cloud.compute.v1.Operation): Boolean = {
+    def isDone(op: com.google.cloud.compute.v1.Operation): Boolean =
       op.getStatus == com.google.cloud.compute.v1.Operation.Status.DONE
-    }
   }
 }
 
