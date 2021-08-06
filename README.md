@@ -15,7 +15,7 @@ Workbench utility libraries, built for Scala 2.12 and 2.13. You can find the ful
 
 Contains utility functions and classes.
 
-Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util" % "0.6-TRAVIS-REPLACE-ME"`
+Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util" % "0.6-d7ed6bf"`
 
 [Changelog](util/CHANGELOG.md)
 
@@ -26,7 +26,7 @@ Workbench utility libraries, built for Scala 2.12 and 2.13. You can find the ful
 Contains utility functions and classes. Util2 is added because util needs to support 2.11 for `firecloud-orchestration`,
 but many libraries start to drop 2.11 support. Util2 doesn't support 2.11.
 
-Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util2" % "0.1-TRAVIS-REPLACE-ME"`
+Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util2" % "0.1-d7ed6bf"`
 
 [Changelog](util2/CHANGELOG.md)
 
