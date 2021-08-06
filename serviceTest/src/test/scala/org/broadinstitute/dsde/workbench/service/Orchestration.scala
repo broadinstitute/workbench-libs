@@ -138,9 +138,7 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
     }
 
     def getSpendReportConfiguration(projectName: String)(implicit token: AuthToken): Map[String, String] =
-      parseResponseAs[Map[String, String]](
-        getRequest(apiUrl(s"api/billing/v2/${projectName}/spendReportConfiguration"))
-      )
+      parseResponseAs[Map[String, String]](getRequest(apiUrl(s"api/billing/v2/${projectName}/spendReportConfiguration")))
 
     def deleteSpendReportConfiguration(projectName: String)(implicit token: AuthToken): String =
       deleteRequest(apiUrl(s"api/billing/v2/${projectName}/spendReportConfiguration"))
