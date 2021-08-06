@@ -123,9 +123,7 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
       parseResponseAs[List[Map[String, String]]](getRequest(apiUrl(s"api/billing/v2/$projectName/members")))
     }
 
-    def addUserToBillingProject(projectName: String, email: String, billingProjectRole: BillingProjectRole)(implicit
-                                                                                                            token: AuthToken
-    ): String = {
+    def addUserToBillingProject(projectName: String, email: String, billingProjectRole: BillingProjectRole)(implicit token: AuthToken): String = {
       logger.info(s"Adding user to billing project: $projectName $email ${billingProjectRole.toString}")
       putRequest(apiUrl(s"api/billing/v2/$projectName/members/${billingProjectRole.toString}/$email"))
     }
@@ -135,6 +133,17 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
     ): String = {
       logger.info(s"Removing user from billing project: $projectName $email ${billingProjectRole.toString}")
       deleteRequest(apiUrl(s"api/billing/v2/$projectName/members/${billingProjectRole.toString}/$email"))
+    }
+
+    def getSpendReportConfiguration(projectName: String)(implicit token: AuthToken): Map[String, String] =
+      parseResponseAs[Map[String, String]](getRequest(apiUrl(s"api/billing/v2/${projectName}/spendReportConfiguration")))
+
+    def deleteSpendReportConfiguration(projectName: String)(implicit token: AuthToken): String =
+      deleteRequest(apiUrl(s"api/billing/v2/${projectName}/spendReportConfiguration"))
+
+    def updateSpendReportConfiguration(projectName: String, datasetGoogleProject: String, datasetName: String)(implicit token: AuthToken): String = {
+      val request = Map("datasetGoogleProject" -> datasetGoogleProject, "datasetName" -> datasetName)
+      putRequest(apiUrl(s"api/billing/v2/${projectName}/billingAccount/spendReportConfiguration"), request)
     }
   }
 
