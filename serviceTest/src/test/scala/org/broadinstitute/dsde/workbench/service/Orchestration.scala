@@ -92,6 +92,67 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
     }
   }
 
+  object billingV2 {
+
+    def createBillingProject(projectName: String, billingAccount: String, servicePerimeterOpt: Option[String] = None)(
+      implicit token: AuthToken
+    ): String = {
+      logger.info(s"Creating billing project $projectName in billing account $billingAccount")
+      val request = Map("projectName" -> projectName, "billingAccount" -> billingAccount) ++ servicePerimeterOpt.map(
+        servicePerimeter => "servicePerimeter" -> servicePerimeter
+      )
+      postRequest(apiUrl("api/billing/v2"), request)
+    }
+
+    def getBillingProject(projectName: String)(implicit token: AuthToken): Map[String, String] =
+      parseResponseAs[Map[String, String]](getRequest(apiUrl(s"api/billing/v2/${projectName}")))
+
+    def deleteBillingProject(projectName: String)(implicit token: AuthToken): String =
+      deleteRequest(apiUrl(s"api/billing/v2/${projectName}"))
+
+    def updateBillingAccount(projectName: String, billingAccount: String)(implicit token: AuthToken): String = {
+      val request = Map("billingAccount" -> billingAccount)
+      putRequest(apiUrl(s"api/billing/v2/${projectName}/billingAccount"), request)
+    }
+
+    def deleteBillingAccount(projectName: String)(implicit token: AuthToken): String =
+      deleteRequest(apiUrl(s"api/billing/v2/${projectName}/billingAccount"))
+
+    def listMembersInBillingProject(projectName: String)(implicit token: AuthToken): List[Map[String, String]] = {
+      logger.info(s"list members of billing project $projectName the caller owns")
+      parseResponseAs[List[Map[String, String]]](getRequest(apiUrl(s"api/billing/v2/$projectName/members")))
+    }
+
+    def addUserToBillingProject(projectName: String, email: String, billingProjectRole: BillingProjectRole)(implicit
+      token: AuthToken
+    ): String = {
+      logger.info(s"Adding user to billing project: $projectName $email ${billingProjectRole.toString}")
+      putRequest(apiUrl(s"api/billing/v2/$projectName/members/${billingProjectRole.toString}/$email"))
+    }
+
+    def removeUserFromBillingProject(projectName: String, email: String, billingProjectRole: BillingProjectRole)(
+      implicit token: AuthToken
+    ): String = {
+      logger.info(s"Removing user from billing project: $projectName $email ${billingProjectRole.toString}")
+      deleteRequest(apiUrl(s"api/billing/v2/$projectName/members/${billingProjectRole.toString}/$email"))
+    }
+
+    def getSpendReportConfiguration(projectName: String)(implicit token: AuthToken): Map[String, String] =
+      parseResponseAs[Map[String, String]](
+        getRequest(apiUrl(s"api/billing/v2/${projectName}/spendReportConfiguration"))
+      )
+
+    def deleteSpendReportConfiguration(projectName: String)(implicit token: AuthToken): String =
+      deleteRequest(apiUrl(s"api/billing/v2/${projectName}/spendReportConfiguration"))
+
+    def updateSpendReportConfiguration(projectName: String, datasetGoogleProject: String, datasetName: String)(implicit
+      token: AuthToken
+    ): String = {
+      val request = Map("datasetGoogleProject" -> datasetGoogleProject, "datasetName" -> datasetName)
+      putRequest(apiUrl(s"api/billing/v2/${projectName}/billingAccount/spendReportConfiguration"), request)
+    }
+  }
+
   object duos {
     def researchPurposeQuery(DS: Seq[String] = Seq.empty,
                              NMDS: Boolean = false,
