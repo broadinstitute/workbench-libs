@@ -123,8 +123,8 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
       parseResponseAs[List[Map[String, String]]](getRequest(apiUrl(s"api/billing/v2/$projectName/members")))
     }
 
-    def addUserToBillingProject(projectName: String, email: String, billingProjectRole: BillingProjectRole)(implicit
-      token: AuthToken
+    def addUserToBillingProject(projectName: String, email: String, billingProjectRole: BillingProjectRole)(
+      implicit token: AuthToken
     ): String = {
       logger.info(s"Adding user to billing project: $projectName $email ${billingProjectRole.toString}")
       putRequest(apiUrl(s"api/billing/v2/$projectName/members/${billingProjectRole.toString}/$email"))
