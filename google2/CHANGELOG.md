@@ -34,7 +34,7 @@ Dependency Updates (latest):
 - Update google-cloud-firestore from 2.2.1 to 2.2.5 (#562) (2 hours ago) <Scala Steward>
 - Update cats-effect from 2.3.3 to 2.4.0 (#569) (82 seconds ago) <Scala Steward>
 - Update google-cloud-errorreporting from 0.120.34-beta to 0.120.36-beta (#561) (2 hours ago) <Scala Steward>
-- Update akka-http, akka-http-spray-json, ... from 10.2.3 to 10.2.4 (#544) (2 hours ago) <Scala Steward>
+- Update akka-http, akka-http-spray-json, ... from 10.2.3 to 10.2.6 (#544) (2 hours ago) <Scala Steward>
 - Update google-cloud-kms from 1.40.5 to 1.40.8 (#539) (2 hours ago) <Scala Steward>
 - Update google-cloud-billing from 1.1.12 to 1.1.15 (#558) (2 hours ago) <Scala Steward>
 - Update google-cloud-storage from 1.113.13 to 1.113.14 (#566) (2 hours ago) <Scala Steward>
