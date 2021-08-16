@@ -79,8 +79,8 @@ class MockGoogleIamDAO extends GoogleIamDAO {
   ): Future[Set[IamPermission]] =
     Future.successful(iamPermissions)
 
-  override def listIamRoles(googleProject: GoogleProject): ProjectPolicy =
-    Policy(Set(Binding("Owner", Set("unused@unused.com"))), "etag")
+  override def listIamRoles(googleProject: GoogleProject): Future[ProjectPolicy] =
+    Future.successful(Policy(Set(Binding("Owner", Set("unused@unused.com"))), "etag"))
 
   override def addIamPolicyBindingOnServiceAccount(serviceAccountProject: GoogleProject,
                                                    serviceAccountEmail: WorkbenchEmail,

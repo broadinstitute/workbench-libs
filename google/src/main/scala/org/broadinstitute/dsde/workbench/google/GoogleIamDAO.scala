@@ -150,10 +150,10 @@ trait GoogleIamDAO {
 
   /**
    * Lists project-level IAM roles for the given project
-   * @param iamProject
+   * @param iamProject the google project in which to list the roles
    * @return the policy of the project, which lists all roles.
    */
-  def listIamRoles(iamProject: GoogleProject): ProjectPolicy
+  def listIamRoles(iamProject: GoogleProject): Future[ProjectPolicy]
 
   /**
    * @param serviceAccountProject the google project where serviceAccount lives
