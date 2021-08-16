@@ -10,13 +10,13 @@ import com.google.cloud.compute.v1.Operation
 import com.google.cloud.dataproc.v1.{RegionName => _, _}
 import com.google.common.util.concurrent.MoreExecutors
 import com.google.protobuf.FieldMask
-import org.typelevel.log4cats.StructuredLogger
-import org.broadinstitute.dsde.workbench.DoneCheckable
 import org.broadinstitute.dsde.workbench.google2.DataprocRole.Master
 import org.broadinstitute.dsde.workbench.google2.GoogleDataprocInterpreter._
 import org.broadinstitute.dsde.workbench.google2.util.RetryPredicates._
 import org.broadinstitute.dsde.workbench.model.TraceId
 import org.broadinstitute.dsde.workbench.model.google.GoogleProject
+import org.broadinstitute.dsde.workbench.{DoneCheckable, RetryConfig}
+import org.typelevel.log4cats.StructuredLogger
 
 import scala.collection.JavaConverters._
 import scala.concurrent.duration._
@@ -25,7 +25,8 @@ private[google2] class GoogleDataprocInterpreter[F[_]: StructuredLogger: Timer: 
   clusterControllerClients: Map[RegionName, ClusterControllerClient],
   googleComputeService: GoogleComputeService[F],
   blocker: Blocker,
-  blockerBound: Semaphore[F]
+  blockerBound: Semaphore[F],
+  retryConfig: RetryConfig
 )(implicit F: Async[F])
     extends GoogleDataprocService[F] {
 
@@ -43,6 +44,7 @@ private[google2] class GoogleDataprocInterpreter[F[_]: StructuredLogger: Timer: 
           .setMasterConfig(config.masterConfig)
           .setConfigBucket(config.stagingBucket.value)
           .setSoftwareConfig(config.softwareConfig)
+          .setEndpointConfig(config.endpointConfig)
 
         config.workerConfig.foreach(bldr.setWorkerConfig)
         config.secondaryWorkerConfig.foreach(bldr.setSecondaryWorkerConfig)
@@ -80,8 +82,8 @@ private[google2] class GoogleDataprocInterpreter[F[_]: StructuredLogger: Timer: 
       }
     } yield opAndMetadata.map(x => DataprocOperation(OperationName(x._1.getName), x._2))
 
-    tracedLogging(
-      blockF(createCluster),
+    retryF(
+      createCluster,
       s"com.google.cloud.dataproc.v1.ClusterControllerClient.createClusterAsync(${region}, ${clusterName}, ${createClusterConfig}))"
     )
   }
@@ -288,9 +290,8 @@ private[google2] class GoogleDataprocInterpreter[F[_]: StructuredLogger: Timer: 
         case e                                           => F.raiseError[Option[DataprocOperation]](e)
       }
 
-    tracedLogging(
-      blockF(updateCluster),
-      s"com.google.cloud.dataproc.v1.ClusterControllerClient.updateClusterAsync(${updateClusterRequest})"
+    retryF(updateCluster,
+           s"com.google.cloud.dataproc.v1.ClusterControllerClient.updateClusterAsync(${updateClusterRequest})"
     )
   }
 
@@ -322,10 +323,7 @@ private[google2] class GoogleDataprocInterpreter[F[_]: StructuredLogger: Timer: 
         case e                                           => F.raiseError[Option[DataprocOperation]](e)
       }
 
-    tracedLogging(
-      blockF(deleteCluster),
-      s"com.google.cloud.dataproc.v1.ClusterControllerClient.deleteClusterAsync(${request})"
-    )
+    retryF(deleteCluster, s"com.google.cloud.dataproc.v1.ClusterControllerClient.deleteClusterAsync(${request})")
   }
 
   override def getCluster(project: GoogleProject, region: RegionName, clusterName: DataprocClusterName)(implicit
@@ -342,11 +340,11 @@ private[google2] class GoogleDataprocInterpreter[F[_]: StructuredLogger: Timer: 
         }
     } yield res
 
-    tracedLogging(
+    tracedRetryF(retryConfig)(
       blockF(fa),
       s"com.google.cloud.dataproc.v1.ClusterControllerClient.getCluster(${project.value}, ${region.value}, ${clusterName.value})",
       Show.show[Option[Cluster]](c => s"${c.map(_.getStatus.getState.toString).getOrElse("Not found")}")
-    )
+    ).compile.lastOrError
   }
 
   override def getClusterInstances(project: GoogleProject, region: RegionName, clusterName: DataprocClusterName)(
@@ -363,19 +361,18 @@ private[google2] class GoogleDataprocInterpreter[F[_]: StructuredLogger: Timer: 
     for {
       client <- F.fromOption(clusterControllerClients.get(region), new Exception(s"Unsupported region ${region.value}"))
 
-      error <- tracedLogging(
+      error <- retryF(
         recoverF(
-          blockF(
-            Async[F].delay(client.getOperationsClient.getOperation(operationName.value).getError)
-          ),
+          Async[F].delay(client.getOperationsClient.getOperation(operationName.value).getError),
           whenStatusCode(404)
         ),
         s"com.google.cloud.dataproc.v1.ClusterControllerClient.getOperationsClient.getOperation(${operationName.value}).getError()"
       )
     } yield error.map(e => ClusterError(e.getCode, e.getMessage))
 
-  private def blockF[A](fa: F[A]): F[A] =
-    blockerBound.withPermit(blocker.blockOn(fa))
+  private def blockF[A](fa: F[A]) = blockerBound.withPermit(blocker.blockOn(fa))
+  private def retryF[A](fa: F[A], action: String)(implicit ev: Ask[F, TraceId]): F[A] =
+    tracedRetryF(retryConfig)(blockF(fa), action).compile.lastOrError
 }
 
 object GoogleDataprocInterpreter {

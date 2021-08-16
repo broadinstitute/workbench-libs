@@ -5,8 +5,17 @@ This file documents changes to the `workbench-google2` library, including notes 
 ## 0.21
 Breaking Changes:
 - Rename `retryGoogleF` and `tracedRetryGoogleF` to `retryF` and `tracedRetryF`
+  
+Added:
+- Added `getDataset` and `getTable` to `GoogleBigQueryService`
+- Added `RetryConfig` parameter to `GoogleDataprocService`. Defaults to `standardRetryConfig`.
+- Updated Bouncy Castle transitive dependency
+- Added `EndpointConfig` to Dataproc `CreateClusterConfig`. Used for accessing Dataproc web interfaces.
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.21-197294d"`
+Changed
+- Target java 11
+
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.21-bf66e61"`
 
 Dependency Updates:
 - Update google-cloud-compute from 0.118.0-alpha to 0.119.8-alpha
@@ -19,7 +28,7 @@ Breaking Changes:
 
 Dependency Updates (latest):
 - Update google-cloud-nio from 0.122.5 to 0.122.11 (#563) (2 hours ago) <Scala Steward>
-- Update jackson-module-scala from 2.12.1 to 2.12.2 (#532) (2 hours ago) <Scala Steward>
+- Update jackson-module-scala from 2.12.3 to 2.12.2 (#532) (2 hours ago) <Scala Steward>
 - Update client-java from 11.0.0 to 11.0.1 (#546) (2 hours ago) <Scala Steward>
 - Update scalatest from 3.2.3 to 3.2.6 (#549) (2 hours ago) <Scala Steward>
 - Update google-cloud-firestore from 2.2.1 to 2.2.5 (#562) (2 hours ago) <Scala Steward>
@@ -29,7 +38,7 @@ Dependency Updates (latest):
 - Update google-cloud-kms from 1.40.5 to 1.40.8 (#539) (2 hours ago) <Scala Steward>
 - Update google-cloud-billing from 1.1.12 to 1.1.15 (#558) (2 hours ago) <Scala Steward>
 - Update google-cloud-storage from 1.113.13 to 1.113.14 (#566) (2 hours ago) <Scala Steward>
-- Update scala-logging from 3.9.2 to 3.9.3 (#568) (2 hours ago) <Scala Steward>
+- Update scala-logging from 3.9.2 to 3.9.4 (#568) (2 hours ago) <Scala Steward>
 - Update log4cats-slf4j
 - Update google-cloud-pubsub 
 - Update google-cloud-bigquery from 1.127.7 to 1.127.11
@@ -62,7 +71,7 @@ Added:
 
 Dependency Updates:
 ```
-Update akka-actor, akka-stream, ... from 2.6.10 to 2.6.14 (#498) (56 seconds ago) <Scala Steward>
+Update akka-actor, akka-stream, ... from 2.6.10 to 2.6.15 (#498) (56 seconds ago) <Scala Steward>
 Update google-cloud-nio from 0.122.3 to 0.122.5 (#482) (76 seconds ago) <Scala Steward>
 Update google-cloud-resourcemanager from 0.118.7-alpha to 0.118.8-alpha (#497) (2 minutes ago) <Scala Steward>
 Update http4s-blaze-client, http4s-circe, ... from 0.21.16 to 0.21.19 (#499) (2 minutes ago) <Scala Steward>
@@ -158,7 +167,7 @@ Update google-cloud-container to 1.2.0 (#382)
 Update google-cloud-errorreporting to 0.120.8-beta (#384)
 Update google-api-services-container to v1-rev20201007-1.30.10 (#380)
 Update google-cloud-nio to 0.122.1 (#387) (Note: upgrade to this version if your project explicitly specifies version)
-Update akka-actor, akka-stream, ... to 2.6.14 (#391)
+Update akka-actor, akka-stream, ... to 2.6.15 (#391)
 Update mockito-core to 3.6.0 (#407)
 Update opencensus-api, ... to 0.28.2 (#397)
 Update log4cats-slf4j to 1.1.1 (#394)
