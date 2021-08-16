@@ -125,7 +125,9 @@ trait Rawls extends RestClient with LazyLogging {
     def deleteSpendReportConfiguration(projectName: String)(implicit token: AuthToken): String =
       deleteRequest(s"${url}api/billing/v2/${projectName}/spendReportConfiguration")
 
-    def updateSpendReportConfiguration(projectName: String, datasetGoogleProject: String, datasetName: String)(implicit token: AuthToken): String = {
+    def updateSpendReportConfiguration(projectName: String, datasetGoogleProject: String, datasetName: String)(implicit
+      token: AuthToken
+    ): String = {
       val request = Map("datasetGoogleProject" -> datasetGoogleProject, "datasetName" -> datasetName)
       putRequest(s"${url}api/billing/v2/${projectName}/billingAccount/spendReportConfiguration", request)
     }
