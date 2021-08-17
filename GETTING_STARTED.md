@@ -8,7 +8,7 @@ Before starting, set artifactory credentials in your environment:
 
 ```
 export ARTIFACTORY_USERNAME=dsdejenkins
-export ARTIFACTORY_PASSWORD=$(docker run -v $HOME:/root --rm broadinstitute/dsde-toolbox:dev vault read -field=password secret/dsde/firecloud/common/artifactory/dsdejenkins)
+export ARTIFACTORY_PASSWORD=$(docker run -v $HOME:/root --rm broadinstitute/dsde-toolbox:dev vault read -field=password secret/dsp/accts/artifactory/dsdejenkins)
 ```
 
 ## Bootstrapping
