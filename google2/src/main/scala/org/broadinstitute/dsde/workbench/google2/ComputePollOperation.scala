@@ -1,6 +1,5 @@
 package org.broadinstitute.dsde.workbench.google2
 
-import cats.Parallel
 import cats.effect.std.Semaphore
 import cats.effect.{Async, Resource}
 import cats.mtl.Ask
@@ -151,7 +150,7 @@ trait ComputePollOperation[F[_]] {
 }
 
 object ComputePollOperation {
-  def resource[F[_]: StructuredLogger: Async: Parallel](
+  def resource[F[_]: StructuredLogger: Async](
     pathToCredential: String,
     blockerBound: Semaphore[F]
   ): Resource[F, ComputePollOperation[F]] =

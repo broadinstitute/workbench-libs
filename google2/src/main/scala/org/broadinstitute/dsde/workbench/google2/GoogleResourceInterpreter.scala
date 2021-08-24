@@ -1,6 +1,5 @@
 package org.broadinstitute.dsde.workbench.google2
 
-import cats.Parallel
 import cats.effect.Async
 import cats.effect.std.Semaphore
 import cats.mtl.Ask
@@ -13,7 +12,7 @@ import org.typelevel.log4cats.StructuredLogger
 
 import scala.collection.JavaConverters._
 
-private[google2] class GoogleResourceInterpreter[F[_]: StructuredLogger: Parallel](
+private[google2] class GoogleResourceInterpreter[F[_]: StructuredLogger](
   resourceClient: ResourceManager,
   blockerBound: Semaphore[F]
 )(implicit F: Async[F])

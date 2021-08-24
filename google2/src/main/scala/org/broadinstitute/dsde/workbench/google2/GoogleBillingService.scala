@@ -1,6 +1,5 @@
 package org.broadinstitute.dsde.workbench.google2
 
-import cats.Parallel
 import cats.effect.std.Semaphore
 import cats.effect.{Async, Resource}
 import cats.mtl.Ask
@@ -24,7 +23,7 @@ trait GoogleBillingService[F[_]] {
 
 object GoogleBillingService {
 
-  def resource[F[_]: StructuredLogger: Async: Parallel](
+  def resource[F[_]: StructuredLogger: Async](
     pathToCredential: Path,
     blockerBound: Semaphore[F]
   ): Resource[F, GoogleBillingService[F]] =
@@ -34,7 +33,7 @@ object GoogleBillingService {
       interpreter <- fromCredential(scopedCredential, blockerBound)
     } yield interpreter
 
-  def fromCredential[F[_]: StructuredLogger: Async: Parallel](
+  def fromCredential[F[_]: StructuredLogger: Async](
     googleCredentials: GoogleCredentials,
     blockerBound: Semaphore[F]
   ): Resource[F, GoogleBillingService[F]] = {

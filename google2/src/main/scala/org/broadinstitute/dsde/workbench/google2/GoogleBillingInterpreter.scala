@@ -1,6 +1,5 @@
 package org.broadinstitute.dsde.workbench.google2
 
-import cats.Parallel
 import cats.effect.Async
 import cats.effect.std.Semaphore
 import cats.mtl.Ask
@@ -11,7 +10,7 @@ import org.broadinstitute.dsde.workbench.model.TraceId
 import org.broadinstitute.dsde.workbench.model.google.GoogleProject
 import org.typelevel.log4cats.StructuredLogger
 
-private[google2] class GoogleBillingInterpreter[F[_]: StructuredLogger: Parallel](
+private[google2] class GoogleBillingInterpreter[F[_]: StructuredLogger](
   billingClient: CloudBillingClient,
   blockerBound: Semaphore[F]
 )(implicit F: Async[F])
