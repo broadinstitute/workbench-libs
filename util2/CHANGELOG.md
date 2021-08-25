@@ -5,7 +5,8 @@ This file documents changes to the `workbench-util2` library, including notes on
 ## 0.1
 
 - Add `ConsoleLogger`
+- Target java 11
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util2" % "0.1-92fcd96"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util2" % "0.1-d7ed6bf"`
 
 Moved a few utilities that depends on `circe`, `fs2` from `util` to `util2`

@@ -20,10 +20,10 @@ object Settings {
   //coreDefaultSettings + defaultConfigs = the now deprecated defaultSettings
   lazy val commonBuildSettings = Defaults.coreDefaultSettings ++ Defaults.defaultConfigs ++ Seq(
     javaOptions += "-Xmx2G",
-    javacOptions ++= Seq("-source", "1.8", "-target", "1.8"),
-    scalacOptions in (Compile, console) --= Seq("-Ywarn-unused:imports", "-Xfatal-warnings"),
-    scalacOptions in (Test, console) --= Seq("-Ywarn-unused:imports", "-Xfatal-warnings"),
-    scalacOptions in Test -= "-Ywarn-dead-code" // due to https://github.com/mockito/mockito-scala#notes
+    javacOptions ++= Seq("--release", "11", "-target:jvm-11"),
+    Compile / console / scalacOptions --= Seq("-Ywarn-unused:imports", "-Xfatal-warnings"),
+    Test / console / scalacOptions --= Seq("-Ywarn-unused:imports", "-Xfatal-warnings"),
+    Test / scalacOptions -= "-Ywarn-dead-code" // due to https://github.com/mockito/mockito-scala#notes
   )
 
   lazy val commonCompilerSettings = scalacOptions ++= (CrossVersion.partialVersion(scalaVersion.value) match {
@@ -112,13 +112,13 @@ object Settings {
   })
 
   val cross212and213 = Seq(
-    crossScalaVersions := List("2.12.12", "2.13.5")
+    crossScalaVersions := List("2.12.12", "2.13.6")
   )
 
   //common settings for all sbt subprojects
   val commonSettings = commonBuildSettings ++ commonTestSettings ++ List(
     organization := "org.broadinstitute.dsde.workbench",
-    scalaVersion := "2.13.5",
+    scalaVersion := "2.13.6",
     resolvers ++= commonResolvers,
     commonCompilerSettings
   )
@@ -175,7 +175,7 @@ object Settings {
   val serviceTestSettings = cross212and213 ++ commonSettings ++ List(
     name := "workbench-service-test",
     libraryDependencies ++= serviceTestDependencies,
-    version := createVersion("0.18")
+    version := createVersion("0.20")
   ) ++ publishSettings
 
   val notificationsSettings = cross212and213 ++ commonSettings ++ List(

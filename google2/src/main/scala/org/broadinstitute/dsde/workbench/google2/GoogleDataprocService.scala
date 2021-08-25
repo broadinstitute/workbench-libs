@@ -3,17 +3,19 @@ package org.broadinstitute.dsde.workbench.google2
 import ca.mrvisser.sealerate
 import cats.Parallel
 import cats.effect._
-import cats.syntax.all._
 import cats.effect.concurrent.Semaphore
 import cats.mtl.Ask
+import cats.syntax.all._
 import com.google.api.gax.core.FixedCredentialsProvider
 import com.google.api.services.compute.ComputeScopes
 import com.google.auth.oauth2.GoogleCredentials
 import com.google.cloud.compute.v1.Operation
 import com.google.cloud.dataproc.v1.{RegionName => _, _}
-import org.typelevel.log4cats.StructuredLogger
+import org.broadinstitute.dsde.workbench.RetryConfig
+import org.broadinstitute.dsde.workbench.google2.util.RetryPredicates
 import org.broadinstitute.dsde.workbench.model.TraceId
 import org.broadinstitute.dsde.workbench.model.google.{GcsBucketName, GoogleProject}
+import org.typelevel.log4cats.StructuredLogger
 
 import scala.collection.JavaConverters._
 
@@ -79,12 +81,19 @@ object GoogleDataprocService {
     pathToCredential: String,
     blocker: Blocker,
     blockerBound: Semaphore[F],
-    supportedRegions: Set[RegionName]
+    supportedRegions: Set[RegionName],
+    retryConfig: RetryConfig = RetryPredicates.standardGoogleRetryConfig
   ): Resource[F, GoogleDataprocService[F]] =
     for {
       credential <- credentialResource(pathToCredential)
       scopedCredential = credential.createScoped(Seq(ComputeScopes.CLOUD_PLATFORM).asJava)
-      interpreter <- fromCredential(googleComputeService, scopedCredential, blocker, supportedRegions, blockerBound)
+      interpreter <- fromCredential(googleComputeService,
+                                    scopedCredential,
+                                    blocker,
+                                    supportedRegions,
+                                    blockerBound,
+                                    retryConfig
+      )
     } yield interpreter
 
   def resourceFromUserCredential[F[_]: StructuredLogger: Async: Timer: Parallel: ContextShift](
@@ -92,12 +101,19 @@ object GoogleDataprocService {
     pathToCredential: String,
     blocker: Blocker,
     blockerBound: Semaphore[F],
-    supportedRegions: Set[RegionName]
+    supportedRegions: Set[RegionName],
+    retryConfig: RetryConfig = RetryPredicates.standardGoogleRetryConfig
   ): Resource[F, GoogleDataprocService[F]] =
     for {
       credential <- userCredentials(pathToCredential)
       scopedCredential = credential.createScoped(Seq(ComputeScopes.CLOUD_PLATFORM).asJava)
-      interpreter <- fromCredential(googleComputeService, scopedCredential, blocker, supportedRegions, blockerBound)
+      interpreter <- fromCredential(googleComputeService,
+                                    scopedCredential,
+                                    blocker,
+                                    supportedRegions,
+                                    blockerBound,
+                                    retryConfig
+      )
     } yield interpreter
 
   def fromCredential[F[_]: StructuredLogger: Async: Timer: Parallel: ContextShift](
@@ -105,7 +121,8 @@ object GoogleDataprocService {
     googleCredentials: GoogleCredentials,
     blocker: Blocker,
     supportedRegions: Set[RegionName],
-    blockerBound: Semaphore[F]
+    blockerBound: Semaphore[F],
+    retryConfig: RetryConfig = RetryPredicates.standardGoogleRetryConfig
   ): Resource[F, GoogleDataprocService[F]] = {
     val regionalSettings = supportedRegions.toList.traverse { region =>
       val settings = ClusterControllerSettings
@@ -118,7 +135,7 @@ object GoogleDataprocService {
 
     for {
       clients <- regionalSettings
-    } yield new GoogleDataprocInterpreter[F](clients.toMap, googleComputeService, blocker, blockerBound)
+    } yield new GoogleDataprocInterpreter[F](clients.toMap, googleComputeService, blocker, blockerBound, retryConfig)
   }
 }
 
@@ -137,7 +154,8 @@ final case class CreateClusterConfig(
   workerConfig: Option[InstanceGroupConfig],
   secondaryWorkerConfig: Option[InstanceGroupConfig],
   stagingBucket: GcsBucketName,
-  softwareConfig: SoftwareConfig
+  softwareConfig: SoftwareConfig,
+  endpointConfig: EndpointConfig
 ) //valid properties are https://cloud.google.com/dataproc/docs/concepts/configuring-clusters/cluster-properties
 
 sealed trait DataprocRole extends Product with Serializable

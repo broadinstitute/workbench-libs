@@ -4,7 +4,9 @@ This file documents changes to the `workbench-google` library, including notes o
 
 ## 0.21
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.21-TRAVIS-REPLACE-ME"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.21-TRAVIS-
+
+-ME"`
 
 ### Added
 
@@ -32,6 +34,7 @@ SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.
 when we retried creation. Changed to delete the partially created group before retrying
 - Cross build to scala 2.13
 - Fix potential NPE in `HttpGoogleProjectDAO.isBillingActive()`
+- Target java 11
 
 ## 0.20
 

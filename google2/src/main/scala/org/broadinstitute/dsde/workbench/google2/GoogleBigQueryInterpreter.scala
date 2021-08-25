@@ -3,7 +3,19 @@ package org.broadinstitute.dsde.workbench.google2
 import cats.Show
 import cats.effect.{Blocker, ContextShift, Sync, Timer}
 import com.google.cloud.bigquery.Acl.{Group, User}
-import com.google.cloud.bigquery.{Acl, BigQuery, DatasetId, DatasetInfo, JobId, QueryJobConfiguration, TableResult}
+import com.google.cloud.bigquery.{
+  Acl,
+  BigQuery,
+  Dataset,
+  DatasetId,
+  DatasetInfo,
+  JobId,
+  QueryJobConfiguration,
+  Table,
+  TableId,
+  TableResult
+}
+import org.broadinstitute.dsde.workbench.model.google.{BigQueryDatasetName, BigQueryTableName, GoogleProject}
 import org.typelevel.log4cats.StructuredLogger
 import org.broadinstitute.dsde.workbench.model.{WorkbenchEmail, WorkbenchException}
 
@@ -74,6 +86,52 @@ private[google2] class GoogleBigQueryInterpreter[F[_]: Sync: ContextShift: Timer
       }),
       None,
       s"com.google.cloud.bigquery.BigQuery.delete(${datasetName})"
+    )
+
+  @deprecated(message = "Use getTable(BigQueryDatasetName, BigQueryTableName) instead", since = "0.21")
+  override def getTable(datasetName: String, tableName: String): F[Option[Table]] =
+    getTable(BigQueryDatasetName(datasetName), BigQueryTableName(tableName))
+
+  override def getTable(datasetName: BigQueryDatasetName, tableName: BigQueryTableName): F[Option[Table]] =
+    withLogging(
+      blockingF(Sync[F].delay[Option[Table]] {
+        Option(client.getTable(TableId.of(datasetName.value, tableName.value)))
+      }),
+      None,
+      s"com.google.cloud.bigquery.BigQuery.getTable(${datasetName.value}, ${tableName.value})"
+    )
+
+  override def getTable(googleProjectName: GoogleProject,
+                        datasetName: BigQueryDatasetName,
+                        tableName: BigQueryTableName
+  ): F[Option[Table]] =
+    withLogging(
+      blockingF(Sync[F].delay[Option[Table]] {
+        Option(client.getTable(TableId.of(googleProjectName.value, datasetName.value, tableName.value)))
+      }),
+      None,
+      s"com.google.cloud.bigquery.BigQuery.getTable(${googleProjectName.value}, ${datasetName.value}, ${tableName.value})"
+    )
+
+  @deprecated(message = "Use getDataset(BigQueryDatasetName) instead", since = "0.21")
+  override def getDataset(datasetName: String): F[Option[Dataset]] = getDataset(BigQueryDatasetName(datasetName))
+
+  override def getDataset(datasetName: BigQueryDatasetName): F[Option[Dataset]] =
+    withLogging(
+      blockingF(Sync[F].delay[Option[Dataset]] {
+        Option(client.getDataset(DatasetId.of(datasetName.value)))
+      }),
+      None,
+      s"com.google.cloud.bigquery.BigQuery.getDataset(${datasetName.value})"
+    )
+
+  override def getDataset(googleProjectName: GoogleProject, datasetName: BigQueryDatasetName): F[Option[Dataset]] =
+    withLogging(
+      blockingF(Sync[F].delay[Option[Dataset]] {
+        Option(client.getDataset(DatasetId.of(googleProjectName.value, datasetName.value)))
+      }),
+      None,
+      s"com.google.cloud.bigquery.BigQuery.getDataset(${googleProjectName.value}, ${datasetName.value})"
     )
 
   private def blockingF[A](fa: F[A]): F[A] = blocker.blockOn(fa)
