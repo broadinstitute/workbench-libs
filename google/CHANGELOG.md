@@ -4,7 +4,7 @@ This file documents changes to the `workbench-google` library, including notes o
 
 ## 0.21
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.21-3f3c0e4"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.21-TRAVIS-REPLACE-ME"`
 
 ### Added
 
@@ -13,6 +13,7 @@ SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.
   - The now deprecated `addIamRolesForUser` and `removeIamRolesForUser` call the aforementioned methods
   for backwards compatibility.
 - `getProjectNumber` in `GoogleProjectDAO`
+- `listIamRoles` in `GoogleIamDAO`
 - `addWorkloadIdentityUserRoleForUser` in `GoogleIamDAO`
 - Added enableRequesterPays for workspaces
 - Support structured logging for google requests
