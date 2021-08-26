@@ -235,6 +235,17 @@ class HttpGoogleIamDAO(appName: String, googleCredentialMode: GoogleCredentialMo
       }
     }
 
+  override def listIamRoles(iamProject: GoogleProject): Future[ProjectPolicy] =
+    retry(when5xx,
+          whenUsageLimited,
+          whenGlobalUsageLimited,
+          when404,
+          whenInvalidValueOnBucketCreation,
+          whenNonHttpIOException,
+          when409) { () =>
+    executeGoogleRequest(cloudResourceManager.projects().getIamPolicy(iamProject.value, null))
+  }
+
   // Note the project here is the one in which we're adding the IAM roles.
   // In this case the serviceAccount acts as a resource, not an identity. Therefore the serviceAccount
   // should live in the provided serviceAccountProject. For more information on service account permissions, see:
