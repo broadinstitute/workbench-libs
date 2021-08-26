@@ -4,13 +4,16 @@ import java.nio.charset.StandardCharsets
 import java.time.Instant
 import java.util.{Base64, UUID}
 
+import com.google.api.services.cloudresourcemanager.model.{Binding => ProjectBinding, Policy => ProjectPolicy}
 import org.broadinstitute.dsde.workbench.google.GoogleIamDAO
 import org.broadinstitute.dsde.workbench.google.GoogleIamDAO.MemberType
+import org.broadinstitute.dsde.workbench.google.mock.MockGoogleIamDAO.{Binding, Policy}
 import org.broadinstitute.dsde.workbench.model._
 import org.broadinstitute.dsde.workbench.model.google._
 
 import scala.collection.concurrent.TrieMap
 import scala.collection.mutable
+import scala.collection.JavaConverters._
 import scala.concurrent.Future
 import scala.util.Random
 
@@ -76,6 +79,9 @@ class MockGoogleIamDAO extends GoogleIamDAO {
   ): Future[Set[IamPermission]] =
     Future.successful(iamPermissions)
 
+  override def getProjectPolicy(iamProject: GoogleProject): Future[ProjectPolicy] =
+    Future.successful(Policy(Set(Binding("owner", Set("unused@unused.com"))), "etag"))
+
   override def addIamPolicyBindingOnServiceAccount(serviceAccountProject: GoogleProject,
                                                    serviceAccountEmail: WorkbenchEmail,
                                                    memberEmail: WorkbenchEmail,
@@ -132,4 +138,36 @@ class MockGoogleIamDAO extends GoogleIamDAO {
   ): Future[Seq[ServiceAccountKey]] =
     Future.successful(serviceAccountKeys(serviceAccountEmail).values.toSeq)
 
+}
+
+object MockGoogleIamDAO {
+  import scala.language.implicitConversions
+
+  /*
+   * Google has different model classes for policy manipulation depending on the type of resource.
+   *
+   * For project-level policies we have:
+   *   com.google.api.services.cloudresourcemanager.model.{Policy, Binding}
+   *
+   * For service account-level policies we have:
+   *   com.google.api.services.iam.v1.model.{Policy, Binding}
+   *
+   * These classes are for all intents and purposes identical. To deal with this we create our own
+   * {Policy, Binding} case classes in Scala, with implicit conversions to/from the above Google classes.
+   */
+
+  private case class Binding(role: String, members: Set[String])
+  private case class Policy(bindings: Set[Binding], etag: String)
+
+  implicit private def toProjectPolicy(policy: Policy): ProjectPolicy =
+    new ProjectPolicy()
+      .setBindings(
+        policy.bindings
+          .map { b =>
+            new ProjectBinding().setRole(b.role).setMembers(b.members.toList.asJava)
+          }
+          .toList
+          .asJava
+      )
+      .setEtag(policy.etag)
 }
