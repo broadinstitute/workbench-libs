@@ -699,7 +699,7 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
     postRequestWithMultipart(apiUrl(s"api/workspaces/$ns/$wsName/importEntities"), fileName, fileContent)
   }
 
-  def importMetaDataFlexible(ns: String, wsName: String, fileName: String, isAsync: Boolean, fileContent: String)(
+  def importMetaDataFlexible(ns: String, wsName: String, isAsync: Boolean, fileName: String, fileContent: String)(
     implicit token: AuthToken
   ): String = {
     val asyncmessage = if (isAsync) " asynchronously" else ""
