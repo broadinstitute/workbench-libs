@@ -697,7 +697,7 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
 
   def importMetaDataFlexible(ns: String, wsName: String, fileName: String, isAsync: Boolean, fileContent: String)
                             (implicit token: AuthToken): String = {
-    val asyncmessage = if isAsync " asynchronously" else ""
+    val asyncmessage = if (isAsync) " asynchronously" else ""
     val logMessage = s"Importing flexible metadata$asyncmessage: $ns/$wsName $fileName, $fileContent"
     logger.info(logMessage)
 
