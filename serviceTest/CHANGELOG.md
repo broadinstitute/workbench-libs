@@ -4,7 +4,9 @@ This file documents changes to the `workbench-service-test` library, including n
 
 ## 0.19
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "0.19-6140478"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "0.19-TRAVIS-REPLACE-ME"`
+
+###
 
 ### Added
 
