@@ -49,7 +49,7 @@ class HttpGoogleStorageDAO(appName: String,
     this(appName, Pem(WorkbenchEmail(serviceAccountClientId), new File(pemFile)), workbenchMetricBaseName, maxPageSize)
   }
   override val scopes = Seq(StorageScopes.DEVSTORAGE_FULL_CONTROL,
-                            ComputeScopes.COMPUTE,
+                            "https://www.googleapis.com/auth/cloud-platform",
                             PlusScopes.USERINFO_EMAIL,
                             PlusScopes.USERINFO_PROFILE
   )

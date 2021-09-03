@@ -1,23 +1,22 @@
 package org.broadinstitute.dsde.workbench.google2
 
-import java.nio.file.Path
-
-import cats.effect.concurrent.Semaphore
-import cats.effect.{Async, Blocker, ContextShift, Resource, Sync, Timer}
+import cats.effect.std.Semaphore
+import cats.effect.{Async, Resource, Sync}
 import cats.mtl.Ask
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport
 import com.google.api.client.json.jackson2.JacksonFactory
-import com.google.container.v1.{Cluster, NodePool, NodePoolAutoscaling, Operation}
 import com.google.api.gax.core.FixedCredentialsProvider
 import com.google.api.services.container.Container
 import com.google.cloud.container.v1.{ClusterManagerClient, ClusterManagerSettings}
+import com.google.container.v1.{Cluster, NodePool, NodePoolAutoscaling, Operation}
 import fs2.Stream
-import org.typelevel.log4cats.StructuredLogger
-import org.broadinstitute.dsde.workbench.{DoneCheckable, RetryConfig}
 import org.broadinstitute.dsde.workbench.google2.GKEModels._
-import org.broadinstitute.dsde.workbench.model.TraceId
 import org.broadinstitute.dsde.workbench.google2.util.RetryPredicates._
+import org.broadinstitute.dsde.workbench.model.TraceId
+import org.broadinstitute.dsde.workbench.{DoneCheckable, RetryConfig}
+import org.typelevel.log4cats.StructuredLogger
 
+import java.nio.file.Path
 import scala.concurrent.duration.FiniteDuration
 
 trait GKEService[F[_]] {
@@ -62,9 +61,8 @@ trait GKEService[F[_]] {
 
 object GKEService {
 
-  def resource[F[_]: StructuredLogger: Async: Timer: ContextShift](
+  def resource[F[_]: StructuredLogger: Async](
     pathToCredential: Path,
-    blocker: Blocker,
     blockerBound: Semaphore[F],
     retryConfig: RetryConfig =
       retryConfigWithPredicates(whenStatusCode(404), standardGoogleRetryPredicate, gkeRetryPredicate)
@@ -78,7 +76,7 @@ object GKEService {
         .build()
       clusterManager <- backgroundResourceF(ClusterManagerClient.create(clusterManagerSettings))
       legacyClient <- legacyClient(pathToCredential)
-    } yield new GKEInterpreter[F](clusterManager, legacyClient, blocker, blockerBound, retryConfig)
+    } yield new GKEInterpreter[F](clusterManager, legacyClient, blockerBound, retryConfig)
 
   private def legacyClient[F[_]: Sync](
     pathToCredential: Path

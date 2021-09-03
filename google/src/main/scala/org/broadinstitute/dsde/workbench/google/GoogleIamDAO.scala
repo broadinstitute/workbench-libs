@@ -1,6 +1,7 @@
 package org.broadinstitute.dsde.workbench.google
 
 import ca.mrvisser.sealerate
+import com.google.api.services.cloudresourcemanager.model.{Policy => ProjectPolicy}
 import org.broadinstitute.dsde.workbench.google.GoogleIamDAO.MemberType
 import org.broadinstitute.dsde.workbench.model._
 import org.broadinstitute.dsde.workbench.model.google._
@@ -144,6 +145,13 @@ trait GoogleIamDAO {
                      memberType: MemberType,
                      rolesToRemove: Set[String]
   ): Future[Boolean]
+
+  /**
+   * Gets ProjectPolicy which includes project-level IAM roles for the given project
+   * @param iamProject the google project to get the policy for
+   * @return the policy of the project, which lists all roles
+   */
+  def getProjectPolicy(iamProject: GoogleProject): Future[ProjectPolicy]
 
   /**
    * @param serviceAccountProject the google project where serviceAccount lives
