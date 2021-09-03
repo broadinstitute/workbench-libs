@@ -1,15 +1,13 @@
 package org.broadinstitute.dsde.workbench.openTelemetry
 
-import java.nio.file.Paths
-
-import cats.effect.{Blocker, IO}
+import cats.effect.IO
+import cats.effect.unsafe.implicits.global
 import io.opencensus.trace.Tracing
 import io.opencensus.trace.samplers.Samplers
-import scala.concurrent.ExecutionContext.global
+
+import java.nio.file.Paths
 
 object OpenTelemetryManualTest {
-  implicit val cs = IO.contextShift(global)
-
   private def test(): IO[Unit] = IO {
     val tracer = Tracing.getTracer()
     val ss = tracer
@@ -25,9 +23,8 @@ object OpenTelemetryManualTest {
   }
 
   def run(): Unit = {
-    val blocker = Blocker.liftExecutionContext(global)
     val res = OpenTelemetryMetrics
-      .registerTracing[IO](Paths.get("/Users/qi/workspace/leonardo/config/leonardo-account.json"), blocker)
+      .registerTracing[IO](Paths.get("/Users/qi/workspace/leonardo/config/leonardo-account.json"))
       .use(_ => test())
 
     res.unsafeRunSync()
