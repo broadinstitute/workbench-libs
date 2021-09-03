@@ -182,6 +182,7 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
       val Member = Value("member")
       val Admin = Value("admin")
     }
+
     import GroupRole._
 
     def addUserToGroup(groupName: String, email: String, role: GroupRole)(implicit token: AuthToken): Unit = {
@@ -521,6 +522,7 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
       logger.info(s"Getting permissions for method config: $configNamespace")
       parseResponse(getRequest(apiUrl(s"api/configurations/$configNamespace/permissions")))
     }
+
     def setMethodConfigPermission(configNamespace: String,
                                   configName: String,
                                   configSnapshotId: Int,
@@ -612,6 +614,7 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
     }
 
   }
+
   /*
    *  Submissions requests
    */
@@ -651,6 +654,7 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
   }
 
   object profile {
+
     // copied from firecloud-orchestration repo
     case class BasicProfile(
       firstName: String,
@@ -693,6 +697,20 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
   ): String = {
     logger.info(s"Importing metadata: $ns/$wsName $fileName, $fileContent")
     postRequestWithMultipart(apiUrl(s"api/workspaces/$ns/$wsName/importEntities"), fileName, fileContent)
+  }
+
+  def importMetaDataFlexible(ns: String, wsName: String, isAsync: Boolean, fileName: String, fileContent: String)(
+    implicit token: AuthToken
+  ): String = {
+    val asyncmessage = if (isAsync) " asynchronously" else ""
+    val logMessage = s"Importing flexible metadata$asyncmessage: $ns/$wsName $fileName, $fileContent"
+    logger.info(logMessage)
+
+    postRequestWithMultipart(
+      apiUrl(s"api/workspaces/$ns/$wsName/flexibleImportEntities?async=$isAsync"),
+      fileName,
+      fileContent
+    )
   }
 
   object trial {
@@ -797,6 +815,7 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
   }
 
   object storage {
+
     case class ObjectMetadata(
       bucket: String,
       crc32c: String,
@@ -832,6 +851,7 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
   }
 
 }
+
 object Orchestration extends Orchestration
 
 /**
@@ -867,7 +887,9 @@ case class AclEntry(email: String,
 
 //noinspection TypeAnnotation
 object OrchestrationModel {
+
   import DefaultJsonProtocol._
+
   case class ManagedGroupWithMembers(membersEmails: Seq[String], adminsEmails: Seq[String], groupEmail: String)
 
   final case class StorageCostEstimate(estimate: String)
