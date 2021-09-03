@@ -2,10 +2,9 @@ package org.broadinstitute.dsde.workbench
 package google2
 
 import java.nio.file.Path
-
 import cats.data.NonEmptyList
 import cats.effect._
-import cats.effect.concurrent.Semaphore
+import cats.effect.std.Semaphore
 import cats.syntax.all._
 import com.google.auth.Credentials
 import com.google.auth.oauth2.{AccessToken, GoogleCredentials}
@@ -293,18 +292,16 @@ trait GoogleStorageService[F[_]] {
 }
 
 object GoogleStorageService {
-  def resource[F[_]: ContextShift: Timer: Async: StructuredLogger](
+  def resource[F[_]: Async: StructuredLogger](
     pathToCredentialJson: String,
-    blocker: Blocker,
     blockerBound: Option[Semaphore[F]] = None,
     project: Option[GoogleProject] = None
   ): Resource[F, GoogleStorageService[F]] =
     for {
-      db <- GoogleStorageInterpreter.storage[F](pathToCredentialJson, blocker, project)
-    } yield GoogleStorageInterpreter[F](db, blocker, blockerBound)
+      db <- GoogleStorageInterpreter.storage[F](pathToCredentialJson, project)
+    } yield GoogleStorageInterpreter[F](db, blockerBound)
 
-  def fromApplicationDefault[F[_]: ContextShift: Timer: Async: StructuredLogger](
-    blocker: Blocker,
+  def fromApplicationDefault[F[_]: Async: StructuredLogger](
     blockerBound: Option[Semaphore[F]] = None
   ): Resource[F, GoogleStorageService[F]] =
     for {
@@ -317,11 +314,10 @@ object GoogleStorageService {
             .getService
         )
       )
-    } yield GoogleStorageInterpreter[F](db, blocker, blockerBound)
+    } yield GoogleStorageInterpreter[F](db, blockerBound)
 
-  def fromAccessToken[F[_]: ContextShift: Timer: Async: StructuredLogger](
+  def fromAccessToken[F[_]: Async: StructuredLogger](
     accessToken: AccessToken,
-    blocker: Blocker,
     blockerBound: Option[Semaphore[F]] = None
   ): Resource[F, GoogleStorageService[F]] =
     for {
@@ -334,7 +330,7 @@ object GoogleStorageService {
             .getService
         )
       )
-    } yield GoogleStorageInterpreter[F](db, blocker, blockerBound)
+    } yield GoogleStorageInterpreter[F](db, blockerBound)
 }
 
 final case class GcsBlobName(value: String) extends AnyVal

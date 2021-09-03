@@ -1,4 +1,5 @@
 package org.broadinstitute.dsde.workbench.google2
+package mock
 
 import cats.effect.IO
 import cats.mtl.Ask
@@ -11,12 +12,12 @@ class MockGoogleDiskService extends GoogleDiskService[IO] {
   override def createDisk(project: GoogleProject, zone: ZoneName, disk: Disk)(implicit
     ev: Ask[IO, TraceId]
   ): IO[Option[Operation]] =
-    IO.pure(Some(Operation.newBuilder().setId("op").setName("opName").setTargetId("target").build()))
+    IO.pure(Some(Operation.newBuilder().setId(123).setName("opName").setTargetId(258165385).build()))
 
   override def deleteDisk(project: GoogleProject, zone: ZoneName, diskName: DiskName)(implicit
     ev: Ask[IO, TraceId]
   ): IO[Option[Operation]] =
-    IO.pure(Some(Operation.newBuilder().setId("op").setName("opName").setTargetId("target").build()))
+    IO.pure(Some(Operation.newBuilder().setId(123).setName("opName").setTargetId(258165385).build()))
 
   override def getDisk(project: GoogleProject, zone: ZoneName, diskName: DiskName)(implicit
     ev: Ask[IO, TraceId]
@@ -28,7 +29,7 @@ class MockGoogleDiskService extends GoogleDiskService[IO] {
 
   override def resizeDisk(project: GoogleProject, zone: ZoneName, diskName: DiskName, newSizeGb: Int)(implicit
     ev: Ask[IO, TraceId]
-  ): IO[Operation] = IO.pure(Operation.newBuilder().setId("op").setName("opName").setTargetId("target").build())
+  ): IO[Operation] = IO.pure(Operation.newBuilder().setId(123).setName("opName").setTargetId(258165385).build())
 }
 
 object MockGoogleDiskService extends MockGoogleDiskService

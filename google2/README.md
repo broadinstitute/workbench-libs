@@ -29,7 +29,7 @@ import java.util.UUID
 import org.broadinstitute.dsde.workbench.model.TraceId
 import cats.effect.Blocker
 import org.broadinstitute.dsde.workbench.util2.{ConsoleLogger, LogLevel}
-import cats.effect.concurrent.Semaphore
+import cats.effect.std.Semaphore
 implicit val cs = IO.contextShift(global)
 implicit val t = IO.timer(global)
 implicit def logger = new ConsoleLogger("prefix-you-like", LogLevel(true, true, true, true))

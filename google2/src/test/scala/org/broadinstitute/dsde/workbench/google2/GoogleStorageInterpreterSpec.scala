@@ -1,20 +1,18 @@
 package org.broadinstitute.dsde.workbench.google2
 
-import cats.effect.concurrent.Semaphore
-import cats.effect.{Blocker, IO}
+import cats.effect.IO
+import cats.effect.std.Semaphore
+import cats.effect.unsafe.implicits.global
 import cats.syntax.all._
-import fs2.Stream
 import com.google.cloud.storage.contrib.nio.testing.LocalStorageHelper
+import fs2.Stream
 import org.broadinstitute.dsde.workbench.google2.Generators._
 import org.broadinstitute.dsde.workbench.google2.GoogleStorageInterpreterSpec._
 import org.broadinstitute.dsde.workbench.util2.WorkbenchTestSuite
 import org.scalacheck.Gen
 import org.scalatest.flatspec.AsyncFlatSpec
-import org.typelevel.log4cats.slf4j.Slf4jLogger
 import org.scalatest.matchers.should.Matchers
-
-import scala.concurrent.ExecutionContext.global
-import scala.concurrent.ExecutionContext
+import org.typelevel.log4cats.slf4j.Slf4jLogger
 
 // AsyncFlatSpec currently doesn't work with scalacheck's forAll. It'll be supported in scalatest 3
 class GoogleStorageInterpreterSpec extends AsyncFlatSpec with Matchers with WorkbenchTestSuite {
@@ -174,13 +172,10 @@ class GoogleStorageInterpreterSpec extends AsyncFlatSpec with Matchers with Work
 }
 
 object GoogleStorageInterpreterSpec {
-  implicit val cs = IO.contextShift(ExecutionContext.global)
-  implicit val timer = IO.timer(ExecutionContext.global)
   implicit val logger = Slf4jLogger.getLogger[IO]
 
   val db = LocalStorageHelper.getOptions().getService()
-  val blocker = Blocker.liftExecutionContext(global)
   val semaphore = Semaphore[IO](1).unsafeRunSync
-  val localStorage = GoogleStorageInterpreter[IO](db, blocker, Some(semaphore))
+  val localStorage = GoogleStorageInterpreter[IO](db, Some(semaphore))
   val objectType = "text/plain"
 }

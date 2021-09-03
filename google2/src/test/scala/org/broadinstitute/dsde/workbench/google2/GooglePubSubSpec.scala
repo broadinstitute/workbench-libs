@@ -1,6 +1,8 @@
 package org.broadinstitute.dsde.workbench.google2
 
-import cats.effect.{ContextShift, IO, Resource, Timer}
+import cats.effect.std.{Dispatcher, Queue}
+import cats.effect.unsafe.implicits.global
+import cats.effect.{IO, Resource}
 import cats.syntax.all._
 import com.google.api.gax.core.NoCredentialsProvider
 import com.google.api.gax.grpc.GrpcTransportChannel
@@ -9,16 +11,15 @@ import com.google.cloud.pubsub.v1._
 import com.google.pubsub.v1.{ProjectSubscriptionName, PushConfig, TopicName}
 import fs2.Stream
 import fs2.concurrent.SignallingRef
-import org.typelevel.log4cats.StructuredLogger
 import io.circe.Decoder
 import io.circe.generic.auto._
 import io.grpc.ManagedChannelBuilder
 import io.grpc.Status.Code
-import org.broadinstitute.dsde.workbench.RetryConfig
 import org.broadinstitute.dsde.workbench.google2.GooglePubSubSpec._
 import org.broadinstitute.dsde.workbench.util2.WorkbenchTestSuite
 import org.scalatest.flatspec.AnyFlatSpecLike
 import org.scalatest.matchers.should.Matchers
+import org.typelevel.log4cats.StructuredLogger
 
 import scala.concurrent.duration._
 import scala.util.Try
@@ -29,7 +30,7 @@ class GooglePubSubSpec extends AnyFlatSpecLike with Matchers with WorkbenchTestS
     val topicName = Generators.genTopicName.sample.get
 
     val res = for {
-      queue <- fs2.concurrent.Queue.bounded[IO, Event[Person]](10000)
+      queue <- cats.effect.std.Queue.bounded[IO, Event[Person]](10000)
       _ <- localPubsub[Person](topicName, queue).use { case (pub, _) =>
         val res = Stream.emits(people) through pub.publish
 
@@ -46,7 +47,7 @@ class GooglePubSubSpec extends AnyFlatSpecLike with Matchers with WorkbenchTestS
 
     var expectedPeople = people
     val res = for {
-      queue <- fs2.concurrent.Queue.bounded[IO, Event[Person]](10000)
+      queue <- Queue.bounded[IO, Event[Person]](10000)
       terminateSubscriber <- SignallingRef[IO, Boolean](false) //signal for terminating subscriber
       terminateStopStream <- SignallingRef[IO, Boolean](false) //signal for terminating stopStream
       _ <- localPubsub(projectTopicName, queue).use { case (pub, sub) =>
@@ -67,7 +68,7 @@ class GooglePubSubSpec extends AnyFlatSpecLike with Matchers with WorkbenchTestS
           .interruptWhen(terminateStopStream)
 
         // stopStream will check every 1 seconds to see if SignallingRef is set to false, if so terminate subscriber
-        val stopStream: Stream[IO, Unit] = (Stream.sleep(1 seconds) ++ Stream.eval_ {
+        val stopStream: Stream[IO, Unit] = (Stream.sleep[IO](1 seconds) ++ Stream.eval_ {
           for {
             r <- terminateSubscriber.get
             _ <-
@@ -87,9 +88,7 @@ class GooglePubSubSpec extends AnyFlatSpecLike with Matchers with WorkbenchTestS
 }
 
 object GooglePubSubSpec {
-  def localPubsub[A: Decoder](projectTopicName: TopicName, queue: fs2.concurrent.Queue[IO, Event[A]])(implicit
-    timer: Timer[IO],
-    cs: ContextShift[IO],
+  def localPubsub[A: Decoder](projectTopicName: TopicName, queue: Queue[IO, Event[A]])(implicit
     logger: StructuredLogger[IO]
   ): Resource[IO, (GooglePublisherInterpreter[IO], GoogleSubscriberInterpreter[IO, A])] =
     for {
@@ -130,7 +129,8 @@ object GooglePubSubSpec {
         )
       )(_ => /*IO(p.shutdown()) >>*/ IO.unit) //TODO: shutdown properly. Somehow this hangs the publisher unit test
       subscription = ProjectSubscriptionName.of(projectTopicName.getProject, projectTopicName.getTopic)
-      receiver = GoogleSubscriberInterpreter.receiver(queue)
+      dispatcher <- Dispatcher[IO]
+      receiver = GoogleSubscriberInterpreter.receiver(queue, dispatcher)
       sub <- Resource.eval(
         IO(
           Subscriber

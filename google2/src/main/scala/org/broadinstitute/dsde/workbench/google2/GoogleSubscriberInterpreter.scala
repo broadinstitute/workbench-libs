@@ -1,7 +1,7 @@
 package org.broadinstitute.dsde.workbench.google2
 
 import cats.effect._
-import cats.effect.implicits._
+import cats.effect.std.{Dispatcher, Queue}
 import cats.syntax.all._
 import com.google.api.core.ApiService
 import com.google.api.gax.batching.FlowControlSettings
@@ -13,7 +13,6 @@ import com.google.common.util.concurrent.MoreExecutors
 import com.google.protobuf.Timestamp
 import com.google.pubsub.v1.{PubsubMessage, _}
 import fs2.Stream
-import fs2.concurrent.Queue
 import org.typelevel.log4cats.{Logger, StructuredLogger}
 import io.circe.Decoder
 import io.circe.parser._
@@ -21,50 +20,58 @@ import org.broadinstitute.dsde.workbench.model.TraceId
 
 import scala.concurrent.duration.FiniteDuration
 
-private[google2] class GoogleSubscriberInterpreter[F[_]: Timer: ContextShift, MessageType](
+private[google2] class GoogleSubscriberInterpreter[F[_], MessageType](
   subscriber: Subscriber,
-  queue: fs2.concurrent.Queue[F, Event[MessageType]]
+  queue: cats.effect.std.Queue[F, Event[MessageType]]
 )(implicit F: Async[F])
     extends GoogleSubscriber[F, MessageType] {
-  val messages: Stream[F, Event[MessageType]] = queue.dequeue
+  val messages: Stream[F, Event[MessageType]] = Stream.fromQueueUnterminated(queue)
 
   def start: F[Unit] = F.async[Unit] { callback =>
-    subscriber.addListener(
-      new ApiService.Listener() {
-        override def failed(from: ApiService.State, failure: Throwable): Unit =
-          callback(Left(failure))
-        override def terminated(from: ApiService.State): Unit =
-          callback(Right(()))
-      },
-      MoreExecutors.directExecutor()
-    )
-    subscriber.startAsync()
-  }
-
-  def stop: F[Unit] =
-    F.async[Unit] { callback =>
+    F.delay {
       subscriber.addListener(
         new ApiService.Listener() {
           override def failed(from: ApiService.State, failure: Throwable): Unit =
             callback(Left(failure))
+
           override def terminated(from: ApiService.State): Unit =
             callback(Right(()))
         },
         MoreExecutors.directExecutor()
       )
-      subscriber.stopAsync()
+      subscriber.startAsync()
+    }.as(None)
+  }
+
+  def stop: F[Unit] =
+    F.async[Unit] { callback =>
+      F.delay {
+        subscriber.addListener(
+          new ApiService.Listener() {
+            override def failed(from: ApiService.State, failure: Throwable): Unit =
+              callback(Left(failure))
+
+            override def terminated(from: ApiService.State): Unit =
+              callback(Right(()))
+          },
+          MoreExecutors.directExecutor()
+        )
+        subscriber.stopAsync()
+      }.as(None)
     }
 }
 
 object GoogleSubscriberInterpreter {
-  def apply[F[_]: Async: Timer: ContextShift, MessageType](
+  def apply[F[_], MessageType](
     subscriber: Subscriber,
-    queue: fs2.concurrent.Queue[F, Event[MessageType]]
-  ): GoogleSubscriberInterpreter[F, MessageType] = new GoogleSubscriberInterpreter[F, MessageType](subscriber, queue)
+    queue: cats.effect.std.Queue[F, Event[MessageType]]
+  )(implicit F: Async[F]): GoogleSubscriberInterpreter[F, MessageType] =
+    new GoogleSubscriberInterpreter[F, MessageType](subscriber, queue)
 
   private[google2] def receiver[F[_], MessageType: Decoder](
-    queue: fs2.concurrent.Queue[F, Event[MessageType]]
-  )(implicit logger: StructuredLogger[F], F: Effect[F]): MessageReceiver = new MessageReceiver() {
+    queue: cats.effect.std.Queue[F, Event[MessageType]],
+    dispatcher: Dispatcher[F]
+  )(implicit logger: StructuredLogger[F], F: Async[F]): MessageReceiver = new MessageReceiver() {
     override def receiveMessage(message: PubsubMessage, consumer: AckReplyConsumer): Unit = {
       val parseEvent = for {
         isJson <- F.fromEither(parse(message.getData.toStringUtf8)).attempt
@@ -84,11 +91,11 @@ object GoogleSubscriberInterpreter {
             val loggingContext = Map("traceId" -> event.traceId.map(_.asString).getOrElse("None"))
 
             for {
-              r <- queue.enqueue1(event).attempt
+              r <- queue.offer(event).attempt
 
               _ <- r match {
                 case Left(e) =>
-                  logger.info(loggingContext)(s"Subscriber fail to enqueue $message due to $e") >> F.delay(
+                  logger.info(loggingContext)(s"Subscriber fail to enqueue $message due to $e") >> F.blocking(
                     consumer.nack()
                   ) //pubsub will resend the message up to ackDeadlineSeconds (this is configed during subscription creation)
                 case Right(_) =>
@@ -102,27 +109,28 @@ object GoogleSubscriberInterpreter {
         }
       } yield ()
 
-      result.toIO.unsafeRunSync
+      dispatcher.unsafeRunSync(result)
     }
   }
 
-  private[google2] def stringReceiver[F[_]: Effect](queue: fs2.concurrent.Queue[F, Event[String]]): MessageReceiver =
+  private[google2] def stringReceiver[F[_]](queue: cats.effect.std.Queue[F, Event[String]],
+                                            dispatcher: Dispatcher[F]
+  ): MessageReceiver =
     new MessageReceiver() {
       override def receiveMessage(message: PubsubMessage, consumer: AckReplyConsumer): Unit = {
-        val enqueueAction = queue.enqueue1(
+        val enqueueAction = queue.offer(
           Event(message.getData.toStringUtf8,
                 Option(message.getAttributesMap.get("traceId")).map(s => TraceId(s)),
                 message.getPublishTime,
                 consumer
           )
         )
-        enqueueAction.toIO.unsafeRunSync
+        dispatcher.unsafeRunSync(enqueueAction)
       }
     }
 
-  def subscriber[F[_]: Effect: StructuredLogger, MessageType: Decoder](
-    subscriberConfig: SubscriberConfig,
-    queue: fs2.concurrent.Queue[F, Event[MessageType]]
+  def subscriber[F[_]: Async: StructuredLogger, MessageType: Decoder](subscriberConfig: SubscriberConfig,
+                                                                      queue: Queue[F, Event[MessageType]]
   ): Resource[F, Subscriber] = {
     val subscription = subscriberConfig.subscriptionName.getOrElse(
       ProjectSubscriptionName.of(subscriberConfig.topicName.getProject, subscriberConfig.topicName.getTopic)
@@ -142,9 +150,9 @@ object GoogleSubscriberInterpreter {
     } yield sub
   }
 
-  def stringSubscriber[F[_]: Effect: StructuredLogger](
+  def stringSubscriber[F[_]: Async: StructuredLogger](
     subscriberConfig: SubscriberConfig,
-    queue: fs2.concurrent.Queue[F, Event[String]]
+    queue: Queue[F, Event[String]]
   ): Resource[F, Subscriber] = {
     val subscription = subscriberConfig.subscriptionName.getOrElse(
       ProjectSubscriptionName.of(subscriberConfig.topicName.getProject, subscriberConfig.topicName.getTopic)
@@ -160,32 +168,34 @@ object GoogleSubscriberInterpreter {
           .setMaxOutstandingRequestBytes(config.maxOutstandingRequestBytes)
           .build
       )
-      sub <- stringSubscriberResource(queue, subscription, credential, flowControlSettings)
+      dispatcher <- Dispatcher[F]
+      sub <- stringSubscriberResource(queue, dispatcher, subscription, credential, flowControlSettings)
     } yield sub
   }
 
-  private def subscriberResource[MessageType: Decoder, F[_]: Effect: StructuredLogger](
+  private def subscriberResource[MessageType: Decoder, F[_]: Async: StructuredLogger](
     queue: Queue[F, Event[MessageType]],
     subscription: ProjectSubscriptionName,
     credential: ServiceAccountCredentials,
     flowControlSettings: Option[FlowControlSettings]
-  ): Resource[F, Subscriber] = {
+  ): Resource[F, Subscriber] = Dispatcher[F].flatMap { d =>
     val subscriber = for {
-      builder <- Sync[F].delay(
+      builder <- Async[F].blocking(
         Subscriber
-          .newBuilder(subscription, receiver(queue))
+          .newBuilder(subscription, receiver(queue, d))
           .setCredentialsProvider(FixedCredentialsProvider.create(credential))
       )
       builderWithFlowControlSetting <- flowControlSettings.traverse { fcs =>
-        Sync[F].delay(builder.setFlowControlSettings(fcs))
+        Async[F].blocking(builder.setFlowControlSettings(fcs))
       }
     } yield builderWithFlowControlSetting.getOrElse(builder).build()
 
-    Resource.make(subscriber)(s => Sync[F].delay(s.stopAsync()))
+    Resource.make(subscriber)(s => Async[F].delay(s.stopAsync()))
   }
 
-  private def stringSubscriberResource[F[_]: Effect](
+  private def stringSubscriberResource[F[_]: Sync](
     queue: Queue[F, Event[String]],
+    dispatcher: Dispatcher[F],
     subscription: ProjectSubscriptionName,
     credential: ServiceAccountCredentials,
     flowControlSettings: Option[FlowControlSettings]
@@ -193,7 +203,7 @@ object GoogleSubscriberInterpreter {
     val subscriber = for {
       builder <- Sync[F].delay(
         Subscriber
-          .newBuilder(subscription, stringReceiver(queue))
+          .newBuilder(subscription, stringReceiver(queue, dispatcher))
           .setCredentialsProvider(FixedCredentialsProvider.create(credential))
       )
       builderWithFlowControlSetting <- flowControlSettings.traverse { fcs =>
@@ -204,11 +214,11 @@ object GoogleSubscriberInterpreter {
     Resource.make(subscriber)(s => Sync[F].delay(s.stopAsync()))
   }
 
-  private def createSubscription[F[_]: Effect: Logger](
+  private def createSubscription[F[_]: Logger](
     subscriberConfig: SubscriberConfig,
     subscription: ProjectSubscriptionName,
     subscriptionAdminClient: SubscriptionAdminClient
-  ): Resource[F, Unit] = {
+  )(implicit F: Async[F]): Resource[F, Unit] = {
     val initialSub = Subscription
       .newBuilder()
       .setName(subscription.toString)
@@ -232,18 +242,16 @@ object GoogleSubscriberInterpreter {
     }
 
     Resource.eval(
-      Async[F]
-        .delay(
-          subscriptionAdminClient.createSubscription(sub)
-        )
-        .void
+      F.blocking(
+        subscriptionAdminClient.createSubscription(sub)
+      ).void
         .recover { case _: AlreadyExistsException =>
           Logger[F].info(s"subscription ${subscription} already exists")
         }
     )
   }
 
-  private def subscriptionAdminClientResource[F[_]: Effect: Logger](credential: ServiceAccountCredentials) =
+  private def subscriptionAdminClientResource[F[_]: Async](credential: ServiceAccountCredentials) =
     Resource.make[F, SubscriptionAdminClient](
       Async[F].delay(
         SubscriptionAdminClient.create(

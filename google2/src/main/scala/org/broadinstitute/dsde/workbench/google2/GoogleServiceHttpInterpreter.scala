@@ -4,6 +4,7 @@ package google2
 import cats.Eq
 import cats.data.NonEmptyList
 import cats.effect.{Resource, Sync}
+import cats.effect.Concurrent
 import cats.syntax.all._
 import com.google.api.services.storage.StorageScopes
 import com.google.auth.oauth2.{GoogleCredentials, ServiceAccountCredentials}
@@ -21,12 +22,11 @@ import org.http4s.circe.CirceEntityEncoder._
 import org.http4s.client.Client
 import org.http4s.client.dsl.Http4sClientDsl
 import org.http4s.headers.Authorization
-import JsonCodec._
 import org.http4s.{AuthScheme, Credentials, Headers, Method, Request, Response, Status, Uri}
 
-class GoogleServiceHttpInterpreter[F[_]: Sync: Logger](httpClient: Client[F],
-                                                       config: NotificationCreaterConfig,
-                                                       googleCredentials: GoogleCredentials
+class GoogleServiceHttpInterpreter[F[_]: Concurrent: Logger](httpClient: Client[F],
+                                                             config: NotificationCreaterConfig,
+                                                             googleCredentials: GoogleCredentials
 ) extends GoogleServiceHttp[F]
     with Http4sClientDsl[F] {
   val authHeader = Authorization(
@@ -39,9 +39,10 @@ class GoogleServiceHttpInterpreter[F[_]: Sync: Logger](httpClient: Client[F],
                          filters: Filters,
                          traceId: Option[TraceId]
   ): F[Unit] = {
-    val notificationUri = config.googleUrl.withPath(s"/storage/v1/b/${bucketName.value}/notificationConfigs")
+    val notificationUri =
+      config.googleUrl.withPath(Uri.Path.unsafeFromString(s"/storage/v1/b/${bucketName.value}/notificationConfigs"))
     val notificationBody = NotificationRequest(topic, "JSON_API_V1", filters.eventTypes, filters.objectNamePrefix)
-    val headers = Headers.of(authHeader)
+    val headers = Headers(authHeader)
 
     for {
       notifications <- httpClient.expect[NotificationResponse](
@@ -55,7 +56,7 @@ class GoogleServiceHttpInterpreter[F[_]: Sync: Logger](httpClient: Client[F],
       // a notification for the given bucket and topic already exists. If yes, we do nothing; else, we create it
       _ <-
         if (notifications.items.exists(nel => nel.toList.exists(x => x.topic === topic)))
-          Sync[F].pure(())
+          Concurrent[F].pure(())
         else
           httpClient.expectOr[Notification](
             Request[F](
@@ -75,7 +76,7 @@ class GoogleServiceHttpInterpreter[F[_]: Sync: Logger](httpClient: Client[F],
         Request[F](
           method = Method.GET,
           uri = uri,
-          headers = Headers.of(authHeader)
+          headers = Headers(authHeader)
         )
       )(onError(traceId))
       .map(_.serviceAccount)

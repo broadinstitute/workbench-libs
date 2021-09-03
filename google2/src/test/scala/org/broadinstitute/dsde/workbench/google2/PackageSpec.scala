@@ -1,6 +1,7 @@
 package org.broadinstitute.dsde.workbench.google2
 
 import cats.effect.IO
+import cats.effect.unsafe.implicits.global
 import org.broadinstitute.dsde.workbench.{DoneCheckable, StreamTimeoutError}
 import org.broadinstitute.dsde.workbench.util2.WorkbenchTestSuite
 import org.scalatest.flatspec.AnyFlatSpecLike

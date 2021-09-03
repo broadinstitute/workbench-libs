@@ -1,15 +1,14 @@
 package org.broadinstitute.dsde.workbench
 
-import java.io.FileInputStream
-import java.nio.file.Path
-
-import cats.effect.{Blocker, Concurrent, ContextShift, Resource, Sync}
+import cats.effect.{Resource, Sync}
+import fs2.Stream
+import fs2.io.file.Files
 import io.circe.Decoder
 import io.circe.fs2.decoder
-import fs2.{io, Stream}
 import org.typelevel.jawn.AsyncParser
 
-import scala.concurrent.ExecutionContext.global
+import java.io.FileInputStream
+import java.nio.file.Path
 import scala.concurrent.duration._
 
 package object util2 {
@@ -35,9 +34,9 @@ package object util2 {
    * res0: List[String] = List(this is great)
    *
    */
-  def readJsonFileToA[F[_]: Sync: ContextShift, A: Decoder](path: Path, blocker: Option[Blocker]): Stream[F, A] =
-    io.file
-      .readAll[F](path, blocker.getOrElse(Blocker.liftExecutionContext(global)), 4096)
+  def readJsonFileToA[F[_]: Sync: Files, A: Decoder](path: Path): Stream[F, A] =
+    Files[F]
+      .readAll(path, 4096)
       .through(fs2.text.utf8Decode)
       .through(_root_.io.circe.fs2.stringParser(AsyncParser.SingleValue))
       .through(decoder)

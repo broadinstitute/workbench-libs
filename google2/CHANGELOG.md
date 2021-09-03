@@ -2,6 +2,17 @@
 
 This file documents changes to the `workbench-google2` library, including notes on how to upgrade to new versions.
 
+## 0.22
+Breaking Changes:
+- Upgrade cats-effect to `3.2.3` (see [migration guide](https://typelevel.org/cats-effect/docs/migration-guide#run-the-scalafix-migration)) and a few other dependencies
+- Upgrade `google-cloud-compute` to `1.3.0-alpha`
+
+Dependency Upgrades:
+- `google-cloud-container` to `1.5.0`
+- `io.kubernetes` to `12.0.0`
+
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.22-TRAVIS-REPLACE-ME"`
+
 ## 0.21
 Breaking Changes:
 - Rename `retryGoogleF` and `tracedRetryGoogleF` to `retryF` and `tracedRetryF`

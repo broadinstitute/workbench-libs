@@ -3,10 +3,9 @@ package org.broadinstitute.dsde.workbench.google2
 import _root_.org.typelevel.log4cats.StructuredLogger
 import cats.Parallel
 import cats.effect._
-import cats.effect.concurrent.Semaphore
+import cats.effect.std.Semaphore
 import cats.mtl.Ask
 import com.google.api.gax.core.FixedCredentialsProvider
-import com.google.api.services.compute.ComputeScopes
 import com.google.auth.oauth2.GoogleCredentials
 import com.google.cloud.compute.v1._
 import org.broadinstitute.dsde.workbench.RetryConfig
@@ -119,70 +118,67 @@ trait GoogleComputeService[F[_]] {
 }
 
 object GoogleComputeService {
-  def resource[F[_]: StructuredLogger: Async: Parallel: Timer: ContextShift](
+  def resource[F[_]: StructuredLogger: Async: Parallel](
     pathToCredential: String,
-    blocker: Blocker,
     blockerBound: Semaphore[F],
     retryConfig: RetryConfig = RetryPredicates.standardGoogleRetryConfig
   ): Resource[F, GoogleComputeService[F]] =
     for {
       credential <- credentialResource(pathToCredential)
-      scopedCredential = credential.createScoped(Seq(ComputeScopes.COMPUTE).asJava)
-      interpreter <- fromCredential(scopedCredential, blocker, blockerBound, retryConfig)
+      scopedCredential = credential.createScoped(Seq(CLOUD_PLATFORM_SCOPE).asJava)
+      interpreter <- fromCredential(scopedCredential, blockerBound, retryConfig)
     } yield interpreter
 
-  def resourceFromUserCredential[F[_]: StructuredLogger: Async: Parallel: Timer: ContextShift](
+  def resourceFromUserCredential[F[_]: StructuredLogger: Async: Parallel](
     pathToCredential: String,
-    blocker: Blocker,
     blockerBound: Semaphore[F],
     retryConfig: RetryConfig = RetryPredicates.standardGoogleRetryConfig
   ): Resource[F, GoogleComputeService[F]] =
     for {
       credential <- userCredentials(pathToCredential)
-      scopedCredential = credential.createScoped(Seq(ComputeScopes.COMPUTE).asJava)
-      interpreter <- fromCredential(scopedCredential, blocker, blockerBound, retryConfig)
+      scopedCredential = credential.createScoped(Seq(CLOUD_PLATFORM_SCOPE).asJava)
+      interpreter <- fromCredential(scopedCredential, blockerBound, retryConfig)
     } yield interpreter
 
-  def fromCredential[F[_]: StructuredLogger: Async: Parallel: Timer: ContextShift](
+  def fromCredential[F[_]: StructuredLogger: Async: Parallel](
     googleCredentials: GoogleCredentials,
-    blocker: Blocker,
     blockerBound: Semaphore[F],
     retryConfig: RetryConfig
   ): Resource[F, GoogleComputeService[F]] = {
     val credentialsProvider = FixedCredentialsProvider.create(googleCredentials)
 
-    val instanceSettings = InstanceSettings
+    val instanceSettings = InstancesSettings
       .newBuilder()
       .setCredentialsProvider(credentialsProvider)
       .build()
-    val firewallSettings = FirewallSettings
+    val firewallSettings = FirewallsSettings
       .newBuilder()
       .setCredentialsProvider(credentialsProvider)
       .build()
-    val zoneSettings = ZoneSettings
+    val zoneSettings = ZonesSettings
       .newBuilder()
       .setCredentialsProvider(credentialsProvider)
       .build()
-    val machineTypeSettings = MachineTypeSettings
+    val machineTypeSettings = MachineTypesSettings
       .newBuilder()
       .setCredentialsProvider(credentialsProvider)
       .build()
-    val networkSettings = NetworkSettings
+    val networkSettings = NetworksSettings
       .newBuilder()
       .setCredentialsProvider(credentialsProvider)
       .build()
-    val subnetworkSettings = SubnetworkSettings
+    val subnetworkSettings = SubnetworksSettings
       .newBuilder()
       .setCredentialsProvider(credentialsProvider)
       .build()
 
     for {
-      instanceClient <- backgroundResourceF(InstanceClient.create(instanceSettings))
-      firewallClient <- backgroundResourceF(FirewallClient.create(firewallSettings))
-      zoneClient <- backgroundResourceF(ZoneClient.create(zoneSettings))
-      machineTypeClient <- backgroundResourceF(MachineTypeClient.create(machineTypeSettings))
-      networkClient <- backgroundResourceF(NetworkClient.create(networkSettings))
-      subnetworkClient <- backgroundResourceF(SubnetworkClient.create(subnetworkSettings))
+      instanceClient <- backgroundResourceF(InstancesClient.create(instanceSettings))
+      firewallClient <- backgroundResourceF(FirewallsClient.create(firewallSettings))
+      zoneClient <- backgroundResourceF(ZonesClient.create(zoneSettings))
+      machineTypeClient <- backgroundResourceF(MachineTypesClient.create(machineTypeSettings))
+      networkClient <- backgroundResourceF(NetworksClient.create(networkSettings))
+      subnetworkClient <- backgroundResourceF(SubnetworksClient.create(subnetworkSettings))
     } yield new GoogleComputeInterpreter[F](instanceClient,
                                             firewallClient,
                                             zoneClient,
@@ -190,7 +186,6 @@ object GoogleComputeService {
                                             networkClient,
                                             subnetworkClient,
                                             retryConfig,
-                                            blocker,
                                             blockerBound
     )
   }
@@ -205,10 +200,20 @@ final case class OperationName(value: String) extends AnyVal
 
 final case class RegionName(value: String) extends AnyVal
 object RegionName {
-  def fromUriString(uri: String): Option[RegionName] = Option(uri).flatMap(_.split("/").lastOption).map(RegionName(_))
+  def fromUriString(uri: String): Option[RegionName] = Option(uri).flatMap { x =>
+    if (x.isEmpty)
+      None
+    else
+      (x.split("/").lastOption).map(RegionName(_))
+  }
 }
 
 final case class ZoneName(value: String) extends AnyVal
 object ZoneName {
-  def fromUriString(uri: String): Option[ZoneName] = Option(uri).flatMap(_.split("/").lastOption).map(ZoneName(_))
+  def fromUriString(uri: String): Option[ZoneName] = Option(uri).flatMap { x =>
+    if (x.isEmpty)
+      None
+    else
+      (x.split("/").lastOption).map(ZoneName(_))
+  }
 }

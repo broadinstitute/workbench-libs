@@ -26,7 +26,7 @@ Workbench utility libraries, built for Scala 2.12 and 2.13. You can find the ful
 Contains utility functions and classes. Util2 is added because util needs to support 2.11 for `firecloud-orchestration`,
 but many libraries start to drop 2.11 support. Util2 doesn't support 2.11.
 
-Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util2" % "0.1-d7ed6bf"`
+Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util2" % "0.2-TRAVIS-REPLACE-ME"`
 
 [Changelog](util2/CHANGELOG.md)
 
@@ -72,7 +72,7 @@ Workbench utility libraries, built for Scala 2.12 and 2.13. You can find the ful
 
 Contains utility functions for talking to Google APIs via com.google.cloud client library (more recent) via gRPC. 
 
-Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.21-bf66e61"`
+Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.22-TRAVIS-REPLACE-ME"`
 
 To start the Google PubSub emulator for unit testing:
 
@@ -86,7 +86,7 @@ Workbench utility libraries, built for Scala 2.12 and 2.13. You can find the ful
 
 Contains utility functions for publishing custom metrics using openTelemetry (openCensus and openTracing). 
 
-Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-opentelemetry" % "0.1-89d0d9e"`
+Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-opentelemetry" % "0.2-TRAVIS-REPLACE-ME"`
 
 [Changelog](openTelemetry/CHANGELOG.md)
 
@@ -96,7 +96,7 @@ Workbench utility libraries, built for Scala 2.12 and 2.13. You can find the ful
 
 Contains utility functions for publishing custom metrics using openTelemetry (openCensus and openTracing). 
 
-Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-error-reporting" % "0.1-89d0d9e"`
+Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-error-reporting" % "0.2-TRAVIS-REPLACE-ME"`
 
 [Changelog](errorReporting/CHANGELOG.md)
 
@@ -106,7 +106,7 @@ Workbench utility libraries, built for Scala 2.12 and 2.13. You can find the ful
 
 Contains common classes and utilities for writing tests against Workbench REST web services.
 
-Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "0.19-5edfa7a" % "test" classifier "tests"`
+Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "0.19-TRAVIS-REPLACE-ME" % "test" classifier "tests"`
 
 [Changelog](serviceTest/CHANGELOG.md)
 

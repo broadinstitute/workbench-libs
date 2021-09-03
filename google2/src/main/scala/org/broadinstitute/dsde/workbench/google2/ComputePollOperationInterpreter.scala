@@ -1,32 +1,31 @@
 package org.broadinstitute.dsde.workbench.google2
 
-import cats.effect.concurrent.Semaphore
-import cats.effect.{Blocker, Concurrent, ContextShift, Timer}
+import cats.effect.Async
+import cats.effect.std.Semaphore
 import cats.mtl.Ask
 import com.google.cloud.compute.v1._
-import org.typelevel.log4cats.StructuredLogger
 import org.broadinstitute.dsde.workbench.model.TraceId
 import org.broadinstitute.dsde.workbench.model.google.GoogleProject
+import org.typelevel.log4cats.StructuredLogger
 
-class ComputePollOperationInterpreter[F[_]: StructuredLogger: ContextShift](
-  zoneOperationClient: ZoneOperationClient,
-  regionOperationClient: RegionOperationClient,
-  globalOperationClient: GlobalOperationClient,
-  blocker: Blocker,
+class ComputePollOperationInterpreter[F[_]: StructuredLogger](
+  zoneOperationClient: ZoneOperationsClient,
+  regionOperationClient: RegionOperationsClient,
+  globalOperationClient: GlobalOperationsClient,
   blockerBound: Semaphore[F]
-)(implicit override val F: Concurrent[F], override val timer: Timer[F])
+)(implicit override val F: Async[F])
     extends ComputePollOperation[F] {
   override def getZoneOperation(project: GoogleProject, zoneName: ZoneName, operationName: OperationName)(implicit
     ev: Ask[F, TraceId]
   ): F[Operation] = {
-    val request = ProjectZoneOperationName
+    val request = GetZoneOperationRequest
       .newBuilder()
       .setProject(project.value)
       .setZone(zoneName.value)
       .setOperation(operationName.value)
       .build
     tracedLogging(
-      blockOn(F.delay(zoneOperationClient.getZoneOperation(request))),
+      blockOn(F.blocking(zoneOperationClient.get(request))),
       s"com.google.cloud.compute.v1.ZoneOperationClient.getZoneOperation(${request.toString})",
       showOperation
     )
@@ -35,14 +34,14 @@ class ComputePollOperationInterpreter[F[_]: StructuredLogger: ContextShift](
   override def getRegionOperation(project: GoogleProject, regionName: RegionName, operationName: OperationName)(implicit
     ev: Ask[F, TraceId]
   ): F[Operation] = {
-    val request = ProjectRegionOperationName
+    val request = GetRegionOperationRequest
       .newBuilder()
       .setProject(project.value)
       .setRegion(regionName.value)
       .setOperation(operationName.value)
       .build
     tracedLogging(
-      blockOn(F.delay(regionOperationClient.getRegionOperation(request))),
+      blockOn(F.blocking(regionOperationClient.get(request))),
       s"com.google.cloud.compute.v1.regionOperationClient.getRegionOperation(${request.toString})",
       showOperation
     )
@@ -52,13 +51,13 @@ class ComputePollOperationInterpreter[F[_]: StructuredLogger: ContextShift](
     ev: Ask[F, TraceId]
   ): F[Operation] = {
     val request =
-      ProjectGlobalOperationName.newBuilder().setProject(project.value).setOperation(operationName.value).build
+      GetGlobalOperationRequest.newBuilder().setProject(project.value).setOperation(operationName.value).build
     tracedLogging(
-      blockOn(F.delay(globalOperationClient.getGlobalOperation(request))),
+      blockOn(F.blocking(globalOperationClient.get(request))),
       s"com.google.cloud.compute.v1.globalOperationClient.getGlobalOperation(${request.toString})",
       showOperation
     )
   }
 
-  private def blockOn[A](fa: F[A]): F[A] = blockerBound.withPermit(blocker.blockOn(fa))
+  private def blockOn[A](fa: F[A]): F[A] = blockerBound.permit.use(_ => fa)
 }

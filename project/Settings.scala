@@ -132,7 +132,7 @@ object Settings {
   val util2Settings = cross212and213 ++ commonSettings ++ List(
     name := "workbench-util2",
     libraryDependencies ++= util2Dependencies,
-    version := createVersion("0.1")
+    version := createVersion("0.2")
   ) ++ publishSettings
 
   val modelSettings = cross212and213 ++ commonSettings ++ List(
@@ -157,19 +157,19 @@ object Settings {
   val google2Settings = cross212and213 ++ commonSettings ++ List(
     name := "workbench-google2",
     libraryDependencies ++= google2Dependencies,
-    version := createVersion("0.21")
+    version := createVersion("0.22")
   ) ++ publishSettings
 
   val openTelemetrySettings = cross212and213 ++ commonSettings ++ List(
     name := "workbench-openTelemetry",
     libraryDependencies ++= openTelemetryDependencies,
-    version := createVersion("0.1")
+    version := createVersion("0.2")
   ) ++ publishSettings
 
   val errorReportingSettings = cross212and213 ++ commonSettings ++ List(
     name := "workbench-error-reporting",
     libraryDependencies ++= errorReportingDependencies,
-    version := createVersion("0.1")
+    version := createVersion("0.2")
   ) ++ publishSettings
 
   val serviceTestSettings = cross212and213 ++ commonSettings ++ List(

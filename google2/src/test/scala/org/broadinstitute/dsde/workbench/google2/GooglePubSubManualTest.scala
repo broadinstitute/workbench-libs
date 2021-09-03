@@ -1,18 +1,18 @@
 package org.broadinstitute.dsde.workbench.google2
 
 import cats.effect.IO
+import cats.effect.std.{Dispatcher, Queue}
 import com.google.pubsub.v1.ProjectTopicName
-import fs2.concurrent.InspectableQueue
+import cats.effect.std.Queue
 import fs2.{Pipe, Stream}
 import org.typelevel.log4cats.slf4j.Slf4jLogger
 import io.circe.Decoder
 import cats.syntax.all._
+
 import scala.concurrent.ExecutionContext.global
 import scala.concurrent.duration._
 
 object GooglePubSubManualTest {
-  implicit val cs = IO.contextShift(global)
-  implicit val t = IO.timer(global)
   implicit def logger = Slf4jLogger.getLogger[IO]
 
   // NOTE: Update the next 2 lines to your own data
@@ -53,12 +53,12 @@ object GooglePubSubManualTest {
   def subscriber() = {
     val config = SubscriberConfig(path, projectTopicName, None, 1 minute, None, None, None)
     for {
-      queue <- InspectableQueue.bounded[IO, Event[Message]](100)
+      queue <- Queue.bounded[IO, Event[Message]](100)
       sub = GoogleSubscriber.resource[IO, Message](config, queue)
       _ <- sub.use { s =>
         val stream = Stream(
           Stream.eval(s.start),
-          queue.dequeue through printPipe
+          Stream.fromQueueUnterminated(queue) through printPipe
         ).parJoin(2)
         stream.compile.drain
       }

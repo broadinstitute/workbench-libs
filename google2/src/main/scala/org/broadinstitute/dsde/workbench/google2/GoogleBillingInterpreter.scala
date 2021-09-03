@@ -1,19 +1,17 @@
 package org.broadinstitute.dsde.workbench.google2
 
-import cats.Parallel
-import cats.effect.concurrent.Semaphore
-import cats.effect.{Async, Blocker, ContextShift, Timer}
+import cats.effect.Async
+import cats.effect.std.Semaphore
 import cats.mtl.Ask
-import com.google.cloud.billing.v1.{CloudBillingClient, ProjectBillingInfo}
-import org.typelevel.log4cats.StructuredLogger
-import org.broadinstitute.dsde.workbench.model.google.GoogleProject
 import cats.syntax.all._
-import org.broadinstitute.dsde.workbench.model.TraceId
+import com.google.cloud.billing.v1.{CloudBillingClient, ProjectBillingInfo}
 import org.broadinstitute.dsde.workbench.google2.util.RetryPredicates._
+import org.broadinstitute.dsde.workbench.model.TraceId
+import org.broadinstitute.dsde.workbench.model.google.GoogleProject
+import org.typelevel.log4cats.StructuredLogger
 
-private[google2] class GoogleBillingInterpreter[F[_]: StructuredLogger: Parallel: Timer: ContextShift](
+private[google2] class GoogleBillingInterpreter[F[_]: StructuredLogger](
   billingClient: CloudBillingClient,
-  blocker: Blocker,
   blockerBound: Semaphore[F]
 )(implicit F: Async[F])
     extends GoogleBillingService[F] {
@@ -23,10 +21,8 @@ private[google2] class GoogleBillingInterpreter[F[_]: StructuredLogger: Parallel
   ): F[Option[ProjectBillingInfo]] =
     for {
       info <- tracedLogging(
-        blockerBound.withPermit(
-          blocker.blockOn(
-            recoverF(F.delay(billingClient.getProjectBillingInfo(s"projects/${project.value}")), whenStatusCode(404))
-          )
+        blockerBound.permit.use(_ =>
+          recoverF(F.blocking(billingClient.getProjectBillingInfo(s"projects/${project.value}")), whenStatusCode(404))
         ),
         s"com.google.cloud.billing.v1.CloudBillingClient.getProjectBillingInfo(${project.value})",
         showBillingInfo
