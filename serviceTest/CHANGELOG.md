@@ -6,8 +6,6 @@ This file documents changes to the `workbench-service-test` library, including n
 
 SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "0.19-TRAVIS-REPLACE-ME"`
 
-###
-
 ### Added
 
 - Added `useReferenceDisks` and `memoryRetryMultiplier` parameters to `Rawls.submissions.launchWorkflow` and `Orchestration.submissions.launchWorkflow`
