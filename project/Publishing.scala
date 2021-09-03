@@ -28,8 +28,9 @@ object Publishing {
     //priority over the local package cache. see here: https://github.com/sbt/sbt/issues/2687#issuecomment-236586241
     Seq(
       publishTo := Option(artifactoryResolver(false)),
-      publishArtifact in Compile := true,
-      publishArtifact in Test := true,
+      Compile / publishArtifact := true,
+      Test / publishArtifact := true,
+      Compile / packageDoc / publishArtifact := false,
       credentials += artifactoryCredentials
     )
 

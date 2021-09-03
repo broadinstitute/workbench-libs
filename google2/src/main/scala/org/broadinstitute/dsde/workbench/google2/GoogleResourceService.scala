@@ -1,17 +1,16 @@
 package org.broadinstitute.dsde.workbench.google2
 
-import java.nio.file.Path
-
 import cats.Parallel
-import cats.effect.{Async, Blocker, ContextShift, Resource, Sync, Timer}
-import cats.effect.concurrent.Semaphore
+import cats.effect.std.Semaphore
+import cats.effect.{Async, Resource, Sync}
 import cats.mtl.Ask
-import com.google.api.services.compute.ComputeScopes
 import com.google.auth.oauth2.GoogleCredentials
-import org.typelevel.log4cats.StructuredLogger
 import com.google.cloud.resourcemanager.{Project, ResourceManagerOptions}
 import org.broadinstitute.dsde.workbench.model.TraceId
 import org.broadinstitute.dsde.workbench.model.google.GoogleProject
+import org.typelevel.log4cats.StructuredLogger
+
+import java.nio.file.Path
 
 trait GoogleResourceService[F[_]] {
   def getProject(project: GoogleProject)(implicit
@@ -29,25 +28,23 @@ trait GoogleResourceService[F[_]] {
 }
 
 object GoogleResourceService {
-  def resource[F[_]: StructuredLogger: Async: Parallel: Timer: ContextShift](
+  def resource[F[_]: StructuredLogger: Async: Parallel](
     pathToCredential: Path,
-    blocker: Blocker,
     blockerBound: Semaphore[F]
   ): Resource[F, GoogleResourceService[F]] =
     for {
       credential <- credentialResource(pathToCredential.toString)
-      scopedCredential = credential.createScoped(ComputeScopes.CLOUD_PLATFORM)
-      interpreter <- fromCredential(scopedCredential, blocker, blockerBound)
+      scopedCredential = credential.createScoped("https://www.googleapis.com/auth/cloud-platform")
+      interpreter <- fromCredential(scopedCredential, blockerBound)
     } yield interpreter
 
-  def fromCredential[F[_]: StructuredLogger: Async: Parallel: Timer: ContextShift](
+  def fromCredential[F[_]: StructuredLogger: Async: Parallel](
     googleCredentials: GoogleCredentials,
-    blocker: Blocker,
     blockerBound: Semaphore[F]
   ): Resource[F, GoogleResourceService[F]] =
     for {
       resourceClient <- Resource.make(
         Sync[F].delay(ResourceManagerOptions.newBuilder().setCredentials(googleCredentials).build().getService())
       )(_ => Sync[F].unit)
-    } yield new GoogleResourceInterpreter[F](resourceClient, blocker, blockerBound)
+    } yield new GoogleResourceInterpreter[F](resourceClient, blockerBound)
 }

@@ -1,34 +1,24 @@
 package org.broadinstitute.dsde.workbench.google2
 
 import cats.Show
-import cats.effect.concurrent.Semaphore
-import cats.effect.{Async, Blocker, ContextShift, Timer}
+import cats.effect.Async
+import cats.effect.std.Semaphore
 import cats.mtl.Ask
+import cats.syntax.all._
 import com.google.cloud.container.v1.ClusterManagerClient
-import com.google.container.v1.{
-  Cluster,
-  CreateNodePoolRequest,
-  GetOperationRequest,
-  NodePool,
-  NodePoolAutoscaling,
-  Operation,
-  SetNodePoolAutoscalingRequest,
-  SetNodePoolSizeRequest
-}
+import com.google.container.v1._
 import fs2.Stream
-import org.typelevel.log4cats.StructuredLogger
-import org.broadinstitute.dsde.workbench.{DoneCheckable, RetryConfig}
 import org.broadinstitute.dsde.workbench.google2.GKEModels._
 import org.broadinstitute.dsde.workbench.google2.util.RetryPredicates._
 import org.broadinstitute.dsde.workbench.model.TraceId
-import cats.syntax.all._
+import org.broadinstitute.dsde.workbench.{DoneCheckable, RetryConfig}
+import org.typelevel.log4cats.StructuredLogger
 
 import scala.concurrent.duration.FiniteDuration
 
-final class GKEInterpreter[F[_]: StructuredLogger: Timer: ContextShift](
+final class GKEInterpreter[F[_]: StructuredLogger](
   clusterManagerClient: ClusterManagerClient,
   legacyClient: com.google.api.services.container.Container,
-  blocker: Blocker,
   blockerBound: Semaphore[F],
   retryConfig: RetryConfig
 )(implicit F: Async[F])
@@ -48,7 +38,7 @@ final class GKEInterpreter[F[_]: StructuredLogger: Timer: ContextShift](
 
     tracedGoogleRetryWithBlocker(
       recoverF(
-        F.delay(legacyClient.projects().locations().clusters().create(parent, googleRequest).execute()),
+        F.blocking(legacyClient.projects().locations().clusters().create(parent, googleRequest).execute()),
         whenStatusCode(409)
       ),
       s"com.google.api.services.container.Projects.Locations.Cluster(${request})"
@@ -58,7 +48,7 @@ final class GKEInterpreter[F[_]: StructuredLogger: Timer: ContextShift](
   override def getCluster(clusterId: KubernetesClusterId)(implicit ev: Ask[F, TraceId]): F[Option[Cluster]] =
     tracedGoogleRetryWithBlocker(
       recoverF(
-        F.delay(clusterManagerClient.getCluster(clusterId.toString)),
+        F.blocking(clusterManagerClient.getCluster(clusterId.toString)),
         whenStatusCode(404)
       ),
       s"com.google.cloud.container.v1.ClusterManagerClient.getCluster(${clusterId.toString})",
@@ -99,7 +89,7 @@ final class GKEInterpreter[F[_]: StructuredLogger: Timer: ContextShift](
   override def getNodepool(nodepoolId: NodepoolId)(implicit ev: Ask[F, TraceId]): F[Option[NodePool]] =
     tracedGoogleRetryWithBlocker(
       recoverF(
-        F.delay(clusterManagerClient.getNodePool(nodepoolId.toString)),
+        F.blocking(clusterManagerClient.getNodePool(nodepoolId.toString)),
         whenStatusCode(404)
       ),
       s"com.google.cloud.container.v1.ClusterManagerClient.getNodepool(${nodepoolId.toString})"
@@ -148,7 +138,7 @@ final class GKEInterpreter[F[_]: StructuredLogger: Timer: ContextShift](
     val getOperation = for {
       traceId <- ev.ask
       op <- withLogging(
-        F.delay(clusterManagerClient.getOperation(request)),
+        F.blocking(clusterManagerClient.getOperation(request)),
         Some(traceId),
         s"com.google.cloud.container.v1.ClusterManagerClient.getOperation(${operationId})",
         Show[Operation](op =>
@@ -171,10 +161,5 @@ final class GKEInterpreter[F[_]: StructuredLogger: Timer: ContextShift](
                                               resultFormatter: Show[A] =
                                                 Show.show[A](a => if (a == null) "null" else a.toString.take(1024))
   )(implicit ev: Ask[F, TraceId]): F[A] =
-    tracedRetryF(retryConfig)(blockerBound.withPermit(
-                                blocker.blockOn(fa)
-                              ),
-                              action,
-                              resultFormatter
-    ).compile.lastOrError
+    tracedRetryF(retryConfig)(blockerBound.permit.use(_ => fa), action, resultFormatter).compile.lastOrError
 }
