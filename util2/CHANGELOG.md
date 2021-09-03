@@ -7,7 +7,7 @@ Breaking Changes:
 - Upgrade cats-effect to `3.2.3`(see [migration guide](https://typelevel.org/cats-effect/docs/migration-guide#run-the-scalafix-migration)) and a few other dependencies
 - `Blocker` is no longer needed for `readJsonFileToA`
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util2" % "0.2-TRAVIS-REPLACE-ME"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util2" % "0.2-6140478"`
 
 ## 0.1
 

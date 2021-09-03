@@ -11,7 +11,7 @@ Dependency Upgrades:
 - `google-cloud-container` to `1.5.0`
 - `io.kubernetes` to `12.0.0`
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.22-TRAVIS-REPLACE-ME"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.22-6140478"`
 
 ## 0.21
 Breaking Changes:
