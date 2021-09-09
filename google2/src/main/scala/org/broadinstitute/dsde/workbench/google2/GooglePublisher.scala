@@ -1,12 +1,12 @@
 package org.broadinstitute.dsde.workbench.google2
 
-import cats.effect.{Async, ContextShift, Resource, Timer}
+import cats.effect.{Async, Resource}
 import cats.mtl.Ask
 import com.google.pubsub.v1.PubsubMessage
 import fs2.Pipe
-import org.typelevel.log4cats.StructuredLogger
 import io.circe.Encoder
 import org.broadinstitute.dsde.workbench.model.TraceId
+import org.typelevel.log4cats.StructuredLogger
 
 trait GooglePublisher[F[_]] {
 
@@ -39,7 +39,7 @@ trait GooglePublisher[F[_]] {
 }
 
 object GooglePublisher {
-  def resource[F[_]: Async: Timer: ContextShift: StructuredLogger](
+  def resource[F[_]: Async: StructuredLogger](
     config: PublisherConfig
   ): Resource[F, GooglePublisher[F]] =
     for {

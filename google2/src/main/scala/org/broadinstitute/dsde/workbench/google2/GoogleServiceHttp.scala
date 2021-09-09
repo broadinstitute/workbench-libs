@@ -1,15 +1,15 @@
 package org.broadinstitute.dsde.workbench
 package google2
 
-import cats.effect.{Concurrent, Resource, Timer}
+import cats.effect.{Async, Resource, Temporal}
 import com.google.cloud.Identity
 import com.google.pubsub.v1.TopicName
-import org.typelevel.log4cats.Logger
 import org.broadinstitute.dsde.workbench.google2.GoogleServiceHttpInterpreter.credentialResourceWithScope
 import org.broadinstitute.dsde.workbench.model.TraceId
 import org.broadinstitute.dsde.workbench.model.google.{GcsBucketName, GoogleProject}
 import org.http4s.client.Client
 import org.http4s.client.middleware.{Retry, RetryPolicy, Logger => Http4sLogger}
+import org.typelevel.log4cats.Logger
 
 import scala.concurrent.duration._
 
@@ -24,7 +24,7 @@ trait GoogleServiceHttp[F[_]] {
 }
 
 object GoogleServiceHttp {
-  def withRetryAndLogging[F[_]: Concurrent: Timer: Logger](
+  def withRetryAndLogging[F[_]: Temporal: Async: Logger](
     httpClient: Client[F],
     config: NotificationCreaterConfig
   ): Resource[F, GoogleServiceHttp[F]] = {
@@ -36,7 +36,7 @@ object GoogleServiceHttp {
     } yield new GoogleServiceHttpInterpreter[F](clientWithRetryAndLogging, config, credentials)
   }
 
-  def withoutRetryAndLogging[F[_]: Concurrent: Timer: Logger](
+  def withoutRetryAndLogging[F[_]: Temporal: Async: Logger](
     httpClient: Client[F],
     config: NotificationCreaterConfig
   ): Resource[F, GoogleServiceHttp[F]] =
