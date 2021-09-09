@@ -28,7 +28,8 @@ trait GoogleComputeService[F[_]] {
   ): F[Option[Operation]]
 
   /**
-   * @param autoDeleteDisks Set of disk device names that should be marked as auto deletable when runtime is deleted
+   * @param autoDeleteDisks
+   *   Set of disk device names that should be marked as auto deletable when runtime is deleted
    * @return
    */
   def deleteInstanceWithAutoDeleteDisk(project: GoogleProject,

@@ -8,8 +8,8 @@ import scala.concurrent.ExecutionContext
 object ExecutionContexts {
 
   /**
-   * Resource yielding an `ExecutionContext` backed by a fixed-size pool.
-   * For more info: https://gist.github.com/djspiewak/46b543800958cf61af6efa8e072bfd5c
+   * Resource yielding an `ExecutionContext` backed by a fixed-size pool. For more info:
+   * https://gist.github.com/djspiewak/46b543800958cf61af6efa8e072bfd5c
    */
   def fixedThreadPool[F[_]](size: Int)(implicit
     sf: Sync[F]
@@ -20,8 +20,8 @@ object ExecutionContexts {
   }
 
   /**
-   * Resource yielding an `ExecutionContext` backed by an unbounded thread pool.
-   * For more info: https://gist.github.com/djspiewak/46b543800958cf61af6efa8e072bfd5c
+   * Resource yielding an `ExecutionContext` backed by an unbounded thread pool. For more info:
+   * https://gist.github.com/djspiewak/46b543800958cf61af6efa8e072bfd5c
    */
   def cachedThreadPool[F[_]](implicit
     sf: Sync[F]

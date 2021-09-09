@@ -15,9 +15,9 @@ import scala.util.{Failure, Success, Try}
 trait FutureSupport {
 
   /**
-   * Use `cats.effect.IO` if you can. Try attempt` on `cats.effect.IO`.
-   * Converts a Future[T] to a Future[Try[T]]. Even if the operation of the Future failed, the resulting
-   * Future is considered a success and the error is available in the Try.
+   * Use `cats.effect.IO` if you can. Try attempt` on `cats.effect.IO`. Converts a Future[T] to a Future[Try[T]]. Even
+   * if the operation of the Future failed, the resulting Future is considered a success and the error is available in
+   * the Try.
    *
    * @param f
    * @tparam T
@@ -31,8 +31,8 @@ trait FutureSupport {
   }
 
   /**
-   * Use `cats.effect.IO` if you can. Try attempt` on `cats.effect.IO`.
-   * Returns a failed future if any of the input tries have failed, otherwise returns the input with tries unwrapped in a successful Future
+   * Use `cats.effect.IO` if you can. Try attempt` on `cats.effect.IO`. Returns a failed future if any of the input
+   * tries have failed, otherwise returns the input with tries unwrapped in a successful Future
    */
   def assertSuccessfulTries[K, T](tries: Map[K, Try[T]]): Future[Map[K, T]] = {
     val failures = tries.values.collect { case Failure(t) => t }
@@ -46,9 +46,8 @@ trait FutureSupport {
   }
 
   /**
-   * Adds non-blocking timeout support to futures.
-   * Use cats.effect.IO if you can. cats.effect.IO has built-in timeout support
-   * Example usage:
+   * Adds non-blocking timeout support to futures. Use cats.effect.IO if you can. cats.effect.IO has built-in timeout
+   * support Example usage:
    * {{{
    *   val future = Future(Thread.sleep(1000*60*60*24*365)) // 1 year
    *   Await.result(future.withTimeout(5 seconds, "Timed out"), 365 days)

@@ -49,12 +49,12 @@ class KubernetesInterpreter[F[_]](
           implicit val traceId = Ask.const[F, TraceId](TraceId(UUID.randomUUID()))
           val res = for {
             _ <- logger
-              .info(s"Determined that there is no cached client for kubernetes cluster ${clusterId}. Creating a client")
+              .info(s"Determined that there is no cached client for kubernetes cluster $clusterId. Creating a client")
             clusterOpt <- gkeService.getCluster(clusterId)
             cluster <- F.fromEither(
               clusterOpt.toRight(
                 KubernetesClusterNotFoundException(
-                  s"Could not create client for cluster ${clusterId} because it does not exist in google"
+                  s"Could not create client for cluster $clusterId because it does not exist in google"
                 )
               )
             )

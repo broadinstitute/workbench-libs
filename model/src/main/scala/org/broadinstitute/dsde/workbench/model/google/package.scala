@@ -19,17 +19,18 @@ package object google {
     GcsPathParser.parseGcsPathFromString(str)
 
   /**
-   * Generates a unique bucket name with the given prefix. The prefix may be
-   * modified so that it adheres to bucket naming rules specified here:
+   * Generates a unique bucket name with the given prefix. The prefix may be modified so that it adheres to bucket
+   * naming rules specified here:
    *
    * https://cloud.google.com/storage/docs/naming.
    *
-   * If trimPrefix is true, you're guaranteed the resulting bucket name will be unique.
-   * If trimPrefix is false, your bucket name may not be unique if your prefix is >=64 chars.
-   * but we'll keep as much of your prefix as possible.
+   * If trimPrefix is true, you're guaranteed the resulting bucket name will be unique. If trimPrefix is false, your
+   * bucket name may not be unique if your prefix is >=64 chars. but we'll keep as much of your prefix as possible.
    *
-   * @param prefix bucket name prefix
-   * @return generated bucket name
+   * @param prefix
+   *   bucket name prefix
+   * @return
+   *   generated bucket name
    */
   def generateUniqueBucketName(prefix: String, trimPrefix: Boolean = true): GcsBucketName = {
     // may only contain lowercase letters, numbers, underscores, dashes, or dots

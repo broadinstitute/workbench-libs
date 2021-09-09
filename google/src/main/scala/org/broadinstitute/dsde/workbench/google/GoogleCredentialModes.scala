@@ -66,16 +66,15 @@ object GoogleCredentialModes {
   }
 
   /**
-   * Gets a GoogleCredential from an access token. A function is passed in this case so
-   * the token can be refreshed. For example:
+   * Gets a GoogleCredential from an access token. A function is passed in this case so the token can be refreshed. For
+   * example:
    *
    * val dao = new HttpFooDAO("my-app", Token(() => obtainAccessToken()), ...)
    *
    * Note scopes are not used in this case since we are using pre-existing tokens.
    *
-   * This implementation does not cache tokens or keep track of expiry. It invokes
-   * the tokenProvider every time a token is needed. It is the caller's responsibility
-   * to handle token expiration and refreshes.
+   * This implementation does not cache tokens or keep track of expiry. It invokes the tokenProvider every time a token
+   * is needed. It is the caller's responsibility to handle token expiration and refreshes.
    */
   case class Token(tokenProvider: () => String) extends GoogleCredentialMode {
     override def toGoogleCredential(scopes: Seq[String]): GoogleCredential =

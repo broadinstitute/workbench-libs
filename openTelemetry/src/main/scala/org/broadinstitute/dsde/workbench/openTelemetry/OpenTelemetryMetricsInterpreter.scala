@@ -31,7 +31,7 @@ class OpenTelemetryMetricsInterpreter[F[_]](appName: String)(implicit F: Async[F
   )(implicit temporal: Temporal[F], ae: ApplicativeError[F, Throwable]): F[A] = {
     val latencySuccess =
       MeasureDouble.create(s"${name}_success_latency", "The successful io latency in milliseconds", "ms")
-    val countFailure = MeasureLong.create(s"${name}_failure_count", s"count of ${name}", "1")
+    val countFailure = MeasureLong.create(s"${name}_failure_count", s"count of $name", "1")
 
     val latencyDistribution =
       Distribution.create(BucketBoundaries.create(distributionBucket.map(x => Double.box(x.toMillis)).asJava))
@@ -41,7 +41,7 @@ class OpenTelemetryMetricsInterpreter[F[_]](appName: String)(implicit F: Async[F
 
     val viewSuccessName = Name.create(s"$appName/${name}_success_latency")
     val viewSuccess = View.create(viewSuccessName,
-                                  s"The distribution of ${name} success",
+                                  s"The distribution of $name success",
                                   latencySuccess,
                                   latencyDistribution,
                                   (List(appTagKey) ++ tagKvs.keys).asJava
@@ -49,7 +49,7 @@ class OpenTelemetryMetricsInterpreter[F[_]](appName: String)(implicit F: Async[F
 
     val viewFailureName = Name.create(s"$appName/${name}_failure_count")
     val viewFailure = View.create(viewFailureName,
-                                  s"The count of ${name} failure",
+                                  s"The count of $name failure",
                                   countFailure,
                                   Aggregation.Count.create(),
                                   (List(appTagKey) ++ tagKvs.keys).asJava
@@ -71,12 +71,12 @@ class OpenTelemetryMetricsInterpreter[F[_]](appName: String)(implicit F: Async[F
   }
 
   def gauge[A](name: String, value: Double, tags: Map[String, String] = Map.empty): F[Unit] = {
-    val gauge = MeasureDouble.create(s"${name}_gauge", s"Current value of ${name}", "1")
+    val gauge = MeasureDouble.create(s"${name}_gauge", s"Current value of $name", "1")
     val tagKvs = tags.map { case (k, v) => (TagKey.create(k), TagValue.create(v)) }
     val tc = getTagContext(tagKvs)
     val view = View.create(
       Name.create(s"$appName/${name}_gauge"),
-      s"The distribution of ${name} gauge",
+      s"The distribution of $name gauge",
       gauge,
       Aggregation.LastValue.create(),
       (List(appTagKey) ++ tagKvs.keys).asJava
@@ -88,11 +88,11 @@ class OpenTelemetryMetricsInterpreter[F[_]](appName: String)(implicit F: Async[F
   }
 
   def incrementCounter[A](name: String, count: Long = 1, tags: Map[String, String] = Map.empty): F[Unit] = {
-    val counter = MeasureLong.create(s"${name}_count", s"count of ${name}", "1")
+    val counter = MeasureLong.create(s"${name}_count", s"count of $name", "1")
     val tagKvs = tags.map { case (k, v) => (TagKey.create(k), TagValue.create(v)) }
     val tc = getTagContext(tagKvs)
     val view = View.create(Name.create(s"$appName/${name}_count"),
-                           s"The count of ${name}",
+                           s"The count of $name",
                            counter,
                            Aggregation.Sum.create(),
                            (List(appTagKey) ++ tagKvs.keys).asJava
@@ -108,7 +108,7 @@ class OpenTelemetryMetricsInterpreter[F[_]](appName: String)(implicit F: Async[F
                      distributionBucket: List[FiniteDuration],
                      tags: Map[String, String] = Map.empty
   )(implicit temporal: Temporal[F]): F[Unit] = {
-    val latency = MeasureDouble.create(s"${name}_duration", s"The latency of ${name} in milliseconds", "ms")
+    val latency = MeasureDouble.create(s"${name}_duration", s"The latency of $name in milliseconds", "ms")
 
     val latencyDistribution =
       Distribution.create(BucketBoundaries.create(distributionBucket.map(x => Double.box(x.toMillis)).asJava))
@@ -116,7 +116,7 @@ class OpenTelemetryMetricsInterpreter[F[_]](appName: String)(implicit F: Async[F
     val tagKvs = tags.map { case (k, v) => (TagKey.create(k), TagValue.create(v)) }
     val tc = getTagContext(tagKvs)
     val view = View.create(Name.create(s"$appName/${name}_duration"),
-                           s"The distribution of ${name} duration",
+                           s"The distribution of $name duration",
                            latency,
                            latencyDistribution,
                            (List(appTagKey) ++ tagKvs.keys).asJava

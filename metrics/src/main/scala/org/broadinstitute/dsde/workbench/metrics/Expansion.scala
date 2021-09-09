@@ -5,9 +5,9 @@ import akka.http.scaladsl.model._
 import scala.annotation.implicitNotFound
 
 /**
- * Typeclass for something that can be converted into a metric name fragment.
- * Metric name fragments can be combined via ExpandedMetricBuilder to generate an "expanded" metric name.
- * By default this just calls toString on the object of type A, but this can be overridden.
+ * Typeclass for something that can be converted into a metric name fragment. Metric name fragments can be combined via
+ * ExpandedMetricBuilder to generate an "expanded" metric name. By default this just calls toString on the object of
+ * type A, but this can be overridden.
  */
 @implicitNotFound(msg = "Cannot expand instances of type ${A}")
 trait Expansion[A] {
@@ -34,9 +34,8 @@ object Expansion {
   }
 
   /**
-   * Implicit expansion for Uri.
-   * Statsd doesn't allow slashes in metric names, so we override makeName to override
-   * the default toString based implementation.
+   * Implicit expansion for Uri. Statsd doesn't allow slashes in metric names, so we override makeName to override the
+   * default toString based implementation.
    */
   implicit object UriExpansion extends Expansion[Uri] {
     override def makeName(uri: Uri): String = {

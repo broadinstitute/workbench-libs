@@ -14,11 +14,12 @@ trait RandomUtil {
   def uuidWithPrefix(prefix: String, delimiter: String = "_"): String = appendDelimiter(prefix, delimiter) + randomUuid
 
   /**
-   * Make a random alpha-numeric (lowercase) string to be used as a semi-unique
-   * identifier.
+   * Make a random alpha-numeric (lowercase) string to be used as a semi-unique identifier.
    *
-   * @param length the number of characters in the string
-   * @return a random string
+   * @param length
+   *   the number of characters in the string
+   * @return
+   *   a random string
    */
   def makeRandomId(length: Int = 7): String =
     Random.alphanumeric.take(length).mkString.toLowerCase

@@ -38,7 +38,7 @@ final class Test(credPathStr: String,
 
   val project = GoogleProject(projectStr)
   val region = Location(regionStr)
-  val zoneStr = s"${region}-a"
+  val zoneStr = s"$region-a"
   val subnetworkNameStr = networkNameStr
   val clusterName = KubernetesName.withValidation[KubernetesClusterName](clusterNameStr, KubernetesClusterName.apply)
   val nodepoolName = KubernetesName.withValidation[NodepoolName](nodepoolNameStr, NodepoolName.apply)
@@ -235,8 +235,8 @@ final class Test(credPathStr: String,
           .compile
           .lastOrError
         _ <-
-          if (lastOp.isDone) IO(println(s"operation is done, initial operation: ${operation}"))
-          else IO(s"operation errored, initial operation: ${operation}")
+          if (lastOp.isDone) IO(println(s"operation is done, initial operation: $operation"))
+          else IO(s"operation errored, initial operation: $operation")
       } yield ()
     }
   }

@@ -20,20 +20,18 @@ import org.broadinstitute.dsde.workbench.model.TraceId
 private[google2] class GooglePublisherInterpreter[F[_]: Async: StructuredLogger](
   publisher: Publisher
 ) extends GooglePublisher[F] {
-  def publish[MessageType: Encoder]: Pipe[F, MessageType, Unit] = in => {
+  def publish[MessageType: Encoder]: Pipe[F, MessageType, Unit] = in =>
     in.flatMap { message =>
       Stream
         .eval(publishMessage(message.asJson.noSpaces, None)) //This will turn message case class into raw json string
     }
-  }
 
-  def publishNative: Pipe[F, PubsubMessage, Unit] = in => {
+  def publishNative: Pipe[F, PubsubMessage, Unit] = in =>
     in.flatMap { message =>
       Stream.eval(
         publishNativeOne(message)
       )
     }
-  }
 
   /**
    * Watch out message size quota and limitations https://cloud.google.com/pubsub/quotas
@@ -53,12 +51,10 @@ private[google2] class GooglePublisherInterpreter[F[_]: Async: StructuredLogger]
       }
       .void,
     Option(message.getAttributesMap.get("traceId")).map(s => TraceId(s)),
-    s"Publishing ${message}"
+    s"Publishing $message"
   )
 
-  def publishString: Pipe[F, String, Unit] = in => {
-    in.flatMap(s => Stream.eval(publishMessage(s, None)))
-  }
+  def publishString: Pipe[F, String, Unit] = in => in.flatMap(s => Stream.eval(publishMessage(s, None)))
 
   override def publishOne[MessageType: Encoder](message: MessageType)(implicit ev: Ask[F, TraceId]): F[Unit] = {
     val byteString = ByteString.copyFromUtf8(message.asJson.noSpaces)
@@ -111,7 +107,7 @@ object GooglePublisherInterpreter {
         .delay(topicAdminClient.createTopic(topicName))
         .void
         .recoverWith { case _: AlreadyExistsException =>
-          logger.info(s"${topicName} already exists")
+          logger.info(s"$topicName already exists")
         }
     )
 
