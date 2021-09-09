@@ -5,9 +5,10 @@ import java.nio.channels.Channels
 import java.nio.file.{Path, Paths}
 import java.time.Instant
 
+import fs2.io.file.Files
 import cats.data.NonEmptyList
 import cats.effect._
-import cats.effect.concurrent.Semaphore
+import cats.effect.std.Semaphore
 import cats.syntax.all._
 import com.google.auth.oauth2.ServiceAccountCredentials
 import com.google.cloud.storage.BucketInfo.LifecycleRule
@@ -32,9 +33,8 @@ import com.google.auth.Credentials
 
 import scala.collection.JavaConverters._
 
-private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer](
+private[google2] class GoogleStorageInterpreter[F[_]](
   db: Storage,
-  blocker: Blocker,
   blockerBound: Option[Semaphore[F]]
 )(implicit logger: StructuredLogger[F], F: Async[F])
     extends GoogleStorageService[F] {
@@ -110,7 +110,6 @@ private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer](
                 }
             ),
             chunkSize,
-            blocker,
             closeAfterUse = true
           )
         case None => Stream.empty
@@ -225,7 +224,7 @@ private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer](
       val writer = db.writer(blobInfo, options: _*)
       Channels.newOutputStream(writer)
     }
-    fs2.io.writeOutputStream(outputStream, blocker, closeAfterUse = true)
+    fs2.io.writeOutputStream(outputStream, closeAfterUse = true)
   }
 
   override def createBlob(bucketName: GcsBucketName,
@@ -533,29 +532,27 @@ private[google2] class GoogleStorageInterpreter[F[_]: ContextShift: Timer](
           fetchNext.compile.lastOrError.map(next => (p, next))
         }
       }
-      blob <- Stream.fromIterator[F](page.getValues.iterator().asScala).map(b => Option(b)).unNone
+      blob <- Stream.fromIterator[F](page.getValues.iterator().asScala, 1024).map(b => Option(b)).unNone
     } yield blob
   }
 
   private def blockingF[A](fa: F[A]): F[A] = blockerBound match {
-    case None    => blocker.blockOn(fa)
-    case Some(s) => s.withPermit(blocker.blockOn(fa))
+    case None    => fa
+    case Some(s) => s.permit.use(_ => fa)
   }
 
   private val chunkSize = 1024 * 1024 * 2 // com.google.cloud.storage.BlobReadChannel.DEFAULT_CHUNK_SIZE
 }
 
 object GoogleStorageInterpreter {
-  def apply[F[_]: Timer: Async: ContextShift: StructuredLogger](
+  def apply[F[_]: Async: StructuredLogger](
     db: Storage,
-    blocker: Blocker,
     blockerBound: Option[Semaphore[F]]
   ): GoogleStorageInterpreter[F] =
-    new GoogleStorageInterpreter(db, blocker, blockerBound)
+    new GoogleStorageInterpreter(db, blockerBound)
 
-  def storage[F[_]: Sync: ContextShift](
+  def storage[F[_]: Sync: Files](
     pathToJson: String,
-    blocker: Blocker,
     project: Option[GoogleProject] =
       None // legacy credential file doesn't have `project_id` field. Hence we need to pass in explicitly
   ): Resource[F, Storage] =
@@ -563,7 +560,7 @@ object GoogleStorageInterpreter {
       credential <- org.broadinstitute.dsde.workbench.util2.readFile(pathToJson)
       project <- project match { //Use explicitly passed in project if it's defined; else use `project_id` in json credential; if neither has project defined, raise error
         case Some(p) => Resource.pure[F, GoogleProject](p)
-        case None    => Resource.eval(parseProject(pathToJson, blocker).compile.lastOrError)
+        case None    => Resource.eval(parseProject(pathToJson).compile.lastOrError)
       }
       db <- Resource.eval(
         Sync[F].delay(
@@ -581,9 +578,9 @@ object GoogleStorageInterpreter {
     "project_id"
   )(GoogleProject.apply)
 
-  def parseProject[F[_]: ContextShift: Sync](pathToJson: String, blocker: Blocker): Stream[F, GoogleProject] =
-    fs2.io.file
-      .readAll[F](Paths.get(pathToJson), blocker, 4096)
+  def parseProject[F[_]: Files: Sync](pathToJson: String): Stream[F, GoogleProject] =
+    Files[F]
+      .readAll(Paths.get(pathToJson), 4096)
       .through(byteStreamParser)
       .through(decoder[F, GoogleProject])
 }

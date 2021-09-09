@@ -1,4 +1,5 @@
 package org.broadinstitute.dsde.workbench.google2
+import cats.effect.unsafe.implicits.global
 import cats.effect.{IO, Resource}
 import com.google.api.gax.core.NoCredentialsProvider
 import com.google.api.gax.grpc.GrpcTransportChannel

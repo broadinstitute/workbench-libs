@@ -1,24 +1,13 @@
 package org.broadinstitute.dsde.workbench.google2
 
-import cats.effect.{Blocker, ContextShift, Resource, Sync, Timer}
+import cats.effect.{Async, Resource}
 import com.google.auth.Credentials
 import com.google.cloud.ServiceOptions.getDefaultProjectId
 import com.google.cloud.bigquery.BigQueryOptions.DefaultBigQueryFactory
-import com.google.cloud.bigquery.{
-  Acl,
-  BigQuery,
-  BigQueryOptions,
-  Dataset,
-  DatasetId,
-  DatasetInfo,
-  JobId,
-  QueryJobConfiguration,
-  Table,
-  TableResult
-}
-import org.typelevel.log4cats.StructuredLogger
+import com.google.cloud.bigquery._
 import org.broadinstitute.dsde.workbench.model.WorkbenchEmail
 import org.broadinstitute.dsde.workbench.model.google.{BigQueryDatasetName, BigQueryTableName, GoogleProject}
+import org.typelevel.log4cats.StructuredLogger
 
 trait GoogleBigQueryService[F[_]] {
   def query(queryJobConfiguration: QueryJobConfiguration, options: BigQuery.JobOption*): F[TableResult]
@@ -51,33 +40,29 @@ trait GoogleBigQueryService[F[_]] {
 }
 
 object GoogleBigQueryService {
-  def resource[F[_]: Sync: ContextShift: Timer: StructuredLogger](
+  def resource[F[_]: Async: StructuredLogger](
+    pathToJson: String
+  ): Resource[F, GoogleBigQueryService[F]] =
+    credentialResource(pathToJson) flatMap (resource(_))
+
+  def resource[F[_]: Async: StructuredLogger](
     pathToJson: String,
-    blocker: Blocker
+    projectId: GoogleProject
   ): Resource[F, GoogleBigQueryService[F]] =
-    credentialResource(pathToJson) flatMap (resource(_, blocker))
+    credentialResource(pathToJson) flatMap (resource(_, projectId))
 
-  def resource[F[_]: Sync: ContextShift: Timer: StructuredLogger](
-    pathToJson: String,
-    projectId: GoogleProject,
-    blocker: Blocker
+  def resource[F[_]: Async: StructuredLogger](
+    credentials: Credentials
   ): Resource[F, GoogleBigQueryService[F]] =
-    credentialResource(pathToJson) flatMap (resource(_, blocker, projectId))
+    resource(credentials, GoogleProject(getDefaultProjectId))
 
-  def resource[F[_]: Sync: ContextShift: Timer: StructuredLogger](
+  def resource[F[_]: Async: StructuredLogger](
     credentials: Credentials,
-    blocker: Blocker
-  ): Resource[F, GoogleBigQueryService[F]] =
-    resource(credentials, blocker, GoogleProject(getDefaultProjectId))
-
-  def resource[F[_]: Sync: ContextShift: Timer: StructuredLogger](
-    credentials: Credentials,
-    blocker: Blocker,
     projectId: GoogleProject
   ): Resource[F, GoogleBigQueryService[F]] =
     for {
       client <- Resource.eval[F, BigQuery](
-        Sync[F].delay(
+        Async[F].delay(
           new DefaultBigQueryFactory().create(
             BigQueryOptions
               .newBuilder()
@@ -87,5 +72,5 @@ object GoogleBigQueryService {
           )
         )
       )
-    } yield new GoogleBigQueryInterpreter[F](client, blocker)
+    } yield new GoogleBigQueryInterpreter[F](client)
 }

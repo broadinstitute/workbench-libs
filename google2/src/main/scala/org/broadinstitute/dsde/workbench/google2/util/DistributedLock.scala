@@ -20,7 +20,7 @@ class DistributedLock[F[_]](
   lockPathPrefix: String,
   config: DistributedLockConfig,
   val googleFirestoreOps: GoogleFirestoreService[F]
-)(implicit ec: ExecutionContext, timer: Timer[F], asyncF: Async[F])
+)(implicit ec: ExecutionContext, F: Async[F])
     extends DistributedLockAlgebra[F] {
   val retryable: Function1[Throwable, Boolean] = {
     case _: FailToObtainLock => true
@@ -50,7 +50,7 @@ class DistributedLock[F[_]](
         lockStatus <- getLockStatus(tx, docRef)
         _ <- lockStatus match {
           case Available => setLock(tx, docRef, lock.expiresIn)
-          case Locked    => asyncF.raiseError[Unit](FailToObtainLock(lock))
+          case Locked    => F.raiseError[Unit](FailToObtainLock(lock))
         }
       } yield ()
     }
@@ -58,20 +58,22 @@ class DistributedLock[F[_]](
   private[dsde] def getLockStatus(tx: Transaction, documentReference: DocumentReference): F[LockStatus] = {
     val res = for {
       documentSnapshot <- OptionT(
-        asyncF
+        F
           .async[DocumentSnapshot] { cb =>
-            ApiFutures.addCallback(
-              tx.get(documentReference),
-              callBack(cb),
-              executor
-            )
+            F.delay(
+              ApiFutures.addCallback(
+                tx.get(documentReference),
+                callBack(cb),
+                executor
+              )
+            ).as(None)
           }
           .map(Option(_))
       )
 
       expiresAt <- OptionT.fromOption[F](Option(documentSnapshot.getLong(EXPIRESAT)))
-      statusF = timer.clock.realTime(EXPIRESATTIMEUNIT).map[LockStatus] { currentTime =>
-        if (expiresAt.longValue() < currentTime)
+      statusF = F.realTimeInstant.map[LockStatus] { currentTime =>
+        if (expiresAt.longValue() < currentTime.toEpochMilli)
           Available
         else
           Locked
@@ -84,17 +86,17 @@ class DistributedLock[F[_]](
 
   private[dsde] def setLock(tx: Transaction, documentReference: DocumentReference, expiresIn: FiniteDuration): F[Unit] =
     for {
-      currentTime <- timer.clock.realTime(EXPIRESATTIMEUNIT)
+      currentTime <- F.realTimeInstant
       data = Map(
-        EXPIRESAT -> (currentTime + expiresIn.toMillis)
+        EXPIRESAT -> (currentTime.toEpochMilli + expiresIn.toMillis)
       )
-      _ <- asyncF.delay(tx.set(documentReference, data.asJava))
+      _ <- F.delay(tx.set(documentReference, data.asJava))
     } yield ()
 
   private[dsde] def releaseLock(lockPath: LockPath): F[Unit] =
     googleFirestoreOps.transaction { (db, tx) =>
       val docRef = db.collection(lockPath.collectionName.asString).document(lockPath.document.asString)
-      asyncF.delay(tx.delete(docRef))
+      F.delay(tx.delete(docRef))
     }
 }
 
@@ -102,7 +104,7 @@ object DistributedLock {
   private[dsde] val EXPIRESAT = "expiresAt"
   private[dsde] val EXPIRESATTIMEUNIT = TimeUnit.MILLISECONDS
 
-  def apply[F[_]: Async: Timer](
+  def apply[F[_]: Async](
     lockPathPrefix: String,
     config: DistributedLockConfig,
     googleFirestoreOps: GoogleFirestoreService[F]

@@ -1,55 +1,44 @@
 package org.broadinstitute.dsde.workbench.google2
 
-import cats.effect.concurrent.Semaphore
-import cats.effect.{Async, Blocker, ContextShift, Timer}
-import cats.syntax.all._
+import cats.effect.Async
+import cats.effect.std.Semaphore
 import cats.mtl.Ask
-import com.google.cloud.compute.v1.{
-  Disk,
-  DiskClient,
-  DisksResizeRequest,
-  Operation,
-  ProjectZoneDiskName,
-  ProjectZoneName
-}
+import cats.syntax.all._
+import com.google.cloud.compute.v1._
 import fs2.Stream
-import org.typelevel.log4cats.StructuredLogger
 import org.broadinstitute.dsde.workbench.RetryConfig
+import org.broadinstitute.dsde.workbench.google2.util.RetryPredicates._
 import org.broadinstitute.dsde.workbench.model.TraceId
 import org.broadinstitute.dsde.workbench.model.google.GoogleProject
-import org.broadinstitute.dsde.workbench.google2.util.RetryPredicates._
+import org.typelevel.log4cats.StructuredLogger
 
 import scala.collection.JavaConverters._
 
-private[google2] class GoogleDiskInterpreter[F[_]: StructuredLogger: Timer: ContextShift](
-  diskClient: DiskClient,
+private[google2] class GoogleDiskInterpreter[F[_]: StructuredLogger](
+  diskClient: DisksClient,
   retryConfig: RetryConfig,
-  blocker: Blocker,
   blockerBound: Semaphore[F]
 )(implicit F: Async[F])
     extends GoogleDiskService[F] {
 
   override def createDisk(project: GoogleProject, zone: ZoneName, disk: Disk)(implicit
     ev: Ask[F, TraceId]
-  ): F[Option[Operation]] = {
-    val projectZone = ProjectZoneName.of(project.value, zone.value)
+  ): F[Option[Operation]] =
     retryF(
-      recoverF(F.delay(diskClient.insertDisk(projectZone, disk)), whenStatusCode(409)),
-      s"com.google.cloud.compute.v1DiskClient.insertDisk(${projectZone.toString}, ${disk.getName})"
+      recoverF(F.blocking(diskClient.insert(project.value, zone.value, disk)), whenStatusCode(409)),
+      s"com.google.cloud.compute.v1DiskClient.insertDisk(${project.value}, ${zone.value}, ${disk.getName})"
     ).compile.lastOrError
-  }
 
   def getDisk(project: GoogleProject, zone: ZoneName, diskName: DiskName)(implicit
     ev: Ask[F, TraceId]
   ): F[Option[Disk]] = {
-    val projectZoneDiskName = ProjectZoneDiskName.of(diskName.value, project.value, zone.value)
-    val fa = recoverF(F.delay(diskClient.getDisk(projectZoneDiskName)), whenStatusCode(404))
+    val fa = recoverF(F.blocking(diskClient.get(project.value, zone.value, diskName.value)), whenStatusCode(404))
 
     ev.ask.flatMap(traceId =>
       withLogging(
         fa,
         Some(traceId),
-        s"com.google.cloud.compute.v1.DiskClient.getDisk(${projectZoneDiskName.toString})"
+        s"com.google.cloud.compute.v1.DiskClient.getDisk(${project.value}, ${zone.value}, ${diskName.value})"
       )
     )
   }
@@ -57,14 +46,13 @@ private[google2] class GoogleDiskInterpreter[F[_]: StructuredLogger: Timer: Cont
   override def deleteDisk(project: GoogleProject, zone: ZoneName, diskName: DiskName)(implicit
     ev: Ask[F, TraceId]
   ): F[Option[Operation]] = {
-    val projectZoneDiskName = ProjectZoneDiskName.of(diskName.value, project.value, zone.value)
-    val fa = recoverF(F.delay(diskClient.deleteDisk(projectZoneDiskName)), whenStatusCode(404))
+    val fa = recoverF(F.blocking(diskClient.delete(project.value, zone.value, diskName.value)), whenStatusCode(404))
 
     ev.ask.flatMap(traceId =>
       withLogging(
         fa,
         Some(traceId),
-        s"com.google.cloud.compute.v1.DiskClient.deleteDisk(${projectZoneDiskName.toString})",
+        s"com.google.cloud.compute.v1.DiskClient.deleteDisk(${project.value}, ${zone.value}, ${diskName.value})",
         showOperation.contramap[Option[Operation]](opt => opt.getOrElse(null))
       )
     )
@@ -72,30 +60,27 @@ private[google2] class GoogleDiskInterpreter[F[_]: StructuredLogger: Timer: Cont
 
   override def listDisks(project: GoogleProject, zone: ZoneName)(implicit
     ev: Ask[F, TraceId]
-  ): Stream[F, Disk] = {
-    val projectZone = ProjectZoneName.of(project.value, zone.value)
+  ): Stream[F, Disk] =
     for {
       pagedResults <- retryF(
-        F.delay(diskClient.listDisks(projectZone)),
-        s"com.google.cloud.compute.v1.DiskClient.listDisks(${projectZone.toString})"
+        F.blocking(diskClient.list(project.value, zone.value)),
+        s"com.google.cloud.compute.v1.DiskClient.listDisks(${project.value}, ${zone.value})"
       )
 
-      res <- Stream.fromIterator[F](pagedResults.iterateAll().iterator().asScala)
+      res <- Stream.fromIterator[F](pagedResults.iterateAll().iterator().asScala, 1024)
     } yield res
-  }
 
   override def resizeDisk(project: GoogleProject, zone: ZoneName, diskName: DiskName, newSizeGb: Int)(implicit
     ev: Ask[F, TraceId]
   ): F[Operation] = {
-    val projectZoneDiskName = ProjectZoneDiskName.of(diskName.value, project.value, zone.value)
-    val request = DisksResizeRequest.newBuilder().setSizeGb(newSizeGb.toString).build()
+    val request = DisksResizeRequest.newBuilder().setSizeGb(newSizeGb).build()
     retryF(
-      F.delay(diskClient.resizeDisk(projectZoneDiskName, request)),
-      s"com.google.cloud.compute.v1.DiskClient.resizeDisk(${projectZoneDiskName.toString}, $newSizeGb)"
+      F.blocking(diskClient.resize(project.value, zone.value, diskName.value, request)),
+      s"com.google.cloud.compute.v1.DiskClient.resizeDisk(${project.value}, ${zone.value}, ${diskName.value}, $newSizeGb)"
     ).compile.lastOrError
   }
 
   private def retryF[A](fa: F[A], loggingMsg: String)(implicit ev: Ask[F, TraceId]): Stream[F, A] =
-    tracedRetryF(retryConfig)(blockerBound.withPermit(blocker.blockOn(fa)), loggingMsg)
+    tracedRetryF(retryConfig)(blockerBound.permit.use(_ => fa), loggingMsg)
 
 }
