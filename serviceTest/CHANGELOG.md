@@ -13,7 +13,7 @@ SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test"
 
 ### Dependency Updates
 - Updated `rawls-model` dependency to `0.1-90eae81cd`
-- `jackson-module-scala` to `2.12.4`
+- `jackson-module-scala` to `2.12.5`
 
 ## 0.18
 Changed
