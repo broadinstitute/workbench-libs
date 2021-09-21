@@ -2,6 +2,13 @@
 
 This file documents changes to the `workbench-service-test` library, including notes on how to upgrade to new versions.
 
+## 0.20
+
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "0.20-TRAVIS-REPLACE-ME"`
+
+### Dependency Updates
+- Updated `rawls-model` dependency to `0.1-384ab501b` for Project per Workspace changes
+
 ## 0.19
 
 SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "0.19-44c8451"`
