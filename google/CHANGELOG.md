@@ -4,7 +4,7 @@ This file documents changes to the `workbench-google` library, including notes o
 
 ## 0.21
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.21-5c9c4f6"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.21-TRAVIS-REPLACE-ME"`
 
 ### Added
 
@@ -33,6 +33,8 @@ when we retried creation. Changed to delete the partially created group before r
 - Cross build to scala 2.13
 - Fix potential NPE in `HttpGoogleProjectDAO.isBillingActive()`
 - Target java 11
+- `addIamRoles` and `removeIamRoles` in `GoogleIamDAO` will now retry when the group does not exist, which could be due
+  to slow syncing with Google or slow propogation.
 
 ## 0.20
 

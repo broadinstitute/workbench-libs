@@ -217,7 +217,8 @@ class HttpGoogleIamDAO(appName: String, googleCredentialMode: GoogleCredentialMo
           when404,
           whenInvalidValueOnBucketCreation,
           whenNonHttpIOException,
-          when409
+          when409,
+          when400WithDoesNotExistMessage
     ) { () =>
       // It is important that we call getIamPolicy within the same retry block as we call setIamPolicy
       // getIamPolicy gets the etag that is used in setIamPolicy, the etag is used to detect concurrent

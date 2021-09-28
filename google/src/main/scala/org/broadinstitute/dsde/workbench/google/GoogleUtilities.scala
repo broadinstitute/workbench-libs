@@ -91,6 +91,16 @@ object GoogleUtilities {
       case _                              => false
     }
 
+    /**
+     * Groups may take some time to sync to Google and propogate. This will retry if the group does not exist (yet).
+     */
+    def when400WithDoesNotExistMessage(throwable: Throwable): Boolean = throwable match {
+      case t: GoogleJsonResponseException =>
+        t.getStatusCode == 400 &&
+          compareErrorMessage(t)(_.contains("does not exist"))
+      case _ => false
+    }
+
     private def compareErrorDomain(ex: GoogleJsonResponseException)(fn: String => Boolean): Boolean = {
       val res = for {
         details <- Option(ex.getDetails)
@@ -108,6 +118,16 @@ object GoogleUtilities {
         headError <- errors.headOption
         reason <- Option(headError.getReason)
       } yield fn(reason)
+      res.getOrElse(false)
+    }
+
+    private def compareErrorMessage(ex: GoogleJsonResponseException)(fn: String => Boolean): Boolean = {
+      val res = for {
+        details <- Option(ex.getDetails)
+        errors <- Option(details.getErrors).map(_.asScala)
+        headError <- errors.headOption
+        message <- Option(headError.getMessage)
+      } yield fn(message)
       res.getOrElse(false)
     }
   }
