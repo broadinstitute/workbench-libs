@@ -211,14 +211,15 @@ class HttpGoogleIamDAO(appName: String, googleCredentialMode: GoogleCredentialMo
   ): Future[Boolean] =
     // Note the project here is the one in which we're removing the IAM roles
     // Retry 409s here as recommended for concurrent modifications of the IAM policy
-    retry(when5xx,
-          whenUsageLimited,
-          whenGlobalUsageLimited,
-          when404,
-          whenInvalidValueOnBucketCreation,
-          whenNonHttpIOException,
-          when409,
-          when400WithDoesNotExistMessage
+    retry(
+      when5xx,
+      whenUsageLimited,
+      whenGlobalUsageLimited,
+      when404,
+      whenInvalidValueOnBucketCreation,
+      whenNonHttpIOException,
+      when409,
+      when400WithDoesNotExistMessage
     ) { () =>
       // It is important that we call getIamPolicy within the same retry block as we call setIamPolicy
       // getIamPolicy gets the etag that is used in setIamPolicy, the etag is used to detect concurrent
