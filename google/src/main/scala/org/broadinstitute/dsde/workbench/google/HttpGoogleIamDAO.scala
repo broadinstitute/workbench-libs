@@ -192,50 +192,71 @@ class HttpGoogleIamDAO(appName: String, googleCredentialMode: GoogleCredentialMo
   override def addIamRoles(iamProject: GoogleProject,
                            userEmail: WorkbenchEmail,
                            memberType: MemberType,
-                           rolesToAdd: Set[String]
+                           rolesToAdd: Set[String],
+                           retryIfGroupDoesNotExist: Boolean = false
   ): Future[Boolean] =
-    modifyIamRoles(iamProject, userEmail, memberType, rolesToAdd, Set.empty)
+    modifyIamRoles(iamProject, userEmail, memberType, rolesToAdd, Set.empty, retryIfGroupDoesNotExist)
 
   override def removeIamRoles(iamProject: GoogleProject,
                               userEmail: WorkbenchEmail,
                               memberType: MemberType,
-                              rolesToRemove: Set[String]
+                              rolesToRemove: Set[String],
+                              retryIfGroupDoesNotExist: Boolean = false
   ): Future[Boolean] =
-    modifyIamRoles(iamProject, userEmail, memberType, Set.empty, rolesToRemove)
+    modifyIamRoles(iamProject, userEmail, memberType, Set.empty, rolesToRemove, retryIfGroupDoesNotExist)
 
   private def modifyIamRoles(iamProject: GoogleProject,
                              userEmail: WorkbenchEmail,
                              memberType: MemberType,
                              rolesToAdd: Set[String],
-                             rolesToRemove: Set[String]
-  ): Future[Boolean] =
+                             rolesToRemove: Set[String],
+                             retryIfGroupDoesNotExist: Boolean
+  ): Future[Boolean] = {
     // Note the project here is the one in which we're removing the IAM roles
     // Retry 409s here as recommended for concurrent modifications of the IAM policy
-    retry(
-      when5xx,
-      whenUsageLimited,
-      whenGlobalUsageLimited,
-      when404,
-      whenInvalidValueOnBucketCreation,
-      whenNonHttpIOException,
-      when409,
-      when400WithDoesNotExistMessage
-    ) { () =>
-      // It is important that we call getIamPolicy within the same retry block as we call setIamPolicy
-      // getIamPolicy gets the etag that is used in setIamPolicy, the etag is used to detect concurrent
-      // modifications and if that happens we need to be sure to get a new etag before retrying setIamPolicy
-      val existingPolicy = executeGoogleRequest(cloudResourceManager.projects().getIamPolicy(iamProject.value, null))
-      val updatedPolicy = updatePolicy(existingPolicy, userEmail, memberType, rolesToAdd, rolesToRemove)
 
-      // Policy objects use Sets so are not sensitive to ordering and duplication
-      if (existingPolicy == updatedPolicy) {
-        false
-      } else {
-        val policyRequest = new ProjectSetIamPolicyRequest().setPolicy(updatedPolicy).setUpdateMask("bindings,etag")
-        executeGoogleRequest(cloudResourceManager.projects().setIamPolicy(iamProject.value, policyRequest))
-        true
-      }
+    val basePredicateList: Seq[(Throwable => Boolean)] = Seq(when5xx,
+                                                             whenUsageLimited,
+                                                             whenGlobalUsageLimited,
+                                                             when404,
+                                                             whenInvalidValueOnBucketCreation,
+                                                             whenNonHttpIOException,
+                                                             when409
+    )
+    val predicateList: Seq[(Throwable => Boolean)] = if (retryIfGroupDoesNotExist) {
+      basePredicateList :+ when400WithDoesNotExistMessage
+    } else {
+      basePredicateList
     }
+
+    retry(
+      predicateList: _*
+    ) { () =>
+      updateIamPolicy(iamProject, userEmail, memberType, rolesToAdd, rolesToRemove)
+    }
+  }
+
+  private def updateIamPolicy(iamProject: GoogleProject,
+                              userEmail: WorkbenchEmail,
+                              memberType: MemberType,
+                              rolesToAdd: Set[String],
+                              rolesToRemove: Set[String]
+  ): Boolean = {
+    // It is important that we call getIamPolicy within the same retry block as we call setIamPolicy
+    // getIamPolicy gets the etag that is used in setIamPolicy, the etag is used to detect concurrent
+    // modifications and if that happens we need to be sure to get a new etag before retrying setIamPolicy
+    val existingPolicy = executeGoogleRequest(cloudResourceManager.projects().getIamPolicy(iamProject.value, null))
+    val updatedPolicy = updatePolicy(existingPolicy, userEmail, memberType, rolesToAdd, rolesToRemove)
+
+    // Policy objects use Sets so are not sensitive to ordering and duplication
+    if (existingPolicy == updatedPolicy) {
+      false
+    } else {
+      val policyRequest = new ProjectSetIamPolicyRequest().setPolicy(updatedPolicy).setUpdateMask("bindings,etag")
+      executeGoogleRequest(cloudResourceManager.projects().setIamPolicy(iamProject.value, policyRequest))
+      true
+    }
+  }
 
   override def getProjectPolicy(iamProject: GoogleProject): Future[ProjectPolicy] =
     retry(when5xx,
