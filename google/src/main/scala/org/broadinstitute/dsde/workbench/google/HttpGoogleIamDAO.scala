@@ -215,22 +215,20 @@ class HttpGoogleIamDAO(appName: String, googleCredentialMode: GoogleCredentialMo
     // Note the project here is the one in which we're removing the IAM roles
     // Retry 409s here as recommended for concurrent modifications of the IAM policy
 
-    val basePredicateList: Seq[(Throwable => Boolean)] = Seq(when5xx,
-                                                             whenUsageLimited,
-                                                             whenGlobalUsageLimited,
-                                                             when404,
-                                                             whenInvalidValueOnBucketCreation,
-                                                             whenNonHttpIOException,
-                                                             when409
+    val basePredicateList: Seq[Throwable => Boolean] = Seq(when5xx,
+                                                           whenUsageLimited,
+                                                           whenGlobalUsageLimited,
+                                                           when404,
+                                                           whenInvalidValueOnBucketCreation,
+                                                           whenNonHttpIOException,
+                                                           when409
     )
-    val predicateList: Seq[(Throwable => Boolean)] = if (retryIfGroupDoesNotExist) {
-      basePredicateList :+ when400WithDoesNotExistMessage
-    } else {
-      basePredicateList
-    }
+    val finalPredicateList: Seq[Throwable => Boolean] =
+      basePredicateList ++ (if (retryIfGroupDoesNotExist) Seq(whenGroupDoesNotExist: Throwable => Boolean)
+                            else Nil)
 
     retry(
-      predicateList: _*
+      finalPredicateList: _*
     ) { () =>
       updateIamPolicy(iamProject, userEmail, memberType, rolesToAdd, rolesToRemove)
     }

@@ -94,7 +94,7 @@ object GoogleUtilities {
     /**
      * Groups may take some time to sync to Google and propogate. This will retry if the group does not exist (yet).
      */
-    def when400WithDoesNotExistMessage(throwable: Throwable): Boolean = throwable match {
+    def whenGroupDoesNotExist(throwable: Throwable): Boolean = throwable match {
       case t: GoogleJsonResponseException =>
         t.getStatusCode == 400 &&
           compareErrorMessage(t)(_.contains("does not exist"))
