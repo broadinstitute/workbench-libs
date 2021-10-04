@@ -224,7 +224,7 @@ class HttpGoogleIamDAO(appName: String, googleCredentialMode: GoogleCredentialMo
                                                              when409
     )
     val predicateList: Seq[(Throwable => Boolean)] = if (retryIfGroupDoesNotExist) {
-      basePredicateList ++ Seq(when400WithDoesNotExistMessage)
+      basePredicateList :+ when400WithDoesNotExistMessage
     } else {
       basePredicateList
     }
