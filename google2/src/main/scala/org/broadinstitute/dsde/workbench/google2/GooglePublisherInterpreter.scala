@@ -116,7 +116,7 @@ object GooglePublisherInterpreter {
   private def publisherResource[F[_] : Sync](topicName: ProjectTopicName,
                                              credential: ServiceAccountCredentials
                                             ): Resource[F, Publisher] = {
-    val threadFactory = new ThreadFactoryBuilder().setNameFormat("publisher-thread-%d").build()
+    val threadFactory = new ThreadFactoryBuilder().setNameFormat("goog-publisher-%d").build()
     val fixedExecutorProvider = FixedExecutorProvider.create(
       new ScheduledThreadPoolExecutor(20, threadFactory))
 

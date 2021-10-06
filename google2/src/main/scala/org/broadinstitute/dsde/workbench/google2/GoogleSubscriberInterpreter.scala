@@ -180,7 +180,7 @@ object GoogleSubscriberInterpreter {
     credential: ServiceAccountCredentials,
     flowControlSettings: Option[FlowControlSettings]
   ): Resource[F, Subscriber] = Dispatcher[F].flatMap { d =>
-    val threadFactory = new ThreadFactoryBuilder().setNameFormat("subscriber-thread-%d").build()
+    val threadFactory = new ThreadFactoryBuilder().setNameFormat("goog-subscriber-%d").build()
     val fixedExecutorProvider = FixedExecutorProvider.create(
       new ScheduledThreadPoolExecutor(20, threadFactory))
 

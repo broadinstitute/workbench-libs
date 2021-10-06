@@ -5,14 +5,16 @@ import cats.Parallel
 import cats.effect._
 import cats.effect.std.Semaphore
 import cats.mtl.Ask
-import com.google.api.gax.core.FixedCredentialsProvider
+import com.google.api.gax.core.{FixedCredentialsProvider, FixedExecutorProvider}
 import com.google.auth.oauth2.GoogleCredentials
 import com.google.cloud.compute.v1._
+import com.google.common.util.concurrent.ThreadFactoryBuilder
 import org.broadinstitute.dsde.workbench.RetryConfig
 import org.broadinstitute.dsde.workbench.google2.util.RetryPredicates
 import org.broadinstitute.dsde.workbench.model.google.GoogleProject
 import org.broadinstitute.dsde.workbench.model.{TraceId, WorkbenchEmail}
 
+import java.util.concurrent.ScheduledThreadPoolExecutor
 import scala.collection.JavaConverters._
 
 /**
@@ -147,10 +149,14 @@ object GoogleComputeService {
     retryConfig: RetryConfig
   ): Resource[F, GoogleComputeService[F]] = {
     val credentialsProvider = FixedCredentialsProvider.create(googleCredentials)
+    val threadFactory = new ThreadFactoryBuilder().setNameFormat("goog-compute-%d").build()
+    val fixedExecutorProvider = FixedExecutorProvider.create(
+      new ScheduledThreadPoolExecutor(20, threadFactory))
 
     val instanceSettings = InstancesSettings
       .newBuilder()
       .setCredentialsProvider(credentialsProvider)
+      .setBackgroundExecutorProvider(fixedExecutorProvider)
       .build()
     val firewallSettings = FirewallsSettings
       .newBuilder()
