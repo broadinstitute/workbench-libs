@@ -5,7 +5,7 @@ import cats.effect.std.{Dispatcher, Queue}
 import cats.syntax.all._
 import com.google.api.core.ApiService
 import com.google.api.gax.batching.FlowControlSettings
-import com.google.api.gax.core.FixedCredentialsProvider
+import com.google.api.gax.core.{FixedCredentialsProvider, FixedExecutorProvider}
 import com.google.api.gax.rpc.AlreadyExistsException
 import com.google.auth.oauth2.ServiceAccountCredentials
 import com.google.cloud.pubsub.v1._
@@ -18,6 +18,7 @@ import io.circe.Decoder
 import io.circe.parser._
 import org.broadinstitute.dsde.workbench.model.TraceId
 
+import java.util.concurrent.ScheduledThreadPoolExecutor
 import scala.concurrent.duration.FiniteDuration
 
 private[google2] class GoogleSubscriberInterpreter[F[_], MessageType](
@@ -179,11 +180,15 @@ object GoogleSubscriberInterpreter {
     credential: ServiceAccountCredentials,
     flowControlSettings: Option[FlowControlSettings]
   ): Resource[F, Subscriber] = Dispatcher[F].flatMap { d =>
+    val fixedExecutorProvider = FixedExecutorProvider.create(
+      new ScheduledThreadPoolExecutor(20))
+
     val subscriber = for {
       builder <- Async[F].blocking(
         Subscriber
           .newBuilder(subscription, receiver(queue, d))
           .setCredentialsProvider(FixedCredentialsProvider.create(credential))
+          .setExecutorProvider(fixedExecutorProvider)
       )
       builderWithFlowControlSetting <- flowControlSettings.traverse { fcs =>
         Async[F].blocking(builder.setFlowControlSettings(fcs))

@@ -4,7 +4,7 @@ import cats.effect._
 import cats.syntax.all._
 import cats.mtl.Ask
 import com.google.api.core.ApiFutures
-import com.google.api.gax.core.FixedCredentialsProvider
+import com.google.api.gax.core.{FixedCredentialsProvider, FixedExecutorProvider}
 import com.google.api.gax.rpc.AlreadyExistsException
 import com.google.auth.oauth2.ServiceAccountCredentials
 import com.google.cloud.pubsub.v1.{Publisher, TopicAdminClient}
@@ -16,6 +16,8 @@ import org.typelevel.log4cats.StructuredLogger
 import io.circe.Encoder
 import io.circe.syntax._
 import org.broadinstitute.dsde.workbench.model.TraceId
+
+import java.util.concurrent.ScheduledThreadPoolExecutor
 
 private[google2] class GooglePublisherInterpreter[F[_]: Async: StructuredLogger](
   publisher: Publisher
@@ -87,11 +89,11 @@ private[google2] class GooglePublisherInterpreter[F[_]: Async: StructuredLogger]
 }
 
 object GooglePublisherInterpreter {
-  def apply[F[_]: Async: StructuredLogger](
-    publisher: Publisher
-  ): GooglePublisherInterpreter[F] = new GooglePublisherInterpreter(publisher)
+  def apply[F[_] : Async : StructuredLogger](
+                                              publisher: Publisher
+                                            ): GooglePublisherInterpreter[F] = new GooglePublisherInterpreter(publisher)
 
-  def publisher[F[_]: Async: StructuredLogger](config: PublisherConfig): Resource[F, Publisher] =
+  def publisher[F[_] : Async : StructuredLogger](config: PublisherConfig): Resource[F, Publisher] =
     for {
       credential <- credentialResource(config.pathToCredentialJson)
       publisher <- publisherResource(config.projectTopicName, credential)
@@ -99,8 +101,8 @@ object GooglePublisherInterpreter {
       _ <- createTopic(config.projectTopicName, topicAdminClient)
     } yield publisher
 
-  private def createTopic[F[_]: Sync](topicName: TopicName, topicAdminClient: TopicAdminClient)(implicit
-    logger: StructuredLogger[F]
+  private def createTopic[F[_] : Sync](topicName: TopicName, topicAdminClient: TopicAdminClient)(implicit
+                                                                                                 logger: StructuredLogger[F]
   ): Resource[F, Unit] =
     Resource.eval(
       Sync[F]
@@ -111,17 +113,22 @@ object GooglePublisherInterpreter {
         }
     )
 
-  private def publisherResource[F[_]: Sync](topicName: ProjectTopicName,
-                                            credential: ServiceAccountCredentials
-  ): Resource[F, Publisher] =
+  private def publisherResource[F[_] : Sync](topicName: ProjectTopicName,
+                                             credential: ServiceAccountCredentials
+                                            ): Resource[F, Publisher] = {
+    val fixedExecutorProvider = FixedExecutorProvider.create(
+      new ScheduledThreadPoolExecutor(20))
+
     Resource.make(
       Sync[F].delay(
         Publisher
           .newBuilder(topicName)
+          .setExecutorProvider(fixedExecutorProvider)
           .setCredentialsProvider(FixedCredentialsProvider.create(credential))
           .build()
       )
     )(p => Sync[F].delay(p.shutdown()))
+  }
 }
 
 final case class PublisherConfig(pathToCredentialJson: String, projectTopicName: ProjectTopicName)
