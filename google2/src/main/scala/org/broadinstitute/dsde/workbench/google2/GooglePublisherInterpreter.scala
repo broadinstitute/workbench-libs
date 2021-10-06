@@ -1,21 +1,21 @@
 package org.broadinstitute.dsde.workbench.google2
 
 import cats.effect._
-import cats.syntax.all._
 import cats.mtl.Ask
+import cats.syntax.all._
 import com.google.api.core.ApiFutures
 import com.google.api.gax.core.{FixedCredentialsProvider, FixedExecutorProvider}
 import com.google.api.gax.rpc.AlreadyExistsException
 import com.google.auth.oauth2.ServiceAccountCredentials
 import com.google.cloud.pubsub.v1.{Publisher, TopicAdminClient}
-import com.google.common.util.concurrent.MoreExecutors
+import com.google.common.util.concurrent.{MoreExecutors, ThreadFactoryBuilder}
 import com.google.protobuf.ByteString
 import com.google.pubsub.v1.{ProjectTopicName, PubsubMessage, TopicName}
 import fs2.{Pipe, Stream}
-import org.typelevel.log4cats.StructuredLogger
 import io.circe.Encoder
 import io.circe.syntax._
 import org.broadinstitute.dsde.workbench.model.TraceId
+import org.typelevel.log4cats.StructuredLogger
 
 import java.util.concurrent.ScheduledThreadPoolExecutor
 
@@ -116,8 +116,9 @@ object GooglePublisherInterpreter {
   private def publisherResource[F[_] : Sync](topicName: ProjectTopicName,
                                              credential: ServiceAccountCredentials
                                             ): Resource[F, Publisher] = {
+    val threadFactory = new ThreadFactoryBuilder().setNameFormat("publisher-thread-%d").build()
     val fixedExecutorProvider = FixedExecutorProvider.create(
-      new ScheduledThreadPoolExecutor(20))
+      new ScheduledThreadPoolExecutor(20, threadFactory))
 
     Resource.make(
       Sync[F].delay(

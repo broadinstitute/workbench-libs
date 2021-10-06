@@ -9,7 +9,7 @@ import com.google.api.gax.core.{FixedCredentialsProvider, FixedExecutorProvider}
 import com.google.api.gax.rpc.AlreadyExistsException
 import com.google.auth.oauth2.ServiceAccountCredentials
 import com.google.cloud.pubsub.v1._
-import com.google.common.util.concurrent.MoreExecutors
+import com.google.common.util.concurrent.{MoreExecutors, ThreadFactoryBuilder}
 import com.google.protobuf.Timestamp
 import com.google.pubsub.v1.{PubsubMessage, _}
 import fs2.Stream
@@ -180,8 +180,9 @@ object GoogleSubscriberInterpreter {
     credential: ServiceAccountCredentials,
     flowControlSettings: Option[FlowControlSettings]
   ): Resource[F, Subscriber] = Dispatcher[F].flatMap { d =>
+    val threadFactory = new ThreadFactoryBuilder().setNameFormat("subscriber-thread-%d").build()
     val fixedExecutorProvider = FixedExecutorProvider.create(
-      new ScheduledThreadPoolExecutor(20))
+      new ScheduledThreadPoolExecutor(20, threadFactory))
 
     val subscriber = for {
       builder <- Async[F].blocking(
