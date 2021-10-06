@@ -131,7 +131,8 @@ object GoogleSubscriberInterpreter {
     }
 
   def subscriber[F[_]: Async: StructuredLogger, MessageType: Decoder](subscriberConfig: SubscriberConfig,
-                                                                      queue: Queue[F, Event[MessageType]]
+                                                                      queue: Queue[F, Event[MessageType]],
+                                                                      numOfThreads: Int = 20
   ): Resource[F, Subscriber] = {
     val subscription = subscriberConfig.subscriptionName.getOrElse(
       ProjectSubscriptionName.of(subscriberConfig.topicName.getProject, subscriberConfig.topicName.getTopic)
@@ -147,7 +148,7 @@ object GoogleSubscriberInterpreter {
           .setMaxOutstandingRequestBytes(config.maxOutstandingRequestBytes)
           .build
       )
-      sub <- subscriberResource(queue, subscription, credential, flowControlSettings)
+      sub <- subscriberResource(queue, subscription, credential, flowControlSettings, numOfThreads)
     } yield sub
   }
 
@@ -178,11 +179,12 @@ object GoogleSubscriberInterpreter {
     queue: Queue[F, Event[MessageType]],
     subscription: ProjectSubscriptionName,
     credential: ServiceAccountCredentials,
-    flowControlSettings: Option[FlowControlSettings]
+    flowControlSettings: Option[FlowControlSettings],
+    numOfThreads: Int
   ): Resource[F, Subscriber] = Dispatcher[F].flatMap { d =>
     val threadFactory = new ThreadFactoryBuilder().setNameFormat("goog-subscriber-%d").build()
-    val fixedExecutorProvider = FixedExecutorProvider.create(
-      new ScheduledThreadPoolExecutor(20, threadFactory))
+    val fixedExecutorProvider =
+      FixedExecutorProvider.create(new ScheduledThreadPoolExecutor(numOfThreads, threadFactory))
 
     val subscriber = for {
       builder <- Async[F].blocking(

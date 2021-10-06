@@ -89,20 +89,22 @@ private[google2] class GooglePublisherInterpreter[F[_]: Async: StructuredLogger]
 }
 
 object GooglePublisherInterpreter {
-  def apply[F[_] : Async : StructuredLogger](
-                                              publisher: Publisher
-                                            ): GooglePublisherInterpreter[F] = new GooglePublisherInterpreter(publisher)
+  def apply[F[_]: Async: StructuredLogger](
+    publisher: Publisher
+  ): GooglePublisherInterpreter[F] = new GooglePublisherInterpreter(publisher)
 
-  def publisher[F[_] : Async : StructuredLogger](config: PublisherConfig): Resource[F, Publisher] =
+  def publisher[F[_]: Async: StructuredLogger](config: PublisherConfig,
+                                               numOfThreads: Int = 20
+  ): Resource[F, Publisher] =
     for {
       credential <- credentialResource(config.pathToCredentialJson)
-      publisher <- publisherResource(config.projectTopicName, credential)
+      publisher <- publisherResource(config.projectTopicName, credential, numOfThreads)
       topicAdminClient <- GoogleTopicAdminInterpreter.topicAdminClientResource(credential)
       _ <- createTopic(config.projectTopicName, topicAdminClient)
     } yield publisher
 
-  private def createTopic[F[_] : Sync](topicName: TopicName, topicAdminClient: TopicAdminClient)(implicit
-                                                                                                 logger: StructuredLogger[F]
+  private def createTopic[F[_]: Sync](topicName: TopicName, topicAdminClient: TopicAdminClient)(implicit
+    logger: StructuredLogger[F]
   ): Resource[F, Unit] =
     Resource.eval(
       Sync[F]
@@ -113,12 +115,13 @@ object GooglePublisherInterpreter {
         }
     )
 
-  private def publisherResource[F[_] : Sync](topicName: ProjectTopicName,
-                                             credential: ServiceAccountCredentials
-                                            ): Resource[F, Publisher] = {
+  private def publisherResource[F[_]: Sync](topicName: ProjectTopicName,
+                                            credential: ServiceAccountCredentials,
+                                            numOfThreads: Int
+  ): Resource[F, Publisher] = {
     val threadFactory = new ThreadFactoryBuilder().setNameFormat("goog-publisher-%d").build()
-    val fixedExecutorProvider = FixedExecutorProvider.create(
-      new ScheduledThreadPoolExecutor(20, threadFactory))
+    val fixedExecutorProvider =
+      FixedExecutorProvider.create(new ScheduledThreadPoolExecutor(numOfThreads, threadFactory))
 
     Resource.make(
       Sync[F].delay(

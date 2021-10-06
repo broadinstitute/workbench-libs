@@ -124,34 +124,37 @@ object GoogleComputeService {
   def resource[F[_]: StructuredLogger: Async: Parallel](
     pathToCredential: String,
     blockerBound: Semaphore[F],
-    retryConfig: RetryConfig = RetryPredicates.standardGoogleRetryConfig
+    retryConfig: RetryConfig = RetryPredicates.standardGoogleRetryConfig,
+    numOfThreads: Int = 20
   ): Resource[F, GoogleComputeService[F]] =
     for {
       credential <- credentialResource(pathToCredential)
       scopedCredential = credential.createScoped(Seq(CLOUD_PLATFORM_SCOPE).asJava)
-      interpreter <- fromCredential(scopedCredential, blockerBound, retryConfig)
+      interpreter <- fromCredential(scopedCredential, blockerBound, retryConfig, numOfThreads)
     } yield interpreter
 
   def resourceFromUserCredential[F[_]: StructuredLogger: Async: Parallel](
     pathToCredential: String,
     blockerBound: Semaphore[F],
-    retryConfig: RetryConfig = RetryPredicates.standardGoogleRetryConfig
+    retryConfig: RetryConfig = RetryPredicates.standardGoogleRetryConfig,
+    numOfThreads: Int = 20
   ): Resource[F, GoogleComputeService[F]] =
     for {
       credential <- userCredentials(pathToCredential)
       scopedCredential = credential.createScoped(Seq(CLOUD_PLATFORM_SCOPE).asJava)
-      interpreter <- fromCredential(scopedCredential, blockerBound, retryConfig)
+      interpreter <- fromCredential(scopedCredential, blockerBound, retryConfig, numOfThreads)
     } yield interpreter
 
   def fromCredential[F[_]: StructuredLogger: Async: Parallel](
     googleCredentials: GoogleCredentials,
     blockerBound: Semaphore[F],
-    retryConfig: RetryConfig
+    retryConfig: RetryConfig,
+    numOfThreads: Int = 20
   ): Resource[F, GoogleComputeService[F]] = {
     val credentialsProvider = FixedCredentialsProvider.create(googleCredentials)
     val threadFactory = new ThreadFactoryBuilder().setNameFormat("goog-compute-%d").build()
-    val fixedExecutorProvider = FixedExecutorProvider.create(
-      new ScheduledThreadPoolExecutor(20, threadFactory))
+    val fixedExecutorProvider =
+      FixedExecutorProvider.create(new ScheduledThreadPoolExecutor(numOfThreads, threadFactory))
 
     val instanceSettings = InstancesSettings
       .newBuilder()

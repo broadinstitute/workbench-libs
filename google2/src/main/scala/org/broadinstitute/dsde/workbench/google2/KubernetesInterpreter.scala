@@ -20,6 +20,7 @@ import org.broadinstitute.dsde.workbench.google2.KubernetesSerializableName.{Pod
 import org.broadinstitute.dsde.workbench.google2.util.RetryPredicates._
 import org.broadinstitute.dsde.workbench.model.{IP, TraceId}
 import org.typelevel.log4cats.StructuredLogger
+import scalacache.Cache
 
 import java.io.ByteArrayInputStream
 import java.util.UUID
@@ -32,43 +33,65 @@ import scala.collection.JavaConverters._
 class KubernetesInterpreter[F[_]](
   credentials: GoogleCredentials,
   gkeService: GKEService[F],
-  dispatcher: Dispatcher[F]
+  apiClientCache: Cache[F, ApiClient]
 )(implicit F: Async[F], logger: StructuredLogger[F])
     extends KubernetesService[F] {
+//
+//  //We cache a kubernetes client for each cluster
+//  val cache = CacheBuilder
+//    .newBuilder()
+//    // We expect calls to be batched, such as when a user's environment within a cluster is created/deleted/stopped.
+//    // TODO: Unhardcode expiration time
+//    .expireAfterWrite(2, TimeUnit.HOURS)
+//    .build(
+//      new CacheLoader[KubernetesClusterId, ApiClient] {
+//        def load(clusterId: KubernetesClusterId): ApiClient = {
+//          //we do not want to have to specify this at resource (class) creation time, so we create one on each load here
+//          implicit val traceId = Ask.const[F, TraceId](TraceId(UUID.randomUUID()))
+//          val res = for {
+//            _ <- logger
+//              .info(s"Determined that there is no cached client for kubernetes cluster $clusterId. Creating a client")
+//            clusterOpt <- gkeService.getCluster(clusterId)
+//            cluster <- F.fromEither(
+//              clusterOpt.toRight(
+//                KubernetesClusterNotFoundException(
+//                  s"Could not create client for cluster $clusterId because it does not exist in google"
+//                )
+//              )
+//            )
+//            token <- getToken
+//            client <- createClient(
+//              cluster,
+//              token
+//            )
+//          } yield client
+//
+//          dispatcher.unsafeRunSync(res)
+//        }
+//      }
+//    )
 
-  //We cache a kubernetes client for each cluster
-  val cache = CacheBuilder
-    .newBuilder()
-    // We expect calls to be batched, such as when a user's environment within a cluster is created/deleted/stopped.
-    // TODO: Unhardcode expiration time
-    .expireAfterWrite(2, TimeUnit.HOURS)
-    .build(
-      new CacheLoader[KubernetesClusterId, ApiClient] {
-        def load(clusterId: KubernetesClusterId): ApiClient = {
-          //we do not want to have to specify this at resource (class) creation time, so we create one on each load here
-          implicit val traceId = Ask.const[F, TraceId](TraceId(UUID.randomUUID()))
-          val res = for {
-            _ <- logger
-              .info(s"Determined that there is no cached client for kubernetes cluster $clusterId. Creating a client")
-            clusterOpt <- gkeService.getCluster(clusterId)
-            cluster <- F.fromEither(
-              clusterOpt.toRight(
-                KubernetesClusterNotFoundException(
-                  s"Could not create client for cluster $clusterId because it does not exist in google"
-                )
-              )
-            )
-            token <- getToken
-            client <- createClient(
-              cluster,
-              token
-            )
-          } yield client
-
-          dispatcher.unsafeRunSync(res)
-        }
-      }
-    )
+  private def getNewApiClient(clusterId: KubernetesClusterId) = {
+    //we do not want to have to specify this at resource (class) creation time, so we create one on each load here
+    implicit val traceId = Ask.const[F, TraceId](TraceId(UUID.randomUUID()))
+    for {
+      _ <- logger
+        .info(s"Determined that there is no cached client for kubernetes cluster $clusterId. Creating a client")
+      clusterOpt <- gkeService.getCluster(clusterId)
+      cluster <- F.fromEither(
+        clusterOpt.toRight(
+          KubernetesClusterNotFoundException(
+            s"Could not create client for cluster $clusterId because it does not exist in google"
+          )
+        )
+      )
+      token <- getToken
+      client <- createClient(
+        cluster,
+        token
+      )
+    } yield client
+  }
 
   // https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.12/#podspec-v1-core
   override def createPod(clusterId: KubernetesClusterId, pod: KubernetesPod, namespace: KubernetesNamespace)(implicit
@@ -426,7 +449,7 @@ class KubernetesInterpreter[F[_]](
   //if we did stale the entry we would have to unnecessarily re-do the google call
   private def getClient[A](clusterId: KubernetesClusterId, fa: ApiClient => A): F[A] =
     for {
-      client <- F.blocking(cache.get(clusterId))
+      client <- apiClientCache.cachingF(clusterId)(None)(getNewApiClient(clusterId))
       token <- getToken()
       _ <- F.blocking(client.setApiKey(token.getTokenValue))
     } yield fa(client)

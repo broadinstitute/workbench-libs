@@ -94,6 +94,7 @@ object Dependencies {
   val openCensusTraceStackDriver: ModuleID = "io.opencensus" % "opencensus-exporter-trace-stackdriver" % "0.28.3"
   val openCensusTraceLogging: ModuleID = "io.opencensus" % "opencensus-exporter-trace-logging" % "0.26.0"
   val sealerate: ModuleID = "ca.mrvisser" %% "sealerate" % "0.0.6"
+  val scalaCache = "com.github.cb372" %% "scalacache-caffeine" % "1.0.0-M4"
 
   val commonDependencies = Seq(
     scalatest,
@@ -178,7 +179,8 @@ object Dependencies {
     googleContainerV1,
     sealerate,
     google2CloudBilling,
-    googleResourceManager
+    googleResourceManager,
+    scalaCache
   )
 
   val openTelemetryDependencies = List(

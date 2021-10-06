@@ -4,12 +4,14 @@ import cats.effect.std.{Dispatcher, Semaphore}
 import cats.effect.{Async, Resource}
 import cats.mtl.Ask
 import com.google.api.services.container.ContainerScopes
+import io.kubernetes.client.openapi.ApiClient
 import io.kubernetes.client.openapi.models.V1PersistentVolumeClaim
 import org.broadinstitute.dsde.workbench.google2.GKEModels.KubernetesClusterId
 import org.broadinstitute.dsde.workbench.google2.KubernetesModels._
 import org.broadinstitute.dsde.workbench.google2.KubernetesSerializableName.ServiceName
 import org.broadinstitute.dsde.workbench.model.{IP, TraceId}
 import org.typelevel.log4cats.StructuredLogger
+import scalacache.Cache
 
 import java.nio.file.Path
 import scala.collection.JavaConverters._
@@ -92,11 +94,11 @@ trait KubernetesService[F[_]] {
 object KubernetesService {
   def resource[F[_]: StructuredLogger: Async](
     pathToCredential: Path,
-    gkeService: GKEService[F]
+    gkeService: GKEService[F],
+    apiClientCache: Cache[F, ApiClient]
   ): Resource[F, KubernetesService[F]] =
     for {
       credentials <- credentialResource(pathToCredential.toString)
-      dispatcher <- Dispatcher[F]
       scopedCredential = credentials.createScoped(Seq(ContainerScopes.CLOUD_PLATFORM).asJava)
-    } yield new KubernetesInterpreter(scopedCredential, gkeService, dispatcher)
+    } yield new KubernetesInterpreter(scopedCredential, gkeService, apiClientCache)
 }
