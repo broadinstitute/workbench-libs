@@ -122,12 +122,15 @@ trait GoogleIamDAO {
    * @param email the email address
    * @param memberType the type of member (e.g. 'user', 'group', 'service account')
    * @param rolesToAdd Set of roles to add (example: roles/storage.admin)
+   * @param retryIfGroupDoesNotExist optional parameter to rerun if the group does not exist (yet), since Google can
+   *                                 take up to 1 hour to propagate some changes.
    * @return true if the policy was updated; false otherwise.
    */
   def addIamRoles(iamProject: GoogleProject,
                   email: WorkbenchEmail,
                   memberType: MemberType,
-                  rolesToAdd: Set[String]
+                  rolesToAdd: Set[String],
+                  retryIfGroupDoesNotExist: Boolean = false
   ): Future[Boolean]
 
   /**
@@ -138,12 +141,15 @@ trait GoogleIamDAO {
    * @param email the email address
    * @param memberType the type of member (e.g. 'user', 'group', 'service account')
    * @param rolesToRemove Set of roles to remove (example: roles/dataproc.worker)
+   * @param retryIfGroupDoesNotExist optional parameter to rerun if the group does not exist (yet), since Google can
+   *                                 take up to 1 hour to propagate some changes.
    * @return true if the policy was updated; false otherwise.
    */
   def removeIamRoles(iamProject: GoogleProject,
                      email: WorkbenchEmail,
                      memberType: MemberType,
-                     rolesToRemove: Set[String]
+                     rolesToRemove: Set[String],
+                     retryIfGroupDoesNotExist: Boolean = false
   ): Future[Boolean]
 
   /**

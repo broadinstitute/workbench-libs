@@ -4,7 +4,7 @@ This file documents changes to the `workbench-google` library, including notes o
 
 ## 0.21
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.21-5c9c4f6"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.21-TRAVIS-REPLACE-ME"`
 
 ### Added
 
@@ -19,6 +19,9 @@ SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.
 - Support structured logging for google requests
   - requires dependency "net.logstash.logback" % "logstash-logback-encoder" % "6.6"
 - `getProjectName` in `GoogleProjectDAO`
+- Added optional parameter `retryIfGroupDoesNotExist` to `addIamRoles` and `removeIamRoles` in `GoogleIamDAO`, which
+  will retry if the group does not exist, which could be due to slow Google propogation.
+
 
 ### Changed
 
