@@ -63,14 +63,16 @@ class MockGoogleIamDAO extends GoogleIamDAO {
   override def addIamRoles(googleProject: GoogleProject,
                            userEmail: WorkbenchEmail,
                            memberType: MemberType,
-                           rolesToAdd: Set[String]
+                           rolesToAdd: Set[String],
+                           retryIfGroupDoesNotExist: Boolean = false
   ): Future[Boolean] =
     Future.successful(false)
 
   override def removeIamRoles(googleProject: GoogleProject,
                               userEmail: WorkbenchEmail,
                               memberType: MemberType,
-                              rolesToRemove: Set[String]
+                              rolesToRemove: Set[String],
+                              retryIfGroupDoesNotExist: Boolean = false
   ): Future[Boolean] =
     Future.successful(false)
 
