@@ -20,17 +20,17 @@ import com.google.api.client.googleapis.json.GoogleJsonResponseException
 import com.google.api.client.http.HttpResponseException
 import com.google.api.services.cloudresourcemanager.CloudResourceManager
 import com.google.api.services.cloudresourcemanager.model.{
+  TestIamPermissionsRequest,
   Binding => ProjectBinding,
   Policy => ProjectPolicy,
-  SetIamPolicyRequest => ProjectSetIamPolicyRequest,
-  TestIamPermissionsRequest
+  SetIamPolicyRequest => ProjectSetIamPolicyRequest
 }
 import com.google.api.services.iam.v1.model.{
-  Binding => ServiceAccountBinding,
   CreateServiceAccountKeyRequest,
   CreateServiceAccountRequest,
-  Policy => ServiceAccountPolicy,
   ServiceAccount,
+  Binding => ServiceAccountBinding,
+  Policy => ServiceAccountPolicy,
   ServiceAccountKey => GoogleServiceAccountKey,
   SetIamPolicyRequest => ServiceAccountSetIamPolicyRequest
 }
@@ -404,8 +404,8 @@ class HttpGoogleIamDAO(appName: String, googleCredentialMode: GoogleCredentialMo
   }
 
   /**
-   * Read-modify-write a Policy to insert or remove new bindings for the given member and roles. Note that if the same
-   * role is in both rolesToAdd and rolesToRemove, the deletion takes precedence.
+   * Read-modify-write a Policy to insert or remove new bindings for the given member and roles.
+   * Note that if the same role is in both rolesToAdd and rolesToRemove, the deletion takes precedence.
    */
   private def updatePolicy(policy: Policy,
                            email: WorkbenchEmail,

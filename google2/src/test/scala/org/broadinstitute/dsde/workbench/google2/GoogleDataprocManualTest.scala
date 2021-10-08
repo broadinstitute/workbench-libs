@@ -25,7 +25,7 @@ final class GoogleDataprocManualTest(pathToCredential: String,
 
   val project = GoogleProject(projectStr)
   val region = RegionName(regionStr)
-  val zone = ZoneName(s"$regionStr-a")
+  val zone = ZoneName(s"${regionStr}-a")
 
   val dataprocServiceResource = GoogleComputeService
     .resource(pathToCredential, blockerBound)

@@ -21,7 +21,7 @@ private[model] object GcsPathParser {
   final val GCS_PATH_PATTERN =
     s"""
       (?x)                                      # Turn on comments and whitespace insensitivity
-      ^$GCS_SCHEME://
+      ^${GCS_SCHEME}://
       (                                         # Begin capturing group for gcs bucket name
         $GCS_BUCKET_NAME_PATTERN_BASE           # Regex for bucket name - soft validation, see comment above
       )                                         # End capturing group for gcs bucket name

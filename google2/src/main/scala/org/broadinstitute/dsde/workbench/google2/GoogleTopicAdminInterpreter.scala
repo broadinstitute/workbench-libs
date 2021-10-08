@@ -40,7 +40,7 @@ class GoogleTopicAdminInterpreter[F[_]: StructuredLogger](topicAdminClient: Topi
 
     for {
       resp <- Stream.eval(
-        tracedLogging(listTopics, s"com.google.cloud.pubsub.v1.TopicAdminClient.listTopics($project)")
+        tracedLogging(listTopics, s"com.google.cloud.pubsub.v1.TopicAdminClient.listTopics(${project})")
       )
       pagedResponse <- Stream.fromIterator(resp.iteratePages().iterator().asScala, 1024)
       topics <- Stream.fromIterator(pagedResponse.getValues.iterator().asScala, 1024)

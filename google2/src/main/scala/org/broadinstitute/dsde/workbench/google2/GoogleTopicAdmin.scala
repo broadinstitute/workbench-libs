@@ -15,8 +15,7 @@ import org.typelevel.log4cats.StructuredLogger
 trait GoogleTopicAdmin[F[_]] {
 
   /**
-   * @param traceId
-   *   uuid for tracing a unique call flow in logging
+   * @param traceId uuid for tracing a unique call flow in logging
    */
   def create(projectTopicName: TopicName, traceId: Option[TraceId] = None): F[Unit]
 
@@ -26,17 +25,20 @@ trait GoogleTopicAdmin[F[_]] {
 
   /**
    * @param projectTopicName
-   * @param members
-   *   can have the following values * `allUsers`: A special identifier that represents anyone who is on the internet;
-   *   with or without a Google account. * `allAuthenticatedUsers`: A special identifier that represents anyone who is
-   *   authenticated with a Google account or a service account. * `user:{emailid}`: An email address that represents a
-   *   specific Google account. For example, `alice&#64;gmail.com` or `joe&#64;example.com`. *
-   *   `serviceAccount:{emailid}`: An email address that represents a service account. For example,
-   *   `my-other-app&#64;appspot.gserviceaccount.com`. * `group:{emailid}`: An email address that represents a Google
-   *   group. For example, `admins&#64;example.com`. * `domain:{domain}`: A Google Apps domain name that represents all
-   *   the users of that domain. For example, `google.com` or `example.com`.
-   * @param traceId
-   *   uuid for tracing a unique call flow in logging
+   * @param members can have the following values
+   * * `allUsers`: A special identifier that represents anyone who is
+   *    on the internet; with or without a Google account.
+   * * `allAuthenticatedUsers`: A special identifier that represents anyone
+   *    who is authenticated with a Google account or a service account.
+   * * `user:{emailid}`: An email address that represents a specific Google
+   *    account. For example, `alice&#64;gmail.com` or `joe&#64;example.com`.
+   * * `serviceAccount:{emailid}`: An email address that represents a service
+   *    account. For example, `my-other-app&#64;appspot.gserviceaccount.com`.
+   * * `group:{emailid}`: An email address that represents a Google group.
+   *    For example, `admins&#64;example.com`.
+   * * `domain:{domain}`: A Google Apps domain name that represents all the
+   *    users of that domain. For example, `google.com` or `example.com`.
+   * @param traceId uuid for tracing a unique call flow in logging
    */
   def createWithPublisherMembers(projectTopicName: TopicName,
                                  members: List[Identity],

@@ -11,7 +11,8 @@ import org.scalatest.TestSuite
 import scala.util.Try
 
 /**
- * WorkspaceFixtures Fixtures for creating and cleaning up test workspaces.
+ * WorkspaceFixtures
+ * Fixtures for creating and cleaning up test workspaces.
  */
 trait WorkspaceFixtures extends ExceptionHandling with RandomUtil { self: TestSuite =>
 
@@ -35,25 +36,18 @@ trait WorkspaceFixtures extends ExceptionHandling with RandomUtil { self: TestSu
   }
 
   /**
-   * Loan method that creates a workspace that will be cleaned up after the test code is run. The workspace name will
-   * contain a random and highly likely unique series of characters.
+   * Loan method that creates a workspace that will be cleaned up after the
+   * test code is run. The workspace name will contain a random and highly
+   * likely unique series of characters.
    *
-   * @param namespace
-   *   the namespace for the test workspace
-   * @param namePrefix
-   *   prefix for the workspace name
-   * @param authDomain
-   *   optional auth domain for the test workspace
-   * @param aclEntries
-   *   optional access level entries for the workspace
-   * @param attributes
-   *   optional workspace attributes
-   * @param cleanUp
-   *   optional boolean parameter to indicate whether to delete the workspace. Default is true
-   * @param bucketLocation
-   *   optional region where the bucket associated with workspace should be created
-   * @param testCode
-   *   test code to run
+   * @param namespace the namespace for the test workspace
+   * @param namePrefix prefix for the workspace name
+   * @param authDomain optional auth domain for the test workspace
+   * @param aclEntries optional access level entries for the workspace
+   * @param attributes optional workspace attributes
+   * @param cleanUp optional boolean parameter to indicate whether to delete the workspace. Default is true
+   * @param bucketLocation optional region where the bucket associated with workspace should be created
+   * @param testCode test code to run
    */
   def withWorkspace(
     namespace: String,
@@ -76,25 +70,18 @@ trait WorkspaceFixtures extends ExceptionHandling with RandomUtil { self: TestSu
   }
 
   /**
-   * Loan method that creates a workspace and then clones it. Both workspaces will be cleaned up after the test code is
-   * run. The workspace names will contain a random and highly likely unique series of characters.
+   * Loan method that creates a workspace and then clones it. Both workspaces will be cleaned
+   * up after the test code is run. The workspace names will contain a random and highly
+   * likely unique series of characters.
    *
-   * @param namespace
-   *   the namespace for the test workspace
-   * @param namePrefix
-   *   prefix for the workspace name
-   * @param authDomain
-   *   optional auth domain for the test workspace
-   * @param aclEntries
-   *   optional access level entries for the workspace
-   * @param attributes
-   *   optional workspace attributes
-   * @param cleanUp
-   *   optional boolean parameter to indicate whether to delete the workspace. Default is true
-   * @param bucketLocation
-   *   optional region where the bucket associated with workspace should be created
-   * @param testCode
-   *   test code to run
+   * @param namespace the namespace for the test workspace
+   * @param namePrefix prefix for the workspace name
+   * @param authDomain optional auth domain for the test workspace
+   * @param aclEntries optional access level entries for the workspace
+   * @param attributes optional workspace attributes
+   * @param cleanUp optional boolean parameter to indicate whether to delete the workspace. Default is true
+   * @param bucketLocation optional region where the bucket associated with workspace should be created
+   * @param testCode test code to run
    */
   def withClonedWorkspace(
     namespace: String,

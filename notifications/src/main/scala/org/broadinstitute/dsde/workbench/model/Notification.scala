@@ -8,10 +8,10 @@ import scala.reflect.runtime.universe._
 
 /**
  * All notifications emitted by workbench are described here. To add a new notification type:
- *   - create a new case class with appropriate fields
- *     - extend WorkspaceNotification if it is a notification specific to a workspace
- *     - otherwise extend UserNotification if a user id is available
- *   - create a val extending NotificationType or WorkspaceNotificationType being sure to call register
+ * - create a new case class with appropriate fields
+ *   - extend WorkspaceNotification if it is a notification specific to a workspace
+ *   - otherwise extend UserNotification if a user id is available
+ * - create a val extending NotificationType or WorkspaceNotificationType being sure to call register
  */
 object Notifications {
   private def baseKey(n: Notification) = s"notifications/${n.getClass.getSimpleName}"
@@ -64,8 +64,7 @@ object Notifications {
    * called internally to register a notification type so it will appear in the allNotificationTypes map
    * @param notificationType
    * @tparam T
-   * @return
-   *   notificationType
+   * @return notificationType
    */
   private def register[T <: Notification](notificationType: NotificationType[T]): NotificationType[T] = {
     require(allNotificationTypes == null,

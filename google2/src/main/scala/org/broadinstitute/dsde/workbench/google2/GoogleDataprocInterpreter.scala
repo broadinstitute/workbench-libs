@@ -83,14 +83,15 @@ private[google2] class GoogleDataprocInterpreter[F[_]: StructuredLogger: Paralle
 
     retryF(
       createCluster,
-      s"com.google.cloud.dataproc.v1.ClusterControllerClient.createClusterAsync($region, $clusterName, $createClusterConfig))"
+      s"com.google.cloud.dataproc.v1.ClusterControllerClient.createClusterAsync(${region}, ${clusterName}, ${createClusterConfig}))"
     )
   }
 
   /**
-   * Strictly speaking, it is not possible to 'stop' a Dataproc cluster altogether. Instead, we approximate by:
+   * Strictly speaking, it is not possible to 'stop' a Dataproc cluster altogether.
+   * Instead, we approximate by:
    *   1. removing pre-emptible instances (if any) by resizing the cluster, since they would not be possible to restart
-   *      2. stopping underlying nodes individually
+   *   2. stopping underlying nodes individually
    */
   override def stopCluster(project: GoogleProject,
                            region: RegionName,
@@ -291,7 +292,7 @@ private[google2] class GoogleDataprocInterpreter[F[_]: StructuredLogger: Paralle
       }
 
     retryF(updateCluster,
-           s"com.google.cloud.dataproc.v1.ClusterControllerClient.updateClusterAsync($updateClusterRequest)"
+           s"com.google.cloud.dataproc.v1.ClusterControllerClient.updateClusterAsync(${updateClusterRequest})"
     )
   }
 
@@ -325,7 +326,7 @@ private[google2] class GoogleDataprocInterpreter[F[_]: StructuredLogger: Paralle
         case e                                           => F.raiseError[Option[DataprocOperation]](e)
       }
 
-    retryF(deleteCluster, s"com.google.cloud.dataproc.v1.ClusterControllerClient.deleteClusterAsync($request)")
+    retryF(deleteCluster, s"com.google.cloud.dataproc.v1.ClusterControllerClient.deleteClusterAsync(${request})")
   }
 
   override def getCluster(project: GoogleProject, region: RegionName, clusterName: DataprocClusterName)(implicit

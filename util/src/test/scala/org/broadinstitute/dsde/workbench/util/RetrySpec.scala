@@ -168,10 +168,11 @@ class RetrySpec
   }
 
   /**
-   * Creates a mock org.sl4jf.Logger instance using Mockito which is stubbed to return true on calls to isInfoEnabled().
-   * This mock will be used to capture and inspect calls to logger.info() from the Retry trait.
-   * @return
-   *   mock SLF4JLogger
+   * Creates a mock org.sl4jf.Logger instance using Mockito which is stubbed to
+   * return true on calls to isInfoEnabled().
+   * This mock will be used to capture and inspect calls to logger.info() from
+   * the Retry trait.
+   * @return mock SLF4JLogger
    */
   private def setUpMockLogger: SLF4JLogger = {
     val mockLogger = mock[SLF4JLogger]

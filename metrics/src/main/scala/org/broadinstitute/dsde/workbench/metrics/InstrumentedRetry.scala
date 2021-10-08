@@ -14,8 +14,8 @@ trait InstrumentedRetry extends Retry {
   this: WorkbenchInstrumented with LazyLogging =>
 
   /**
-   * Converts an RetryableFuture[A] to a Future[A]. Given an implicit Histogram, instruments the number of failures in
-   * the histogram.
+   * Converts an RetryableFuture[A] to a Future[A].
+   * Given an implicit Histogram, instruments the number of failures in the histogram.
    */
   implicit protected def retryableFutureToFutureWithHisto[A](
     af: RetryableFuture[A]

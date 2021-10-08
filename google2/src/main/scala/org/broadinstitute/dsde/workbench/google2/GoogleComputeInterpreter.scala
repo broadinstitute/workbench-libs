@@ -65,7 +65,7 @@ private[google2] class GoogleComputeInterpreter[F[_]: Parallel: StructuredLogger
           )(
             F.unit,
             F.raiseError[Unit](
-              new TimeoutException(s"Fail to setDiskAutoDeleteInstance for $diskName in a timely manner")
+              new TimeoutException(s"Fail to setDiskAutoDeleteInstance for ${diskName} in a timely manner")
             ),
             F.unit
           )

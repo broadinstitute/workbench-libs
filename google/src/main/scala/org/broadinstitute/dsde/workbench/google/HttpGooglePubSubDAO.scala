@@ -154,6 +154,6 @@ class HttpGooglePubSubDAO(appName: String,
         )
     }
 
-  def topicToFullPath(topicName: String) = s"projects/$serviceProject/topics/$topicName"
-  def subscriptionToFullPath(subscriptionName: String) = s"projects/$serviceProject/subscriptions/$subscriptionName"
+  def topicToFullPath(topicName: String) = s"projects/${serviceProject}/topics/${topicName}"
+  def subscriptionToFullPath(subscriptionName: String) = s"projects/${serviceProject}/subscriptions/${subscriptionName}"
 }
