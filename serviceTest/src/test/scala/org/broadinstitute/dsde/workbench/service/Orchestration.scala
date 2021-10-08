@@ -105,18 +105,18 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
     }
 
     def getBillingProject(projectName: String)(implicit token: AuthToken): Map[String, String] =
-      parseResponseAs[Map[String, String]](getRequest(apiUrl(s"api/billing/v2/${projectName}")))
+      parseResponseAs[Map[String, String]](getRequest(apiUrl(s"api/billing/v2/$projectName")))
 
     def deleteBillingProject(projectName: String)(implicit token: AuthToken): String =
-      deleteRequest(apiUrl(s"api/billing/v2/${projectName}"))
+      deleteRequest(apiUrl(s"api/billing/v2/$projectName"))
 
     def updateBillingAccount(projectName: String, billingAccount: String)(implicit token: AuthToken): String = {
       val request = Map("billingAccount" -> billingAccount)
-      putRequest(apiUrl(s"api/billing/v2/${projectName}/billingAccount"), request)
+      putRequest(apiUrl(s"api/billing/v2/$projectName/billingAccount"), request)
     }
 
     def deleteBillingAccount(projectName: String)(implicit token: AuthToken): String =
-      deleteRequest(apiUrl(s"api/billing/v2/${projectName}/billingAccount"))
+      deleteRequest(apiUrl(s"api/billing/v2/$projectName/billingAccount"))
 
     def listMembersInBillingProject(projectName: String)(implicit token: AuthToken): List[Map[String, String]] = {
       logger.info(s"list members of billing project $projectName the caller owns")
@@ -139,17 +139,17 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
 
     def getSpendReportConfiguration(projectName: String)(implicit token: AuthToken): Map[String, String] =
       parseResponseAs[Map[String, String]](
-        getRequest(apiUrl(s"api/billing/v2/${projectName}/spendReportConfiguration"))
+        getRequest(apiUrl(s"api/billing/v2/$projectName/spendReportConfiguration"))
       )
 
     def deleteSpendReportConfiguration(projectName: String)(implicit token: AuthToken): String =
-      deleteRequest(apiUrl(s"api/billing/v2/${projectName}/spendReportConfiguration"))
+      deleteRequest(apiUrl(s"api/billing/v2/$projectName/spendReportConfiguration"))
 
     def updateSpendReportConfiguration(projectName: String, datasetGoogleProject: String, datasetName: String)(implicit
       token: AuthToken
     ): String = {
       val request = Map("datasetGoogleProject" -> datasetGoogleProject, "datasetName" -> datasetName)
-      putRequest(apiUrl(s"api/billing/v2/${projectName}/billingAccount/spendReportConfiguration"), request)
+      putRequest(apiUrl(s"api/billing/v2/$projectName/billingAccount/spendReportConfiguration"), request)
     }
   }
 

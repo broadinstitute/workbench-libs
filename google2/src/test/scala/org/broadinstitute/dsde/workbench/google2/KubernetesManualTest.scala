@@ -1,11 +1,12 @@
 package org.broadinstitute.dsde.workbench
 package google2
 
-import cats.effect.IO
+import cats.effect.{IO, Resource}
 import cats.effect.std.{Dispatcher, Semaphore}
 import cats.effect.unsafe.implicits.global
 import cats.mtl.Ask
 import com.google.container.v1._
+import io.kubernetes.client.openapi.ApiClient
 import org.broadinstitute.dsde.workbench.google2.GKEModels._
 import org.broadinstitute.dsde.workbench.google2.KubernetesConstants._
 import org.broadinstitute.dsde.workbench.google2.KubernetesModels._
@@ -13,6 +14,7 @@ import org.broadinstitute.dsde.workbench.google2.KubernetesSerializableName._
 import org.broadinstitute.dsde.workbench.model.TraceId
 import org.broadinstitute.dsde.workbench.model.google.GoogleProject
 import org.typelevel.log4cats.slf4j.Slf4jLogger
+import scalacache.caffeine.CaffeineCache
 
 import java.nio.file.Paths
 import java.util.UUID
@@ -38,7 +40,7 @@ final class Test(credPathStr: String,
 
   val project = GoogleProject(projectStr)
   val region = Location(regionStr)
-  val zoneStr = s"${region}-a"
+  val zoneStr = s"$region-a"
   val subnetworkNameStr = networkNameStr
   val clusterName = KubernetesName.withValidation[KubernetesClusterName](clusterNameStr, KubernetesClusterName.apply)
   val nodepoolName = KubernetesName.withValidation[NodepoolName](nodepoolNameStr, NodepoolName.apply)
@@ -116,7 +118,8 @@ final class Test(credPathStr: String,
 
   val kubeService = for {
     gs <- GKEService.resource(credPath, semaphore)
-    ks <- KubernetesService.resource(credPath, gs)
+    cache <- Resource.make(CaffeineCache[IO, ApiClient])(s => IO.delay(s.close))
+    ks <- KubernetesService.resource(credPath, gs, cache)
   } yield ks
 
   def callCreateNamespace(
@@ -235,8 +238,8 @@ final class Test(credPathStr: String,
           .compile
           .lastOrError
         _ <-
-          if (lastOp.isDone) IO(println(s"operation is done, initial operation: ${operation}"))
-          else IO(s"operation errored, initial operation: ${operation}")
+          if (lastOp.isDone) IO(println(s"operation is done, initial operation: $operation"))
+          else IO(s"operation errored, initial operation: $operation")
       } yield ()
     }
   }

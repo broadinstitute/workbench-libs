@@ -36,7 +36,7 @@ trait Rawls extends RestClient with LazyLogging {
     }
 
     def getBillingProjectStatus(projectName: String)(implicit token: AuthToken): Map[String, String] =
-      parseResponseAs[Map[String, String]](getRequest(s"${url}api/user/billing/${projectName}"))
+      parseResponseAs[Map[String, String]](getRequest(s"${url}api/user/billing/$projectName"))
 
     def listMembersInBillingProject(projectName: String)(implicit token: AuthToken): List[Map[String, String]] = {
       logger.info(s"list members of billing project $projectName the caller owns")
@@ -87,18 +87,18 @@ trait Rawls extends RestClient with LazyLogging {
     }
 
     def getBillingProject(projectName: String)(implicit token: AuthToken): Map[String, String] =
-      parseResponseAs[Map[String, String]](getRequest(s"${url}api/billing/v2/${projectName}"))
+      parseResponseAs[Map[String, String]](getRequest(s"${url}api/billing/v2/$projectName"))
 
     def deleteBillingProject(projectName: String)(implicit token: AuthToken): String =
-      deleteRequest(s"${url}api/billing/v2/${projectName}")
+      deleteRequest(s"${url}api/billing/v2/$projectName")
 
     def updateBillingAccount(projectName: String, billingAccount: String)(implicit token: AuthToken): String = {
       val request = Map("billingAccount" -> billingAccount)
-      putRequest(s"${url}api/billing/v2/${projectName}/billingAccount", request)
+      putRequest(s"${url}api/billing/v2/$projectName/billingAccount", request)
     }
 
     def deleteBillingAccount(projectName: String)(implicit token: AuthToken): String =
-      deleteRequest(s"${url}api/billing/v2/${projectName}/billingAccount")
+      deleteRequest(s"${url}api/billing/v2/$projectName/billingAccount")
 
     def listMembersInBillingProject(projectName: String)(implicit token: AuthToken): List[Map[String, String]] = {
       logger.info(s"list members of billing project $projectName the caller owns")
@@ -120,16 +120,16 @@ trait Rawls extends RestClient with LazyLogging {
     }
 
     def getSpendReportConfiguration(projectName: String)(implicit token: AuthToken): Map[String, String] =
-      parseResponseAs[Map[String, String]](getRequest(s"${url}api/billing/v2/${projectName}/spendReportConfiguration"))
+      parseResponseAs[Map[String, String]](getRequest(s"${url}api/billing/v2/$projectName/spendReportConfiguration"))
 
     def deleteSpendReportConfiguration(projectName: String)(implicit token: AuthToken): String =
-      deleteRequest(s"${url}api/billing/v2/${projectName}/spendReportConfiguration")
+      deleteRequest(s"${url}api/billing/v2/$projectName/spendReportConfiguration")
 
     def updateSpendReportConfiguration(projectName: String, datasetGoogleProject: String, datasetName: String)(implicit
       token: AuthToken
     ): String = {
       val request = Map("datasetGoogleProject" -> datasetGoogleProject, "datasetName" -> datasetName)
-      putRequest(s"${url}api/billing/v2/${projectName}/billingAccount/spendReportConfiguration", request)
+      putRequest(s"${url}api/billing/v2/$projectName/billingAccount/spendReportConfiguration", request)
     }
   }
 
@@ -139,7 +139,7 @@ trait Rawls extends RestClient with LazyLogging {
       sourceMethodConfig: Map[String, Any],
       destinationMethodConfigName: Map[String, Any]
     )(implicit token: AuthToken): String = {
-      logger.info(s"Copying method configuration from workspace: ${sourceMethodConfig} ")
+      logger.info(s"Copying method configuration from workspace: $sourceMethodConfig ")
 
       val request = Map("source" -> sourceMethodConfig, "destination" -> destinationMethodConfigName)
 
@@ -152,11 +152,11 @@ trait Rawls extends RestClient with LazyLogging {
                                    configName: String
     )(implicit token: AuthToken): String = {
       logger.info(
-        s"Getting method configuration $configNamespace/$configName for workspace ${workspaceNamespace}/${workspaceName}"
+        s"Getting method configuration $configNamespace/$configName for workspace $workspaceNamespace/$workspaceName"
       )
       parseResponse(
         getRequest(
-          url + s"api/workspaces/${workspaceNamespace}/${workspaceName}/methodconfigs/${configNamespace}/${configName}"
+          url + s"api/workspaces/$workspaceNamespace/$workspaceName/methodconfigs/$configNamespace/$configName"
         )
       )
     }
@@ -174,7 +174,7 @@ trait Rawls extends RestClient with LazyLogging {
       logger.info("Getting syntax validation for method configuration in workspace")
       parseResponse(
         getRequest(
-          url + s"api/workspaces/${workspaceNamespace}/${workspaceName}/methodconfigs/${configNamespace}/${configName}/validate"
+          url + s"api/workspaces/$workspaceNamespace/$workspaceName/methodconfigs/$configNamespace/$configName/validate"
         )
       )
     }

@@ -5,11 +5,11 @@ import cats.effect.std.{Dispatcher, Queue}
 import cats.syntax.all._
 import com.google.api.core.ApiService
 import com.google.api.gax.batching.FlowControlSettings
-import com.google.api.gax.core.FixedCredentialsProvider
+import com.google.api.gax.core.{FixedCredentialsProvider, FixedExecutorProvider}
 import com.google.api.gax.rpc.AlreadyExistsException
 import com.google.auth.oauth2.ServiceAccountCredentials
 import com.google.cloud.pubsub.v1._
-import com.google.common.util.concurrent.MoreExecutors
+import com.google.common.util.concurrent.{MoreExecutors, ThreadFactoryBuilder}
 import com.google.protobuf.Timestamp
 import com.google.pubsub.v1.{PubsubMessage, _}
 import fs2.Stream
@@ -18,6 +18,7 @@ import io.circe.Decoder
 import io.circe.parser._
 import org.broadinstitute.dsde.workbench.model.TraceId
 
+import java.util.concurrent.ScheduledThreadPoolExecutor
 import scala.concurrent.duration.FiniteDuration
 
 private[google2] class GoogleSubscriberInterpreter[F[_], MessageType](
@@ -104,7 +105,7 @@ object GoogleSubscriberInterpreter {
             } yield ()
           case Left(e) =>
             logger
-              .info(s"Subscriber fail to decode message ${message} due to ${e}. Going to ack the message") >> F
+              .info(s"Subscriber fail to decode message $message due to $e. Going to ack the message") >> F
               .delay(consumer.ack())
         }
       } yield ()
@@ -130,7 +131,8 @@ object GoogleSubscriberInterpreter {
     }
 
   def subscriber[F[_]: Async: StructuredLogger, MessageType: Decoder](subscriberConfig: SubscriberConfig,
-                                                                      queue: Queue[F, Event[MessageType]]
+                                                                      queue: Queue[F, Event[MessageType]],
+                                                                      numOfThreads: Int = 20
   ): Resource[F, Subscriber] = {
     val subscription = subscriberConfig.subscriptionName.getOrElse(
       ProjectSubscriptionName.of(subscriberConfig.topicName.getProject, subscriberConfig.topicName.getTopic)
@@ -146,7 +148,7 @@ object GoogleSubscriberInterpreter {
           .setMaxOutstandingRequestBytes(config.maxOutstandingRequestBytes)
           .build
       )
-      sub <- subscriberResource(queue, subscription, credential, flowControlSettings)
+      sub <- subscriberResource(queue, subscription, credential, flowControlSettings, numOfThreads)
     } yield sub
   }
 
@@ -177,13 +179,19 @@ object GoogleSubscriberInterpreter {
     queue: Queue[F, Event[MessageType]],
     subscription: ProjectSubscriptionName,
     credential: ServiceAccountCredentials,
-    flowControlSettings: Option[FlowControlSettings]
+    flowControlSettings: Option[FlowControlSettings],
+    numOfThreads: Int
   ): Resource[F, Subscriber] = Dispatcher[F].flatMap { d =>
+    val threadFactory = new ThreadFactoryBuilder().setNameFormat("goog-subscriber-%d").build()
+    val fixedExecutorProvider =
+      FixedExecutorProvider.create(new ScheduledThreadPoolExecutor(numOfThreads, threadFactory))
+
     val subscriber = for {
       builder <- Async[F].blocking(
         Subscriber
           .newBuilder(subscription, receiver(queue, d))
           .setCredentialsProvider(FixedCredentialsProvider.create(credential))
+          .setExecutorProvider(fixedExecutorProvider)
       )
       builderWithFlowControlSetting <- flowControlSettings.traverse { fcs =>
         Async[F].blocking(builder.setFlowControlSettings(fcs))
@@ -246,7 +254,7 @@ object GoogleSubscriberInterpreter {
         subscriptionAdminClient.createSubscription(sub)
       ).void
         .recover { case _: AlreadyExistsException =>
-          Logger[F].info(s"subscription ${subscription} already exists")
+          Logger[F].info(s"subscription $subscription already exists")
         }
     )
   }

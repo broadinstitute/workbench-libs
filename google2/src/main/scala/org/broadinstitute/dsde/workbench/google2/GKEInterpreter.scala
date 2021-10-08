@@ -41,7 +41,7 @@ final class GKEInterpreter[F[_]: StructuredLogger](
         F.blocking(legacyClient.projects().locations().clusters().create(parent, googleRequest).execute()),
         whenStatusCode(409)
       ),
-      s"com.google.api.services.container.Projects.Locations.Cluster(${request})"
+      s"com.google.api.services.container.Projects.Locations.Cluster($request)"
     )
   }
 
@@ -82,7 +82,7 @@ final class GKEInterpreter[F[_]: StructuredLogger](
         ),
         whenStatusCode(409)
       ),
-      s"com.google.api.services.container.Projects.Locations.Cluster.Nodepool(${request})"
+      s"com.google.api.services.container.Projects.Locations.Cluster.Nodepool($request)"
     )
   }
 
@@ -121,7 +121,7 @@ final class GKEInterpreter[F[_]: StructuredLogger](
 
     tracedGoogleRetryWithBlocker(
       F.delay(clusterManagerClient.setNodePoolSize(request)),
-      s"com.google.cloud.container.v1.ClusterManagerClient.setNodePoolSize(${nodepoolId.toString}, ${nodeCount})"
+      s"com.google.cloud.container.v1.ClusterManagerClient.setNodePoolSize(${nodepoolId.toString}, $nodeCount)"
     )
   }
 
@@ -140,7 +140,7 @@ final class GKEInterpreter[F[_]: StructuredLogger](
       op <- withLogging(
         F.blocking(clusterManagerClient.getOperation(request)),
         Some(traceId),
-        s"com.google.cloud.container.v1.ClusterManagerClient.getOperation(${operationId})",
+        s"com.google.cloud.container.v1.ClusterManagerClient.getOperation($operationId)",
         Show[Operation](op =>
           if (op == null)
             "null"

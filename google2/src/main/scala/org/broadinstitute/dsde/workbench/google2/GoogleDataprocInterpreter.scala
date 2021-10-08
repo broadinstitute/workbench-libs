@@ -83,7 +83,7 @@ private[google2] class GoogleDataprocInterpreter[F[_]: StructuredLogger: Paralle
 
     retryF(
       createCluster,
-      s"com.google.cloud.dataproc.v1.ClusterControllerClient.createClusterAsync(${region}, ${clusterName}, ${createClusterConfig}))"
+      s"com.google.cloud.dataproc.v1.ClusterControllerClient.createClusterAsync($region, $clusterName, $createClusterConfig))"
     )
   }
 
@@ -292,7 +292,7 @@ private[google2] class GoogleDataprocInterpreter[F[_]: StructuredLogger: Paralle
       }
 
     retryF(updateCluster,
-           s"com.google.cloud.dataproc.v1.ClusterControllerClient.updateClusterAsync(${updateClusterRequest})"
+           s"com.google.cloud.dataproc.v1.ClusterControllerClient.updateClusterAsync($updateClusterRequest)"
     )
   }
 
@@ -326,7 +326,7 @@ private[google2] class GoogleDataprocInterpreter[F[_]: StructuredLogger: Paralle
         case e                                           => F.raiseError[Option[DataprocOperation]](e)
       }
 
-    retryF(deleteCluster, s"com.google.cloud.dataproc.v1.ClusterControllerClient.deleteClusterAsync(${request})")
+    retryF(deleteCluster, s"com.google.cloud.dataproc.v1.ClusterControllerClient.deleteClusterAsync($request)")
   }
 
   override def getCluster(project: GoogleProject, region: RegionName, clusterName: DataprocClusterName)(implicit

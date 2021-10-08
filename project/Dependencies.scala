@@ -8,7 +8,7 @@ object Dependencies {
   val scalaLoggingV = "3.9.4"
   val scalaTestV    = "3.2.10"
   val circeVersion = "0.14.1"
-  val http4sVersion = "1.0.0-M25"
+  val http4sVersion = "0.23.5"
   val bouncyCastleVersion = "1.69"
 
   def excludeGuavaJDK5(m: ModuleID): ModuleID = m.exclude("com.google.guava", "guava-jdk5")
@@ -62,7 +62,7 @@ object Dependencies {
   val googleFirestore: ModuleID = "com.google.cloud" % "google-cloud-firestore" % "2.6.2"
   val googleStorageNew: ModuleID = "com.google.cloud" % "google-cloud-storage" % "1.118.1"
   val googleStorageLocal: ModuleID = "com.google.cloud" % "google-cloud-nio" % "0.123.10" % "test"
-  val googlePubsubNew: ModuleID = "com.google.cloud" % "google-cloud-pubsub" % "1.114.4"
+  val googlePubsubNew: ModuleID = "com.google.cloud" % "google-cloud-pubsub" % "1.114.5"
   val googleKms: ModuleID = "com.google.cloud" % "google-cloud-kms" % "1.43.0"
   val googleDataproc: ModuleID =    "com.google.cloud" % "google-cloud-dataproc" % "1.5.4"
   val googleComputeNew: ModuleID = "com.google.cloud" % "google-cloud-compute" % "1.4.2-alpha"
@@ -86,7 +86,7 @@ object Dependencies {
   val http4sBlazeClient = "org.http4s" %% "http4s-blaze-client" % http4sVersion
   val http4sDsl = "org.http4s"      %% "http4s-dsl"          % http4sVersion
 
-  val fs2Io: ModuleID = "co.fs2" %% "fs2-io" % "3.1.1"
+  val fs2Io: ModuleID = "co.fs2" %% "fs2-io" % "3.1.3"
   val rawlsModel: ModuleID = "org.broadinstitute.dsde" %% "rawls-model" % "0.1-384ab501b" exclude("com.typesafe.scala-logging", "scala-logging_2.13") exclude("com.typesafe.akka", "akka-stream_2.13")
   val openCensusApi: ModuleID = "io.opencensus" % "opencensus-api" % "0.28.3"
   val openCensusImpl: ModuleID = "io.opencensus" % "opencensus-impl" % "0.28.3"
@@ -94,6 +94,7 @@ object Dependencies {
   val openCensusTraceStackDriver: ModuleID = "io.opencensus" % "opencensus-exporter-trace-stackdriver" % "0.28.3"
   val openCensusTraceLogging: ModuleID = "io.opencensus" % "opencensus-exporter-trace-logging" % "0.26.0"
   val sealerate: ModuleID = "ca.mrvisser" %% "sealerate" % "0.0.6"
+  val scalaCache = "com.github.cb372" %% "scalacache-caffeine" % "1.0.0-M4"
 
   val commonDependencies = Seq(
     scalatest,
@@ -178,7 +179,8 @@ object Dependencies {
     googleContainerV1,
     sealerate,
     google2CloudBilling,
-    googleResourceManager
+    googleResourceManager,
+    scalaCache
   )
 
   val openTelemetryDependencies = List(
