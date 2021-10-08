@@ -20,17 +20,17 @@ import com.google.api.client.googleapis.json.GoogleJsonResponseException
 import com.google.api.client.http.HttpResponseException
 import com.google.api.services.cloudresourcemanager.CloudResourceManager
 import com.google.api.services.cloudresourcemanager.model.{
-  TestIamPermissionsRequest,
   Binding => ProjectBinding,
   Policy => ProjectPolicy,
-  SetIamPolicyRequest => ProjectSetIamPolicyRequest
+  SetIamPolicyRequest => ProjectSetIamPolicyRequest,
+  TestIamPermissionsRequest
 }
 import com.google.api.services.iam.v1.model.{
+  Binding => ServiceAccountBinding,
   CreateServiceAccountKeyRequest,
   CreateServiceAccountRequest,
-  ServiceAccount,
-  Binding => ServiceAccountBinding,
   Policy => ServiceAccountPolicy,
+  ServiceAccount,
   ServiceAccountKey => GoogleServiceAccountKey,
   SetIamPolicyRequest => ServiceAccountSetIamPolicyRequest
 }

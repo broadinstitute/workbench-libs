@@ -1,39 +1,39 @@
 package org.broadinstitute.dsde.workbench.google2
 
 import cats.effect._
-import cats.syntax.all._
 import cats.mtl.Ask
+import cats.syntax.all._
 import com.google.api.core.ApiFutures
-import com.google.api.gax.core.FixedCredentialsProvider
+import com.google.api.gax.core.{FixedCredentialsProvider, FixedExecutorProvider}
 import com.google.api.gax.rpc.AlreadyExistsException
 import com.google.auth.oauth2.ServiceAccountCredentials
 import com.google.cloud.pubsub.v1.{Publisher, TopicAdminClient}
-import com.google.common.util.concurrent.MoreExecutors
+import com.google.common.util.concurrent.{MoreExecutors, ThreadFactoryBuilder}
 import com.google.protobuf.ByteString
 import com.google.pubsub.v1.{ProjectTopicName, PubsubMessage, TopicName}
 import fs2.{Pipe, Stream}
-import org.typelevel.log4cats.StructuredLogger
 import io.circe.Encoder
 import io.circe.syntax._
 import org.broadinstitute.dsde.workbench.model.TraceId
+import org.typelevel.log4cats.StructuredLogger
+
+import java.util.concurrent.ScheduledThreadPoolExecutor
 
 private[google2] class GooglePublisherInterpreter[F[_]: Async: StructuredLogger](
   publisher: Publisher
 ) extends GooglePublisher[F] {
-  def publish[MessageType: Encoder]: Pipe[F, MessageType, Unit] = in => {
+  def publish[MessageType: Encoder]: Pipe[F, MessageType, Unit] = in =>
     in.flatMap { message =>
       Stream
         .eval(publishMessage(message.asJson.noSpaces, None)) //This will turn message case class into raw json string
     }
-  }
 
-  def publishNative: Pipe[F, PubsubMessage, Unit] = in => {
+  def publishNative: Pipe[F, PubsubMessage, Unit] = in =>
     in.flatMap { message =>
       Stream.eval(
         publishNativeOne(message)
       )
     }
-  }
 
   /**
    * Watch out message size quota and limitations https://cloud.google.com/pubsub/quotas
@@ -53,12 +53,10 @@ private[google2] class GooglePublisherInterpreter[F[_]: Async: StructuredLogger]
       }
       .void,
     Option(message.getAttributesMap.get("traceId")).map(s => TraceId(s)),
-    s"Publishing ${message}"
+    s"Publishing $message"
   )
 
-  def publishString: Pipe[F, String, Unit] = in => {
-    in.flatMap(s => Stream.eval(publishMessage(s, None)))
-  }
+  def publishString: Pipe[F, String, Unit] = in => in.flatMap(s => Stream.eval(publishMessage(s, None)))
 
   override def publishOne[MessageType: Encoder](message: MessageType)(implicit ev: Ask[F, TraceId]): F[Unit] = {
     val byteString = ByteString.copyFromUtf8(message.asJson.noSpaces)
@@ -95,10 +93,12 @@ object GooglePublisherInterpreter {
     publisher: Publisher
   ): GooglePublisherInterpreter[F] = new GooglePublisherInterpreter(publisher)
 
-  def publisher[F[_]: Async: StructuredLogger](config: PublisherConfig): Resource[F, Publisher] =
+  def publisher[F[_]: Async: StructuredLogger](config: PublisherConfig,
+                                               numOfThreads: Int = 20
+  ): Resource[F, Publisher] =
     for {
       credential <- credentialResource(config.pathToCredentialJson)
-      publisher <- publisherResource(config.projectTopicName, credential)
+      publisher <- publisherResource(config.projectTopicName, credential, numOfThreads)
       topicAdminClient <- GoogleTopicAdminInterpreter.topicAdminClientResource(credential)
       _ <- createTopic(config.projectTopicName, topicAdminClient)
     } yield publisher
@@ -111,21 +111,28 @@ object GooglePublisherInterpreter {
         .delay(topicAdminClient.createTopic(topicName))
         .void
         .recoverWith { case _: AlreadyExistsException =>
-          logger.info(s"${topicName} already exists")
+          logger.info(s"$topicName already exists")
         }
     )
 
   private def publisherResource[F[_]: Sync](topicName: ProjectTopicName,
-                                            credential: ServiceAccountCredentials
-  ): Resource[F, Publisher] =
+                                            credential: ServiceAccountCredentials,
+                                            numOfThreads: Int
+  ): Resource[F, Publisher] = {
+    val threadFactory = new ThreadFactoryBuilder().setNameFormat("goog-publisher-%d").build()
+    val fixedExecutorProvider =
+      FixedExecutorProvider.create(new ScheduledThreadPoolExecutor(numOfThreads, threadFactory))
+
     Resource.make(
       Sync[F].delay(
         Publisher
           .newBuilder(topicName)
+          .setExecutorProvider(fixedExecutorProvider)
           .setCredentialsProvider(FixedCredentialsProvider.create(credential))
           .build()
       )
     )(p => Sync[F].delay(p.shutdown()))
+  }
 }
 
 final case class PublisherConfig(pathToCredentialJson: String, projectTopicName: ProjectTopicName)
