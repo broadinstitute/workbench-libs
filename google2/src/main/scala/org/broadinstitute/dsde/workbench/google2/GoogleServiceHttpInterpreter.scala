@@ -82,12 +82,13 @@ class GoogleServiceHttpInterpreter[F[_]: Concurrent: Logger](httpClient: Client[
       .map(_.serviceAccount)
   }
 
-  private def onError(traceId: Option[TraceId]): Response[F] => F[Throwable] = resp =>
+  private def onError(traceId: Option[TraceId]): Response[F] => F[Throwable] = resp => {
     for {
       body <- (resp.body through fs2.text.utf8Decode).compile.foldMonoid
       errorResponse = LoggableErrorResponse(traceId, resp.status, body)
       _ <- Logger[F].warn(errorResponse.asJson.noSpaces)
     } yield new RuntimeException(errorResponse.asJson.noSpaces)
+  }
 }
 
 object GoogleServiceHttpInterpreter {

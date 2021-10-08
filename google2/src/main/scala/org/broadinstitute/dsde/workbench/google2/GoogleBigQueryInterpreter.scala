@@ -63,7 +63,7 @@ private[google2] class GoogleBigQueryInterpreter[F[_]: StructuredLogger](client:
         client.create(datasetInfo).getDatasetId
       },
       None,
-      s"com.google.cloud.bigquery.BigQuery.create($datasetName)"
+      s"com.google.cloud.bigquery.BigQuery.create(${datasetName})"
     )
   }
 
@@ -73,7 +73,7 @@ private[google2] class GoogleBigQueryInterpreter[F[_]: StructuredLogger](client:
         client.delete(datasetName)
       },
       None,
-      s"com.google.cloud.bigquery.BigQuery.delete($datasetName)"
+      s"com.google.cloud.bigquery.BigQuery.delete(${datasetName})"
     )
 
   @deprecated(message = "Use getTable(BigQueryDatasetName, BigQueryTableName) instead", since = "0.21")

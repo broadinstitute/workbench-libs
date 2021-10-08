@@ -10,7 +10,7 @@ Breaking Changes:
 Dependency Upgrades:
 - `google-cloud-container` to `1.5.0`
 - `io.kubernetes` to `12.0.0`
-- `cats-effect` to `3.2.8`, `fs2` to `3.1.3`, `http4s` to `1.0.0-M25`
+- `cats-effect` to `3.2.5`, `fs2` to `3.1.3`, `http4s` to `1.0.0-M25`
 
 SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.22-TRAVIS-REPLACE-ME"`
 

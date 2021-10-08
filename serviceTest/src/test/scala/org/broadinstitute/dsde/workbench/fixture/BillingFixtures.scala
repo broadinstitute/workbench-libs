@@ -15,9 +15,9 @@ import org.scalatest.TestSuite
 import scala.util.Try
 
 /**
- * Mix in this trait to allow your test to access billing projects managed by the GPAlloc system, or create new billing
- * projects of your own. Using GPAlloc will generally be much faster, limit the creation of billing projects to those
- * tests which truly require them.
+ * Mix in this trait to allow your test to access billing projects managed by the GPAlloc system, or create new
+ * billing projects of your own.  Using GPAlloc will generally be much faster, limit the creation of billing projects
+ * to those tests which truly require them.
  */
 trait BillingFixtures extends ExceptionHandling with LazyLogging with CleanUp with RandomUtil {
   self: TestSuite =>
@@ -74,19 +74,14 @@ trait BillingFixtures extends ExceptionHandling with LazyLogging with CleanUp wi
   }
 
   /**
-   * Create and use a new billing project. Keep in mind that this is a slow an error-prone process, so you should only
+   * Create and use a new billing project.  Keep in mind that this is a slow an error-prone process, so you should only
    * use this method if your test requires it.
    *
-   * @param namePrefix
-   *   a short String to use as a billing project name prefix for identifying your test.
-   * @param ownerEmails
-   *   a List of emails (as Strings) to add as owners of this project
-   * @param userEmails
-   *   a List of emails (as Strings) to add as users of this project
-   * @param testCode
-   *   your test
-   * @param token
-   *   an AuthToken representing a billing project owner to pass to billing project endpoints
+   * @param namePrefix a short String to use as a billing project name prefix for identifying your test.
+   * @param ownerEmails a List of emails (as Strings) to add as owners of this project
+   * @param userEmails a List of emails (as Strings) to add as users of this project
+   * @param testCode your test
+   * @param token an AuthToken representing a billing project owner to pass to billing project endpoints
    */
   def withBrandNewBillingProject(
     namePrefix: String,
@@ -106,17 +101,13 @@ trait BillingFixtures extends ExceptionHandling with LazyLogging with CleanUp wi
   }
 
   /**
-   * Manually claim a project provisioned by GPAlloc and optionally add members. Consider using
-   * `withCleanBillingProject()` instead if you don't need to control the use of projects.
+   * Manually claim a project provisioned by GPAlloc and optionally add members.
+   * Consider using `withCleanBillingProject()` instead if you don't need to control the use of projects.
    *
-   * @param newOwnerCreds
-   *   Credentials representing a billing project owner to pass to billing project endpoints
-   * @param ownerEmails
-   *   a List of emails (as Strings) to add as owners of this project
-   * @param userEmails
-   *   a List of emails (as Strings) to add as users of this project
-   * @return
-   *   Some(GPAllocProject) if it succeeded, None if it did not
+   * @param newOwnerCreds Credentials representing a billing project owner to pass to billing project endpoints
+   * @param ownerEmails a List of emails (as Strings) to add as owners of this project
+   * @param userEmails a List of emails (as Strings) to add as users of this project
+   * @return Some(GPAllocProject) if it succeeded, None if it did not
    */
   def claimGPAllocProject(newOwnerCreds: Credentials,
                           ownerEmails: List[String] = List(),
@@ -125,19 +116,15 @@ trait BillingFixtures extends ExceptionHandling with LazyLogging with CleanUp wi
     claimGPAllocProject(newOwnerCreds.email, ownerEmails, userEmails)(newOwnerCreds.makeAuthToken _)
 
   /**
-   * Manually claim a project provisioned by GPAlloc and optionall add members. As opposed to `Credentials`, accepts
-   * `AuthToken` and `String` values for the new owner. This way a GPAlloc project can be claimed as a pet SA.
+   * Manually claim a project provisioned by GPAlloc and optionall add members.
+   * As opposed to `Credentials`, accepts `AuthToken` and `String` values for the new owner.
+   * This way a GPAlloc project can be claimed as a pet SA.
    *
-   * @param newOwnerEmail
-   *   Email for the new billing project owner
-   * @param ownerEmails
-   *   a List of emails (as Strings) to add as owners of this project
-   * @param userEmails
-   *   a List of emails (as Strings) to add as users of this project
-   * @param newOwnerToken
-   *   Function that returns an AuthToken for the new billing project owner to pass to billing project endpoints
-   * @return
-   *   Some(GPAllocProject) if it succeeded, none if it failed
+   * @param newOwnerEmail Email for the new billing project owner
+   * @param ownerEmails a List of emails (as Strings) to add as owners of this project
+   * @param userEmails a List of emails (as Strings) to add as users of this project
+   * @param newOwnerToken Function that returns an AuthToken for the new billing project owner to pass to billing project endpoints
+   * @return Some(GPAllocProject) if it succeeded, none if it failed
    */
   def claimGPAllocProject(newOwnerEmail: String, ownerEmails: List[String], userEmails: List[String])(
     newOwnerToken: () => AuthToken
@@ -161,27 +148,22 @@ trait BillingFixtures extends ExceptionHandling with LazyLogging with CleanUp wi
     }
 
   /**
-   * Release a billing project back to GPAlloc when you are done with it. Consider using `withCleanBillingProject()`
-   * instead if you don't need to control the use of projects.
+   * Release a billing project back to GPAlloc when you are done with it.
+   * Consider using `withCleanBillingProject()` instead if you don't need to control the use of projects.
    *
-   * @param projectName
-   *   the GPAllocProject to release
-   * @param ownerCreds
-   *   the Credentials of the current owner of the project
+   * @param projectName the GPAllocProject to release
+   * @param ownerCreds the Credentials of the current owner of the project
    */
   def releaseGPAllocProject(projectName: String, ownerCreds: Credentials): Unit =
     releaseGPAllocProject(projectName, ownerCreds.email)(ownerCreds.makeAuthToken _)
 
   /**
-   * Release a billing project back to GPAlloc when you are done with it. Consider using `withCleanBillingProject()`
-   * instead if you don't need to control the use of projects.
+   * Release a billing project back to GPAlloc when you are done with it.
+   * Consider using `withCleanBillingProject()` instead if you don't need to control the use of projects.
    *
-   * @param projectName
-   *   the GPAllocProject to release
-   * @param ownerEmail
-   *   the email string of the current owner
-   * @param ownerToken
-   *   Function that returns the AuthToken of the current owner of the project
+   * @param projectName the GPAllocProject to release
+   * @param ownerEmail the email string of the current owner
+   * @param ownerToken Function that returns the AuthToken of the current owner of the project
    */
   def releaseGPAllocProject(projectName: String, ownerEmail: String)(ownerToken: () => AuthToken): Unit = {
     val adminToken = UserPool.chooseAdmin.makeAuthToken()
@@ -192,17 +174,13 @@ trait BillingFixtures extends ExceptionHandling with LazyLogging with CleanUp wi
   }
 
   /**
-   * Use a billing project provided by GPAlloc for the purpose of running tests against it. This method will claim a
-   * project for the duration of the test and release it when the test is done.
+   * Use a billing project provided by GPAlloc for the purpose of running tests against it.  This method will claim
+   * a project for the duration of the test and release it when the test is done.
    *
-   * @param newOwnerCreds
-   *   Credentials representing a billing project owner to pass to billing project endpoints
-   * @param ownerEmails
-   *   a List of emails (as Strings) to add as owners of this project
-   * @param userEmails
-   *   a List of emails (as Strings) to add as users of this project
-   * @param testCode
-   *   your test
+   * @param newOwnerCreds Credentials representing a billing project owner to pass to billing project endpoints
+   * @param ownerEmails a List of emails (as Strings) to add as owners of this project
+   * @param userEmails a List of emails (as Strings) to add as users of this project
+   * @param testCode your test
    */
   def withCleanBillingProject(newOwnerCreds: Credentials,
                               ownerEmails: List[String] = List(),
@@ -211,19 +189,14 @@ trait BillingFixtures extends ExceptionHandling with LazyLogging with CleanUp wi
     withCleanBillingProject(newOwnerCreds.email, ownerEmails, userEmails)(newOwnerCreds.makeAuthToken _)(testCode)
 
   /**
-   * Use a billing project provided by GPAlloc for the purpose of running tests against it. This method will claim * a
-   * project for the duration of the test and release it when the test is done.
+   * Use a billing project provided by GPAlloc for the purpose of running tests against it.  This method will claim
+   * * a project for the duration of the test and release it when the test is done.
    *
-   * @param newOwnerEmail
-   *   The email of the new billing project owner
-   * @param ownerEmails
-   *   a List of emails (as Strings) to add as owners of this project
-   * @param userEmails
-   *   a List of emails (as Strings) to add as users of this project
-   * @param newOwnerToken
-   *   Function that returns an AuthToken for the new billing project owner to pass to billing project endpoints
-   * @param testCode
-   *   your test
+   * @param newOwnerEmail The email of the new billing project owner
+   * @param ownerEmails a List of emails (as Strings) to add as owners of this project
+   * @param userEmails a List of emails (as Strings) to add as users of this project
+   * @param newOwnerToken Function that returns an AuthToken for the new billing project owner to pass to billing project endpoints
+   * @param testCode your test
    */
   def withCleanBillingProject(newOwnerEmail: String, ownerEmails: List[String], userEmails: List[String])(
     newOwnerToken: () => AuthToken

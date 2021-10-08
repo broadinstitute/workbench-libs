@@ -28,8 +28,7 @@ import scala.language.higherKinds
 trait GoogleStorageService[F[_]] {
 
   /**
-   * @param traceId
-   *   uuid for tracing a unique call flow in logging
+   * @param traceId uuid for tracing a unique call flow in logging
    */
   def listObjectsWithPrefix(bucketName: GcsBucketName,
                             objectNamePrefix: String,
@@ -40,8 +39,7 @@ trait GoogleStorageService[F[_]] {
   ): Stream[F, GcsObjectName]
 
   /**
-   * @param traceId
-   *   uuid for tracing a unique call flow in logging
+   * @param traceId uuid for tracing a unique call flow in logging
    */
   def listBlobsWithPrefix(bucketName: GcsBucketName,
                           objectNamePrefix: String,
@@ -53,8 +51,7 @@ trait GoogleStorageService[F[_]] {
 
   /**
    * not memory safe. Use listObjectsWithPrefix if you're worried about OOM
-   * @param traceId
-   *   uuid for tracing a unique call flow in logging
+   * @param traceId uuid for tracing a unique call flow in logging
    */
   def unsafeListObjectsWithPrefix(
     bucketName: GcsBucketName,
@@ -71,8 +68,7 @@ trait GoogleStorageService[F[_]] {
     ).compile.toList
 
   /**
-   * @param traceId
-   *   uuid for tracing a unique call flow in logging
+   * @param traceId uuid for tracing a unique call flow in logging
    */
   @deprecated("Use streamBlob instead", "0.11")
   def createBlob(bucketName: GcsBucketName,
@@ -94,8 +90,7 @@ trait GoogleStorageService[F[_]] {
   ): Pipe[F, Byte, Unit]
 
   /**
-   * @param traceId
-   *   uuid for tracing a unique call flow in logging
+   * @param traceId uuid for tracing a unique call flow in logging
    */
   @deprecated("Use createBlob instead", "0.5")
   def storeObject(bucketName: GcsBucketName,
@@ -109,8 +104,7 @@ trait GoogleStorageService[F[_]] {
     createBlob(bucketName, objectName, objectContents, objectType, metadata, generation, traceId).void
 
   /**
-   * @param traceId
-   *   uuid for tracing a unique call flow in logging
+   * @param traceId uuid for tracing a unique call flow in logging
    */
   def setBucketLifecycle(bucketName: GcsBucketName,
                          lifecycleRules: List[LifecycleRule],
@@ -120,8 +114,7 @@ trait GoogleStorageService[F[_]] {
 
   /**
    * not memory safe. Use getObject if you're worried about OOM
-   * @param traceId
-   *   uuid for tracing a unique call flow in logging
+   * @param traceId uuid for tracing a unique call flow in logging
    */
   @deprecated("Use unsafeGetObjectBody instead", "0.5")
   def unsafeGetObject(bucketName: GcsBucketName,
@@ -133,8 +126,7 @@ trait GoogleStorageService[F[_]] {
 
   /**
    * not memory safe. Use getObject if you're worried about OOM
-   * @param traceId
-   *   uuid for tracing a unique call flow in logging
+   * @param traceId uuid for tracing a unique call flow in logging
    */
   def unsafeGetBlobBody(bucketName: GcsBucketName,
                         blobName: GcsBlobName,
@@ -143,8 +135,7 @@ trait GoogleStorageService[F[_]] {
   ): F[Option[String]]
 
   /**
-   * @param traceId
-   *   uuid for tracing a unique call flow in logging
+   * @param traceId uuid for tracing a unique call flow in logging
    */
   @deprecated("Use getObject instead", "0.5")
   def getObject(bucketName: GcsBucketName,
@@ -155,8 +146,7 @@ trait GoogleStorageService[F[_]] {
     getBlobBody(bucketName, blobName, traceId, retryConfig)
 
   /**
-   * @param traceId
-   *   uuid for tracing a unique call flow in logging
+   * @param traceId uuid for tracing a unique call flow in logging
    */
   def getBlobBody(bucketName: GcsBucketName,
                   blobName: GcsBlobName,
@@ -166,8 +156,7 @@ trait GoogleStorageService[F[_]] {
 
   /**
    * return com.google.cloud.storage.Blob, which gives you metadata and user defined metadata etc
-   * @param traceId
-   *   uuid for tracing a unique call flow in logging
+   * @param traceId uuid for tracing a unique call flow in logging
    */
   def getBlob(bucketName: GcsBucketName,
               blobName: GcsBlobName,
@@ -177,8 +166,7 @@ trait GoogleStorageService[F[_]] {
   ): Stream[F, Blob]
 
   /**
-   * @param traceId
-   *   uuid for tracing a unique call flow in logging
+   * @param traceId uuid for tracing a unique call flow in logging
    */
   def downloadObject(blobId: BlobId,
                      path: Path,
@@ -187,8 +175,7 @@ trait GoogleStorageService[F[_]] {
   ): Stream[F, Unit]
 
   /**
-   * @param traceId
-   *   uuid for tracing a unique call flow in logging
+   * @param traceId uuid for tracing a unique call flow in logging
    */
   def getObjectMetadata(bucketName: GcsBucketName,
                         blobName: GcsBlobName,
@@ -197,8 +184,7 @@ trait GoogleStorageService[F[_]] {
   ): Stream[F, GetMetadataResponse]
 
   /**
-   * @param traceId
-   *   uuid for tracing a unique call flow in logging
+   * @param traceId uuid for tracing a unique call flow in logging
    */
   def setObjectMetadata(bucketName: GcsBucketName,
                         blobName: GcsBlobName,
@@ -208,8 +194,7 @@ trait GoogleStorageService[F[_]] {
   ): Stream[F, Unit]
 
   /**
-   * @return
-   *   true if deleted; false if not found
+   * @return true if deleted; false if not found
    */
   def removeObject(bucketName: GcsBucketName,
                    blobName: GcsBlobName,
@@ -219,8 +204,8 @@ trait GoogleStorageService[F[_]] {
   ): Stream[F, RemoveObjectResult]
 
   /**
-   * @param traceId
-   *   uuid for tracing a unique call flow in logging Acl is deprecated. Use setIamPolicy if possible
+   * @param traceId uuid for tracing a unique call flow in logging
+   * Acl is deprecated. Use setIamPolicy if possible
    */
   @deprecated("Deprecated in favor of insertBucket", "0.5")
   def createBucket(billingProject: GoogleProject,
@@ -238,11 +223,10 @@ trait GoogleStorageService[F[_]] {
   ): F[Option[Bucket]]
 
   /**
-   * @param googleProject
-   *   The name of the Google project to create the bucket in
-   * @param traceId
-   *   uuid for tracing a unique call flow in logging Supports adding bucket labels during creation Acl is deprecated.
-   *   Use setIamPolicy if possible
+   * @param googleProject The name of the Google project to create the bucket in
+   * @param traceId uuid for tracing a unique call flow in logging
+   * Supports adding bucket labels during creation
+   * Acl is deprecated. Use setIamPolicy if possible
    */
   def insertBucket(googleProject: GoogleProject,
                    bucketName: GcsBucketName,
@@ -256,11 +240,9 @@ trait GoogleStorageService[F[_]] {
   ): Stream[F, Unit]
 
   /**
-   * @param googleProject
-   *   The name of the Google project to create the bucket in
-   * @param traceId
-   *   uuid for tracing a unique call flow in logging Return {@code true} if bucket was deleted, {@code false} if it was
-   *   not found
+   * @param googleProject The name of the Google project to create the bucket in
+   * @param traceId uuid for tracing a unique call flow in logging
+   * Return {@code true} if bucket was deleted, {@code false} if it was not found
    */
   def deleteBucket(googleProject: GoogleProject,
                    bucketName: GcsBucketName,
@@ -271,8 +253,7 @@ trait GoogleStorageService[F[_]] {
   ): Stream[F, Boolean]
 
   /**
-   * @param traceId
-   *   uuid for tracing a unique call flow in logging
+   * @param traceId uuid for tracing a unique call flow in logging
    */
   def setBucketPolicyOnly(bucketName: GcsBucketName,
                           bucketPolicyOnlyEnabled: Boolean,
@@ -287,8 +268,7 @@ trait GoogleStorageService[F[_]] {
   ): Stream[F, Unit]
 
   /**
-   * @param traceId
-   *   uuid for tracing a unique call flow in logging
+   * @param traceId uuid for tracing a unique call flow in logging
    */
   def setIamPolicy(bucketName: GcsBucketName,
                    roles: Map[StorageRole, NonEmptyList[Identity]],
@@ -297,8 +277,7 @@ trait GoogleStorageService[F[_]] {
   ): Stream[F, Unit]
 
   /**
-   * @param traceId
-   *   uuid for tracing a unique call flow in logging
+   * @param traceId uuid for tracing a unique call flow in logging
    */
   def overrideIamPolicy(bucketName: GcsBucketName,
                         roles: Map[StorageRole, NonEmptyList[Identity]],

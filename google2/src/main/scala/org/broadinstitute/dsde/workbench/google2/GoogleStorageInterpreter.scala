@@ -374,7 +374,7 @@ private[google2] class GoogleStorageInterpreter[F[_]](
       res <- retryF(retryConfig)(
         deleteBucket,
         traceId,
-        s"com.google.cloud.storage.Storage.delete(${bucketName.value}, $bucketSourceOptions)"
+        s"com.google.cloud.storage.Storage.delete(${bucketName.value}, ${bucketSourceOptions})"
       )
     } yield res
   }
@@ -386,7 +386,7 @@ private[google2] class GoogleStorageInterpreter[F[_]](
   ): F[Option[Bucket]] = {
     val dbForProject = db.getOptions.toBuilder.setProjectId(googleProject.value).build().getService
     val fa = Async[F].delay(dbForProject.get(bucketName.value, bucketGetOptions: _*)).map(Option(_))
-    withLogging(fa, traceId, s"com.google.cloud.storage.Storage.get(${bucketName.value}, $bucketGetOptions)")
+    withLogging(fa, traceId, s"com.google.cloud.storage.Storage.get(${bucketName.value}, ${bucketGetOptions})")
   }
 
   override def setBucketPolicyOnly(bucketName: GcsBucketName,
@@ -442,7 +442,7 @@ private[google2] class GoogleStorageInterpreter[F[_]](
     retryF(retryConfig)(
       getAndSetIamPolicy,
       traceId,
-      s"com.google.cloud.storage.Storage.getIamPolicy($bucketName), com.google.cloud.storage.Storage.setIamPolicy($bucketName, $roles)"
+      s"com.google.cloud.storage.Storage.getIamPolicy(${bucketName}), com.google.cloud.storage.Storage.setIamPolicy(${bucketName}, $roles)"
     )
   }
 
@@ -464,7 +464,7 @@ private[google2] class GoogleStorageInterpreter[F[_]](
     retryF(retryConfig)(
       overrideIam,
       traceId,
-      s"com.google.cloud.storage.Storage.setIamPolicy($bucketName, $roles)"
+      s"com.google.cloud.storage.Storage.setIamPolicy(${bucketName}, $roles)"
     )
   }
 
@@ -479,7 +479,7 @@ private[google2] class GoogleStorageInterpreter[F[_]](
     retryF(retryConfig)(
       getIamPolicy,
       traceId,
-      s"com.google.cloud.storage.Storage.getIamPolicy($bucketName)"
+      s"com.google.cloud.storage.Storage.getIamPolicy(${bucketName})"
     )
   }
 
@@ -520,7 +520,7 @@ private[google2] class GoogleStorageInterpreter[F[_]](
       firstPage <- retryF(retryConfig)(
         blockingF(listFirstPage),
         traceId,
-        s"com.google.cloud.storage.Storage.list($bucketName, $blobListOptions)"
+        s"com.google.cloud.storage.Storage.list($bucketName, ${blobListOptions})"
       ).unNone
       page <- Stream.unfoldEval(firstPage) { currentPage =>
         Option(currentPage).traverse { p =>

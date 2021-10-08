@@ -162,7 +162,7 @@ object ErrorReportJsonSupport {
 
     override def read(json: JsValue): TraceId = json match {
       case JsString(s) => TraceId(s)
-      case s           => throw DeserializationException(s"unable to deserialize $s to TraceId")
+      case s           => throw DeserializationException(s"unable to deserialize ${s} to TraceId")
     }
   }
 

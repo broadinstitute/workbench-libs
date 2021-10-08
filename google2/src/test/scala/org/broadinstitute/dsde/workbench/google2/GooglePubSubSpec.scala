@@ -62,7 +62,7 @@ class GooglePubSubSpec extends AnyFlatSpecLike with Matchers with WorkbenchTestS
               else
                 IO(event.consumer.ack()).void
             } else
-              IO.raiseError(new Exception(s"$event doesn't equal ${people(index.toInt)}")) >> terminateSubscriber
+              IO.raiseError(new Exception(s"${event} doesn't equal ${people(index.toInt)}")) >> terminateSubscriber
                 .set(true)
           }
           .interruptWhen(terminateStopStream)

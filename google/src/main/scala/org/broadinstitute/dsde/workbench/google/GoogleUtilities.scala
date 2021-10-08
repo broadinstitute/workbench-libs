@@ -57,24 +57,20 @@ object GoogleUtilities {
     }
 
     /**
-     * Think twice about reaching for this predicate in a retry. Usually, 412 Precondition Failed is an indication of an
-     * ETag mismatch. Typically, doing a GET on a GCP resource will return an ETag along with the response. ETags are a
-     * form of concurrency control: they are updated each time a resource is modified. The expectation is that you first
-     * GET the resource, and when modifying it, you pass along the same ETag that you got. If the ETag you provide
-     * matches the one on Google's side, the modification is applied and your request succeeds. if it doesn't, Google
-     * returns 412 Precondition Failed to tell you that someone else has modified the object from under you. The correct
-     * response is usually to try the whole operation again, starting from the GET to get both the new ETag and the
-     * updated object.
+     * Think twice about reaching for this predicate in a retry. Usually, 412 Precondition Failed is an indication of an ETag mismatch.
+     * Typically, doing a GET on a GCP resource will return an ETag along with the response. ETags are a form of concurrency control: they are updated
+     * each time a resource is modified. The expectation is that you first GET the resource, and when modifying it, you pass along the same ETag
+     * that you got. If the ETag you provide matches the one on Google's side, the modification is applied and your request succeeds. if it doesn't,
+     * Google returns 412 Precondition Failed to tell you that someone else has modified the object from under you. The correct response is usually to
+     * try the whole operation again, starting from the GET to get both the new ETag and the updated object.
      *
-     * If you want to make sure your modification goes through regardless of whether any updates have been applied, you
-     * can pass the special ETag *. But that is a very stompy thing to do and you should proceed with extreme caution.
+     * If you want to make sure your modification goes through regardless of whether any updates have been applied, you can pass the special ETag *.
+     * But that is a very stompy thing to do and you should proceed with extreme caution.
      *
-     * In most cases, either of the approaches outlined above are preferable to using this predicate. The result of
-     * using this predicate will be that your request is retried in its entirety. It does not handle re-GET-ting the
-     * resource for you and updating the ETag. Therefore, you should only use this predicate when you are seeing 412
-     * Precondition Failed and the API does not permit passing ETags in your HTTP request. This is rare but does
-     * occasionally occur, most often during DELETE calls, which do not pass a request body and therefore have no ETags
-     * for you to set.
+     * In most cases, either of the approaches outlined above are preferable to using this predicate. The result of using this predicate will be that
+     * your request is retried in its entirety. It does not handle re-GET-ting the resource for you and updating the ETag. Therefore, you should only
+     * use this predicate when you are seeing 412 Precondition Failed and the API does not permit passing ETags in your HTTP request. This is rare but
+     * does occasionally occur, most often during DELETE calls, which do not pass a request body and therefore have no ETags for you to set.
      */
     def whenPreconditionFailed(throwable: Throwable): Boolean = throwable match {
       case t: GoogleHttpResponseException => t.getStatusCode == 412

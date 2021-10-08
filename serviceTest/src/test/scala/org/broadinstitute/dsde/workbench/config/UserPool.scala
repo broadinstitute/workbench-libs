@@ -7,7 +7,8 @@ object UserPool {
   )
 
   /**
-   * Chooses a user suitable for a generic test. Users in Owners, Curators, AuthDomainUsers, and Students
+   * Chooses a user suitable for a generic test.
+   * Users in Owners, Curators, AuthDomainUsers, and Students
    */
   def chooseAnyUser: Credentials = chooseAnyUsers(1).head
 
