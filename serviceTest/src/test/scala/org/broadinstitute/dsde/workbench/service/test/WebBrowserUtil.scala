@@ -14,8 +14,7 @@ trait WebBrowserUtil extends WebBrowser {
   val defaultTimeOutInSeconds: Long = 50
 
   /**
-   * Override of the base find() method to retry in the case of a
-   * StaleElementReferenceException.
+   * Override of the base find() method to retry in the case of a StaleElementReferenceException.
    */
   abstract override def find(query: Query)(implicit driver: WebDriver): Option[Element] =
     try {
@@ -33,21 +32,21 @@ trait WebBrowserUtil extends WebBrowser {
     }
 
   /**
-   * Extension to ScalaTest's Selenium DSL for waiting on changes in browser
-   * state. Example:
+   * Extension to ScalaTest's Selenium DSL for waiting on changes in browser state. Example:
    *
-   * <pre>
-   * await enabled id("myButton")
-   * </pre>
+   * <pre> await enabled id("myButton") </pre>
    */
   object await {
 
     /**
      * Waits for a condition to be met.
      *
-     * @param condition function returning the Boolean result of the condition check
-     * @param timeOutInSeconds number of seconds to wait for the condition to be true
-     * @param webDriver implicit WebDriver for the WebDriverWait
+     * @param condition
+     *   function returning the Boolean result of the condition check
+     * @param timeOutInSeconds
+     *   number of seconds to wait for the condition to be true
+     * @param webDriver
+     *   implicit WebDriver for the WebDriverWait
      */
     def condition(condition: => Boolean, timeOutInSeconds: Long = defaultTimeOutInSeconds)(implicit
       webDriver: WebDriver
@@ -57,26 +56,25 @@ trait WebBrowserUtil extends WebBrowser {
       }
 
     /**
-     * Waits for an element to be enabled. Returns the element found by the
-     * query to facilitate call chaining, e.g.:
+     * Waits for an element to be enabled. Returns the element found by the query to facilitate call chaining, e.g.:
      *
-     *   click on (await enabled id("my-button"))
+     * click on (await enabled id("my-button"))
      *
-     * Returns null if the element is not found. Why null instead of None? It
-     * would be too easy for callers to map/flatmap an Option which is likely
-     * to delay failure of the test if it's None. For example, if trying to
-     * click on a button, nothing would happen instead of the test failing.
-     * The test would (hopefully) fail only when the next action it tries to
-     * do is not available. Understanding the cause of the failure would
-     * require more work, including probably looking at the failure
-     * screenshot. A NullPointerException when trying to interact with the
-     * element will result in a more immediate failure with a more obvious
-     * cause.
+     * Returns null if the element is not found. Why null instead of None? It would be too easy for callers to
+     * map/flatmap an Option which is likely to delay failure of the test if it's None. For example, if trying to click
+     * on a button, nothing would happen instead of the test failing. The test would (hopefully) fail only when the next
+     * action it tries to do is not available. Understanding the cause of the failure would require more work, including
+     * probably looking at the failure screenshot. A NullPointerException when trying to interact with the element will
+     * result in a more immediate failure with a more obvious cause.
      *
-     * @param query Query to locate the element
-     * @param timeOutInSeconds number of seconds to wait for the enabled element
-     * @param webDriver implicit WebDriver for the WebDriverWait
-     * @return the found element
+     * @param query
+     *   Query to locate the element
+     * @param timeOutInSeconds
+     *   number of seconds to wait for the enabled element
+     * @param webDriver
+     *   implicit WebDriver for the WebDriverWait
+     * @return
+     *   the found element
      */
     def enabled(query: Query, timeOutInSeconds: Long = defaultTimeOutInSeconds)(implicit
       webDriver: WebDriver
@@ -122,9 +120,12 @@ trait WebBrowserUtil extends WebBrowser {
     /**
      * Waits for an element to be enabled, then clicks it.
      *
-     * @param query Query to locate the element
-     * @param timeOutInSeconds number of seconds to wait for the enabled element
-     * @param webDriver implicit WebDriver for the WebDriverWait
+     * @param query
+     *   Query to locate the element
+     * @param timeOutInSeconds
+     *   number of seconds to wait for the enabled element
+     * @param webDriver
+     *   implicit WebDriver for the WebDriverWait
      */
     def thenClick(query: Query)(implicit webDriver: WebDriver): Unit = {
       val element = await enabled query
@@ -132,12 +133,14 @@ trait WebBrowserUtil extends WebBrowser {
     }
 
     /**
-     * Waits for an element containing the given text.
-     * TODO: this is currently untested
+     * Waits for an element containing the given text. TODO: this is currently untested
      *
-     * @param text the text to search for
-     * @param timeOutInSeconds number of seconds to wait for the text
-     * @param webDriver implicit WebDriver for the WebDriverWait
+     * @param text
+     *   the text to search for
+     * @param timeOutInSeconds
+     *   number of seconds to wait for the text
+     * @param webDriver
+     *   implicit WebDriver for the WebDriverWait
      */
     def text(text: String, timeOutInSeconds: Long = defaultTimeOutInSeconds)(implicit webDriver: WebDriver): Unit =
       await condition (find(withText(text)).isDefined, timeOutInSeconds)
@@ -183,13 +186,14 @@ trait WebBrowserUtil extends WebBrowser {
     /**
      * Determines the value of an option based on its text. Example:
      *
-     * <pre>
-     * singleSel("choices").value = option value "Choice 1"
-     * </pre>
+     * <pre> singleSel("choices").value = option value "Choice 1" </pre>
      *
-     * @param text text label of the option
-     * @param webDriver implicit WebDriver for the WebDriverWait
-     * @return the value of the option
+     * @param text
+     *   text label of the option
+     * @param webDriver
+     *   implicit WebDriver for the WebDriverWait
+     * @return
+     *   the value of the option
      */
     def value(text: String)(implicit webDriver: WebDriver): String =
       find(xpath(s"//option[text()='$text']")).get.underlying.getAttribute("value")
@@ -198,8 +202,10 @@ trait WebBrowserUtil extends WebBrowser {
   /**
    * Creates a Query for an element with a data-test-id attribute.
    *
-   * @param id the expected data-test-id
-   * @return a Query for the data-test-id
+   * @param id
+   *   the expected data-test-id
+   * @return
+   *   a Query for the data-test-id
    */
   def testId(id: String): CssSelectorQuery =
     cssSelector(s"[data-test-id='$id']")
@@ -219,11 +225,12 @@ trait WebBrowserUtil extends WebBrowser {
     xpath(s"//*[contains(text(),'$text')]")
 
   /**
-   * Creates a query for an element containing the given text.
-   * TODO: this is currently untested
+   * Creates a query for an element containing the given text. TODO: this is currently untested
    *
-   * @param text the text to search for
-   * @return a Query for the text
+   * @param text
+   *   the text to search for
+   * @return
+   *   a Query for the text
    */
   def text(text: String): Query =
     xpath(s"//*[contains(text(),'$text')]")
@@ -231,8 +238,10 @@ trait WebBrowserUtil extends WebBrowser {
   /**
    * Creates a Query for an element with a title attribute.
    *
-   * @param title the expected title
-   * @return a Query for the title
+   * @param title
+   *   the expected title
+   * @return
+   *   a Query for the title
    */
   def title(title: String): Query =
     cssSelector(s"[title='$title']")

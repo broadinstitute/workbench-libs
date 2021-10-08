@@ -36,8 +36,10 @@ object Util extends LazyLogging {
   /**
    * Move a file, making sure the destination directory exists.
    *
-   * @param sourcePath path to source file
-   * @param destPath path to desired destination file
+   * @param sourcePath
+   *   path to source file
+   * @param destPath
+   *   path to desired destination file
    */
   def moveFile(sourcePath: String, destPath: String): Unit = {
     val destFile = new File(destPath)

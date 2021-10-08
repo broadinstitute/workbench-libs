@@ -25,9 +25,8 @@ object GooglePubSubManualTest {
 
   /**
    * How to use this:
-   * 1. sbt "project workbenchGoogle2" test:console
-   * 2. val res = org.broadinstitute.dsde.workbench.google2.GooglePubSubManualTest.publish()
-   * 3. res.unsafeRunSync
+   *   1. sbt "project workbenchGoogle2" test:console 2. val res =
+   *      org.broadinstitute.dsde.workbench.google2.GooglePubSubManualTest.publish() 3. res.unsafeRunSync
    *
    * You can now see messages being published
    */
@@ -44,9 +43,8 @@ object GooglePubSubManualTest {
 
   /**
    * How to use this:
-   * 1. sbt "project workbenchGoogle2" test:console
-   * 2. val res = org.broadinstitute.dsde.workbench.google2.GooglePubSubManualTest.subscriber()
-   * 3. res.unsafeRunSync
+   *   1. sbt "project workbenchGoogle2" test:console 2. val res =
+   *      org.broadinstitute.dsde.workbench.google2.GooglePubSubManualTest.subscriber() 3. res.unsafeRunSync
    *
    * You can now publish messages in console and watch messages being printed out
    */

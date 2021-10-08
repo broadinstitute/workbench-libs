@@ -28,7 +28,7 @@ trait WebBrowserSpec extends WebBrowserUtil with ExceptionHandling with LazyLogg
   lazy val api: Orchestration.type = Orchestration
   lazy val headless: Option[String] = sys.props.get("headless")
   lazy val isHeadless: Boolean = {
-    logger.info(s"Is running in headless mode? ${headless}")
+    logger.info(s"Is running in headless mode? $headless")
     headless match {
       case Some("false") =>
         logger.info(s"Running in non headless mode")
@@ -40,22 +40,23 @@ trait WebBrowserSpec extends WebBrowserUtil with ExceptionHandling with LazyLogg
   }
 
   /**
-   * Executes a test in a fixture with a managed WebDriver. A test that uses
-   * this will get its own WebDriver instance will be destroyed when the test
-   * is complete. This encourages test case isolation.
+   * Executes a test in a fixture with a managed WebDriver. A test that uses this will get its own WebDriver instance
+   * will be destroyed when the test is complete. This encourages test case isolation.
    *
-   * @param testCode the test code to run
+   * @param testCode
+   *   the test code to run
    */
   def withWebDriver(testCode: WebDriver => Any): Unit =
     withWebDriver(s"/app/${sys.props.get("java.io.tmpdir")}")(testCode)
 
   /**
-   * Executes a test in a fixture with a managed WebDriver. A test that uses
-   * this will get its own WebDriver instance will be destroyed when the test
-   * is complete. This encourages test case isolation.
+   * Executes a test in a fixture with a managed WebDriver. A test that uses this will get its own WebDriver instance
+   * will be destroyed when the test is complete. This encourages test case isolation.
    *
-   * @param downloadPath a directory where downloads should be saved
-   * @param testCode the test code to run
+   * @param downloadPath
+   *   a directory where downloads should be saved
+   * @param testCode
+   *   the test code to run
    */
   def withWebDriver(downloadPath: String)(testCode: WebDriver => Any): Unit = {
     val options = getChromeIncognitoOption(downloadPath)
@@ -175,8 +176,7 @@ trait WebBrowserSpec extends WebBrowserUtil with ExceptionHandling with LazyLogg
     } yield e
 
   /**
-   * Override of withScreenshot that works with a remote Chrome driver and
-   * lets us control the image file name.
+   * Override of withScreenshot that works with a remote Chrome driver and lets us control the image file name.
    */
   override def withScreenshot[T](f: => T)(implicit driver: WebDriver): T =
     try f
@@ -184,10 +184,10 @@ trait WebBrowserSpec extends WebBrowserUtil with ExceptionHandling with LazyLogg
       case t: Throwable =>
         val date = new SimpleDateFormat("HH-mm-ss-SSS").format(new java.util.Date())
         val path = "failure_screenshots"
-        val name = s"${suiteName}_${date}"
-        val fileName = s"$path/${name}.png"
-        val htmlSourceFileName = s"$path/${name}.html"
-        val logFileNamePrefix = s"$path/${name}"
+        val name = s"${suiteName}_$date"
+        val fileName = s"$path/$name.png"
+        val htmlSourceFileName = s"$path/$name.html"
+        val logFileNamePrefix = s"$path/$name"
         try {
           val directory = new File(s"$path")
           if (!directory.exists()) {
@@ -201,12 +201,12 @@ trait WebBrowserSpec extends WebBrowserUtil with ExceptionHandling with LazyLogg
           val html = tagName("html").element.underlying.getAttribute("outerHTML")
           new FileOutputStream(new File(htmlSourceFileName)).write(html.getBytes)
 
-          saveLog(LogType.BROWSER, s"${logFileNamePrefix}")
-          saveLog(LogType.CLIENT, s"${logFileNamePrefix}")
-          saveLog(LogType.DRIVER, s"${logFileNamePrefix}")
-          saveLog(LogType.SERVER, s"${logFileNamePrefix}")
+          saveLog(LogType.BROWSER, s"$logFileNamePrefix")
+          saveLog(LogType.CLIENT, s"$logFileNamePrefix")
+          saveLog(LogType.DRIVER, s"$logFileNamePrefix")
+          saveLog(LogType.SERVER, s"$logFileNamePrefix")
 
-          logger.error(s"Screenshot ${name}.png Exception. ", t)
+          logger.error(s"Screenshot $name.png Exception. ", t)
         } catch nonFatalAndLog(s"FAILED TO SAVE SCREENSHOT $fileName")
         throw t
     }

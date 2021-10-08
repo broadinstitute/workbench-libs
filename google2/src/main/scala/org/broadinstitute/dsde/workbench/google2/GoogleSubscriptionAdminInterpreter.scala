@@ -30,7 +30,7 @@ private[google2] class GoogleSubscriptionAdminInterpreter[F[_]: Temporal](client
   def delete(projectSubscriptionName: ProjectSubscriptionName)(implicit ev: Ask[F, TraceId]): F[Unit] = {
     val fa = F.delay(client.deleteSubscription(projectSubscriptionName))
     tracedLogging(fa,
-                  s"com.google.cloud.pubsub.v1.SubscriptionAdminClient.deleteSubscription(${projectSubscriptionName})"
+                  s"com.google.cloud.pubsub.v1.SubscriptionAdminClient.deleteSubscription($projectSubscriptionName)"
     )
   }
 }

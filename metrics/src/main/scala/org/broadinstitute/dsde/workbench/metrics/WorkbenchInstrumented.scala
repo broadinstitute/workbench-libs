@@ -9,15 +9,13 @@ import scala.collection.JavaConverters._
 import scala.language.implicitConversions
 
 /**
- * Mixin trait for instrumentation.
- * Extends metrics-scala DefaultInstrumented and provides additional utilties for generating
- * metric names for Workbench.
+ * Mixin trait for instrumentation. Extends metrics-scala DefaultInstrumented and provides additional utilties for
+ * generating metric names for Workbench.
  */
 trait WorkbenchInstrumented extends DefaultInstrumented {
 
   /**
-   * Base name for all metrics. This will be prepended to all generated metric names.
-   * Example: dev.firecloud.rawls
+   * Base name for all metrics. This will be prepended to all generated metric names. Example: dev.firecloud.rawls
    */
   protected val workbenchMetricBaseName: String
   override lazy val metricBaseName = MetricName(workbenchMetricBaseName)
@@ -49,9 +47,9 @@ trait WorkbenchInstrumented extends DefaultInstrumented {
       )
 
     /**
-     * Marks a metric as "transient". Transient metrics will automatically be deleted in Hosted
-     * Graphite if they haven't received an update in X amount of time. It's usually good to set
-     * metrics with high granularity (e.g. workspace or submission-level) as transient.
+     * Marks a metric as "transient". Transient metrics will automatically be deleted in Hosted Graphite if they haven't
+     * received an update in X amount of time. It's usually good to set metrics with high granularity (e.g. workspace or
+     * submission-level) as transient.
      */
     def transient(): ExpandedMetricBuilder =
       new ExpandedMetricBuilder(m, true)

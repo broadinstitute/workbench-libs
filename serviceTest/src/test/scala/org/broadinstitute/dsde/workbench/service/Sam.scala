@@ -13,9 +13,8 @@ import org.scalatest.time.{Seconds, Span}
 import spray.json._
 
 /**
- * Sam API service client. This should only be used when Orchestration does
- * not provide a required endpoint. This should primarily be used for admin
- * functions.
+ * Sam API service client. This should only be used when Orchestration does not provide a required endpoint. This should
+ * primarily be used for admin functions.
  */
 trait Sam extends RestClient with LazyLogging with ScalaFutures {
 

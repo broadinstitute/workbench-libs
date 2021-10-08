@@ -8,11 +8,11 @@ import scala.reflect.ClassTag
 import scala.util.Random
 
 /**
- * A DelegatePool is a facade on top of a collection of objects that implement a common trait. Method calls on
- * the pool are routed to one of these objects (delegates) at random.
+ * A DelegatePool is a facade on top of a collection of objects that implement a common trait. Method calls on the pool
+ * are routed to one of these objects (delegates) at random.
  *
- * The initial use case for this is to have pool of GoogleDirectoryDAOs each with a different service account
- * to get around per user throttles.
+ * The initial use case for this is to have pool of GoogleDirectoryDAOs each with a different service account to get
+ * around per user throttles.
  *
  * Note: each delegate must be stateless
  */
@@ -21,7 +21,8 @@ object DelegatePool {
   /**
    * Instantiate a new DelegatePool
    * @param delegates
-   * @tparam T the trait that all the delegates implement, must be a trait
+   * @tparam T
+   *   the trait that all the delegates implement, must be a trait
    * @return
    */
   def apply[T: ClassTag](delegates: NonEmptyList[T]): T =

@@ -33,9 +33,9 @@ class HttpGoogleDirectoryDAO(appName: String,
 
   /**
    * This is a nested class because the scopes need to be different and having one credential with scopes for both
-   * DirectoryScopes.ADMIN_DIRECTORY_GROUP and GroupssettingsScopes.APPS_GROUPS_SETTINGS results in a 401 error
-   * getting a token. It does not feel right to expose this as a top level class. I don't know why google decided
-   * to split out this api but I feel like it should be bundled.
+   * DirectoryScopes.ADMIN_DIRECTORY_GROUP and GroupssettingsScopes.APPS_GROUPS_SETTINGS results in a 401 error getting
+   * a token. It does not feel right to expose this as a top level class. I don't know why google decided to split out
+   * this api but I feel like it should be bundled.
    */
   private class GroupSettingsDAO()
       extends AbstractHttpGoogleDAO(appName, googleCredentialMode, workbenchMetricBaseName) {
@@ -254,10 +254,11 @@ class HttpGoogleDirectoryDAO(appName: String,
    * recursive because the call to list all members is paginated.
    *
    * @param fetcher
-   * @param accumulated the accumulated Members objects, 1 for each page, the head element is the last prior request
-   *                    for easy retrieval. The initial state is Some(Nil). This is what is eventually returned. This
-   *                    is None when the group does not exist.
-   * @return None if the group does not exist or a Members object for each page.
+   * @param accumulated
+   *   the accumulated Members objects, 1 for each page, the head element is the last prior request for easy retrieval.
+   *   The initial state is Some(Nil). This is what is eventually returned. This is None when the group does not exist.
+   * @return
+   *   None if the group does not exist or a Members object for each page.
    */
   private def listGroupMembersRecursive(
     fetcher: Directory#Members#List,

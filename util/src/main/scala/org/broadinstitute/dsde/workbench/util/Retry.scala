@@ -19,14 +19,12 @@ trait Retry {
   type Predicate[A] = A => Boolean
 
   /**
-   * A Future that has potentially been retried, with accumulated errors.
-   * There are 3 cases:
-   * 1. The future failed 1 or more times, and the final result is an error.
-   *   - This is represented as {{{Left(NonEmptyList(errors))}}}
-   * 2. The future failed 1 or more times, but eventually succeeded.
-   *   - This is represented as {{{Right(List(errors), A)}}}
-   * 3. The future succeeded the first time.
-   *   - This is represented as {{{Right(List.empty, A)}}}
+   * A Future that has potentially been retried, with accumulated errors. There are 3 cases:
+   *   1. The future failed 1 or more times, and the final result is an error.
+   *      - This is represented as {{{Left(NonEmptyList(errors))}}} 2. The future failed 1 or more times, but eventually
+   *        succeeded.
+   *      - This is represented as {{{Right(List(errors), A)}}} 3. The future succeeded the first time.
+   *      - This is represented as {{{Right(List.empty, A)}}}
    */
   type RetryableFuture[A] = Future[Either[NonEmptyList[Throwable], (List[Throwable], A)]]
 
@@ -46,10 +44,14 @@ trait Retry {
 
   /**
    * will retry at the given interval until success or the overall timeout has passed
-   * @param pred which failures to retry
-   * @param interval how often to retry
-   * @param timeout how long from now to give up
-   * @param op what to try
+   * @param pred
+   *   which failures to retry
+   * @param interval
+   *   how often to retry
+   * @param timeout
+   *   how long from now to give up
+   * @param op
+   *   what to try
    * @param executionContext
    * @tparam T
    * @return

@@ -14,7 +14,8 @@ trait ErrorReporting[F[_]] {
   def reportError(msg: String, sourceLocation: SourceLocation): F[Unit]
 
   /**
-   * @param t This throwable can not be NoStackTrace
+   * @param t
+   *   This throwable can not be NoStackTrace
    * @return
    */
   def reportError(t: Throwable): F[Unit]

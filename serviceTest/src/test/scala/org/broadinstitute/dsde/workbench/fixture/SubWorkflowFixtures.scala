@@ -12,14 +12,19 @@ trait SubWorkflowFixtures extends RandomUtil {
    * Create a tree of Methods that can be used to test subworkflows.
    *
    * After calling this (scala) method, N (workbench) Methods will be created in the environment, where N = the number
-   * of levels, or depth of the tree.  Methods below the top level will be made public to the environment and will
-   * have randomized names.  They will be removed at CleanUp time.
+   * of levels, or depth of the tree. Methods below the top level will be made public to the environment and will have
+   * randomized names. They will be removed at CleanUp time.
    *
-   * @param levels The depth of the tree.  Minimum of 2.
-   * @param scatterCount How many subworkflows should each level of workflow create
-   * @param methodNamespace (optional)
-   * @param topLevelMethodName (optional)
-   * @param token (implicit)
+   * @param levels
+   *   The depth of the tree. Minimum of 2.
+   * @param scatterCount
+   *   How many subworkflows should each level of workflow create
+   * @param methodNamespace
+   *   (optional)
+   * @param topLevelMethodName
+   *   (optional)
+   * @param token
+   *   (implicit)
    */
   def methodTree(levels: Int,
                  scatterCount: Int,
