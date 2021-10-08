@@ -105,7 +105,7 @@ object GoogleSubscriberInterpreter {
             } yield ()
           case Left(e) =>
             logger
-              .info(s"Subscriber fail to decode message ${message} due to ${e}. Going to ack the message") >> F
+              .info(s"Subscriber fail to decode message $message due to $e. Going to ack the message") >> F
               .delay(consumer.ack())
         }
       } yield ()
@@ -254,7 +254,7 @@ object GoogleSubscriberInterpreter {
         subscriptionAdminClient.createSubscription(sub)
       ).void
         .recover { case _: AlreadyExistsException =>
-          Logger[F].info(s"subscription ${subscription} already exists")
+          Logger[F].info(s"subscription $subscription already exists")
         }
     )
   }

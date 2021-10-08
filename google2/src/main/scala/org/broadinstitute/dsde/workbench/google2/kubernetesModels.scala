@@ -31,7 +31,7 @@ import ca.mrvisser.sealerate
 /** Common Kubernetes models */
 final case class KubernetesClusterNotFoundException(message: String) extends WorkbenchException {
   override def getMessage: String =
-    s"${message}. If you are a user, please contact support. It is possible your cluster was cleaned up."
+    s"$message. If you are a user, please contact support. It is possible your cluster was cleaned up."
 }
 
 final case class KubernetesInvalidNameException(message: String) extends WorkbenchException {
@@ -49,7 +49,7 @@ object KubernetesName {
     } else {
       Left(
         KubernetesInvalidNameException(
-          s"Kubernetes names must adhere to the following regex: ${regex}, you passed: ${str}."
+          s"Kubernetes names must adhere to the following regex: $regex, you passed: $str."
         )
       )
     }
@@ -100,11 +100,11 @@ object GKEModels {
 
   final case class NodepoolId(clusterId: KubernetesClusterId, nodepoolName: NodepoolName) {
     override lazy val toString: String =
-      s"${clusterId}/nodepools/${nodepoolName.value}"
+      s"$clusterId/nodepools/${nodepoolName.value}"
   }
 
   final case class KubernetesOperationId(project: GoogleProject, location: Location, operationName: String) {
-    val idString: String = s"projects/${project.value}/locations/${location.value}/operations/${operationName}"
+    val idString: String = s"projects/${project.value}/locations/${location.value}/operations/$operationName"
   }
 
   final case class KubernetesNetwork(project: GoogleProject, name: NetworkName) {
@@ -439,7 +439,7 @@ object KubernetesModels {
   final case class KubernetesServiceKindName(value: String)
 
   final case class KubernetesApiServerIp(value: String) {
-    val url = s"https://${value}"
+    val url = s"https://$value"
   }
 
   final case class KubernetesClusterCaCert(value: String) {
