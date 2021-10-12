@@ -2,6 +2,16 @@
 
 This file documents changes to the `workbench-model` library, including notes on how to upgrade to new versions.
 
+## 0.15
+
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-model" % "0.15-TRAVIS-REPLACE-ME"`
+
+### Added
+- AzureB2CId to WorkbenchUser
+
+## Removed
+- IdentityConcentratorId
+
 ## 0.14
 
 SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-model" % "0.14-89d0d9e"`
