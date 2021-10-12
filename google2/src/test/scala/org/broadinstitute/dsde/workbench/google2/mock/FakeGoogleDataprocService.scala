@@ -29,7 +29,11 @@ class BaseFakeGoogleDataprocService extends GoogleDataprocService[IO] {
                            metadata: Option[Map[String, String]] = None
   )(implicit
     ev: Ask[IO, TraceId]
-  ): IO[List[Operation]] = IO.pure(List.empty[Operation])
+  ): IO[DataprocOperation] = IO.pure(
+    DataprocOperation(OperationName("opName"),
+                      ClusterOperationMetadata.newBuilder().setClusterUuid("clusterUuid").build
+    )
+  )
 
   def startCluster(project: GoogleProject,
                    region: RegionName,

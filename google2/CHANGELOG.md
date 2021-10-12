@@ -7,6 +7,9 @@ Breaking Changes:
 - Upgrade cats-effect to `3.2.3` (see [migration guide](https://typelevel.org/cats-effect/docs/migration-guide#run-the-scalafix-migration)) and a few other dependencies
 - Upgrade `google-cloud-compute` to `1.3.0-alpha`
 
+Changed:
+- Use dataproc client's built in stopCluster method instead of rolling our own
+
 Dependency Upgrades:
 - `google-cloud-container` to `1.5.0`
 - `io.kubernetes` to `12.0.0`
