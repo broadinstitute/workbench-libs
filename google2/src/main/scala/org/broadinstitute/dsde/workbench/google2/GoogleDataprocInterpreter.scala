@@ -102,6 +102,21 @@ private[google2] class GoogleDataprocInterpreter[F[_]: StructuredLogger: Paralle
   ): F[DataprocOperation] =
     for {
       traceId <- ev.ask
+      clusterInstances <- getClusterInstances(project, region, clusterName)
+      _ <- clusterInstances.find(x => x._1.role == Master).traverse {
+        case (DataprocRoleZonePreemptibility(_, zone, _), instances) =>
+          instances.toList.parTraverse { instance =>
+            metadata.traverse { md =>
+              googleComputeService.addInstanceMetadata(
+                project,
+                zone,
+                instance,
+                md
+              )
+            }
+          }
+      }
+
       client <- F.fromOption(clusterControllerClients.get(region), new Exception(s"Unsupported region ${region.value}"))
       request =
         StopClusterRequest
