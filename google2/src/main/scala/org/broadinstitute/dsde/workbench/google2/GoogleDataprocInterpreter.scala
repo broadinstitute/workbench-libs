@@ -181,32 +181,6 @@ private[google2] class GoogleDataprocInterpreter[F[_]: StructuredLogger: Paralle
       traceId <- ev.ask
       clusterInstances <- getClusterInstances(project, region, clusterName)
 
-      // Add back the preemptible instances, if any
-      _ <- numPreemptibles match {
-        case Some(n) =>
-          resizeCluster(project,
-                        region,
-                        clusterName,
-                        numWorkers = None,
-                        numPreemptibles = Some(n)
-          ) >> streamUntilDoneOrTimeout(
-            getClusterInstances(project, region, clusterName),
-            15,
-            6 seconds,
-            s"Timeout occurred adding preemptible instances to cluster ${project.value}/${clusterName.value}"
-          )(implicitly, instances => countPreemptibles(instances) == n).void
-        case None => F.unit
-      }
-
-      // If adding of preemptibles is done, wait until the cluster's status transitions back to RUNNING (from UPDATING)
-      // Otherwise, starting the remaining instances may cause the cluster to get in to ERROR status
-      _ <- streamUntilDoneOrTimeout(
-        getCluster(project, region, clusterName),
-        15,
-        3 seconds,
-        s"Cannot start the instances of cluster ${project.value}/${clusterName.value} unless the cluster is in RUNNING status."
-      )
-
       _ <- clusterInstances.find(x => x._1.role == Master).traverse {
         case (DataprocRoleZonePreemptibility(_, zone, _), instances) =>
           instances.toList.parTraverse { instance =>
@@ -246,6 +220,32 @@ private[google2] class GoogleDataprocInterpreter[F[_]: StructuredLogger: Paralle
           ).as(None)
         }
         .map(metadata => DataprocOperation(OperationName(javaFuture.getName), metadata))
+
+      // Add back the preemptible instances, if any
+      _ <- numPreemptibles match {
+        case Some(n) =>
+          resizeCluster(project,
+                        region,
+                        clusterName,
+                        numWorkers = None,
+                        numPreemptibles = Some(n)
+          ) >> streamUntilDoneOrTimeout(
+            getClusterInstances(project, region, clusterName),
+            15,
+            6 seconds,
+            s"Timeout occurred adding preemptible instances to cluster ${project.value}/${clusterName.value}"
+          )(implicitly, instances => countPreemptibles(instances) == n).void
+        case None => F.unit
+      }
+
+      // If adding of preemptibles is done, wait until the cluster's status transitions back to RUNNING (from UPDATING)
+      // Otherwise, starting the remaining instances may cause the cluster to get in to ERROR status
+      _ <- streamUntilDoneOrTimeout(
+        getCluster(project, region, clusterName),
+        15,
+        3 seconds,
+        s"Cannot start the instances of cluster ${project.value}/${clusterName.value} unless the cluster is in RUNNING status."
+      )
     } yield res
 
   override def resizeCluster(project: GoogleProject,
