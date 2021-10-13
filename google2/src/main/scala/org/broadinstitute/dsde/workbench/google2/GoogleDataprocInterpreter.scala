@@ -117,6 +117,31 @@ private[google2] class GoogleDataprocInterpreter[F[_]: StructuredLogger: Paralle
           }
       }
 
+      // First, remove preemptible instances (if any) and wait until the removal is done
+      _ <-
+        if (countPreemptibles(clusterInstances) > 0)
+          resizeCluster(project,
+                        region,
+                        clusterName,
+                        numWorkers = None,
+                        numPreemptibles = Some(0)
+          ) >> streamUntilDoneOrTimeout(
+            getClusterInstances(project, region, clusterName),
+            15,
+            6 seconds,
+            s"Timeout occurred removing preemptible instances from cluster ${project.value}/${clusterName.value}"
+          )(implicitly, instances => countPreemptibles(instances) == 0)
+        else F.unit
+
+      // If removal of preemptibles is done, wait until the cluster's status transitions back to RUNNING (from UPDATING)
+      // Otherwise, stopping the remaining instances may cause the cluster to get in to ERROR status
+      _ <- streamUntilDoneOrTimeout(
+        getCluster(project, region, clusterName),
+        15,
+        3 seconds,
+        s"Cannot stop the instances of cluster ${project.value}/${clusterName.value} unless the cluster is in RUNNING status."
+      )
+
       client <- F.fromOption(clusterControllerClients.get(region), new Exception(s"Unsupported region ${region.value}"))
       request =
         StopClusterRequest
@@ -126,7 +151,11 @@ private[google2] class GoogleDataprocInterpreter[F[_]: StructuredLogger: Paralle
           .setClusterName(clusterName.value)
           .setRequestId(traceId.asString)
           .build()
-      javaFuture <- F.delay(client.stopClusterAsync(request))
+      fa = F.delay(client.stopClusterAsync(request))
+      javaFuture <- withLogging(fa,
+                                Some(traceId),
+                                s"com.google.cloud.dataproc.v1.ClusterControllerClient.stopClusterAsync($request)"
+      )
       res <- F
         .async[ClusterOperationMetadata] { cb =>
           F.delay(
@@ -297,8 +326,7 @@ private[google2] class GoogleDataprocInterpreter[F[_]: StructuredLogger: Paralle
 
     val deleteCluster = (for {
       client <- F.fromOption(clusterControllerClients.get(region), new Exception(s"Unsupported region ${region.value}"))
-
-      op <- F.blocking(client.deleteClusterAsync(request))
+      op <- F.delay(client.deleteClusterAsync(request))
       metadata <- F.async[ClusterOperationMetadata] { cb =>
         F.delay(
           ApiFutures.addCallback(
