@@ -30,7 +30,7 @@ class BaseFakeGoogleDataprocService extends GoogleDataprocService[IO] {
   )(implicit
     ev: Ask[IO, TraceId]
   ): IO[DataprocOperation] = IO.pure(
-    DataprocOperation(OperationName("opName"),
+    DataprocOperation(OperationName("stopCluster"),
                       ClusterOperationMetadata.newBuilder().setClusterUuid("clusterUuid").build
     )
   )
@@ -42,7 +42,11 @@ class BaseFakeGoogleDataprocService extends GoogleDataprocService[IO] {
                    metadata: Option[Map[String, String]]
   )(implicit
     ev: Ask[IO, TraceId]
-  ): IO[List[Operation]] = IO.pure(List.empty[Operation])
+  ): IO[DataprocOperation] = IO.pure(
+    DataprocOperation(OperationName("startCluster"),
+                      ClusterOperationMetadata.newBuilder().setClusterUuid("clusterUuid").build
+    )
+  )
 
   override def resizeCluster(project: GoogleProject,
                              region: RegionName,

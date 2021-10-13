@@ -46,7 +46,7 @@ trait GoogleDataprocService[F[_]] {
                    metadata: Option[Map[String, String]]
   )(implicit
     ev: Ask[F, TraceId]
-  ): F[List[Operation]]
+  ): F[DataprocOperation]
 
   def resizeCluster(project: GoogleProject,
                     region: RegionName,

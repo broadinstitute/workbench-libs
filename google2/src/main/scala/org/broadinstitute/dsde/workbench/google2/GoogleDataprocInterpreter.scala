@@ -176,8 +176,9 @@ private[google2] class GoogleDataprocInterpreter[F[_]: StructuredLogger: Paralle
                             metadata: Option[Map[String, String]]
   )(implicit
     ev: Ask[F, TraceId]
-  ): F[List[Operation]] =
+  ): F[DataprocOperation] =
     for {
+      traceId <- ev.ask
       clusterInstances <- getClusterInstances(project, region, clusterName)
 
       // Add back the preemptible instances, if any
@@ -206,29 +207,46 @@ private[google2] class GoogleDataprocInterpreter[F[_]: StructuredLogger: Paralle
         s"Cannot start the instances of cluster ${project.value}/${clusterName.value} unless the cluster is in RUNNING status."
       )
 
-      // Then, start each remaining instance individually
-      operations <- clusterInstances.toList.parFlatTraverse {
-        case (DataprocRoleZonePreemptibility(role, zone, _), instances) =>
+      _ <- clusterInstances.find(x => x._1.role == Master).traverse {
+        case (DataprocRoleZonePreemptibility(_, zone, _), instances) =>
           instances.toList.parTraverse { instance =>
-            (role match {
-              case Master =>
-                metadata.traverse { md =>
-                  googleComputeService.addInstanceMetadata(
-                    project,
-                    zone,
-                    instance,
-                    md
-                  )
-                } >> googleComputeService.startInstance(project, zone, instance)
-              case _ =>
-                googleComputeService.startInstance(project, zone, instance)
-            }).recoverWith {
-              case _: com.google.api.gax.rpc.NotFoundException => F.pure(Operation.getDefaultInstance)
-              case e                                           => F.raiseError[Operation](e)
+            metadata.traverse { md =>
+              googleComputeService.addInstanceMetadata(
+                project,
+                zone,
+                instance,
+                md
+              )
             }
           }
       }
-    } yield operations
+
+      client <- F.fromOption(clusterControllerClients.get(region), new Exception(s"Unsupported region ${region.value}"))
+      request =
+        StartClusterRequest
+          .newBuilder()
+          .setProjectId(project.value)
+          .setRegion(region.value)
+          .setClusterName(clusterName.value)
+          .setRequestId(traceId.asString)
+          .build()
+      fa = F.delay(client.startClusterAsync(request))
+      javaFuture <- withLogging(fa,
+                                Some(traceId),
+                                s"com.google.cloud.dataproc.v1.ClusterControllerClient.startClusterAsync($request)"
+      )
+      res <- F
+        .async[ClusterOperationMetadata] { cb =>
+          F.delay(
+            ApiFutures.addCallback(
+              javaFuture.getMetadata,
+              callBack(cb),
+              MoreExecutors.directExecutor()
+            )
+          ).as(None)
+        }
+        .map(metadata => DataprocOperation(OperationName(javaFuture.getName), metadata))
+    } yield res
 
   override def resizeCluster(project: GoogleProject,
                              region: RegionName,
