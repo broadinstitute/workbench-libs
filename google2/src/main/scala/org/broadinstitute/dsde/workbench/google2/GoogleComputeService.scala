@@ -5,14 +5,16 @@ import cats.Parallel
 import cats.effect._
 import cats.effect.std.Semaphore
 import cats.mtl.Ask
-import com.google.api.gax.core.FixedCredentialsProvider
+import com.google.api.gax.core.{FixedCredentialsProvider, FixedExecutorProvider}
 import com.google.auth.oauth2.GoogleCredentials
 import com.google.cloud.compute.v1._
+import com.google.common.util.concurrent.ThreadFactoryBuilder
 import org.broadinstitute.dsde.workbench.RetryConfig
 import org.broadinstitute.dsde.workbench.google2.util.RetryPredicates
 import org.broadinstitute.dsde.workbench.model.google.GoogleProject
 import org.broadinstitute.dsde.workbench.model.{TraceId, WorkbenchEmail}
 
+import java.util.concurrent.ScheduledThreadPoolExecutor
 import scala.collection.JavaConverters._
 
 /**
@@ -121,35 +123,42 @@ object GoogleComputeService {
   def resource[F[_]: StructuredLogger: Async: Parallel](
     pathToCredential: String,
     blockerBound: Semaphore[F],
-    retryConfig: RetryConfig = RetryPredicates.standardGoogleRetryConfig
+    retryConfig: RetryConfig = RetryPredicates.standardGoogleRetryConfig,
+    numOfThreads: Int = 20
   ): Resource[F, GoogleComputeService[F]] =
     for {
       credential <- credentialResource(pathToCredential)
       scopedCredential = credential.createScoped(Seq(CLOUD_PLATFORM_SCOPE).asJava)
-      interpreter <- fromCredential(scopedCredential, blockerBound, retryConfig)
+      interpreter <- fromCredential(scopedCredential, blockerBound, retryConfig, numOfThreads)
     } yield interpreter
 
   def resourceFromUserCredential[F[_]: StructuredLogger: Async: Parallel](
     pathToCredential: String,
     blockerBound: Semaphore[F],
-    retryConfig: RetryConfig = RetryPredicates.standardGoogleRetryConfig
+    retryConfig: RetryConfig = RetryPredicates.standardGoogleRetryConfig,
+    numOfThreads: Int = 20
   ): Resource[F, GoogleComputeService[F]] =
     for {
       credential <- userCredentials(pathToCredential)
       scopedCredential = credential.createScoped(Seq(CLOUD_PLATFORM_SCOPE).asJava)
-      interpreter <- fromCredential(scopedCredential, blockerBound, retryConfig)
+      interpreter <- fromCredential(scopedCredential, blockerBound, retryConfig, numOfThreads)
     } yield interpreter
 
   def fromCredential[F[_]: StructuredLogger: Async: Parallel](
     googleCredentials: GoogleCredentials,
     blockerBound: Semaphore[F],
-    retryConfig: RetryConfig
+    retryConfig: RetryConfig,
+    numOfThreads: Int = 20
   ): Resource[F, GoogleComputeService[F]] = {
     val credentialsProvider = FixedCredentialsProvider.create(googleCredentials)
+    val threadFactory = new ThreadFactoryBuilder().setNameFormat("goog-compute-%d").build()
+    val fixedExecutorProvider =
+      FixedExecutorProvider.create(new ScheduledThreadPoolExecutor(numOfThreads, threadFactory))
 
     val instanceSettings = InstancesSettings
       .newBuilder()
       .setCredentialsProvider(credentialsProvider)
+      .setBackgroundExecutorProvider(fixedExecutorProvider)
       .build()
     val firewallSettings = FirewallsSettings
       .newBuilder()

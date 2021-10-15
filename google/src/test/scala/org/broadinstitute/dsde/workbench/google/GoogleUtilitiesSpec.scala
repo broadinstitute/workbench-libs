@@ -99,6 +99,10 @@ class GoogleUtilitiesSpec
     whenInvalidValueOnBucketCreation(buildGoogleJsonResponseException(400, None, Some("invalid"), None)) shouldBe true
 
     whenNonHttpIOException(new IOException("boom")) shouldBe true
+
+    when409(buildGoogleJsonResponseException(409)) shouldBe true
+
+    whenGroupDoesNotExist(buildGoogleJsonResponseException(400, Some("does not exist"), None, None)) shouldBe true
   }
 
   it should "return false in negative cases" in {
