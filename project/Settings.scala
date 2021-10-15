@@ -138,7 +138,7 @@ object Settings {
   val modelSettings = cross212and213 ++ commonSettings ++ List(
     name := "workbench-model",
     libraryDependencies ++= modelDependencies,
-    version := createVersion("0.14")
+    version := createVersion("0.15")
   ) ++ publishSettings
 
   val metricsSettings = cross212and213 ++ commonSettings ++ List(
