@@ -34,10 +34,11 @@ trait GoogleDataprocService[F[_]] {
   def stopCluster(project: GoogleProject,
                   region: RegionName,
                   clusterName: DataprocClusterName,
-                  metadata: Option[Map[String, String]]
+                  metadata: Option[Map[String, String]],
+                  isFullStop: Boolean
   )(implicit
     ev: Ask[F, TraceId]
-  ): F[DataprocOperation]
+  ): F[Option[DataprocOperation]]
 
   def startCluster(project: GoogleProject,
                    region: RegionName,
@@ -46,7 +47,7 @@ trait GoogleDataprocService[F[_]] {
                    metadata: Option[Map[String, String]]
   )(implicit
     ev: Ask[F, TraceId]
-  ): F[DataprocOperation]
+  ): F[Option[DataprocOperation]]
 
   def resizeCluster(project: GoogleProject,
                     region: RegionName,

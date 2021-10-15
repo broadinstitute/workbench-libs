@@ -33,9 +33,9 @@ final class GoogleDataprocManualTest(pathToCredential: String,
       GoogleDataprocService.resource(computeService, pathToCredential, blockerBound, Set(region))
     )
 
-  def callStopCluster(cluster: String): IO[DataprocOperation] =
+  def callStopCluster(cluster: String): IO[Option[DataprocOperation]] =
     dataprocServiceResource.use { dataprocService =>
-      dataprocService.stopCluster(project, region, DataprocClusterName(cluster), metadata = None)
+      dataprocService.stopCluster(project, region, DataprocClusterName(cluster), metadata = None, true)
     }
 
   def callResizeCluster(cluster: String,

@@ -26,12 +26,15 @@ class BaseFakeGoogleDataprocService extends GoogleDataprocService[IO] {
   override def stopCluster(project: GoogleProject,
                            region: RegionName,
                            clusterName: DataprocClusterName,
-                           metadata: Option[Map[String, String]] = None
+                           metadata: Option[Map[String, String]] = None,
+                           isFullStop: Boolean
   )(implicit
     ev: Ask[IO, TraceId]
-  ): IO[DataprocOperation] = IO.pure(
-    DataprocOperation(OperationName("stopCluster"),
-                      ClusterOperationMetadata.newBuilder().setClusterUuid("clusterUuid").build
+  ): IO[Option[DataprocOperation]] = IO.pure(
+    Some(
+      DataprocOperation(OperationName("stopCluster"),
+                        ClusterOperationMetadata.newBuilder().setClusterUuid("clusterUuid").build
+      )
     )
   )
 
@@ -42,9 +45,11 @@ class BaseFakeGoogleDataprocService extends GoogleDataprocService[IO] {
                    metadata: Option[Map[String, String]]
   )(implicit
     ev: Ask[IO, TraceId]
-  ): IO[DataprocOperation] = IO.pure(
-    DataprocOperation(OperationName("startCluster"),
-                      ClusterOperationMetadata.newBuilder().setClusterUuid("clusterUuid").build
+  ): IO[Option[DataprocOperation]] = IO.pure(
+    Some(
+      DataprocOperation(OperationName("startCluster"),
+                        ClusterOperationMetadata.newBuilder().setClusterUuid("clusterUuid").build
+      )
     )
   )
 
