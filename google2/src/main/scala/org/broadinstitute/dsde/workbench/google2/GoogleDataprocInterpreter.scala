@@ -250,7 +250,11 @@ private[google2] class GoogleDataprocInterpreter[F[_]: StructuredLogger: Paralle
               }
               .map(metadata => DataprocOperation(OperationName(javaFuture.getName), metadata))
           } yield Some(operation)
-        else
+        else {
+          // We support non-full stop when we "stop" a dataproc cluster
+          // (when we're patching a dataproc cluster or for existing `Stopped` dataproc clusters).
+          // In this case, cluster will be in "RUNNING" status, but each instance is still stopped;
+          // hence, we just start each instance manually.
           clusterInstances.toList
             .parFlatTraverse { case (DataprocRoleZonePreemptibility(_, zone, _), instances) =>
               instances.toList.parTraverse { instance =>
@@ -261,6 +265,7 @@ private[google2] class GoogleDataprocInterpreter[F[_]: StructuredLogger: Paralle
               }
             }
             .as(none[DataprocOperation])
+        }
 
       // Add back the preemptible instances, if any
       _ <- numPreemptibles match {
