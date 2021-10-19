@@ -1,31 +1,21 @@
 package org.broadinstitute.dsde.workbench
 package google2
 
-import java.nio.channels.Channels
-import java.nio.file.{Path, Paths}
-import java.time.Instant
-import fs2.io.file.Files
-import cats.data.NonEmptyList
+import java.nio.file.Paths
+
 import cats.effect._
 import cats.effect.std.Semaphore
-import cats.syntax.all._
 import com.google.auth.oauth2.ServiceAccountCredentials
-import com.google.cloud.storage.BucketInfo.LifecycleRule
-import com.google.cloud.storage.Storage.{BlobListOption, BlobSourceOption, BlobTargetOption, BlobWriteOption, BucketGetOption, BucketSourceOption}
-import com.google.cloud.storage.{Acl, Blob, BlobId, BlobInfo, Bucket, BucketInfo, Storage, StorageOptions}
-import com.google.cloud.{Identity, Policy, Role}
-import fs2.{Pipe, Stream, text}
-import org.typelevel.log4cats.StructuredLogger
+import com.google.cloud.storage.{Storage, StorageOptions}
+import com.google.storagetransfer.v1.proto.StorageTransferServiceClient
+import com.google.storagetransfer.v1.proto.{TransferProto, TransferTypes}
+import io.kubernetes.client.proto.Meta.Timestamp
+import fs2.Stream
+import fs2.io.file.Files
 import io.circe.Decoder
 import io.circe.fs2._
-import org.broadinstitute.dsde.workbench.google2.util.RetryPredicates.standardGoogleRetryConfig
-import org.broadinstitute.dsde.workbench.model.{TraceId, WorkbenchException}
-import org.broadinstitute.dsde.workbench.model.google.{GcsBucketName, GcsObjectName, GoogleProject}
-import com.google.auth.Credentials
-import com.google.storagetransfer.v1.proto.StorageTransferServiceClient
-import com.google.storagetransfer.v1.proto.TransferTypes.{TransferJob, TransferSpec}
-
-import scala.collection.JavaConverters._
+import org.broadinstitute.dsde.workbench.model.google.GoogleProject
+import org.typelevel.log4cats.StructuredLogger
 
 private[google2] class GoogleStorageTransferInterpreter[F[_]](
                                                        db: Storage,
@@ -33,23 +23,28 @@ private[google2] class GoogleStorageTransferInterpreter[F[_]](
                                                      )(implicit logger: StructuredLogger[F], F: Async[F])
   extends GoogleStorageTransferService[F] {
   override def transferBucket(jobName: String,
-                               projectToBill: GoogleProject
+                              jobDescription: String,
+                              projectToBill: GoogleProject
+                             ): F[Unit] = {
+  val client = StorageTransferServiceClient.create()
+  val transferJob = TransferTypes.TransferJob.newBuilder
+    .setName(jobName)
+    .setDescription(jobDescription)
+    .setProjectId(projectToBill.value)
+    .setTransferSpec(TransferTypes.TransferSpec.newBuilder.build)
+    .setNotificationConfig(TransferTypes.NotificationConfig.newBuilder.build)
+    .setSchedule(TransferTypes.Schedule.newBuilder.build)
+    .setCreationTime(Timestamp.newBuilder.build)
+    .setLastModificationTime(Timestamp.newBuilder.build)
+    .setDeletionTime(Timestamp.newBuilder.build)
+    .setLatestOperationName("latestOperationName-1244328885")
+    .build
 
-
-                             ): F[Unit] =
-    StorageTransferServiceClient.create().createTransferJob(
-      new TransferJob.Builder()
-        .setName(jobName)
-        .setProjectId(projectToBill.value)
-        .setTransferSpec(
-          new TransferSpec.Builder()
-            .
-            .build()
-
-        )
-
-      .build()
-  )
+    val request = TransferProto.CreateTransferJobRequest.newBuilder
+      .setTransferJob(TransferTypes.TransferJob.newBuilder.build)
+      .build
+    client.createTransferJob(request)
+  }
 }
 
 object GoogleStorageInterpreter {
