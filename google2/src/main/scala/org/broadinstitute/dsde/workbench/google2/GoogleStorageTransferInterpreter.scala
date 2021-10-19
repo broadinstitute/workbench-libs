@@ -6,8 +6,10 @@ import java.nio.file.Paths
 import cats.effect._
 import cats.effect.std.Semaphore
 import com.google.auth.oauth2.ServiceAccountCredentials
+import com.google.`type`.Date
 import com.google.cloud.storage.{Storage, StorageOptions}
 import com.google.storagetransfer.v1.proto.StorageTransferServiceClient
+import com.google.storagetransfer.v1.proto.TransferTypes.GcsData
 import com.google.storagetransfer.v1.proto.{TransferProto, TransferTypes}
 import io.kubernetes.client.proto.Meta.Timestamp
 import fs2.Stream
@@ -22,18 +24,34 @@ private[google2] class GoogleStorageTransferInterpreter[F[_]](
                                                        blockerBound: Option[Semaphore[F]]
                                                      )(implicit logger: StructuredLogger[F], F: Async[F])
   extends GoogleStorageTransferService[F] {
+
+
+
+
+  def makeTransferJobSchedule(schedule: StorageTransferJobSchedule): TransferTypes.Schedule = schedule match {
+      case Once(time) => TransferTypes.Schedule.newBuilder()
+        .setScheduleStartDate(time)
+        .setScheduleEndDate(time)
+        .build
+    }
+
   override def transferBucket(jobName: String,
                               jobDescription: String,
-                              projectToBill: GoogleProject
+                              projectToBill: GoogleProject,
+                              originBucket: String,
+                              destinationBucket: String,
+                              schedule: StorageTransferJobSchedule
                              ): F[Unit] = {
   val client = StorageTransferServiceClient.create()
   val transferJob = TransferTypes.TransferJob.newBuilder
     .setName(jobName)
     .setDescription(jobDescription)
     .setProjectId(projectToBill.value)
-    .setTransferSpec(TransferTypes.TransferSpec.newBuilder.build)
-    .setNotificationConfig(TransferTypes.NotificationConfig.newBuilder.build)
-    .setSchedule(TransferTypes.Schedule.newBuilder.build)
+    .setTransferSpec(TransferTypes.TransferSpec.newBuilder
+      .setGcsDataSource(GcsData.newBuilder().setBucketName(originBucket).build)
+      .setGcsDataSink(GcsData.newBuilder().setBucketName(destinationBucket).build)
+      .build)
+    .setSchedule(makeTransferJobSchedule(schedule))
     .setCreationTime(Timestamp.newBuilder.build)
     .setLastModificationTime(Timestamp.newBuilder.build)
     .setDeletionTime(Timestamp.newBuilder.build)
@@ -41,7 +59,7 @@ private[google2] class GoogleStorageTransferInterpreter[F[_]](
     .build
 
     val request = TransferProto.CreateTransferJobRequest.newBuilder
-      .setTransferJob(TransferTypes.TransferJob.newBuilder.build)
+      .setTransferJob(transferJob)
       .build
     client.createTransferJob(request)
   }
