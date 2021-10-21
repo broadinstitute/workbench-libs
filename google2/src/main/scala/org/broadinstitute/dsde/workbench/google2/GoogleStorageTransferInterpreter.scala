@@ -1,19 +1,9 @@
 package org.broadinstitute.dsde.workbench.google2
 
-import java.nio.file.Paths
 import cats.effect._
-import cats.effect.std.Semaphore
-import com.google.auth.oauth2.ServiceAccountCredentials
-import com.google.`type`.Date
-import com.google.cloud.storage.{Storage, StorageOptions}
 import com.google.storagetransfer.v1.proto.StorageTransferServiceClient
 import com.google.storagetransfer.v1.proto.TransferTypes.{GcsData, TransferJob, TransferSpec}
 import com.google.storagetransfer.v1.proto.{TransferProto, TransferTypes}
-import io.kubernetes.client.proto.Meta.Timestamp
-import fs2.Stream
-import fs2.io.file.Files
-import io.circe.Decoder
-import io.circe.fs2._
 import org.broadinstitute.dsde.workbench.model.google.GoogleProject
 import org.typelevel.log4cats.StructuredLogger
 
