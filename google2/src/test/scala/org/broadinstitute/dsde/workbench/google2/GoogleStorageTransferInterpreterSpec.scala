@@ -13,9 +13,9 @@ class GoogleStorageTransferInterpreterSpec extends AsyncFlatSpec with Matchers w
 
     for {
       job <- interpreter.transferBucket(
-        "test-trom-intellij",
+        "test-from-intellij",
         "testing creating a transfer job from intellij",
-        GoogleProject("broad-dsde-dev"),
+        GoogleProject("general-dev-billing-account"),
         "mob-test-transfer-service-1000tb",
         "mob-test-transfer-service-2",
         Once(Date.newBuilder
