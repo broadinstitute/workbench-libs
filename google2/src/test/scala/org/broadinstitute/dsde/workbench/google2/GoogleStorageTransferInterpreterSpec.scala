@@ -16,12 +16,12 @@ class GoogleStorageTransferInterpreterSpec extends AsyncFlatSpec with Matchers w
         "test-trom-intellij",
         "testing creating a transfer job from intellij",
         GoogleProject("broad-dsde-dev"),
-        "mob-test-transfer-service",
+        "mob-test-transfer-service-1000tb",
         "mob-test-transfer-service-2",
         Once(Date.newBuilder
           .setYear(2021)
           .setMonth(10)
-          .setDay(21)
+          .setDay(22)
           .build
         )
       )
