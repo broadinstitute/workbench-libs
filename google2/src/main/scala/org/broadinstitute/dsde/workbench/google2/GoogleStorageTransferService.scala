@@ -5,7 +5,29 @@ import com.google.`type`.Date
 import com.google.storagetransfer.v1.proto.TransferTypes.TransferJob
 import org.broadinstitute.dsde.workbench.model.google.GoogleProject
 
+sealed trait StorageTransferOverwriteOption
+
+/** Transfer objects from source if not binary equivalent to those at destination. */
+object OverwriteObjectsIfDifferentAtSource extends StorageTransferOverwriteOption
+
+/** Always transfer objects from the source bucket, even if they exist at destination. */
+object OverwriteObjectsAlreadyExistingInSink extends StorageTransferOverwriteOption
+
+
+sealed trait StorageTransferDeletionOption
+
+/** Never delete objects from source. */
+object NeverDeleteObjects extends StorageTransferDeletionOption
+
+/** Delete objects from source after they've been transferred. */
+object DeleteSourceObjectsAfterTransfer extends StorageTransferDeletionOption
+
+/** Delete files from destination if they're not at source. */
+object DeleteObjectsUniqueInSink extends StorageTransferDeletionOption
+
+
 sealed trait StorageTransferJobSchedule
+
 case class Once(time: Date) extends StorageTransferJobSchedule
 
 /**
@@ -15,11 +37,14 @@ case class Once(time: Date) extends StorageTransferJobSchedule
  */
 trait GoogleStorageTransferService[F[_]] {
 
+  type StorageTransferJobOptions = (StorageTransferOverwriteOption, StorageTransferDeletionOption)
+
   def transferBucket(jobName: String,
                      jobDescription: String,
                      projectToBill: GoogleProject,
                      originBucket: String,
                      destinationBucket: String,
-                     schedule: StorageTransferJobSchedule
+                     schedule: StorageTransferJobSchedule,
+                     options: Option[StorageTransferJobOptions] = None
                     ): F[TransferJob]
 }

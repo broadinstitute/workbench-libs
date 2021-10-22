@@ -1,9 +1,8 @@
 package org.broadinstitute.dsde.workbench.google2
 
 import cats.effect._
-import com.google.storagetransfer.v1.proto.StorageTransferServiceClient
-import com.google.storagetransfer.v1.proto.TransferTypes.{GcsData, TransferJob, TransferSpec}
-import com.google.storagetransfer.v1.proto.{TransferProto, TransferTypes}
+import com.google.storagetransfer.v1.proto.{StorageTransferServiceClient, TransferProto}
+import com.google.storagetransfer.v1.proto.TransferTypes.{GcsData, Schedule, TransferJob, TransferOptions, TransferSpec}
 import org.broadinstitute.dsde.workbench.model.google.GoogleProject
 import org.typelevel.log4cats.StructuredLogger
 
@@ -12,10 +11,18 @@ import scala.util.Using
 class GoogleStorageTransferInterpreter[F[_]]()(implicit logger: StructuredLogger[F], F: Async[F])
   extends GoogleStorageTransferService[F] {
 
-  private def makeTransferJobSchedule(schedule: StorageTransferJobSchedule): TransferTypes.Schedule = schedule match {
-    case Once(time) => TransferTypes.Schedule.newBuilder()
+  private def makeJobTransferSchedule(schedule: StorageTransferJobSchedule) = schedule match {
+    case Once(time) => Schedule.newBuilder()
       .setScheduleStartDate(time)
       .setScheduleEndDate(time)
+      .build
+  }
+
+  private def makeJobTransferOptions(options: StorageTransferJobOptions) = options match {
+    case (overwrite, delete) => TransferOptions.newBuilder
+      .setOverwriteObjectsAlreadyExistingInSink(overwrite == OverwriteObjectsAlreadyExistingInSink)
+      .setDeleteObjectsUniqueInSink(delete == DeleteObjectsUniqueInSink)
+      .setDeleteObjectsFromSourceAfterTransfer(delete == DeleteSourceObjectsAfterTransfer)
       .build
   }
 
@@ -24,7 +31,8 @@ class GoogleStorageTransferInterpreter[F[_]]()(implicit logger: StructuredLogger
                               projectToBill: GoogleProject,
                               originBucket: String,
                               destinationBucket: String,
-                              schedule: StorageTransferJobSchedule
+                              schedule: StorageTransferJobSchedule,
+                              options: Option[StorageTransferJobOptions]
                              ): F[TransferJob] = {
     val transferJob = TransferJob.newBuilder
       .setName(jobName)
@@ -33,14 +41,16 @@ class GoogleStorageTransferInterpreter[F[_]]()(implicit logger: StructuredLogger
       .setTransferSpec(TransferSpec.newBuilder
         .setGcsDataSource(GcsData.newBuilder().setBucketName(originBucket).build)
         .setGcsDataSink(GcsData.newBuilder().setBucketName(destinationBucket).build)
-        .build)
-      .setSchedule(makeTransferJobSchedule(schedule))
+        .setTransferOptions(options map makeJobTransferOptions getOrElse TransferOptions.getDefaultInstance)
+        .build
+      )
+      .setSchedule(makeJobTransferSchedule(schedule))
       .build
 
     val request = TransferProto.CreateTransferJobRequest.newBuilder
       .setTransferJob(transferJob)
       .build
 
-    Async[F].delay(Using.resource(StorageTransferServiceClient.create)(_.createTransferJob(request)))
+    F.delay(Using.resource(StorageTransferServiceClient.create)(_.createTransferJob(request)))
   }
 }
