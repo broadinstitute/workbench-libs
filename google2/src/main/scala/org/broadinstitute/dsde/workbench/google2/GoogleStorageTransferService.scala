@@ -30,14 +30,17 @@ sealed trait StorageTransferJobSchedule
 
 case class Once(time: Date) extends StorageTransferJobSchedule
 
+
+case class StorageTransferJobOptions(whenToOverwrite: StorageTransferOverwriteOption,
+                                     whenToDelete: StorageTransferDeletionOption
+                                    )
+
 /**
  * Algebra for Google storage access
  *
  * We follow tagless final pattern similar to https://typelevel.org/cats-tagless/
  */
 trait GoogleStorageTransferService[F[_]] {
-
-  type StorageTransferJobOptions = (StorageTransferOverwriteOption, StorageTransferDeletionOption)
 
   def transferBucket(jobName: String,
                      jobDescription: String,

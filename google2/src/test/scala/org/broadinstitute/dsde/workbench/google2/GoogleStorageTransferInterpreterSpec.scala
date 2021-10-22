@@ -8,7 +8,7 @@ import org.scalatest.flatspec.AsyncFlatSpec
 import org.scalatest.matchers.should.Matchers
 
 class GoogleStorageTransferInterpreterSpec extends AsyncFlatSpec with Matchers with WorkbenchTestSuite {
-  "ioStorage storeObject" should "be able to upload an object" in ioAssertion {
+  "transferBucket" should "start a storage transfer service job from one bucket to another" in ioAssertion {
     val interpreter = new GoogleStorageTransferInterpreter[IO]()
 
     for {

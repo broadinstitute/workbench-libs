@@ -19,7 +19,7 @@ class GoogleStorageTransferInterpreter[F[_]]()(implicit logger: StructuredLogger
   }
 
   private def makeJobTransferOptions(options: StorageTransferJobOptions) = options match {
-    case (overwrite, delete) => TransferOptions.newBuilder
+    case StorageTransferJobOptions(overwrite, delete) => TransferOptions.newBuilder
       .setOverwriteObjectsAlreadyExistingInSink(overwrite == OverwriteObjectsAlreadyExistingInSink)
       .setDeleteObjectsUniqueInSink(delete == DeleteObjectsUniqueInSink)
       .setDeleteObjectsFromSourceAfterTransfer(delete == DeleteSourceObjectsAfterTransfer)
