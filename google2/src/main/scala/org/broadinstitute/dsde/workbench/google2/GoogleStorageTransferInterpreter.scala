@@ -1,9 +1,11 @@
 package org.broadinstitute.dsde.workbench.google2
 
 import cats.effect._
+import com.google.storagetransfer.v1.proto.TransferProto.GetGoogleServiceAccountRequest
 import com.google.storagetransfer.v1.proto.{StorageTransferServiceClient, TransferProto}
 import com.google.storagetransfer.v1.proto.TransferTypes.{GcsData, Schedule, TransferJob, TransferOptions, TransferSpec}
-import org.broadinstitute.dsde.workbench.model.google.GoogleProject
+import org.broadinstitute.dsde.workbench.model.WorkbenchEmail
+import org.broadinstitute.dsde.workbench.model.google.{GcsBucketName, GoogleProject, ServiceAccount, ServiceAccountDisplayName, ServiceAccountSubjectId}
 import org.typelevel.log4cats.StructuredLogger
 
 import scala.util.Using
@@ -26,11 +28,23 @@ class GoogleStorageTransferInterpreter[F[_]]()(implicit logger: StructuredLogger
       .build
   }
 
+  override def getStsServiceAccount(project: GoogleProject): F[ServiceAccount] = {
+    val request = GetGoogleServiceAccountRequest.newBuilder.setProjectId(project.value).build
+    F.delay(Using.resource(StorageTransferServiceClient.create)(client => {
+      val sa = client.getGoogleServiceAccount(request)
+      ServiceAccount(
+        ServiceAccountSubjectId(sa.getSubjectId),
+        WorkbenchEmail(sa.getAccountEmail),
+        ServiceAccountDisplayName(sa.getAccountEmail)
+      )
+    }))
+  }
+
   override def transferBucket(jobName: String,
                               jobDescription: String,
                               projectToBill: GoogleProject,
-                              originBucket: String,
-                              destinationBucket: String,
+                              originBucket: GcsBucketName,
+                              destinationBucket: GcsBucketName,
                               schedule: StorageTransferJobSchedule,
                               options: Option[StorageTransferJobOptions]
                              ): F[TransferJob] = {
@@ -40,8 +54,8 @@ class GoogleStorageTransferInterpreter[F[_]]()(implicit logger: StructuredLogger
       .setStatus(TransferJob.Status.ENABLED)
       .setProjectId(projectToBill.value)
       .setTransferSpec(TransferSpec.newBuilder
-        .setGcsDataSource(GcsData.newBuilder().setBucketName(originBucket).build)
-        .setGcsDataSink(GcsData.newBuilder().setBucketName(destinationBucket).build)
+        .setGcsDataSource(GcsData.newBuilder().setBucketName(originBucket.value).build)
+        .setGcsDataSink(GcsData.newBuilder().setBucketName(destinationBucket.value).build)
         .setTransferOptions(options map makeJobTransferOptions getOrElse TransferOptions.getDefaultInstance)
         .build
       )

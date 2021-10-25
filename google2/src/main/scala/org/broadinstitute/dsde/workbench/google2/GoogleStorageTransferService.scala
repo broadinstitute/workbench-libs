@@ -2,8 +2,8 @@ package org.broadinstitute.dsde.workbench
 package google2
 
 import com.google.`type`.Date
-import com.google.storagetransfer.v1.proto.TransferTypes.TransferJob
-import org.broadinstitute.dsde.workbench.model.google.GoogleProject
+import com.google.storagetransfer.v1.proto.TransferTypes.{TransferJob}
+import org.broadinstitute.dsde.workbench.model.google.{GcsBucketName, GoogleProject, ServiceAccount}
 
 sealed trait StorageTransferOverwriteOption
 
@@ -42,11 +42,13 @@ case class StorageTransferJobOptions(whenToOverwrite: StorageTransferOverwriteOp
  */
 trait GoogleStorageTransferService[F[_]] {
 
+  def getStsServiceAccount(project: GoogleProject): F[ServiceAccount]
+
   def transferBucket(jobName: String,
                      jobDescription: String,
                      projectToBill: GoogleProject,
-                     originBucket: String,
-                     destinationBucket: String,
+                     originBucket: GcsBucketName,
+                     destinationBucket: GcsBucketName,
                      schedule: StorageTransferJobSchedule,
                      options: Option[StorageTransferJobOptions] = None
                     ): F[TransferJob]
