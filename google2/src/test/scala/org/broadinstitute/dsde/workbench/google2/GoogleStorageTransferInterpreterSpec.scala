@@ -1,21 +1,20 @@
 package org.broadinstitute.dsde.workbench.google2
 
 
-import scala.collection.JavaConverters._
-
 import cats.data.NonEmptyList
 import cats.effect.std.{Semaphore, UUIDGen}
 import cats.effect.unsafe.implicits.global
 import cats.effect.{IO, Resource}
-import cats.implicits.{catsSyntaxOptionId, toFunctorOps}
 import com.google.`type`.Date
-import com.google.cloud.{Identity, Policy, Role}
 import com.google.cloud.storage.contrib.nio.testing.LocalStorageHelper
+import com.google.cloud.{Identity, Policy}
 import org.broadinstitute.dsde.workbench.google2.StorageRole.CustomStorageRole
 import org.broadinstitute.dsde.workbench.model.google.{GcsBucketName, GoogleProject, ServiceAccount}
 import org.broadinstitute.dsde.workbench.util2.WorkbenchTestSuite
 import org.scalatest.flatspec.AsyncFlatSpec
 import org.scalatest.matchers.should.Matchers
+
+import scala.collection.JavaConverters._
 
 class GoogleStorageTransferInterpreterSpec extends AsyncFlatSpec with Matchers with WorkbenchTestSuite {
 
@@ -39,8 +38,8 @@ class GoogleStorageTransferInterpreterSpec extends AsyncFlatSpec with Matchers w
     )(storage.deleteBucket(project, _, isRecursive = true).compile.drain)
 
   def temporaryStorageRoles[A](bucket: GcsBucketName,
-                                roles: Map[StorageRole, NonEmptyList[Identity]]
-                               ): Resource[IO, Unit] = {
+                               roles: Map[StorageRole, NonEmptyList[Identity]]
+                              ): Resource[IO, Unit] = {
 
     def toRoles(p: Policy): Map[StorageRole, NonEmptyList[Identity]] = Map.from(
       p.getBindings.asScala.map { case (role, identities) =>
@@ -63,17 +62,20 @@ class GoogleStorageTransferInterpreterSpec extends AsyncFlatSpec with Matchers w
     }
   }
 
-  // TODO: Calling service account needs to be storage transfer users in the project to bill
-  // TODO: From the bucket it is reading from, STS Service Account needs Storage Object Viewer and Storage Legacy Bucket Reader roles
-  // TODO: From the bucket it is reading from, STS Service Account needs Storage Object Creator and Storage Legacy Bucket Writer roles
   "transferBucket" should "start a storage transfer service job from one bucket to another" in ioAssertion {
     temporaryGcsBucket(googleProject, "workspace-libs-").use { dstBucket =>
       sts.getStsServiceAccount(googleProject) flatMap { serviceAccount =>
         val serviceAccountList = NonEmptyList.one(Identity.serviceAccount(serviceAccount.email.value))
+
+        // STS Service Account requires "Storage Object Viewer" and "Storage Legacy Bucket Reader"
+        // roles on the bucket it transfers from
         temporaryStorageRoles(srcBucket, Map(
           (StorageRole.LegacyStorageReader, serviceAccountList),
           (StorageRole.ObjectViewer, serviceAccountList)
         )).flatMap { _ =>
+
+          // STS Service Account requires "Storage Object Creator" and "Storage Legacy Bucket Writer"
+          // roles on the bucket it transfers to
           temporaryStorageRoles(dstBucket, Map(
             (StorageRole.LegacyStorageWriter, serviceAccountList),
             (StorageRole.ObjectCreator, serviceAccountList)
