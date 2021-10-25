@@ -1,6 +1,7 @@
 package org.broadinstitute.dsde.workbench.google2
 
 import cats.effect.IO
+import cats.effect.std.UUIDGen
 import cats.implicits.catsSyntaxOptionId
 import com.google.`type`.Date
 import org.broadinstitute.dsde.workbench.model.google.GoogleProject
@@ -9,16 +10,20 @@ import org.scalatest.flatspec.AsyncFlatSpec
 import org.scalatest.matchers.should.Matchers
 
 class GoogleStorageTransferInterpreterSpec extends AsyncFlatSpec with Matchers with WorkbenchTestSuite {
+
+  def randomize(name: String): IO[String] =
+    UUIDGen[IO].randomUUID.map(name ++ _.toString.replace("-", ""))
+
   // TODO: Calling service account needs to be storage transfer users in the project to bill
   // TODO: From the bucket it is reading from, STS Service Account needs Storage Object Viewer and Storage Legacy Bucket Reader roles
   // TODO: From the bucket it is reading from, STS Service Account needs Storage Object Creator and Storage Legacy Bucket Writer roles
 
   "transferBucket" should "start a storage transfer service job from one bucket to another" in ioAssertion {
     val interpreter = new GoogleStorageTransferInterpreter[IO]()
-
     for {
+      jobName <- randomize("test-from-intellij")
       job <- interpreter.transferBucket(
-        "test-from-intellij",
+        jobName,
         "testing creating a transfer job from intellij",
         GoogleProject("general-dev-billing-account"),
         "mob-test-transfer-service-1000tb",
@@ -30,7 +35,7 @@ class GoogleStorageTransferInterpreterSpec extends AsyncFlatSpec with Matchers w
           .build
         ),
         options = StorageTransferJobOptions(
-          whenToOverwrite = OverwriteObjectsAlreadyExistingInSink,
+          whenToOverwrite = OverwriteObjectsIfDifferent,
           whenToDelete = NeverDeleteSourceObjects
         ).some
       )
