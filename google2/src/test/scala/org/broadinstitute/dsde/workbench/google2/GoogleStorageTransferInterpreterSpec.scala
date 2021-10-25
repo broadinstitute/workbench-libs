@@ -8,6 +8,10 @@ import org.scalatest.flatspec.AsyncFlatSpec
 import org.scalatest.matchers.should.Matchers
 
 class GoogleStorageTransferInterpreterSpec extends AsyncFlatSpec with Matchers with WorkbenchTestSuite {
+  // TODO: Calling service account needs to be storage transfer users in the project to bill
+  // TODO: From the bucket it is reading from, STS Service Account needs Storage Object Viewer and Storage Legacy Bucket Reader roles
+  // TODO: From the bucket it is reading from, STS Service Account needs Storage Object Creator and Storage Legacy Bucket Writer roles
+
   "transferBucket" should "start a storage transfer service job from one bucket to another" in ioAssertion {
     val interpreter = new GoogleStorageTransferInterpreter[IO]()
 

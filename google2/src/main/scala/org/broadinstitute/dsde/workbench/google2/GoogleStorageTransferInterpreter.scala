@@ -35,8 +35,9 @@ class GoogleStorageTransferInterpreter[F[_]]()(implicit logger: StructuredLogger
                               options: Option[StorageTransferJobOptions]
                              ): F[TransferJob] = {
     val transferJob = TransferJob.newBuilder
-      .setName(jobName)
+      .setName(s"transferJobs/$jobName")
       .setDescription(jobDescription)
+      .setStatus(TransferJob.Status.ENABLED)
       .setProjectId(projectToBill.value)
       .setTransferSpec(TransferSpec.newBuilder
         .setGcsDataSource(GcsData.newBuilder().setBucketName(originBucket).build)
