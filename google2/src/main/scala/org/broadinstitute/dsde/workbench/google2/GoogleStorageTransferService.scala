@@ -8,7 +8,7 @@ import org.broadinstitute.dsde.workbench.model.google.GoogleProject
 sealed trait StorageTransferOverwriteOption
 
 /** Transfer objects from source if not binary equivalent to those at destination. */
-object OverwriteObjectsIfDifferentAtSource extends StorageTransferOverwriteOption
+object OverwriteObjectsIfDifferent extends StorageTransferOverwriteOption
 
 /** Always transfer objects from the source bucket, even if they exist at destination. */
 object OverwriteObjectsAlreadyExistingInSink extends StorageTransferOverwriteOption
@@ -17,7 +17,7 @@ object OverwriteObjectsAlreadyExistingInSink extends StorageTransferOverwriteOpt
 sealed trait StorageTransferDeletionOption
 
 /** Never delete objects from source. */
-object NeverDeleteObjects extends StorageTransferDeletionOption
+object NeverDeleteSourceObjects extends StorageTransferDeletionOption
 
 /** Delete objects from source after they've been transferred. */
 object DeleteSourceObjectsAfterTransfer extends StorageTransferDeletionOption

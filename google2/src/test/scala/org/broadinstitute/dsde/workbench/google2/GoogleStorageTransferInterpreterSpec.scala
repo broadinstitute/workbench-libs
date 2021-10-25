@@ -1,6 +1,7 @@
 package org.broadinstitute.dsde.workbench.google2
 
 import cats.effect.IO
+import cats.implicits.catsSyntaxOptionId
 import com.google.`type`.Date
 import org.broadinstitute.dsde.workbench.model.google.GoogleProject
 import org.broadinstitute.dsde.workbench.util2.WorkbenchTestSuite
@@ -27,7 +28,11 @@ class GoogleStorageTransferInterpreterSpec extends AsyncFlatSpec with Matchers w
           .setMonth(10)
           .setDay(22)
           .build
-        )
+        ),
+        options = StorageTransferJobOptions(
+          whenToOverwrite = OverwriteObjectsAlreadyExistingInSink,
+          whenToDelete = NeverDeleteSourceObjects
+        ).some
       )
     } yield job shouldBe true
   }
