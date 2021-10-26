@@ -1,27 +1,30 @@
 package org.broadinstitute.dsde.workbench.google2
 
 import cats.effect._
-import com.google.storagetransfer.v1.proto.TransferProto.GetGoogleServiceAccountRequest
+import com.google.longrunning.{ListOperationsRequest, Operation}
+import com.google.storagetransfer.v1.proto.TransferProto._
+import com.google.storagetransfer.v1.proto.TransferTypes._
 import com.google.storagetransfer.v1.proto.{StorageTransferServiceClient, TransferProto}
-import com.google.storagetransfer.v1.proto.TransferTypes.{GcsData, Schedule, TransferJob, TransferOptions, TransferSpec}
+import org.broadinstitute.dsde.workbench.google2.GoogleStorageTransferService._
 import org.broadinstitute.dsde.workbench.model.WorkbenchEmail
-import org.broadinstitute.dsde.workbench.model.google.{GcsBucketName, GoogleProject, ServiceAccount, ServiceAccountDisplayName, ServiceAccountSubjectId}
+import org.broadinstitute.dsde.workbench.model.google._
 import org.typelevel.log4cats.StructuredLogger
 
+import scala.jdk.CollectionConverters._
 import scala.util.Using
 
 class GoogleStorageTransferInterpreter[F[_]]()(implicit logger: StructuredLogger[F], F: Async[F])
   extends GoogleStorageTransferService[F] {
 
-  private def makeJobTransferSchedule(schedule: StorageTransferJobSchedule) = schedule match {
-    case Once(time) => Schedule.newBuilder()
-      .setScheduleStartDate(time)
-      .setScheduleEndDate(time)
+  private def makeJobTransferSchedule(schedule: TransferJobSchedule) = schedule match {
+    case TransferOnce(date) => Schedule.newBuilder()
+      .setScheduleStartDate(date)
+      .setScheduleEndDate(date)
       .build
   }
 
-  private def makeJobTransferOptions(options: StorageTransferJobOptions) = options match {
-    case StorageTransferJobOptions(overwrite, delete) => TransferOptions.newBuilder
+  private def makeJobTransferOptions(options: TransferJobOptions) = options match {
+    case TransferJobOptions(overwrite, delete) => TransferOptions.newBuilder
       .setOverwriteObjectsAlreadyExistingInSink(overwrite == OverwriteObjectsAlreadyExistingInSink)
       .setDeleteObjectsUniqueInSink(delete == DeleteObjectsUniqueInSink)
       .setDeleteObjectsFromSourceAfterTransfer(delete == DeleteSourceObjectsAfterTransfer)
@@ -40,16 +43,16 @@ class GoogleStorageTransferInterpreter[F[_]]()(implicit logger: StructuredLogger
     }))
   }
 
-  override def transferBucket(jobName: String,
+  override def transferBucket(jobName: TransferJobName,
                               jobDescription: String,
                               projectToBill: GoogleProject,
                               originBucket: GcsBucketName,
                               destinationBucket: GcsBucketName,
-                              schedule: StorageTransferJobSchedule,
-                              options: Option[StorageTransferJobOptions]
+                              schedule: TransferJobSchedule,
+                              options: Option[TransferJobOptions]
                              ): F[TransferJob] = {
     val transferJob = TransferJob.newBuilder
-      .setName(s"transferJobs/$jobName")
+      .setName(jobName.value)
       .setDescription(jobDescription)
       .setStatus(TransferJob.Status.ENABLED)
       .setProjectId(projectToBill.value)
@@ -67,5 +70,25 @@ class GoogleStorageTransferInterpreter[F[_]]()(implicit logger: StructuredLogger
       .build
 
     F.delay(Using.resource(StorageTransferServiceClient.create)(_.createTransferJob(request)))
+  }
+
+  override def getTransferJob(jobName: TransferJobName, project: GoogleProject): F[TransferJob] = {
+    val request = GetTransferJobRequest.newBuilder
+      .setJobName(jobName.value)
+      .setProjectId(project.value)
+      .build
+
+    F.delay(Using.resource(StorageTransferServiceClient.create)(_.getTransferJob(request)))
+  }
+
+  override def listTransferOperations(jobName: TransferJobName, project: GoogleProject): F[Iterable[Operation]] = {
+    val request = ListOperationsRequest.newBuilder
+      .setName("") // Name is unused
+      .setFilter(s"{\"projectId\":\"$project\"}")
+      .build
+
+    F.delay(Using.resource(StorageTransferServiceClient.create)(
+      _.getOperationsClient.listOperations(request).iterateAll.asScala
+    ))
   }
 }

@@ -2,38 +2,14 @@ package org.broadinstitute.dsde.workbench
 package google2
 
 import com.google.`type`.Date
-import com.google.storagetransfer.v1.proto.TransferTypes.{TransferJob}
+import com.google.longrunning.Operation
+import com.google.storagetransfer.v1.proto.TransferTypes.TransferJob
+import org.broadinstitute.dsde.workbench.google2.GoogleStorageTransferService._
+import org.broadinstitute.dsde.workbench.model.ValueObject
 import org.broadinstitute.dsde.workbench.model.google.{GcsBucketName, GoogleProject, ServiceAccount}
 
-sealed trait StorageTransferOverwriteOption
+import java.time.LocalDate
 
-/** Transfer objects from source if not binary equivalent to those at destination. */
-object OverwriteObjectsIfDifferent extends StorageTransferOverwriteOption
-
-/** Always transfer objects from the source bucket, even if they exist at destination. */
-object OverwriteObjectsAlreadyExistingInSink extends StorageTransferOverwriteOption
-
-
-sealed trait StorageTransferDeletionOption
-
-/** Never delete objects from source. */
-object NeverDeleteSourceObjects extends StorageTransferDeletionOption
-
-/** Delete objects from source after they've been transferred. */
-object DeleteSourceObjectsAfterTransfer extends StorageTransferDeletionOption
-
-/** Delete files from destination if they're not at source. */
-object DeleteObjectsUniqueInSink extends StorageTransferDeletionOption
-
-
-sealed trait StorageTransferJobSchedule
-
-case class Once(time: Date) extends StorageTransferJobSchedule
-
-
-case class StorageTransferJobOptions(whenToOverwrite: StorageTransferOverwriteOption,
-                                     whenToDelete: StorageTransferDeletionOption
-                                    )
 
 /**
  * Algebra for Google storage access
@@ -44,12 +20,68 @@ trait GoogleStorageTransferService[F[_]] {
 
   def getStsServiceAccount(project: GoogleProject): F[ServiceAccount]
 
-  def transferBucket(jobName: String,
+  def transferBucket(jobName: TransferJobName,
                      jobDescription: String,
                      projectToBill: GoogleProject,
                      originBucket: GcsBucketName,
                      destinationBucket: GcsBucketName,
-                     schedule: StorageTransferJobSchedule,
-                     options: Option[StorageTransferJobOptions] = None
+                     schedule: TransferJobSchedule,
+                     options: Option[TransferJobOptions] = None
                     ): F[TransferJob]
+
+  def getTransferJob(jobName: TransferJobName, project: GoogleProject): F[TransferJob]
+
+  def listTransferOperations(jobName: TransferJobName, project: GoogleProject): F[Iterable[Operation]]
+
+}
+
+object GoogleStorageTransferService {
+
+  sealed trait TransferJobOverwriteOption
+
+  /** Transfer objects from source if not binary equivalent to those at destination. */
+  object OverwriteObjectsIfDifferent extends TransferJobOverwriteOption
+
+  /** Always transfer objects from the source bucket, even if they exist at destination. */
+  object OverwriteObjectsAlreadyExistingInSink extends TransferJobOverwriteOption
+
+
+  sealed trait TransferJobDeletionOption
+
+  /** Never delete objects from source. */
+  object NeverDeleteSourceObjects extends TransferJobDeletionOption
+
+  /** Delete objects from source after they've been transferred. */
+  object DeleteSourceObjectsAfterTransfer extends TransferJobDeletionOption
+
+  /** Delete files from destination if they're not at source. */
+  object DeleteObjectsUniqueInSink extends TransferJobDeletionOption
+
+
+  sealed trait TransferJobSchedule
+
+  case class TransferOnce(date: Date) extends TransferJobSchedule
+
+  object TransferOnce {
+    def apply(date: LocalDate): TransferOnce = TransferOnce(
+      Date.newBuilder
+        .setYear(date.getYear)
+        .setMonth(date.getMonthValue)
+        .setDay(date.getMonthValue)
+        .build
+    )
+  }
+
+  case class TransferJobOptions(whenToOverwrite: TransferJobOverwriteOption,
+                                whenToDelete: TransferJobDeletionOption
+                               )
+
+  case class TransferJobName private(value: String) extends ValueObject
+
+  object TransferJobName {
+    def apply(name: String): TransferJobName = new TransferJobName(
+      if (name.startsWith("transferJobs/")) name else s"transferJobs/$name"
+    )
+  }
+
 }

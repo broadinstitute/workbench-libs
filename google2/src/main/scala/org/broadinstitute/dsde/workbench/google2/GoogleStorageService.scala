@@ -359,10 +359,10 @@ object StorageRole {
   final case object StorageAdmin extends StorageRole {
     def name: String = "roles/storage.admin"
   }
-  final case object LegacyStorageReader extends StorageRole {
+  final case object LegacyBucketReader extends StorageRole {
     def name: String = "roles/storage.legacyBucketReader"
   }
-  final case object LegacyStorageWriter extends StorageRole {
+  final case object LegacyBucketWriter extends StorageRole {
     def name: String = "roles/storage.legacyBucketWriter"
   }
   //The custom roleId must be in the form "organizations/{organization_id}/roles/{role}",
