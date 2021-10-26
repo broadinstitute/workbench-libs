@@ -43,13 +43,13 @@ class GoogleStorageTransferInterpreter[F[_]]()(implicit logger: StructuredLogger
     }))
   }
 
-  override def transferBucket(jobName: TransferJobName,
-                              jobDescription: String,
-                              projectToBill: GoogleProject,
-                              originBucket: GcsBucketName,
-                              destinationBucket: GcsBucketName,
-                              schedule: TransferJobSchedule,
-                              options: Option[TransferJobOptions]
+  override def createTransferJob(jobName: TransferJobName,
+                                 jobDescription: String,
+                                 projectToBill: GoogleProject,
+                                 originBucket: GcsBucketName,
+                                 destinationBucket: GcsBucketName,
+                                 schedule: TransferJobSchedule,
+                                 options: Option[TransferJobOptions]
                              ): F[TransferJob] = {
     val transferJob = TransferJob.newBuilder
       .setName(jobName.value)

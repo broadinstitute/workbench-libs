@@ -20,13 +20,13 @@ trait GoogleStorageTransferService[F[_]] {
 
   def getStsServiceAccount(project: GoogleProject): F[ServiceAccount]
 
-  def transferBucket(jobName: TransferJobName,
-                     jobDescription: String,
-                     projectToBill: GoogleProject,
-                     originBucket: GcsBucketName,
-                     destinationBucket: GcsBucketName,
-                     schedule: TransferJobSchedule,
-                     options: Option[TransferJobOptions] = None
+  def createTransferJob(jobName: TransferJobName,
+                        jobDescription: String,
+                        projectToBill: GoogleProject,
+                        originBucket: GcsBucketName,
+                        destinationBucket: GcsBucketName,
+                        schedule: TransferJobSchedule,
+                        options: Option[TransferJobOptions] = None
                     ): F[TransferJob]
 
   def getTransferJob(jobName: TransferJobName, project: GoogleProject): F[TransferJob]

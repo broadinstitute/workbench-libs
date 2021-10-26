@@ -44,7 +44,7 @@ class GoogleStorageTransferInterpreterSpec extends AsyncFlatSpec with Matchers w
     }
   }
 
-  "transferBucket" should "start a storage transfer service job from one bucket to another" in ioAssertion {
+  "createTransferJob" should "create a storage transfer service job from one bucket to another" in ioAssertion {
     temporaryGcsBucket(googleProject, "workspace-libs-").use { dstBucket =>
       for {
         serviceAccount <- sts.getStsServiceAccount(googleProject)
@@ -67,7 +67,7 @@ class GoogleStorageTransferInterpreterSpec extends AsyncFlatSpec with Matchers w
         jobName <- randomize("workbench-libs-sts-test")
           .map(TransferJobName(_))
 
-        job <- sts.transferBucket(
+        job <- sts.createTransferJob(
           jobName,
           "testing creating a storage transfer job",
           googleProject,
