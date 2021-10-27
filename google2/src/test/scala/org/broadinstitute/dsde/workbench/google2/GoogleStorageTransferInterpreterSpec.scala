@@ -1,7 +1,6 @@
 package org.broadinstitute.dsde.workbench.google2
 
 
-import cats.Monad
 import cats.data.NonEmptyList
 import cats.effect.std.{Semaphore, UUIDGen}
 import cats.effect.unsafe.implicits.global

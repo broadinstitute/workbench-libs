@@ -10,12 +10,6 @@ import org.broadinstitute.dsde.workbench.model.google.{GcsBucketName, GoogleProj
 
 import java.time.LocalDate
 
-
-/**
- * Algebra for Google storage access
- *
- * We follow tagless final pattern similar to https://typelevel.org/cats-tagless/
- */
 trait GoogleStorageTransferService[F[_]] {
 
   def getStsServiceAccount(project: GoogleProject): F[ServiceAccount]
