@@ -154,7 +154,7 @@ object Settings {
     coverageExcludedPackages := ".*HttpGoogle.*DAO.*"
   ) ++ publishSettings
 
-  val google2Settings = cross212and213 ++ commonSettings ++ List(
+  val google2Settings = commonSettings ++ List(
     name := "workbench-google2",
     libraryDependencies ++= google2Dependencies,
     version := createVersion("0.23")

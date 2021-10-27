@@ -8,12 +8,11 @@ import com.google.storagetransfer.v1.proto.{StorageTransferServiceClient, Transf
 import org.broadinstitute.dsde.workbench.google2.GoogleStorageTransferService._
 import org.broadinstitute.dsde.workbench.model.WorkbenchEmail
 import org.broadinstitute.dsde.workbench.model.google._
-import org.typelevel.log4cats.StructuredLogger
 
 import scala.jdk.CollectionConverters._
 import scala.util.Using
 
-class GoogleStorageTransferInterpreter[F[_]]()(implicit logger: StructuredLogger[F], F: Async[F])
+class GoogleStorageTransferInterpreter[F[_]]()(implicit F: Async[F])
     extends GoogleStorageTransferService[F] {
 
   private def makeJobTransferSchedule(schedule: TransferJobSchedule) = schedule match {
@@ -89,7 +88,7 @@ class GoogleStorageTransferInterpreter[F[_]]()(implicit logger: StructuredLogger
 
   override def listTransferOperations(jobName: TransferJobName, project: GoogleProject): F[Seq[Operation]] = {
     val request = ListOperationsRequest.newBuilder
-      .setFilter(s"{\"projectId\":\"$project\",\"jobNames\":[\"$jobName\"]}")
+      .setFilter(s"""{"projectId":"$project","jobNames":["$jobName"]}""")
       .build
 
     F.delay(Using.resource(StorageTransferServiceClient.create) { client =>
