@@ -2,6 +2,13 @@
 
 This file documents changes to the `workbench-google2` library, including notes on how to upgrade to new versions.
 
+## 0.23
+Added:
+- Support for creating and monitoring Google Cloud Storage Transfer jobs between Cloud Storage buckets.
+- Legacy Cloud Storage roles to `GoogleStorageService` 
+
+SBT Dependency: `"com.google.cloud" % "google-cloud-storage-transfer" % "0.2.0"`
+
 ## 0.22
 Breaking Changes:
 - Upgrade cats-effect to `3.2.3` (see [migration guide](https://typelevel.org/cats-effect/docs/migration-guide#run-the-scalafix-migration)) and a few other dependencies
