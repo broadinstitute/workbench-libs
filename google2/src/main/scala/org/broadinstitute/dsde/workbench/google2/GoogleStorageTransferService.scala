@@ -21,13 +21,14 @@ trait GoogleStorageTransferService[F[_]] {
                         destinationBucket: GcsBucketName,
                         schedule: TransferJobSchedule,
                         options: Option[TransferJobOptions] = None
-                    ): F[TransferJob]
+  ): F[TransferJob]
 
   def getTransferJob(jobName: TransferJobName, project: GoogleProject): F[TransferJob]
 
   def listTransferOperations(jobName: TransferJobName, project: GoogleProject): F[Seq[Operation]]
 
   def getTransferOperation(operationName: TransferOperationName): F[Operation]
+
 }
 
 object GoogleStorageTransferService {
@@ -40,7 +41,6 @@ object GoogleStorageTransferService {
   /** Always transfer objects from the source bucket, even if they exist at destination. */
   object OverwriteObjectsAlreadyExistingInSink extends TransferJobOverwriteOption
 
-
   sealed trait TransferJobDeletionOption
 
   /** Never delete objects from source. */
@@ -51,7 +51,6 @@ object GoogleStorageTransferService {
 
   /** Delete files from destination if they're not at source. */
   object DeleteObjectsUniqueInSink extends TransferJobDeletionOption
-
 
   sealed trait TransferJobSchedule
 
@@ -67,24 +66,26 @@ object GoogleStorageTransferService {
     )
   }
 
-  case class TransferJobOptions(whenToOverwrite: TransferJobOverwriteOption,
-                                whenToDelete: TransferJobDeletionOption
-                               )
+  case class TransferJobOptions(
+    whenToOverwrite: TransferJobOverwriteOption,
+    whenToDelete: TransferJobDeletionOption
+  )
 
   private def prefix(p: String, str: String) =
     if (str.startsWith(p)) str else s"$p$str"
 
-  case class TransferJobName private(value: String) extends ValueObject
+  case class TransferJobName private (value: String) extends ValueObject
 
   object TransferJobName {
     def apply(name: String): TransferJobName =
       new TransferJobName(prefix("transferJobs/", name))
   }
 
-  case class TransferOperationName private(value: String) extends ValueObject
+  case class TransferOperationName private (value: String) extends ValueObject
 
   object TransferOperationName {
     def apply(name: String): TransferOperationName =
       new TransferOperationName(prefix("transferOperations/", name))
   }
+
 }

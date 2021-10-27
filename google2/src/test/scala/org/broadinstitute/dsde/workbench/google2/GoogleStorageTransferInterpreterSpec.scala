@@ -1,6 +1,5 @@
 package org.broadinstitute.dsde.workbench.google2
 
-
 import cats.data.NonEmptyList
 import cats.effect.std.{Semaphore, UUIDGen}
 import cats.effect.unsafe.implicits.global
@@ -53,17 +52,27 @@ class GoogleStorageTransferInterpreterSpec extends AsyncFlatSpec with Matchers w
 
         // STS Service Account requires "Storage Object Viewer" and "Storage Legacy Bucket Reader"
         // roles on the bucket it transfers to
-        _ <- storage.setIamPolicy(srcBucket, Map(
-          (StorageRole.LegacyBucketReader, serviceAccountList),
-          (StorageRole.ObjectViewer, serviceAccountList)
-        )).compile.drain
+        _ <- storage
+          .setIamPolicy(srcBucket,
+                        Map(
+                          (StorageRole.LegacyBucketReader, serviceAccountList),
+                          (StorageRole.ObjectViewer, serviceAccountList)
+                        )
+          )
+          .compile
+          .drain
 
         // STS Service Account requires "Storage Object Creator" and "Storage Legacy Bucket Writer"
         // roles on the bucket it transfers to
-        _ <- storage.setIamPolicy(dstBucket, Map(
-          (StorageRole.LegacyBucketWriter, serviceAccountList),
-          (StorageRole.ObjectCreator, serviceAccountList)
-        )).compile.drain
+        _ <- storage
+          .setIamPolicy(dstBucket,
+                        Map(
+                          (StorageRole.LegacyBucketWriter, serviceAccountList),
+                          (StorageRole.ObjectCreator, serviceAccountList)
+                        )
+          )
+          .compile
+          .drain
 
         jobName <- randomize("workbench-libs-sts-test")
           .map(TransferJobName(_))
@@ -77,16 +86,16 @@ class GoogleStorageTransferInterpreterSpec extends AsyncFlatSpec with Matchers w
           TransferOnce(LocalDate.now)
         )
 
-        _ <- IO.sleep(5.seconds).untilM_(
-          sts.listTransferOperations(jobName, googleProject).map({
-            case Seq() => false
-            case xs => xs.forall(_.getDone)
-          })
-        )
+        _ <- IO
+          .sleep(5.seconds)
+          .untilM_(
+            sts.listTransferOperations(jobName, googleProject).map {
+              case Seq() => false
+              case xs    => xs.forall(_.getDone)
+            }
+          )
 
-        obj <- storage.getObjectMetadata(dstBucket, GcsBlobName("test_entity.tsv"))
-          .compile
-          .lastOrError
+        obj <- storage.getObjectMetadata(dstBucket, GcsBlobName("test_entity.tsv")).compile.lastOrError
 
       } yield obj should not be NotFound
     }
