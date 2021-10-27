@@ -179,7 +179,7 @@ trait GoogleStorageService[F[_]] {
    */
   def getObjectMetadata(bucketName: GcsBucketName,
                         blobName: GcsBlobName,
-                        traceId: Option[TraceId],
+                        traceId: Option[TraceId] = None,
                         retryConfig: RetryConfig = standardGoogleRetryConfig
   ): Stream[F, GetMetadataResponse]
 

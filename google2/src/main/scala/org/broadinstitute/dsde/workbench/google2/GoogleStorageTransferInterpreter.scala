@@ -1,7 +1,7 @@
 package org.broadinstitute.dsde.workbench.google2
 
 import cats.effect._
-import com.google.longrunning.{ListOperationsRequest, Operation}
+import com.google.longrunning.{GetOperationRequest, ListOperationsRequest, Operation}
 import com.google.storagetransfer.v1.proto.TransferProto._
 import com.google.storagetransfer.v1.proto.TransferTypes._
 import com.google.storagetransfer.v1.proto.{StorageTransferServiceClient, TransferProto}
@@ -81,14 +81,19 @@ class GoogleStorageTransferInterpreter[F[_]]()(implicit logger: StructuredLogger
     F.delay(Using.resource(StorageTransferServiceClient.create)(_.getTransferJob(request)))
   }
 
-  override def listTransferOperations(jobName: TransferJobName, project: GoogleProject): F[Iterable[Operation]] = {
+  override def listTransferOperations(jobName: TransferJobName, project: GoogleProject): F[Seq[Operation]] = {
     val request = ListOperationsRequest.newBuilder
       .setName("") // Name is unused
-      .setFilter(s"{\"projectId\":\"$project\"}")
+      .setFilter( s"{\"projectId\":\"$project\",\"jobNames\":[\"$jobName\"]}")
       .build
 
-    F.delay(Using.resource(StorageTransferServiceClient.create)(
-      _.getOperationsClient.listOperations(request).iterateAll.asScala
-    ))
+    F.delay(Using.resource(StorageTransferServiceClient.create) { client =>
+      Using.resource(client.getOperationsClient)(_.listOperations(request).iterateAll.asScala.toSeq)
+    })
   }
+
+  override def getTransferOperation(operationName: TransferOperationName): F[Operation] =
+    F.delay(Using.resource(StorageTransferServiceClient.create) { client =>
+      Using.resource(client.getOperationsClient)(_.getOperation(operationName.value))
+    })
 }

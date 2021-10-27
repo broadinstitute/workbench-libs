@@ -31,8 +31,9 @@ trait GoogleStorageTransferService[F[_]] {
 
   def getTransferJob(jobName: TransferJobName, project: GoogleProject): F[TransferJob]
 
-  def listTransferOperations(jobName: TransferJobName, project: GoogleProject): F[Iterable[Operation]]
+  def listTransferOperations(jobName: TransferJobName, project: GoogleProject): F[Seq[Operation]]
 
+  def getTransferOperation(operationName: TransferOperationName): F[Operation]
 }
 
 object GoogleStorageTransferService {
@@ -76,12 +77,20 @@ object GoogleStorageTransferService {
                                 whenToDelete: TransferJobDeletionOption
                                )
 
+  private def prefix(p: String, str: String) =
+    if (str.startsWith(p)) str else s"$p$str"
+
   case class TransferJobName private(value: String) extends ValueObject
 
   object TransferJobName {
-    def apply(name: String): TransferJobName = new TransferJobName(
-      if (name.startsWith("transferJobs/")) name else s"transferJobs/$name"
-    )
+    def apply(name: String): TransferJobName =
+      new TransferJobName(prefix("transferJobs/", name))
   }
 
+  case class TransferOperationName private(value: String) extends ValueObject
+
+  object TransferOperationName {
+    def apply(name: String): TransferOperationName =
+      new TransferOperationName(prefix("transferOperations/", name))
+  }
 }

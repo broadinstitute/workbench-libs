@@ -1,17 +1,20 @@
 package org.broadinstitute.dsde.workbench.google2
 
 
+import cats.Monad
 import cats.data.NonEmptyList
 import cats.effect.std.{Semaphore, UUIDGen}
 import cats.effect.unsafe.implicits.global
 import cats.effect.{IO, Resource}
 import com.google.cloud.Identity
 import com.google.cloud.storage.StorageOptions
+import org.broadinstitute.dsde.workbench.google2.GetMetadataResponse.NotFound
 import org.broadinstitute.dsde.workbench.google2.GoogleStorageTransferService._
 import org.broadinstitute.dsde.workbench.model.google._
 import org.broadinstitute.dsde.workbench.util2.WorkbenchTestSuite
 import org.scalatest.flatspec.AsyncFlatSpec
 import org.scalatest.matchers.should.Matchers
+import org.scalatest.time.SpanSugar.convertIntToGrainOfTime
 
 import java.time.LocalDate
 
@@ -36,7 +39,6 @@ class GoogleStorageTransferInterpreterSpec extends AsyncFlatSpec with Matchers w
       } yield bucketName
     )(storage.deleteBucket(project, _, isRecursive = true).compile.drain)
 
-
   "getStsServiceAccount" should "return a google-owned SA specific to the google project" in ioAssertion {
     sts.getStsServiceAccount(googleProject) map { case ServiceAccount(_, email, _) =>
       email.value should include("storage-transfer")
@@ -45,7 +47,7 @@ class GoogleStorageTransferInterpreterSpec extends AsyncFlatSpec with Matchers w
   }
 
   "createTransferJob" should "create a storage transfer service job from one bucket to another" in ioAssertion {
-    temporaryGcsBucket(googleProject, "workspace-libs-").use { dstBucket =>
+    temporaryGcsBucket(googleProject, "workbench-libs-").use { dstBucket =>
       for {
         serviceAccount <- sts.getStsServiceAccount(googleProject)
         serviceAccountList = NonEmptyList.one(Identity.serviceAccount(serviceAccount.email.value))
@@ -67,7 +69,7 @@ class GoogleStorageTransferInterpreterSpec extends AsyncFlatSpec with Matchers w
         jobName <- randomize("workbench-libs-sts-test")
           .map(TransferJobName(_))
 
-        job <- sts.createTransferJob(
+        _ <- sts.createTransferJob(
           jobName,
           "testing creating a storage transfer job",
           googleProject,
@@ -76,8 +78,18 @@ class GoogleStorageTransferInterpreterSpec extends AsyncFlatSpec with Matchers w
           TransferOnce(LocalDate.now)
         )
 
-        job <- sts.getTransferJob(jobName, googleProject)
-      } yield job shouldBe true
+        _ <- IO.sleep(5.seconds).untilM_(
+          sts.listTransferOperations(jobName, googleProject).map({
+            case Seq() => false
+            case xs => xs.forall(_.getDone)
+          })
+        )
+
+        obj <- storage.getObjectMetadata(dstBucket, GcsBlobName("test_entity.tsv"))
+          .compile
+          .lastOrError
+
+      } yield obj should not be NotFound
     }
   }
 
