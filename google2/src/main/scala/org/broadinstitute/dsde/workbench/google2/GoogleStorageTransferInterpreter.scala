@@ -12,8 +12,7 @@ import org.broadinstitute.dsde.workbench.model.google._
 import scala.jdk.CollectionConverters._
 import scala.util.Using
 
-class GoogleStorageTransferInterpreter[F[_]]()(implicit F: Async[F])
-    extends GoogleStorageTransferService[F] {
+class GoogleStorageTransferInterpreter[F[_]]()(implicit F: Async[F]) extends GoogleStorageTransferService[F] {
 
   private def makeJobTransferSchedule(schedule: TransferJobSchedule) = schedule match {
     case TransferOnce(date) =>
