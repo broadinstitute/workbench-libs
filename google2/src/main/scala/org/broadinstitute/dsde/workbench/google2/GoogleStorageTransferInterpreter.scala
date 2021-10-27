@@ -1,7 +1,7 @@
 package org.broadinstitute.dsde.workbench.google2
 
 import cats.effect._
-import com.google.longrunning.{GetOperationRequest, ListOperationsRequest, Operation}
+import com.google.longrunning.{ListOperationsRequest, Operation}
 import com.google.storagetransfer.v1.proto.TransferProto._
 import com.google.storagetransfer.v1.proto.TransferTypes._
 import com.google.storagetransfer.v1.proto.{StorageTransferServiceClient, TransferProto}
