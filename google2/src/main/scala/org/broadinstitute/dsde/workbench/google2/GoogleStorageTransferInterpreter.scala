@@ -83,7 +83,6 @@ class GoogleStorageTransferInterpreter[F[_]]()(implicit logger: StructuredLogger
 
   override def listTransferOperations(jobName: TransferJobName, project: GoogleProject): F[Seq[Operation]] = {
     val request = ListOperationsRequest.newBuilder
-      .setName("") // Name is unused
       .setFilter( s"{\"projectId\":\"$project\",\"jobNames\":[\"$jobName\"]}")
       .build
 
