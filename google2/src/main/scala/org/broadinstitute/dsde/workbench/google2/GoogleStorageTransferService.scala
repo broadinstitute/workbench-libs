@@ -78,21 +78,21 @@ object GoogleStorageTransferService {
     }
   }
 
-  case class JobTransferOptions(whenToOverwrite: ObjectOverwriteOption, whenToDelete: ObjectDeletionOption)
+  final case class JobTransferOptions(whenToOverwrite: ObjectOverwriteOption, whenToDelete: ObjectDeletionOption)
 
   private def prefix(p: String, str: String) =
     if (str.startsWith(p)) str else s"$p$str"
 
-  case class JobName private (value: String) extends ValueObject
+  final case class JobName private (value: String) extends ValueObject
 
-  object JobName {
+  final object JobName {
     def apply(name: String): JobName =
       new JobName(prefix("transferJobs/", name))
   }
 
-  case class OperationName private (value: String) extends ValueObject
+  final case class OperationName private (value: String) extends ValueObject
 
-  object OperationName {
+  final object OperationName {
     def apply(name: String): OperationName =
       new OperationName(prefix("transferOperations/", name))
   }

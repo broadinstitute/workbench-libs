@@ -14,7 +14,7 @@ import org.broadinstitute.dsde.workbench.model.google._
 import scala.jdk.CollectionConverters._
 import scala.util.Using
 
-private[google2] class GoogleStorageTransferInterpreter[F[_]](client: StorageTransferServiceClient)(implicit
+private[google2] final class GoogleStorageTransferInterpreter[F[_]](client: StorageTransferServiceClient)(implicit
   F: Async[F]
 ) extends GoogleStorageTransferService[F] {
 
