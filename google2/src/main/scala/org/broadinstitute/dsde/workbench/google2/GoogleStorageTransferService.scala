@@ -1,8 +1,10 @@
 package org.broadinstitute.dsde.workbench
 package google2
 
+import cats.effect.{Async, Resource}
 import com.google.`type`.Date
 import com.google.longrunning.Operation
+import com.google.storagetransfer.v1.proto.StorageTransferServiceClient
 import com.google.storagetransfer.v1.proto.TransferTypes.TransferJob
 import org.broadinstitute.dsde.workbench.google2.GoogleStorageTransferService._
 import org.broadinstitute.dsde.workbench.model.ValueObject
@@ -14,78 +16,89 @@ trait GoogleStorageTransferService[F[_]] {
 
   def getStsServiceAccount(project: GoogleProject): F[ServiceAccount]
 
-  def createTransferJob(jobName: TransferJobName,
+  def createTransferJob(jobName: JobName,
                         jobDescription: String,
                         projectToBill: GoogleProject,
                         originBucket: GcsBucketName,
                         destinationBucket: GcsBucketName,
-                        schedule: TransferJobSchedule,
-                        options: Option[TransferJobOptions] = None
+                        schedule: JobTransferSchedule,
+                        options: Option[JobTransferOptions] = None
   ): F[TransferJob]
 
-  def getTransferJob(jobName: TransferJobName, project: GoogleProject): F[TransferJob]
+  def getTransferJob(jobName: JobName, project: GoogleProject): F[TransferJob]
 
-  def listTransferOperations(jobName: TransferJobName, project: GoogleProject): F[Seq[Operation]]
+  def listTransferOperations(jobName: JobName, project: GoogleProject): F[Seq[Operation]]
 
-  def getTransferOperation(operationName: TransferOperationName): F[Operation]
+  def getTransferOperation(operationName: OperationName): F[Operation]
 
 }
 
 object GoogleStorageTransferService {
 
-  sealed trait TransferJobOverwriteOption
+  sealed trait ObjectOverwriteOption
 
-  /** Transfer objects from source if not binary equivalent to those at destination. */
-  object OverwriteObjectsIfDifferent extends TransferJobOverwriteOption
+  final object ObjectOverwriteOption {
 
-  /** Always transfer objects from the source bucket, even if they exist at destination. */
-  object OverwriteObjectsAlreadyExistingInSink extends TransferJobOverwriteOption
+    /** Transfer objects from source if not binary equivalent to those at destination. */
+    final object OverwriteObjectsIfDifferent extends ObjectOverwriteOption
 
-  sealed trait TransferJobDeletionOption
-
-  /** Never delete objects from source. */
-  object NeverDeleteSourceObjects extends TransferJobDeletionOption
-
-  /** Delete objects from source after they've been transferred. */
-  object DeleteSourceObjectsAfterTransfer extends TransferJobDeletionOption
-
-  /** Delete files from destination if they're not at source. */
-  object DeleteObjectsUniqueInSink extends TransferJobDeletionOption
-
-  sealed trait TransferJobSchedule
-
-  case class TransferOnce(date: Date) extends TransferJobSchedule
-
-  object TransferOnce {
-    def apply(date: LocalDate): TransferOnce = TransferOnce(
-      Date.newBuilder
-        .setYear(date.getYear)
-        .setMonth(date.getMonthValue)
-        .setDay(date.getMonthValue)
-        .build
-    )
+    /** Always transfer objects from the source bucket, even if they exist at destination. */
+    final object OverwriteObjectsAlreadyExistingInSink extends ObjectOverwriteOption
   }
 
-  case class TransferJobOptions(
-    whenToOverwrite: TransferJobOverwriteOption,
-    whenToDelete: TransferJobDeletionOption
-  )
+  sealed trait ObjectDeletionOption
+
+  final object ObjectDeletionOption {
+
+    /** Never delete objects from source. */
+    final object NeverDeleteSourceObjects extends ObjectDeletionOption
+
+    /** Delete objects from source after they've been transferred. */
+    final object DeleteSourceObjectsAfterTransfer extends ObjectDeletionOption
+
+    /** Delete files from destination if they're not at source. */
+    final object DeleteObjectsUniqueInSink extends ObjectDeletionOption
+  }
+
+  sealed trait JobTransferSchedule extends Any
+
+  final object JobTransferSchedule {
+
+    /** The job should run at most once at the specified `Date` */
+    final case class Once(date: Date) extends AnyVal with JobTransferSchedule
+
+    final object Once {
+      def apply(date: LocalDate): Once = Once(
+        Date.newBuilder
+          .setYear(date.getYear)
+          .setMonth(date.getMonthValue)
+          .setDay(date.getMonthValue)
+          .build
+      )
+    }
+  }
+
+  case class JobTransferOptions(whenToOverwrite: ObjectOverwriteOption, whenToDelete: ObjectDeletionOption)
 
   private def prefix(p: String, str: String) =
     if (str.startsWith(p)) str else s"$p$str"
 
-  case class TransferJobName private (value: String) extends ValueObject
+  case class JobName private (value: String) extends ValueObject
 
-  object TransferJobName {
-    def apply(name: String): TransferJobName =
-      new TransferJobName(prefix("transferJobs/", name))
+  object JobName {
+    def apply(name: String): JobName =
+      new JobName(prefix("transferJobs/", name))
   }
 
-  case class TransferOperationName private (value: String) extends ValueObject
+  case class OperationName private (value: String) extends ValueObject
 
-  object TransferOperationName {
-    def apply(name: String): TransferOperationName =
-      new TransferOperationName(prefix("transferOperations/", name))
+  object OperationName {
+    def apply(name: String): OperationName =
+      new OperationName(prefix("transferOperations/", name))
   }
 
+  def resource[F[_]: Async]: Resource[F, GoogleStorageTransferService[F]] =
+    Resource
+      .make(Async[F].delay(StorageTransferServiceClient.create))(client => Async[F].delay(client.close()))
+      .map(new GoogleStorageTransferInterpreter[F](_))
 }

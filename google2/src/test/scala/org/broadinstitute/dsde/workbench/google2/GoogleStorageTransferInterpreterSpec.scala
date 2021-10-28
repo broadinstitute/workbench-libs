@@ -21,7 +21,6 @@ class GoogleStorageTransferInterpreterSpec extends AsyncFlatSpec with Matchers w
   val db = StorageOptions.getDefaultInstance.getService
   val semaphore = Semaphore[IO](1).unsafeRunSync
   val storage = GoogleStorageInterpreter[IO](db, Some(semaphore))
-  val sts = new GoogleStorageTransferInterpreter[IO]
 
   val srcBucket = GcsBucketName("workbench-libs-sts-test")
   val googleProject = GoogleProject("broad-dsde-dev")
@@ -38,66 +37,70 @@ class GoogleStorageTransferInterpreterSpec extends AsyncFlatSpec with Matchers w
     )(storage.deleteBucket(project, _, isRecursive = true).compile.drain)
 
   "getStsServiceAccount" should "return a google-owned SA specific to the google project" in ioAssertion {
-    sts.getStsServiceAccount(googleProject) map { case ServiceAccount(_, email, _) =>
-      email.value should include("storage-transfer")
-      email.value should endWith("gserviceaccount.com")
+    GoogleStorageTransferService.resource[IO].use { sts =>
+      sts.getStsServiceAccount(googleProject) map { case ServiceAccount(_, email, _) =>
+        email.value should include("storage-transfer")
+        email.value should endWith("gserviceaccount.com")
+      }
     }
   }
 
   "createTransferJob" should "create a storage transfer service job from one bucket to another" in ioAssertion {
     temporaryGcsBucket(googleProject, "workbench-libs-").use { dstBucket =>
-      for {
-        serviceAccount <- sts.getStsServiceAccount(googleProject)
-        serviceAccountList = NonEmptyList.one(Identity.serviceAccount(serviceAccount.email.value))
+      GoogleStorageTransferService.resource[IO].use { sts =>
+        for {
+          serviceAccount <- sts.getStsServiceAccount(googleProject)
+          serviceAccountList = NonEmptyList.one(Identity.serviceAccount(serviceAccount.email.value))
 
-        // STS Service Account requires "Storage Object Viewer" and "Storage Legacy Bucket Reader"
-        // roles on the bucket it transfers to
-        _ <- storage
-          .setIamPolicy(srcBucket,
-                        Map(
-                          (StorageRole.LegacyBucketReader, serviceAccountList),
-                          (StorageRole.ObjectViewer, serviceAccountList)
-                        )
-          )
-          .compile
-          .drain
+          // STS Service Account requires "Storage Object Viewer" and "Storage Legacy Bucket Reader"
+          // roles on the bucket it transfers to
+          _ <- storage
+            .setIamPolicy(srcBucket,
+                          Map(
+                            (StorageRole.LegacyBucketReader, serviceAccountList),
+                            (StorageRole.ObjectViewer, serviceAccountList)
+                          )
+            )
+            .compile
+            .drain
 
-        // STS Service Account requires "Storage Object Creator" and "Storage Legacy Bucket Writer"
-        // roles on the bucket it transfers to
-        _ <- storage
-          .setIamPolicy(dstBucket,
-                        Map(
-                          (StorageRole.LegacyBucketWriter, serviceAccountList),
-                          (StorageRole.ObjectCreator, serviceAccountList)
-                        )
-          )
-          .compile
-          .drain
+          // STS Service Account requires "Storage Object Creator" and "Storage Legacy Bucket Writer"
+          // roles on the bucket it transfers to
+          _ <- storage
+            .setIamPolicy(dstBucket,
+                          Map(
+                            (StorageRole.LegacyBucketWriter, serviceAccountList),
+                            (StorageRole.ObjectCreator, serviceAccountList)
+                          )
+            )
+            .compile
+            .drain
 
-        jobName <- randomize("workbench-libs-sts-test")
-          .map(TransferJobName(_))
+          jobName <- randomize("workbench-libs-sts-test")
+            .map(JobName(_))
 
-        _ <- sts.createTransferJob(
-          jobName,
-          "testing creating a storage transfer job",
-          googleProject,
-          srcBucket,
-          dstBucket,
-          TransferOnce(LocalDate.now)
-        )
-
-        _ <- IO
-          .sleep(5.seconds)
-          .untilM_(
-            sts.listTransferOperations(jobName, googleProject).map {
-              case Seq() => false
-              case xs    => xs.forall(_.getDone)
-            }
+          _ <- sts.createTransferJob(
+            jobName,
+            "testing creating a storage transfer job",
+            googleProject,
+            srcBucket,
+            dstBucket,
+            JobTransferSchedule.Once(LocalDate.now)
           )
 
-        obj <- storage.getObjectMetadata(dstBucket, GcsBlobName("test_entity.tsv")).compile.lastOrError
+          _ <- IO
+            .sleep(5.seconds)
+            .untilM_(
+              sts.listTransferOperations(jobName, googleProject).map {
+                case Seq() => false
+                case xs    => xs.forall(_.getDone)
+              }
+            )
 
-      } yield obj should not be NotFound
+          obj <- storage.getObjectMetadata(dstBucket, GcsBlobName("test_entity.tsv")).compile.lastOrError
+
+        } yield obj should not be NotFound
+      }
     }
   }
 
