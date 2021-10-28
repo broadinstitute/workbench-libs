@@ -99,6 +99,6 @@ object GoogleStorageTransferService {
 
   def resource[F[_]: Async]: Resource[F, GoogleStorageTransferService[F]] =
     Resource
-      .make(Async[F].delay(StorageTransferServiceClient.create))(client => Async[F].delay(client.close()))
+      .fromAutoCloseable(Async[F].delay(StorageTransferServiceClient.create))
       .map(new GoogleStorageTransferInterpreter[F](_))
 }

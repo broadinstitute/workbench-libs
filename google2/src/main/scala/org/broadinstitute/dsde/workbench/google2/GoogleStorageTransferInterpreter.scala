@@ -12,7 +12,6 @@ import org.broadinstitute.dsde.workbench.model.WorkbenchEmail
 import org.broadinstitute.dsde.workbench.model.google._
 
 import scala.jdk.CollectionConverters._
-import scala.util.Using
 
 final private[google2] class GoogleStorageTransferInterpreter[F[_]](client: StorageTransferServiceClient)(implicit
   F: Async[F]
@@ -99,13 +98,13 @@ final private[google2] class GoogleStorageTransferInterpreter[F[_]](client: Stor
       .build
 
     F.delay {
-      Using.resource(client.getOperationsClient)(_.listOperations(request).iterateAll.asScala.toSeq)
+      client.getOperationsClient.listOperations(request).iterateAll.asScala.toSeq
     }
   }
 
   override def getTransferOperation(operationName: OperationName): F[Operation] =
     F.delay {
-      Using.resource(client.getOperationsClient)(_.getOperation(operationName.value))
+      client.getOperationsClient.getOperation(operationName.value)
     }
 
 }
