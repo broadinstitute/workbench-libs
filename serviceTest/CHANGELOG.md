@@ -2,6 +2,17 @@
 
 This file documents changes to the `workbench-service-test` library, including notes on how to upgrade to new versions.
 
+## 0.21
+
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "TRAVIS-REPLACE-ME"`
+
+### Changed
+- `RestClient` which underlies many of the higher-level service-test methods, has logging changes:
+  - It logs the first 500 chars of the request and response, which could potentially include sensitive information.
+  - It makes an attempt to mask Google auth token values from its log entries
+  - It now logs the request and response at DEBUG level
+  - It now omits logging the less-helpful portions of the request and response
+
 ## 0.20
 
 SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "0.20-21408a9"`

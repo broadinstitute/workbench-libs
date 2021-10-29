@@ -49,7 +49,7 @@ trait RestClient extends Retry with LazyLogging {
   private def sendRequest(httpRequest: HttpRequest): HttpResponse = {
     val responseFuture = retryExponentially() { () =>
       Http().singleRequest(request = httpRequest).map { response =>
-        logger.info(s"API request: ${httpRequest}\nAPI response: $response")
+        logRequestResponse(httpRequest, response)
         // retry any 401 or 500 errors - this is because we have seen the proxy get backend errors
         // from google querying for token info which causes a 401 if it is at the level if the
         // service being directly called or a 500 if it happens at a lower level service
@@ -61,6 +61,31 @@ trait RestClient extends Retry with LazyLogging {
       }
     }
     Await.result(responseFuture, 5.minutes)
+  }
+
+  def entityToString(entity: HttpEntity): String = {
+    // try to represent the entity in a meaningful way - if we can easily read the data (i.e. it's Strict),
+    // take the first 500 chars. Else, bail and use the default HttpRequest.Entity.toString, which isn't
+    // all that helpful.
+    entity match {
+      case se:HttpEntity.Strict =>
+        val rawEntityString = se.data.utf8String
+        val shorterString = if (rawEntityString.length > 500) {
+          s"${rawEntityString.take(500)}..."
+        } else {
+          rawEntityString
+        }
+        // attempt to mask out tokens
+        shorterString.replaceAll("""ya29[\w\d.-]+""", "***REVOKED***")
+      case x => x.toString
+    }
+  }
+
+  def logRequestResponse(httpRequest: HttpRequest, response: HttpResponse): Unit = {
+      logger.debug(s"API request: ${httpRequest.method.value} ${httpRequest.uri.toString()} " +
+        s"with headers (${httpRequest.headers.map(_.name()).mkString(",")}) " +
+        s"${entityToString(httpRequest.entity)}\n" +
+        s"API response: ${response.status.value} ${entityToString(response.entity)}")
   }
 
   def extractResponseString(response: HttpResponse): String = {
