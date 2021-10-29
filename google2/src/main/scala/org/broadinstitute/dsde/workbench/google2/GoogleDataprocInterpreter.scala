@@ -188,7 +188,7 @@ private[google2] class GoogleDataprocInterpreter[F[_]: Parallel](
                     instances.toList.parTraverse { instance =>
                       googleComputeService.stopInstance(project, zone, instance).recoverWith {
                         case _: com.google.api.gax.rpc.NotFoundException =>
-                          logger.info("33333") >> F.pure(Operation.getDefaultInstance)
+                          F.pure(Operation.getDefaultInstance)
                         case e => F.raiseError[Operation](e)
                       }
                     }
