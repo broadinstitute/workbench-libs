@@ -238,7 +238,6 @@ private[google2] class GoogleDataprocInterpreter[F[_]: Parallel](
                 .setProjectId(project.value)
                 .setRegion(region.value)
                 .setClusterName(clusterName.value)
-                .setRequestId(traceId.asString)
                 .build()
             fa = F.delay(client.startClusterAsync(request))
             javaFuture <- withLogging(
