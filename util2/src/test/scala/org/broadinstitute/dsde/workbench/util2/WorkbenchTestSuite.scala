@@ -9,7 +9,7 @@ import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 import scala.concurrent.Future
 
 trait WorkbenchTestSuite {
-  implicit val logger = new ConsoleLogger("unit_test", LogLevel(false, false, false, true))
+  implicit val logger = new ConsoleLogger("unit_test", LogLevel(false, false, true, true))
 
   def ioAssertion(test: => IO[Assertion]): Future[Assertion] = test.unsafeToFuture()
 }
