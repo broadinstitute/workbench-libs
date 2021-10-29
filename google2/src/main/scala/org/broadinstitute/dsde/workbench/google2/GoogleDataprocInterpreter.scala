@@ -240,24 +240,28 @@ private[google2] class GoogleDataprocInterpreter[F[_]: Parallel](
                 .setClusterName(clusterName.value)
                 .setRequestId(traceId.asString)
                 .build()
-            fa = F.delay(client.startClusterAsync(request))
-            javaFuture <- withLogging(
+
+            fa = for {
+              javaFuture <- F.delay(client.startClusterAsync(request))
+              operation <- F
+                .async[ClusterOperationMetadata] { cb =>
+                  F.delay(
+                    ApiFutures.addCallback(
+                      javaFuture.getMetadata,
+                      callBack(cb),
+                      MoreExecutors.directExecutor()
+                    )
+                  ).as(None)
+                }
+                .map(metadata => DataprocOperation(OperationName(javaFuture.getName), metadata))
+            } yield operation
+            op <- withLogging(
               fa,
               Some(traceId),
               s"com.google.cloud.dataproc.v1.ClusterControllerClient.startClusterAsync($request)"
             )
-            operation <- F
-              .async[ClusterOperationMetadata] { cb =>
-                F.delay(
-                  ApiFutures.addCallback(
-                    javaFuture.getMetadata,
-                    callBack(cb),
-                    MoreExecutors.directExecutor()
-                  )
-                ).as(None)
-              }
-              .map(metadata => DataprocOperation(OperationName(javaFuture.getName), metadata))
-          } yield Some(operation)
+
+          } yield Some(op)
         else {
           // We support non-full stop when we "stop" a dataproc cluster
           // (when we're patching a dataproc cluster or for existing `Stopped` dataproc clusters).
