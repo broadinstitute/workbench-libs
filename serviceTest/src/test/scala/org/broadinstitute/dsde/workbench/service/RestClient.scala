@@ -63,12 +63,12 @@ trait RestClient extends Retry with LazyLogging {
     Await.result(responseFuture, 5.minutes)
   }
 
-  def entityToString(entity: HttpEntity): String = {
+  def entityToString(entity: HttpEntity): String =
     // try to represent the entity in a meaningful way - if we can easily read the data (i.e. it's Strict),
     // take the first 500 chars. Else, bail and use the default HttpRequest.Entity.toString, which isn't
     // all that helpful.
     entity match {
-      case se:HttpEntity.Strict =>
+      case se: HttpEntity.Strict =>
         val rawEntityString = se.data.utf8String
         val shorterString = if (rawEntityString.length > 500) {
           s"${rawEntityString.take(500)}..."
@@ -79,14 +79,14 @@ trait RestClient extends Retry with LazyLogging {
         shorterString.replaceAll("""ya29[\w\d.-]+""", "***REVOKED***")
       case x => x.toString
     }
-  }
 
-  def logRequestResponse(httpRequest: HttpRequest, response: HttpResponse): Unit = {
-      logger.debug(s"API request: ${httpRequest.method.value} ${httpRequest.uri.toString()} " +
+  def logRequestResponse(httpRequest: HttpRequest, response: HttpResponse): Unit =
+    logger.debug(
+      s"API request: ${httpRequest.method.value} ${httpRequest.uri.toString()} " +
         s"with headers (${httpRequest.headers.map(_.name()).mkString(",")}) " +
         s"${entityToString(httpRequest.entity)}\n" +
-        s"API response: ${response.status.value} ${entityToString(response.entity)}")
-  }
+        s"API response: ${response.status.value} ${entityToString(response.entity)}"
+    )
 
   def extractResponseString(response: HttpResponse): String = {
     val responseStringFuture: Future[String] = response.entity.toStrict(5 minutes).map(_.data.utf8String)
