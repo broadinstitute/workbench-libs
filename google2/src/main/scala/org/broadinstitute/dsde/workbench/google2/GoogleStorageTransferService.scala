@@ -2,7 +2,6 @@ package org.broadinstitute.dsde.workbench
 package google2
 
 import cats.effect.{Resource, Sync}
-import com.google.`type`.Date
 import com.google.longrunning.Operation
 import com.google.storagetransfer.v1.proto.StorageTransferServiceClient
 import com.google.storagetransfer.v1.proto.TransferTypes.TransferJob
@@ -10,7 +9,7 @@ import org.broadinstitute.dsde.workbench.google2.GoogleStorageTransferService._
 import org.broadinstitute.dsde.workbench.model.ValueObject
 import org.broadinstitute.dsde.workbench.model.google.{GcsBucketName, GoogleProject, ServiceAccount}
 
-import java.time.LocalDate
+import java.time.{ZoneId, ZonedDateTime}
 
 trait GoogleStorageTransferService[F[_]] {
 
@@ -30,7 +29,6 @@ trait GoogleStorageTransferService[F[_]] {
   def listTransferOperations(jobName: JobName, project: GoogleProject): F[Seq[Operation]]
 
   def getTransferOperation(operationName: OperationName): F[Operation]
-
 }
 
 object GoogleStorageTransferService {
@@ -64,17 +62,19 @@ object GoogleStorageTransferService {
 
   final object JobTransferSchedule {
 
-    /** The job should run at most once at the specified `Date` */
-    final case class Once(date: Date) extends AnyVal with JobTransferSchedule
+    /** The job should run when the job is created. */
+    final object Immediately extends JobTransferSchedule
+
+    /**
+     * The job should run at the specified `ZonedDateTime` in UTC. If this is before the
+     * instant the job was created, then the job will run the day after it was scheduled.
+     * See the reference for details.
+     */
+    final case class Once private (datetime: ZonedDateTime) extends AnyVal with JobTransferSchedule
 
     final object Once {
-      def apply(date: LocalDate): Once = Once(
-        Date.newBuilder
-          .setYear(date.getYear)
-          .setMonth(date.getMonthValue)
-          .setDay(date.getMonthValue)
-          .build
-      )
+      def apply(date: ZonedDateTime): Once =
+        new Once(date.withZoneSameInstant(ZoneId.of("UTC")))
     }
   }
 

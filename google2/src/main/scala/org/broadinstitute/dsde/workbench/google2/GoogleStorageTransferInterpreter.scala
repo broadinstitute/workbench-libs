@@ -1,6 +1,7 @@
 package org.broadinstitute.dsde.workbench.google2
 
 import cats.effect._
+import com.google.`type`.{Date, TimeOfDay}
 import com.google.longrunning.{ListOperationsRequest, Operation}
 import com.google.storagetransfer.v1.proto.TransferProto._
 import com.google.storagetransfer.v1.proto.TransferTypes._
@@ -11,17 +12,48 @@ import org.broadinstitute.dsde.workbench.google2.GoogleStorageTransferService._
 import org.broadinstitute.dsde.workbench.model.WorkbenchEmail
 import org.broadinstitute.dsde.workbench.model.google._
 
+import java.time.ZonedDateTime
 import scala.collection.JavaConverters._
 
 final private[google2] class GoogleStorageTransferInterpreter[F[_]](client: StorageTransferServiceClient)(implicit
   F: Sync[F]
 ) extends GoogleStorageTransferService[F] {
 
+  private object Date {
+    def fromZonedDateTime(datetime: ZonedDateTime): Date =
+      com.google.`type`.Date.newBuilder
+        .setYear(datetime.getYear)
+        .setMonth(datetime.getMonthValue)
+        .setDay(datetime.getDayOfMonth)
+        .build
+  }
+
+  private object TimeOfDay {
+    def fromZonedDateTime(datetime: ZonedDateTime): TimeOfDay =
+      com.google.`type`.TimeOfDay.newBuilder
+        .setHours(datetime.getHour)
+        .setMinutes(datetime.getMinute)
+        .setSeconds(datetime.getSecond)
+        .setNanos(datetime.getNano)
+        .build
+  }
+
   private def makeSchedule(schedule: JobTransferSchedule): Schedule = schedule match {
-    case JobTransferSchedule.Once(date) =>
+    case JobTransferSchedule.Immediately =>
+      val date = ZonedDateTime.now
+      val today = Date.fromZonedDateTime(ZonedDateTime.now)
+      Schedule.newBuilder
+        .setScheduleStartDate(today)
+        .setScheduleEndDate(today)
+        .clearStartTimeOfDay()
+        .build
+
+    case JobTransferSchedule.Once(datetime) =>
+      val date = Date.fromZonedDateTime(datetime)
       Schedule.newBuilder
         .setScheduleStartDate(date)
         .setScheduleEndDate(date)
+        .setStartTimeOfDay(TimeOfDay.fromZonedDateTime(datetime))
         .build
   }
 

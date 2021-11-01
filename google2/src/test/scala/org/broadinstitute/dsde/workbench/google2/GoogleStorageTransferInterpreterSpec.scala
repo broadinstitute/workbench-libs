@@ -14,9 +14,9 @@ import org.broadinstitute.dsde.workbench.model.google._
 import org.broadinstitute.dsde.workbench.util2.WorkbenchTestSuite
 import org.scalatest.flatspec.AsyncFlatSpec
 import org.scalatest.matchers.should.Matchers
-import org.scalatest.time.SpanSugar.convertIntToGrainOfTime
 
-import java.time.LocalDate
+import java.time.{Duration, ZonedDateTime}
+import scala.concurrent.duration.DurationInt
 
 class GoogleStorageTransferInterpreterSpec extends AsyncFlatSpec with Matchers with WorkbenchTestSuite {
 
@@ -38,31 +38,43 @@ class GoogleStorageTransferInterpreterSpec extends AsyncFlatSpec with Matchers w
       } yield bucketName
     )(storage.deleteBucket(project, _, isRecursive = true).compile.drain)
 
-  "JobName" should """fail when the name is not prefixed with "transferJobs/"""" in {
-    JobName.fromString("invalid") match {
-      case Left(msg) => msg should include(""""transferJobs/"""")
-      case _         => fail
+  "JobName" should """fail when the name is not prefixed with "transferJobs/"""" in ioAssertion {
+    randomize("test").map { name =>
+      JobName.fromString(name) match {
+        case Left(msg) =>
+          msg should include(name)
+          msg should include("""must start with "transferJobs/"""")
+        case _ => fail
+      }
     }
   }
 
-  it should """succeed when the name is prefixed with "transferJobs/"""" in {
-    JobName.fromString("transferJobs/valid") match {
-      case Right(_) => succeed
-      case _        => fail
+  it should """succeed when the name is prefixed with "transferJobs/"""" in ioAssertion {
+    randomize("transferJobs/test").map { name =>
+      JobName.fromString(name) match {
+        case Right(JobName(jn)) => jn shouldBe name
+        case _                  => fail
+      }
     }
   }
 
-  "OperationName" should """fail when the name is not prefixed with "transferOperations/"""" in {
-    OperationName.fromString("invalid") match {
-      case Left(msg) => msg should include(""""transferOperations/"""")
-      case _         => fail
+  "OperationName" should """fail when the name is not prefixed with "transferOperations/"""" in ioAssertion {
+    randomize("test").map { name =>
+      OperationName.fromString(name) match {
+        case Left(msg) =>
+          msg should include(name)
+          msg should include("""must start with "transferOperations/"""")
+        case _ => fail
+      }
     }
   }
 
-  it should """succeed when the name is prefixed with "transferOperations/"""" in {
-    OperationName.fromString("transferOperations/valid") match {
-      case Right(_) => succeed
-      case _        => fail
+  it should """succeed when the name is prefixed with "transferOperations/"""" in ioAssertion {
+    randomize("transferOperations/test").map { name =>
+      OperationName.fromString(name) match {
+        case Right(OperationName(on)) => on shouldBe name
+        case _                        => fail
+      }
     }
   }
 
@@ -116,11 +128,11 @@ class GoogleStorageTransferInterpreterSpec extends AsyncFlatSpec with Matchers w
             googleProject,
             srcBucket,
             dstBucket,
-            JobTransferSchedule.Once(LocalDate.now)
+            JobTransferSchedule.Immediately
           )
 
           _ <- IO
-            .sleep(5.seconds)
+            .sleep(5 seconds)
             .untilM_(
               sts.listTransferOperations(jobName, googleProject).map {
                 case Seq() => false
