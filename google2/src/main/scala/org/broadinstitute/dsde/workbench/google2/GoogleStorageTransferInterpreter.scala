@@ -40,7 +40,6 @@ final private[google2] class GoogleStorageTransferInterpreter[F[_]](client: Stor
 
   private def makeSchedule(schedule: JobTransferSchedule): Schedule = schedule match {
     case JobTransferSchedule.Immediately =>
-      val date = ZonedDateTime.now
       val today = Date.fromZonedDateTime(ZonedDateTime.now)
       Schedule.newBuilder
         .setScheduleStartDate(today)
