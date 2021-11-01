@@ -282,12 +282,6 @@ private[google2] class GoogleDataprocInterpreter[F[_]: Parallel](
       _ <- numPreemptibles match {
         case Some(n) =>
           for {
-            _ <- streamUntilDoneOrTimeout(
-              getCluster(project, region, clusterName),
-              15,
-              3 seconds,
-              s"Cannot start the instances of cluster ${project.value}/${clusterName.value} unless the cluster is in RUNNING status."
-            )
             _ <- resizeCluster(project, region, clusterName, numWorkers = None, numPreemptibles = Some(n))
             _ <- streamUntilDoneOrTimeout(
               getClusterInstances(project, region, clusterName),
@@ -295,6 +289,12 @@ private[google2] class GoogleDataprocInterpreter[F[_]: Parallel](
               6 seconds,
               s"Timeout occurred adding preemptible instances to cluster ${project.value}/${clusterName.value}"
             )(implicitly, instances => countPreemptibles(instances) == n).void
+            _ <- streamUntilDoneOrTimeout(
+              getCluster(project, region, clusterName),
+              15,
+              3 seconds,
+              s"Cannot start the instances of cluster ${project.value}/${clusterName.value} unless the cluster is in RUNNING status."
+            )
           } yield ()
         case None => F.unit
       }
