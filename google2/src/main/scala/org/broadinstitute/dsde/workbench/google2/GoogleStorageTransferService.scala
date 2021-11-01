@@ -97,7 +97,7 @@ object GoogleStorageTransferService {
 
     def fromString(name: String): Either[String, OperationName] =
       if (name.startsWith(prefix)) Right(OperationName(name))
-      else Left(s"""Illegal operation name - "$name"  must start with "$prefix".""")
+      else Left(s"""Illegal operation name - "$name" must start with "$prefix".""")
   }
 
   def resource[F[_]](implicit F: Sync[F]): Resource[F, GoogleStorageTransferService[F]] =
