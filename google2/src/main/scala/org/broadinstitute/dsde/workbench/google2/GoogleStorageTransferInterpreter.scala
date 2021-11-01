@@ -14,7 +14,7 @@ import org.broadinstitute.dsde.workbench.model.google._
 import scala.collection.JavaConverters._
 
 final private[google2] class GoogleStorageTransferInterpreter[F[_]](client: StorageTransferServiceClient)(implicit
-  F: Async[F]
+  F: Sync[F]
 ) extends GoogleStorageTransferService[F] {
 
   private def makeSchedule(schedule: JobTransferSchedule): Schedule = schedule match {

@@ -4,10 +4,12 @@ import cats.data.NonEmptyList
 import cats.effect.std.{Semaphore, UUIDGen}
 import cats.effect.unsafe.implicits.global
 import cats.effect.{IO, Resource}
+import cats.implicits._
 import com.google.cloud.Identity
 import com.google.cloud.storage.StorageOptions
 import org.broadinstitute.dsde.workbench.google2.GetMetadataResponse.NotFound
 import org.broadinstitute.dsde.workbench.google2.GoogleStorageTransferService._
+import org.broadinstitute.dsde.workbench.model.WorkbenchException
 import org.broadinstitute.dsde.workbench.model.google._
 import org.broadinstitute.dsde.workbench.util2.WorkbenchTestSuite
 import org.scalatest.flatspec.AsyncFlatSpec
@@ -35,6 +37,34 @@ class GoogleStorageTransferInterpreterSpec extends AsyncFlatSpec with Matchers w
         _ <- storage.insertBucket(project, bucketName).compile.drain
       } yield bucketName
     )(storage.deleteBucket(project, _, isRecursive = true).compile.drain)
+
+  "JobName" should """fail when the name is not prefixed with "transferJobs/"""" in {
+    JobName.fromString("invalid") match {
+      case Left(msg) => msg should include(""""transferJobs/"""")
+      case _         => fail
+    }
+  }
+
+  it should """succeed when the name is prefixed with "transferJobs/"""" in {
+    JobName.fromString("transferJobs/valid") match {
+      case Right(_) => succeed
+      case _        => fail
+    }
+  }
+
+  "OperationName" should """fail when the name is not prefixed with "transferOperations/"""" in {
+    OperationName.fromString("invalid") match {
+      case Left(msg) => msg should include(""""transferOperations/"""")
+      case _         => fail
+    }
+  }
+
+  it should """succeed when the name is prefixed with "transferOperations/"""" in {
+    OperationName.fromString("transferOperations/valid") match {
+      case Right(_) => succeed
+      case _        => fail
+    }
+  }
 
   "getStsServiceAccount" should "return a google-owned SA specific to the google project" in ioAssertion {
     GoogleStorageTransferService.resource[IO].use { sts =>
@@ -76,8 +106,9 @@ class GoogleStorageTransferInterpreterSpec extends AsyncFlatSpec with Matchers w
             .compile
             .drain
 
-          jobName <- randomize("workbench-libs-sts-test")
-            .map(JobName(_))
+          jobName <- randomize("transferJobs/workbench-libs-sts-test").flatMap { name =>
+            IO.fromEither(JobName.fromString(name).leftMap(errMsg => new WorkbenchException(errMsg)))
+          }
 
           _ <- sts.createTransferJob(
             jobName,

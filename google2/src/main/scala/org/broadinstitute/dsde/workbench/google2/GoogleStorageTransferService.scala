@@ -1,7 +1,7 @@
 package org.broadinstitute.dsde.workbench
 package google2
 
-import cats.effect.{Async, Resource}
+import cats.effect.{Resource, Sync}
 import com.google.`type`.Date
 import com.google.longrunning.Operation
 import com.google.storagetransfer.v1.proto.StorageTransferServiceClient
@@ -80,25 +80,28 @@ object GoogleStorageTransferService {
 
   final case class JobTransferOptions(whenToOverwrite: ObjectOverwriteOption, whenToDelete: ObjectDeletionOption)
 
-  private def prefix(p: String, str: String) =
-    if (str.startsWith(p)) str else s"$p$str"
-
-  final case class JobName private (value: String) extends ValueObject
+  final case class JobName(value: String) extends ValueObject
 
   final object JobName {
-    def apply(name: String): JobName =
-      new JobName(prefix("transferJobs/", name))
+    private val prefix: String = "transferJobs/"
+
+    def fromString(name: String): Either[String, JobName] =
+      if (name.startsWith(prefix)) Right(JobName(name))
+      else Left(s"""Illegal job name - "$name" must start with "$prefix".""")
   }
 
-  final case class OperationName private (value: String) extends ValueObject
+  final case class OperationName(value: String) extends ValueObject
 
   final object OperationName {
-    def apply(name: String): OperationName =
-      new OperationName(prefix("transferOperations/", name))
+    private val prefix: String = "transferOperations/"
+
+    def fromString(name: String): Either[String, OperationName] =
+      if (name.startsWith(prefix)) Right(OperationName(name))
+      else Left(s"""Illegal operation name - "$name"  must start with "$prefix".""")
   }
 
-  def resource[F[_]: Async]: Resource[F, GoogleStorageTransferService[F]] =
+  def resource[F[_]](implicit F: Sync[F]): Resource[F, GoogleStorageTransferService[F]] =
     Resource
-      .fromAutoCloseable(Async[F].delay(StorageTransferServiceClient.create))
+      .fromAutoCloseable(F.delay(StorageTransferServiceClient.create))
       .map(new GoogleStorageTransferInterpreter[F](_))
 }
