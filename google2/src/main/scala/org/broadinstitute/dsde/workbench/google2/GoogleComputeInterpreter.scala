@@ -218,7 +218,7 @@ private[google2] class GoogleComputeInterpreter[F[_]: Parallel: StructuredLogger
         F.delay(firewallClient.get(request)),
         whenStatusCode(404)
       ),
-      s"com.google.cloud.compute.v1.FirewallsClient.insertFirewall(${project.value}, ${firewallRuleName.value})"
+      s"com.google.cloud.compute.v1.FirewallsClient.get(${project.value}, ${firewallRuleName.value})"
     )
   }
 
