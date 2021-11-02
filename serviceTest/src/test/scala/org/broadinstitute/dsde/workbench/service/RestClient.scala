@@ -76,7 +76,7 @@ trait RestClient extends Retry with LazyLogging {
           rawEntityString
         }
         // attempt to mask out tokens
-        shorterString.replaceAll("""ya29[\w\d.-]+""", "***REVOKED***")
+        shorterString.replaceAll("""ya29[\w\d.-]+""", "***REDACTED***")
       case x => x.toString
     }
 
