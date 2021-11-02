@@ -58,6 +58,8 @@ class GoogleStorageTransferServiceSpec extends AsyncFlatSpec with Matchers with 
   }
 
   "OperationName" should """fail when the name is not prefixed with "transferOperations/"""" in ioAssertion {
+    // Required in Scala 2.12 as another `OperationName` specific to GCE is defined in this package.
+    import GoogleStorageTransferService.OperationName
     randomize("test").map { name =>
       OperationName.fromString(name) match {
         case Left(msg) =>
@@ -69,6 +71,8 @@ class GoogleStorageTransferServiceSpec extends AsyncFlatSpec with Matchers with 
   }
 
   it should """succeed when the name is prefixed with "transferOperations/"""" in ioAssertion {
+    // Required in Scala 2.12 as another `OperationName` specific to GCE is defined in this package.
+    import GoogleStorageTransferService.OperationName
     randomize("transferOperations/test").map { name =>
       OperationName.fromString(name) match {
         case Right(OperationName(on)) => on shouldBe name
