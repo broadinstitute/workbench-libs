@@ -1,13 +1,11 @@
 package org.broadinstitute.dsde.workbench.google2
 
 import cats.effect._
-import com.google.`type`.{Date, TimeOfDay}
+import com.google.`type`.Date
 import com.google.longrunning.{ListOperationsRequest, Operation}
 import com.google.storagetransfer.v1.proto.TransferProto._
 import com.google.storagetransfer.v1.proto.TransferTypes._
 import com.google.storagetransfer.v1.proto.{StorageTransferServiceClient, TransferProto}
-import org.broadinstitute.dsde.workbench.google2.GoogleStorageTransferService.ObjectDeletionOption._
-import org.broadinstitute.dsde.workbench.google2.GoogleStorageTransferService.ObjectOverwriteOption._
 import org.broadinstitute.dsde.workbench.google2.GoogleStorageTransferService._
 import org.broadinstitute.dsde.workbench.model.WorkbenchEmail
 import org.broadinstitute.dsde.workbench.model.google._
@@ -28,16 +26,6 @@ final private[google2] class GoogleStorageTransferInterpreter[F[_]](client: Stor
         .build
   }
 
-  private object TimeOfDay {
-    def fromZonedDateTime(datetime: ZonedDateTime): TimeOfDay =
-      com.google.`type`.TimeOfDay.newBuilder
-        .setHours(datetime.getHour)
-        .setMinutes(datetime.getMinute)
-        .setSeconds(datetime.getSecond)
-        .setNanos(datetime.getNano)
-        .build
-  }
-
   private def makeSchedule(schedule: JobTransferSchedule): Schedule = schedule match {
     case JobTransferSchedule.Immediately =>
       val today = Date.fromZonedDateTime(ZonedDateTime.now)
@@ -45,23 +33,6 @@ final private[google2] class GoogleStorageTransferInterpreter[F[_]](client: Stor
         .setScheduleStartDate(today)
         .setScheduleEndDate(today)
         .clearStartTimeOfDay()
-        .build
-
-    case JobTransferSchedule.Once(datetime) =>
-      val date = Date.fromZonedDateTime(datetime)
-      Schedule.newBuilder
-        .setScheduleStartDate(date)
-        .setScheduleEndDate(date)
-        .setStartTimeOfDay(TimeOfDay.fromZonedDateTime(datetime))
-        .build
-  }
-
-  private def makeTransferOptions(options: JobTransferOptions): TransferOptions = options match {
-    case JobTransferOptions(overwrite, delete) =>
-      TransferOptions.newBuilder
-        .setOverwriteObjectsAlreadyExistingInSink(overwrite == OverwriteObjectsAlreadyExistingInSink)
-        .setDeleteObjectsUniqueInSink(delete == DeleteObjectsUniqueInSink)
-        .setDeleteObjectsFromSourceAfterTransfer(delete == DeleteSourceObjectsAfterTransfer)
         .build
   }
 
@@ -85,8 +56,7 @@ final private[google2] class GoogleStorageTransferInterpreter[F[_]](client: Stor
                                  projectToBill: GoogleProject,
                                  originBucket: GcsBucketName,
                                  destinationBucket: GcsBucketName,
-                                 schedule: JobTransferSchedule,
-                                 options: Option[JobTransferOptions]
+                                 schedule: JobTransferSchedule
   ): F[TransferJob] = {
     val transferJob = TransferJob.newBuilder
       .setName(jobName.value)
@@ -97,7 +67,6 @@ final private[google2] class GoogleStorageTransferInterpreter[F[_]](client: Stor
         TransferSpec.newBuilder
           .setGcsDataSource(GcsData.newBuilder.setBucketName(originBucket.value).build)
           .setGcsDataSink(GcsData.newBuilder.setBucketName(destinationBucket.value).build)
-          .setTransferOptions(options map makeTransferOptions getOrElse TransferOptions.getDefaultInstance)
           .build
       )
       .setSchedule(makeSchedule(schedule))

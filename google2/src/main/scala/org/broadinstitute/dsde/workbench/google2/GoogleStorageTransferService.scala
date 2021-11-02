@@ -9,8 +9,6 @@ import org.broadinstitute.dsde.workbench.google2.GoogleStorageTransferService._
 import org.broadinstitute.dsde.workbench.model.ValueObject
 import org.broadinstitute.dsde.workbench.model.google.{GcsBucketName, GoogleProject, ServiceAccount}
 
-import java.time.{ZoneId, ZonedDateTime}
-
 trait GoogleStorageTransferService[F[_]] {
 
   def getStsServiceAccount(project: GoogleProject): F[ServiceAccount]
@@ -20,8 +18,7 @@ trait GoogleStorageTransferService[F[_]] {
                         projectToBill: GoogleProject,
                         originBucket: GcsBucketName,
                         destinationBucket: GcsBucketName,
-                        schedule: JobTransferSchedule,
-                        options: Option[JobTransferOptions] = None
+                        schedule: JobTransferSchedule
   ): F[TransferJob]
 
   def getTransferJob(jobName: JobName, project: GoogleProject): F[TransferJob]
@@ -33,52 +30,13 @@ trait GoogleStorageTransferService[F[_]] {
 
 object GoogleStorageTransferService {
 
-  sealed trait ObjectOverwriteOption
-
-  final object ObjectOverwriteOption {
-
-    /** Transfer objects from source if not binary equivalent to those at destination. */
-    final object OverwriteObjectsIfDifferent extends ObjectOverwriteOption
-
-    /** Always transfer objects from the source bucket, even if they exist at destination. */
-    final object OverwriteObjectsAlreadyExistingInSink extends ObjectOverwriteOption
-  }
-
-  sealed trait ObjectDeletionOption
-
-  final object ObjectDeletionOption {
-
-    /** Never delete objects from source. */
-    final object NeverDeleteSourceObjects extends ObjectDeletionOption
-
-    /** Delete objects from source after they've been transferred. */
-    final object DeleteSourceObjectsAfterTransfer extends ObjectDeletionOption
-
-    /** Delete files from destination if they're not at source. */
-    final object DeleteObjectsUniqueInSink extends ObjectDeletionOption
-  }
-
   sealed trait JobTransferSchedule extends Any
 
   final object JobTransferSchedule {
 
     /** The job should run when the job is created. */
     final object Immediately extends JobTransferSchedule
-
-    /**
-     * The job should run at the specified `ZonedDateTime` in UTC. If this is before the
-     * instant the job was created, then the job will run the day after it was scheduled.
-     * See the reference for details.
-     */
-    final case class Once private (datetime: ZonedDateTime) extends AnyVal with JobTransferSchedule
-
-    final object Once {
-      def apply(date: ZonedDateTime): Once =
-        new Once(date.withZoneSameInstant(ZoneId.of("UTC")))
-    }
   }
-
-  final case class JobTransferOptions(whenToOverwrite: ObjectOverwriteOption, whenToDelete: ObjectDeletionOption)
 
   final case class JobName(value: String) extends ValueObject
 

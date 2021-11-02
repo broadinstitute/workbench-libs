@@ -17,7 +17,7 @@ import org.scalatest.matchers.should.Matchers
 
 import scala.concurrent.duration.DurationInt
 
-class GoogleStorageTransferInterpreterSpec extends AsyncFlatSpec with Matchers with WorkbenchTestSuite {
+class GoogleStorageTransferServiceSpec extends AsyncFlatSpec with Matchers with WorkbenchTestSuite {
 
   val db = StorageOptions.getDefaultInstance.getService
   val semaphore = Semaphore[IO](1).unsafeRunSync
