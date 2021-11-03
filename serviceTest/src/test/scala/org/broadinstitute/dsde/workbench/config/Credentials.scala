@@ -8,25 +8,23 @@ import org.broadinstitute.dsde.workbench.auth.{AuthToken, AuthTokenScopes, UserA
 
 case class ScopedCredentials(credentials: Credentials, scopes: Seq[String])
 
-case class Credentials(email: String, password: String) extends LazyLogging {
+case class Credentials(email: String, password: String) {
   // use this form of override instead of specifying a default for the scopes argument below, because lots of
   // code expects the no-arg signature.
   def makeAuthToken(): AuthToken = makeAuthToken(AuthTokenScopes.userLoginScopes)
-  def makeAuthToken(scopes: Seq[String]): AuthToken = {
-    val auth = Credentials.cache.get(ScopedCredentials(this, scopes))
-    // logger.debug(s"AuthToken: ${auth}, ${auth.value}")
-    auth
-  }
+  def makeAuthToken(scopes: Seq[String]): AuthToken = Credentials.cache.get(ScopedCredentials(this, scopes))
 }
 
-object Credentials {
+object Credentials extends LazyLogging {
   val cache = CacheBuilder
     .newBuilder()
-    .expireAfterWrite(3600, TimeUnit.SECONDS)
+    .expireAfterWrite(50, TimeUnit.MINUTES) // choosing a value < 60 mins to avoid token expiration issues
     .build(
       new CacheLoader[ScopedCredentials, AuthToken] {
-        def load(scopedCredentials: ScopedCredentials): AuthToken =
+        def load(scopedCredentials: ScopedCredentials): AuthToken = {
+          logger.info("Generating a new auth token...")
           UserAuthToken(scopedCredentials.credentials, scopedCredentials.scopes)
+        }
       }
     )
 }
