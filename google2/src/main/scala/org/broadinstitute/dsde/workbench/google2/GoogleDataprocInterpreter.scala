@@ -282,11 +282,12 @@ private[google2] class GoogleDataprocInterpreter[F[_]: Parallel](
       _ <- numPreemptibles match {
         case Some(n) =>
           for {
+            _ <- F.sleep(30 seconds)
             _ <- streamUntilDoneOrTimeout(
               getCluster(project, region, clusterName),
               30,
               3 seconds,
-              s"Cannot start the instances of cluster ${project.value}/${clusterName.value} unless the cluster is in RUNNING status."
+              s"Cannot resize the instances of cluster ${project.value}/${clusterName.value} unless the cluster is in RUNNING status."
             )
             _ <- resizeCluster(project, region, clusterName, numWorkers = None, numPreemptibles = Some(n))
             _ <- streamUntilDoneOrTimeout(
