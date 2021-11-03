@@ -280,7 +280,7 @@ private[google2] class GoogleDataprocInterpreter[F[_]: Parallel](
 
       // Add back the preemptible instances, if any
       _ <- numPreemptibles match {
-        case Some(n) if n != 0 =>
+        case Some(n) if n > 0 =>
           for {
             _ <-
               if (cluster.getStatus.getState == ClusterStatus.State.STOPPED) F.sleep(30 seconds)
