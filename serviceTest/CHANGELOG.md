@@ -3,8 +3,10 @@
 This file documents changes to the `workbench-service-test` library, including notes on how to upgrade to new versions.
 
 ## 0.20
+Changed:
+- Reduce Credentials cache expiration period to 50 mins
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "0.20-21408a9"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "0.20-TRAVIS-REPLACE-ME"`
 
 ### Dependency Updates
 - Updated `rawls-model` dependency to `0.1-384ab501b` for Project per Workspace changes
