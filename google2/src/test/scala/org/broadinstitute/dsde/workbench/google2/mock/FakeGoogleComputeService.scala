@@ -2,7 +2,7 @@ package org.broadinstitute.dsde.workbench.google2.mock
 
 import cats.effect.IO
 import cats.mtl.Ask
-import com.google.cloud.compute.v1.{Firewall, Instance, MachineType, Network, Operation, Subnetwork, Zone}
+import com.google.cloud.compute.v1.{Firewall, Instance, MachineType, Network, Operation, Subnetwork, Tags, Zone}
 import org.broadinstitute.dsde.workbench.google2.{
   ComputePollOperation,
   DeviceName,
@@ -116,6 +116,11 @@ class FakeGoogleComputeService extends GoogleComputeService[IO] {
           .build()
       )
     )
+
+  override def setInstanceTags(project: GoogleProject, zone: ZoneName, instanceName: InstanceName, tags: Tags)(implicit
+    ev: Ask[IO, TraceId]
+  ): IO[Operation] =
+    IO.pure(Operation.newBuilder().setId(123).setName("opName").setTargetId(258165385).build())
 }
 
 object FakeGoogleComputeService extends FakeGoogleComputeService
