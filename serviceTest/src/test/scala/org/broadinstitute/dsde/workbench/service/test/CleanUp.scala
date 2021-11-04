@@ -7,13 +7,16 @@ import org.broadinstitute.dsde.workbench.model.{ErrorReport, ErrorReportSource}
 import org.broadinstitute.dsde.workbench.service.util.ExceptionHandling
 import org.scalatest.{Outcome, TestSuite, TestSuiteMixin}
 
-import collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import scala.util.{Failure, Success, Try}
+import spray.json._
+import org.broadinstitute.dsde.workbench.model.ErrorReportJsonSupport._
 
 /**
  * Mix-in for cleaning up data created during a test.
  */
 trait CleanUp extends TestSuiteMixin with ExceptionHandling with LazyLogging { self: TestSuite =>
+  implicit val errorReportSource: ErrorReportSource = ErrorReportSource(self.suiteName)
 
   private val cleanUpFunctions = new ConcurrentLinkedDeque[() => Any]()
 
@@ -98,11 +101,7 @@ trait CleanUp extends TestSuiteMixin with ExceptionHandling with LazyLogging { s
     CleanUp.runCodeWithCleanup(testTrial, cleanupTrial)
   }
 
-  private def runCleanUpFunctions() = {
-    import spray.json._
-    import org.broadinstitute.dsde.workbench.model.ErrorReportJsonSupport._
-    implicit val errorReportSource = ErrorReportSource(self.suiteName)
-
+  private def runCleanUpFunctions(): Unit = {
     val cleanups = cleanUpFunctions.asScala.map { f =>
       Try(f())
     }
@@ -118,9 +117,12 @@ trait CleanUp extends TestSuiteMixin with ExceptionHandling with LazyLogging { s
 }
 
 object CleanUp {
+  implicit val errorReportSource: ErrorReportSource = ErrorReportSource("WorkbenchLibs.CleanUp")
+
   def runCodeWithCleanup[T, C](testTrial: Try[T], cleanupTrial: Try[C]): T =
     (testTrial, cleanupTrial) match {
-      case (Failure(t), _)                => throw t
+      case (Failure(testException), Failure(cleanUpException)) => throw new Exception(ErrorReport("Test and CleanUp both failed", Seq(ErrorReport(testException), ErrorReport(cleanUpException))).toJson.prettyPrint)
+      case (Failure(t), Success(_))       => throw t
       case (Success(_), Failure(t))       => throw t
       case (Success(outcome), Success(_)) => outcome
     }
