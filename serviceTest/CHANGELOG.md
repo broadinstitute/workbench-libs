@@ -12,6 +12,7 @@ SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test"
   - It makes an attempt to mask Google auth token values from its log entries
   - It now logs the request and response at DEBUG level
   - It now omits logging the less-helpful portions of the request and response
+- `CleanUp.runCodeWithCleanup`, which underlies `withWorkspace`, now wraps the thrown Exception to indicate that the test passed but test cleanup failed
 
 ## 0.20
 Changed:
