@@ -121,7 +121,14 @@ object CleanUp {
 
   def runCodeWithCleanup[T, C](testTrial: Try[T], cleanupTrial: Try[C]): T =
     (testTrial, cleanupTrial) match {
-      case (Failure(testException), Failure(cleanUpException)) => throw new Exception(ErrorReport("Test and CleanUp both failed", Seq(ErrorReport(testException), ErrorReport(cleanUpException))).toJson.prettyPrint)
+      case (Failure(testException), Failure(cleanUpException)) => throw new Exception(
+        ErrorReport("Test and CleanUp both failed", ErrorReport(
+          Map(
+            "test" -> ErrorReport(testException).toJson,
+            "cleanUp" -> ErrorReport(cleanUpException).toJson
+          ).toJson.prettyPrint
+        ))
+      )
       case (Failure(t), Success(_))       => throw t
       case (Success(_), Failure(t))       => throw t
       case (Success(outcome), Success(_)) => outcome
