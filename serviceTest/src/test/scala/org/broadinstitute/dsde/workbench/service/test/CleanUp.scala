@@ -1,9 +1,9 @@
 package org.broadinstitute.dsde.workbench.service.test
 
 import com.typesafe.scalalogging.LazyLogging
-import java.util.concurrent.ConcurrentLinkedDeque
 
-import org.broadinstitute.dsde.workbench.model.{ErrorReport, ErrorReportSource}
+import java.util.concurrent.ConcurrentLinkedDeque
+import org.broadinstitute.dsde.workbench.model.{ErrorReport, ErrorReportSource, WorkbenchExceptionWithErrorReport}
 import org.broadinstitute.dsde.workbench.service.util.ExceptionHandling
 import org.scalatest.{Outcome, TestSuite, TestSuiteMixin}
 
@@ -121,7 +121,9 @@ object CleanUp {
   def runCodeWithCleanup[T, C](testTrial: Try[T], cleanupTrial: Try[C]): T =
     (testTrial, cleanupTrial) match {
       case (Failure(t), _)                => throw t
-      case (Success(_), Failure(t))       => throw t
+      case (Success(_), Failure(t))       =>
+        implicit val errorSource: ErrorReportSource = ErrorReportSource("workbench-service-test")
+        throw new WorkbenchExceptionWithErrorReport(ErrorReport(s"Test passed but cleanup failed: ${t.getMessage}", ErrorReport(t)))
       case (Success(outcome), Success(_)) => outcome
     }
 }
