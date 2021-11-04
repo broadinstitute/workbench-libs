@@ -7,7 +7,7 @@ import org.broadinstitute.dsde.workbench.model.{ErrorReport, ErrorReportSource}
 import org.broadinstitute.dsde.workbench.service.util.ExceptionHandling
 import org.scalatest.{Outcome, TestSuite, TestSuiteMixin}
 
-import scala.jdk.CollectionConverters._
+import collection.JavaConverters._
 import scala.util.{Failure, Success, Try}
 import spray.json._
 import org.broadinstitute.dsde.workbench.model.ErrorReportJsonSupport._
