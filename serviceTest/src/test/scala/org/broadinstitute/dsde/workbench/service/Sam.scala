@@ -11,6 +11,9 @@ import org.broadinstitute.dsde.workbench.service.SamModel.SamJsonSupport._
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.time.{Seconds, Span}
 import spray.json._
+import spray.json.DefaultJsonProtocol
+import DefaultJsonProtocol._
+
 
 /**
  * Sam API service client. This should only be used when Orchestration does
@@ -64,9 +67,12 @@ object Sam extends Sam {
       parseResponseOption[UserStatus](getRequest(url + "register/user"))
     }
 
-    def registerSelf()(implicit token: AuthToken): Option[UserStatusDetails] = {
+    def registerSelf()(implicit token: AuthToken): UserStatus = {
       logger.info("Registering user")
-      parseResponseOption[UserStatusDetails](getRequest(url + "register/user/v2/self"))
+      val response = postRequest(url + "register/user/v2/self")
+      implicit val impUserStatusDetails: RootJsonFormat[UserStatusDetails] = jsonFormat2(UserStatusDetails)
+      implicit val impUserStatus: RootJsonFormat[UserStatus] = jsonFormat2(UserStatus)
+      response.parseJson.convertTo[UserStatus]
     }
 
     def petServiceAccountEmail(project: String)(implicit token: AuthToken): WorkbenchEmail = {
