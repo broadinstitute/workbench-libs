@@ -15,7 +15,7 @@ Dependency Upgrades:
 - `io.kubernetes` to `12.0.0`
 - `cats-effect` to `3.2.5`, `fs2` to `3.1.3`, `http4s` to `1.0.0-M25`
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.22-TRAVIS-REPLACE-ME"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.22-504ac92"`
 
 ## 0.21
 Breaking Changes:
