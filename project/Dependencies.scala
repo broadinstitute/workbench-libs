@@ -180,7 +180,8 @@ object Dependencies {
     sealerate,
     google2CloudBilling,
     googleResourceManager,
-    scalaCache
+    scalaCache,
+    scalaTestMockito
   )
 
   val openTelemetryDependencies = List(
