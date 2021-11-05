@@ -11,8 +11,7 @@ import org.broadinstitute.dsde.workbench.service.SamModel.SamJsonSupport._
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.time.{Seconds, Span}
 import spray.json._
-import spray.json.DefaultJsonProtocol
-import DefaultJsonProtocol._
+import spray.json.DefaultJsonProtocol._
 
 /**
  * Sam API service client. This should only be used when Orchestration does
