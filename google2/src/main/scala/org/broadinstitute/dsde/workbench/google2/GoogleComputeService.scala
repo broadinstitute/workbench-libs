@@ -117,6 +117,11 @@ trait GoogleComputeService[F[_]] {
   def createSubnetwork(project: GoogleProject, region: RegionName, subnetwork: Subnetwork)(implicit
     ev: Ask[F, TraceId]
   ): F[Operation]
+
+  /** Sets network tags on an instance */
+  def setInstanceTags(project: GoogleProject, zone: ZoneName, instanceName: InstanceName, tags: Tags)(implicit
+    ev: Ask[F, TraceId]
+  ): F[Operation]
 }
 
 object GoogleComputeService {
