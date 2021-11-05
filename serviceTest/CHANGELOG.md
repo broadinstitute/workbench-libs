@@ -4,7 +4,7 @@ This file documents changes to the `workbench-service-test` library, including n
 
 ## 0.21
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "82a345c"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "0.21-5ba81aa"`
 
 ### Changed
 - `RestClient` which underlies many of the higher-level service-test methods, has logging changes:
