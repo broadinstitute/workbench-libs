@@ -11,7 +11,7 @@ Changed:
 - Use dataproc client's built in stopCluster method instead of rolling our own
 
 Added:
-- `GoogleComputeService.setInstanceTags`
+- `GoogleComputeService.setInstanceTags` for setting network tags on GCE instances
 
 Dependency Upgrades:
 - `google-cloud-container` to `1.5.0`

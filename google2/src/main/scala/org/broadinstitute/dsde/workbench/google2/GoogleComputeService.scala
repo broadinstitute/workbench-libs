@@ -118,6 +118,7 @@ trait GoogleComputeService[F[_]] {
     ev: Ask[F, TraceId]
   ): F[Operation]
 
+  /** Sets network tags on an instance */
   def setInstanceTags(project: GoogleProject, zone: ZoneName, instanceName: InstanceName, tags: Tags)(implicit
     ev: Ask[F, TraceId]
   ): F[Operation]
