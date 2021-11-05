@@ -3,7 +3,6 @@ package org.broadinstitute.dsde.workbench.service.test
 import com.typesafe.scalalogging.LazyLogging
 import org.broadinstitute.dsde.workbench.model.ErrorReportJsonSupport._
 import org.broadinstitute.dsde.workbench.model.{ErrorReport, ErrorReportSource, WorkbenchExceptionWithErrorReport}
-
 import org.broadinstitute.dsde.workbench.service.util.ExceptionHandling
 import org.scalatest.{Outcome, TestSuite, TestSuiteMixin}
 import spray.json.DefaultJsonProtocol._
