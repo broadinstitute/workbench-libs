@@ -297,6 +297,16 @@ private[google2] class GoogleComputeInterpreter[F[_]: Parallel: StructuredLogger
       s"com.google.cloud.compute.v1.SubnetworksClient.insertSubnetwork(${project.value}, ${region.value}, ${subnetwork.getName})"
     )
 
+  /** Sets network tags on an instance */
+  override def setInstanceTags(project: GoogleProject, zone: ZoneName, instanceName: InstanceName, tags: Tags)(implicit
+    ev: Ask[F, TraceId]
+  ): F[Operation] =
+    retryF(
+      F.delay(instanceClient.setTags(project.value, zone.value, instanceName.value, tags)),
+      s"com.google.compute.v1.InstancesClient.setTags(${project.value}, ${zone.value}, ${instanceName.value}, [${tags.getItemsList.asScala
+        .mkString(", ")}]"
+    )
+
   private def buildMachineTypeUri(zone: ZoneName, machineTypeName: MachineTypeName): String =
     s"zones/${zone.value}/machineTypes/${machineTypeName.value}"
 

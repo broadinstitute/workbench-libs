@@ -10,12 +10,15 @@ Breaking Changes:
 Changed:
 - Use dataproc client's built in stopCluster method instead of rolling our own
 
+Added:
+- `GoogleComputeService.setInstanceTags` for setting network tags on GCE instances
+
 Dependency Upgrades:
 - `google-cloud-container` to `1.5.0`
 - `io.kubernetes` to `12.0.0`
 - `cats-effect` to `3.2.5`, `fs2` to `3.1.3`, `http4s` to `1.0.0-M25`
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.22-504ac92"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.22-82a345c"`
 
 ## 0.21
 Breaking Changes:
