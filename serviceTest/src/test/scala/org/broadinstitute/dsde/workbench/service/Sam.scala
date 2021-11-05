@@ -14,7 +14,6 @@ import spray.json._
 import spray.json.DefaultJsonProtocol
 import DefaultJsonProtocol._
 
-
 /**
  * Sam API service client. This should only be used when Orchestration does
  * not provide a required endpoint. This should primarily be used for admin
