@@ -175,7 +175,7 @@ object Settings {
   val serviceTestSettings = cross212and213 ++ commonSettings ++ List(
     name := "workbench-service-test",
     libraryDependencies ++= serviceTestDependencies,
-    version := createVersion("0.20")
+    version := createVersion("0.21")
   ) ++ publishSettings
 
   val notificationsSettings = cross212and213 ++ commonSettings ++ List(
