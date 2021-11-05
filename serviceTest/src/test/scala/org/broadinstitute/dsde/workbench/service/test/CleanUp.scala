@@ -116,11 +116,11 @@ object CleanUp {
   def runCodeWithCleanup[T, C](testTrial: Try[T], cleanupTrial: Try[C]): T =
     (testTrial, cleanupTrial) match {
       case (Success(outcome), Success(_)) => outcome
+      case (Failure(t), Success(_)) => throw t
       case (Success(_), Failure(t)) =>
         throw new WorkbenchExceptionWithErrorReport(
           ErrorReport(s"Test passed but cleanup failed: ${t.getMessage}", ErrorReport(t))
         )
-      case (Failure(t), Success(_)) => throw t
       case (Failure(t), Failure(c)) =>
         throw new WorkbenchExceptionWithErrorReport(
           ErrorReport(
