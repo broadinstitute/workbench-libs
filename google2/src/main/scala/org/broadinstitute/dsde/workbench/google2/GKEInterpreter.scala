@@ -125,7 +125,7 @@ final class GKEInterpreter[F[_]: StructuredLogger](
     )
   }
 
-  //delete and create operations take around ~5mins with simple tests, could be longer for larger clusters
+  // delete and create operations take around ~5mins with simple tests, could be longer for larger clusters
   override def pollOperation(operationId: KubernetesOperationId, delay: FiniteDuration, maxAttempts: Int)(implicit
     ev: Ask[F, TraceId],
     doneEv: DoneCheckable[Operation]

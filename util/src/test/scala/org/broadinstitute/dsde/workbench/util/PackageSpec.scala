@@ -10,7 +10,7 @@ class PackageSpec extends AnyFlatSpecLike with Matchers {
     addJitter(0.5 seconds) shouldBe <=(0.55 seconds)
     addJitter(5 seconds) shouldBe <=(5.5 seconds)
 
-    //for >10s, the max jitter is 1s
+    // for >10s, the max jitter is 1s
     addJitter(15 seconds) shouldBe <=(16 seconds)
   }
 
