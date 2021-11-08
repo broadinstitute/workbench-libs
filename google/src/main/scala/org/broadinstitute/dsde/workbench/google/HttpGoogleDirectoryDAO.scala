@@ -64,13 +64,12 @@ class HttpGoogleDirectoryDAO(appName: String,
            appName: String,
            workbenchMetricBaseName: String,
            maxPageSize: Int
-  )(implicit system: ActorSystem, executionContext: ExecutionContext) = {
+  )(implicit system: ActorSystem, executionContext: ExecutionContext) =
     this(appName,
          Pem(WorkbenchEmail(serviceAccountClientId), new File(pemFile), Some(WorkbenchEmail(ubEmail))),
          workbenchMetricBaseName,
          maxPageSize
     )
-  }
 
   @deprecated(
     message =
@@ -82,7 +81,7 @@ class HttpGoogleDirectoryDAO(appName: String,
            appsDomain: String,
            appName: String,
            workbenchMetricBaseName: String
-  )(implicit system: ActorSystem, executionContext: ExecutionContext) = {
+  )(implicit system: ActorSystem, executionContext: ExecutionContext) =
     this(appName,
          Pem(
            WorkbenchEmail(clientSecrets.getDetails.get("client_email").toString),
@@ -91,7 +90,6 @@ class HttpGoogleDirectoryDAO(appName: String,
          ),
          workbenchMetricBaseName
     )
-  }
 
   override val scopes = Seq(DirectoryScopes.ADMIN_DIRECTORY_GROUP)
 
@@ -113,7 +111,7 @@ class HttpGoogleDirectoryDAO(appName: String,
     val groups = directory.groups
     val group = new Group()
       .setEmail(groupEmail.value)
-      .setName(displayName.take(60)) //max google group name length is 60 characters
+      .setName(displayName.take(60)) // max google group name length is 60 characters
     val inserter = groups.insert(group)
 
     for {
@@ -182,7 +180,7 @@ class HttpGoogleDirectoryDAO(appName: String,
         ()
     } {
       case e: HttpResponseException if e.getStatusCode == StatusCodes.Conflict.intValue =>
-        () //if the member is already there, then don't keep trying to add them
+        () // if the member is already there, then don't keep trying to add them
       // Recover from http 412 errors because they can be spuriously thrown by Google, but the operation succeeds
       case e: HttpResponseException if e.getStatusCode == StatusCodes.PreconditionFailed.intValue => ()
     }
@@ -197,12 +195,12 @@ class HttpGoogleDirectoryDAO(appName: String,
         ()
     } {
       case e: HttpResponseException if e.getStatusCode == StatusCodes.NotFound.intValue =>
-        () //if the member is already absent, then don't keep trying to delete them
+        () // if the member is already absent, then don't keep trying to delete them
       case e: GoogleJsonResponseException
           if e.getStatusCode == StatusCodes.BadRequest.intValue && e.getDetails.getMessage.equals(
             "Missing required field: memberKey"
           ) =>
-        () //this means the member does not exist
+        () // this means the member does not exist
     }
   }
 
@@ -230,7 +228,7 @@ class HttpGoogleDirectoryDAO(appName: String,
           if e.getStatusCode == StatusCodes.BadRequest.intValue && e.getDetails.getMessage.equals(
             "Missing required field: memberKey"
           ) =>
-        false //this means the member does not exist
+        false // this means the member does not exist
     }
   }
 

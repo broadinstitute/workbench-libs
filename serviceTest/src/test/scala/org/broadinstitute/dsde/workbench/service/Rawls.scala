@@ -22,7 +22,7 @@ trait Rawls extends RestClient with LazyLogging {
   def responseAsList[T](response: String): List[Map[String, T]] =
     mapper.readValue(response, classOf[List[Map[String, T]]])
 
-  //noinspection RedundantBlock
+  // noinspection RedundantBlock
   object billing {
 
     def createBillingProject(projectName: String, billingAccount: String, servicePerimeterOpt: Option[String] = None)(
@@ -73,7 +73,7 @@ trait Rawls extends RestClient with LazyLogging {
 
   }
 
-  //noinspection RedundantBlock
+  // noinspection RedundantBlock
   object billingV2 {
 
     def createBillingProject(projectName: String, billingAccount: String, servicePerimeterOpt: Option[String] = None)(
@@ -133,7 +133,7 @@ trait Rawls extends RestClient with LazyLogging {
     }
   }
 
-  //noinspection RedundantBlock,ScalaUnnecessaryParentheses
+  // noinspection RedundantBlock,ScalaUnnecessaryParentheses
   object methodConfigs {
     def copyMethodConfigFromWorkspace(
       sourceMethodConfig: Map[String, Any],
