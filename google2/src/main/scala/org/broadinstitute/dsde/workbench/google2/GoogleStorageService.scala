@@ -179,7 +179,7 @@ trait GoogleStorageService[F[_]] {
    */
   def getObjectMetadata(bucketName: GcsBucketName,
                         blobName: GcsBlobName,
-                        traceId: Option[TraceId],
+                        traceId: Option[TraceId] = None,
                         retryConfig: RetryConfig = standardGoogleRetryConfig
   ): Stream[F, GetMetadataResponse]
 
@@ -359,8 +359,12 @@ object StorageRole {
   final case object StorageAdmin extends StorageRole {
     def name: String = "roles/storage.admin"
   }
-  // The custom roleId must be in the form "organizations/{organization_id}/roles/{role}",
-  // or "projects/{project_id}/roles/{role}"
+  final case object LegacyBucketReader extends StorageRole {
+    def name: String = "roles/storage.legacyBucketReader"
+  }
+  final case object LegacyBucketWriter extends StorageRole {
+    def name: String = "roles/storage.legacyBucketWriter"
+  }
   final case class CustomStorageRole(roleId: String) extends StorageRole {
     def name: String = roleId
   }
