@@ -41,7 +41,7 @@ final case class KubernetesInvalidNameException(message: String) extends Workben
 object KubernetesName {
   def withValidation[A](str: String, apply: String => A): Either[Throwable, A] = {
     val regex =
-      "(?:[a-z](?:[-a-z0-9]{0,38}[a-z0-9])?)".r //this is taken directly from the google error message if you have an invalid nodepool name. Its not in the docs anywhere
+      "(?:[a-z](?:[-a-z0-9]{0,38}[a-z0-9])?)".r // this is taken directly from the google error message if you have an invalid nodepool name. Its not in the docs anywhere
     val isValidName: Boolean = regex.pattern.matcher(str).matches()
 
     if (isValidName) {
@@ -58,15 +58,15 @@ object KubernetesName {
 
 // Google kubernetes client models //
 object GKEModels {
-  //"us-central1" is an example of a valid location.
+  // "us-central1" is an example of a valid location.
   final case class Parent(project: GoogleProject, location: Location) {
     override lazy val toString: String = s"projects/${project.value}/locations/${location.value}"
   }
 
-  //the cluster must have a name, and a NodePool. The NodePool must have an initialNodeCount and a name.
-  //the cluster must also have a network and subnetwork. See KubernetesManual test for how to specify these.
-  //Location can either contain a zone or not, ex: "us-central1" or "us-central1-a". The former will create the nodepool you specify in multiple zones, the latter a single nodepool
-  //see getDefaultCluster for an example of construction with the minimum fields necessary, plus some others you almost certainly want to configure
+  // the cluster must have a name, and a NodePool. The NodePool must have an initialNodeCount and a name.
+  // the cluster must also have a network and subnetwork. See KubernetesManual test for how to specify these.
+  // Location can either contain a zone or not, ex: "us-central1" or "us-central1-a". The former will create the nodepool you specify in multiple zones, the latter a single nodepool
+  // see getDefaultCluster for an example of construction with the minimum fields necessary, plus some others you almost certainly want to configure
   final case class KubernetesCreateClusterRequest(project: GoogleProject,
                                                   location: Location,
                                                   cluster: com.google.api.services.container.model.Cluster
@@ -76,8 +76,8 @@ object GKEModels {
                                                    nodepool: com.google.container.v1.NodePool
   )
 
-  //this is NOT analogous to clusterName in the context of dataproc/GCE. A single cluster can have multiple nodes, pods, services, containers, deployments, etc.
-  //clusters should most likely NOT be provisioned per user as they are today. More design/security research is needed
+  // this is NOT analogous to clusterName in the context of dataproc/GCE. A single cluster can have multiple nodes, pods, services, containers, deployments, etc.
+  // clusters should most likely NOT be provisioned per user as they are today. More design/security research is needed
   final case class KubernetesClusterName(value: String) extends AnyVal
 
   final case class NodepoolAutoscalingConfig(minimumNodes: Int, maximumNodes: Int)
@@ -125,8 +125,8 @@ sealed trait KubernetesSerializableName {
 }
 
 object KubernetesSerializableName {
-  //this nesting of NamespaceName is necessary to prevent duplicating the code achieved by KubernetesSerializableName and KubernetesSerializable
-  //namespaces also have criteria other than their name
+  // this nesting of NamespaceName is necessary to prevent duplicating the code achieved by KubernetesSerializableName and KubernetesSerializable
+  // namespaces also have criteria other than their name
   final case class NamespaceName(value: String) extends KubernetesSerializableName
   final case class ServiceAccountName(value: String) extends KubernetesSerializableName
   final case class ServiceName(value: String) extends KubernetesSerializableName
@@ -307,14 +307,14 @@ object JavaSerializableInstances {
   implicit val kubernetesServiceKindSerializable = new JavaSerializable[KubernetesServiceKind, V1Service] {
     def getJavaSerialization(serviceKind: KubernetesServiceKind): V1Service = {
       val v1Service = new V1Service()
-      v1Service.setKind(SERVICE_KIND) //may not be necessary
+      v1Service.setKind(SERVICE_KIND) // may not be necessary
       v1Service.setMetadata(serviceKind.serviceName.getJavaSerialization)
 
       val serviceSpec = new V1ServiceSpec()
       serviceSpec.ports(serviceKind.ports.map(_.getJavaSerialization).toList.asJava)
       serviceSpec.selector(serviceKind.selector.labels.asJava)
       serviceSpec.setType(serviceKind.kindName.value)
-      //if we ever enter a scenario where the service acts as a load-balancer to multiple pods, this ensures that clients stick with the container that they initially connected with
+      // if we ever enter a scenario where the service acts as a load-balancer to multiple pods, this ensures that clients stick with the container that they initially connected with
       serviceSpec.setSessionAffinity(STICKY_SESSION_AFFINITY)
       v1Service.setSpec(serviceSpec)
 
@@ -376,14 +376,14 @@ object KubernetesModels {
   final case class KubernetesNamespace(name: NamespaceName)
   final case class KubernetesServiceAccount(name: ServiceAccountName, annotations: Map[String, String])
 
-  //consider using a replica set if you would like multiple autoscaling pods https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.12/#replicaset-v1-apps
+  // consider using a replica set if you would like multiple autoscaling pods https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.12/#replicaset-v1-apps
   final case class KubernetesPod(name: PodName, containers: Set[KubernetesContainer], selector: KubernetesSelector)
 
   final case class KubernetesPodStatus(name: PodName, podStatus: PodStatus)
 
   final case class Image(uri: String)
 
-  //volumes can be added here
+  // volumes can be added here
   final case class KubernetesContainer(name: ContainerName,
                                        image: Image,
                                        ports: Option[Set[ContainerPort]],
@@ -431,7 +431,7 @@ object KubernetesModels {
   final case class PortName(value: String) extends AnyVal
   final case class Protocol(value: String) extends AnyVal
 
-  //container ports are primarily informational, not specifying them does not prevent them from being exposed
+  // container ports are primarily informational, not specifying them does not prevent them from being exposed
   final case class ContainerPort(value: Int)
 
   final case class KubernetesSelector(labels: Map[String, String])
@@ -476,7 +476,7 @@ object KubernetesModels {
                                          subjects: List[KubernetesSubject]
   )
 
-  //Kubernetes pod phase is what we'll use to map to KubernetesPodStatus - phases include Pending, Running, Succeeded, Failed, Unknown (https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/#pod-phase)
+  // Kubernetes pod phase is what we'll use to map to KubernetesPodStatus - phases include Pending, Running, Succeeded, Failed, Unknown (https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/#pod-phase)
   // When all pods are Running or Succeeded, an app is considered Ready in Leonardo.
   // If a pod returns type Failed, then an app is status Error in Leo. If at least one pod returns Pending, then an app is in Creating status in Leo.
   sealed trait PodStatus extends Product with Serializable {

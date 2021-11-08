@@ -25,7 +25,7 @@ private[google2] class GooglePublisherInterpreter[F[_]: Async: StructuredLogger]
   def publish[MessageType: Encoder]: Pipe[F, MessageType, Unit] = in =>
     in.flatMap { message =>
       Stream
-        .eval(publishMessage(message.asJson.noSpaces, None)) //This will turn message case class into raw json string
+        .eval(publishMessage(message.asJson.noSpaces, None)) // This will turn message case class into raw json string
     }
 
   def publishNative: Pipe[F, PubsubMessage, Unit] = in =>

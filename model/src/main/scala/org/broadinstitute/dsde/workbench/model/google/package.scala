@@ -37,7 +37,7 @@ package object google {
       Character.isLetterOrDigit(c) || c == '_' || c == '-' || c == '.'
     }
 
-    //maximum length is 63. Then we're going to shove a dash in between the prefix and the uuid, so 62.
+    // maximum length is 63. Then we're going to shove a dash in between the prefix and the uuid, so 62.
     val maxBucketNameLen = 62
 
     // must start with a letter or number
@@ -46,8 +46,8 @@ package object google {
 
     val uuid = UUID.randomUUID.toString
 
-    //if we're trimming the prefix, we make the prefix short enough to accommodate the UUID.
-    //if we're trimming the UUID, we might still need to trim the prefix anyway if it's enormous.
+    // if we're trimming the prefix, we make the prefix short enough to accommodate the UUID.
+    // if we're trimming the UUID, we might still need to trim the prefix anyway if it's enormous.
     val trimmedPrefix = if (trimPrefix) sb.take(maxBucketNameLen - uuid.length) else sb.take(maxBucketNameLen)
     val trimmedUUID =
       if (trimPrefix) uuid else uuid.take(Math.min(maxBucketNameLen - trimmedPrefix.length, uuid.length))

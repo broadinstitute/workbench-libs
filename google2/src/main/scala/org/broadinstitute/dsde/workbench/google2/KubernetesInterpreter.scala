@@ -34,7 +34,7 @@ class KubernetesInterpreter[F[_]](
 )(implicit F: Async[F], logger: StructuredLogger[F])
     extends KubernetesService[F] {
   private def getNewApiClient(clusterId: KubernetesClusterId): F[ApiClient] = {
-    //we do not want to have to specify this at resource (class) creation time, so we create one on each load here
+    // we do not want to have to specify this at resource (class) creation time, so we create one on each load here
     implicit val traceId = Ask.const[F, TraceId](TraceId(UUID.randomUUID()))
     for {
       _ <- logger
@@ -405,10 +405,10 @@ class KubernetesInterpreter[F[_]](
       )
     } yield ()
 
-  //DO NOT QUERY THE CACHE DIRECTLY
-  //There is a wrapper method that is necessary to ensure the token is refreshed
-  //we never make the entry stale, because we always need to refresh the token (see comment above getToken)
-  //if we did stale the entry we would have to unnecessarily re-do the google call
+  // DO NOT QUERY THE CACHE DIRECTLY
+  // There is a wrapper method that is necessary to ensure the token is refreshed
+  // we never make the entry stale, because we always need to refresh the token (see comment above getToken)
+  // if we did stale the entry we would have to unnecessarily re-do the google call
   private def getClient[A](clusterId: KubernetesClusterId, fa: ApiClient => A): F[A] =
     for {
       client <- apiClientCache.cachingF(clusterId)(None)(getNewApiClient(clusterId))
@@ -416,16 +416,16 @@ class KubernetesInterpreter[F[_]](
       _ <- F.blocking(client.setApiKey(token.getTokenValue))
     } yield fa(client)
 
-  //we always update the token, even for existing clients, so we don't have to maintain a reference to the last time each client was updated
-  //unfortunately, the kubernetes client does not implement a gcp authenticator, so we must do this ourselves.
-  //See this for details https://github.com/kubernetes-client/java/issues/290
+  // we always update the token, even for existing clients, so we don't have to maintain a reference to the last time each client was updated
+  // unfortunately, the kubernetes client does not implement a gcp authenticator, so we must do this ourselves.
+  // See this for details https://github.com/kubernetes-client/java/issues/290
   private def getToken(): F[AccessToken] =
     for {
       _ <- F.delay(credentials.refreshIfExpired())
     } yield credentials.getAccessToken
 
-  //The underlying http client for ApiClient claims that it releases idle threads and that shutdown is not necessary
-  //Here is a guide on how to proactively release resource if this proves to be problematic https://square.github.io/okhttp/4.x/okhttp/okhttp3/-ok-http-client/#shutdown-isnt-necessary
+  // The underlying http client for ApiClient claims that it releases idle threads and that shutdown is not necessary
+  // Here is a guide on how to proactively release resource if this proves to be problematic https://square.github.io/okhttp/4.x/okhttp/okhttp3/-ok-http-client/#shutdown-isnt-necessary
   private def createClient(cluster: Cluster, token: AccessToken): F[ApiClient] = {
     val endpoint = KubernetesApiServerIp(cluster.getEndpoint)
     val cert = KubernetesClusterCaCert(cluster.getMasterAuth.getClusterCaCertificate)

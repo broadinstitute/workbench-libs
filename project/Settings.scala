@@ -17,7 +17,7 @@ object Settings {
     Resolver.sonatypeRepo("releases")
   )
 
-  //coreDefaultSettings + defaultConfigs = the now deprecated defaultSettings
+  // coreDefaultSettings + defaultConfigs = the now deprecated defaultSettings
   lazy val commonBuildSettings = Defaults.coreDefaultSettings ++ Defaults.defaultConfigs ++ Seq(
     javaOptions += "-Xmx2G",
     javacOptions ++= Seq("--release", "11", "-target:jvm-11"),
@@ -115,7 +115,7 @@ object Settings {
     crossScalaVersions := List("2.12.12", "2.13.6")
   )
 
-  //common settings for all sbt subprojects
+  // common settings for all sbt subprojects
   val commonSettings = commonBuildSettings ++ commonTestSettings ++ List(
     organization := "org.broadinstitute.dsde.workbench",
     scalaVersion := "2.13.6",

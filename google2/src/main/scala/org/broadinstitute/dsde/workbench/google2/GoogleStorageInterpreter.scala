@@ -172,7 +172,7 @@ private[google2] class GoogleStorageInterpreter[F[_]](
     } yield r
   }
 
-  //Overwrites all of the metadata on the GCS object with the provided metadata
+  // Overwrites all of the metadata on the GCS object with the provided metadata
   override def setObjectMetadata(bucketName: GcsBucketName,
                                  objectName: GcsBlobName,
                                  metadata: Map[String, String],
@@ -509,7 +509,7 @@ private[google2] class GoogleStorageInterpreter[F[_]](
     val listFirstPage =
       Async[F].delay(db.list(bucketName.value, blobListOptions: _*)).map(p => Option(p)).handleErrorWith {
         case e: com.google.cloud.storage.StorageException if e.getCode == 404 =>
-          //This can happen if the bucket doesn't exist
+          // This can happen if the bucket doesn't exist
           if (ifErrorWhenBucketNotFound)
             Async[F].raiseError(e)
           else
@@ -558,7 +558,7 @@ object GoogleStorageInterpreter {
   ): Resource[F, Storage] =
     for {
       credential <- org.broadinstitute.dsde.workbench.util2.readFile(pathToJson)
-      project <- project match { //Use explicitly passed in project if it's defined; else use `project_id` in json credential; if neither has project defined, raise error
+      project <- project match { // Use explicitly passed in project if it's defined; else use `project_id` in json credential; if neither has project defined, raise error
         case Some(p) => Resource.pure[F, GoogleProject](p)
         case None    => Resource.eval(parseProject(pathToJson).compile.lastOrError)
       }

@@ -98,7 +98,7 @@ object GoogleSubscriberInterpreter {
                 case Left(e) =>
                   logger.info(loggingContext)(s"Subscriber fail to enqueue $message due to $e") >> F.blocking(
                     consumer.nack()
-                  ) //pubsub will resend the message up to ackDeadlineSeconds (this is configed during subscription creation)
+                  ) // pubsub will resend the message up to ackDeadlineSeconds (this is configed during subscription creation)
                 case Right(_) =>
                   logger.info(loggingContext)(s"Subscriber Successfully received $message.")
               }
@@ -276,7 +276,7 @@ final case class FlowControlSettingsConfig(maxOutstandingElementCount: Long, max
 final case class SubscriberConfig(
   pathToCredentialJson: String,
   topicName: TopicName,
-  subscriptionName: Option[ProjectSubscriptionName], //it'll have the same name as topic if this is None
+  subscriptionName: Option[ProjectSubscriptionName], // it'll have the same name as topic if this is None
   ackDeadLine: FiniteDuration,
   deadLetterPolicy: Option[SubscriberDeadLetterPolicy],
   flowControlSettingsConfig: Option[FlowControlSettingsConfig],

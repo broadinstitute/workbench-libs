@@ -65,9 +65,8 @@ class HttpGoogleIamDAO(appName: String, googleCredentialMode: GoogleCredentialMo
   def this(serviceAccountClientId: String, pemFile: String, appName: String, workbenchMetricBaseName: String)(implicit
     system: ActorSystem,
     executionContext: ExecutionContext
-  ) = {
+  ) =
     this(appName, Pem(WorkbenchEmail(serviceAccountClientId), new File(pemFile)), workbenchMetricBaseName)
-  }
 
   @deprecated(
     message =
@@ -78,12 +77,11 @@ class HttpGoogleIamDAO(appName: String, googleCredentialMode: GoogleCredentialMo
     implicit
     system: ActorSystem,
     executionContext: ExecutionContext
-  ) = {
+  ) =
     this(appName,
          Pem(WorkbenchEmail(clientSecrets.getDetails.get("client_email").toString), new File(pemFile)),
          workbenchMetricBaseName
     )
-  }
 
   override val scopes = List(IamScopes.CLOUD_PLATFORM)
 
@@ -104,7 +102,7 @@ class HttpGoogleIamDAO(appName: String, googleCredentialMode: GoogleCredentialMo
     val name = s"projects/${serviceAccountProject.value}/serviceAccounts/${serviceAccountEmail.value}"
     val getter = iam.projects().serviceAccounts().get(name)
 
-    //Return a Future[Option[ServiceAccount]]. The future fails if we get a Google error we don't understand. The Option is None if we get a 404, i.e. the SA doesn't exist.
+    // Return a Future[Option[ServiceAccount]]. The future fails if we get a Google error we don't understand. The Option is None if we get a 404, i.e. the SA doesn't exist.
     val findOption = OptionT(
       retryWithRecover(when5xx, whenUsageLimited, when404, whenInvalidValueOnBucketCreation, whenNonHttpIOException) {
         () =>
@@ -120,7 +118,7 @@ class HttpGoogleIamDAO(appName: String, googleCredentialMode: GoogleCredentialMo
       }
     )
 
-    //Turn it into a Workbench SA type.
+    // Turn it into a Workbench SA type.
     (findOption map { serviceAccount =>
       google.ServiceAccount(ServiceAccountSubjectId(serviceAccount.getUniqueId),
                             WorkbenchEmail(serviceAccount.getEmail),

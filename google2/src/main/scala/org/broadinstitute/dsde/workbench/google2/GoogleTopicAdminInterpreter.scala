@@ -64,13 +64,13 @@ class GoogleTopicAdminInterpreter[F[_]: StructuredLogger](topicAdminClient: Topi
       request = GetIamPolicyRequest.newBuilder().setResource(topicNameString).build()
       getPolicy = F.blocking(
         topicAdminClient.getIamPolicy(request)
-      ) //getIamPolicy requires `roles/pubsub.admin` role, see https://cloud.google.com/pubsub/docs/access-control
+      ) // getIamPolicy requires `roles/pubsub.admin` role, see https://cloud.google.com/pubsub/docs/access-control
 
       policy <- withLogging(getPolicy, traceId, s"com.google.cloud.pubsub.v1.TopicAdminClient.getIamPolicy($topicName)")
       binding = Binding
         .newBuilder()
         .setRole("roles/pubsub.publisher")
-        .addAllMembers(members.map(_.strValue()).asJava) //strValue has right format binding expects
+        .addAllMembers(members.map(_.strValue()).asJava) // strValue has right format binding expects
         .build()
       updatedPolicy = Policy.newBuilder(policy).addBindings(binding).build()
 

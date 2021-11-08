@@ -45,9 +45,8 @@ class HttpGoogleStorageDAO(appName: String,
            appName: String,
            workbenchMetricBaseName: String,
            maxPageSize: Long
-  )(implicit system: ActorSystem, executionContext: ExecutionContext) = {
+  )(implicit system: ActorSystem, executionContext: ExecutionContext) =
     this(appName, Pem(WorkbenchEmail(serviceAccountClientId), new File(pemFile)), workbenchMetricBaseName, maxPageSize)
-  }
   override val scopes = Seq(StorageScopes.DEVSTORAGE_FULL_CONTROL,
                             "https://www.googleapis.com/auth/cloud-platform",
                             PlusScopes.USERINFO_EMAIL,
@@ -181,8 +180,8 @@ class HttpGoogleStorageDAO(appName: String,
     }
   }
 
-  //This functionality doesn't exist in the com.google.apis Java library.
-  //When we migrate to the com.google.cloud library, we will be able to re-write this to use their implementation
+  // This functionality doesn't exist in the com.google.apis Java library.
+  // When we migrate to the com.google.cloud library, we will be able to re-write this to use their implementation
   override def setObjectChangePubSubTrigger(bucketName: GcsBucketName,
                                             topicName: String,
                                             eventTypes: List[String]

@@ -129,11 +129,11 @@ trait BillingFixtures extends ExceptionHandling with LazyLogging with CleanUp wi
   def claimGPAllocProject(newOwnerEmail: String, ownerEmails: List[String], userEmails: List[String])(
     newOwnerToken: () => AuthToken
   ): ClaimedProject =
-    //request a GPAlloced project as the potential new owner
+    // request a GPAlloced project as the potential new owner
     GPAlloc.projects.requestProject(newOwnerToken()) match {
       case Some(project) =>
-        //the Rawls endpoint to register a precreated project needs to be called by a Rawls admin
-        //but it also takes the new owner's UserInfo in order to create the resource as them in Sam
+        // the Rawls endpoint to register a precreated project needs to be called by a Rawls admin
+        // but it also takes the new owner's UserInfo in order to create the resource as them in Sam
         val adminToken = UserPool.chooseAdmin.makeAuthToken()
         val newOwnerUserInfo =
           UserInfo(OAuth2BearerToken(newOwnerToken().value), WorkbenchUserId("0"), WorkbenchEmail(newOwnerEmail), 3600)

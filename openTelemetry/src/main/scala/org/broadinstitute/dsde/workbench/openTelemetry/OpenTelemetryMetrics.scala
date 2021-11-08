@@ -81,7 +81,7 @@ object OpenTelemetryMetrics {
         .setProjectId(projectId.value)
         .build()
       _ <- Resource.make(F.delay(StackdriverTraceExporter.createAndRegister(configuration)))(_ =>
-        F.unit //Seems if we unregister here, no tracing will be exported
+        F.unit // Seems if we unregister here, no tracing will be exported
       )
     } yield ()
 

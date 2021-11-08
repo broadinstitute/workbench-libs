@@ -284,7 +284,7 @@ private[google2] class GoogleDataprocInterpreter[F[_]: Parallel](
           for {
             _ <-
               if (cluster.getStatus.getState == ClusterStatus.State.STOPPED) F.sleep(30 seconds)
-              else F.unit //If cluster is previously stopped, add more wait before we attempt to resize
+              else F.unit // If cluster is previously stopped, add more wait before we attempt to resize
             _ <- streamUntilDoneOrTimeout(
               getCluster(project, region, clusterName),
               60,

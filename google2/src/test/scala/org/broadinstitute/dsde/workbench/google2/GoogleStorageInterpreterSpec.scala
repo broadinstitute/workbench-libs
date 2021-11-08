@@ -152,7 +152,7 @@ class GoogleStorageInterpreterSpec extends AsyncFlatSpec with Matchers with Work
       allObjectsWithPrefix <- localStorage.unsafeListObjectsWithPrefix(bucketName, prefix, 1)
       _ <- allObjectsWithPrefix.traverse(obj =>
         localStorage.removeObject(bucketName, GcsBlobName(obj.value), None).compile.drain
-      ) //clean up test objects
+      ) // clean up test objects
     } yield allObjectsWithPrefix.map(_.value) should contain theSameElementsAs (blobNameWithPrefix.map(_.value))
   }
 

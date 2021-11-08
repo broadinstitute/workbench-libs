@@ -30,12 +30,12 @@ class GcsPathParserSpec extends AnyFlatSpecLike with Matchers with EitherValues 
   }
 
   "gcs" should "generate valid bucket names when trimming the uuid" in {
-    //trim the uuid
+    // trim the uuid
     generateUniqueBucketName("myClusterWhichHasAModeratelyLongName", false).value should startWith(
       "myclusterwhichhasamoderatelylongname-"
     )
 
-    //trim the uuid but the prefix is also too long so trim that too
+    // trim the uuid but the prefix is also too long so trim that too
     generateUniqueBucketName("myClusterWhichHasAVeryLongNameBecauseIAmExtremelyVerboseInMyDescriptions",
                              false
     ).value should startWith(

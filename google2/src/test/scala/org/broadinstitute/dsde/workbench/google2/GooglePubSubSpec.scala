@@ -48,8 +48,8 @@ class GooglePubSubSpec extends AnyFlatSpecLike with Matchers with WorkbenchTestS
     var expectedPeople = people
     val res = for {
       queue <- Queue.bounded[IO, Event[Person]](10000)
-      terminateSubscriber <- SignallingRef[IO, Boolean](false) //signal for terminating subscriber
-      terminateStopStream <- SignallingRef[IO, Boolean](false) //signal for terminating stopStream
+      terminateSubscriber <- SignallingRef[IO, Boolean](false) // signal for terminating subscriber
+      terminateStopStream <- SignallingRef[IO, Boolean](false) // signal for terminating stopStream
       _ <- localPubsub(projectTopicName, queue).use { case (pub, sub) =>
         val subScribeStream = (Stream.emits(people) through pub.publish[Person]) ++ Stream.eval(sub.start)
 
@@ -127,14 +127,14 @@ object GooglePubSubSpec {
             .setCredentialsProvider(credentialsProvider)
             .build()
         )
-      )(_ => /*IO(p.shutdown()) >>*/ IO.unit) //TODO: shutdown properly. Somehow this hangs the publisher unit test
+      )(_ => /*IO(p.shutdown()) >>*/ IO.unit) // TODO: shutdown properly. Somehow this hangs the publisher unit test
       subscription = ProjectSubscriptionName.of(projectTopicName.getProject, projectTopicName.getTopic)
       dispatcher <- Dispatcher[IO]
       receiver = GoogleSubscriberInterpreter.receiver(queue, dispatcher)
       sub <- Resource.eval(
         IO(
           Subscriber
-            .newBuilder(subscription, receiver) //TODO: set credentials correctly
+            .newBuilder(subscription, receiver) // TODO: set credentials correctly
             .setChannelProvider(channelProvider)
             .setCredentialsProvider(credentialsProvider)
             .build()
