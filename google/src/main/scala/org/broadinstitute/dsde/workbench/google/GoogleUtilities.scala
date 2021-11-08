@@ -78,8 +78,8 @@ object GoogleUtilities {
     }
 
     def whenNonHttpIOException(throwable: Throwable): Boolean = throwable match {
-      //NOTE Google exceptions are subclasses of IO, so without the two false cases at the top, this would
-      //match on ANY non-2xx Google response.
+      // NOTE Google exceptions are subclasses of IO, so without the two false cases at the top, this would
+      // match on ANY non-2xx Google response.
       case _: GoogleJsonResponseException => false
       case _: GoogleHttpResponseException => false
       case _: IOException                 => true
@@ -136,7 +136,7 @@ object GoogleUtilities {
 trait GoogleUtilities extends LazyLogging with InstrumentedRetry with GoogleInstrumented {
   implicit val executionContext: ExecutionContext
 
-  //FIXME: when we finally remove this, also remove the @silent annotation from the top of GoogleUtilitiesSpec.scala
+  // FIXME: when we finally remove this, also remove the @silent annotation from the top of GoogleUtilitiesSpec.scala
   @deprecated(
     message =
       "This predicate is complicated and almost certainly doesn't do what you mean. Favor use of retry() and retryWithRecover() with explicitly defined predicates instead. There are some useful predicates at the top of GoogleUtilities; try importing GoogleUtilities.Predicates._",
@@ -167,7 +167,7 @@ trait GoogleUtilities extends LazyLogging with InstrumentedRetry with GoogleInst
     predicates.map(_(throwable)).foldLeft(false)(_ || _)
   }
 
-  //Retry if any of the predicates return true.
+  // Retry if any of the predicates return true.
   protected def retry[T](predicates: (Throwable => Boolean)*)(op: () => T)(implicit histo: Histogram): Future[T] =
     retryExponentially(combine(predicates))(() => Future(blocking(op())))
 
@@ -181,7 +181,7 @@ trait GoogleUtilities extends LazyLogging with InstrumentedRetry with GoogleInst
   )(recover: PartialFunction[Throwable, T])(implicit histo: Histogram): Future[T] =
     retryExponentially(when500orGoogleError)(() => Future(blocking(op())).recover(recover))
 
-  //Retry if any of the predicates return true.
+  // Retry if any of the predicates return true.
   protected def retryWithRecover[T](
     predicates: (Throwable => Boolean)*
   )(op: () => T)(recover: PartialFunction[Throwable, T])(implicit histo: Histogram): Future[T] =

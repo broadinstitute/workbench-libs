@@ -36,7 +36,7 @@ trait GoogleDirectoryDAO {
       .setWhoCanInvite("NONE_CAN_INVITE")
       .setArchiveOnly(
         "true"
-      ) //.setWhoCanPostMessage("NONE_CAN_POST") setting archive only is the way to set it so no one can post
+      ) // .setWhoCanPostMessage("NONE_CAN_POST") setting archive only is the way to set it so no one can post
       .setWhoCanLeaveGroup("NONE_CAN_LEAVE")
       .setWhoCanContactOwner("ALL_MANAGERS_CAN_CONTACT")
       .setWhoCanAddReferences("NONE")
