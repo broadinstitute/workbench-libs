@@ -246,10 +246,10 @@ final class Test(credPathStr: String,
 }
 
 object KubernetesConstants {
-  //this default namespace is initialized automatically with a kubernetes environment, and we do not create it
+  // this default namespace is initialized automatically with a kubernetes environment, and we do not create it
   val DEFAULT_NAMESPACE = "default"
 
-  //composite of NodePort and ClusterIP types. Allows external access
+  // composite of NodePort and ClusterIP types. Allows external access
   val DEFAULT_LOADBALANCER_PORTS = Set(
     ServicePort(PortNum(8080),
                 KubernetesName.withValidation("testport", PortName).right.get,
@@ -280,11 +280,11 @@ object KubernetesConstants {
   def getDefaultCluster(nodepoolName: NodepoolName, clusterName: KubernetesClusterName): Cluster =
     Cluster
       .newBuilder()
-      .setName(clusterName.value) //required
+      .setName(clusterName.value) // required
       .addNodePools(
         getNodepoolBuilder(getDefaultNodepoolConfig(nodepoolName))
-      ) //required
-      .build() //builds recursively
+      ) // required
+      .build() // builds recursively
 
   def getNodepoolBuilder(config: NodepoolConfig): NodePool.Builder =
     NodePool

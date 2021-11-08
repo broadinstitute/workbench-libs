@@ -56,7 +56,7 @@ class OpenTelemetryMetricsInterpreter[F[_]](appName: String)(implicit F: Async[F
     )
 
     for {
-      _ <- F.delay(viewManager.registerView(viewSuccess)) //it's no op if the view is already registered
+      _ <- F.delay(viewManager.registerView(viewSuccess)) // it's no op if the view is already registered
       _ <- F.delay(viewManager.registerView(viewFailure))
       res <- temporal.timed(fa.attempt)
       (duration, attemptedResult) = res
