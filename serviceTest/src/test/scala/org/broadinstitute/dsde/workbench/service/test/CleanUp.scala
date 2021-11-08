@@ -124,13 +124,8 @@ object CleanUp {
       case (Failure(t), Failure(c)) =>
         throw new WorkbenchExceptionWithErrorReport(
           ErrorReport(
-            "Test and CleanUp both failed",
-            ErrorReport(
-              Map(
-                "testFailure" -> ErrorReport(t),
-                "cleanUpFailure" -> ErrorReport(c)
-              ).toJson.prettyPrint
-            )
+            "Test and CleanUp both failed. This ErrorReport's causes contain the test and cleanup exceptions, in that order",
+            Seq(ErrorReport(t), ErrorReport(c))
           )
         )
     }
