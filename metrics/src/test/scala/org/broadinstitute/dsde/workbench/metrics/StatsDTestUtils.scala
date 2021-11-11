@@ -39,7 +39,7 @@ trait StatsDTestUtils { this: Eventually with MockitoTestUtils =>
         order.verify(statsD).close()
         verify(
           metricCaptor.getAllValues.asScala.toSeq.zip(valueCaptor.getAllValues.asScala)
-        ) //toSeq is needed for scala 2.13
+        ) // toSeq is needed for scala 2.13
       }
       result
     } finally {

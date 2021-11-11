@@ -2,7 +2,7 @@ import sbt._
 
 object Dependencies {
   val akkaV         = "2.6.16"
-  val akkaHttpV     = "10.2.6"
+  val akkaHttpV     = "10.2.7"
   val jacksonV      = "2.12.4"
   val googleV       = "1.22.0"
   val scalaLoggingV = "3.9.4"
@@ -60,16 +60,17 @@ object Dependencies {
 
   val googleRpc2: ModuleID =               "io.grpc" % "grpc-core" % "1.34.0"
   val googleFirestore: ModuleID = "com.google.cloud" % "google-cloud-firestore" % "2.6.2"
-  val googleStorageNew: ModuleID = "com.google.cloud" % "google-cloud-storage" % "2.1.7"
-  val googleStorageLocal: ModuleID = "com.google.cloud" % "google-cloud-nio" % "0.123.16" % "test"
-  val googlePubsubNew: ModuleID = "com.google.cloud" % "google-cloud-pubsub" % "1.114.6"
+  val googleStorageNew: ModuleID = "com.google.cloud" % "google-cloud-storage" % "2.1.9"
+  val googleStorageLocal: ModuleID = "com.google.cloud" % "google-cloud-nio" % "0.123.10" % "test"
+  val googlePubsubNew: ModuleID = "com.google.cloud" % "google-cloud-pubsub" % "1.114.7"
   val googleKms: ModuleID = "com.google.cloud" % "google-cloud-kms" % "1.43.0"
   val googleDataproc: ModuleID =    "com.google.cloud" % "google-cloud-dataproc" % "1.5.4"
   val googleComputeNew: ModuleID = "com.google.cloud" % "google-cloud-compute" % "1.4.2-alpha"
   val googleContainer: ModuleID = "com.google.cloud" % "google-cloud-container" % "1.5.0"
-  val kubernetesClient: ModuleID = "io.kubernetes" % "client-java" % "12.0.1"
+  val kubernetesClient: ModuleID = "io.kubernetes" % "client-java" % "12.0.2"
   val googleBigQueryNew: ModuleID = "com.google.cloud" % "google-cloud-bigquery" % "1.137.2"
   val google2CloudBilling = "com.google.cloud" % "google-cloud-billing" % "2.1.2"
+  val googleStorageTransferService: ModuleID = "com.google.cloud" % "google-cloud-storage-transfer" % "0.2.0"
   val googleResourceManager =  "com.google.cloud" % "google-cloud-resourcemanager" % "0.118.12-alpha"
   //the below v1 module is a dependency for v2 because it contains the OAuth scopes necessary to created scoped credentials
   val googleContainerV1: ModuleID = "com.google.apis" % "google-api-services-container" % "v1-rev20210617-1.32.1"
@@ -94,7 +95,7 @@ object Dependencies {
   val openCensusTraceStackDriver: ModuleID = "io.opencensus" % "opencensus-exporter-trace-stackdriver" % "0.28.3"
   val openCensusTraceLogging: ModuleID = "io.opencensus" % "opencensus-exporter-trace-logging" % "0.26.0"
   val sealerate: ModuleID = "ca.mrvisser" %% "sealerate" % "0.0.6"
-  val scalaCache = "com.github.cb372" %% "scalacache-caffeine" % "1.0.0-M4"
+  val scalaCache = "com.github.cb372" %% "scalacache-caffeine" % "1.0.0-M5"
 
   val commonDependencies = Seq(
     scalatest,
@@ -179,6 +180,7 @@ object Dependencies {
     googleContainerV1,
     sealerate,
     google2CloudBilling,
+    googleStorageTransferService,
     googleResourceManager,
     scalaCache,
     scalaTestMockito
