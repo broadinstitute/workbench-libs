@@ -37,7 +37,7 @@ class GoogleUtilitiesSpec
   override def afterAll: Unit =
     TestKit.shutdownActorSystem(system)
 
-  //a total of 4 attempts (include the first one that has no delay)
+  // a total of 4 attempts (include the first one that has no delay)
   override def exponentialBackOffIntervals = Seq(10 milliseconds, 20 milliseconds, 40 milliseconds)
 
   def buildHttpResponseException(statusCode: Int): HttpResponseException =
@@ -197,7 +197,7 @@ class GoogleUtilitiesSpec
       val counter = new Counter()
       whenReady(retry(whenNonHttpIOException(_))(() => counter.alwaysBoom()).failed) { f =>
         f shouldBe a[IOException]
-        counter.counter shouldBe 4 //extra one for the first attempt
+        counter.counter shouldBe 4 // extra one for the first attempt
       }
     } { capturedMetrics =>
       capturedMetrics should contain("test.histo.samples" -> "1")
@@ -282,7 +282,7 @@ class GoogleUtilitiesSpec
 
       whenReady(retryWithRecover(when5xx(_))(() => counter.httpBoom())(recoverHttp).failed) { f =>
         f shouldBe a[HttpResponseException]
-        counter.counter shouldBe 4 //extra one for the first attempt
+        counter.counter shouldBe 4 // extra one for the first attempt
       }
     } { capturedMetrics =>
       capturedMetrics should contain("test.histo.samples" -> "1")
