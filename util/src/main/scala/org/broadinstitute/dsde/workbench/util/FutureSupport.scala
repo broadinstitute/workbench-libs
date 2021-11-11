@@ -39,7 +39,7 @@ trait FutureSupport {
     if (failures.isEmpty) {
       Future.successful(
         tries.mapValues(_.get).toMap
-      ) //this toMap is needed to scala 2.13 since it returns MapView in 2.13
+      ) // this toMap is needed to scala 2.13 since it returns MapView in 2.13
     } else {
       Future.failed(failures.head)
     }
