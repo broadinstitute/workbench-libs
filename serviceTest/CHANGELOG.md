@@ -4,7 +4,7 @@ This file documents changes to the `workbench-service-test` library, including n
 
 ## 0.21
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "0.21-6fdd209"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "0.21-808590d"`
 
 ### Changed
 - `RestClient` which underlies many of the higher-level service-test methods, has logging changes:
@@ -12,7 +12,8 @@ SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test"
   - It makes an attempt to mask Google auth token values from its log entries
   - It now logs the request and response at DEBUG level
   - It now omits logging the less-helpful portions of the request and response
-- `CleanUp.runCodeWithCleanup`, which underlies `withWorkspace`, now wraps the thrown Exception to indicate that the test passed but test cleanup failed
+- `CleanUp.runCodeWithCleanup`, which underlies `withWorkspace`:
+  - Wraps the thrown Exceptions to ensure logging when cleanup fails regardless of whether the test passed or failed
 
 ## 0.20
 Changed:
@@ -34,7 +35,7 @@ SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test"
 
 ### Dependency Updates
 - Updated `rawls-model` dependency to `0.1-90eae81cd`
-- `jackson-module-scala` to `2.12.4`
+- `jackson-module-scala` to `2.12.5`
 
 ## 0.18
 Changed
