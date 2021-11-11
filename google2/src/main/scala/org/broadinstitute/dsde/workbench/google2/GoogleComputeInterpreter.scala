@@ -218,7 +218,7 @@ private[google2] class GoogleComputeInterpreter[F[_]: Parallel: StructuredLogger
         F.delay(firewallClient.get(request)),
         whenStatusCode(404)
       ),
-      s"com.google.cloud.compute.v1.FirewallsClient.insertFirewall(${project.value}, ${firewallRuleName.value})"
+      s"com.google.cloud.compute.v1.FirewallsClient.get(${project.value}, ${firewallRuleName.value})"
     )
   }
 
@@ -295,6 +295,16 @@ private[google2] class GoogleComputeInterpreter[F[_]: Parallel: StructuredLogger
     retryF(
       F.delay(subnetworkClient.insert(project.value, region.value, subnetwork)),
       s"com.google.cloud.compute.v1.SubnetworksClient.insertSubnetwork(${project.value}, ${region.value}, ${subnetwork.getName})"
+    )
+
+  /** Sets network tags on an instance */
+  override def setInstanceTags(project: GoogleProject, zone: ZoneName, instanceName: InstanceName, tags: Tags)(implicit
+    ev: Ask[F, TraceId]
+  ): F[Operation] =
+    retryF(
+      F.delay(instanceClient.setTags(project.value, zone.value, instanceName.value, tags)),
+      s"com.google.compute.v1.InstancesClient.setTags(${project.value}, ${zone.value}, ${instanceName.value}, [${tags.getItemsList.asScala
+        .mkString(", ")}]"
     )
 
   private def buildMachineTypeUri(zone: ZoneName, machineTypeName: MachineTypeName): String =

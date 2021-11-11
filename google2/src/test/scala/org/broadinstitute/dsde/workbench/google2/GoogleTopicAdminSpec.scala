@@ -48,7 +48,7 @@ class GoogleTopicAdminSpec extends AnyFlatSpecLike with Matchers with WorkbenchT
     }
   }
 
-  //pubsub getIamPolicy isn't implemented in emulator
+  // pubsub getIamPolicy isn't implemented in emulator
 }
 
 object GoogleTopicAdminSpec {

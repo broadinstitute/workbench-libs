@@ -44,9 +44,9 @@ object Generator {
   } yield WorkbenchUser(userId, googleSubjectId, email, azureB2CId)
 
   val genWorkbenchGroupName =
-    Gen.alphaStr.map(x => WorkbenchGroupName(s"s$x")) //prepending `s` just so this won't be an empty string
+    Gen.alphaStr.map(x => WorkbenchGroupName(s"s$x")) // prepending `s` just so this won't be an empty string
   val genGoogleProject =
-    Gen.alphaStr.map(x => GoogleProject(s"s$x")) //prepending `s` just so this won't be an empty string
+    Gen.alphaStr.map(x => GoogleProject(s"s$x")) // prepending `s` just so this won't be an empty string
   val genWorkbenchSubject: Gen[WorkbenchSubject] = for {
     groupId <- genWorkbenchGroupName
     project <- genGoogleProject

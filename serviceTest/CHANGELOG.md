@@ -2,9 +2,24 @@
 
 This file documents changes to the `workbench-service-test` library, including notes on how to upgrade to new versions.
 
-## 0.20
+## 0.21
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "0.20-21408a9"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "0.21-808590d"`
+
+### Changed
+- `RestClient` which underlies many of the higher-level service-test methods, has logging changes:
+  - It logs the first 500 chars of the request and response, which could potentially include sensitive information.
+  - It makes an attempt to mask Google auth token values from its log entries
+  - It now logs the request and response at DEBUG level
+  - It now omits logging the less-helpful portions of the request and response
+- `CleanUp.runCodeWithCleanup`, which underlies `withWorkspace`:
+  - Wraps the thrown Exceptions to ensure logging when cleanup fails regardless of whether the test passed or failed
+
+## 0.20
+Changed:
+- Reduce Credentials cache expiration period to 50 mins
+
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "0.20-f52bf30"`
 
 ### Dependency Updates
 - Updated `rawls-model` dependency to `0.1-384ab501b` for Project per Workspace changes
@@ -20,7 +35,7 @@ SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test"
 
 ### Dependency Updates
 - Updated `rawls-model` dependency to `0.1-90eae81cd`
-- `jackson-module-scala` to `2.12.4`
+- `jackson-module-scala` to `2.12.5`
 
 ## 0.18
 Changed
