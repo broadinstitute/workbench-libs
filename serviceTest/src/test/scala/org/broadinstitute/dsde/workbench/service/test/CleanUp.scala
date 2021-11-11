@@ -1,19 +1,21 @@
 package org.broadinstitute.dsde.workbench.service.test
 
 import com.typesafe.scalalogging.LazyLogging
-
-import java.util.concurrent.ConcurrentLinkedDeque
+import org.broadinstitute.dsde.workbench.model.ErrorReportJsonSupport._
 import org.broadinstitute.dsde.workbench.model.{ErrorReport, ErrorReportSource, WorkbenchExceptionWithErrorReport}
 import org.broadinstitute.dsde.workbench.service.util.ExceptionHandling
 import org.scalatest.{Outcome, TestSuite, TestSuiteMixin}
+import spray.json._
 
-import collection.JavaConverters._
+import java.util.concurrent.ConcurrentLinkedDeque
+import scala.collection.JavaConverters._
 import scala.util.{Failure, Success, Try}
 
 /**
  * Mix-in for cleaning up data created during a test.
  */
 trait CleanUp extends TestSuiteMixin with ExceptionHandling with LazyLogging { self: TestSuite =>
+  implicit val errorReportSource: ErrorReportSource = ErrorReportSource(self.suiteName)
 
   private val cleanUpFunctions = new ConcurrentLinkedDeque[() => Any]()
 
@@ -82,27 +84,17 @@ trait CleanUp extends TestSuiteMixin with ExceptionHandling with LazyLogging { s
   def withCleanUp(testCode: => Any): Unit = {
     val testTrial = Try(testCode)
     val cleanupTrial = Try(runCleanUpFunctions())
-
-    (testTrial, cleanupTrial) match {
-      case (Failure(t), _)          => throw t
-      case (_, Failure(t))          => throw t
-      case (Success(_), Success(_)) =>
-    }
+    CleanUp.runCodeWithCleanup(testTrial, cleanupTrial)
   }
 
   abstract override def withFixture(test: NoArgTest): Outcome = {
     if (cleanUpFunctions.peek() != null) throw new Exception("cleanUpFunctions non empty at start of withFixture block")
     val testTrial = Try(super.withFixture(test))
     val cleanupTrial = Try(runCleanUpFunctions())
-
     CleanUp.runCodeWithCleanup(testTrial, cleanupTrial)
   }
 
-  private def runCleanUpFunctions() = {
-    import spray.json._
-    import org.broadinstitute.dsde.workbench.model.ErrorReportJsonSupport._
-    implicit val errorReportSource = ErrorReportSource(self.suiteName)
-
+  private def runCleanUpFunctions(): Unit = {
     val cleanups = cleanUpFunctions.asScala.map { f =>
       Try(f())
     }
@@ -118,14 +110,22 @@ trait CleanUp extends TestSuiteMixin with ExceptionHandling with LazyLogging { s
 }
 
 object CleanUp {
+  implicit val errorReportSource: ErrorReportSource = ErrorReportSource("WorkbenchLibs.CleanUp")
+
   def runCodeWithCleanup[T, C](testTrial: Try[T], cleanupTrial: Try[C]): T =
     (testTrial, cleanupTrial) match {
-      case (Failure(t), _) => throw t
+      case (Success(outcome), Success(_)) => outcome
+      case (Failure(t), Success(_))       => throw t
       case (Success(_), Failure(t)) =>
-        implicit val errorSource: ErrorReportSource = ErrorReportSource("workbench-service-test")
         throw new WorkbenchExceptionWithErrorReport(
           ErrorReport(s"Test passed but cleanup failed: ${t.getMessage}", ErrorReport(t))
         )
-      case (Success(outcome), Success(_)) => outcome
+      case (Failure(t), Failure(c)) =>
+        throw new WorkbenchExceptionWithErrorReport(
+          ErrorReport(
+            "Test and CleanUp both failed. This ErrorReport's causes contain the test and cleanup exceptions, in that order",
+            Seq(ErrorReport(t), ErrorReport(c))
+          )
+        )
     }
 }

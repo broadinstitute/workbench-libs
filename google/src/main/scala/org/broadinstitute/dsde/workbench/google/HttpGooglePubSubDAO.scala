@@ -38,9 +38,8 @@ class HttpGooglePubSubDAO(appName: String,
            appName: String,
            serviceProject: String,
            workbenchMetricBaseName: String
-  )(implicit system: ActorSystem, executionContext: ExecutionContext) = {
+  )(implicit system: ActorSystem, executionContext: ExecutionContext) =
     this(appName, Pem(WorkbenchEmail(clientEmail), new File(pemFile)), workbenchMetricBaseName, serviceProject)
-  }
 
   override val scopes = Seq(PubsubScopes.PUBSUB)
 
@@ -142,7 +141,7 @@ class HttpGooglePubSubDAO(appName: String,
     retry(when5xx, whenUsageLimited, when404, whenInvalidValueOnBucketCreation, whenNonHttpIOException) { () =>
       val pullRequest = new PullRequest()
         .setReturnImmediately(true)
-        .setMaxMessages(maxMessages) //won't keep the connection open if there's no msgs available
+        .setMaxMessages(maxMessages) // won't keep the connection open if there's no msgs available
       val messages = executeGoogleRequest(
         pubSub.projects().subscriptions().pull(subscriptionToFullPath(subscriptionName), pullRequest)
       ).getReceivedMessages.asScala
