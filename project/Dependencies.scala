@@ -3,7 +3,7 @@ import sbt._
 object Dependencies {
   val akkaV         = "2.6.16"
   val akkaHttpV     = "10.2.7"
-  val jacksonV      = "2.12.4"
+  val jacksonV      = "2.13.0"
   val googleV       = "1.22.0"
   val scalaLoggingV = "3.9.4"
   val scalaTestV    = "3.2.10"
@@ -13,7 +13,7 @@ object Dependencies {
 
   def excludeGuavaJDK5(m: ModuleID): ModuleID = m.exclude("com.google.guava", "guava-jdk5")
 
-  val logstashLogback: ModuleID = "net.logstash.logback"      % "logstash-logback-encoder" % "6.6" % "provided"
+  val logstashLogback: ModuleID = "net.logstash.logback"      % "logstash-logback-encoder" % "7.0" % "provided"
   val scalaLogging: ModuleID = "com.typesafe.scala-logging"    %% "scala-logging" % scalaLoggingV  % "provided"
   val scalatest: ModuleID =    "org.scalatest"                 %% "scalatest"     % scalaTestV  % "test"
   val scalaTestScalaCheck = "org.scalatestplus" %% "scalacheck-1-14" % "3.2.2.0" % Test //Since scalatest 3.1.0, scalacheck support is moved to `scalatestplus`
