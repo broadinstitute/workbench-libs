@@ -18,7 +18,7 @@ Dependency Upgrades:
 | mockito-3-4 |   3.2.9.0   |   3.2.10.0 |
 | selenium-3-141 |   3.2.9.0   |   3.2.10.0 |
 
-SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.23-7c5e10a"`
+SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.23-TRAVIS-REPLACE-ME"`
 
 ## 0.22
 Breaking Changes:
