@@ -8,7 +8,7 @@ object Dependencies {
   val scalaLoggingV = "3.9.4"
   val scalaTestV    = "3.2.10"
   val circeVersion = "0.14.1"
-  val http4sVersion = "0.23.6"
+  val http4sVersion = "1.0.0-M29"
   val bouncyCastleVersion = "1.69"
 
   def excludeGuavaJDK5(m: ModuleID): ModuleID = m.exclude("com.google.guava", "guava-jdk5")
@@ -67,13 +67,13 @@ object Dependencies {
   val googleDataproc: ModuleID =    "com.google.cloud" % "google-cloud-dataproc" % "2.2.2"
   val googleComputeNew: ModuleID = "com.google.cloud" % "google-cloud-compute" % "1.4.4-alpha"
   val googleContainer: ModuleID = "com.google.cloud" % "google-cloud-container" % "1.5.0"
-  val kubernetesClient: ModuleID = "io.kubernetes" % "client-java" % "12.0.2"
+  val kubernetesClient: ModuleID = "io.kubernetes" % "client-java" % "14.0.0"
   val googleBigQueryNew: ModuleID = "com.google.cloud" % "google-cloud-bigquery" % "1.137.2"
-  val google2CloudBilling = "com.google.cloud" % "google-cloud-billing" % "2.1.2"
+  val google2CloudBilling = "com.google.cloud" % "google-cloud-billing" % "2.1.3"
   val googleStorageTransferService: ModuleID = "com.google.cloud" % "google-cloud-storage-transfer" % "0.2.0"
   val googleResourceManager =  "com.google.cloud" % "google-cloud-resourcemanager" % "0.118.12-alpha"
   //the below v1 module is a dependency for v2 because it contains the OAuth scopes necessary to created scoped credentials
-  val googleContainerV1: ModuleID = "com.google.apis" % "google-api-services-container" % "v1-rev20210617-1.32.1"
+  val googleContainerV1: ModuleID = "com.google.apis" % "google-api-services-container" % "v1-rev20211014-1.32.1"
 
 
   val circeCore: ModuleID = "io.circe" %% "circe-core" % circeVersion
