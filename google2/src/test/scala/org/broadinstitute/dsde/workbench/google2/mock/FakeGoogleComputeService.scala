@@ -68,7 +68,7 @@ class FakeGoogleComputeService extends GoogleComputeService[IO] {
 
   override def getMachineType(project: GoogleProject, zone: ZoneName, machineTypeName: MachineTypeName)(implicit
     ev: Ask[IO, TraceId]
-  ): IO[Option[MachineType]] = IO.pure(Some(MachineType.newBuilder().setMemoryMb(7680).build))
+  ): IO[Option[MachineType]] = IO.pure(Some(MachineType.newBuilder().setMemoryMb(7680).setGuestCpus(4).build))
 
   override def getZones(project: GoogleProject, regionName: RegionName)(implicit
     ev: Ask[IO, TraceId]
