@@ -17,7 +17,7 @@ SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.
 - `listIamRoles` in `GoogleIamDAO`
 - Added enableRequesterPays for workspaces
 - Support structured logging for google requests
-  - requires dependency "net.logstash.logback" % "logstash-logback-encoder" % "6.6"
+  - requires dependency "net.logstash.logback" % "logstash-logback-encoder" % "7.0.1"
 - `getProjectName` in `GoogleProjectDAO`
 - Added optional parameter `retryIfGroupDoesNotExist` to `addIamRoles` and `removeIamRoles` in `GoogleIamDAO`, which
   will retry if the group does not exist, which could be due to slow Google propogation.
