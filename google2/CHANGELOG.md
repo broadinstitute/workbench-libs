@@ -7,7 +7,7 @@ Added:
 - Support for creating and monitoring Google Cloud Storage Transfer jobs between Cloud Storage buckets.
 - Legacy Cloud Storage roles to `GoogleStorageService` 
 
-SBT Dependency: `"com.google.cloud" % "google-cloud-storage-transfer" % "0.2.0"`
+SBT Dependency: `"com.google.cloud" % "google-cloud-storage-transfer" % "0.2.1"`
 
 ## 0.22
 Breaking Changes:
