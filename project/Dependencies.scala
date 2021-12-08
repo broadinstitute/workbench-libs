@@ -9,7 +9,7 @@ object Dependencies {
   val scalaTestV    = "3.2.10"
   val circeVersion = "0.14.1"
   val http4sVersion = "0.23.6"
-  val bouncyCastleVersion = "1.69"
+  val bouncyCastleVersion = "1.70"
 
   def excludeGuavaJDK5(m: ModuleID): ModuleID = m.exclude("com.google.guava", "guava-jdk5")
 
