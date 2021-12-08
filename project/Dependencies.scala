@@ -69,7 +69,7 @@ object Dependencies {
   val googleContainer: ModuleID = "com.google.cloud" % "google-cloud-container" % "1.5.0"
   val kubernetesClient: ModuleID = "io.kubernetes" % "client-java" % "12.0.2"
   val googleBigQueryNew: ModuleID = "com.google.cloud" % "google-cloud-bigquery" % "1.137.2"
-  val google2CloudBilling = "com.google.cloud" % "google-cloud-billing" % "2.1.2"
+  val google2CloudBilling = "com.google.cloud" % "google-cloud-billing" % "2.1.4"
   val googleStorageTransferService: ModuleID = "com.google.cloud" % "google-cloud-storage-transfer" % "0.2.0"
   val googleResourceManager =  "com.google.cloud" % "google-cloud-resourcemanager" % "0.118.12-alpha"
   //the below v1 module is a dependency for v2 because it contains the OAuth scopes necessary to created scoped credentials
