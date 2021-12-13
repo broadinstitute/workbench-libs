@@ -9,7 +9,7 @@ object Dependencies {
   val scalaTestV    = "3.2.10"
   val circeVersion = "0.14.1"
   val http4sVersion = "1.0.0-M30"
-  val bouncyCastleVersion = "1.69"
+  val bouncyCastleVersion = "1.70"
 
   def excludeGuavaJDK5(m: ModuleID): ModuleID = m.exclude("com.google.guava", "guava-jdk5")
 
@@ -60,16 +60,16 @@ object Dependencies {
 
   val googleRpc2: ModuleID =               "io.grpc" % "grpc-core" % "1.34.0"
   val googleFirestore: ModuleID = "com.google.cloud" % "google-cloud-firestore" % "2.6.2"
-  val googleStorageNew: ModuleID = "com.google.cloud" % "google-cloud-storage" % "2.1.9"
+  val googleStorageNew: ModuleID = "com.google.cloud" % "google-cloud-storage" % "2.2.2"
   val googleStorageLocal: ModuleID = "com.google.cloud" % "google-cloud-nio" % "0.123.17" % "test"
   val googlePubsubNew: ModuleID = "com.google.cloud" % "google-cloud-pubsub" % "1.115.0"
-  val googleKms: ModuleID = "com.google.cloud" % "google-cloud-kms" % "1.43.0"
+  val googleKms: ModuleID = "com.google.cloud" % "google-cloud-kms" % "2.3.0"
   val googleComputeNew: ModuleID = "com.google.cloud" % "google-cloud-compute" % "1.4.4-alpha"
   val googleDataproc: ModuleID =    "com.google.cloud" % "google-cloud-dataproc" % "2.3.0"
   val googleContainer: ModuleID = "com.google.cloud" % "google-cloud-container" % "2.3.0"
   val kubernetesClient: ModuleID = "io.kubernetes" % "client-java" % "14.0.0"
-  val googleBigQueryNew: ModuleID = "com.google.cloud" % "google-cloud-bigquery" % "1.137.2"
-  val google2CloudBilling = "com.google.cloud" % "google-cloud-billing" % "2.1.3"
+  val googleBigQueryNew: ModuleID = "com.google.cloud" % "google-cloud-bigquery" % "2.5.1"
+  val google2CloudBilling = "com.google.cloud" % "google-cloud-billing" % "2.1.4"
   val googleStorageTransferService: ModuleID = "com.google.cloud" % "google-cloud-storage-transfer" % "0.2.0"
   val googleResourceManager =  "com.google.cloud" % "google-cloud-resourcemanager" % "0.118.12-alpha"
   //the below v1 module is a dependency for v2 because it contains the OAuth scopes necessary to created scoped credentials
