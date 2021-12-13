@@ -62,11 +62,11 @@ object Dependencies {
   val googleFirestore: ModuleID = "com.google.cloud" % "google-cloud-firestore" % "2.6.2"
   val googleStorageNew: ModuleID = "com.google.cloud" % "google-cloud-storage" % "2.1.9"
   val googleStorageLocal: ModuleID = "com.google.cloud" % "google-cloud-nio" % "0.123.17" % "test"
-  val googlePubsubNew: ModuleID = "com.google.cloud" % "google-cloud-pubsub" % "1.114.7"
+  val googlePubsubNew: ModuleID = "com.google.cloud" % "google-cloud-pubsub" % "1.115.0"
   val googleKms: ModuleID = "com.google.cloud" % "google-cloud-kms" % "1.43.0"
   val googleComputeNew: ModuleID = "com.google.cloud" % "google-cloud-compute" % "1.4.4-alpha"
   val googleDataproc: ModuleID =    "com.google.cloud" % "google-cloud-dataproc" % "2.3.0"
-  val googleContainer: ModuleID = "com.google.cloud" % "google-cloud-container" % "1.5.0"
+  val googleContainer: ModuleID = "com.google.cloud" % "google-cloud-container" % "2.3.0"
   val kubernetesClient: ModuleID = "io.kubernetes" % "client-java" % "14.0.0"
   val googleBigQueryNew: ModuleID = "com.google.cloud" % "google-cloud-bigquery" % "1.137.2"
   val google2CloudBilling = "com.google.cloud" % "google-cloud-billing" % "2.1.3"
@@ -109,7 +109,7 @@ object Dependencies {
     akkaHttpSprayJson,
     akkaTestkit,
     scalaTestMockito,
-    "org.typelevel" %% "cats-core" % "2.6.1"
+    "org.typelevel" %% "cats-core" % "2.7.0"
   )
 
   val modelDependencies = commonDependencies ++ Seq(
