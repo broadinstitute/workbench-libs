@@ -4,7 +4,12 @@ import java.nio.file.Path
 import cats.effect.{Resource, Sync}
 import com.google.api.gax.core.FixedCredentialsProvider
 import com.google.auth.oauth2.{GoogleCredentials, ServiceAccountCredentials}
-import com.google.devtools.clouderrorreporting.v1beta1.{ProjectName, ReportErrorsServiceClient, ReportErrorsServiceSettings, SourceLocation}
+import com.google.devtools.clouderrorreporting.v1beta1.{
+  ProjectName,
+  ReportErrorsServiceClient,
+  ReportErrorsServiceSettings,
+  SourceLocation
+}
 
 import scala.collection.JavaConverters._
 
