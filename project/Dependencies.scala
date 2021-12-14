@@ -10,6 +10,7 @@ object Dependencies {
   val circeVersion = "0.14.1"
   val http4sVersion = "1.0.0-M30"
   val bouncyCastleVersion = "1.70"
+  val openCensusV = "0.29.0"
 
   def excludeGuavaJDK5(m: ModuleID): ModuleID = m.exclude("com.google.guava", "guava-jdk5")
 
@@ -89,11 +90,11 @@ object Dependencies {
 
   val fs2Io: ModuleID = "co.fs2" %% "fs2-io" % "3.2.3"
   val rawlsModel: ModuleID = "org.broadinstitute.dsde" %% "rawls-model" % "0.1-384ab501b" exclude("com.typesafe.scala-logging", "scala-logging_2.13") exclude("com.typesafe.akka", "akka-stream_2.13")
-  val openCensusApi: ModuleID = "io.opencensus" % "opencensus-api" % "0.28.3"
-  val openCensusImpl: ModuleID = "io.opencensus" % "opencensus-impl" % "0.28.3"
-  val openCensusStatsStackDriver: ModuleID = "io.opencensus" % "opencensus-exporter-stats-stackdriver" % "0.28.3"
-  val openCensusTraceStackDriver: ModuleID = "io.opencensus" % "opencensus-exporter-trace-stackdriver" % "0.28.3"
-  val openCensusTraceLogging: ModuleID = "io.opencensus" % "opencensus-exporter-trace-logging" % "0.26.0"
+  val openCensusApi: ModuleID = "io.opencensus" % "opencensus-api" % openCensusV
+  val openCensusImpl: ModuleID = "io.opencensus" % "opencensus-impl" % openCensusV
+  val openCensusStatsStackDriver: ModuleID = "io.opencensus" % "opencensus-exporter-stats-stackdriver" % openCensusV
+  val openCensusTraceStackDriver: ModuleID = "io.opencensus" % "opencensus-exporter-trace-stackdriver" % openCensusV
+  val openCensusTraceLogging: ModuleID = "io.opencensus" % "opencensus-exporter-trace-logging" % openCensusV
   val sealerate: ModuleID = "ca.mrvisser" %% "sealerate" % "0.0.6"
   val scalaCache = "com.github.cb372" %% "scalacache-caffeine" % "1.0.0-M6"
 
