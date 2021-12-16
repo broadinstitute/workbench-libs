@@ -118,7 +118,7 @@ final class Test(credPathStr: String,
 
   val kubeService = for {
     gs <- GKEService.resource(credPath, semaphore)
-    cache <- Resource.make(CaffeineCache[IO, ApiClient])(s => IO.delay(s.close))
+    cache <- Resource.make(CaffeineCache[IO, KubernetesClusterId, ApiClient])(s => IO.delay(s.close))
     ks <- KubernetesService.resource(credPath, gs, cache)
   } yield ks
 

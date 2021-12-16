@@ -30,7 +30,7 @@ import scala.collection.JavaConverters._
 class KubernetesInterpreter[F[_]](
   credentials: GoogleCredentials,
   gkeService: GKEService[F],
-  apiClientCache: Cache[F, ApiClient]
+  apiClientCache: Cache[F, KubernetesClusterId, ApiClient]
 )(implicit F: Async[F], logger: StructuredLogger[F])
     extends KubernetesService[F] {
   private def getNewApiClient(clusterId: KubernetesClusterId): F[ApiClient] = {

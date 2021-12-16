@@ -15,10 +15,18 @@ Dependency Upgrades:
 | akka |    2.6.16   |   2.6.17 |
 | fs2-io |   3.1.3   |   3.1.6 |
 | google-cloud-nio |   0.123.10   |   0.123.16 |
+| google-cloud-compute |   1.4.2-alpha   |   1.4.4-alpha |
+| google-cloud-dataproc |   1.5.4   |   2.2.2 |
+| google-cloud-container |   1.5.0   |   2.2.1 |
+| google-cloud-bigquery |   1.137.2   |   2.5.1 |
+| google-cloud-kms |   1.43.0   |   2.3.0 |
+| google-cloud-billing |   2.1.2  |   2.1.3 |
+| google-api-services-container |   v1-rev20210617-1.32.1   |  v1-rev20211014-1.32.1 |
 | mockito-3-4 |   3.2.9.0   |   3.2.10.0 |
 | selenium-3-141 |   3.2.9.0   |   3.2.10.0 |
+| client-java |   12.0.0   |   14.0.0 |
 
-SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.23-7c5e10a"`
+SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.23-TRAVIS-REPLACE-ME"`
 
 ## 0.22
 Breaking Changes:
