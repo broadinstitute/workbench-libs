@@ -65,9 +65,7 @@ object OpenTelemetryMetrics {
         F.delay(StackdriverStatsExporter.unregister())
       )
       _ <- Resource.eval(F.delay(PrometheusStatsCollector.createAndRegister())) // Cannot unregister from Prometheus
-      _ <- Resource.make(F.delay(new HTTPServer(9098)))(server =>
-        F.delay(server.close())
-      )
+      _ <- Resource.make(F.delay(new HTTPServer(9098)))(server => F.delay(server.close()))
     } yield new OpenTelemetryMetricsInterpreter[F](appName)
 
   def registerTracing[F[_]](pathToCredential: Path)(implicit
