@@ -8,8 +8,10 @@ import fs2.Stream
 import fs2.io.file.Files
 import io.circe.Decoder
 import io.circe.fs2.{byteStreamParser, decoder}
+import io.opencensus.exporter.stats.prometheus.PrometheusStatsCollector
 import io.opencensus.exporter.stats.stackdriver.{StackdriverStatsConfiguration, StackdriverStatsExporter}
 import io.opencensus.exporter.trace.stackdriver.{StackdriverTraceConfiguration, StackdriverTraceExporter}
+import io.prometheus.client.exporter.HTTPServer
 
 import java.nio.file.Path
 import scala.collection.JavaConverters._
@@ -54,13 +56,17 @@ object OpenTelemetryMetrics {
         .createScoped(
           Set("https://www.googleapis.com/auth/monitoring", "https://www.googleapis.com/auth/cloud-platform").asJava
         )
-      configuration = StackdriverStatsConfiguration
+      stackDriverConfiguration = StackdriverStatsConfiguration
         .builder()
         .setCredentials(credential)
         .setProjectId(projectId.value)
         .build()
-      _ <- Resource.make(F.delay(StackdriverStatsExporter.createAndRegister(configuration)))(_ =>
+      _ <- Resource.make(F.delay(StackdriverStatsExporter.createAndRegister(stackDriverConfiguration)))(_ =>
         F.delay(StackdriverStatsExporter.unregister())
+      )
+      _ <- Resource.eval(F.delay(PrometheusStatsCollector.createAndRegister())) // Cannot unregister from Prometheus
+      _ <- Resource.make(F.delay(new HTTPServer(9098)))(server =>
+        F.delay(server.close())
       )
     } yield new OpenTelemetryMetricsInterpreter[F](appName)
 
