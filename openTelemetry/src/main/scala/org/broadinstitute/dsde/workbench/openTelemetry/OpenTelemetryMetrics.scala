@@ -56,12 +56,12 @@ object OpenTelemetryMetrics {
         .createScoped(
           Set("https://www.googleapis.com/auth/monitoring", "https://www.googleapis.com/auth/cloud-platform").asJava
         )
-      stackDriverConfiguration = StackdriverStatsConfiguration
+      configuration = StackdriverStatsConfiguration
         .builder()
         .setCredentials(credential)
         .setProjectId(projectId.value)
         .build()
-      _ <- Resource.make(F.delay(StackdriverStatsExporter.createAndRegister(stackDriverConfiguration)))(_ =>
+      _ <- Resource.make(F.delay(StackdriverStatsExporter.createAndRegister(configuration)))(_ =>
         F.delay(StackdriverStatsExporter.unregister())
       )
       _ <- Resource.eval(F.delay(PrometheusStatsCollector.createAndRegister())) // Cannot unregister from Prometheus
