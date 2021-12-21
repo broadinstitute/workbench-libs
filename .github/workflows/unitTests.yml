@@ -28,7 +28,7 @@ jobs:
       - name: Compile and check scalafmt
         run: |
           gcloud --quiet components install pubsub-emulator
-          gcloud --quiet beta emulators pubsub start --project="fake_project"
+          gcloud --quiet beta emulators pubsub start --project="broad-dsp-gcr-public"
           sbt -Denv.type=test clean "test:compile" scalafmtCheckAll
 
       - name: Build and test
