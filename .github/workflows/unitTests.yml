@@ -11,6 +11,7 @@ jobs:
   test:
     runs-on: Ubuntu-20.04
     steps:
+      - uses: actions/checkout@v2
       - name: Set up Cloud SDK
         uses: google-github-actions/setup-gcloud@master
         with:
@@ -22,7 +23,6 @@ jobs:
           gcloud --quiet components install pubsub-emulator
           gcloud --quiet beta emulators pubsub start --project="broad-dsp-gcr-public" &
 
-      - uses: actions/checkout@v2
       - name: Setup Scala
         uses: olafurpg/setup-scala@v11
         with:
