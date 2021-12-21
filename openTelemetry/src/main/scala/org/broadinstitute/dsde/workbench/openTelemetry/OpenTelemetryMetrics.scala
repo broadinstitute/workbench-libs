@@ -8,8 +8,10 @@ import fs2.Stream
 import fs2.io.file.Files
 import io.circe.Decoder
 import io.circe.fs2.{byteStreamParser, decoder}
+import io.opencensus.exporter.stats.prometheus.PrometheusStatsCollector
 import io.opencensus.exporter.stats.stackdriver.{StackdriverStatsConfiguration, StackdriverStatsExporter}
 import io.opencensus.exporter.trace.stackdriver.{StackdriverTraceConfiguration, StackdriverTraceExporter}
+import io.prometheus.client.exporter.HTTPServer
 
 import java.nio.file.Path
 import scala.collection.JavaConverters._
@@ -63,6 +65,14 @@ object OpenTelemetryMetrics {
         F.delay(StackdriverStatsExporter.unregister())
       )
     } yield new OpenTelemetryMetricsInterpreter[F](appName)
+
+  def exposeMetricsToPrometheus[F[_]](endpointPort: Int = 9098)(implicit
+    F: Async[F]
+  ): Resource[F, Unit] =
+    for {
+      _ <- Resource.eval(F.delay(PrometheusStatsCollector.createAndRegister())) // Cannot unregister Prometheus
+      _ <- Resource.make(F.delay(new HTTPServer(endpointPort)))(server => F.delay(server.close()))
+    } yield ()
 
   def registerTracing[F[_]](pathToCredential: Path)(implicit
     F: Async[F]

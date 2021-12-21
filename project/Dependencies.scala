@@ -72,7 +72,7 @@ object Dependencies {
   val googleBigQueryNew: ModuleID = "com.google.cloud" % "google-cloud-bigquery" % "2.5.1"
   val google2CloudBilling = "com.google.cloud" % "google-cloud-billing" % "2.1.4"
   val googleStorageTransferService: ModuleID = "com.google.cloud" % "google-cloud-storage-transfer" % "0.2.2"
-  val googleResourceManager =  "com.google.cloud" % "google-cloud-resourcemanager" % "0.118.12-alpha"
+  val googleResourceManager =  "com.google.cloud" % "google-cloud-resourcemanager" % "1.2.0"
   //the below v1 module is a dependency for v2 because it contains the OAuth scopes necessary to created scoped credentials
   val googleContainerV1: ModuleID = "com.google.apis" % "google-api-services-container" % "v1-rev20211014-1.32.1"
 
@@ -92,9 +92,11 @@ object Dependencies {
   val rawlsModel: ModuleID = "org.broadinstitute.dsde" %% "rawls-model" % "0.1-384ab501b" exclude("com.typesafe.scala-logging", "scala-logging_2.13") exclude("com.typesafe.akka", "akka-stream_2.13")
   val openCensusApi: ModuleID = "io.opencensus" % "opencensus-api" % openCensusV
   val openCensusImpl: ModuleID = "io.opencensus" % "opencensus-impl" % openCensusV
+  val openCensusStatsPrometheus: ModuleID = "io.opencensus" % "opencensus-exporter-stats-prometheus" % openCensusV
   val openCensusStatsStackDriver: ModuleID = "io.opencensus" % "opencensus-exporter-stats-stackdriver" % openCensusV
   val openCensusTraceStackDriver: ModuleID = "io.opencensus" % "opencensus-exporter-trace-stackdriver" % openCensusV
   val openCensusTraceLogging: ModuleID = "io.opencensus" % "opencensus-exporter-trace-logging" % openCensusV
+  val prometheusServer: ModuleID = "io.prometheus" % "simpleclient_httpserver" % "0.12.0"
   val sealerate: ModuleID = "ca.mrvisser" %% "sealerate" % "0.0.6"
   val scalaCache = "com.github.cb372" %% "scalacache-caffeine" % "1.0.0-M6"
 
@@ -192,8 +194,10 @@ object Dependencies {
     log4cats,
     openCensusApi,
     openCensusImpl,
+    openCensusStatsPrometheus,
     openCensusStatsStackDriver,
-    openCensusTraceStackDriver
+    openCensusTraceStackDriver,
+    prometheusServer
   )
 
   val errorReportingDependencies = List(
