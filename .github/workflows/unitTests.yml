@@ -28,7 +28,7 @@ jobs:
       - name: Start pubsub emulator
         run: |
           gcloud --quiet components install pubsub-emulator
-          gcloud --quiet beta emulators pubsub start --project="broad-dsp-gcr-public"
+          gcloud --quiet beta emulators pubsub start --project="broad-dsp-gcr-public" &
 
       - name: Compile and check scalafmt
         run: |
