@@ -11,16 +11,14 @@ jobs:
   test:
     runs-on: Ubuntu-20.04
     steps:
-      - uses: actions/checkout@v2
-      - name: Set up pubsub emulator
-        run: |
-          docker run --name pubsub-emulator -d -p 8085:8085 -ti google/cloud-sdk:290.0.1 gcloud beta emulators pubsub start --host-port 0.0.0.0:8085
+      - id: auth
+        uses: google-github-actions/auth@v0
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+          create_credentials_file: true
 
       - name: Set up Cloud SDK
-        uses: google-github-actions/setup-gcloud@master
-        with:
-          service_account_key: ${{ secrets.GCP_SA_KEY }}
-          export_default_credentials: true
+        uses: google-github-actions/setup-gcloud@v0.3.0
 
       - name: Setup Scala
         uses: olafurpg/setup-scala@v10
@@ -28,7 +26,11 @@ jobs:
           java-version: "adopt@1.11"
 
       - name: Compile and check scalafmt
-        run: sbt -Denv.type=test clean "test:compile" scalafmtCheckAll
+        run: |
+          gcloud components install pubsub-emulator
+          gcloud components update
+          gcloud beta emulators pubsub start --project="fake_project"
+          sbt -Denv.type=test clean "test:compile" scalafmtCheckAll
 
       - name: Build and test
         run: sbt -Dfile.encoding=UTF-8 clean coverage +test coverageReport
