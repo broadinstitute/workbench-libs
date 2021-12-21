@@ -26,16 +26,12 @@ jobs:
           gcloud --quiet beta emulators pubsub start --project="broad-dsp-gcr-public" &
 
       - name: Setup Scala
-        uses: olafurpg/setup-scala@v10
+        uses: olafurpg/setup-scala@v11
         with:
           java-version: "adopt@1.11"
-
-      - name: Compile and check scalafmt
         run: |
           sbt -Denv.type=test clean "test:compile" scalafmtCheckAll
-
-      - name: Build and test
-        run: sbt -Dfile.encoding=UTF-8 clean coverage +test coverageReport
+          sbt -Dfile.encoding=UTF-8 clean coverage +test coverageReport
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v1
