@@ -9,7 +9,7 @@ Breaking Changes:
 ### Added
 - Add `exposeMetricsToPrometheus`
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-opentelemetry" % "0.2-TRAVIS-REPLACE-ME"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-opentelemetry" % "0.2-21c84d8"`
 
 ## 0.1
 

@@ -27,7 +27,7 @@ Dependency Upgrades:
 | selenium-3-141 |   3.2.9.0   |   3.2.10.0 |
 | client-java |   12.0.0   |   14.0.0 |
 
-SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.23-TRAVIS-REPLACE-ME"`
+SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.23-21c84d8"`
 
 ## 0.22
 Breaking Changes:
