@@ -25,10 +25,13 @@ jobs:
         with:
           java-version: "adopt@1.11"
 
-      - name: Compile and check scalafmt
+      - name: Start pubsub emulator
         run: |
           gcloud --quiet components install pubsub-emulator
           gcloud --quiet beta emulators pubsub start --project="broad-dsp-gcr-public"
+
+      - name: Compile and check scalafmt
+        run: |
           sbt -Denv.type=test clean "test:compile" scalafmtCheckAll
 
       - name: Build and test
