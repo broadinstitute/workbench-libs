@@ -20,15 +20,15 @@ jobs:
       - name: Set up Cloud SDK
         uses: google-github-actions/setup-gcloud@v0.3.0
 
-      - name: Setup Scala
-        uses: olafurpg/setup-scala@v10
-        with:
-          java-version: "adopt@1.11"
-
       - name: Start pubsub emulator
         run: |
           gcloud --quiet components install pubsub-emulator
           gcloud --quiet beta emulators pubsub start --project="broad-dsp-gcr-public" &
+
+      - name: Setup Scala
+        uses: olafurpg/setup-scala@v10
+        with:
+          java-version: "adopt@1.11"
 
       - name: Compile and check scalafmt
         run: |
