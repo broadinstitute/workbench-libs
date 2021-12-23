@@ -11,7 +11,7 @@ Dependency Upgrades:
 | Dependency   |      Old Version      |  New Version |
 |----------|:-------------:|------:|
 | logstash-logback-encoder |  6.6 | 7.0 |
-| jackson-module-scala |    2.12.4   |   2.13.0 |
+| jackson-module-scala |    2.12.4   |   2.13.1 |
 | akka |    2.6.16   |   2.6.17 |
 | fs2-io |   3.1.3   |   3.1.6 |
 | google-cloud-nio |   0.123.10   |   0.123.16 |
