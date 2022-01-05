@@ -12,11 +12,16 @@ jobs:
     runs-on: Ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
-      - name: Set up Cloud SDK
-        uses: google-github-actions/setup-gcloud@master
+
+      - name: Auth with Google Cloud Platform
+      - id: auth
+        uses: google-github-actions/auth@v0
         with:
-          service_account_key: ${{ secrets.GCP_SA_KEY }}
-          export_default_credentials: true
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+          create_credentials_file: true
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v0
 
       - name: Start pubsub emulator
         run: |
