@@ -7,6 +7,9 @@ Added:
 - Support for creating and monitoring Google Cloud Storage Transfer jobs between Cloud Storage buckets.
 - Legacy Cloud Storage roles to `GoogleStorageService` 
 
+Changed:
+- Set `goog-compute-%d` threads as daemon so that they won't prevent JVM from shutdown
+
 Dependency Upgrades:
 | Dependency   |      Old Version      |  New Version |
 |----------|:-------------:|------:|
@@ -27,7 +30,7 @@ Dependency Upgrades:
 | selenium-3-141 |   3.2.9.0   |   3.2.10.0 |
 | client-java |   12.0.0   |   14.0.0 |
 
-SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.23-21c84d8"`
+SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.23-TRAVIS-REPLACE-ME"`
 
 ## 0.22
 Breaking Changes:
