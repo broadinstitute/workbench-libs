@@ -9,6 +9,7 @@ Added:
 
 Changed:
 - Set `goog-compute-%d` threads as daemon so that they won't prevent JVM from shutdown
+- Set `goog-publisher-%d` and `goog-subscriber-%d` threads as daemon so that they won't prevent JVM from shutdown
 
 Dependency Upgrades:
 | Dependency   |      Old Version      |  New Version |
