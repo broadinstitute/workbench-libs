@@ -9,7 +9,7 @@ Breaking Changes:
 Dependency Upgrades:
 | Dependency   |      Old Version      |  New Version |
 |----------|:-------------:|------:|
-| google-cloud-errorreporting |  0.120.42-beta | 0.122.7-beta |
+| google-cloud-errorreporting |  0.120.42-beta | 0.122.9-beta |
 
 SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-error-reporting" % "0.2-21c84d8"`
 

@@ -1,9 +1,9 @@
 import sbt._
 
 object Dependencies {
-  val akkaV         = "2.6.17"
+  val akkaV         = "2.6.18"
   val akkaHttpV     = "10.2.7"
-  val jacksonV      = "2.13.0"
+  val jacksonV      = "2.13.1"
   val googleV       = "1.22.0"
   val scalaLoggingV = "3.9.4"
   val scalaTestV    = "3.2.10"
@@ -36,10 +36,10 @@ object Dependencies {
   val bouncyCastleProviderExt: ModuleID = "org.bouncycastle" % "bcprov-ext-jdk15on" % bouncyCastleVersion
   val bouncyCastleProvider: ModuleID = "org.bouncycastle" % "bcprov-jdk15on" % bouncyCastleVersion
 
-  val catsEffect: ModuleID = "org.typelevel" %% "cats-effect" % "3.3.1"
+  val catsEffect: ModuleID = "org.typelevel" %% "cats-effect" % "3.3.3"
 
   // metrics-scala transitively pulls in io.dropwizard.metrics:metrics-core
-  val metricsScala: ModuleID =      "nl.grons"              %% "metrics4-scala"    % "4.1.19"
+  val metricsScala: ModuleID =      "nl.grons"              %% "metrics4-scala"    % "4.2.8"
   val metricsStatsd: ModuleID =     "com.readytalk"         %  "metrics3-statsd"  % "4.2.0"
 
   val googleApiClient: ModuleID =            "com.google.api-client" % "google-api-client"                        % googleV
@@ -69,7 +69,7 @@ object Dependencies {
   val googleDataproc: ModuleID =    "com.google.cloud" % "google-cloud-dataproc" % "2.3.0"
   val googleContainer: ModuleID = "com.google.cloud" % "google-cloud-container" % "2.3.0"
   val kubernetesClient: ModuleID = "io.kubernetes" % "client-java" % "14.0.0"
-  val googleBigQueryNew: ModuleID = "com.google.cloud" % "google-cloud-bigquery" % "2.5.1"
+  val googleBigQueryNew: ModuleID = "com.google.cloud" % "google-cloud-bigquery" % "2.6.0"
   val google2CloudBilling = "com.google.cloud" % "google-cloud-billing" % "2.1.4"
   val googleStorageTransferService: ModuleID = "com.google.cloud" % "google-cloud-storage-transfer" % "0.2.2"
   val googleResourceManager =  "com.google.cloud" % "google-cloud-resourcemanager" % "1.2.0"
@@ -88,7 +88,7 @@ object Dependencies {
   val http4sBlazeClient = "org.http4s" %% "http4s-blaze-client" % http4sVersion
   val http4sDsl = "org.http4s"      %% "http4s-dsl"          % http4sVersion
 
-  val fs2Io: ModuleID = "co.fs2" %% "fs2-io" % "3.2.3"
+  val fs2Io: ModuleID = "co.fs2" %% "fs2-io" % "3.2.4"
   val rawlsModel: ModuleID = "org.broadinstitute.dsde" %% "rawls-model" % "0.1-384ab501b" exclude("com.typesafe.scala-logging", "scala-logging_2.13") exclude("com.typesafe.akka", "akka-stream_2.13")
   val openCensusApi: ModuleID = "io.opencensus" % "opencensus-api" % openCensusV
   val openCensusImpl: ModuleID = "io.opencensus" % "opencensus-impl" % openCensusV
@@ -202,7 +202,7 @@ object Dependencies {
 
   val errorReportingDependencies = List(
     catsEffect,
-    "com.google.cloud" % "google-cloud-errorreporting" % "0.122.7-beta"
+    "com.google.cloud" % "google-cloud-errorreporting" % "0.122.9-beta"
   )
 
   val util2Dependencies = commonDependencies ++ List(

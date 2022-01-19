@@ -16,7 +16,7 @@ Dependency Upgrades:
 |----------|:-------------:|------:|
 | logstash-logback-encoder |  6.6 | 7.0 |
 | jackson-module-scala |    2.12.4   |   2.13.0 |
-| akka |    2.6.16   |   2.6.17 |
+| akka |    2.6.16   |   2.6.18 |
 | fs2-io |   3.1.3   |   3.1.6 |
 | google-cloud-nio |   0.123.10   |   0.123.16 |
 | google-cloud-compute |   1.4.2-alpha   |   1.4.4-alpha |
@@ -30,8 +30,9 @@ Dependency Upgrades:
 | mockito-3-4 |   3.2.9.0   |   3.2.10.0 |
 | selenium-3-141 |   3.2.9.0   |   3.2.10.0 |
 | client-java |   12.0.0   |   14.0.0 |
+| cats-effect |   3.3.1   |   3.3.2 |
 
-SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.23-3b927f8"`
+SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.23-TRAVIS-REPLACE-ME"`
 
 ## 0.22
 Breaking Changes:
