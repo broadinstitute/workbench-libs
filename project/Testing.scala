@@ -31,10 +31,10 @@ object Testing {
         .invoke(null, "ROOT")
     ),
     Test / testOptions ++= Seq(Tests.Filter(s => !isIntegrationTest(s))),
-    Test / parallelExecution  := false
+    Test / parallelExecution := false
   )
 
-  val noTestSettings = Seq(Test / test  := {})
+  val noTestSettings = Seq(Test / test := {})
 
   implicit class ProjectTestSettings(val project: Project) extends AnyVal {
     def withTestSettings: Project = project
