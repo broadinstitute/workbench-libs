@@ -20,11 +20,13 @@ trait MethodFixtures extends ExceptionHandling with RandomUtil { self: TestSuite
       case t: Exception =>
         logger.error("MethodFixtures.withMethod Exception: ", t)
         throw t // end test execution
-    } finally if (cleanUp) {
-      try for (i <- 1 to numSnapshots)
-        Orchestration.methods.redact(method.methodNamespace, methodName, i)
-      catch nonFatalAndLog(s"Error redacting method $method.methodName/$methodName")
-    }
+    } finally
+      if (cleanUp) {
+        try
+          for (i <- 1 to numSnapshots)
+            Orchestration.methods.redact(method.methodNamespace, methodName, i)
+        catch nonFatalAndLog(s"Error redacting method $method.methodName/$methodName")
+      }
 
   }
 

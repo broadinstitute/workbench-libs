@@ -128,9 +128,11 @@ trait WebBrowserSpec extends WebBrowserUtil with ExceptionHandling with LazyLogg
     val service = new ChromeDriverService.Builder().usingDriverExecutable(chromeDriverFile).usingAnyFreePort().build()
     service.start()
     implicit val driver: RemoteWebDriver = startRemoteWebdriver(service.getUrl, options)
-    try withScreenshot {
-      testCode(driver)
-    } finally {
+    try
+      withScreenshot {
+        testCode(driver)
+      }
+    finally {
       try driver.close()
       catch nonFatalAndLog
       try driver.quit()
@@ -142,9 +144,11 @@ trait WebBrowserSpec extends WebBrowserUtil with ExceptionHandling with LazyLogg
 
   private def runDockerChrome(options: ChromeOptions, testCode: WebDriver => Any): Unit = {
     implicit val driver: RemoteWebDriver = startRemoteWebdriver(new URL(chromeDriverHost), options)
-    try withScreenshot {
-      testCode(driver)
-    } finally {
+    try
+      withScreenshot {
+        testCode(driver)
+      }
+    finally {
       try driver.close()
       catch nonFatalAndLog
       try driver.quit()
