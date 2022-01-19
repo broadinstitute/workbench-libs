@@ -1,7 +1,7 @@
 import sbt._
 
 object Dependencies {
-  val akkaV         = "2.6.17"
+  val akkaV         = "2.6.18"
   val akkaHttpV     = "10.2.7"
   val jacksonV      = "2.13.0"
   val googleV       = "1.22.0"
@@ -36,7 +36,7 @@ object Dependencies {
   val bouncyCastleProviderExt: ModuleID = "org.bouncycastle" % "bcprov-ext-jdk15on" % bouncyCastleVersion
   val bouncyCastleProvider: ModuleID = "org.bouncycastle" % "bcprov-jdk15on" % bouncyCastleVersion
 
-  val catsEffect: ModuleID = "org.typelevel" %% "cats-effect" % "3.3.1"
+  val catsEffect: ModuleID = "org.typelevel" %% "cats-effect" % "3.3.3"
 
   // metrics-scala transitively pulls in io.dropwizard.metrics:metrics-core
   val metricsScala: ModuleID =      "nl.grons"              %% "metrics4-scala"    % "4.1.19"
@@ -202,7 +202,7 @@ object Dependencies {
 
   val errorReportingDependencies = List(
     catsEffect,
-    "com.google.cloud" % "google-cloud-errorreporting" % "0.122.7-beta"
+    "com.google.cloud" % "google-cloud-errorreporting" % "0.122.9-beta"
   )
 
   val util2Dependencies = commonDependencies ++ List(
