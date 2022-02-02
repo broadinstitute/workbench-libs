@@ -53,10 +53,9 @@ class GoogleStorageServiceSpec extends AsyncFlatSpec with Matchers with Workbenc
 
     for {
       _ <- storageService
-        .removeIamPolicy(GcsBucketName("test-bucket-name"),
-                         Map(
-                           StorageRole.ObjectAdmin -> NonEmptyList.one(idToRemove)
-                         )
+        .removeIamPolicy(
+          GcsBucketName("test-bucket-name"),
+          Map(StorageRole.ObjectAdmin -> NonEmptyList.one(idToRemove))
         )
         .compile
         .drain
