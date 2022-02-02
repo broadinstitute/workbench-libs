@@ -15,7 +15,7 @@ import scala.collection.convert.ImplicitConversions._
 
 class GoogleStorageServiceSpec extends AsyncFlatSpec with Matchers with WorkbenchTestSuite {
 
-  "removeIamPolicy" should "remove the specified roles from the IAM policy" in ioAssertion {
+  "removeIamPolicy" should "remove the specified roles from the iam policy" in ioAssertion {
     val idToRemove = Identity.group("kgb@mail.ru")
     val idsToKeep = List(
       Identity.user("simply.sausages@hotmail.com"),
@@ -43,9 +43,9 @@ class GoogleStorageServiceSpec extends AsyncFlatSpec with Matchers with Workbenc
         fs2.Stream.eval {
           val objectAdmins = roles(StorageRole.ObjectAdmin).toList
           if (objectAdmins.contains(idToRemove))
-            IO.raiseError(new AssertionError(s"The role was not removed"))
+            IO.raiseError(new AssertionError(s"The id-to-remove was not removed from the iam policy"))
           else if (!objectAdmins.containsAll(idsToKeep))
-            IO.raiseError(new AssertionError(s"The role was not removed"))
+            IO.raiseError(new AssertionError(s"The ids-to-keep were missing from the iam policy"))
           else
             IO.unit
         }
