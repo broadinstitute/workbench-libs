@@ -209,6 +209,13 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
       parseResponseAs[ManagedGroupWithMembers](getRequest(apiUrl(s"api/groups/$groupName")))
   }
 
+  object termsOfService {
+    def accept(url: String)(implicit token: AuthToken): Unit = {
+      logger.info(s"accepting ToS")
+      postRequest(apiUrl("tos/accept"), url)
+    }
+  }
+
   /*
    *  Workspace requests
    */
