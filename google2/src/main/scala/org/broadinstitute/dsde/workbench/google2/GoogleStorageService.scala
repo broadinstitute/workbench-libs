@@ -10,14 +10,17 @@ import com.google.auth.Credentials
 import com.google.auth.oauth2.{AccessToken, GoogleCredentials}
 import com.google.cloud.storage.BucketInfo.LifecycleRule
 import com.google.cloud.storage.{Acl, Blob, BlobId, Bucket, StorageOptions}
-import com.google.cloud.{Identity, Policy}
+import com.google.cloud.{Identity, Policy, Role}
 import fs2.{Pipe, Stream}
 import com.google.cloud.storage.Storage.{BucketGetOption, BucketSourceOption}
+import org.broadinstitute.dsde.workbench.google2.GoogleStorageService.policyToStorageRoles
+import org.broadinstitute.dsde.workbench.google2.Implicits.PolicyToStorageRoles
 import org.typelevel.log4cats.StructuredLogger
 import org.broadinstitute.dsde.workbench.google2.util.RetryPredicates.standardGoogleRetryConfig
 import org.broadinstitute.dsde.workbench.model.TraceId
 import org.broadinstitute.dsde.workbench.model.google.{GcsBucketName, GcsObjectName, GoogleProject}
 
+import scala.collection.convert.ImplicitConversions._
 import scala.language.higherKinds
 
 /**
@@ -289,6 +292,25 @@ trait GoogleStorageService[F[_]] {
                    traceId: Option[TraceId] = None,
                    retryConfig: RetryConfig = standardGoogleRetryConfig
   ): Stream[F, Policy]
+
+  /**
+   * Remove the specified roles from the bucket IAM policy
+   */
+  def removeIamPolicy(bucketName: GcsBucketName,
+                      rolesToRemove: Map[StorageRole, NonEmptyList[Identity]],
+                      traceId: Option[TraceId] = None,
+                      retryConfig: RetryConfig = standardGoogleRetryConfig
+                     ): Stream[F, Unit] =
+    for {
+      currentPolicy <- getIamPolicy(bucketName, traceId, retryConfig)
+      newRoles = rolesToRemove
+        .foldLeft(currentPolicy.toBuilder) { (builder, role) =>
+          builder.removeIdentity(Role.of(role._1.name), role._2.head, role._2.tail: _*)
+        }
+        .build
+        .asStorageRoles
+      _ <- overrideIamPolicy(bucketName, newRoles, traceId, retryConfig)
+    } yield ()
 }
 
 object GoogleStorageService {
@@ -367,6 +389,31 @@ object StorageRole {
   }
   final case class CustomStorageRole(roleId: String) extends StorageRole {
     def name: String = roleId
+  }
+
+  final def fromString(roleId: String): StorageRole =
+    List(
+      ObjectCreator,
+      ObjectViewer,
+      ObjectAdmin,
+      StorageAdmin,
+      LegacyBucketReader,
+      LegacyBucketWriter
+    )
+      .find(_.name == roleId)
+      .getOrElse(CustomStorageRole(roleId))
+}
+
+object Implicits {
+  implicit class PolicyToStorageRoles(policy: Policy) {
+    final def asStorageRoles: Map[StorageRole, NonEmptyList[Identity]] = policy
+      .getBindings
+      .foldLeft(Map.newBuilder[StorageRole, NonEmptyList[Identity]]) { (builder, binding) =>
+        NonEmptyList.fromList(binding._2.toList).map { identities =>
+          builder += (StorageRole.fromString(binding._1.getValue) -> identities)
+        }.getOrElse(builder)
+      }
+      .result
   }
 }
 
