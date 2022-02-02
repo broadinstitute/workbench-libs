@@ -13,7 +13,6 @@ import com.google.cloud.storage.{Acl, Blob, BlobId, Bucket, StorageOptions}
 import com.google.cloud.{Identity, Policy, Role}
 import fs2.{Pipe, Stream}
 import com.google.cloud.storage.Storage.{BucketGetOption, BucketSourceOption}
-import org.broadinstitute.dsde.workbench.google2.GoogleStorageService.policyToStorageRoles
 import org.broadinstitute.dsde.workbench.google2.Implicits.PolicyToStorageRoles
 import org.typelevel.log4cats.StructuredLogger
 import org.broadinstitute.dsde.workbench.google2.util.RetryPredicates.standardGoogleRetryConfig
@@ -300,7 +299,7 @@ trait GoogleStorageService[F[_]] {
                       rolesToRemove: Map[StorageRole, NonEmptyList[Identity]],
                       traceId: Option[TraceId] = None,
                       retryConfig: RetryConfig = standardGoogleRetryConfig
-                     ): Stream[F, Unit] =
+  ): Stream[F, Unit] =
     for {
       currentPolicy <- getIamPolicy(bucketName, traceId, retryConfig)
       newRoles = rolesToRemove
@@ -406,12 +405,14 @@ object StorageRole {
 
 object Implicits {
   implicit class PolicyToStorageRoles(policy: Policy) {
-    final def asStorageRoles: Map[StorageRole, NonEmptyList[Identity]] = policy
-      .getBindings
+    final def asStorageRoles: Map[StorageRole, NonEmptyList[Identity]] = policy.getBindings
       .foldLeft(Map.newBuilder[StorageRole, NonEmptyList[Identity]]) { (builder, binding) =>
-        NonEmptyList.fromList(binding._2.toList).map { identities =>
-          builder += (StorageRole.fromString(binding._1.getValue) -> identities)
-        }.getOrElse(builder)
+        NonEmptyList
+          .fromList(binding._2.toList)
+          .map { identities =>
+            builder += (StorageRole.fromString(binding._1.getValue) -> identities)
+          }
+          .getOrElse(builder)
       }
       .result
   }
