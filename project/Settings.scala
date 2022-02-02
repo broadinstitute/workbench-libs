@@ -157,7 +157,7 @@ object Settings {
   val google2Settings = cross212and213 ++ commonSettings ++ List(
     name := "workbench-google2",
     libraryDependencies ++= google2Dependencies,
-    version := createVersion("0.23")
+    version := createVersion("0.24")
   ) ++ publishSettings
 
   val openTelemetrySettings = cross212and213 ++ commonSettings ++ List(
