@@ -86,7 +86,7 @@ Workbench utility libraries, built for Scala 2.12 and 2.13. You can find the ful
 
 Contains utility functions for publishing custom metrics using openTelemetry (openCensus and openTracing). 
 
-Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-opentelemetry" % "0.2-21c84d8"`
+Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-opentelemetry" % "0.2-TRAVIS-REPLACE-ME"`
 
 [Changelog](openTelemetry/CHANGELOG.md)
 
