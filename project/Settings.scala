@@ -163,7 +163,7 @@ object Settings {
   val openTelemetrySettings = cross212and213 ++ commonSettings ++ List(
     name := "workbench-openTelemetry",
     libraryDependencies ++= openTelemetryDependencies,
-    version := createVersion("0.2")
+    version := createVersion("0.3")
   ) ++ publishSettings
 
   val errorReportingSettings = cross212and213 ++ commonSettings ++ List(
