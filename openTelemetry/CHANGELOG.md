@@ -2,6 +2,13 @@
 
 This file documents changes to the `workbench-openTelemetry` library, including notes on how to upgrade to new versions.
 
+## 0.3
+Breaking Changes
+
+- Remove stackdriver stats exporter
+
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-opentelemetry" % "0.3-TRAVIS-REPLACE-ME"`
+
 ## 0.2
 Breaking Changes:
 - Upgrade cats-effect to `3.2.3`(see [migration guide](https://typelevel.org/cats-effect/docs/migration-guide#run-the-scalafix-migration)) and a few other dependencies

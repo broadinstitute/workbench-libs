@@ -12,7 +12,7 @@ class OpenTelemetryMetricsSpec extends AnyFlatSpecLike with Matchers with Workbe
   "the OpenTelemetryMetrics object" should "run a Prometheus endpoint" in {
     val port = 9098
     val res = OpenTelemetryMetrics
-      .exposeMetricsToPrometheus[IO](port)
+      .resource[IO]("test", port)
       .use(_ =>
         IO {
           val connection = new URL(s"http://localhost:${port}/metrics")
