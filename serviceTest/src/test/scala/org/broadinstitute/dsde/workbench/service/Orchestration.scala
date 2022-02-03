@@ -212,7 +212,7 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
   object termsOfService {
     def accept(url: String)(implicit token: AuthToken): Unit = {
       logger.info(s"accepting ToS")
-      postRequest(apiUrl("register/termsofservice"), url)
+      postRequest(apiUrl("register/user/v1/termsofservice"), url)
     }
   }
 
