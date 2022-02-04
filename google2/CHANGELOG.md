@@ -5,7 +5,9 @@ This file documents changes to the `workbench-google2` library, including notes 
 ## 0.23
 Added:
 - Support for creating and monitoring Google Cloud Storage Transfer jobs between Cloud Storage buckets.
-- Legacy Cloud Storage roles to `GoogleStorageService` 
+- Legacy Cloud Storage roles to `GoogleStorageService`
+- `GoogleStorageService/removeIamPolicy` to remove the specified roles from the bucket IAM policy.
+- Extension method `asStorageRoles` on `Policy` to convert to `StorageRole`s map
 
 Changed:
 - Set `goog-compute-%d` threads as daemon so that they won't prevent JVM from shutdown
@@ -33,7 +35,7 @@ Dependency Upgrades:
 | client-java |   12.0.0   |   14.0.0 |
 | cats-effect |   3.3.1   |   3.3.2 |
 
-SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.23-8f668ec"`
+SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.23-TRAVIS-REPLACE-ME"`
 
 ## 0.22
 Breaking Changes:
