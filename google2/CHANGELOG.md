@@ -2,15 +2,12 @@
 
 This file documents changes to the `workbench-google2` library, including notes on how to upgrade to new versions.
 
-## 0.24
-Added
-- `GoogleStorageService/removeIamPolicy` to remove the specified roles from the bucket IAM policy.
-- Extension method `asStorageRoles` on `Policy` to convert to `StorageRole`s map
-
 ## 0.23
 Added:
 - Support for creating and monitoring Google Cloud Storage Transfer jobs between Cloud Storage buckets.
-- Legacy Cloud Storage roles to `GoogleStorageService` 
+- Legacy Cloud Storage roles to `GoogleStorageService`
+- `GoogleStorageService/removeIamPolicy` to remove the specified roles from the bucket IAM policy.
+- Extension method `asStorageRoles` on `Policy` to convert to `StorageRole`s map
 
 Changed:
 - Set `goog-compute-%d` threads as daemon so that they won't prevent JVM from shutdown
