@@ -33,7 +33,7 @@ Dependency Upgrades:
 | client-java |   12.0.0   |   14.0.0 |
 | cats-effect |   3.3.1   |   3.3.2 |
 
-SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.23-TRAVIS-REPLACE-ME"`
+SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.23-8f668ec"`
 
 ## 0.22
 Breaking Changes:
