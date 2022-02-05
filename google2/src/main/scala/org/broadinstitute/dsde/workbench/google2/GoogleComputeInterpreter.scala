@@ -159,7 +159,7 @@ private[google2] class GoogleComputeInterpreter[F[_]: Parallel: StructuredLogger
     instanceName: InstanceName,
     metadataToAdd: Map[String, String],
     metadataToRemove: Set[String]
-  )(implicit ev: Ask[F, TraceId]): F[Unit] = {
+  )(implicit ev: Ask[F, TraceId]): F[Option[Operation]] = {
     val readAndUpdate = for {
       instanceOpt <- recoverF(F.delay(instanceClient.get(project.value, zone.value, instanceName.value)),
                               whenStatusCode(404)
@@ -180,7 +180,7 @@ private[google2] class GoogleComputeInterpreter[F[_]: Parallel: StructuredLogger
         Items.newBuilder().setKey(k).setValue(v).build()
       }
       // Only make google call if there is a change
-      _ <-
+      op <-
         if (!newItems.equals(curItems)) {
           F.delay(
             instanceClient.setMetadata(project.value,
@@ -192,9 +192,9 @@ private[google2] class GoogleComputeInterpreter[F[_]: Parallel: StructuredLogger
                                          .addAllItems(newItems.asJava)
                                          .build
             )
-          ).void
-        } else F.unit
-    } yield ()
+          ).map(op => op.some)
+        } else F.pure(none[Operation])
+    } yield op
 
     // block and retry the read-modify-write as an atomic unit
     retryF(
