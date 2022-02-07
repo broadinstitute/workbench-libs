@@ -210,9 +210,16 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
   }
 
   object termsOfService {
+    val termsOfServiceBasePath = "register/user/v1/termsofservice"
+
     def accept(url: String)(implicit token: AuthToken): Unit = {
       logger.info(s"accepting ToS")
-      postRequest(apiUrl("register/user/v1/termsofservice"), url)
+      postRequest(apiUrl(termsOfServiceBasePath), url)
+    }
+
+    def status()(implicit token: AuthToken): Option[Boolean] = {
+      logger.info(s"getting ToS status")
+      parseResponseOption[Boolean](getRequest(apiUrl(s"${termsOfServiceBasePath}/status")))
     }
   }
 
