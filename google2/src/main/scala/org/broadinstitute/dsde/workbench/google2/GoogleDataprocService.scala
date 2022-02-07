@@ -80,6 +80,7 @@ trait GoogleDataprocService[F[_]] {
 object GoogleDataprocService {
   def resource[F[_]: StructuredLogger: Async: Parallel](
     googleComputeService: GoogleComputeService[F],
+    computePollOperation: ComputePollOperation[F],
     pathToCredential: String,
     blockerBound: Semaphore[F],
     supportedRegions: Set[RegionName],
@@ -88,11 +89,18 @@ object GoogleDataprocService {
     for {
       credential <- credentialResource(pathToCredential)
       scopedCredential = credential.createScoped(Seq(CLOUD_PLATFORM_SCOPE).asJava)
-      interpreter <- fromCredential(googleComputeService, scopedCredential, supportedRegions, blockerBound, retryConfig)
+      interpreter <- fromCredential(googleComputeService,
+                                    computePollOperation,
+                                    scopedCredential,
+                                    supportedRegions,
+                                    blockerBound,
+                                    retryConfig
+      )
     } yield interpreter
 
   def resourceFromUserCredential[F[_]: StructuredLogger: Async: Parallel](
     googleComputeService: GoogleComputeService[F],
+    computePollOperation: ComputePollOperation[F],
     pathToCredential: String,
     blockerBound: Semaphore[F],
     supportedRegions: Set[RegionName],
@@ -101,11 +109,18 @@ object GoogleDataprocService {
     for {
       credential <- userCredentials(pathToCredential)
       scopedCredential = credential.createScoped(Seq(CLOUD_PLATFORM_SCOPE).asJava)
-      interpreter <- fromCredential(googleComputeService, scopedCredential, supportedRegions, blockerBound, retryConfig)
+      interpreter <- fromCredential(googleComputeService,
+                                    computePollOperation,
+                                    scopedCredential,
+                                    supportedRegions,
+                                    blockerBound,
+                                    retryConfig
+      )
     } yield interpreter
 
   def fromCredential[F[_]: StructuredLogger: Async: Parallel](
     googleComputeService: GoogleComputeService[F],
+    computePollOperation: ComputePollOperation[F],
     googleCredentials: GoogleCredentials,
     supportedRegions: Set[RegionName],
     blockerBound: Semaphore[F],
@@ -128,7 +143,12 @@ object GoogleDataprocService {
 
     for {
       clients <- regionalSettings
-    } yield new GoogleDataprocInterpreter[F](clients.toMap, googleComputeService, blockerBound, retryConfig)
+    } yield new GoogleDataprocInterpreter[F](clients.toMap,
+                                             googleComputeService,
+                                             computePollOperation,
+                                             blockerBound,
+                                             retryConfig
+    )
   }
 }
 
