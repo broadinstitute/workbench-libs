@@ -15,7 +15,7 @@ SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test"
 - `CleanUp.runCodeWithCleanup`, which underlies `withWorkspace`:
   - Wraps the thrown Exceptions to ensure logging when cleanup fails regardless of whether the test passed or failed
 - `RestClient` sendRequest function (to send any request with exponential retries for testing) is now public
-- Add `acceptTermsOfService` Orch endpoint
+- Add `acceptTermsOfService` and `getTermsOfServiceStatus` Orch endpoints
 
 ## 0.20
 Changed:
