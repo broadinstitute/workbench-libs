@@ -96,7 +96,7 @@ object Dependencies {
   val openCensusStatsStackDriver: ModuleID = "io.opencensus" % "opencensus-exporter-stats-stackdriver" % openCensusV
   val openCensusTraceStackDriver: ModuleID = "io.opencensus" % "opencensus-exporter-trace-stackdriver" % openCensusV
   val openCensusTraceLogging: ModuleID = "io.opencensus" % "opencensus-exporter-trace-logging" % openCensusV
-  val prometheusServer: ModuleID = "io.prometheus" % "simpleclient_httpserver" % "0.12.0"
+  val prometheusServer: ModuleID = "io.prometheus" % "simpleclient_httpserver" % "0.15.0"
   val sealerate: ModuleID = "ca.mrvisser" %% "sealerate" % "0.0.6"
   val scalaCache = "com.github.cb372" %% "scalacache-caffeine" % "1.0.0-M6"
 
