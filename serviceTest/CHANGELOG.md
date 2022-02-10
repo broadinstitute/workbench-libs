@@ -7,6 +7,7 @@ This file documents changes to the `workbench-service-test` library, including n
 Breaking changes:
 - Removed support for GPAlloc. All GPAlloc-related functionality has been removed, excepting:
 - `withCleanBillingProject` - now requires a billing account to be specified.
+- BillingFixtures is now an `object` and mixin support is removed.
 
 SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "1.0-TRAVIS-REPLACE-ME"`
 

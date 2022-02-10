@@ -11,12 +11,7 @@ import org.broadinstitute.dsde.workbench.service.Orchestration
 
 import java.util.UUID
 
-/**
- * Mix in this trait to allow your test to access billing projects managed by the GPAlloc system, or create new
- * billing projects of your own.  Using GPAlloc will generally be much faster, limit the creation of billing projects
- * to those tests which truly require them.
- */
-trait BillingFixtures {
+object BillingFixtures {
 
   /**
    * Create a new v2 billing project for the activation of `testCode`. The billing project will be
