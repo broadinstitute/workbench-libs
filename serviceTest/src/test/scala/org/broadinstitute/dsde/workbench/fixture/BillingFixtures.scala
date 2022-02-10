@@ -19,17 +19,17 @@ object BillingFixtures {
    *
    * @param billingAccountName Name of Google billing account the new billing project will bill to.
    * @param projectNamePrefix  Prefix for billing project name. [default: "tmp-billing-project-"]
-   * @param ownerEmails        List of billing project owner email addresses. [default: empty]
-   * @param userEmails         List of billing project user email addresses [default: empty]
+   * @param owners             List of billing project owner email addresses. [default: empty]
+   * @param users              List of billing project user email addresses [default: empty]
    * @param testCode           Code to exercise with new billing project
    * @param creatorAuthToken   Auth token of billing project creator
    */
   def withCleanBillingProject[A](billingAccountName: String,
                                  projectNamePrefix: String = "tmp-billing-project-",
-                                 ownerEmails: List[String] = List.empty,
-                                 userEmails: List[String] = List.empty
+                                 owners: List[String] = List.empty,
+                                 users: List[String] = List.empty
   )(testCode: String => A)(implicit creatorAuthToken: AuthToken): A =
-    withCleanBillingProjectF(billingAccountName, projectNamePrefix, ownerEmails, userEmails) { billingProject =>
+    withCleanBillingProjectF(billingAccountName, projectNamePrefix, owners, users) { billingProject =>
       IO(testCode(billingProject))
     }.unsafeRunSync
 
@@ -40,15 +40,15 @@ object BillingFixtures {
    *
    * @param billingAccountName Name of Google billing account the new billing project will bill to.
    * @param projectNamePrefix  Prefix for billing project name. [default: "tmp-billing-project-"]
-   * @param ownerEmails        List of billing project owner email addresses. [default: empty]
-   * @param userEmails         List of billing project user email addresses [default: empty]
+   * @param owners             List of billing project owner email addresses. [default: empty]
+   * @param users              List of billing project user email addresses [default: empty]
    * @param testCode           Code to exercise with new billing project
    * @param creatorAuthToken   Auth token of billing project creator
    */
   def withCleanBillingProjectF[F[_], A](billingAccountName: String,
                                         projectNamePrefix: String = "tmp-billing-project-",
-                                        ownerEmails: List[String] = List.empty,
-                                        userEmails: List[String] = List.empty
+                                        owners: List[String] = List.empty,
+                                        users: List[String] = List.empty
   )(testCode: String => F[A])(implicit creatorAuthToken: AuthToken, F: Sync[F]): F[A] = {
     def addMembers(projectName: String, emails: List[String], role: BillingProjectRole): F[Unit] =
       emails.traverse_ { email =>
@@ -56,8 +56,8 @@ object BillingFixtures {
       }
 
     BillingFixtures.resource(billingAccountName, projectNamePrefix).use { projectName =>
-      addMembers(projectName, ownerEmails, BillingProjectRole.Owner) *>
-        addMembers(projectName, userEmails, BillingProjectRole.User) *>
+      addMembers(projectName, owners, BillingProjectRole.Owner) *>
+        addMembers(projectName, users, BillingProjectRole.User) *>
         testCode(projectName)
     }
   }
