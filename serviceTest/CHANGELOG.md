@@ -2,6 +2,14 @@
 
 This file documents changes to the `workbench-service-test` library, including notes on how to upgrade to new versions.
 
+## 0.22
+
+Breaking changes:
+- Removed support for GPAlloc. All GPAlloc-related functionality has been removed, excepting:
+- `withCleanBillingProject` - now requires a billing account to be specified.
+
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "0.22-TRAVIS-REPLACE-ME"`
+
 ## 0.21
 
 SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "0.21-f84f06e"`
