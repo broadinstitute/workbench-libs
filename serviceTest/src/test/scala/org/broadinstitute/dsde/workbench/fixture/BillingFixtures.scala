@@ -35,7 +35,7 @@ trait BillingFixtures {
                                  userEmails: List[String] = List.empty
   )(testCode: String => A)(implicit ownerAuthToken: AuthToken): A =
     withCleanBillingProjectF(billingAccountName, projectNamePrefix, ownerEmails, userEmails) { billingProject =>
-      IO.blocking(testCode(billingProject))
+      IO(testCode(billingProject))
     }.unsafeRunSync
 
   /**
@@ -65,11 +65,9 @@ trait BillingFixtures {
       F.delay(Orchestration.billingV2.deleteBillingProject(projectName)) *> F.unit
 
     def addMembers(projectName: String, emails: List[String], role: BillingProjectRole): F[Unit] =
-      emails.traverse_(email =>
-        F.delay {
-          Orchestration.billingV2.addUserToBillingProject(projectName, email, role)
-        }
-      )
+      emails.traverse_ { email =>
+        F.delay(Orchestration.billingV2.addUserToBillingProject(projectName, email, role))
+      }
 
     Resource.make(createProject)(destroyProject).use { projectName =>
       addMembers(projectName, ownerEmails, BillingProjectRole.Owner) *>
