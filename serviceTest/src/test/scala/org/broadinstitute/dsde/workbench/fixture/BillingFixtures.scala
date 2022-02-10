@@ -11,7 +11,7 @@ import org.broadinstitute.dsde.workbench.service.Orchestration
 
 import java.util.UUID
 
-object BillingProjectFixtures {
+object BillingFixtures {
 
   /**
    * Create a new v2 billing project for the activation of `testCode`. The billing project will be
@@ -55,7 +55,7 @@ object BillingProjectFixtures {
         F.delay(Orchestration.billingV2.addUserToBillingProject(projectName, email, role))
       }
 
-    BillingProjectFixtures.resource(billingAccountName, projectNamePrefix).use { projectName =>
+    BillingFixtures.resource(billingAccountName, projectNamePrefix).use { projectName =>
       addMembers(projectName, ownerEmails, BillingProjectRole.Owner) *>
         addMembers(projectName, userEmails, BillingProjectRole.User) *>
         testCode(projectName)
