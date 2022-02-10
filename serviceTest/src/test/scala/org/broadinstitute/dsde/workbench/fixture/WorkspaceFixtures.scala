@@ -1,12 +1,11 @@
 package org.broadinstitute.dsde.workbench.fixture
 
-import org.broadinstitute.dsde.workbench.service._
+import cats.effect.{Resource, Sync}
 import org.broadinstitute.dsde.workbench.auth.AuthToken
-import org.broadinstitute.dsde.workbench.service.test.RandomUtil
-import org.broadinstitute.dsde.workbench.service.test.CleanUp
+import org.broadinstitute.dsde.workbench.service._
+import org.broadinstitute.dsde.workbench.service.test.{CleanUp, RandomUtil}
 import org.broadinstitute.dsde.workbench.service.util.ExceptionHandling
 import org.broadinstitute.dsde.workbench.service.util.Util.appendUnderscore
-import org.scalatest.TestSuite
 
 import scala.util.Try
 
@@ -14,7 +13,7 @@ import scala.util.Try
  * WorkspaceFixtures
  * Fixtures for creating and cleaning up test workspaces.
  */
-trait WorkspaceFixtures extends ExceptionHandling with RandomUtil { self: TestSuite =>
+object WorkspaceFixtures extends ExceptionHandling with RandomUtil {
 
   /**
    * Cleans up the workspace once the test code has been run
@@ -110,5 +109,32 @@ trait WorkspaceFixtures extends ExceptionHandling with RandomUtil { self: TestSu
       Orchestration.workspaces.clone(namespace, workspaceName, namespace, clonedWorkspaceName, authDomain)
       runTestAndCleanUpWorkspace(namespace, clonedWorkspaceName, cleanUp)(testCode)
     }
+  }
+
+  /**
+   * Create a workspace `Resource` whose lifetime is bound to the `Resource`'s `use` method.
+   *
+   * @param billingProjectName Billing project for workspace (or workspace namespace).
+   * @param namePrefix         Prefix for workspace name. [default "tmp-workspace-"]
+   * @param authDomain         Optional auth domain for workspace
+   * @param bucketLocation     Optional region where workspace bucket should be created
+   * @param creatorAuthToken   Auth token of workspace creator
+   */
+  def resource[F[_]](billingProjectName: String,
+                     namePrefix: String = "tmp-workspace-",
+                     authDomain: Set[String] = Set.empty,
+                     bucketLocation: Option[String] = None
+                    )(implicit creatorAuthToken: AuthToken, F: Sync[F]): Resource[F, String] = {
+    def createWorkspace: F[String] = F.delay {
+      val workspaceName = randomIdWithPrefix(namePrefix)
+      Orchestration.workspaces.create(billingProjectName, workspaceName, authDomain, bucketLocation)
+      workspaceName
+    }
+
+    def destroyWorkspace(workspaceName: String): F[Unit] = F.delay {
+      Orchestration.workspaces.delete(billingProjectName, workspaceName)
+    }
+
+    Resource.make(createWorkspace)(destroyWorkspace)
   }
 }
