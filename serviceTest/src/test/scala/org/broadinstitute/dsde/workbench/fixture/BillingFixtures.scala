@@ -74,7 +74,9 @@ object BillingFixtures {
     F: Sync[F]
   ): Resource[F, String] = {
     def createProject: F[String] = F.delay {
-      val projectName = projectNamePrefix ++ UUID.randomUUID.toString.replace("-", "")
+      val projectName = projectNamePrefix
+        .++(UUID.randomUUID.toString.replace("-", ""))
+        .substring(0, 30)
       Orchestration.billingV2.createBillingProject(projectName, billingAccountName)
       projectName
     }
