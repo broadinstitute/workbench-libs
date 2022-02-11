@@ -124,7 +124,7 @@ object WorkspaceFixtures extends ExceptionHandling with RandomUtil {
                      namePrefix: String = "tmp-workspace-",
                      authDomain: Set[String] = Set.empty,
                      bucketLocation: Option[String] = None
-                    )(implicit creatorAuthToken: AuthToken, F: Sync[F]): Resource[F, String] = {
+  )(implicit creatorAuthToken: AuthToken, F: Sync[F]): Resource[F, String] = {
     def createWorkspace: F[String] = F.delay {
       val workspaceName = randomIdWithPrefix(namePrefix)
       Orchestration.workspaces.create(billingProjectName, workspaceName, authDomain, bucketLocation)
