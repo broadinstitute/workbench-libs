@@ -4,7 +4,7 @@ This file documents changes to the `workbench-service-test` library, including n
 
 ## 0.21
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "0.21-f84f06e"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "0.21-TRAVIS-REPLACE-ME"`
 
 ### Changed
 - `RestClient` which underlies many of the higher-level service-test methods, has logging changes:
@@ -16,6 +16,7 @@ SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test"
   - Wraps the thrown Exceptions to ensure logging when cleanup fails regardless of whether the test passed or failed
 - `RestClient` sendRequest function (to send any request with exponential retries for testing) is now public
 - Add `acceptTermsOfService` and `getTermsOfServiceStatus` Orch endpoints
+- Add optional `adminEnabled` and `tosAccepted` fields to `UserStatusInfo` and `UserStatusDiagnostics` in `Sam.scala`
 
 ## 0.20
 Changed:
