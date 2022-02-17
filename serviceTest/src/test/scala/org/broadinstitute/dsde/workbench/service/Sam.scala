@@ -56,7 +56,12 @@ object Sam extends Sam {
 
     case class UserStatus(userInfo: UserStatusDetails, enabled: Map[String, Boolean])
 
-    case class UserStatusDiagnostics(enabled: Boolean, inAllUserGroup: Boolean, inGoogleProxyGroup: Boolean, adminEnabled: Option[Boolean], tosAccepted: Option[Boolean])
+    case class UserStatusDiagnostics(enabled: Boolean,
+                                     inAllUserGroup: Boolean,
+                                     inGoogleProxyGroup: Boolean,
+                                     adminEnabled: Option[Boolean],
+                                     tosAccepted: Option[Boolean]
+    )
 
     case class UserStatusInfo(userSubjectId: String, userEmail: String, enabled: Boolean, adminEnabled: Option[Boolean])
 
