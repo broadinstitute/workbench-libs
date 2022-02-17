@@ -16,7 +16,7 @@ SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test"
   - Wraps the thrown Exceptions to ensure logging when cleanup fails regardless of whether the test passed or failed
 - `RestClient` sendRequest function (to send any request with exponential retries for testing) is now public
 - Add `acceptTermsOfService` and `getTermsOfServiceStatus` Orch endpoints
-- Add `adminEnabled` field to `UserStatusInfo` in `Sam`
+- Add optional `adminEnabled` and `tosAccepted` fields to `UserStatusInfo` in `Sam.scala`
 
 ## 0.20
 Changed:
