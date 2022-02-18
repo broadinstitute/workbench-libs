@@ -304,7 +304,7 @@ private[google2] class GoogleComputeInterpreter[F[_]: Parallel: StructuredLogger
     retryF(
       F.delay(instanceClient.setTags(project.value, zone.value, instanceName.value, tags)),
       s"com.google.compute.v1.InstancesClient.setTags(${project.value}, ${zone.value}, ${instanceName.value}, [${tags.getItemsList.asScala
-        .mkString(", ")}]"
+          .mkString(", ")}]"
     )
 
   private def buildMachineTypeUri(zone: ZoneName, machineTypeName: MachineTypeName): String =
