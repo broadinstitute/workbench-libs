@@ -161,13 +161,13 @@ object Settings {
     version := createVersion("0.23")
   ) ++ publishSettings
 
-  val openTelemetrySettings = scala213 ++ commonSettings ++ List(
+  val openTelemetrySettings = commonSettings ++ List(
     name := "workbench-openTelemetry",
     libraryDependencies ++= openTelemetryDependencies,
     version := createVersion("0.3")
   ) ++ publishSettings
 
-  val errorReportingSettings = scala213 ++ commonSettings ++ List(
+  val errorReportingSettings = commonSettings ++ List(
     name := "workbench-error-reporting",
     libraryDependencies ++= errorReportingDependencies,
     version := createVersion("0.2")
@@ -179,7 +179,7 @@ object Settings {
     version := createVersion("0.21")
   ) ++ publishSettings
 
-  val notificationsSettings = scala213 ++ commonSettings ++ List(
+  val notificationsSettings = commonSettings ++ List(
     name := "workbench-notifications",
     libraryDependencies ++= notificationsDependencies,
     version := createVersion("0.3")
