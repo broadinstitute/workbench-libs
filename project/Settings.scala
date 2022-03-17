@@ -111,14 +111,15 @@ object Settings {
       )
   })
 
+  val scala213 = "2.13.7"
   val cross212and213 = Seq(
-    crossScalaVersions := List("2.12.15", "2.13.7")
+    crossScalaVersions := List("2.12.15", scala213)
   )
 
   // common settings for all sbt subprojects
   val commonSettings = commonBuildSettings ++ commonTestSettings ++ List(
     organization := "org.broadinstitute.dsde.workbench",
-    scalaVersion := "2.13.7",
+    scalaVersion := scala213,
     resolvers ++= commonResolvers,
     commonCompilerSettings
   )
