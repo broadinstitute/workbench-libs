@@ -195,7 +195,9 @@ object Dependencies {
     openCensusApi,
     openCensusImpl,
     openCensusStatsStackDriver,
-    openCensusTraceStackDriver
+    openCensusTraceStackDriver,
+    openCensusStatsPrometheus,
+    prometheusServer
   )
 
   val errorReportingDependencies = List(
