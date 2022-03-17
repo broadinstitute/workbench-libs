@@ -194,9 +194,9 @@ object Dependencies {
     log4cats,
     openCensusApi,
     openCensusImpl,
-    openCensusStatsPrometheus,
     openCensusStatsStackDriver,
     openCensusTraceStackDriver,
+    openCensusStatsPrometheus,
     prometheusServer
   )
 
