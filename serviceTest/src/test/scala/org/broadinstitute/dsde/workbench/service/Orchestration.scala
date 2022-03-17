@@ -209,6 +209,20 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
       parseResponseAs[ManagedGroupWithMembers](getRequest(apiUrl(s"api/groups/$groupName")))
   }
 
+  object termsOfService {
+    val termsOfServiceBasePath = "register/user/v1/termsofservice"
+
+    def accept(url: String)(implicit token: AuthToken): Unit = {
+      logger.info(s"accepting ToS")
+      postRequest(apiUrl(termsOfServiceBasePath), url)
+    }
+
+    def status()(implicit token: AuthToken): Option[Boolean] = {
+      logger.info(s"getting ToS status")
+      parseResponseOption[Boolean](getRequest(apiUrl(s"${termsOfServiceBasePath}/status")))
+    }
+  }
+
   /*
    *  Workspace requests
    */

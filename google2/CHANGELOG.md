@@ -5,11 +5,16 @@ This file documents changes to the `workbench-google2` library, including notes 
 ## 0.23
 Added:
 - Support for creating and monitoring Google Cloud Storage Transfer jobs between Cloud Storage buckets.
-- Legacy Cloud Storage roles to `GoogleStorageService` 
+- Legacy Cloud Storage roles to `GoogleStorageService`
+- `GoogleStorageService/removeIamPolicy` to remove the specified roles from the bucket IAM policy.
+- Extension method `asStorageRoles` on `Policy` to convert to `StorageRole`s map
 
 Changed:
 - Set `goog-compute-%d` threads as daemon so that they won't prevent JVM from shutdown
 - Set `goog-publisher-%d` and `goog-subscriber-%d` threads as daemon so that they won't prevent JVM from shutdown
+- Set `goog-dataproc-%d` and Set `goog-disk-%d` as daemon threads for dataproc and disk client so that threads used by these 2 clients have more readable names
+- Change return type for `GoogleComputeService`'s `modifyInstanceMetadata`, `addInstanceMetadata` and `removeInstanceMetadata` to `Option[Operation]`
+- Wait for setMetadata API call to finish before proceeding in `GoogleDataprocService`'s `startCluster`, and `stopCluster` APIs
 
 Dependency Upgrades:
 | Dependency   |      Old Version      |  New Version |
@@ -32,7 +37,7 @@ Dependency Upgrades:
 | client-java |   12.0.0   |   14.0.0 |
 | cats-effect |   3.3.1   |   3.3.2 |
 
-SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.23-a07be6a"`
+SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.23-11a45ad"`
 
 ## 0.22
 Breaking Changes:
