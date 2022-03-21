@@ -70,9 +70,7 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
       // QA-1759: Not going to update org.broadinstitute.dsde.workbench.service.BillingProject
       // because I don't want to update every use of that record just so I can log the project
       // creation error message here. Please use `RawlsBillingProject` from Rawls instead.
-      case class YetAnotherBillingProject(projectName: String,
-                                          status: BillingProjectStatus,
-                                          message: Option[String])
+      case class YetAnotherBillingProject(projectName: String, status: BillingProjectStatus, message: Option[String])
 
       Retry.retry(10.seconds, 20.minutes) {
         Try(parseResponse(getRequest(apiUrl(s"api/billing/v2/$projectName")))) match {
@@ -83,8 +81,7 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
               status = BillingProjectStatus.withName(project("status")),
               // `message` is defined when billing project creation failed
               message = project.get("message")
-            )
-              .some
+            ).some
               .filter(p => BillingProjectStatus.isTerminal(p.status))
 
           case Failure(t) =>
@@ -99,7 +96,7 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
         case Some(YetAnotherBillingProject(name, BillingProjectStatus.Error, errorMessageOpt)) =>
           logger.info(
             s"Encountered an error creating billing project: $name $billingAccount, with final attempt at ${System.currentTimeMillis}. " +
-            s"Error is: $errorMessageOpt"
+              s"Error is: $errorMessageOpt"
           )
           throw new Exception(s"Billing project creation encountered an error: '$errorMessageOpt'")
         case None => throw new Exception("Billing project creation did not complete")
