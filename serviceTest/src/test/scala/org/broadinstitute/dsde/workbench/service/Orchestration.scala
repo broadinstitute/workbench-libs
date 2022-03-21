@@ -71,7 +71,7 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
       // because I don't want to update every use of that record just so I can log the project
       // creation error message here. Please use `RawlsBillingProject` from Rawls instead.
       case class YetAnotherBillingProject(projectName: String,
-                                          creationStatus: BillingProjectStatus,
+                                          status: BillingProjectStatus,
                                           message: Option[String])
 
       Retry.retry(10.seconds, 20.minutes) {
@@ -80,12 +80,12 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
             val project = mapper.readValue(response, classOf[Map[String, String]])
             YetAnotherBillingProject(
               projectName = project("projectName"),
-              creationStatus = BillingProjectStatus.withName(project("status")),
+              status = BillingProjectStatus.withName(project("status")),
               // `message` is defined when billing project creation failed
               message = project.get("message")
             )
               .some
-              .filter(p => BillingProjectStatus.isTerminal(p.creationStatus))
+              .filter(p => BillingProjectStatus.isTerminal(p.status))
 
           case Failure(t) =>
             logger.info(s"Billing project creation encountered an error: ${t.getStackTrace}")
