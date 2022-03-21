@@ -80,7 +80,7 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
             val project = mapper.readValue(response, classOf[Map[String, String]])
             YetAnotherBillingProject(
               projectName = project("projectName"),
-              creationStatus = BillingProjectStatus.withName(project("creationStatus")),
+              creationStatus = BillingProjectStatus.withName(project("status")),
               // `message` is defined when billing project creation failed
               message = project.get("message")
             )
