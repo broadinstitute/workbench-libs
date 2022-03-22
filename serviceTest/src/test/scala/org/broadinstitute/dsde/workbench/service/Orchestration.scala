@@ -3,19 +3,22 @@ package org.broadinstitute.dsde.workbench.service
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
 import akka.http.scaladsl.model.HttpResponse
 import akka.http.scaladsl.model.headers.Cookie
+import cats.implicits.catsSyntaxOptionId
 import com.typesafe.scalalogging.LazyLogging
 import org.broadinstitute.dsde.workbench.auth.AuthToken
 import org.broadinstitute.dsde.workbench.config.ServiceTestConfig
 import org.broadinstitute.dsde.workbench.fixture.MethodData.SimpleMethod
 import org.broadinstitute.dsde.workbench.fixture.{DockstoreMethod, Method}
-import org.broadinstitute.dsde.workbench.service.BillingProject.{BillingProjectRole, BillingProjectStatus}
 import org.broadinstitute.dsde.workbench.service.BillingProject.BillingProjectRole._
+import org.broadinstitute.dsde.workbench.service.BillingProject.BillingProjectStatus
+import org.broadinstitute.dsde.workbench.service.BillingProject.BillingProjectStatus.BillingProjectStatus
 import org.broadinstitute.dsde.workbench.service.OrchestrationModel._
 import org.broadinstitute.dsde.workbench.service.Sam.user.UserStatusDetails
 import org.broadinstitute.dsde.workbench.service.WorkspaceAccessLevel.WorkspaceAccessLevel
 import org.broadinstitute.dsde.workbench.service.test.RandomUtil
 import org.broadinstitute.dsde.workbench.service.util.Retry
 import spray.json._
+
 import scala.concurrent.duration._
 import scala.util.{Failure, Success, Try}
 
@@ -64,29 +67,38 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
       )
       postRequest(apiUrl("api/billing"), Map("projectName" -> projectName, "billingAccount" -> billingAccount))
 
+      // QA-1759: Not going to update org.broadinstitute.dsde.workbench.service.BillingProject
+      // because I don't want to update every use of that record just so I can log the project
+      // creation error message here. Please use `RawlsBillingProject` from Rawls instead.
+      case class YetAnotherBillingProject(projectName: String, status: BillingProjectStatus, message: Option[String])
+
       Retry.retry(10.seconds, 20.minutes) {
-        Try(responseAsList[String](parseResponse(getRequest(apiUrl("api/profile/billing"))))) match {
+        Try(parseResponse(getRequest(apiUrl(s"api/billing/v2/$projectName")))) match {
           case Success(response) =>
-            response
-              .map { p =>
-                BillingProject(p("projectName"),
-                               BillingProjectRole.withName(p("role")),
-                               BillingProjectStatus.withName(p("creationStatus"))
-                )
-              }
-              .find(p => p.projectName == projectName && BillingProjectStatus.isTerminal(p.creationStatus))
-          case Failure(t) => logger.info(s"Billing project creation encountered an error: ${t.getStackTrace}"); None
+            val project = mapper.readValue(response, classOf[Map[String, String]])
+            YetAnotherBillingProject(
+              projectName = project("projectName"),
+              status = BillingProjectStatus.withName(project("status")),
+              // `message` is defined when billing project creation failed
+              message = project.get("message")
+            ).some
+              .filter(p => BillingProjectStatus.isTerminal(p.status))
+
+          case Failure(t) =>
+            logger.info(s"Billing project creation encountered an error: ${t.getStackTrace}")
+            None
         }
       } match {
-        case Some(BillingProject(name, _, BillingProjectStatus.Ready)) =>
+        case Some(YetAnotherBillingProject(name, BillingProjectStatus.Ready, _)) =>
           logger.info(
             s"Finished creating billing project: $name $billingAccount, with completion time of ${System.currentTimeMillis}"
           )
-        case Some(BillingProject(name, _, _)) =>
+        case Some(YetAnotherBillingProject(name, BillingProjectStatus.Error, errorMessageOpt)) =>
           logger.info(
-            s"Encountered an error creating billing project: $name $billingAccount, with final attempt at ${System.currentTimeMillis}"
+            s"Encountered an error creating billing project: $name $billingAccount, with final attempt at ${System.currentTimeMillis}. " +
+              s"Error is: $errorMessageOpt"
           )
-          throw new Exception("Billing project creation encountered an error")
+          throw new Exception(s"Billing project creation encountered an error: '$errorMessageOpt'")
         case None => throw new Exception("Billing project creation did not complete")
       }
     }
