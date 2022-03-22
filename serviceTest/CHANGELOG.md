@@ -4,7 +4,7 @@ This file documents changes to the `workbench-service-test` library, including n
 
 ## 0.21
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "0.21-8ce5b9b"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "0.21-TRAVIS-CHANGE-ME"`
 
 ### Changed
 - `RestClient` which underlies many of the higher-level service-test methods, has logging changes:
@@ -17,6 +17,7 @@ SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test"
 - `RestClient` sendRequest function (to send any request with exponential retries for testing) is now public
 - Add `acceptTermsOfService` and `getTermsOfServiceStatus` Orch endpoints
 - Add optional `adminEnabled` and `tosAccepted` fields to `UserStatusInfo` and `UserStatusDiagnostics` in `Sam.scala`
+- Include error message when billing project creation fails in `Orchestration/createBillingProject`
 
 ## 0.20
 Changed:
