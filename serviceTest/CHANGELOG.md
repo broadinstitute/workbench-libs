@@ -2,6 +2,16 @@
 
 This file documents changes to the `workbench-service-test` library, including notes on how to upgrade to new versions.
 
+## 1.0
+
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "1.0-TRAVIS-REPLACE-ME"`
+
+### Changed
+- Removed deprecated `BillingFixtures.withBillingProject`
+- Removed unused `BillingFixtures.createNewBillingProject`
+- Removed `BillingFixtures.withBrandNewBillingProject` because it was only used in 1 test and we no longer want to use
+  v1 Create Billing Project APIs to get Google Projects due to Project per Workspace (PPW)
+
 ## 0.21
 
 SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "0.21-6155dc8"`

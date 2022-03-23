@@ -37,16 +37,6 @@ trait BillingFixtures extends ExceptionHandling with LazyLogging with CleanUp wi
       Orchestration.billing.removeUserFromBillingProject(projectName, email, role)
     }
 
-  @deprecated(
-    message =
-      "withBillingProject is deprecated. Use withCleanBillingProject if you want a billing project to isolate your tests, or withBrandNewBillingProject if you want to create a brand new one",
-    since = "workbench-service-test-0.5"
-  )
-  def withBillingProject(namePrefix: String, ownerEmails: List[String] = List(), userEmails: List[String] = List())(
-    testCode: (String) => Any
-  )(implicit token: AuthToken): Unit =
-    withBrandNewBillingProject(namePrefix, ownerEmails, userEmails)(testCode)(token)
-
   case class ClaimedProject(projectName: String, gpAlloced: Boolean) {
     def cleanup(ownerCreds: Credentials): Unit =
       cleanup(ownerCreds.email)(ownerCreds.makeAuthToken _)
@@ -56,48 +46,10 @@ trait BillingFixtures extends ExceptionHandling with LazyLogging with CleanUp wi
         releaseGPAllocProject(projectName, ownerEmail)(ownerToken)
   }
 
-  private def createNewBillingProject(namePrefix: String,
-                                      ownerEmails: List[String] = List(),
-                                      userEmails: List[String] = List()
-  )(implicit token: AuthToken): String = {
-    val billingProjectName = s"$namePrefix-${makeRandomId()}"
-    Orchestration.billing.createBillingProject(billingProjectName, ServiceTestConfig.Projects.billingAccountId)
-    addMembersToBillingProject(billingProjectName, ownerEmails, BillingProjectRole.Owner)
-    addMembersToBillingProject(billingProjectName, userEmails, BillingProjectRole.User)
-    billingProjectName
-  }
-
   private def deleteBillingProject(billingProjectName: String)(implicit token: AuthToken): Unit = {
     val projectOwnerInfo =
       UserInfo(OAuth2BearerToken(token.value), WorkbenchUserId(""), WorkbenchEmail("doesnt@matter.com"), 100)
     Rawls.admin.deleteBillingProject(billingProjectName, projectOwnerInfo)(UserPool.chooseAdmin.makeAuthToken())
-  }
-
-  /**
-   * Create and use a new billing project.  Keep in mind that this is a slow an error-prone process, so you should only
-   * use this method if your test requires it.
-   *
-   * @param namePrefix a short String to use as a billing project name prefix for identifying your test.
-   * @param ownerEmails a List of emails (as Strings) to add as owners of this project
-   * @param userEmails a List of emails (as Strings) to add as users of this project
-   * @param testCode your test
-   * @param token an AuthToken representing a billing project owner to pass to billing project endpoints
-   */
-  def withBrandNewBillingProject(
-    namePrefix: String,
-    ownerEmails: List[String] = List(),
-    userEmails: List[String] = List()
-  )(testCode: (String) => Any)(implicit token: AuthToken): Unit = {
-    val billingProjectName = createNewBillingProject(namePrefix, ownerEmails, userEmails)
-    val testTrial = Try {
-      testCode(billingProjectName)
-    }
-
-    val cleanupTrial = Try {
-      deleteBillingProject(billingProjectName)
-    }
-
-    CleanUp.runCodeWithCleanup(testTrial, cleanupTrial)
   }
 
   /**
