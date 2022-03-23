@@ -37,16 +37,6 @@ trait BillingFixtures extends ExceptionHandling with LazyLogging with CleanUp wi
       Orchestration.billing.removeUserFromBillingProject(projectName, email, role)
     }
 
-  @deprecated(
-    message =
-      "withBillingProject is deprecated. Use withCleanBillingProject if you want a billing project to isolate your tests, or withBrandNewBillingProject if you want to create a brand new one",
-    since = "workbench-service-test-0.5"
-  )
-  def withBillingProject(namePrefix: String, ownerEmails: List[String] = List(), userEmails: List[String] = List())(
-    testCode: (String) => Any
-  )(implicit token: AuthToken): Unit =
-    withBrandNewBillingProject(namePrefix, ownerEmails, userEmails)(testCode)(token)
-
   case class ClaimedProject(projectName: String, gpAlloced: Boolean) {
     def cleanup(ownerCreds: Credentials): Unit =
       cleanup(ownerCreds.email)(ownerCreds.makeAuthToken _)
