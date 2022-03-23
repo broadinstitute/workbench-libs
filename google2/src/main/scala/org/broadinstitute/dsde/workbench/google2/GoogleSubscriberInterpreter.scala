@@ -182,7 +182,7 @@ object GoogleSubscriberInterpreter {
     flowControlSettings: Option[FlowControlSettings],
     numOfThreads: Int
   ): Resource[F, Subscriber] = Dispatcher[F].flatMap { d =>
-    val threadFactory = new ThreadFactoryBuilder().setNameFormat("goog-subscriber-%d").build()
+    val threadFactory = new ThreadFactoryBuilder().setNameFormat("goog-subscriber-%d").setDaemon(true).build()
     val fixedExecutorProvider =
       FixedExecutorProvider.create(new ScheduledThreadPoolExecutor(numOfThreads, threadFactory))
 

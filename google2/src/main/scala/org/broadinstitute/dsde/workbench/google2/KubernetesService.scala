@@ -95,7 +95,7 @@ object KubernetesService {
   def resource[F[_]: StructuredLogger: Async](
     pathToCredential: Path,
     gkeService: GKEService[F],
-    apiClientCache: Cache[F, ApiClient]
+    apiClientCache: Cache[F, KubernetesClusterId, ApiClient]
   ): Resource[F, KubernetesService[F]] =
     for {
       credentials <- credentialResource(pathToCredential.toString)

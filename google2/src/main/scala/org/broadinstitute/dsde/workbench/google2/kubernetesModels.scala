@@ -6,7 +6,6 @@ import io.kubernetes.client.openapi.models.{
   V1ContainerPort,
   V1Namespace,
   V1ObjectMeta,
-  V1ObjectMetaBuilder,
   V1Pod,
   V1PodSpec,
   V1PolicyRule,
@@ -156,13 +155,8 @@ object JavaSerializableInstances {
   // For session affinity, see https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.12/#service-v1-core
   val STICKY_SESSION_AFFINITY = "ClientIP"
 
-  private def getNameSerialization(name: KubernetesSerializableName): V1ObjectMeta = {
-    val metadata = new V1ObjectMetaBuilder()
-      .withNewName(name.value)
-      .build()
-
-    metadata
-  }
+  private def getNameSerialization(name: KubernetesSerializableName): V1ObjectMeta =
+    new V1ObjectMeta().name(name.value)
 
   /** Serializable name objects */
   implicit val kubernetesNamespaceNameSerializable = new JavaSerializable[NamespaceName, V1ObjectMeta] {

@@ -46,7 +46,8 @@ trait RestClient extends Retry with LazyLogging {
     toUri(path).toString
   }
 
-  private def sendRequest(httpRequest: HttpRequest): HttpResponse = {
+  // Send an http request with retries
+  def sendRequest(httpRequest: HttpRequest): HttpResponse = {
     val responseFuture = retryExponentially() { () =>
       Http().singleRequest(request = httpRequest).map { response =>
         logRequestResponse(httpRequest, response)

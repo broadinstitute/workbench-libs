@@ -2,7 +2,6 @@ package org.broadinstitute.dsde.workbench.errorReporting
 
 import cats.effect.{Resource, Sync}
 import cats.syntax.all._
-import com.google.cloud.errorreporting.v1beta1.ReportErrorsServiceClient
 import com.google.devtools.clouderrorreporting.v1beta1._
 import java.io.PrintWriter
 import java.io.StringWriter

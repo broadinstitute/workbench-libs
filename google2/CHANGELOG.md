@@ -5,9 +5,39 @@ This file documents changes to the `workbench-google2` library, including notes 
 ## 0.23
 Added:
 - Support for creating and monitoring Google Cloud Storage Transfer jobs between Cloud Storage buckets.
-- Legacy Cloud Storage roles to `GoogleStorageService` 
+- Legacy Cloud Storage roles to `GoogleStorageService`
+- `GoogleStorageService/removeIamPolicy` to remove the specified roles from the bucket IAM policy.
+- Extension method `asStorageRoles` on `Policy` to convert to `StorageRole`s map
 
-SBT Dependency: `"com.google.cloud" % "google-cloud-storage-transfer" % "0.2.0"`
+Changed:
+- Set `goog-compute-%d` threads as daemon so that they won't prevent JVM from shutdown
+- Set `goog-publisher-%d` and `goog-subscriber-%d` threads as daemon so that they won't prevent JVM from shutdown
+- Set `goog-dataproc-%d` and Set `goog-disk-%d` as daemon threads for dataproc and disk client so that threads used by these 2 clients have more readable names
+- Change return type for `GoogleComputeService`'s `modifyInstanceMetadata`, `addInstanceMetadata` and `removeInstanceMetadata` to `Option[Operation]`
+- Wait for setMetadata API call to finish before proceeding in `GoogleDataprocService`'s `startCluster`, and `stopCluster` APIs
+
+Dependency Upgrades:
+| Dependency   |      Old Version      |  New Version |
+|----------|:-------------:|------:|
+| logstash-logback-encoder |  6.6 | 7.0 |
+| jackson-module-scala |    2.12.4   |   2.13.0 |
+| akka |    2.6.16   |   2.6.18 |
+| fs2-io |   3.1.3   |   3.1.6 |
+| google-cloud-nio |   0.123.10   |   0.123.16 |
+| google-cloud-compute |   1.4.2-alpha   |   1.4.4-alpha |
+| google-cloud-dataproc |   1.5.4   |   2.2.2 |
+| google-cloud-container |   1.5.0   |   2.2.1 |
+| google-cloud-bigquery |   1.137.2   |   2.5.1 |
+| google-cloud-kms |   1.43.0   |   2.3.0 |
+| google-cloud-billing |   2.1.2  |   2.1.3 |
+| google-api-services-container |   v1-rev20210617-1.32.1   |  v1-rev20211014-1.32.1 |
+| google-cloud-resourcemanager |   0.118.12-alpha   |  1.2.0 |
+| mockito-3-4 |   3.2.9.0   |   3.2.10.0 |
+| selenium-3-141 |   3.2.9.0   |   3.2.10.0 |
+| client-java |   12.0.0   |   14.0.0 |
+| cats-effect |   3.3.1   |   3.3.2 |
+
+SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.23-11a45ad"`
 
 ## 0.22
 Breaking Changes:
