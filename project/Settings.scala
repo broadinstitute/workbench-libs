@@ -111,7 +111,7 @@ object Settings {
       )
   })
 
-  val scala213 = "2.13.7"
+  val scala213 = "2.13.8"
   val cross212and213 = Seq(
     crossScalaVersions := List("2.12.15", scala213)
   )

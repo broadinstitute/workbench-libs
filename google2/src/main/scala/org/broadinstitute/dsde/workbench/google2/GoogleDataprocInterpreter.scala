@@ -6,6 +6,8 @@ import cats.mtl.Ask
 import cats.syntax.all._
 import cats.{Parallel, Show}
 import com.google.api.core.ApiFutures
+import com.google.api.gax.longrunning.{OperationFuture, OperationSnapshot}
+import com.google.api.gax.retrying.RetryingFuture
 import com.google.cloud.compute.v1.Operation
 import com.google.cloud.dataproc.v1.{RegionName => _, _}
 import com.google.common.util.concurrent.MoreExecutors
@@ -92,7 +94,7 @@ private[google2] class GoogleDataprocInterpreter[F[_]: Parallel](
   /**
    * @param isFullStop: if true, we stop the dataproc cluster completely; if false, we stop all instances of the cluster,
    *                    but the cluster itself will remain RUNNING
-   * 
+   *
    * Strictly speaking, it is not possible to 'stop' a Dataproc cluster altogether.
    * Instead, we approximate by:
    *   1. removing pre-emptible instances (if any) by resizing the cluster, since they would not be possible to restart
@@ -189,33 +191,38 @@ private[google2] class GoogleDataprocInterpreter[F[_]: Parallel](
                   remainingClusterInstances.toList
                     .parFlatTraverse { case (DataprocRoleZonePreemptibility(_, zone, _), instances) =>
                       instances.toList.parTraverse { instance =>
-                        googleComputeService.stopInstance(project, zone, instance).recoverWith {
-                          case _: com.google.api.gax.rpc.NotFoundException =>
-                            F.pure(Operation.getDefaultInstance)
-                          case e => F.raiseError[Operation](e)
-                        }
+                        for {
+                          opFuture <- googleComputeService.stopInstance(project, zone, instance)
+
+                        } yield ()
+//                          .recoverWith {
+//                          case _: com.google.api.gax.rpc.NotFoundException =>
+//                            F.pure(Operation.getDefaultInstance)
+//                          case e => F.raiseError[Operation](e)
+//                        }
                       }
                     }
                     .as(none[DataprocOperation])
             } yield whenDoneRes
 
-            // If we need to set metadata, then we need to wait for the operation to finish before proceeding.
+//            // If we need to set metadata, then we need to wait for the operation to finish before proceeding.
             res <- setMetadataOp match {
               case Some(op) =>
-                computePollOperation
-                  .pollOperation(project, op, 1 seconds, 30, None)(
-                    whenDone,
-                    F.raiseError(
-                      new TimeoutException(
-                        "SetMetadata timed out"
-                      )
-                    ),
-                    F.raiseError(
-                      new RuntimeException(
-                        "This should never happen"
-                      )
-                    )
-                  )
+                whenDone // TODO: fix this
+//                computePollOperation
+//                  .pollOperation(project, op, 1 seconds, 30, None)(
+//                    whenDone,
+//                    F.raiseError(
+//                      new TimeoutException(
+//                        "SetMetadata timed out"
+//                      )
+//                    ),
+//                    F.raiseError(
+//                      new RuntimeException(
+//                        "This should never happen"
+//                      )
+//                    )
+//                  )
               case None => whenDone
             }
           } yield res
@@ -295,9 +302,9 @@ private[google2] class GoogleDataprocInterpreter[F[_]: Parallel](
             clusterInstances.toList
               .parFlatTraverse { case (DataprocRoleZonePreemptibility(_, zone, _), instances) =>
                 instances.toList.parTraverse { instance =>
-                  googleComputeService.startInstance(project, zone, instance).recoverWith {
-                    case _: com.google.api.gax.rpc.NotFoundException => F.pure(Operation.getDefaultInstance)
-                    case e                                           => F.raiseError[Operation](e)
+                  googleComputeService.startInstance(project, zone, instance).void.recoverWith {
+                    case _: com.google.api.gax.rpc.NotFoundException => F.unit
+                    case e                                           => F.raiseError[Unit](e)
                   }
                 }
               }
@@ -332,20 +339,21 @@ private[google2] class GoogleDataprocInterpreter[F[_]: Parallel](
       // If we need to set metadata, then we need to wait for the operation to finish before proceeding.
       r <- setMetadataOp match {
         case Some(op) =>
-          computePollOperation
-            .pollOperation(project, op, 1 seconds, 30, None)(
-              whenDone,
-              F.raiseError(
-                new TimeoutException(
-                  "SetMetadata timed out"
-                )
-              ),
-              F.raiseError(
-                new RuntimeException(
-                  "This should never happen"
-                )
-              )
-            )
+          whenDone // TODO: fix this
+//          computePollOperation
+//            .pollOperation(project, op, 1 seconds, 30, None)(
+//              whenDone,
+//              F.raiseError(
+//                new TimeoutException(
+//                  "SetMetadata timed out"
+//                )
+//              ),
+//              F.raiseError(
+//                new RuntimeException(
+//                  "This should never happen"
+//                )
+//              )
+//            )
         case None =>
           whenDone
       }

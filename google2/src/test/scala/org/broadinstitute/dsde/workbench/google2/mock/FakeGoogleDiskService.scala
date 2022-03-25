@@ -3,21 +3,29 @@ package mock
 
 import cats.effect.IO
 import cats.mtl.Ask
+import com.google.api.core.ApiFuture
+import com.google.api.gax.longrunning.{OperationFuture, OperationSnapshot}
+import com.google.api.gax.retrying.RetryingFuture
 import com.google.cloud.compute.v1._
 import fs2.Stream
 import org.broadinstitute.dsde.workbench.model.TraceId
 import org.broadinstitute.dsde.workbench.model.google.GoogleProject
 
+import java.util.concurrent.{Executor, TimeUnit}
+
 class MockGoogleDiskService extends GoogleDiskService[IO] {
   override def createDisk(project: GoogleProject, zone: ZoneName, disk: Disk)(implicit
     ev: Ask[IO, TraceId]
-  ): IO[Option[Operation]] =
-    IO.pure(Some(Operation.newBuilder().setId(123).setName("opName").setTargetId(258165385).build()))
+  ): IO[Option[OperationFuture[Operation, Operation]]] = IO.pure(Some(new FakeOperationFuture))
 
   override def deleteDisk(project: GoogleProject, zone: ZoneName, diskName: DiskName)(implicit
     ev: Ask[IO, TraceId]
-  ): IO[Option[Operation]] =
-    IO.pure(Some(Operation.newBuilder().setId(123).setName("opName").setTargetId(258165385).build()))
+  ): IO[Option[OperationFuture[Operation, Operation]]] =
+    IO.pure(
+      Some(
+        new FakeOperationFuture
+      )
+    )
 
   override def getDisk(project: GoogleProject, zone: ZoneName, diskName: DiskName)(implicit
     ev: Ask[IO, TraceId]
@@ -29,7 +37,33 @@ class MockGoogleDiskService extends GoogleDiskService[IO] {
 
   override def resizeDisk(project: GoogleProject, zone: ZoneName, diskName: DiskName, newSizeGb: Int)(implicit
     ev: Ask[IO, TraceId]
-  ): IO[Operation] = IO.pure(Operation.newBuilder().setId(123).setName("opName").setTargetId(258165385).build())
+  ): IO[OperationFuture[Operation, Operation]] = IO.pure(
+    new FakeOperationFuture
+  )
 }
 
 object MockGoogleDiskService extends MockGoogleDiskService
+
+class FakeOperationFuture extends OperationFuture[Operation, Operation] {
+  override def getName: String = ???
+
+  override def getInitialFuture: ApiFuture[OperationSnapshot] = ???
+
+  override def getPollingFuture: RetryingFuture[OperationSnapshot] = ???
+
+  override def peekMetadata(): ApiFuture[Operation] = ???
+
+  override def getMetadata: ApiFuture[Operation] = ???
+
+  override def addListener(listener: Runnable, executor: Executor): Unit = ???
+
+  override def cancel(mayInterruptIfRunning: Boolean): Boolean = ???
+
+  override def isCancelled: Boolean = ???
+
+  override def isDone: Boolean = true
+
+  override def get(): Operation = ???
+
+  override def get(timeout: Long, unit: TimeUnit): Operation = ???
+}
