@@ -2,13 +2,12 @@ package org.broadinstitute.dsde.workbench
 package google2
 
 import _root_.org.typelevel.log4cats.StructuredLogger
-import cats.{Parallel, Show}
 import cats.effect.Async
 import cats.effect.std.Semaphore
 import cats.mtl.Ask
 import cats.syntax.all._
-import com.google.api.gax.longrunning.{OperationFuture, OperationSnapshot}
-import com.google.api.gax.retrying.RetryingFuture
+import cats.{Parallel, Show}
+import com.google.api.gax.longrunning.OperationFuture
 import com.google.api.gax.rpc.ApiException
 import com.google.cloud.compute.v1._
 import org.broadinstitute.dsde.workbench.google2.util.RetryPredicates._
@@ -16,7 +15,6 @@ import org.broadinstitute.dsde.workbench.model.google.GoogleProject
 import org.broadinstitute.dsde.workbench.model.{TraceId, WorkbenchException}
 
 import scala.collection.JavaConverters._
-import scala.concurrent.TimeoutException
 import scala.concurrent.duration._
 
 private[google2] class GoogleComputeInterpreter[F[_]: Parallel: StructuredLogger](
@@ -30,8 +28,7 @@ private[google2] class GoogleComputeInterpreter[F[_]: Parallel: StructuredLogger
   blockerBound: Semaphore[F]
 )(implicit F: Async[F])
     extends GoogleComputeService[F] {
-  implicit val doneCheckable: DoneCheckable[RetryingFuture[OperationSnapshot]] =
-    (a: RetryingFuture[OperationSnapshot]) => a.isDone
+  implicit val trueDoneCheckable = DoneCheckableInstances.trueBooleanDoneCheckable
 
   override def createInstance(project: GoogleProject, zone: ZoneName, instance: Instance)(implicit
     ev: Ask[F, TraceId]
@@ -60,13 +57,9 @@ private[google2] class GoogleComputeInterpreter[F[_]: Parallel: StructuredLogger
             Some(traceId),
             s"com.google.cloud.compute.v1.InstancesClient.setDiskAutoDelete(${project.value}, ${zone.value}, ${instanceName.value}, true, ${diskName.value})"
           )
-          resp <- streamUntilDoneOrTimeout(F.delay(opFuture.getPollingFuture),
-                                           5,
-                                           4 seconds,
-                                           s"setDiskAutoDeleteAsync timed out"
-          )
-          res <- F.delay(resp.get())
-          _ <- F.raiseUnless(res.getResponse != null)(new Exception(s"setDiskAutoDeleteAsync failed"))
+          _ <- streamUntilDoneOrTimeout(F.delay(opFuture.isDone), 5, 4 seconds, s"setDiskAutoDeleteAsync timed out")
+          res <- F.delay(opFuture.get())
+          _ <- F.raiseUnless(!isSuccess(res.getHttpErrorStatusCode))(new Exception(s"setDiskAutoDeleteAsync failed"))
         } yield ()
       }
       deleteOp <- deleteInstance(project, zone, instanceName)

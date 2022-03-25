@@ -183,6 +183,8 @@ package object google2 {
       s"operationType=${op.getOperationType}, progress=${op.getProgress}, status=${op.getStatus}, startTime=${op.getStartTime}"
   )
 
+  def isSuccess(statusCode: Int): Boolean = statusCode >= 200 || statusCode <= 300
+
   val showBillingInfo: Show[Option[ProjectBillingInfo]] =
     Show.show[Option[ProjectBillingInfo]](info => s"isBillingEnabled: ${info.map(_.getBillingEnabled)}")
 
@@ -211,6 +213,15 @@ object DoneCheckableInstances {
   implicit val computeDoneCheckable = new DoneCheckable[com.google.cloud.compute.v1.Operation] {
     def isDone(op: com.google.cloud.compute.v1.Operation): Boolean =
       op.getStatus == com.google.cloud.compute.v1.Operation.Status.DONE
+  }
+  val trueBooleanDoneCheckable = new DoneCheckable[Boolean] {
+    def isDone(x: Boolean): Boolean = x
+  }
+  val optionTrueDoneCheckable = new DoneCheckable[Option[Boolean]] {
+    override def isDone(a: Option[Boolean]): Boolean = a match {
+      case None        => true
+      case Some(value) => value
+    }
   }
 }
 

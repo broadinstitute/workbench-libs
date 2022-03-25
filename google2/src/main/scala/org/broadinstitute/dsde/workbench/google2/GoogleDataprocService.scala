@@ -143,12 +143,7 @@ object GoogleDataprocService {
 
     for {
       clients <- regionalSettings
-    } yield new GoogleDataprocInterpreter[F](clients.toMap,
-                                             googleComputeService,
-                                             computePollOperation,
-                                             blockerBound,
-                                             retryConfig
-    )
+    } yield new GoogleDataprocInterpreter[F](clients.toMap, googleComputeService, blockerBound, retryConfig)
   }
 }
 
