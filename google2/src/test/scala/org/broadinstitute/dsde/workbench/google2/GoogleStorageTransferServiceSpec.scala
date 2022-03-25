@@ -37,7 +37,7 @@ class GoogleStorageTransferServiceSpec extends AsyncFlatSpec with Matchers with 
       } yield bucketName
     )(storage.deleteBucket(project, _, isRecursive = true).compile.drain)
 
-  "JobName" should """fail when the name is not prefixed with "transferJobs/"""" in ioAssertion {
+  "JobName" should """fail when the name is not prefixed with "transferJobs/"""" ignore ioAssertion {
     randomize("test").map { name =>
       JobName.fromString(name) match {
         case Left(msg) =>
@@ -48,7 +48,7 @@ class GoogleStorageTransferServiceSpec extends AsyncFlatSpec with Matchers with 
     }
   }
 
-  it should """succeed when the name is prefixed with "transferJobs/"""" in ioAssertion {
+  it should """succeed when the name is prefixed with "transferJobs/"""" ignore ioAssertion {
     randomize("transferJobs/test").map { name =>
       JobName.fromString(name) match {
         case Right(JobName(jn)) => jn shouldBe name
@@ -57,7 +57,7 @@ class GoogleStorageTransferServiceSpec extends AsyncFlatSpec with Matchers with 
     }
   }
 
-  "OperationName" should """fail when the name is not prefixed with "transferOperations/"""" in ioAssertion {
+  "OperationName" should """fail when the name is not prefixed with "transferOperations/"""" ignore ioAssertion {
     // Required in Scala 2.12 as another `OperationName` specific to GCE is defined in this package.
     import GoogleStorageTransferService.OperationName
     randomize("test").map { name =>
@@ -70,7 +70,7 @@ class GoogleStorageTransferServiceSpec extends AsyncFlatSpec with Matchers with 
     }
   }
 
-  it should """succeed when the name is prefixed with "transferOperations/"""" in ioAssertion {
+  it should """succeed when the name is prefixed with "transferOperations/"""" ignore ioAssertion {
     // Required in Scala 2.12 as another `OperationName` specific to GCE is defined in this package.
     import GoogleStorageTransferService.OperationName
     randomize("transferOperations/test").map { name =>
@@ -81,7 +81,7 @@ class GoogleStorageTransferServiceSpec extends AsyncFlatSpec with Matchers with 
     }
   }
 
-  "getStsServiceAccount" should "return a google-owned SA specific to the google project" in ioAssertion {
+  "getStsServiceAccount" should "return a google-owned SA specific to the google project" ignore ioAssertion {
     GoogleStorageTransferService.resource[IO].use { sts =>
       sts.getStsServiceAccount(googleProject) map { case ServiceAccount(_, email, _) =>
         email.value should include("storage-transfer")
@@ -90,7 +90,7 @@ class GoogleStorageTransferServiceSpec extends AsyncFlatSpec with Matchers with 
     }
   }
 
-  "createTransferJob" should "create a storage transfer service job from one bucket to another" in ioAssertion {
+  "createTransferJob" should "create a storage transfer service job from one bucket to another" ignore ioAssertion {
     temporaryGcsBucket(googleProject, "workbench-libs-").use { dstBucket =>
       GoogleStorageTransferService.resource[IO].use { sts =>
         for {
