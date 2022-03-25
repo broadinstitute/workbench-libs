@@ -62,14 +62,14 @@ trait GoogleComputeService[F[_]] {
                           zone: ZoneName,
                           instanceName: InstanceName,
                           metadata: Map[String, String]
-  )(implicit ev: Ask[F, TraceId]): F[Unit] =
+  )(implicit ev: Ask[F, TraceId]): F[Option[Operation]] =
     modifyInstanceMetadata(project, zone, instanceName, metadata, Set.empty)
 
   def removeInstanceMetadata(project: GoogleProject,
                              zone: ZoneName,
                              instanceName: InstanceName,
                              metadataToRemove: Set[String]
-  )(implicit ev: Ask[F, TraceId]): F[Unit] =
+  )(implicit ev: Ask[F, TraceId]): F[Option[Operation]] =
     modifyInstanceMetadata(project, zone, instanceName, Map.empty, metadataToRemove)
 
   def modifyInstanceMetadata(project: GoogleProject,
@@ -77,7 +77,7 @@ trait GoogleComputeService[F[_]] {
                              instanceName: InstanceName,
                              metadataToAdd: Map[String, String],
                              metadataToRemove: Set[String]
-  )(implicit ev: Ask[F, TraceId]): F[Unit]
+  )(implicit ev: Ask[F, TraceId]): F[Option[Operation]]
 
   def addFirewallRule(project: GoogleProject, firewall: Firewall)(implicit ev: Ask[F, TraceId]): F[Operation]
 

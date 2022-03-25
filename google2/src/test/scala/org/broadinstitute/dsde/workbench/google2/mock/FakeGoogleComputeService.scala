@@ -48,8 +48,8 @@ class FakeGoogleComputeService extends GoogleComputeService[IO] {
     instanceName: InstanceName,
     metadataToAdd: Map[String, String],
     metadataToRemove: Set[String]
-  )(implicit ev: Ask[IO, TraceId]): IO[Unit] =
-    IO.unit
+  )(implicit ev: Ask[IO, TraceId]): IO[Option[Operation]] =
+    IO.pure(None)
 
   override def addFirewallRule(project: GoogleProject, firewall: Firewall)(implicit
     ev: Ask[IO, TraceId]
