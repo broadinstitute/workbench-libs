@@ -6,16 +6,18 @@ import cats.effect._
 import cats.effect.std.Semaphore
 import cats.mtl.Ask
 import cats.syntax.all._
-import com.google.api.gax.core.FixedCredentialsProvider
+import com.google.api.gax.core.{FixedCredentialsProvider, FixedExecutorProvider}
 import com.google.auth.oauth2.GoogleCredentials
 import com.google.cloud.compute.v1.Operation
 import com.google.cloud.dataproc.v1.{RegionName => _, _}
+import com.google.common.util.concurrent.ThreadFactoryBuilder
 import org.broadinstitute.dsde.workbench.RetryConfig
 import org.broadinstitute.dsde.workbench.google2.util.RetryPredicates
 import org.broadinstitute.dsde.workbench.model.TraceId
 import org.broadinstitute.dsde.workbench.model.google.{GcsBucketName, GoogleProject}
 import org.typelevel.log4cats.StructuredLogger
 
+import java.util.concurrent.ScheduledThreadPoolExecutor
 import scala.collection.JavaConverters._
 
 /**
@@ -78,6 +80,7 @@ trait GoogleDataprocService[F[_]] {
 object GoogleDataprocService {
   def resource[F[_]: StructuredLogger: Async: Parallel](
     googleComputeService: GoogleComputeService[F],
+    computePollOperation: ComputePollOperation[F],
     pathToCredential: String,
     blockerBound: Semaphore[F],
     supportedRegions: Set[RegionName],
@@ -86,11 +89,18 @@ object GoogleDataprocService {
     for {
       credential <- credentialResource(pathToCredential)
       scopedCredential = credential.createScoped(Seq(CLOUD_PLATFORM_SCOPE).asJava)
-      interpreter <- fromCredential(googleComputeService, scopedCredential, supportedRegions, blockerBound, retryConfig)
+      interpreter <- fromCredential(googleComputeService,
+                                    computePollOperation,
+                                    scopedCredential,
+                                    supportedRegions,
+                                    blockerBound,
+                                    retryConfig
+      )
     } yield interpreter
 
   def resourceFromUserCredential[F[_]: StructuredLogger: Async: Parallel](
     googleComputeService: GoogleComputeService[F],
+    computePollOperation: ComputePollOperation[F],
     pathToCredential: String,
     blockerBound: Semaphore[F],
     supportedRegions: Set[RegionName],
@@ -99,20 +109,33 @@ object GoogleDataprocService {
     for {
       credential <- userCredentials(pathToCredential)
       scopedCredential = credential.createScoped(Seq(CLOUD_PLATFORM_SCOPE).asJava)
-      interpreter <- fromCredential(googleComputeService, scopedCredential, supportedRegions, blockerBound, retryConfig)
+      interpreter <- fromCredential(googleComputeService,
+                                    computePollOperation,
+                                    scopedCredential,
+                                    supportedRegions,
+                                    blockerBound,
+                                    retryConfig
+      )
     } yield interpreter
 
   def fromCredential[F[_]: StructuredLogger: Async: Parallel](
     googleComputeService: GoogleComputeService[F],
+    computePollOperation: ComputePollOperation[F],
     googleCredentials: GoogleCredentials,
     supportedRegions: Set[RegionName],
     blockerBound: Semaphore[F],
-    retryConfig: RetryConfig = RetryPredicates.standardGoogleRetryConfig
+    retryConfig: RetryConfig = RetryPredicates.standardGoogleRetryConfig,
+    numOfThreads: Int = 20
   ): Resource[F, GoogleDataprocService[F]] = {
+    val threadFactory = new ThreadFactoryBuilder().setNameFormat("goog-dataproc-%d").setDaemon(true).build()
+    val fixedExecutorProvider =
+      FixedExecutorProvider.create(new ScheduledThreadPoolExecutor(numOfThreads, threadFactory))
+
     val regionalSettings = supportedRegions.toList.traverse { region =>
       val settings = ClusterControllerSettings
         .newBuilder()
         .setEndpoint(s"${region.value}-dataproc.googleapis.com:443")
+        .setBackgroundExecutorProvider(fixedExecutorProvider)
         .setCredentialsProvider(FixedCredentialsProvider.create(googleCredentials))
         .build()
       backgroundResourceF(ClusterControllerClient.create(settings)).map(client => region -> client)
@@ -120,7 +143,12 @@ object GoogleDataprocService {
 
     for {
       clients <- regionalSettings
-    } yield new GoogleDataprocInterpreter[F](clients.toMap, googleComputeService, blockerBound, retryConfig)
+    } yield new GoogleDataprocInterpreter[F](clients.toMap,
+                                             googleComputeService,
+                                             computePollOperation,
+                                             blockerBound,
+                                             retryConfig
+    )
   }
 }
 
