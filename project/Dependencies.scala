@@ -3,14 +3,14 @@ import sbt._
 object Dependencies {
   val akkaV         = "2.6.18"
   val akkaHttpV     = "10.2.7"
-  val jacksonV      = "2.13.1"
+  val jacksonV      = "2.13.2"
   val googleV       = "1.22.0"
   val scalaLoggingV = "3.9.4"
   val scalaTestV    = "3.2.10"
   val circeVersion = "0.14.1"
   val http4sVersion = "1.0.0-M30"
   val bouncyCastleVersion = "1.70"
-  val openCensusV = "0.30.0"
+  val openCensusV = "0.31.0"
 
   def excludeGuavaJDK5(m: ModuleID): ModuleID = m.exclude("com.google.guava", "guava-jdk5")
 
@@ -36,7 +36,7 @@ object Dependencies {
   val bouncyCastleProviderExt: ModuleID = "org.bouncycastle" % "bcprov-ext-jdk15on" % bouncyCastleVersion
   val bouncyCastleProvider: ModuleID = "org.bouncycastle" % "bcprov-jdk15on" % bouncyCastleVersion
 
-  val catsEffect: ModuleID = "org.typelevel" %% "cats-effect" % "3.3.3"
+  val catsEffect: ModuleID = "org.typelevel" %% "cats-effect" % "3.3.8"
 
   // metrics-scala transitively pulls in io.dropwizard.metrics:metrics-core
   val metricsScala: ModuleID =      "nl.grons"              %% "metrics4-scala"    % "4.2.8"
@@ -62,13 +62,13 @@ object Dependencies {
   val googleRpc2: ModuleID =               "io.grpc" % "grpc-core" % "1.43.1"
   val googleFirestore: ModuleID = "com.google.cloud" % "google-cloud-firestore" % "2.6.2"
   val googleStorageNew: ModuleID = "com.google.cloud" % "google-cloud-storage" % "2.2.2"
-  val googleStorageLocal: ModuleID = "com.google.cloud" % "google-cloud-nio" % "0.123.17" % "test"
+  val googleStorageLocal: ModuleID = "com.google.cloud" % "google-cloud-nio" % "0.123.25" % "test"
   val googlePubsubNew: ModuleID = "com.google.cloud" % "google-cloud-pubsub" % "1.115.0"
   val googleKms: ModuleID = "com.google.cloud" % "google-cloud-kms" % "2.3.0"
-  val googleComputeNew: ModuleID = "com.google.cloud" % "google-cloud-compute" % "1.4.4-alpha"
+  val googleComputeNew: ModuleID = "com.google.cloud" % "google-cloud-compute" % "1.8.0"
   val googleDataproc: ModuleID =    "com.google.cloud" % "google-cloud-dataproc" % "2.3.0"
   val googleContainer: ModuleID = "com.google.cloud" % "google-cloud-container" % "2.3.0"
-  val kubernetesClient: ModuleID = "io.kubernetes" % "client-java" % "14.0.0"
+  val kubernetesClient: ModuleID = "io.kubernetes" % "client-java" % "14.0.1"
   val googleBigQueryNew: ModuleID = "com.google.cloud" % "google-cloud-bigquery" % "2.6.0"
   val google2CloudBilling = "com.google.cloud" % "google-cloud-billing" % "2.1.4"
   val googleStorageTransferService: ModuleID = "com.google.cloud" % "google-cloud-storage-transfer" % "0.2.2"
@@ -88,7 +88,7 @@ object Dependencies {
   val http4sBlazeClient = "org.http4s" %% "http4s-blaze-client" % http4sVersion
   val http4sDsl = "org.http4s"      %% "http4s-dsl"          % http4sVersion
 
-  val fs2Io: ModuleID = "co.fs2" %% "fs2-io" % "3.2.4"
+  val fs2Io: ModuleID = "co.fs2" %% "fs2-io" % "3.2.5"
   val rawlsModel: ModuleID = "org.broadinstitute.dsde" %% "rawls-model" % "0.1-384ab501b" exclude("com.typesafe.scala-logging", "scala-logging_2.13") exclude("com.typesafe.akka", "akka-stream_2.13")
   val openCensusApi: ModuleID = "io.opencensus" % "opencensus-api" % openCensusV
   val openCensusImpl: ModuleID = "io.opencensus" % "opencensus-impl" % openCensusV
@@ -194,15 +194,15 @@ object Dependencies {
     log4cats,
     openCensusApi,
     openCensusImpl,
-    openCensusStatsPrometheus,
     openCensusStatsStackDriver,
     openCensusTraceStackDriver,
+    openCensusStatsPrometheus,
     prometheusServer
   )
 
   val errorReportingDependencies = List(
     catsEffect,
-    "com.google.cloud" % "google-cloud-errorreporting" % "0.122.9-beta"
+    "com.google.cloud" % "google-cloud-errorreporting" % "0.122.21-beta"
   )
 
   val util2Dependencies = commonDependencies ++ List(

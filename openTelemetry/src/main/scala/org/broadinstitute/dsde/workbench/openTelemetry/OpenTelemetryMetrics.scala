@@ -9,12 +9,11 @@ import fs2.io.file.Files
 import io.circe.Decoder
 import io.circe.fs2.{byteStreamParser, decoder}
 import io.opencensus.exporter.stats.prometheus.PrometheusStatsCollector
-import io.opencensus.exporter.stats.stackdriver.{StackdriverStatsConfiguration, StackdriverStatsExporter}
 import io.opencensus.exporter.trace.stackdriver.{StackdriverTraceConfiguration, StackdriverTraceExporter}
 import io.prometheus.client.exporter.HTTPServer
 
 import java.nio.file.Path
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import scala.concurrent.duration.FiniteDuration
 
 trait OpenTelemetryMetrics[F[_]] {
@@ -45,34 +44,13 @@ object OpenTelemetryMetrics {
       .through(byteStreamParser)
       .through(decoder[F, GoogleProjectId])
 
-  def resource[F[_]](pathToCredential: Path, appName: String)(implicit
+  def resource[F[_]](appName: String, endpointPort: Int = 9098)(implicit
     F: Async[F]
   ): Resource[F, OpenTelemetryMetricsInterpreter[F]] =
     for {
-      projectId <- Resource.eval(parseProject[F](pathToCredential).compile.lastOrError)
-      stream <- org.broadinstitute.dsde.workbench.util2.readFile(pathToCredential.toString)
-      credential = ServiceAccountCredentials
-        .fromStream(stream)
-        .createScoped(
-          Set("https://www.googleapis.com/auth/monitoring", "https://www.googleapis.com/auth/cloud-platform").asJava
-        )
-      configuration = StackdriverStatsConfiguration
-        .builder()
-        .setCredentials(credential)
-        .setProjectId(projectId.value)
-        .build()
-      _ <- Resource.make(F.delay(StackdriverStatsExporter.createAndRegister(configuration)))(_ =>
-        F.delay(StackdriverStatsExporter.unregister())
-      )
-    } yield new OpenTelemetryMetricsInterpreter[F](appName)
-
-  def exposeMetricsToPrometheus[F[_]](endpointPort: Int = 9098)(implicit
-    F: Async[F]
-  ): Resource[F, Unit] =
-    for {
       _ <- Resource.eval(F.delay(PrometheusStatsCollector.createAndRegister())) // Cannot unregister Prometheus
       _ <- Resource.make(F.delay(new HTTPServer(endpointPort)))(server => F.delay(server.close()))
-    } yield ()
+    } yield new OpenTelemetryMetricsInterpreter[F](appName)
 
   def registerTracing[F[_]](pathToCredential: Path)(implicit
     F: Async[F]

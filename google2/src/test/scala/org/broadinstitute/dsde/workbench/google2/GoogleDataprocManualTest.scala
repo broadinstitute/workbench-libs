@@ -27,11 +27,12 @@ final class GoogleDataprocManualTest(pathToCredential: String,
   val region = RegionName(regionStr)
   val zone = ZoneName(s"$regionStr-a")
 
-  val dataprocServiceResource = GoogleComputeService
-    .resource(pathToCredential, blockerBound)
-    .flatMap(computeService =>
-      GoogleDataprocService.resource(computeService, pathToCredential, blockerBound, Set(region))
-    )
+  val dataprocServiceResource = for {
+    computeService <- GoogleComputeService
+      .resource(pathToCredential, blockerBound)
+    computePoll <- ComputePollOperation.resource(pathToCredential, blockerBound)
+    res <- GoogleDataprocService.resource(computeService, computePoll, pathToCredential, blockerBound, Set(region))
+  } yield res
 
   def callStopCluster(cluster: String): IO[Option[DataprocOperation]] =
     dataprocServiceResource.use { dataprocService =>

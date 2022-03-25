@@ -56,9 +56,14 @@ object Sam extends Sam {
 
     case class UserStatus(userInfo: UserStatusDetails, enabled: Map[String, Boolean])
 
-    case class UserStatusDiagnostics(enabled: Boolean, inAllUserGroup: Boolean, inGoogleProxyGroup: Boolean)
+    case class UserStatusDiagnostics(enabled: Boolean,
+                                     inAllUserGroup: Boolean,
+                                     inGoogleProxyGroup: Boolean,
+                                     adminEnabled: Option[Boolean],
+                                     tosAccepted: Option[Boolean]
+    )
 
-    case class UserStatusInfo(userSubjectId: String, userEmail: String, enabled: Boolean)
+    case class UserStatusInfo(userSubjectId: String, userEmail: String, enabled: Boolean, adminEnabled: Option[Boolean])
 
     def status()(implicit token: AuthToken): Option[UserStatus] = {
       logger.info(s"Getting user registration status")
