@@ -45,7 +45,7 @@ class MockGoogleDiskService extends GoogleDiskService[IO] {
 object MockGoogleDiskService extends MockGoogleDiskService
 
 class FakeOperationFuture extends OperationFuture[Operation, Operation] {
-  override def getName: String = ???
+  override def getName: String = "op"
 
   override def getInitialFuture: ApiFuture[OperationSnapshot] = ???
 
