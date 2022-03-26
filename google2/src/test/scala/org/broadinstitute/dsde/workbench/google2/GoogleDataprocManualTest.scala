@@ -30,8 +30,7 @@ final class GoogleDataprocManualTest(pathToCredential: String,
   val dataprocServiceResource = for {
     computeService <- GoogleComputeService
       .resource(pathToCredential, blockerBound)
-    computePoll <- ComputePollOperation.resource(pathToCredential, blockerBound)
-    res <- GoogleDataprocService.resource(computeService, computePoll, pathToCredential, blockerBound, Set(region))
+    res <- GoogleDataprocService.resource(computeService, pathToCredential, blockerBound, Set(region))
   } yield res
 
   def callStopCluster(cluster: String): IO[Option[DataprocOperation]] =
