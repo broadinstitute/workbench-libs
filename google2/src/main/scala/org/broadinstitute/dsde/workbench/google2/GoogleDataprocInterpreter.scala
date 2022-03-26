@@ -133,7 +133,7 @@ private[google2] class GoogleDataprocInterpreter[F[_]: Parallel](
                       )
                       _ <- operationFuture.traverse { x =>
                         F.delay(x.get()).flatMap { op =>
-                          F.raiseUnless(!isSuccess(op.getHttpErrorStatusCode))(
+                          F.raiseUnless(isSuccess(op.getHttpErrorStatusCode))(
                             new Exception(s"addInstanceMetadata failed ${op}")
                           )
                         }
@@ -208,7 +208,7 @@ private[google2] class GoogleDataprocInterpreter[F[_]: Parallel](
                                                       s"stopInstance timed out"
                         )
                         op <- F.delay(opFuture.get())
-                        _ <- F.raiseUnless(!isSuccess(op.getHttpErrorStatusCode))(
+                        _ <- F.raiseUnless(isSuccess(op.getHttpErrorStatusCode))(
                           new Exception(s"stopInstance timed out ${op}")
                         )
                       } yield ()
@@ -251,7 +251,7 @@ private[google2] class GoogleDataprocInterpreter[F[_]: Parallel](
                 )
                 _ <- operationFuture.traverse { x =>
                   F.delay(x.get()).flatMap { op =>
-                    F.raiseUnless(!isSuccess(op.getHttpErrorStatusCode))(
+                    F.raiseUnless(isSuccess(op.getHttpErrorStatusCode))(
                       new Exception(s"addInstanceMetadata failed ${op}")
                     )
                   }

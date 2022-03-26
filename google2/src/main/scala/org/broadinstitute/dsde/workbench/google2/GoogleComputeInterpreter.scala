@@ -59,7 +59,7 @@ private[google2] class GoogleComputeInterpreter[F[_]: Parallel: StructuredLogger
           )
           _ <- streamUntilDoneOrTimeout(F.delay(opFuture.isDone), 5, 4 seconds, s"setDiskAutoDeleteAsync timed out")
           res <- F.delay(opFuture.get())
-          _ <- F.raiseUnless(!isSuccess(res.getHttpErrorStatusCode))(new Exception(s"setDiskAutoDeleteAsync failed"))
+          _ <- F.raiseUnless(isSuccess(res.getHttpErrorStatusCode))(new Exception(s"setDiskAutoDeleteAsync failed"))
         } yield ()
       }
       deleteOp <- deleteInstance(project, zone, instanceName)
