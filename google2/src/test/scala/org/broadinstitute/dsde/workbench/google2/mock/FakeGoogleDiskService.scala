@@ -63,7 +63,7 @@ class FakeOperationFuture extends OperationFuture[Operation, Operation] {
 
   override def isDone: Boolean = true
 
-  override def get(): Operation = ???
+  override def get(): Operation = Operation.newBuilder().setId(123).setName("opName").setTargetId(258165385).build()
 
   override def get(timeout: Long, unit: TimeUnit): Operation = ???
 }

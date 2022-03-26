@@ -8,7 +8,6 @@ import cats.mtl.Ask
 import cats.syntax.all._
 import com.google.api.gax.core.{FixedCredentialsProvider, FixedExecutorProvider}
 import com.google.auth.oauth2.GoogleCredentials
-import com.google.cloud.compute.v1.Operation
 import com.google.cloud.dataproc.v1.{RegionName => _, _}
 import com.google.common.util.concurrent.ThreadFactoryBuilder
 import org.broadinstitute.dsde.workbench.RetryConfig
