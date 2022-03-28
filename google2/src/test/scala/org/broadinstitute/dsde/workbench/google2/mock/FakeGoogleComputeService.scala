@@ -49,7 +49,7 @@ class FakeGoogleComputeService extends GoogleComputeService[IO] {
     metadataToAdd: Map[String, String],
     metadataToRemove: Set[String]
   )(implicit ev: Ask[IO, TraceId]): IO[Option[OperationFuture[Operation, Operation]]] =
-    IO.pure(None)
+    IO.pure(Some(new FakeOperationFuture))
 
   override def addFirewallRule(project: GoogleProject, firewall: Firewall)(implicit
     ev: Ask[IO, TraceId]
