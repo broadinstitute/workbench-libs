@@ -57,8 +57,7 @@ private[google2] class GoogleComputeInterpreter[F[_]: Parallel: StructuredLogger
             Some(traceId),
             s"com.google.cloud.compute.v1.InstancesClient.setDiskAutoDelete(${project.value}, ${zone.value}, ${instanceName.value}, true, ${diskName.value})"
           )
-          _ <- streamUntilDoneOrTimeout(F.delay(opFuture.isDone), 5, 4 seconds, s"setDiskAutoDeleteAsync timed out")
-          res <- F.delay(opFuture.get())
+          res <- F.blocking(opFuture.get())
           _ <- F.raiseUnless(isSuccess(res.getHttpErrorStatusCode))(new Exception(s"setDiskAutoDeleteAsync failed"))
         } yield ()
       }

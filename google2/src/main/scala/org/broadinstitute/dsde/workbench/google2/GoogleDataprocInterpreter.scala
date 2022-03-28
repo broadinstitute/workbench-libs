@@ -126,13 +126,8 @@ private[google2] class GoogleDataprocInterpreter[F[_]: Parallel](
                         instance,
                         md
                       )
-                      _ <- streamUntilDoneOrTimeout(operationFuture.traverse(x => F.delay(x.isDone)),
-                                                    10,
-                                                    3 seconds,
-                                                    s"addInstanceMetadata timed out"
-                      )
                       _ <- operationFuture.traverse { x =>
-                        F.delay(x.get()).flatMap { op =>
+                        F.blocking(x.get()).flatMap { op =>
                           F.raiseUnless(isSuccess(op.getHttpErrorStatusCode))(
                             new Exception(s"addInstanceMetadata failed ${op}")
                           )
@@ -202,12 +197,7 @@ private[google2] class GoogleDataprocInterpreter[F[_]: Parallel](
                     instances.toList.parTraverse { instance =>
                       for {
                         opFuture <- googleComputeService.stopInstance(project, zone, instance)
-                        _ <- streamUntilDoneOrTimeout(F.delay(opFuture.isDone),
-                                                      30,
-                                                      4 seconds,
-                                                      s"stopInstance timed out"
-                        )
-                        op <- F.delay(opFuture.get())
+                        op <- F.blocking(opFuture.get())
                         _ <- F.raiseUnless(isSuccess(op.getHttpErrorStatusCode))(
                           new Exception(s"stopInstance timed out ${op}")
                         )
@@ -244,13 +234,8 @@ private[google2] class GoogleDataprocInterpreter[F[_]: Parallel](
                   instance,
                   md
                 )
-                _ <- streamUntilDoneOrTimeout(operationFuture.traverse(x => F.delay(x.isDone)),
-                                              10,
-                                              3 seconds,
-                                              s"addInstanceMetadata timed out"
-                )
                 _ <- operationFuture.traverse { x =>
-                  F.delay(x.get()).flatMap { op =>
+                  F.blocking(x.get()).flatMap { op =>
                     F.raiseUnless(isSuccess(op.getHttpErrorStatusCode))(
                       new Exception(s"addInstanceMetadata failed ${op}")
                     )
