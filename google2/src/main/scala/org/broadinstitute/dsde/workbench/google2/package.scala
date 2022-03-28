@@ -214,15 +214,6 @@ object DoneCheckableInstances {
     def isDone(op: com.google.cloud.compute.v1.Operation): Boolean =
       op.getStatus == com.google.cloud.compute.v1.Operation.Status.DONE
   }
-  val trueBooleanDoneCheckable = new DoneCheckable[Boolean] {
-    def isDone(x: Boolean): Boolean = x
-  }
-  val optionTrueDoneCheckable = new DoneCheckable[Option[Boolean]] {
-    override def isDone(a: Option[Boolean]): Boolean = a match {
-      case None        => true
-      case Some(value) => value
-    }
-  }
 }
 
 final case class DoneCheckableOps[A](a: A)(implicit ev: DoneCheckable[A]) {

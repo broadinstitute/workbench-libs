@@ -28,8 +28,6 @@ private[google2] class GoogleComputeInterpreter[F[_]: Parallel: StructuredLogger
   blockerBound: Semaphore[F]
 )(implicit F: Async[F])
     extends GoogleComputeService[F] {
-  implicit val trueDoneCheckable = DoneCheckableInstances.trueBooleanDoneCheckable
-
   override def createInstance(project: GoogleProject, zone: ZoneName, instance: Instance)(implicit
     ev: Ask[F, TraceId]
   ): F[Option[OperationFuture[Operation, Operation]]] =

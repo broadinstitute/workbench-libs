@@ -45,11 +45,9 @@ class BaseFakeGoogleDataprocService extends GoogleDataprocService[IO] {
                    metadata: Option[Map[String, String]]
   )(implicit
     ev: Ask[IO, TraceId]
-  ): IO[Option[DataprocOperation]] = IO.pure(
+  ): IO[Option[OperationFuture[Cluster, ClusterOperationMetadata]]] = IO.pure(
     Some(
-      DataprocOperation(OperationName("startCluster"),
-                        ClusterOperationMetadata.newBuilder().setClusterUuid("clusterUuid").build
-      )
+      new FakeDataprocClusterOperationFutureOp
     )
   )
 

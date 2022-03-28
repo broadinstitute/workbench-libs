@@ -28,8 +28,6 @@ private[google2] class GoogleDataprocInterpreter[F[_]: Parallel](
   retryConfig: RetryConfig
 )(implicit F: Async[F], logger: StructuredLogger[F])
     extends GoogleDataprocService[F] {
-  implicit val optionTrueDoneCheckable = DoneCheckableInstances.optionTrueDoneCheckable
-  implicit val trueDoneCheckable = DoneCheckableInstances.trueBooleanDoneCheckable
   override def createCluster(
     project: GoogleProject,
     region: RegionName,
@@ -200,7 +198,7 @@ private[google2] class GoogleDataprocInterpreter[F[_]: Parallel](
                             metadata: Option[Map[String, String]]
   )(implicit
     ev: Ask[F, TraceId]
-  ): F[Option[DataprocOperation]] =
+  ): F[Option[OperationFuture[Cluster, ClusterOperationMetadata]]] =
     for {
       traceId <- ev.ask
       clusterOpt <- getCluster(project, region, clusterName)
@@ -244,27 +242,13 @@ private[google2] class GoogleDataprocInterpreter[F[_]: Parallel](
                 .setClusterName(clusterName.value)
                 .build()
 
-            fa = for {
-              javaFuture <- F.delay(client.startClusterAsync(request))
-              operation <- F
-                .async[ClusterOperationMetadata] { cb =>
-                  F.delay(
-                    ApiFutures.addCallback(
-                      javaFuture.getMetadata,
-                      callBack(cb),
-                      MoreExecutors.directExecutor()
-                    )
-                  ).as(None)
-                }
-                .map(metadata => DataprocOperation(OperationName(javaFuture.getName), metadata))
-            } yield operation
             op <- withLogging(
-              fa,
+              F.delay(client.startClusterAsync(request)),
               Some(traceId),
               s"com.google.cloud.dataproc.v1.ClusterControllerClient.startClusterAsync($request)"
             )
 
-          } yield Some(op)
+          } yield op.some
         else {
           // We support non-full stop when we "stop" a dataproc cluster
           // (when we're patching a dataproc cluster or for existing `Stopped` dataproc clusters).
@@ -279,7 +263,7 @@ private[google2] class GoogleDataprocInterpreter[F[_]: Parallel](
                 }
               }
             }
-            .as(none[DataprocOperation])
+            .as(none[OperationFuture[Cluster, ClusterOperationMetadata]])
         }
 
       // Add back the preemptible instances, if any
@@ -295,7 +279,8 @@ private[google2] class GoogleDataprocInterpreter[F[_]: Parallel](
               3 seconds,
               s"Cannot resize the instances of cluster ${project.value}/${clusterName.value} unless the cluster is in RUNNING status."
             )
-            _ <- resizeCluster(project, region, clusterName, numWorkers = None, numPreemptibles = Some(n))
+            opFuture <- resizeCluster(project, region, clusterName, numWorkers = None, numPreemptibles = Some(n))
+            _ <- opFuture.traverse(x => F.blocking(x.get()))
             _ <- streamUntilDoneOrTimeout(
               getClusterInstances(project, region, clusterName),
               15,
