@@ -15,7 +15,7 @@ object BillingFixtures {
 
   /**
    * Create a new v2 billing project for the activation of `testCode`. The billing project will be
-   * destroyed when control exists `testCode`.
+   * destroyed when control exits `testCode`.
    *
    * @param billingAccountName Name of Google billing account the new billing project will bill to.
    * @param projectNamePrefix  Prefix for billing project name. [default: "tmp-billing-project-"]
