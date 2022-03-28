@@ -34,7 +34,7 @@ final class GoogleDataprocManualTest(pathToCredential: String,
     res <- GoogleDataprocService.resource(computeService, pathToCredential, blockerBound, Set(region))
   } yield res
 
-  def callStopCluster(cluster: String): IO[Option[DataprocOperation]] =
+  def callStopCluster(cluster: String): IO[Option[OperationFuture[Cluster, ClusterOperationMetadata]]] =
     dataprocServiceResource.use { dataprocService =>
       dataprocService.stopCluster(project, region, DataprocClusterName(cluster), metadata = None, true)
     }

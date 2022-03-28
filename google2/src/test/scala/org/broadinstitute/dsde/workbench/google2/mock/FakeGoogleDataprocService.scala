@@ -32,11 +32,9 @@ class BaseFakeGoogleDataprocService extends GoogleDataprocService[IO] {
                            isFullStop: Boolean
   )(implicit
     ev: Ask[IO, TraceId]
-  ): IO[Option[DataprocOperation]] = IO.pure(
+  ): IO[Option[OperationFuture[Cluster, ClusterOperationMetadata]]] = IO.pure(
     Some(
-      DataprocOperation(OperationName("stopCluster"),
-                        ClusterOperationMetadata.newBuilder().setClusterUuid("clusterUuid").build
-      )
+      new FakeDataprocClusterOperationFutureOp
     )
   )
 

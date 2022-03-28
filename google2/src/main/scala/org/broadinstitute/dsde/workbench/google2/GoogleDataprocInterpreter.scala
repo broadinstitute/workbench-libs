@@ -104,15 +104,14 @@ private[google2] class GoogleDataprocInterpreter[F[_]: Parallel](
                            isFullStop: Boolean
   )(implicit
     ev: Ask[F, TraceId]
-  ): F[Option[DataprocOperation]] =
+  ): F[Option[OperationFuture[Cluster, ClusterOperationMetadata]]] =
     for {
       traceId <- ev.ask
       cluster <- getCluster(project, region, clusterName)
-      _ <- logger.info(s"cluster ${cluster}")
       r <- cluster match {
-        case None => F.pure(none[DataprocOperation])
+        case None => F.pure(none[OperationFuture[Cluster, ClusterOperationMetadata]])
         case Some(c) if c.getStatus.getState == com.google.cloud.dataproc.v1.ClusterStatus.State.STOPPED =>
-          F.pure(none[DataprocOperation])
+          F.pure(none[OperationFuture[Cluster, ClusterOperationMetadata]])
         case Some(c) =>
           val clusterInstances = getAllInstanceNames(c)
           for {
@@ -176,37 +175,20 @@ private[google2] class GoogleDataprocInterpreter[F[_]: Parallel](
                       .setClusterName(clusterName.value)
                       .build()
                   fa = F.delay(client.stopClusterAsync(request))
-                  javaFuture <- withLogging(
+                  opertationFuture <- withLogging(
                     fa,
                     Some(traceId),
                     s"com.google.cloud.dataproc.v1.ClusterControllerClient.stopClusterAsync($request)"
                   )
-                  r <- F
-                    .async[ClusterOperationMetadata] { cb =>
-                      F.delay(
-                        ApiFutures.addCallback(
-                          javaFuture.getMetadata,
-                          callBack(cb),
-                          MoreExecutors.directExecutor()
-                        )
-                      ).as(None)
-                    }
-                    .map(metadata => DataprocOperation(OperationName(javaFuture.getName), metadata))
-                } yield r.some
+                } yield opertationFuture.some
               else
                 remainingClusterInstances.toList
                   .parFlatTraverse { case (DataprocRoleZonePreemptibility(_, zone, _), instances) =>
                     instances.toList.parTraverse { instance =>
-                      for {
-                        opFuture <- googleComputeService.stopInstance(project, zone, instance)
-                        op <- F.blocking(opFuture.get())
-                        _ <- F.raiseUnless(isSuccess(op.getHttpErrorStatusCode))(
-                          new Exception(s"stopInstance timed out ${op}")
-                        )
-                      } yield ()
+                      googleComputeService.stopInstance(project, zone, instance)
                     }
                   }
-                  .as(none[DataprocOperation])
+                  .as(none[OperationFuture[Cluster, ClusterOperationMetadata]])
           } yield res
       }
     } yield r

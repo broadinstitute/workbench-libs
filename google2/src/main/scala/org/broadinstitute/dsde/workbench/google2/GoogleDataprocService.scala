@@ -41,7 +41,7 @@ trait GoogleDataprocService[F[_]] {
                   isFullStop: Boolean
   )(implicit
     ev: Ask[F, TraceId]
-  ): F[Option[DataprocOperation]]
+  ): F[Option[OperationFuture[Cluster, ClusterOperationMetadata]]]
 
   def startCluster(project: GoogleProject,
                    region: RegionName,
