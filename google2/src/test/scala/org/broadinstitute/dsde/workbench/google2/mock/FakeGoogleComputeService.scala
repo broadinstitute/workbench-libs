@@ -23,12 +23,12 @@ class FakeGoogleComputeService extends GoogleComputeService[IO] {
   override def createInstance(project: GoogleProject, zone: ZoneName, instance: Instance)(implicit
     ev: Ask[IO, TraceId]
   ): IO[Option[OperationFuture[Operation, Operation]]] =
-    IO.pure(Some(new FakeOperationFuture))
+    IO.pure(Some(new FakeComputeOperationFuture))
 
   override def deleteInstance(project: GoogleProject, zone: ZoneName, instanceName: InstanceName)(implicit
     ev: Ask[IO, TraceId]
   ): IO[Option[OperationFuture[Operation, Operation]]] =
-    IO.pure(Some(new FakeOperationFuture))
+    IO.pure(Some(new FakeComputeOperationFuture))
 
   override def getInstance(project: GoogleProject, zone: ZoneName, instanceName: InstanceName)(implicit
     ev: Ask[IO, TraceId]
@@ -36,11 +36,11 @@ class FakeGoogleComputeService extends GoogleComputeService[IO] {
 
   override def stopInstance(project: GoogleProject, zone: ZoneName, instanceName: InstanceName)(implicit
     ev: Ask[IO, TraceId]
-  ): IO[OperationFuture[Operation, Operation]] = IO.pure(new FakeOperationFuture)
+  ): IO[OperationFuture[Operation, Operation]] = IO.pure(new FakeComputeOperationFuture)
 
   override def startInstance(project: GoogleProject, zone: ZoneName, instanceName: InstanceName)(implicit
     ev: Ask[IO, TraceId]
-  ): IO[OperationFuture[Operation, Operation]] = IO.pure(new FakeOperationFuture)
+  ): IO[OperationFuture[Operation, Operation]] = IO.pure(new FakeComputeOperationFuture)
 
   override def modifyInstanceMetadata(
     project: GoogleProject,
@@ -49,11 +49,11 @@ class FakeGoogleComputeService extends GoogleComputeService[IO] {
     metadataToAdd: Map[String, String],
     metadataToRemove: Set[String]
   )(implicit ev: Ask[IO, TraceId]): IO[Option[OperationFuture[Operation, Operation]]] =
-    IO.pure(Some(new FakeOperationFuture))
+    IO.pure(Some(new FakeComputeOperationFuture))
 
   override def addFirewallRule(project: GoogleProject, firewall: Firewall)(implicit
     ev: Ask[IO, TraceId]
-  ): IO[OperationFuture[Operation, Operation]] = IO.pure(new FakeOperationFuture)
+  ): IO[OperationFuture[Operation, Operation]] = IO.pure(new FakeComputeOperationFuture)
 
   override def getFirewallRule(project: GoogleProject, firewallRuleName: FirewallRuleName)(implicit
     ev: Ask[IO, TraceId]
@@ -64,7 +64,7 @@ class FakeGoogleComputeService extends GoogleComputeService[IO] {
                               instanceName: InstanceName,
                               machineType: MachineTypeName
   )(implicit ev: Ask[IO, TraceId]): IO[OperationFuture[Operation, Operation]] =
-    IO.pure(new FakeOperationFuture)
+    IO.pure(new FakeComputeOperationFuture)
 
   override def getMachineType(project: GoogleProject, zone: ZoneName, machineTypeName: MachineTypeName)(implicit
     ev: Ask[IO, TraceId]
@@ -76,7 +76,7 @@ class FakeGoogleComputeService extends GoogleComputeService[IO] {
 
   override def deleteFirewallRule(project: GoogleProject, firewallRuleName: FirewallRuleName)(implicit
     ev: Ask[IO, TraceId]
-  ): IO[Option[OperationFuture[Operation, Operation]]] = IO.pure(Some(new FakeOperationFuture))
+  ): IO[Option[OperationFuture[Operation, Operation]]] = IO.pure(Some(new FakeComputeOperationFuture))
 
   override def getNetwork(project: GoogleProject, networkName: NetworkName)(implicit
     ev: Ask[IO, TraceId]
@@ -84,7 +84,7 @@ class FakeGoogleComputeService extends GoogleComputeService[IO] {
 
   override def createNetwork(project: GoogleProject, network: Network)(implicit
     ev: Ask[IO, TraceId]
-  ): IO[OperationFuture[Operation, Operation]] = IO.pure(new FakeOperationFuture)
+  ): IO[OperationFuture[Operation, Operation]] = IO.pure(new FakeComputeOperationFuture)
 
   override def getSubnetwork(project: GoogleProject, region: RegionName, subnetwork: SubnetworkName)(implicit
     ev: Ask[IO, TraceId]
@@ -92,12 +92,12 @@ class FakeGoogleComputeService extends GoogleComputeService[IO] {
 
   override def createSubnetwork(project: GoogleProject, region: RegionName, subnetwork: Subnetwork)(implicit
     ev: Ask[IO, TraceId]
-  ): IO[OperationFuture[Operation, Operation]] = IO.pure(new FakeOperationFuture)
+  ): IO[OperationFuture[Operation, Operation]] = IO.pure(new FakeComputeOperationFuture)
 
   def detachDisk(project: GoogleProject, zone: ZoneName, instanceName: InstanceName, deviceName: DeviceName)(implicit
     ev: Ask[IO, TraceId]
   ): IO[Option[OperationFuture[Operation, Operation]]] =
-    IO.pure(Some(new FakeOperationFuture))
+    IO.pure(Some(new FakeComputeOperationFuture))
 
   override def deleteInstanceWithAutoDeleteDisk(
     project: GoogleProject,
@@ -107,14 +107,14 @@ class FakeGoogleComputeService extends GoogleComputeService[IO] {
   )(implicit ev: Ask[IO, TraceId]): IO[Option[OperationFuture[Operation, Operation]]] =
     IO.pure(
       Some(
-        new FakeOperationFuture
+        new FakeComputeOperationFuture
       )
     )
 
   override def setInstanceTags(project: GoogleProject, zone: ZoneName, instanceName: InstanceName, tags: Tags)(implicit
     ev: Ask[IO, TraceId]
   ): IO[OperationFuture[Operation, Operation]] =
-    IO.pure(new FakeOperationFuture)
+    IO.pure(new FakeComputeOperationFuture)
 }
 
 object FakeGoogleComputeService extends FakeGoogleComputeService

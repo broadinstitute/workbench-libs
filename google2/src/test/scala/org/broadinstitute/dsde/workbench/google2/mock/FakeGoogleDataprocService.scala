@@ -3,8 +3,10 @@ package mock
 
 import cats.effect.IO
 import cats.mtl.Ask
+import com.google.api.gax.longrunning.OperationFuture
 import com.google.cloud.compute.v1.Operation
 import com.google.cloud.dataproc.v1.{Cluster, ClusterOperationMetadata}
+import com.google.protobuf.Empty
 import org.broadinstitute.dsde.workbench.model.TraceId
 import org.broadinstitute.dsde.workbench.model.google.GoogleProject
 
@@ -60,21 +62,15 @@ class BaseFakeGoogleDataprocService extends GoogleDataprocService[IO] {
                              numPreemptibles: Option[Int] = None
   )(implicit
     ev: Ask[IO, TraceId]
-  ): IO[Option[DataprocOperation]] = IO.pure(
-    Some(
-      DataprocOperation(OperationName("opName"),
-                        ClusterOperationMetadata.newBuilder().setClusterUuid("clusterUuid").build
-      )
-    )
+  ): IO[Option[OperationFuture[Cluster, ClusterOperationMetadata]]] = IO.pure(
+    Some(new FakeDataprocClusterOperationFutureOp)
   )
 
   override def deleteCluster(project: GoogleProject, region: RegionName, clusterName: DataprocClusterName)(implicit
     ev: Ask[IO, TraceId]
-  ): IO[Option[DataprocOperation]] = IO.pure(
+  ): IO[Option[OperationFuture[Empty, ClusterOperationMetadata]]] = IO.pure(
     Some(
-      DataprocOperation(OperationName("opName"),
-                        ClusterOperationMetadata.newBuilder().setClusterUuid("clusterUuid").build
-      )
+      new FakeDataprocEmptyOperationFutureOp
     )
   )
 

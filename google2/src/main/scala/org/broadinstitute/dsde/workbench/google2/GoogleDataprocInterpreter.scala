@@ -6,9 +6,10 @@ import cats.mtl.Ask
 import cats.syntax.all._
 import cats.{Parallel, Show}
 import com.google.api.core.ApiFutures
+import com.google.api.gax.longrunning.OperationFuture
 import com.google.cloud.dataproc.v1.{RegionName => _, _}
 import com.google.common.util.concurrent.MoreExecutors
-import com.google.protobuf.FieldMask
+import com.google.protobuf.{Empty, FieldMask}
 import org.broadinstitute.dsde.workbench.google2.DataprocRole.Master
 import org.broadinstitute.dsde.workbench.google2.GoogleDataprocInterpreter._
 import org.broadinstitute.dsde.workbench.google2.util.RetryPredicates._
@@ -142,7 +143,8 @@ private[google2] class GoogleDataprocInterpreter[F[_]: Parallel](
             remainingClusterInstances <-
               if (countPreemptibles(clusterInstances) > 0) {
                 for {
-                  _ <- resizeCluster(project, region, clusterName, numWorkers = None, numPreemptibles = Some(0))
+                  opFuture <- resizeCluster(project, region, clusterName, numWorkers = None, numPreemptibles = Some(0))
+                  _ <- opFuture.traverse(x => F.blocking(x.get()))
                   remaining <- streamUntilDoneOrTimeout(
                     getClusterInstances(project, region, clusterName),
                     15,
@@ -330,7 +332,7 @@ private[google2] class GoogleDataprocInterpreter[F[_]: Parallel](
                              numPreemptibles: Option[Int]
   )(implicit
     ev: Ask[F, TraceId]
-  ): F[Option[DataprocOperation]] = {
+  ): F[Option[OperationFuture[Cluster, ClusterOperationMetadata]]] = {
     val workerMask = "config.worker_config.num_instances"
     val preemptibleMask = "config.secondary_worker_config.num_instances"
 
@@ -386,20 +388,12 @@ private[google2] class GoogleDataprocInterpreter[F[_]: Parallel](
           )
 
           op <- F.delay(client.updateClusterAsync(request))
-          metadata <- F.async[ClusterOperationMetadata] { cb =>
-            F.delay(
-              ApiFutures.addCallback(
-                op.getMetadata,
-                callBack(cb),
-                MoreExecutors.directExecutor()
-              )
-            ).as(None)
-          }
-        } yield DataprocOperation(OperationName(op.getName), metadata)
+        } yield op
       }
       .handleErrorWith {
-        case _: com.google.api.gax.rpc.NotFoundException => F.pure(none[DataprocOperation])
-        case e                                           => F.raiseError[Option[DataprocOperation]](e)
+        case _: com.google.api.gax.rpc.NotFoundException =>
+          F.pure(none[OperationFuture[Cluster, ClusterOperationMetadata]])
+        case e => F.raiseError[Option[OperationFuture[Cluster, ClusterOperationMetadata]]](e)
       }
 
     retryF(updateCluster,
@@ -409,7 +403,7 @@ private[google2] class GoogleDataprocInterpreter[F[_]: Parallel](
 
   override def deleteCluster(project: GoogleProject, region: RegionName, clusterName: DataprocClusterName)(implicit
     ev: Ask[F, TraceId]
-  ): F[Option[DataprocOperation]] = {
+  ): F[Option[OperationFuture[Empty, ClusterOperationMetadata]]] = {
     val request = DeleteClusterRequest
       .newBuilder()
       .setRegion(region.value)
@@ -420,20 +414,12 @@ private[google2] class GoogleDataprocInterpreter[F[_]: Parallel](
     val deleteCluster = (for {
       client <- F.fromOption(clusterControllerClients.get(region), new Exception(s"Unsupported region ${region.value}"))
       op <- F.delay(client.deleteClusterAsync(request))
-      metadata <- F.async[ClusterOperationMetadata] { cb =>
-        F.delay(
-          ApiFutures.addCallback(
-            op.getMetadata,
-            callBack(cb),
-            MoreExecutors.directExecutor()
-          )
-        ).as(None)
-      }
-    } yield DataprocOperation(OperationName(op.getName), metadata))
+    } yield op)
       .map(Option(_))
       .handleErrorWith {
-        case _: com.google.api.gax.rpc.NotFoundException => F.pure(none[DataprocOperation])
-        case e                                           => F.raiseError[Option[DataprocOperation]](e)
+        case _: com.google.api.gax.rpc.NotFoundException =>
+          F.pure(none[OperationFuture[Empty, ClusterOperationMetadata]])
+        case e => F.raiseError[Option[OperationFuture[Empty, ClusterOperationMetadata]]](e)
       }
 
     retryF(deleteCluster, s"com.google.cloud.dataproc.v1.ClusterControllerClient.deleteClusterAsync($request)")

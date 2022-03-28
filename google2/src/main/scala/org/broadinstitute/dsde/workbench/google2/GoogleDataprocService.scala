@@ -7,9 +7,11 @@ import cats.effect.std.Semaphore
 import cats.mtl.Ask
 import cats.syntax.all._
 import com.google.api.gax.core.{FixedCredentialsProvider, FixedExecutorProvider}
+import com.google.api.gax.longrunning.OperationFuture
 import com.google.auth.oauth2.GoogleCredentials
 import com.google.cloud.dataproc.v1.{RegionName => _, _}
 import com.google.common.util.concurrent.ThreadFactoryBuilder
+import com.google.protobuf.Empty
 import org.broadinstitute.dsde.workbench.RetryConfig
 import org.broadinstitute.dsde.workbench.google2.util.RetryPredicates
 import org.broadinstitute.dsde.workbench.model.TraceId
@@ -57,11 +59,11 @@ trait GoogleDataprocService[F[_]] {
                     numPreemptibles: Option[Int]
   )(implicit
     ev: Ask[F, TraceId]
-  ): F[Option[DataprocOperation]]
+  ): F[Option[OperationFuture[Cluster, ClusterOperationMetadata]]]
 
   def deleteCluster(project: GoogleProject, region: RegionName, clusterName: DataprocClusterName)(implicit
     ev: Ask[F, TraceId]
-  ): F[Option[DataprocOperation]]
+  ): F[Option[OperationFuture[Empty, ClusterOperationMetadata]]]
 
   def getCluster(project: GoogleProject, region: RegionName, clusterName: DataprocClusterName)(implicit
     ev: Ask[F, TraceId]
