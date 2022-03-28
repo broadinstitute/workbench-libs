@@ -13,7 +13,7 @@ import io.opencensus.exporter.trace.stackdriver.{StackdriverTraceConfiguration, 
 import io.prometheus.client.exporter.HTTPServer
 
 import java.nio.file.Path
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import scala.concurrent.duration.FiniteDuration
 
 trait OpenTelemetryMetrics[F[_]] {

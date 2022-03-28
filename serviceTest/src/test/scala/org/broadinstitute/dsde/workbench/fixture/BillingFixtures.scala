@@ -50,16 +50,19 @@ object BillingFixtures {
                                         owners: List[String] = List.empty,
                                         users: List[String] = List.empty
   )(testCode: String => F[A])(implicit creatorAuthToken: AuthToken, F: Sync[F]): F[A] = {
+
     def addMembers(projectName: String, emails: List[String], role: BillingProjectRole): F[Unit] =
       emails.traverse_ { email =>
         F.delay(Orchestration.billingV2.addUserToBillingProject(projectName, email, role))
       }
 
-    BillingFixtures.resource(billingAccountName, projectNamePrefix).use { projectName =>
-      addMembers(projectName, owners, BillingProjectRole.Owner) *>
-        addMembers(projectName, users, BillingProjectRole.User) *>
-        testCode(projectName)
-    }
+    BillingFixtures
+      .temporaryBillingProject(billingAccountName, projectNamePrefix)
+      .use { projectName =>
+        addMembers(projectName, owners, BillingProjectRole.Owner) *>
+          addMembers(projectName, users, BillingProjectRole.User) *>
+          testCode(projectName)
+      }
   }
 
   /**
@@ -69,21 +72,25 @@ object BillingFixtures {
    * @param projectNamePrefix  Prefix for billing project name. [default: "tmp-billing-project-"]
    * @param creatorAuthToken   Auth token of billing project creator
    */
-  def resource[F[_]](billingAccountName: String, projectNamePrefix: String = "tmp-billing-project-")(implicit
+  def temporaryBillingProject[F[_]](billingAccountName: String, projectNamePrefix: String = "tmp-billing-project-")(
+    implicit
     creatorAuthToken: AuthToken,
     F: Sync[F]
   ): Resource[F, String] = {
-    def createProject: F[String] = F.delay {
+
+    def createBillingProject: F[String] = F.delay {
       val projectName = projectNamePrefix
         .++(UUID.randomUUID.toString.replace("-", ""))
         .substring(0, 30)
+
       Orchestration.billingV2.createBillingProject(projectName, billingAccountName)
       projectName
     }
 
-    def destroyProject(projectName: String): F[Unit] =
-      F.delay(Orchestration.billingV2.deleteBillingProject(projectName)) *> F.unit
+    def destroyBillingProject(projectName: String): F[Unit] = F.unit <* F.delay {
+      Orchestration.billingV2.deleteBillingProject(projectName)
+    }
 
-    Resource.make(createProject)(destroyProject)
+    Resource.make(createBillingProject)(destroyBillingProject)
   }
 }

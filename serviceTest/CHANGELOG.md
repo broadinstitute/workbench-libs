@@ -2,18 +2,27 @@
 
 This file documents changes to the `workbench-service-test` library, including notes on how to upgrade to new versions.
 
-## 1.0
-
+## 2.0
+### Changed
 Breaking changes:
-- Removed support for GPAlloc. All GPAlloc-related functionality has been removed, excepting:
+- Removed support for GPAlloc. All GPAlloc-related functionality has been removed, except:
 - `withCleanBillingProject` - now requires a billing account to be specified.
 - BillingFixtures is now an `object` and mixin support is removed.
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "1.0-TRAVIS-REPLACE-ME"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "2.0-TRAVIS-REPLACE-ME"`
+
+## 1.0
+### Changed
+- Removed deprecated `BillingFixtures.withBillingProject`
+- Removed unused `BillingFixtures.createNewBillingProject`
+- Removed `BillingFixtures.withBrandNewBillingProject` because it was only used in 1 test and we no longer want to use
+  v1 Create Billing Project APIs to get Google Projects due to Project per Workspace (PPW)
+
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "1.0-93a9c2b"`
 
 ## 0.21
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "0.21-f84f06e"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "0.21-6155dc8"`
 
 ### Changed
 - `RestClient` which underlies many of the higher-level service-test methods, has logging changes:
@@ -25,6 +34,8 @@ SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test"
   - Wraps the thrown Exceptions to ensure logging when cleanup fails regardless of whether the test passed or failed
 - `RestClient` sendRequest function (to send any request with exponential retries for testing) is now public
 - Add `acceptTermsOfService` and `getTermsOfServiceStatus` Orch endpoints
+- Add optional `adminEnabled` and `tosAccepted` fields to `UserStatusInfo` and `UserStatusDiagnostics` in `Sam.scala`
+- Include error message when billing project creation fails in `Orchestration/createBillingProject`
 
 ## 0.20
 Changed:
