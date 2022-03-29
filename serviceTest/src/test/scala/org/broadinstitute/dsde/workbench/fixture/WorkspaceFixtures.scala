@@ -130,7 +130,6 @@ object WorkspaceFixtures extends RandomUtil {
         }
       }
 
-    type ResourceF[A] = Resource[F, A]
     for {
       workspaceName <- Resource.make(createWorkspace)(destroyWorkspace)
       _ <- aclEntries.traverse_ { entries =>
