@@ -1,20 +1,18 @@
 package org.broadinstitute.dsde.workbench.fixture
 
+import cats.effect.unsafe.implicits.global
+import cats.effect.{IO, Resource, Sync}
+import cats.implicits.{catsSyntaxApply, toFoldableOps}
 import com.typesafe.scalalogging.LazyLogging
-import org.broadinstitute.dsde.workbench.service.Orchestration.groups.GroupRole
 import org.broadinstitute.dsde.workbench.auth.AuthToken
 import org.broadinstitute.dsde.workbench.service.Orchestration
+import org.broadinstitute.dsde.workbench.service.Orchestration.groups.GroupRole
 import org.broadinstitute.dsde.workbench.service.test.RandomUtil
-import org.broadinstitute.dsde.workbench.service.util.ExceptionHandling
-import org.broadinstitute.dsde.workbench.service.test.CleanUp
-import org.scalatest.TestSuite
-
-import scala.util.Try
 
 /**
  * Fixtures for creating and cleaning up test groups.
  */
-trait GroupFixtures extends ExceptionHandling with LazyLogging with RandomUtil { self: TestSuite =>
+object GroupFixtures extends LazyLogging with RandomUtil {
 
   def groupNameToEmail(groupName: String)(implicit token: AuthToken): String =
     Orchestration.groups.getGroup(groupName).groupEmail
@@ -22,24 +20,41 @@ trait GroupFixtures extends ExceptionHandling with LazyLogging with RandomUtil {
   def groupNameToMembersEmails(groupName: String)(implicit token: AuthToken): Seq[String] =
     Orchestration.groups.getGroup(groupName).membersEmails
 
-  def withGroup(namePrefix: String, memberEmails: List[String] = List())(
-    testCode: (String) => Any
-  )(implicit token: AuthToken): Unit = {
-    val groupName = uuidWithPrefix(namePrefix)
-    Orchestration.groups.create(groupName)
-    val testTrial = Try {
-      memberEmails foreach { email =>
-        logger.info(s"Adding user $email with role of member to group $groupName")
-        Orchestration.groups.addUserToGroup(groupName, email, GroupRole.Member)
+  def withGroup[A](namePrefix: Option[String] = None, members: Option[List[String]] = None)(
+    testCode: (String) => A
+  )(implicit token: AuthToken): A =
+    GroupFixtures
+      .temporaryGroup[IO](token, namePrefix, members)
+      .use(groupName => IO.delay(testCode(groupName)))
+      .unsafeRunSync
+
+  def temporaryGroup[F[_]](ownerAuthToken: AuthToken,
+                           namePrefix: Option[String] = None,
+                           members: Option[List[String]] = None
+  )(implicit F: Sync[F]): Resource[F, String] = {
+
+    def createGroup: F[String] = F.delay {
+      val groupName = uuidWithPrefix(namePrefix.getOrElse("tmp-group-"))
+      Orchestration.groups.create(groupName)(ownerAuthToken)
+      groupName
+    }
+
+    def destroyGroup(groupName: String): F[Unit] = F.unit <* F.delay {
+      Orchestration.groups.delete(groupName)(ownerAuthToken)
+    }
+
+    def addGroupMembers(groupName: String, members: List[String]): Resource[F, Unit] =
+      members.traverse_ { email =>
+        Resource.eval(F.delay {
+          logger.info(s"Adding user $email with role of member to group $groupName")
+          Orchestration.groups.addUserToGroup(groupName, email, GroupRole.Member)(ownerAuthToken)
+        })
       }
 
-      testCode(groupName)
-    }
-
-    val cleanupTrial = Try {
-      Orchestration.groups.delete(groupName)
-    }
-
-    CleanUp.runCodeWithCleanup(testTrial, cleanupTrial)
+    for {
+      groupName <- Resource.make(createGroup)(destroyGroup)
+      _ <- members.traverse_(emails => addGroupMembers(groupName, emails))
+    } yield groupName
   }
+
 }

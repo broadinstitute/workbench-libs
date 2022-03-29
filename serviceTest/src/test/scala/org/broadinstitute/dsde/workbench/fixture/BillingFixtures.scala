@@ -74,9 +74,9 @@ object BillingFixtures {
 
     def addMembers(projectName: String, emails: List[String], role: BillingProjectRole): Resource[F, Unit] =
       emails.traverse_ { email =>
-        Resource.eval {
-          F.delay(Orchestration.billingV2.addUserToBillingProject(projectName, email, role)(creatorAuthToken))
-        }
+        Resource.eval(F.delay {
+          Orchestration.billingV2.addUserToBillingProject(projectName, email, role)(creatorAuthToken)
+        })
       }
 
     for {
