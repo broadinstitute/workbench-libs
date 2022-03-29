@@ -28,13 +28,13 @@ object WorkspaceFixtures extends RandomUtil {
    * @param bucketLocation optional region where the bucket associated with workspace should be created
    * @param testCode       test code to run
    */
-  def withWorkspace[A](namespace: String,
-                       namePrefix: Option[String] = None,
-                       authDomain: Option[Set[String]] = None,
-                       aclEntries: Option[List[AclEntry]] = None,
-                       attributes: Option[Map[String, Any]] = None,
-                       bucketLocation: Option[String] = None,
-                       cleanUp: Boolean = true
+  def withTemporaryWorkspace[A](namespace: String,
+                                namePrefix: Option[String] = None,
+                                authDomain: Option[Set[String]] = None,
+                                aclEntries: Option[List[AclEntry]] = None,
+                                attributes: Option[Map[String, Any]] = None,
+                                bucketLocation: Option[String] = None,
+                                cleanUp: Boolean = true
   )(testCode: (String) => A)(implicit token: AuthToken): A =
     WorkspaceFixtures
       .temporaryWorkspace[IO](namespace, token, namePrefix, authDomain, aclEntries, attributes, bucketLocation, cleanUp)
@@ -55,13 +55,13 @@ object WorkspaceFixtures extends RandomUtil {
    * @param bucketLocation optional region where the bucket associated with workspace should be created
    * @param testCode       test code to run
    */
-  def withClonedWorkspace[A](namespace: String,
-                             namePrefix: Option[String] = None,
-                             authDomain: Option[Set[String]] = None,
-                             aclEntries: Option[List[AclEntry]] = None,
-                             attributes: Option[Map[String, Any]] = None,
-                             bucketLocation: Option[String] = None,
-                             cleanUp: Boolean = true
+  def withTemporaryWorkspaceClone[A](namespace: String,
+                                     namePrefix: Option[String] = None,
+                                     authDomain: Option[Set[String]] = None,
+                                     aclEntries: Option[List[AclEntry]] = None,
+                                     attributes: Option[Map[String, Any]] = None,
+                                     bucketLocation: Option[String] = None,
+                                     cleanUp: Boolean = true
   )(testCode: (String) => A)(implicit token: AuthToken): A = {
     val temporaryClone = for {
       workspaceName <- WorkspaceFixtures.temporaryWorkspace[IO](

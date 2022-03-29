@@ -27,7 +27,7 @@ object GroupFixtures extends LazyLogging with RandomUtil {
    * @param members     Optional list of additional group members [default: None]
    * @param token       Auth token of group owner
    */
-  def withGroup[A](namePrefix: Option[String] = None, members: Option[List[String]] = None)(
+  def withTemporaryGroup[A](namePrefix: Option[String] = None, members: Option[List[String]] = None)(
     testCode: (String) => A
   )(implicit token: AuthToken): A =
     GroupFixtures
