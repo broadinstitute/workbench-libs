@@ -121,7 +121,6 @@ class GoogleDataprocInterpreterSpec
       interp = new GoogleDataprocInterpreter[IO](
         Map(region -> mockClusterClient),
         FakeGoogleComputeService,
-        new MockComputePollOperation(),
         semaphore,
         RetryPredicates.standardGoogleRetryConfig
       )
