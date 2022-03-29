@@ -20,6 +20,13 @@ object GroupFixtures extends LazyLogging with RandomUtil {
   def groupNameToMembersEmails(groupName: String)(implicit token: AuthToken): Seq[String] =
     Orchestration.groups.getGroup(groupName).membersEmails
 
+  /**
+   * Create and use a temporary Google Group in `testCode`.
+   *
+   * @param namePrefix  Optional name prefix for group            [default: "tmp-group-"]
+   * @param members     Optional list of additional group members [default: None]
+   * @param token       Auth token of group owner
+   */
   def withGroup[A](namePrefix: Option[String] = None, members: Option[List[String]] = None)(
     testCode: (String) => A
   )(implicit token: AuthToken): A =
@@ -28,6 +35,14 @@ object GroupFixtures extends LazyLogging with RandomUtil {
       .use(groupName => IO.delay(testCode(groupName)))
       .unsafeRunSync
 
+  /**
+   * Create a temporary Google Group `Resource` whose lifetime is bound to the scope of the
+   * `Resource`'s `use` method.
+   *
+   * @param ownerAuthToken Auth token of group owner
+   * @param namePrefix     Optional name prefix for group            [default: "tmp-group-"]
+   * @param members        Optional list of additional group members [default: None]
+   */
   def temporaryGroup[F[_]](ownerAuthToken: AuthToken,
                            namePrefix: Option[String] = None,
                            members: Option[List[String]] = None
