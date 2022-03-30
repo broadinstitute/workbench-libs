@@ -19,25 +19,26 @@ object WorkspaceFixtures extends RandomUtil {
    * test code is run. The workspace name will contain a random and highly
    * likely unique series of characters.
    *
-   * @param namespace      the namespace for the test workspace
-   * @param namePrefix     optional prefix for the workspace name
-   * @param authDomain     optional auth domain for the test workspace
-   * @param aclEntries     optional access level entries for the workspace
-   * @param attributes     optional workspace attributes
-   * @param cleanUp        optional boolean parameter to indicate whether to delete the workspace. Default is true
-   * @param bucketLocation optional region where the bucket associated with workspace should be created
-   * @param testCode       test code to run
+   * @param billingProjectName Billing project (or namespace) for workspace.
+   * @param namePrefix         Prefix for workspace name.                    [default "tmp-workspace-"]
+   * @param authDomain         Set of members group names for auth domain.   [default None]
+   * @param acl                Access Control List entries.                  [default None]
+   * @param attributes         Additional workspace attributes.              [default None]
+   * @param bucketLocation     Region where the workspace should be created. [default None]
+   * @param cleanUp            Delete the workspace after use.               [default true]
+   * @param testCode           Test code to run
+   * @param token              Auth token of workspace creator
    */
-  def withTemporaryWorkspace[A](namespace: String,
+  def withTemporaryWorkspace[A](billingProjectName: String,
                                 namePrefix: Option[String] = None,
                                 authDomain: Option[Set[String]] = None,
-                                aclEntries: Option[List[AclEntry]] = None,
+                                acl: Option[List[AclEntry]] = None,
                                 attributes: Option[Map[String, Any]] = None,
                                 bucketLocation: Option[String] = None,
                                 cleanUp: Boolean = true
   )(testCode: (String) => A)(implicit token: AuthToken): A =
     WorkspaceFixtures
-      .temporaryWorkspace[IO](namespace, token, namePrefix, authDomain, aclEntries, attributes, bucketLocation, cleanUp)
+      .temporaryWorkspace[IO](billingProjectName, token, namePrefix, authDomain, acl, attributes, bucketLocation, cleanUp)
       .use(workspaceName => IO.delay(testCode(workspaceName)))
       .unsafeRunSync
 
@@ -46,39 +47,40 @@ object WorkspaceFixtures extends RandomUtil {
    * up after the test code is run. The workspace names will contain a random and highly
    * likely unique series of characters.
    *
-   * @param namespace      the namespace for the test workspace
-   * @param namePrefix     prefix for the workspace name
-   * @param authDomain     optional auth domain for the test workspace
-   * @param aclEntries     optional access level entries for the workspace
-   * @param attributes     optional workspace attributes
-   * @param cleanUp        optional boolean parameter to indicate whether to delete the workspace. Default is true
-   * @param bucketLocation optional region where the bucket associated with workspace should be created
-   * @param testCode       test code to run
+   * @param billingProjectName Billing project (or namespace) for workspace.
+   * @param namePrefix         Prefix for workspace name.                    [default "tmp-workspace-"]
+   * @param authDomain         Set of members group names for auth domain.   [default None]
+   * @param acl                Access Control List entries.                  [default None]
+   * @param attributes         Additional workspace attributes.              [default None]
+   * @param bucketLocation     Region where the workspace should be created. [default None]
+   * @param cleanUp            Delete the workspace after use.               [default true]
+   * @param testCode           Test code to run
+   * @param token              Auth token of workspace creator
    */
-  def withTemporaryWorkspaceClone[A](namespace: String,
+  def withTemporaryWorkspaceClone[A](billingProjectName: String,
                                      namePrefix: Option[String] = None,
                                      authDomain: Option[Set[String]] = None,
-                                     aclEntries: Option[List[AclEntry]] = None,
+                                     acl: Option[List[AclEntry]] = None,
                                      attributes: Option[Map[String, Any]] = None,
                                      bucketLocation: Option[String] = None,
                                      cleanUp: Boolean = true
   )(testCode: (String) => A)(implicit token: AuthToken): A = {
     val temporaryClone = for {
       workspaceName <- WorkspaceFixtures.temporaryWorkspace[IO](
-        namespace,
+        billingProjectName,
         token,
         namePrefix = namePrefix,
         authDomain = authDomain,
-        aclEntries = aclEntries,
+        acl = acl,
         attributes = attributes,
         bucketLocation = bucketLocation,
         cleanUp = cleanUp
       )
 
       clone <- WorkspaceFixtures.temporaryWorkspaceClone[IO](
-        workspaceBillingProject = namespace,
+        workspaceBillingProject = billingProjectName,
         workspaceName = workspaceName,
-        cloneBillingProject = namespace,
+        cloneBillingProject = billingProjectName,
         creatorAuthToken = token,
         namePrefix = namePrefix.map(_ + "-clone-"),
         authDomain = authDomain,
@@ -97,8 +99,8 @@ object WorkspaceFixtures extends RandomUtil {
    * @param billingProjectName Billing project (or namespace) for workspace.
    * @param creatorAuthToken   Access token of the workspace creator.
    * @param namePrefix         Prefix for workspace name.                    [default "tmp-workspace-"]
-   * @param authDomain         Set of members group names for auth domain.   [default Set.empty]
-   * @param aclEntries         Access Control List entries.                  [default None]
+   * @param authDomain         Set of members group names for auth domain.   [default None]
+   * @param acl                Access Control List entries.                  [default None]
    * @param attributes         Optional workspace attributes.                [default None]
    * @param bucketLocation     Region where the workspace should be created. [default None]
    * @param cleanUp            Delete the workspace after use.               [default true]
@@ -107,7 +109,7 @@ object WorkspaceFixtures extends RandomUtil {
                                creatorAuthToken: AuthToken,
                                namePrefix: Option[String] = None,
                                authDomain: Option[Set[String]] = None,
-                               aclEntries: Option[List[AclEntry]] = None,
+                               acl: Option[List[AclEntry]] = None,
                                attributes: Option[Map[String, Any]] = None,
                                bucketLocation: Option[String] = None,
                                cleanUp: Boolean = true
@@ -132,7 +134,7 @@ object WorkspaceFixtures extends RandomUtil {
 
     for {
       workspaceName <- Resource.make(createWorkspace)(destroyWorkspace)
-      _ <- aclEntries.traverse_ { entries =>
+      _ <- acl.traverse_ { entries =>
         Resource.eval(F.delay {
           Orchestration.workspaces.updateAcl(billingProjectName, workspaceName, entries)(creatorAuthToken)
         })
@@ -153,7 +155,7 @@ object WorkspaceFixtures extends RandomUtil {
    * @param cloneBillingProject     Billing project (or namespace) for clone.
    * @param creatorAuthToken        Access token of the workspace creator
    * @param namePrefix              Prefix for clone name.                       [default workspaceName + "-clone-"]
-   * @param authDomain              Set of members group names for auth domain.  [default Set.empty]
+   * @param authDomain              Set of members group names for auth domain.  [default None]
    * @param cleanUp                 Delete the clone after use.                  [default true]
    */
   def temporaryWorkspaceClone[F[_]](workspaceBillingProject: String,
