@@ -18,48 +18,40 @@ object BillingFixtures {
    * destroyed when control exits `testCode`.
    *
    * @param billingAccountName Name of Google billing account the new billing project will bill to.
-   * @param projectNamePrefix  Prefix for billing project name.                  [default: "tmp-billing-project-"]
+   * @param prefix             Prefix for billing project name.                  [default: "tmp-billing-project-"]
    * @param owners             Additional billing project owner email addresses. [default: None]
    * @param users              Additional billing project user email addresses   [default: None]
    * @param testCode           Code to exercise with new billing project
    * @param creatorAuthToken   Auth token of billing project creator
    */
   def withTemporaryBillingProject[A](billingAccountName: String,
-                                     projectNamePrefix: Option[String] = None,
+                                     prefix: Option[String] = None,
                                      owners: Option[List[String]] = None,
                                      users: Option[List[String]] = None
   )(testCode: String => A)(implicit creatorAuthToken: AuthToken): A =
     BillingFixtures
-      .temporaryBillingProject[IO](billingAccountName, creatorAuthToken, projectNamePrefix, owners, users)
+      .temporaryBillingProject[IO](billingAccountName, creatorAuthToken, prefix, owners, users)
       .use(projectName => IO.delay(testCode(projectName)))
       .unsafeRunSync
-
-  /**
-   * Create a v2 billing project `Resource`.
-   *
-   * @param billingAccountName Name of Google billing account the new billing project will bill to.
-   * @param projectNamePrefix  Prefix for billing project name. [default: "tmp-billing-project-"]
-   * @param creatorAuthToken   Auth token of billing project creator
-   */
 
   /**
    * Create a v2 billing project `Resource` whose lifetime is bound to the `Resource`'s `use` method.
    *
    * @param billingAccountName Name of Google billing account the new billing project will bill to.
    * @param creatorAuthToken   Auth token of billing project creator
-   * @param projectNamePrefix  Prefix for billing project name.                  [default: "tmp-billing-project-"]
+   * @param prefix             Prefix for billing project name.                  [default: "tmp-billing-project-"]
    * @param owners             Additional billing project owner email addresses. [default: None]
    * @param users              Additional billing project user email addresses   [default: None]
    * @return
    */
   def temporaryBillingProject[F[_]](billingAccountName: String,
                                     creatorAuthToken: AuthToken,
-                                    projectNamePrefix: Option[String] = None,
+                                    prefix: Option[String] = None,
                                     owners: Option[List[String]] = None,
                                     users: Option[List[String]] = None
   )(implicit F: Sync[F]): Resource[F, String] = {
     def createBillingProject: F[String] = F.delay {
-      val projectName = projectNamePrefix
+      val projectName = prefix
         .getOrElse("tmp-billing-project-")
         .++(UUID.randomUUID.toString.replace("-", ""))
         .substring(0, 30)

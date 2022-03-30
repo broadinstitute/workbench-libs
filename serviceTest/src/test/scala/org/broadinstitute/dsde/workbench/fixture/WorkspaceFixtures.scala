@@ -20,9 +20,9 @@ object WorkspaceFixtures extends RandomUtil {
    * likely unique series of characters.
    *
    * @param billingProjectName Billing project (or namespace) for workspace.
-   * @param namePrefix         Prefix for workspace name.                    [default "tmp-workspace-"]
+   * @param prefix             Prefix for workspace name.                    [default "tmp-workspace-"]
    * @param authDomain         Set of members group names for auth domain.   [default None]
-   * @param acl                Access Control List entries.                  [default None]
+   * @param acl                Additional access Control List entries.       [default None]
    * @param attributes         Additional workspace attributes.              [default None]
    * @param bucketLocation     Region where the workspace should be created. [default None]
    * @param cleanUp            Delete the workspace after use.               [default true]
@@ -30,7 +30,7 @@ object WorkspaceFixtures extends RandomUtil {
    * @param token              Auth token of workspace creator
    */
   def withTemporaryWorkspace[A](billingProjectName: String,
-                                namePrefix: Option[String] = None,
+                                prefix: Option[String] = None,
                                 authDomain: Option[Set[String]] = None,
                                 acl: Option[List[AclEntry]] = None,
                                 attributes: Option[Map[String, Any]] = None,
@@ -38,7 +38,7 @@ object WorkspaceFixtures extends RandomUtil {
                                 cleanUp: Boolean = true
   )(testCode: (String) => A)(implicit token: AuthToken): A =
     WorkspaceFixtures
-      .temporaryWorkspace[IO](billingProjectName, token, namePrefix, authDomain, acl, attributes, bucketLocation, cleanUp)
+      .temporaryWorkspace[IO](billingProjectName, token, prefix, authDomain, acl, attributes, bucketLocation, cleanUp)
       .use(workspaceName => IO.delay(testCode(workspaceName)))
       .unsafeRunSync
 
@@ -48,9 +48,9 @@ object WorkspaceFixtures extends RandomUtil {
    * likely unique series of characters.
    *
    * @param billingProjectName Billing project (or namespace) for workspace.
-   * @param namePrefix         Prefix for workspace name.                    [default "tmp-workspace-"]
+   * @param prefix             Prefix for workspace name.                    [default "tmp-workspace-"]
    * @param authDomain         Set of members group names for auth domain.   [default None]
-   * @param acl                Access Control List entries.                  [default None]
+   * @param acl                Additional access Control List entries.       [default None]
    * @param attributes         Additional workspace attributes.              [default None]
    * @param bucketLocation     Region where the workspace should be created. [default None]
    * @param cleanUp            Delete the workspace after use.               [default true]
@@ -58,7 +58,7 @@ object WorkspaceFixtures extends RandomUtil {
    * @param token              Auth token of workspace creator
    */
   def withTemporaryWorkspaceClone[A](billingProjectName: String,
-                                     namePrefix: Option[String] = None,
+                                     prefix: Option[String] = None,
                                      authDomain: Option[Set[String]] = None,
                                      acl: Option[List[AclEntry]] = None,
                                      attributes: Option[Map[String, Any]] = None,
@@ -69,7 +69,7 @@ object WorkspaceFixtures extends RandomUtil {
       workspaceName <- WorkspaceFixtures.temporaryWorkspace[IO](
         billingProjectName,
         token,
-        namePrefix = namePrefix,
+        prefix = prefix,
         authDomain = authDomain,
         acl = acl,
         attributes = attributes,
@@ -82,7 +82,7 @@ object WorkspaceFixtures extends RandomUtil {
         workspaceName = workspaceName,
         cloneBillingProject = billingProjectName,
         creatorAuthToken = token,
-        namePrefix = namePrefix.map(_ + "-clone-"),
+        prefix = prefix.map(_ + "-clone-"),
         authDomain = authDomain,
         cleanUp = cleanUp
       )
@@ -98,16 +98,16 @@ object WorkspaceFixtures extends RandomUtil {
    *
    * @param billingProjectName Billing project (or namespace) for workspace.
    * @param creatorAuthToken   Access token of the workspace creator.
-   * @param namePrefix         Prefix for workspace name.                    [default "tmp-workspace-"]
+   * @param prefix             Prefix for workspace name.                    [default "tmp-workspace-"]
    * @param authDomain         Set of members group names for auth domain.   [default None]
-   * @param acl                Access Control List entries.                  [default None]
+   * @param acl                Additional access Control List entries.       [default None]
    * @param attributes         Optional workspace attributes.                [default None]
    * @param bucketLocation     Region where the workspace should be created. [default None]
    * @param cleanUp            Delete the workspace after use.               [default true]
    */
   def temporaryWorkspace[F[_]](billingProjectName: String,
                                creatorAuthToken: AuthToken,
-                               namePrefix: Option[String] = None,
+                               prefix: Option[String] = None,
                                authDomain: Option[Set[String]] = None,
                                acl: Option[List[AclEntry]] = None,
                                attributes: Option[Map[String, Any]] = None,
@@ -115,7 +115,7 @@ object WorkspaceFixtures extends RandomUtil {
                                cleanUp: Boolean = true
   )(implicit F: Sync[F]): Resource[F, String] = {
     def createWorkspace: F[String] = F.delay {
-      val workspaceName = randomIdWithPrefix(namePrefix.getOrElse("tmp-workspace-"))
+      val workspaceName = randomIdWithPrefix(prefix.getOrElse("tmp-workspace-"))
       Orchestration.workspaces.create(
         billingProjectName,
         workspaceName,
@@ -154,7 +154,7 @@ object WorkspaceFixtures extends RandomUtil {
    * @param workspaceName           Name of workspace to clone.
    * @param cloneBillingProject     Billing project (or namespace) for clone.
    * @param creatorAuthToken        Access token of the workspace creator
-   * @param namePrefix              Prefix for clone name.                       [default workspaceName + "-clone-"]
+   * @param prefix                  Prefix for clone name.                       [default workspaceName + "-clone-"]
    * @param authDomain              Set of members group names for auth domain.  [default None]
    * @param cleanUp                 Delete the clone after use.                  [default true]
    */
@@ -162,12 +162,12 @@ object WorkspaceFixtures extends RandomUtil {
                                     workspaceName: String,
                                     cloneBillingProject: String,
                                     creatorAuthToken: AuthToken,
-                                    namePrefix: Option[String] = None,
+                                    prefix: Option[String] = None,
                                     authDomain: Option[Set[String]] = None,
                                     cleanUp: Boolean = true
   )(implicit F: Sync[F]): Resource[F, String] = {
     def cloneWorkspace: F[String] = F.delay {
-      val cloneName = randomIdWithPrefix(namePrefix.getOrElse(workspaceName + "-clone-"))
+      val cloneName = randomIdWithPrefix(prefix.getOrElse(workspaceName + "-clone-"))
       Orchestration.workspaces.clone(
         workspaceBillingProject,
         workspaceName,

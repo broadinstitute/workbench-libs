@@ -23,15 +23,15 @@ object GroupFixtures extends LazyLogging with RandomUtil {
   /**
    * Create and use a temporary Google Group in `testCode`.
    *
-   * @param namePrefix  Optional name prefix for group            [default: "tmp-group-"]
-   * @param members     Optional list of additional group members [default: None]
-   * @param token       Auth token of group owner
+   * @param prefix   Group name prefix.                [default: "tmp-group-"]
+   * @param members  List of additional group members. [default: None]
+   * @param token    Auth token of group owner.
    */
-  def withTemporaryGroup[A](namePrefix: Option[String] = None, members: Option[List[String]] = None)(
+  def withTemporaryGroup[A](prefix: Option[String] = None, members: Option[List[String]] = None)(
     testCode: (String) => A
   )(implicit token: AuthToken): A =
     GroupFixtures
-      .temporaryGroup[IO](token, namePrefix, members)
+      .temporaryGroup[IO](token, prefix, members)
       .use(groupName => IO.delay(testCode(groupName)))
       .unsafeRunSync
 
@@ -39,17 +39,17 @@ object GroupFixtures extends LazyLogging with RandomUtil {
    * Create a temporary Google Group `Resource` whose lifetime is bound to the scope of the
    * `Resource`'s `use` method.
    *
-   * @param ownerAuthToken Auth token of group owner
-   * @param namePrefix     Optional name prefix for group            [default: "tmp-group-"]
-   * @param members        Optional list of additional group members [default: None]
+   * @param ownerAuthToken Auth token of group owner.
+   * @param prefix         Name prefix for group.            [default: "tmp-group-"]
+   * @param members        List of additional group members. [default: None]
    */
   def temporaryGroup[F[_]](ownerAuthToken: AuthToken,
-                           namePrefix: Option[String] = None,
+                           prefix: Option[String] = None,
                            members: Option[List[String]] = None
   )(implicit F: Sync[F]): Resource[F, String] = {
 
     def createGroup: F[String] = F.delay {
-      val groupName = uuidWithPrefix(namePrefix.getOrElse("tmp-group-"))
+      val groupName = uuidWithPrefix(prefix.getOrElse("tmp-group-"))
       Orchestration.groups.create(groupName)(ownerAuthToken)
       groupName
     }
