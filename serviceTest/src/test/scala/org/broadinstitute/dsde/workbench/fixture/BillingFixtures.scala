@@ -28,7 +28,7 @@ object BillingFixtures {
                                      prefix: Option[String] = None,
                                      owners: Option[List[String]] = None,
                                      users: Option[List[String]] = None
-                                    )(testCode: String => A)(implicit creatorAuthToken: AuthToken): A =
+  )(testCode: String => A)(implicit creatorAuthToken: AuthToken): A =
     BillingFixtures
       .temporaryBillingProject[IO](billingAccountName, creatorAuthToken, prefix, owners, users)
       .use(projectName => IO.delay(testCode(projectName)))
@@ -49,7 +49,7 @@ object BillingFixtures {
                                     prefix: Option[String] = None,
                                     owners: Option[List[String]] = None,
                                     users: Option[List[String]] = None
-                                   )(implicit F: Sync[F]): Resource[F, String] = {
+  )(implicit F: Sync[F]): Resource[F, String] = {
     def createBillingProject: F[String] = F.delay {
       val projectName = prefix
         .getOrElse("tmp-billing-project-")
