@@ -111,7 +111,7 @@ object Settings {
       )
   })
 
-  val scala213 = "2.13.7"
+  val scala213 = "2.13.8"
   val cross212and213 = Seq(
     crossScalaVersions := List("2.12.15", scala213)
   )
@@ -158,7 +158,7 @@ object Settings {
   val google2Settings = cross212and213 ++ commonSettings ++ List(
     name := "workbench-google2",
     libraryDependencies ++= google2Dependencies,
-    version := createVersion("0.23")
+    version := createVersion("0.24")
   ) ++ publishSettings
 
   val openTelemetrySettings = commonSettings ++ List(

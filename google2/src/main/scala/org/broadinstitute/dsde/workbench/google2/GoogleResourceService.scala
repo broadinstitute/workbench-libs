@@ -38,7 +38,7 @@ object GoogleResourceService {
       interpreter <- fromCredential(scopedCredential, blockerBound)
     } yield interpreter
 
-  def fromCredential[F[_]: StructuredLogger: Async: Parallel](
+  def fromCredential[F[_]: StructuredLogger: Async](
     googleCredentials: GoogleCredentials,
     blockerBound: Semaphore[F]
   ): Resource[F, GoogleResourceService[F]] =

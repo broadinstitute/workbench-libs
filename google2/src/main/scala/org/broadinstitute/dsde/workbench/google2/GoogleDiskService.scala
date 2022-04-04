@@ -4,7 +4,7 @@ import cats.effect.std.Semaphore
 import cats.effect.{Async, Resource}
 import cats.mtl.Ask
 import com.google.api.gax.core.{FixedCredentialsProvider, FixedExecutorProvider}
-import com.google.cloud.compute.v1.Disk
+import com.google.api.gax.longrunning.OperationFuture
 import com.google.auth.oauth2.GoogleCredentials
 import com.google.cloud.compute.v1._
 import com.google.common.util.concurrent.ThreadFactoryBuilder
@@ -24,11 +24,11 @@ import scala.collection.JavaConverters._
 trait GoogleDiskService[F[_]] {
   def createDisk(project: GoogleProject, zone: ZoneName, disk: Disk)(implicit
     ev: Ask[F, TraceId]
-  ): F[Option[Operation]]
+  ): F[Option[OperationFuture[Operation, Operation]]]
 
   def deleteDisk(project: GoogleProject, zone: ZoneName, diskName: DiskName)(implicit
     ev: Ask[F, TraceId]
-  ): F[Option[Operation]]
+  ): F[Option[OperationFuture[Operation, Operation]]]
 
   def getDisk(project: GoogleProject, zone: ZoneName, diskName: DiskName)(implicit
     ev: Ask[F, TraceId]
@@ -40,7 +40,7 @@ trait GoogleDiskService[F[_]] {
 
   def resizeDisk(project: GoogleProject, zone: ZoneName, diskName: DiskName, newSizeGb: Int)(implicit
     ev: Ask[F, TraceId]
-  ): F[Operation]
+  ): F[OperationFuture[Operation, Operation]]
 }
 
 object GoogleDiskService {

@@ -4,6 +4,8 @@ import cats.effect.Async
 import cats.effect.std.Semaphore
 import cats.mtl.Ask
 import cats.syntax.all._
+import com.google.api.gax.longrunning.{OperationFuture, OperationSnapshot}
+import com.google.api.gax.retrying.RetryingFuture
 import com.google.cloud.compute.v1._
 import fs2.Stream
 import org.broadinstitute.dsde.workbench.RetryConfig
@@ -23,9 +25,9 @@ private[google2] class GoogleDiskInterpreter[F[_]: StructuredLogger](
 
   override def createDisk(project: GoogleProject, zone: ZoneName, disk: Disk)(implicit
     ev: Ask[F, TraceId]
-  ): F[Option[Operation]] =
+  ): F[Option[OperationFuture[Operation, Operation]]] =
     retryF(
-      recoverF(F.blocking(diskClient.insert(project.value, zone.value, disk)), whenStatusCode(409)),
+      recoverF(F.blocking(diskClient.insertAsync(project.value, zone.value, disk)), whenStatusCode(409)),
       s"com.google.cloud.compute.v1DiskClient.insertDisk(${project.value}, ${zone.value}, ${disk.getName})"
     ).compile.lastOrError
 
@@ -45,15 +47,15 @@ private[google2] class GoogleDiskInterpreter[F[_]: StructuredLogger](
 
   override def deleteDisk(project: GoogleProject, zone: ZoneName, diskName: DiskName)(implicit
     ev: Ask[F, TraceId]
-  ): F[Option[Operation]] = {
-    val fa = recoverF(F.blocking(diskClient.delete(project.value, zone.value, diskName.value)), whenStatusCode(404))
+  ): F[Option[OperationFuture[Operation, Operation]]] = {
+    val fa =
+      recoverF(F.blocking(diskClient.deleteAsync(project.value, zone.value, diskName.value)), whenStatusCode(404))
 
     ev.ask.flatMap(traceId =>
       withLogging(
         fa,
         Some(traceId),
-        s"com.google.cloud.compute.v1.DiskClient.deleteDisk(${project.value}, ${zone.value}, ${diskName.value})",
-        showOperation.contramap[Option[Operation]](opt => opt.getOrElse(null))
+        s"com.google.cloud.compute.v1.DiskClient.deleteDisk(${project.value}, ${zone.value}, ${diskName.value})"
       )
     )
   }
@@ -72,10 +74,10 @@ private[google2] class GoogleDiskInterpreter[F[_]: StructuredLogger](
 
   override def resizeDisk(project: GoogleProject, zone: ZoneName, diskName: DiskName, newSizeGb: Int)(implicit
     ev: Ask[F, TraceId]
-  ): F[Operation] = {
+  ): F[OperationFuture[Operation, Operation]] = {
     val request = DisksResizeRequest.newBuilder().setSizeGb(newSizeGb).build()
     retryF(
-      F.blocking(diskClient.resize(project.value, zone.value, diskName.value, request)),
+      F.blocking(diskClient.resizeAsync(project.value, zone.value, diskName.value, request)),
       s"com.google.cloud.compute.v1.DiskClient.resizeDisk(${project.value}, ${zone.value}, ${diskName.value}, $newSizeGb)"
     ).compile.lastOrError
   }
