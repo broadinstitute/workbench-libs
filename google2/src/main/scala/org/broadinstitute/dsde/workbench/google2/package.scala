@@ -8,6 +8,8 @@ import cats.effect.syntax.all._
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential
 import com.google.api.core.ApiFutureCallback
 import com.google.api.gax.core.BackgroundResource
+import com.google.api.gax.longrunning.OperationSnapshot
+import com.google.api.gax.retrying.RetryingFuture
 import com.google.api.services.container.ContainerScopes
 import com.google.auth.oauth2.{ServiceAccountCredentials, UserCredentials}
 import com.google.cloud.billing.v1.ProjectBillingInfo
@@ -180,6 +182,8 @@ package object google2 {
     else
       s"operationType=${op.getOperationType}, progress=${op.getProgress}, status=${op.getStatus}, startTime=${op.getStartTime}"
   )
+
+  def isSuccess(statusCode: Int): Boolean = statusCode >= 200 || statusCode <= 300
 
   val showBillingInfo: Show[Option[ProjectBillingInfo]] =
     Show.show[Option[ProjectBillingInfo]](info => s"isBillingEnabled: ${info.map(_.getBillingEnabled)}")
