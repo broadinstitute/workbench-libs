@@ -12,7 +12,7 @@ Dependency Upgrades:
 | Dependency   |      Old Version      |  New Version |
 |----------|:-------------:|------:|
 | google-cloud-compute |   1.4.4.alpha   |   1.8.0 |
-SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.24-TRAVIS-REPLACE-ME"`
+SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.24-59664cd"`
 
 ## 0.23
 Added:
