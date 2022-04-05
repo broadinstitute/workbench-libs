@@ -17,34 +17,35 @@ object BillingFixtures {
    * Create a new v2 billing project for the activation of `testCode`. The billing project will be
    * destroyed when control exits `testCode`.
    *
-   * @param billingAccountName Name of Google billing account the new billing project will bill to.
-   * @param prefix             Prefix for billing project name.                  [default: "tmp-billing-project-"]
-   * @param owners             Additional billing project owner email addresses. [default: None]
-   * @param users              Additional billing project user email addresses   [default: None]
-   * @param testCode           Code to exercise with new billing project
-   * @param creatorAuthToken   Auth token of billing project creator
+   * @param billingAccountId Id of Google billing account the billing project will bill to in the
+   *                         form "billingAccounts/000000-000000-000000".
+   * @param prefix           Prefix for billing project name.                  [default: "tmp-billing-project-"]
+   * @param owners           Additional billing project owner email addresses. [default: None]
+   * @param users            Additional billing project user email addresses   [default: None]
+   * @param testCode         Code to exercise with new billing project
+   * @param creatorAuthToken Auth token of billing project creator
    */
-  def withTemporaryBillingProject[A](billingAccountName: String,
+  def withTemporaryBillingProject[A](billingAccountId: String,
                                      prefix: Option[String] = None,
                                      owners: Option[List[String]] = None,
                                      users: Option[List[String]] = None
   )(testCode: String => A)(implicit creatorAuthToken: AuthToken): A =
     BillingFixtures
-      .temporaryBillingProject[IO](billingAccountName, creatorAuthToken, prefix, owners, users)
+      .temporaryBillingProject[IO](billingAccountId, creatorAuthToken, prefix, owners, users)
       .use(projectName => IO.delay(testCode(projectName)))
       .unsafeRunSync
 
   /**
    * Create a v2 billing project `Resource` whose lifetime is bound to the `Resource`'s `use` method.
    *
-   * @param billingAccountName Name of Google billing account the new billing project will bill to.
-   * @param creatorAuthToken   Auth token of billing project creator
-   * @param prefix             Prefix for billing project name.                  [default: "tmp-billing-project-"]
-   * @param owners             Additional billing project owner email addresses. [default: None]
-   * @param users              Additional billing project user email addresses   [default: None]
-   * @return
+   * @param billingAccountId Id of Google billing account the billing project will bill to in the
+   *                         form "billingAccounts/000000-000000-000000".
+   * @param creatorAuthToken Auth token of billing project creator
+   * @param prefix           Prefix for billing project name.                  [default: "tmp-billing-project-"]
+   * @param owners           Additional billing project owner email addresses. [default: None]
+   * @param users            Additional billing project user email addresses   [default: None]
    */
-  def temporaryBillingProject[F[_]](billingAccountName: String,
+  def temporaryBillingProject[F[_]](billingAccountId: String,
                                     creatorAuthToken: AuthToken,
                                     prefix: Option[String] = None,
                                     owners: Option[List[String]] = None,
@@ -56,7 +57,7 @@ object BillingFixtures {
         .++(UUID.randomUUID.toString.replace("-", ""))
         .substring(0, 30)
 
-      Orchestration.billingV2.createBillingProject(projectName, billingAccountName)(creatorAuthToken)
+      Orchestration.billingV2.createBillingProject(projectName, billingAccountId)(creatorAuthToken)
       projectName
     }
 
