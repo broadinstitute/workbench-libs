@@ -2,6 +2,18 @@
 
 This file documents changes to the `workbench-google2` library, including notes on how to upgrade to new versions.
 
+## 0.24
+
+Changed:
+- `GoogleComputeService[F]`'s APIs are updated for `google-cloud-compute` upgrade
+- Remove `ComputePollOperation`
+
+Dependency Upgrades:
+| Dependency   |      Old Version      |  New Version |
+|----------|:-------------:|------:|
+| google-cloud-compute |   1.4.4.alpha   |   1.8.0 |
+SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.24-59664cd"`
+
 ## 0.23
 Added:
 - Support for creating and monitoring Google Cloud Storage Transfer jobs between Cloud Storage buckets.
