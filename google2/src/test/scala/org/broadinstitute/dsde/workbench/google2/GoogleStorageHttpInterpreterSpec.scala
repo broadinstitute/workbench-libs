@@ -17,11 +17,13 @@ class GoogleStorageNotificationCreatorInterpreterSpec
     forAll { (notificationResponse: NotificationResponse) =>
       val jsonString = notificationResponse.items
         .map { notifications =>
-          val topics = notifications.map(n => s"""
-                                                 | {
-                                                 |   "topic" : "//pubsub.googleapis.com/projects/${n.topic.getProject}/topics/${n.topic.getTopic}"
-                                                 | }
-              """.stripMargin)
+          val topics = notifications.map(n =>
+            s"""
+               | {
+               |   "topic" : "//pubsub.googleapis.com/projects/${n.topic.getProject}/topics/${n.topic.getTopic}"
+               | }
+              """.stripMargin
+          )
 
           s"""
              |{ "items": [${topics.toList.mkString(",")}]}
@@ -46,8 +48,8 @@ class GoogleStorageNotificationCreatorInterpreterSpec
           notificationRequest.eventTypes.map(_.asString).mkString("\"", "\",\"", "\"")
       val eventTypes = s""" "event_types": [$eventTypesString]"""
       val objectNamePrefix = s""" "object_name_prefix": ${notificationRequest.objectNamePrefix
-        .map(s => "\"" + s + "\"")
-        .getOrElse("null")} """
+          .map(s => "\"" + s + "\"")
+          .getOrElse("null")} """
       val expectedJsonString =
         s"""
            |{
