@@ -352,7 +352,9 @@ trait Rawls extends RestClient with LazyLogging {
           .write(attributeUpdate)
           .asJsObject
           .fields
+          .view
           .mapValues(attrVal => attrVal.asInstanceOf[JsString].value)
+          .toMap
       }
       patchRequest(url + s"api/workspaces/$namespace/$name", formattedOperations)
     }
