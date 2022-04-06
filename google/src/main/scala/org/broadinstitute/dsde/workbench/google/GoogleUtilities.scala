@@ -33,14 +33,14 @@ object GoogleUtilities {
     def whenUsageLimited(throwable: Throwable): Boolean = throwable match {
       case t: GoogleJsonResponseException =>
         (t.getStatusCode == 403 || t.getStatusCode == 429) &&
-          compareErrorDomain(t)(_.equalsIgnoreCase("usageLimits"))
+        compareErrorDomain(t)(_.equalsIgnoreCase("usageLimits"))
       case _ => false
     }
 
     def whenGlobalUsageLimited(throwable: Throwable): Boolean = throwable match {
       case t: GoogleJsonResponseException =>
         (t.getStatusCode == 403 || t.getStatusCode == 429) &&
-          compareErrorDomain(t)(_.equalsIgnoreCase("global"))
+        compareErrorDomain(t)(_.equalsIgnoreCase("global"))
       case _ => false
     }
 
@@ -52,7 +52,7 @@ object GoogleUtilities {
     def whenInvalidValueOnBucketCreation(throwable: Throwable): Boolean = throwable match {
       case t: GoogleJsonResponseException =>
         t.getStatusCode == 400 &&
-          compareErrorReason(t)(_.equalsIgnoreCase("invalid"))
+        compareErrorReason(t)(_.equalsIgnoreCase("invalid"))
       case _ => false
     }
 
@@ -97,7 +97,7 @@ object GoogleUtilities {
     def whenGroupDoesNotExist(throwable: Throwable): Boolean = throwable match {
       case t: GoogleJsonResponseException =>
         t.getStatusCode == 400 &&
-          compareErrorMessage(t)(_.contains("does not exist"))
+        compareErrorMessage(t)(_.contains("does not exist"))
       case _ => false
     }
 
@@ -147,9 +147,9 @@ trait GoogleUtilities extends LazyLogging with InstrumentedRetry with GoogleInst
       case t: GoogleJsonResponseException =>
         ((t.getStatusCode == 403 || t.getStatusCode == 429) && t.getDetails.getErrors.asScala.head.getDomain
           .equalsIgnoreCase("usageLimits")) ||
-          (t.getStatusCode == 400 && t.getDetails.getErrors.asScala.head.getReason.equalsIgnoreCase("invalid")) ||
-          t.getStatusCode == 404 ||
-          t.getStatusCode / 100 == 5
+        (t.getStatusCode == 400 && t.getDetails.getErrors.asScala.head.getReason.equalsIgnoreCase("invalid")) ||
+        t.getStatusCode == 404 ||
+        t.getStatusCode / 100 == 5
       case t: GoogleHttpResponseException => t.getStatusCode / 100 == 5
       case _: IOException                 => true
       case _                              => false
