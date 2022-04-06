@@ -1,8 +1,8 @@
 import sbt._
 
 object Dependencies {
-  val akkaV         = "2.6.18"
-  val akkaHttpV     = "10.2.7"
+  val akkaV         = "2.6.19"
+  val akkaHttpV     = "10.2.9"
   val jacksonV      = "2.13.2"
   val googleV       = "1.22.0"
   val scalaLoggingV = "3.9.4"
@@ -56,23 +56,23 @@ object Dependencies {
   val googleServicemanagement: ModuleID =    "com.google.apis"       % "google-api-services-servicemanagement"    % s"v1-rev359-$googleV"
   val googleIam: ModuleID =                  "com.google.apis"       % "google-api-services-iam"                  % s"v1-rev215-$googleV"
   val googleBigQuery: ModuleID =             "com.google.apis"       % "google-api-services-bigquery"             % s"v2-rev377-$googleV"
-  val googleGuava: ModuleID = "com.google.guava"  % "guava" % "31.0.1-jre"
+  val googleGuava: ModuleID = "com.google.guava"  % "guava" % "31.1-jre"
   val googleRpc: ModuleID =               "io.grpc" % "grpc-core" % "1.34.0"
 
   val googleRpc2: ModuleID =               "io.grpc" % "grpc-core" % "1.43.2"
   val googleFirestore: ModuleID = "com.google.cloud" % "google-cloud-firestore" % "2.6.2"
   val googleStorageNew: ModuleID = "com.google.cloud" % "google-cloud-storage" % "2.2.3"
-  val googleStorageLocal: ModuleID = "com.google.cloud" % "google-cloud-nio" % "0.123.25" % "test"
+  val googleStorageLocal: ModuleID = "com.google.cloud" % "google-cloud-nio" % "0.123.27" % "test"
   val googlePubsubNew: ModuleID = "com.google.cloud" % "google-cloud-pubsub" % "1.116.3"
   val googleKms: ModuleID = "com.google.cloud" % "google-cloud-kms" % "2.3.0"
-  val googleComputeNew: ModuleID = "com.google.cloud" % "google-cloud-compute" % "1.8.0"
+  val googleComputeNew: ModuleID = "com.google.cloud" % "google-cloud-compute" % "1.8.1"
   val googleDataproc: ModuleID =    "com.google.cloud" % "google-cloud-dataproc" % "3.0.3"
-  val googleContainer: ModuleID = "com.google.cloud" % "google-cloud-container" % "2.3.0"
-  val kubernetesClient: ModuleID = "io.kubernetes" % "client-java" % "14.0.1"
+  val googleContainer: ModuleID = "com.google.cloud" % "google-cloud-container" % "2.3.6"
+  val kubernetesClient: ModuleID = "io.kubernetes" % "client-java" % "15.0.0"
   val googleBigQueryNew: ModuleID = "com.google.cloud" % "google-cloud-bigquery" % "2.6.0"
-  val google2CloudBilling = "com.google.cloud" % "google-cloud-billing" % "2.1.4"
+  val google2CloudBilling = "com.google.cloud" % "google-cloud-billing" % "2.1.11"
   val googleStorageTransferService: ModuleID = "com.google.cloud" % "google-cloud-storage-transfer" % "0.2.2"
-  val googleResourceManager =  "com.google.cloud" % "google-cloud-resourcemanager" % "1.2.0"
+  val googleResourceManager =  "com.google.cloud" % "google-cloud-resourcemanager" % "1.2.7"
   //the below v1 module is a dependency for v2 because it contains the OAuth scopes necessary to created scoped credentials
   val googleContainerV1: ModuleID = "com.google.apis" % "google-api-services-container" % "v1-rev20211014-1.32.1"
 
@@ -81,7 +81,7 @@ object Dependencies {
   val circeParser: ModuleID = "io.circe" %% "circe-parser" % circeVersion
   val circeGeneric: ModuleID = "io.circe" %% "circe-generic" % circeVersion % "test"
   val circeFs2: ModuleID = "io.circe" %% "circe-fs2" % "0.14.0"
-  val log4cats = "org.typelevel" %% "log4cats-slf4j"   % "2.1.1"
+  val log4cats = "org.typelevel" %% "log4cats-slf4j"   % "2.2.0"
   val catsMtl = "org.typelevel" %% "cats-mtl" % "1.2.1"
 
   val http4sCirce = "org.http4s" %% "http4s-circe" % http4sVersion
@@ -96,7 +96,7 @@ object Dependencies {
   val openCensusStatsStackDriver: ModuleID = "io.opencensus" % "opencensus-exporter-stats-stackdriver" % openCensusV
   val openCensusTraceStackDriver: ModuleID = "io.opencensus" % "opencensus-exporter-trace-stackdriver" % openCensusV
   val openCensusTraceLogging: ModuleID = "io.opencensus" % "opencensus-exporter-trace-logging" % openCensusV
-  val prometheusServer: ModuleID = "io.prometheus" % "simpleclient_httpserver" % "0.12.0"
+  val prometheusServer: ModuleID = "io.prometheus" % "simpleclient_httpserver" % "0.15.0"
   val sealerate: ModuleID = "ca.mrvisser" %% "sealerate" % "0.0.6"
   val scalaCache = "com.github.cb372" %% "scalacache-caffeine" % "1.0.0-M6"
 
