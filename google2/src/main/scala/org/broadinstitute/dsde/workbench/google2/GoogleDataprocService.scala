@@ -6,16 +6,19 @@ import cats.effect._
 import cats.effect.std.Semaphore
 import cats.mtl.Ask
 import cats.syntax.all._
-import com.google.api.gax.core.FixedCredentialsProvider
+import com.google.api.gax.core.{FixedCredentialsProvider, FixedExecutorProvider}
+import com.google.api.gax.longrunning.OperationFuture
 import com.google.auth.oauth2.GoogleCredentials
-import com.google.cloud.compute.v1.Operation
 import com.google.cloud.dataproc.v1.{RegionName => _, _}
+import com.google.common.util.concurrent.ThreadFactoryBuilder
+import com.google.protobuf.Empty
 import org.broadinstitute.dsde.workbench.RetryConfig
 import org.broadinstitute.dsde.workbench.google2.util.RetryPredicates
 import org.broadinstitute.dsde.workbench.model.TraceId
 import org.broadinstitute.dsde.workbench.model.google.{GcsBucketName, GoogleProject}
 import org.typelevel.log4cats.StructuredLogger
 
+import java.util.concurrent.ScheduledThreadPoolExecutor
 import scala.collection.JavaConverters._
 
 /**
@@ -38,7 +41,7 @@ trait GoogleDataprocService[F[_]] {
                   isFullStop: Boolean
   )(implicit
     ev: Ask[F, TraceId]
-  ): F[Option[DataprocOperation]]
+  ): F[Option[OperationFuture[Cluster, ClusterOperationMetadata]]]
 
   def startCluster(project: GoogleProject,
                    region: RegionName,
@@ -47,7 +50,7 @@ trait GoogleDataprocService[F[_]] {
                    metadata: Option[Map[String, String]]
   )(implicit
     ev: Ask[F, TraceId]
-  ): F[Option[DataprocOperation]]
+  ): F[Option[OperationFuture[Cluster, ClusterOperationMetadata]]]
 
   def resizeCluster(project: GoogleProject,
                     region: RegionName,
@@ -56,11 +59,11 @@ trait GoogleDataprocService[F[_]] {
                     numPreemptibles: Option[Int]
   )(implicit
     ev: Ask[F, TraceId]
-  ): F[Option[DataprocOperation]]
+  ): F[Option[OperationFuture[Cluster, ClusterOperationMetadata]]]
 
   def deleteCluster(project: GoogleProject, region: RegionName, clusterName: DataprocClusterName)(implicit
     ev: Ask[F, TraceId]
-  ): F[Option[DataprocOperation]]
+  ): F[Option[OperationFuture[Empty, ClusterOperationMetadata]]]
 
   def getCluster(project: GoogleProject, region: RegionName, clusterName: DataprocClusterName)(implicit
     ev: Ask[F, TraceId]
@@ -107,12 +110,18 @@ object GoogleDataprocService {
     googleCredentials: GoogleCredentials,
     supportedRegions: Set[RegionName],
     blockerBound: Semaphore[F],
-    retryConfig: RetryConfig = RetryPredicates.standardGoogleRetryConfig
+    retryConfig: RetryConfig = RetryPredicates.standardGoogleRetryConfig,
+    numOfThreads: Int = 20
   ): Resource[F, GoogleDataprocService[F]] = {
+    val threadFactory = new ThreadFactoryBuilder().setNameFormat("goog-dataproc-%d").setDaemon(true).build()
+    val fixedExecutorProvider =
+      FixedExecutorProvider.create(new ScheduledThreadPoolExecutor(numOfThreads, threadFactory))
+
     val regionalSettings = supportedRegions.toList.traverse { region =>
       val settings = ClusterControllerSettings
         .newBuilder()
         .setEndpoint(s"${region.value}-dataproc.googleapis.com:443")
+        .setBackgroundExecutorProvider(fixedExecutorProvider)
         .setCredentialsProvider(FixedCredentialsProvider.create(googleCredentials))
         .build()
       backgroundResourceF(ClusterControllerClient.create(settings)).map(client => region -> client)

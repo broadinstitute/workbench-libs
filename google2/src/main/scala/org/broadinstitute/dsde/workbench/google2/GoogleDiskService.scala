@@ -3,10 +3,11 @@ package org.broadinstitute.dsde.workbench.google2
 import cats.effect.std.Semaphore
 import cats.effect.{Async, Resource}
 import cats.mtl.Ask
-import com.google.api.gax.core.FixedCredentialsProvider
-import com.google.cloud.compute.v1.Disk
+import com.google.api.gax.core.{FixedCredentialsProvider, FixedExecutorProvider}
+import com.google.api.gax.longrunning.OperationFuture
 import com.google.auth.oauth2.GoogleCredentials
 import com.google.cloud.compute.v1._
+import com.google.common.util.concurrent.ThreadFactoryBuilder
 import fs2.Stream
 import org.broadinstitute.dsde.workbench.RetryConfig
 import org.broadinstitute.dsde.workbench.google2.util.RetryPredicates
@@ -14,6 +15,7 @@ import org.broadinstitute.dsde.workbench.model.TraceId
 import org.broadinstitute.dsde.workbench.model.google.GoogleProject
 import org.typelevel.log4cats.StructuredLogger
 
+import java.util.concurrent.ScheduledThreadPoolExecutor
 import scala.collection.JavaConverters._
 
 /**
@@ -22,11 +24,11 @@ import scala.collection.JavaConverters._
 trait GoogleDiskService[F[_]] {
   def createDisk(project: GoogleProject, zone: ZoneName, disk: Disk)(implicit
     ev: Ask[F, TraceId]
-  ): F[Option[Operation]]
+  ): F[Option[OperationFuture[Operation, Operation]]]
 
   def deleteDisk(project: GoogleProject, zone: ZoneName, diskName: DiskName)(implicit
     ev: Ask[F, TraceId]
-  ): F[Option[Operation]]
+  ): F[Option[OperationFuture[Operation, Operation]]]
 
   def getDisk(project: GoogleProject, zone: ZoneName, diskName: DiskName)(implicit
     ev: Ask[F, TraceId]
@@ -38,7 +40,7 @@ trait GoogleDiskService[F[_]] {
 
   def resizeDisk(project: GoogleProject, zone: ZoneName, diskName: DiskName, newSizeGb: Int)(implicit
     ev: Ask[F, TraceId]
-  ): F[Operation]
+  ): F[OperationFuture[Operation, Operation]]
 }
 
 object GoogleDiskService {
@@ -56,13 +58,18 @@ object GoogleDiskService {
   private def fromCredential[F[_]: StructuredLogger: Async](
     googleCredentials: GoogleCredentials,
     blockerBound: Semaphore[F],
-    retryConfig: RetryConfig
+    retryConfig: RetryConfig,
+    numOfThreads: Int = 20
   ): Resource[F, GoogleDiskService[F]] = {
     val credentialsProvider = FixedCredentialsProvider.create(googleCredentials)
+    val threadFactory = new ThreadFactoryBuilder().setNameFormat("goog-disk-%d").setDaemon(true).build()
+    val fixedExecutorProvider =
+      FixedExecutorProvider.create(new ScheduledThreadPoolExecutor(numOfThreads, threadFactory))
 
     val diskSettings = DisksSettings
       .newBuilder()
       .setCredentialsProvider(credentialsProvider)
+      .setBackgroundExecutorProvider(fixedExecutorProvider)
       .build()
 
     for {

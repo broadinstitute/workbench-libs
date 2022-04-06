@@ -4,8 +4,9 @@ import cats.effect.IO
 import cats.effect.std.Semaphore
 import cats.effect.unsafe.implicits.global
 import cats.mtl.Ask
+import com.google.api.gax.longrunning.OperationFuture
 import com.google.cloud.compute.v1.Operation
-import com.google.cloud.dataproc.v1.Cluster
+import com.google.cloud.dataproc.v1.{Cluster, ClusterOperationMetadata}
 import org.broadinstitute.dsde.workbench.model.TraceId
 import org.broadinstitute.dsde.workbench.model.google.GoogleProject
 import org.broadinstitute.dsde.workbench.util2.{ConsoleLogger, LogLevel}
@@ -27,13 +28,13 @@ final class GoogleDataprocManualTest(pathToCredential: String,
   val region = RegionName(regionStr)
   val zone = ZoneName(s"$regionStr-a")
 
-  val dataprocServiceResource = GoogleComputeService
-    .resource(pathToCredential, blockerBound)
-    .flatMap(computeService =>
-      GoogleDataprocService.resource(computeService, pathToCredential, blockerBound, Set(region))
-    )
+  val dataprocServiceResource = for {
+    computeService <- GoogleComputeService
+      .resource(pathToCredential, blockerBound)
+    res <- GoogleDataprocService.resource(computeService, pathToCredential, blockerBound, Set(region))
+  } yield res
 
-  def callStopCluster(cluster: String): IO[Option[DataprocOperation]] =
+  def callStopCluster(cluster: String): IO[Option[OperationFuture[Cluster, ClusterOperationMetadata]]] =
     dataprocServiceResource.use { dataprocService =>
       dataprocService.stopCluster(project, region, DataprocClusterName(cluster), metadata = None, true)
     }
@@ -41,7 +42,7 @@ final class GoogleDataprocManualTest(pathToCredential: String,
   def callResizeCluster(cluster: String,
                         numWorkers: Option[Int],
                         numPreemptibles: Option[Int]
-  ): IO[Option[DataprocOperation]] =
+  ): IO[Option[OperationFuture[Cluster, ClusterOperationMetadata]]] =
     dataprocServiceResource.use { dataprocService =>
       dataprocService.resizeCluster(project, region, DataprocClusterName(cluster), numWorkers, numPreemptibles)
     }

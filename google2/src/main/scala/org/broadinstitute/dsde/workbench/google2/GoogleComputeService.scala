@@ -6,6 +6,7 @@ import cats.effect._
 import cats.effect.std.Semaphore
 import cats.mtl.Ask
 import com.google.api.gax.core.{FixedCredentialsProvider, FixedExecutorProvider}
+import com.google.api.gax.longrunning.OperationFuture
 import com.google.auth.oauth2.GoogleCredentials
 import com.google.cloud.compute.v1._
 import com.google.common.util.concurrent.ThreadFactoryBuilder
@@ -23,11 +24,11 @@ import scala.collection.JavaConverters._
 trait GoogleComputeService[F[_]] {
   def createInstance(project: GoogleProject, zone: ZoneName, instance: Instance)(implicit
     ev: Ask[F, TraceId]
-  ): F[Option[Operation]]
+  ): F[Option[OperationFuture[Operation, Operation]]]
 
   def deleteInstance(project: GoogleProject, zone: ZoneName, instanceName: InstanceName)(implicit
     ev: Ask[F, TraceId]
-  ): F[Option[Operation]]
+  ): F[Option[OperationFuture[Operation, Operation]]]
 
   /**
    * @param autoDeleteDisks Set of disk device names that should be marked as auto deletable when runtime is deleted
@@ -38,13 +39,12 @@ trait GoogleComputeService[F[_]] {
                                        instanceName: InstanceName,
                                        autoDeleteDisks: Set[DiskName]
   )(implicit
-    ev: Ask[F, TraceId],
-    computePollOperation: ComputePollOperation[F]
-  ): F[Option[Operation]]
+    ev: Ask[F, TraceId]
+  ): F[Option[OperationFuture[Operation, Operation]]]
 
   def detachDisk(project: GoogleProject, zone: ZoneName, instanceName: InstanceName, deviceName: DeviceName)(implicit
     ev: Ask[F, TraceId]
-  ): F[Option[Operation]]
+  ): F[Option[OperationFuture[Operation, Operation]]]
 
   def getInstance(project: GoogleProject, zone: ZoneName, instanceName: InstanceName)(implicit
     ev: Ask[F, TraceId]
@@ -52,24 +52,24 @@ trait GoogleComputeService[F[_]] {
 
   def stopInstance(project: GoogleProject, zone: ZoneName, instanceName: InstanceName)(implicit
     ev: Ask[F, TraceId]
-  ): F[Operation]
+  ): F[OperationFuture[Operation, Operation]]
 
   def startInstance(project: GoogleProject, zone: ZoneName, instanceName: InstanceName)(implicit
     ev: Ask[F, TraceId]
-  ): F[Operation]
+  ): F[OperationFuture[Operation, Operation]]
 
   def addInstanceMetadata(project: GoogleProject,
                           zone: ZoneName,
                           instanceName: InstanceName,
                           metadata: Map[String, String]
-  )(implicit ev: Ask[F, TraceId]): F[Unit] =
+  )(implicit ev: Ask[F, TraceId]): F[Option[OperationFuture[Operation, Operation]]] =
     modifyInstanceMetadata(project, zone, instanceName, metadata, Set.empty)
 
   def removeInstanceMetadata(project: GoogleProject,
                              zone: ZoneName,
                              instanceName: InstanceName,
                              metadataToRemove: Set[String]
-  )(implicit ev: Ask[F, TraceId]): F[Unit] =
+  )(implicit ev: Ask[F, TraceId]): F[Option[OperationFuture[Operation, Operation]]] =
     modifyInstanceMetadata(project, zone, instanceName, Map.empty, metadataToRemove)
 
   def modifyInstanceMetadata(project: GoogleProject,
@@ -77,9 +77,11 @@ trait GoogleComputeService[F[_]] {
                              instanceName: InstanceName,
                              metadataToAdd: Map[String, String],
                              metadataToRemove: Set[String]
-  )(implicit ev: Ask[F, TraceId]): F[Unit]
+  )(implicit ev: Ask[F, TraceId]): F[Option[OperationFuture[Operation, Operation]]]
 
-  def addFirewallRule(project: GoogleProject, firewall: Firewall)(implicit ev: Ask[F, TraceId]): F[Operation]
+  def addFirewallRule(project: GoogleProject, firewall: Firewall)(implicit
+    ev: Ask[F, TraceId]
+  ): F[OperationFuture[Operation, Operation]]
 
   def getFirewallRule(project: GoogleProject, firewallRuleName: FirewallRuleName)(implicit
     ev: Ask[F, TraceId]
@@ -87,7 +89,7 @@ trait GoogleComputeService[F[_]] {
 
   def deleteFirewallRule(project: GoogleProject, firewallRuleName: FirewallRuleName)(implicit
     ev: Ask[F, TraceId]
-  ): F[Unit]
+  ): F[Option[OperationFuture[Operation, Operation]]]
 
   def getComputeEngineDefaultServiceAccount(projectNumber: Long): WorkbenchEmail =
     // Service account email format documented in:
@@ -96,7 +98,7 @@ trait GoogleComputeService[F[_]] {
 
   def setMachineType(project: GoogleProject, zone: ZoneName, instanceName: InstanceName, machineType: MachineTypeName)(
     implicit ev: Ask[F, TraceId]
-  ): F[Unit]
+  ): F[OperationFuture[Operation, Operation]]
 
   def getMachineType(project: GoogleProject, zone: ZoneName, machineTypeName: MachineTypeName)(implicit
     ev: Ask[F, TraceId]
@@ -108,7 +110,9 @@ trait GoogleComputeService[F[_]] {
     ev: Ask[F, TraceId]
   ): F[Option[Network]]
 
-  def createNetwork(project: GoogleProject, network: Network)(implicit ev: Ask[F, TraceId]): F[Operation]
+  def createNetwork(project: GoogleProject, network: Network)(implicit
+    ev: Ask[F, TraceId]
+  ): F[OperationFuture[Operation, Operation]]
 
   def getSubnetwork(project: GoogleProject, region: RegionName, subnetwork: SubnetworkName)(implicit
     ev: Ask[F, TraceId]
@@ -116,12 +120,12 @@ trait GoogleComputeService[F[_]] {
 
   def createSubnetwork(project: GoogleProject, region: RegionName, subnetwork: Subnetwork)(implicit
     ev: Ask[F, TraceId]
-  ): F[Operation]
+  ): F[OperationFuture[Operation, Operation]]
 
   /** Sets network tags on an instance */
   def setInstanceTags(project: GoogleProject, zone: ZoneName, instanceName: InstanceName, tags: Tags)(implicit
     ev: Ask[F, TraceId]
-  ): F[Operation]
+  ): F[OperationFuture[Operation, Operation]]
 }
 
 object GoogleComputeService {

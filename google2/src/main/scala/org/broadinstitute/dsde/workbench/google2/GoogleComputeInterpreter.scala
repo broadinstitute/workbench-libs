@@ -2,11 +2,12 @@ package org.broadinstitute.dsde.workbench
 package google2
 
 import _root_.org.typelevel.log4cats.StructuredLogger
-import cats.{Parallel, Show}
 import cats.effect.Async
 import cats.effect.std.Semaphore
 import cats.mtl.Ask
 import cats.syntax.all._
+import cats.{Parallel, Show}
+import com.google.api.gax.longrunning.OperationFuture
 import com.google.api.gax.rpc.ApiException
 import com.google.cloud.compute.v1._
 import org.broadinstitute.dsde.workbench.google2.util.RetryPredicates._
@@ -14,7 +15,6 @@ import org.broadinstitute.dsde.workbench.model.google.GoogleProject
 import org.broadinstitute.dsde.workbench.model.{TraceId, WorkbenchException}
 
 import scala.collection.JavaConverters._
-import scala.concurrent.TimeoutException
 import scala.concurrent.duration._
 
 private[google2] class GoogleComputeInterpreter[F[_]: Parallel: StructuredLogger](
@@ -28,12 +28,11 @@ private[google2] class GoogleComputeInterpreter[F[_]: Parallel: StructuredLogger
   blockerBound: Semaphore[F]
 )(implicit F: Async[F])
     extends GoogleComputeService[F] {
-
   override def createInstance(project: GoogleProject, zone: ZoneName, instance: Instance)(implicit
     ev: Ask[F, TraceId]
-  ): F[Option[Operation]] =
+  ): F[Option[OperationFuture[Operation, Operation]]] =
     retryF(
-      recoverF(F.delay(instanceClient.insert(project.value, zone.value, instance)), whenStatusCode(409)),
+      recoverF(F.delay(instanceClient.insertAsync(project.value, zone.value, instance)), whenStatusCode(409)),
       s"com.google.cloud.compute.v1.InstancesClient.insertInstance(${project.value}, ${zone.value}, ${instance.getName})"
     )
 
@@ -42,33 +41,22 @@ private[google2] class GoogleComputeInterpreter[F[_]: Parallel: StructuredLogger
                                                 instanceName: InstanceName,
                                                 autoDeleteDisks: Set[DiskName]
   )(implicit
-    ev: Ask[F, TraceId],
-    computePollOperation: ComputePollOperation[F]
-  ): F[Option[Operation]] =
+    ev: Ask[F, TraceId]
+  ): F[Option[OperationFuture[Operation, Operation]]] =
     for {
       traceId <- ev.ask
       _ <- autoDeleteDisks.toList.parTraverse { diskName =>
         for {
-          operation <- withLogging(
+          opFuture <- withLogging(
             F.delay(
-              instanceClient.setDiskAutoDelete(project.value, zone.value, instanceName.value, true, diskName.value)
+              instanceClient
+                .setDiskAutoDeleteAsync(project.value, zone.value, instanceName.value, true, diskName.value)
             ),
             Some(traceId),
             s"com.google.cloud.compute.v1.InstancesClient.setDiskAutoDelete(${project.value}, ${zone.value}, ${instanceName.value}, true, ${diskName.value})"
           )
-          _ <- computePollOperation.pollZoneOperation(project,
-                                                      zone,
-                                                      OperationName(operation.getName),
-                                                      1 seconds,
-                                                      5,
-                                                      None
-          )(
-            F.unit,
-            F.raiseError[Unit](
-              new TimeoutException(s"Fail to setDiskAutoDeleteInstance for $diskName in a timely manner")
-            ),
-            F.unit
-          )
+          res <- F.blocking(opFuture.get())
+          _ <- F.raiseUnless(isSuccess(res.getHttpErrorStatusCode))(new Exception(s"setDiskAutoDeleteAsync failed"))
         } yield ()
       }
       deleteOp <- deleteInstance(project, zone, instanceName)
@@ -76,13 +64,13 @@ private[google2] class GoogleComputeInterpreter[F[_]: Parallel: StructuredLogger
 
   override def deleteInstance(project: GoogleProject, zone: ZoneName, instanceName: InstanceName)(implicit
     ev: Ask[F, TraceId]
-  ): F[Option[Operation]] = {
+  ): F[Option[OperationFuture[Operation, Operation]]] = {
     val fa = F
-      .delay(instanceClient.delete(project.value, zone.value, instanceName.value))
+      .delay(instanceClient.deleteAsync(project.value, zone.value, instanceName.value))
       .map(Option(_))
       .handleErrorWith {
-        case _: com.google.api.gax.rpc.NotFoundException => F.pure(none[Operation])
-        case e                                           => F.raiseError[Option[Operation]](e)
+        case _: com.google.api.gax.rpc.NotFoundException => F.pure(none[OperationFuture[Operation, Operation]])
+        case e => F.raiseError[Option[OperationFuture[Operation, Operation]]](e)
       }
 
     for {
@@ -97,13 +85,16 @@ private[google2] class GoogleComputeInterpreter[F[_]: Parallel: StructuredLogger
 
   override def detachDisk(project: GoogleProject, zone: ZoneName, instanceName: InstanceName, deviceName: DeviceName)(
     implicit ev: Ask[F, TraceId]
-  ): F[Option[Operation]] = {
+  ): F[Option[OperationFuture[Operation, Operation]]] = {
     val fa = F
-      .delay(instanceClient.detachDisk(project.value, zone.value, instanceName.value, deviceName.asString))
+      .delay(
+        instanceClient
+          .detachDiskAsync(project.value, zone.value, instanceName.value, deviceName.asString)
+      )
       .map(Option(_))
       .handleErrorWith {
-        case _: com.google.api.gax.rpc.NotFoundException => F.pure(none[Operation])
-        case e                                           => F.raiseError[Option[Operation]](e)
+        case _: com.google.api.gax.rpc.NotFoundException => F.pure(none[OperationFuture[Operation, Operation]])
+        case e => F.raiseError[Option[OperationFuture[Operation, Operation]]](e)
       }
 
     for {
@@ -139,17 +130,17 @@ private[google2] class GoogleComputeInterpreter[F[_]: Parallel: StructuredLogger
 
   override def stopInstance(project: GoogleProject, zone: ZoneName, instanceName: InstanceName)(implicit
     ev: Ask[F, TraceId]
-  ): F[Operation] =
+  ): F[OperationFuture[Operation, Operation]] =
     retryF(
-      F.delay(instanceClient.stop(project.value, zone.value, instanceName.value)),
+      F.delay(instanceClient.stopAsync(project.value, zone.value, instanceName.value)),
       s"com.google.cloud.compute.v1.InstancesClient.stopInstance(${project.value}, ${zone.value}, ${instanceName.value})"
     )
 
   override def startInstance(project: GoogleProject, zone: ZoneName, instanceName: InstanceName)(implicit
     ev: Ask[F, TraceId]
-  ): F[Operation] =
+  ): F[OperationFuture[Operation, Operation]] =
     retryF(
-      F.delay(instanceClient.start(project.value, zone.value, instanceName.value)),
+      F.delay(instanceClient.startAsync(project.value, zone.value, instanceName.value)),
       s"com.google.cloud.compute.v1.InstancesClient.startInstance(${project.value}, ${zone.value}, ${instanceName.value})"
     )
 
@@ -159,7 +150,7 @@ private[google2] class GoogleComputeInterpreter[F[_]: Parallel: StructuredLogger
     instanceName: InstanceName,
     metadataToAdd: Map[String, String],
     metadataToRemove: Set[String]
-  )(implicit ev: Ask[F, TraceId]): F[Unit] = {
+  )(implicit ev: Ask[F, TraceId]): F[Option[OperationFuture[Operation, Operation]]] = {
     val readAndUpdate = for {
       instanceOpt <- recoverF(F.delay(instanceClient.get(project.value, zone.value, instanceName.value)),
                               whenStatusCode(404)
@@ -180,21 +171,21 @@ private[google2] class GoogleComputeInterpreter[F[_]: Parallel: StructuredLogger
         Items.newBuilder().setKey(k).setValue(v).build()
       }
       // Only make google call if there is a change
-      _ <-
+      op <-
         if (!newItems.equals(curItems)) {
           F.delay(
-            instanceClient.setMetadata(project.value,
-                                       zone.value,
-                                       instanceName.value,
-                                       Metadata
-                                         .newBuilder()
-                                         .setFingerprint(fingerprint)
-                                         .addAllItems(newItems.asJava)
-                                         .build
+            instanceClient.setMetadataAsync(project.value,
+                                            zone.value,
+                                            instanceName.value,
+                                            Metadata
+                                              .newBuilder()
+                                              .setFingerprint(fingerprint)
+                                              .addAllItems(newItems.asJava)
+                                              .build
             )
-          ).void
-        } else F.unit
-    } yield ()
+          ).map(op => op.some)
+        } else F.pure(none[OperationFuture[Operation, Operation]])
+    } yield op
 
     // block and retry the read-modify-write as an atomic unit
     retryF(
@@ -203,9 +194,11 @@ private[google2] class GoogleComputeInterpreter[F[_]: Parallel: StructuredLogger
     )
   }
 
-  override def addFirewallRule(project: GoogleProject, firewall: Firewall)(implicit ev: Ask[F, TraceId]): F[Operation] =
+  override def addFirewallRule(project: GoogleProject, firewall: Firewall)(implicit
+    ev: Ask[F, TraceId]
+  ): F[OperationFuture[Operation, Operation]] =
     retryF(
-      F.delay(firewallClient.insert(project.value, firewall)),
+      F.delay(firewallClient.insertAsync(project.value, firewall)),
       s"com.google.cloud.compute.v1.FirewallsClient.insertFirewall(${project.value}, ${firewall.getName})"
     )
 
@@ -224,24 +217,26 @@ private[google2] class GoogleComputeInterpreter[F[_]: Parallel: StructuredLogger
 
   override def deleteFirewallRule(project: GoogleProject, firewallRuleName: FirewallRuleName)(implicit
     ev: Ask[F, TraceId]
-  ): F[Unit] = {
+  ): F[Option[OperationFuture[Operation, Operation]]] = {
     val request =
       DeleteFirewallRequest.newBuilder().setProject(project.value).setFirewall(firewallRuleName.value).build
     retryF(
-      recoverF(F.delay(firewallClient.delete(request)), whenStatusCode(404)),
+      recoverF(F.delay(firewallClient.deleteAsync(request)), whenStatusCode(404)),
       s"com.google.cloud.compute.v1.FirewallsClient.deleteFirewall(${project.value}, ${firewallRuleName.value})"
-    ).void
+    )
   }
 
   override def setMachineType(project: GoogleProject,
                               zone: ZoneName,
                               instanceName: InstanceName,
                               machineTypeName: MachineTypeName
-  )(implicit ev: Ask[F, TraceId]): F[Unit] = {
+  )(implicit ev: Ask[F, TraceId]): F[OperationFuture[Operation, Operation]] = {
     val request =
       InstancesSetMachineTypeRequest.newBuilder().setMachineType(buildMachineTypeUri(zone, machineTypeName)).build()
     retryF(
-      F.delay(instanceClient.setMachineType(project.value, zone.value, instanceName.value, request)),
+      F.delay(
+        instanceClient.setMachineTypeAsync(project.value, zone.value, instanceName.value, request)
+      ),
       s"com.google.cloud.compute.v1.InstancesClient.setMachineTypeInstance(${project.value}, ${zone.value}, ${instanceName.value}, ${machineTypeName.value})"
     )
   }
@@ -275,9 +270,11 @@ private[google2] class GoogleComputeInterpreter[F[_]: Parallel: StructuredLogger
       s"com.google.cloud.compute.v1.NetworksClient.getNetwork(${project.value}, ${networkName.value})"
     )
 
-  override def createNetwork(project: GoogleProject, network: Network)(implicit ev: Ask[F, TraceId]): F[Operation] =
+  override def createNetwork(project: GoogleProject, network: Network)(implicit
+    ev: Ask[F, TraceId]
+  ): F[OperationFuture[Operation, Operation]] =
     retryF(
-      F.delay(networkClient.insert(project.value, network)),
+      F.delay(networkClient.insertAsync(project.value, network)),
       s"com.google.cloud.compute.v1.NetworksClient.insertNetwork(${project.toString}, ${network.getName})"
     )
 
@@ -291,20 +288,20 @@ private[google2] class GoogleComputeInterpreter[F[_]: Parallel: StructuredLogger
 
   override def createSubnetwork(project: GoogleProject, region: RegionName, subnetwork: Subnetwork)(implicit
     ev: Ask[F, TraceId]
-  ): F[Operation] =
+  ): F[OperationFuture[Operation, Operation]] =
     retryF(
-      F.delay(subnetworkClient.insert(project.value, region.value, subnetwork)),
+      F.delay(subnetworkClient.insertAsync(project.value, region.value, subnetwork)),
       s"com.google.cloud.compute.v1.SubnetworksClient.insertSubnetwork(${project.value}, ${region.value}, ${subnetwork.getName})"
     )
 
   /** Sets network tags on an instance */
   override def setInstanceTags(project: GoogleProject, zone: ZoneName, instanceName: InstanceName, tags: Tags)(implicit
     ev: Ask[F, TraceId]
-  ): F[Operation] =
+  ): F[OperationFuture[Operation, Operation]] =
     retryF(
-      F.delay(instanceClient.setTags(project.value, zone.value, instanceName.value, tags)),
+      F.delay(instanceClient.setTagsAsync(project.value, zone.value, instanceName.value, tags)),
       s"com.google.compute.v1.InstancesClient.setTags(${project.value}, ${zone.value}, ${instanceName.value}, [${tags.getItemsList.asScala
-        .mkString(", ")}]"
+          .mkString(", ")}]"
     )
 
   private def buildMachineTypeUri(zone: ZoneName, machineTypeName: MachineTypeName): String =
@@ -315,7 +312,6 @@ private[google2] class GoogleComputeInterpreter[F[_]: Parallel: StructuredLogger
 
   private def retryF[A](fa: F[A], loggingMsg: String)(implicit ev: Ask[F, TraceId]): F[A] =
     tracedRetryF(retryConfig)(blockerBound.permit.use(_ => fa), loggingMsg).compile.lastOrError
-
 }
 
 // device name that's known to the instance (same device name when you create runtime)
