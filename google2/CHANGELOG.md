@@ -11,8 +11,18 @@ Changed:
 Dependency Upgrades:
 | Dependency   |      Old Version      |  New Version |
 |----------|:-------------:|------:|
-| google-cloud-compute |   1.4.4.alpha   |   1.8.0 |
-SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.24-59664cd"`
+| google-cloud-compute |   1.4.4.alpha   |   1.8.1 |
+| akka |   2.6.18   |   2.6.19 |
+| akka-http |   10.2.7   |   10.2.9 |
+| com.google.guava |   31.0.1-jre   |   31.1-jre |
+| google-cloud-nio |   0.123.25   |   0.123.27 |
+| google-cloud-container |   2.3.0   |   2.3.6 |
+| client-java |   14.0.1   |   15.0.0 |
+| google-cloud-resourcemanager |   1.2.0   |  1.2.7 |
+| simpleclient_httpserver |   0.12.0   | 0.15.0 |
+| log4cats-slf4j |  2.1.1   |  2.2.0 |
+
+SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.24-TRAVIS-REPLACE-ME"`
 
 ## 0.23
 Added:
