@@ -106,7 +106,7 @@ Workbench utility libraries, built for Scala 2.12 and 2.13. You can find the ful
 
 Contains common classes and utilities for writing tests against Workbench REST web services.
 
-Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "1.1-TRAVIS-REPLACE-ME" % "test" classifier "tests"`
+Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "1.1-73b77c5" % "test" classifier "tests"`
 
 [Changelog](serviceTest/CHANGELOG.md)
 
