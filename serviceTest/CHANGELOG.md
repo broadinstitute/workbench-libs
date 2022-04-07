@@ -3,22 +3,30 @@
 This file documents changes to the `workbench-service-test` library, including notes on how to upgrade to new versions.
 
 ## 2.0
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "2.0-TRAVIS-REPLACE-ME"`
+
 ### Changed
 Breaking changes:
 - The `GPAllocFixtures` and `BillingFixtures` traits has been removed.
 - A `BillingFixtures` object has been added; exporting means of creating and using temporary v2
   billing projects.
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "2.0-TRAVIS-REPLACE-ME"`
+
+## 1.1
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "1.1-73b77c5"`
+
+### Changed
+- Drop 2.12 support
+- Fix bug in `Rawls.workspaces.updateAttributes` in previous versions for 2.13
 
 ## 1.0
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "1.0-93a9c2b"`
+
 ### Changed
 - Removed deprecated `BillingFixtures.withBillingProject`
 - Removed unused `BillingFixtures.createNewBillingProject`
 - Removed `BillingFixtures.withBrandNewBillingProject` because it was only used in 1 test and we no longer want to use
   v1 Create Billing Project APIs to get Google Projects due to Project per Workspace (PPW)
-
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "1.0-93a9c2b"`
 
 ### Changed
 - Removed deprecated `BillingFixtures.withBillingProject`
