@@ -2,6 +2,14 @@
 
 This file documents changes to the `workbench-service-test` library, including notes on how to upgrade to new versions.
 
+## 1.1
+
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "1.1-TRAVIS-REPLACE-ME"`
+
+### Changed
+- Drop 2.12 support
+- Fix bug in `Rawls.workspaces.updateAttributes` in previous versions for 2.13
+
 ## 1.0
 
 SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "1.0-93a9c2b"`
