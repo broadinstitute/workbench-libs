@@ -28,7 +28,7 @@ trait GoogleResourceService[F[_]] {
 }
 
 object GoogleResourceService {
-  def resource[F[_]: StructuredLogger: Async: Parallel](
+  def resource[F[_]: StructuredLogger: Async](
     pathToCredential: Path,
     blockerBound: Semaphore[F]
   ): Resource[F, GoogleResourceService[F]] =

@@ -251,10 +251,11 @@ object KubernetesConstants {
 
   // composite of NodePort and ClusterIP types. Allows external access
   val DEFAULT_LOADBALANCER_PORTS = Set(
-    ServicePort(PortNum(8080),
-                KubernetesName.withValidation("testport", PortName).right.get,
-                TargetPortNum(8080),
-                Protocol("TCP")
+    ServicePort(
+      PortNum(8080),
+      KubernetesName.withValidation("testport", PortName).right.get,
+      TargetPortNum(8080),
+      io.kubernetes.client.openapi.models.V1ServicePort.ProtocolEnum.TCP
     )
   )
 
