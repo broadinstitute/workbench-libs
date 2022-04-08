@@ -153,7 +153,7 @@ object JavaSerializableInstances {
   val DEFAULT_POD_KIND = "Pod"
   val SERVICE_KIND = "Service"
   // For session affinity, see https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.12/#service-v1-core
-  val STICKY_SESSION_AFFINITY = "ClientIP"
+  val STICKY_SESSION_AFFINITY = io.kubernetes.client.openapi.models.V1ServiceSpec.SessionAffinityEnum.CLIENTIP
 
   private def getNameSerialization(name: KubernetesSerializableName): V1ObjectMeta =
     new V1ObjectMeta().name(name.value)
@@ -291,7 +291,7 @@ object JavaSerializableInstances {
 
       v1Port.port(servicePort.num.value)
       v1Port.setName(servicePort.name.value)
-      v1Port.setProtocol(servicePort.protocol.value)
+      v1Port.setProtocol(servicePort.protocol)
       v1Port.setTargetPort(intOrString)
 
       v1Port
@@ -307,7 +307,7 @@ object JavaSerializableInstances {
       val serviceSpec = new V1ServiceSpec()
       serviceSpec.ports(serviceKind.ports.map(_.getJavaSerialization).toList.asJava)
       serviceSpec.selector(serviceKind.selector.labels.asJava)
-      serviceSpec.setType(serviceKind.kindName.value)
+      serviceSpec.setType(serviceKind.kindName)
       // if we ever enter a scenario where the service acts as a load-balancer to multiple pods, this ensures that clients stick with the container that they initially connected with
       serviceSpec.setSessionAffinity(STICKY_SESSION_AFFINITY)
       v1Service.setSpec(serviceSpec)
@@ -385,16 +385,16 @@ object KubernetesModels {
   )
 
   sealed trait KubernetesServiceKind extends Product with Serializable {
-    def kindName: KubernetesServiceKindName
+    def kindName: io.kubernetes.client.openapi.models.V1ServiceSpec.TypeEnum
     def serviceName: ServiceName
     def selector: KubernetesSelector
     def ports: Set[ServicePort]
   }
 
   object KubernetesServiceKind {
-    val SERVICE_TYPE_NODEPORT = KubernetesServiceKindName("NodePort")
-    val SERVICE_TYPE_LOADBALANCER = KubernetesServiceKindName("LoadBalancer")
-    val SERVICE_TYPE_CLUSTERIP = KubernetesServiceKindName("ClusterIP")
+    val SERVICE_TYPE_NODEPORT = io.kubernetes.client.openapi.models.V1ServiceSpec.TypeEnum.NODEPORT
+    val SERVICE_TYPE_LOADBALANCER = io.kubernetes.client.openapi.models.V1ServiceSpec.TypeEnum.LOADBALANCER
+    val SERVICE_TYPE_CLUSTERIP = io.kubernetes.client.openapi.models.V1ServiceSpec.TypeEnum.CLUSTERIP
 
     final case class KubernetesLoadBalancerService(selector: KubernetesSelector,
                                                    ports: Set[ServicePort],
@@ -418,19 +418,20 @@ object KubernetesModels {
     }
   }
 
-  final case class ServicePort(num: PortNum, name: PortName, targetPort: TargetPortNum, protocol: Protocol)
+  final case class ServicePort(num: PortNum,
+                               name: PortName,
+                               targetPort: TargetPortNum,
+                               protocol: io.kubernetes.client.openapi.models.V1ServicePort.ProtocolEnum
+  )
 
   final case class PortNum(value: Int) extends AnyVal
   final case class TargetPortNum(value: Int) extends AnyVal
   final case class PortName(value: String) extends AnyVal
-  final case class Protocol(value: String) extends AnyVal
 
   // container ports are primarily informational, not specifying them does not prevent them from being exposed
   final case class ContainerPort(value: Int)
 
   final case class KubernetesSelector(labels: Map[String, String])
-
-  final case class KubernetesServiceKindName(value: String)
 
   final case class KubernetesApiServerIp(value: String) {
     val url = s"https://$value"

@@ -65,7 +65,7 @@ class KubernetesInterpreter[F[_]](
       call =
         recoverF(
           F.blocking(
-            client.createNamespacedPod(namespace.name.value, pod.getJavaSerialization, "true", null, null)
+            client.createNamespacedPod(namespace.name.value, pod.getJavaSerialization, "true", null, null, null)
           ),
           whenStatusCode(409)
         )
@@ -97,7 +97,7 @@ class KubernetesInterpreter[F[_]](
         .map { l =>
           l.asScala.toList.foldMap(v1Pod =>
             PodStatus.stringToPodStatus
-              .get(v1Pod.getStatus.getPhase)
+              .get(v1Pod.getStatus.getPhase.getValue)
               .map(s => List(KubernetesPodStatus(PodName(v1Pod.getMetadata.getName), s)))
               .toRight(new RuntimeException(s"Unknown Google status ${v1Pod.getStatus.getPhase}"))
           )
@@ -121,7 +121,7 @@ class KubernetesInterpreter[F[_]](
       call =
         recoverF(
           F.blocking(
-            client.createNamespacedService(namespace.name.value, service.getJavaSerialization, "true", null, null)
+            client.createNamespacedService(namespace.name.value, service.getJavaSerialization, "true", null, null, null)
           ),
           whenStatusCode(409)
         )
@@ -233,7 +233,7 @@ class KubernetesInterpreter[F[_]](
       call =
         recoverF(
           F.blocking(
-            client.createNamespace(namespace.getJavaSerialization, "true", null, null)
+            client.createNamespace(namespace.getJavaSerialization, "true", null, null, null)
           ),
           whenStatusCode(409)
         )
@@ -320,10 +320,11 @@ class KubernetesInterpreter[F[_]](
       traceId <- ev.ask
       client <- getClient(clusterId, new CoreV1Api(_))
       call =
-        recoverF(F.blocking(
-                   client.createNamespacedSecret(namespace.name.value, secret.getJavaSerialization, "true", null, null)
-                 ),
-                 whenStatusCode(409)
+        recoverF(
+          F.blocking(
+            client.createNamespacedSecret(namespace.name.value, secret.getJavaSerialization, "true", null, null, null)
+          ),
+          whenStatusCode(409)
         )
       _ <- withLogging(
         call,
@@ -347,6 +348,7 @@ class KubernetesInterpreter[F[_]](
                                                          serviceAccount.getJavaSerialization,
                                                          "true",
                                                          null,
+                                                         null,
                                                          null
                    )
                  ),
@@ -366,10 +368,11 @@ class KubernetesInterpreter[F[_]](
       traceId <- ev.ask
       client <- getClient(clusterId, new RbacAuthorizationV1Api(_))
       call =
-        recoverF(F.blocking(
-                   client.createNamespacedRole(namespace.name.value, role.getJavaSerialization, "true", null, null)
-                 ),
-                 whenStatusCode(409)
+        recoverF(
+          F.blocking(
+            client.createNamespacedRole(namespace.name.value, role.getJavaSerialization, "true", null, null, null)
+          ),
+          whenStatusCode(409)
         )
       _ <- withLogging(
         call,
@@ -392,6 +395,7 @@ class KubernetesInterpreter[F[_]](
                    client.createNamespacedRoleBinding(namespace.name.value,
                                                       roleBinding.getJavaSerialization,
                                                       "true",
+                                                      null,
                                                       null,
                                                       null
                    )
