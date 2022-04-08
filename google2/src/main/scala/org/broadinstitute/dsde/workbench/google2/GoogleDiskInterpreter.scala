@@ -14,7 +14,7 @@ import org.broadinstitute.dsde.workbench.model.TraceId
 import org.broadinstitute.dsde.workbench.model.google.GoogleProject
 import org.typelevel.log4cats.StructuredLogger
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 
 private[google2] class GoogleDiskInterpreter[F[_]: StructuredLogger](
   diskClient: DisksClient,

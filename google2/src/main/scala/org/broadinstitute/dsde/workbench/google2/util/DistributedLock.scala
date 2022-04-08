@@ -12,7 +12,7 @@ import com.google.cloud.firestore.{DocumentReference, DocumentSnapshot, Transact
 import org.broadinstitute.dsde.workbench.google2.util.DistributedLock._
 import org.broadinstitute.dsde.workbench.model.WorkbenchException
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.FiniteDuration
 
