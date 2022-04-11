@@ -16,7 +16,7 @@ import org.broadinstitute.dsde.workbench.model.google.GoogleProject
 import org.typelevel.log4cats.StructuredLogger
 
 import java.util.concurrent.ScheduledThreadPoolExecutor
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 
 /**
  * Algebra for Google Disk access.

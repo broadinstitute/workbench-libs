@@ -16,7 +16,7 @@ import org.broadinstitute.dsde.workbench.model.google.GoogleProject
 import org.broadinstitute.dsde.workbench.model.{TraceId, WorkbenchEmail}
 
 import java.util.concurrent.ScheduledThreadPoolExecutor
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 
 /**
  * Algebra for Google Compute access.

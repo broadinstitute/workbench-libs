@@ -6,8 +6,6 @@ import com.google.iam.v1.Policy
 import com.google.protobuf.{Duration, Timestamp}
 import org.broadinstitute.dsde.workbench.model.google.GoogleProject
 
-import scala.language.higherKinds
-
 /**
  * Algebra for Google KMS (Key Management Service)
  *

@@ -9,7 +9,7 @@ import com.google.cloud.firestore._
 
 import java.time.Instant
 import java.util.concurrent.Executor
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import scala.concurrent.ExecutionContext
 
 private[google2] class GoogleFirestoreInterpreter[F[_]](db: Firestore)(implicit
