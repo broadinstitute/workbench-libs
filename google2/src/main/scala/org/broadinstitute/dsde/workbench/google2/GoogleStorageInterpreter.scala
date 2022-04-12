@@ -31,7 +31,7 @@ import org.broadinstitute.dsde.workbench.model.{TraceId, WorkbenchException}
 import org.broadinstitute.dsde.workbench.model.google.{GcsBucketName, GcsObjectName, GoogleProject}
 import com.google.auth.Credentials
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 
 private[google2] class GoogleStorageInterpreter[F[_]](
   db: Storage,

@@ -26,7 +26,7 @@ import org.scalatest.flatspec.AnyFlatSpecLike
 import org.scalatest.matchers.should.Matchers
 import org.scalatestplus.mockito.MockitoSugar
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 
 class GoogleDataprocInterpreterSpec
     extends AnyFlatSpecLike

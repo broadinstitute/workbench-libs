@@ -7,6 +7,7 @@ This file documents changes to the `workbench-google2` library, including notes 
 Changed:
 - `GoogleComputeService[F]`'s APIs are updated for `google-cloud-compute` upgrade
 - Remove `ComputePollOperation`
+- Drop 2.12 support
 
 Dependency Upgrades:
 | Dependency   |      Old Version      |  New Version |

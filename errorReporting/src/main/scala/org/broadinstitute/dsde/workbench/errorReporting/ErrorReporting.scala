@@ -11,7 +11,7 @@ import com.google.devtools.clouderrorreporting.v1beta1.{
   SourceLocation
 }
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 
 trait ErrorReporting[F[_]] {
   def reportError(msg: String, sourceLocation: SourceLocation): F[Unit]

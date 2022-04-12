@@ -18,7 +18,7 @@ import scalacache.caffeine.CaffeineCache
 
 import java.nio.file.Paths
 import java.util.UUID
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import scala.concurrent.duration._
 
 //TODO: migrate to a unit test
