@@ -7,5 +7,5 @@ This file documents changes to the `workbench-oauth2` library, including notes o
 - Initial commit
 - Targets Scala 2.12 and 2.13
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util2" % "0.1-TRAVIS-REPACE-ME"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-oauth2" % "0.1-TRAVIS-REPACE-ME"`
 
