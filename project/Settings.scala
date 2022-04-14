@@ -140,6 +140,12 @@ object Settings {
     version := createVersion("0.3")
   ) ++ publishSettings
 
+  val oauth2Settings = cross212and213 ++ commonSettings ++ List(
+    name := "workbench-oauth2",
+    libraryDependencies ++= oauth2Depdendencies,
+    version := createVersion("0.1")
+  )
+
   val rootSettings = commonSettings ++ noPublishSettings ++ noTestSettings
 
 }
