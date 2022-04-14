@@ -119,3 +119,11 @@ Contains utilities for publishing email notifications to PubSub for delivery via
 Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-notifications" % "0.3-89d0d9e"`
 
 [Changelog](notifications/CHANGELOG.md)
+
+## workbench-oauth2
+
+Contains utilities for integrating with Google and B2C Oauth2. Targets Scala 2.12 and 2.13.
+
+Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-oauth2" % "0.3-TRAVIS-REPLACE-ME"`
+
+[Changelog](oauth2/CHANGELOG.md)
