@@ -55,7 +55,7 @@ class OpenIDConnectConfigurationSpec
       "access_token" -> "the-token"
     )
     val res = interp.addClientSecret(fields)
-    res shouldBe (fields :+ ("client_secret", "client_secret"))
+    res shouldBe (fields :+ ("client_secret" -> "client_secret"))
   }
 
   it should "not inject the client secret if absent" in {

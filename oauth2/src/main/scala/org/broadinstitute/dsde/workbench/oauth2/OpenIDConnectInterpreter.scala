@@ -56,7 +56,7 @@ class OpenIDConnectInterpreter[F[_]] private[oauth2] (providerMetadata: OpenIDPr
   private[oauth2] def addClientSecret(fields: Seq[(String, String)]): Seq[(String, String)] =
     clientSecret match {
       case Some(secret) =>
-        if (!fields.exists(_._1 == clientSecretParam)) fields.appended(clientSecretParam -> secret)
+        if (!fields.exists(_._1 == clientSecretParam)) fields :+ (clientSecretParam -> secret)
         else fields
       case None => fields
     }
