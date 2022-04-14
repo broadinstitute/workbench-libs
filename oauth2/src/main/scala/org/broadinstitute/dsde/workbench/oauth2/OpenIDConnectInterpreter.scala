@@ -7,12 +7,12 @@ import akka.http.scaladsl.model._
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
 
-class OpenIDConnectInterpreter[F[_]] private[oauth2] (providerMetadata: OpenIDProviderMetadata,
-                                                      clientId: String,
-                                                      clientSecret: Option[String],
-                                                      extraAuthParams: Map[String, String],
-                                                      addClientIdToScope: Boolean
-) extends OpenIDConnectConfiguration[F] {
+class OpenIDConnectInterpreter private[oauth2] (providerMetadata: OpenIDProviderMetadata,
+                                                clientId: String,
+                                                clientSecret: Option[String],
+                                                extraAuthParams: Map[String, String],
+                                                addClientIdToScope: Boolean
+) extends OpenIDConnectConfiguration {
   private val scopeParam = "scope"
   private val clientSecretParam = "client_secret"
 
