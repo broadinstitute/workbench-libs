@@ -25,7 +25,7 @@ import org.http4s.circe.CirceEntityDecoder._
  *
  * There are 2 choices for using this class:
  *
- *   1. If the service is using akka-http, you can can generate an akka-http route using
+ *   1. If your service is using akka-http, you can generate an akka-http route using
  *      `toAkkaHttpRoute` and add it directly to your service. Note: ensure the service is
  *      using a compatible akka-http version with the version workbench-libs is compiled against.
  *
