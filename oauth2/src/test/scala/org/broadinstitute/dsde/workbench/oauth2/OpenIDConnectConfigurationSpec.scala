@@ -41,35 +41,69 @@ class OpenIDConnectConfigurationSpec
     res.unsafeRunSync
   }
 
-  "OpenIDConnectInterpreter" should "inject the client secret" in {
+  "processAuthorizeQueryParams" should "inject the clientId" in {
+    val interp =
+      new OpenIDConnectInterpreter(OpenIDProviderMetadata("authorize", "token"), Some("client_id"), None, None)
+
+    val params = List("foo" -> "bar", "abc" -> "123", "scope" -> "openid email profile")
+    val res = interp.processAuthorizeQueryParams(params)
+
+    res shouldBe List("foo" -> "bar", "abc" -> "123", "scope" -> "openid email profile client_id")
+  }
+
+  it should "inject the clientId and extra auth params" in {
     val interp = new OpenIDConnectInterpreter(OpenIDProviderMetadata("authorize", "token"),
-                                              "client_id",
-                                              Some("client_secret"),
-                                              Map.empty,
-                                              true
+                                              Some("client_id"),
+                                              None,
+                                              Some("extra=1&fields=more")
     )
+
+    val params = List("foo" -> "bar", "abc" -> "123", "scope" -> "openid email profile")
+    val res = interp.processAuthorizeQueryParams(params)
+
+    res shouldBe List("foo" -> "bar",
+                      "abc" -> "123",
+                      "scope" -> "openid email profile client_id",
+                      "extra" -> "1",
+                      "fields" -> "more"
+    )
+  }
+
+  it should "not inject anything if unspecified" in {
+    val interp =
+      new OpenIDConnectInterpreter(OpenIDProviderMetadata("authorize", "token"), None, None, None)
+
+    val params = List("foo" -> "bar", "abc" -> "123", "scope" -> "openid email profile")
+    val res = interp.processAuthorizeQueryParams(params)
+
+    res shouldBe params
+  }
+
+  "processTokenFormFields" should "inject the client secret" in {
+    val interp =
+      new OpenIDConnectInterpreter(OpenIDProviderMetadata("authorize", "token"), None, Some("client_secret"), None)
     val fields = List(
       "client_id" -> "client_id",
       "access_token" -> "the-token"
     )
-    val res = interp.addClientSecret(fields)
+    val res = interp.processTokenFormFields(fields)
     res shouldBe (fields :+ ("client_secret" -> "client_secret"))
   }
 
   it should "not inject the client secret if absent" in {
     val interp =
-      new OpenIDConnectInterpreter(OpenIDProviderMetadata("authorize", "token"), "client_id", None, Map.empty, true)
+      new OpenIDConnectInterpreter(OpenIDProviderMetadata("authorize", "token"), None, None, None)
     val fields = List(
       "client_id" -> "client_id",
       "access_token" -> "the-token"
     )
-    val res = interp.addClientSecret(fields)
+    val res = interp.processTokenFormFields(fields)
     res shouldBe fields
   }
 
   "the akka-http authorize endpoint" should "redirect" in {
     val res = for {
-      config <- OpenIDConnectConfiguration[IO]("https://accounts.google.com", "some_client")
+      config <- OpenIDConnectConfiguration[IO]("https://accounts.google.com")
       req = Get(Uri("/oauth2/authorize").withQuery(Query("""id=client_idwith"fun'characters&scope=foo+bar""")))
       _ <- req ~> config.toAkkaHttpRoute ~> checkIO {
         handled shouldBe true
@@ -86,8 +120,7 @@ class OpenIDConnectConfigurationSpec
     val res = for {
       config <- OpenIDConnectConfiguration[IO](
         "https://terradevb2c.b2clogin.com/terradevb2c.onmicrosoft.com/b2c_1a_signup_signin",
-        "some_client",
-        addClientIdToScope = true
+        clientId = Some("some_client")
       )
       req = Get(Uri("/oauth2/authorize").withQuery(Query("""id=client_id&scope=foo+bar""")))
       _ <- req ~> config.toAkkaHttpRoute ~> checkIO {
@@ -105,9 +138,8 @@ class OpenIDConnectConfigurationSpec
     val res = for {
       config <- OpenIDConnectConfiguration[IO](
         "https://terradevb2c.b2clogin.com/terradevb2c.onmicrosoft.com/b2c_1a_signup_signin",
-        "some_client",
-        addClientIdToScope = true,
-        extraAuthParams = Map("foo" -> "bar", "abc" -> "def")
+        clientId = Some("some_client"),
+        extraAuthParams = Some("foo=bar&abc=def")
       )
       req = Get(Uri("/oauth2/authorize").withQuery(Query("""id=client_id&scope=foo+bar""")))
       _ <- req ~> config.toAkkaHttpRoute ~> checkIO {
@@ -123,7 +155,7 @@ class OpenIDConnectConfigurationSpec
 
   it should "reject non-GET requests" in {
     val res = for {
-      config <- OpenIDConnectConfiguration[IO]("https://accounts.google.com", "some_client")
+      config <- OpenIDConnectConfiguration[IO]("https://accounts.google.com")
       _ <- allMethods.filterNot(_ == GET).traverse { method =>
         new RequestBuilder(method)("/oauth2/authorize?id=client_id") ~> config.toAkkaHttpRoute ~> checkIO {
           handled shouldBe false
@@ -136,7 +168,7 @@ class OpenIDConnectConfigurationSpec
 
   "the akka-http token endpoint" should "proxy requests" in {
     val res = for {
-      config <- OpenIDConnectConfiguration[IO]("https://accounts.google.com", "some_client")
+      config <- OpenIDConnectConfiguration[IO]("https://accounts.google.com")
       req = Post("/oauth2/token").withEntity(
         FormData("grant_type" -> "authorization_code", "code" -> "1234", "client_id" -> "some_client").toEntity
       )
@@ -150,7 +182,7 @@ class OpenIDConnectConfigurationSpec
 
   it should "reject non-POST requests" in {
     val res = for {
-      config <- OpenIDConnectConfiguration[IO]("https://accounts.google.com", "some_client")
+      config <- OpenIDConnectConfiguration[IO]("https://accounts.google.com")
       _ <- allMethods.filterNot(_ == POST).traverse { method =>
         new RequestBuilder(method)("/oauth2/token") ~> config.toAkkaHttpRoute ~> checkIO {
           handled shouldBe false
@@ -163,7 +195,7 @@ class OpenIDConnectConfigurationSpec
 
   it should "reject requests without application/x-www-form-urlencoded content type" in {
     val res = for {
-      config <- OpenIDConnectConfiguration[IO]("https://accounts.google.com", "some_client")
+      config <- OpenIDConnectConfiguration[IO]("https://accounts.google.com")
       req = Post("/oauth2/token").withEntity(ContentTypes.`application/json`, """{"some":"json"}""")
       _ <- req ~> config.toAkkaHttpRoute ~> checkIO {
         handled shouldBe false
