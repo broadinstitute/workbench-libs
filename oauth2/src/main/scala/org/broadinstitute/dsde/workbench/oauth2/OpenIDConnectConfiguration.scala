@@ -113,7 +113,7 @@ object OpenIDConnectConfiguration {
           ByteString(config.processSwaggerUiIndex(original.utf8String))
         })
       } {
-        getFromResource("/swagger/index.html")
+        getFromResource("swagger/index.html")
       }
   }
 
