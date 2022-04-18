@@ -45,22 +45,7 @@ class OpenIDConnectConfigurationSpec
     res.unsafeRunSync
   }
 
-  "processAuthorizeQueryParams" should "inject the clientId" in {
-    val interp =
-      new OpenIDConnectInterpreter(OpenIDProviderMetadata("issuer", "authorize", "token"),
-                                   ClientId("client_id"),
-                                   None,
-                                   None,
-                                   None
-      )
-
-    val params = List("foo" -> "bar", "abc" -> "123", "scope" -> "openid email profile")
-    val res = interp.processAuthorizeQueryParams(params)
-
-    res shouldBe List("foo" -> "bar", "abc" -> "123", "scope" -> "openid email profile client_id")
-  }
-
-  it should "inject the clientId and extra auth params" in {
+  "processAuthorizeQueryParams" should "inject extra auth params" in {
     val interp = new OpenIDConnectInterpreter(OpenIDProviderMetadata("issuer", "authorize", "token"),
                                               ClientId("client_id"),
                                               None,
@@ -73,13 +58,13 @@ class OpenIDConnectConfigurationSpec
 
     res shouldBe List("foo" -> "bar",
                       "abc" -> "123",
-                      "scope" -> "openid email profile client_id",
+                      "scope" -> "openid email profile",
                       "extra" -> "1",
                       "fields" -> "more"
     )
   }
 
-  it should "not inject the clientId if Google" in {
+  it should "not inject extra auth params if not configured" in {
     val interp =
       new OpenIDConnectInterpreter(OpenIDProviderMetadata("https://accounts.google.com", "authorize", "token"),
                                    ClientId("client_id"),
@@ -190,25 +175,7 @@ class OpenIDConnectConfigurationSpec
     res.unsafeRunSync()
   }
 
-  it should "redirect with the clientId injected" in {
-    val res = for {
-      config <- OpenIDConnectConfiguration[IO](
-        "https://terradevb2c.b2clogin.com/terradevb2c.onmicrosoft.com/b2c_1a_signup_signin",
-        ClientId("some_client")
-      )
-      req = Get(Uri("/oauth2/authorize").withQuery(Query("""id=client_id&scope=foo+bar""")))
-      _ <- req ~> config.toAkkaHttpRoute ~> checkIO {
-        handled shouldBe true
-        status shouldBe StatusCodes.Found
-        header[Location].map(_.value) shouldBe Some(
-          "https://terradevb2c.b2clogin.com/terradevb2c.onmicrosoft.com/b2c_1a_signup_signin/oauth2/authorize?id=client_id&scope=foo+bar+some_client"
-        )
-      }
-    } yield ()
-    res.unsafeRunSync()
-  }
-
-  it should "redirect with the clientId injected and extra parameters" in {
+  it should "redirect with extra parameters" in {
     val res = for {
       config <- OpenIDConnectConfiguration[IO](
         "https://terradevb2c.b2clogin.com/terradevb2c.onmicrosoft.com/b2c_1a_signup_signin",
@@ -220,7 +187,7 @@ class OpenIDConnectConfigurationSpec
         handled shouldBe true
         status shouldBe StatusCodes.Found
         header[Location].map(_.value) shouldBe Some(
-          "https://terradevb2c.b2clogin.com/terradevb2c.onmicrosoft.com/b2c_1a_signup_signin/oauth2/authorize?id=client_id&scope=foo+bar+some_client&foo=bar&abc=def"
+          "https://terradevb2c.b2clogin.com/terradevb2c.onmicrosoft.com/b2c_1a_signup_signin/oauth2/authorize?id=client_id&scope=foo+bar&foo=bar&abc=def"
         )
       }
     } yield ()
