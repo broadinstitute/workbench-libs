@@ -16,15 +16,14 @@ class OpenIDConnectInterpreter private[oauth2] (providerMetadata: OpenIDProvider
   override def getAuthorizationEndpoint: String = providerMetadata.authorizeEndpoint
 
   override def processAuthorizeQueryParams(params: Seq[(String, String)]): Seq[(String, String)] = {
-    // TODO seems like this is not needed
-//    val paramsWithScope = if (!providerMetadata.isGoogle) {
-//      params.map { case (k, v) =>
-//        if (k == scopeParam) (k, v + " " + oidcClientId.value) else (k, v)
-//      }
-//    } else params
+    val paramsWithScope = if (!providerMetadata.isGoogle) {
+      params.map { case (k, v) =>
+        if (k == scopeParam) (k, v + " " + oidcClientId.value) else (k, v)
+      }
+    } else params
 
     val paramsWithScopeAndExtraAuthParams =
-      params ++ extraAuthParams.map(eap => Uri.Query(eap)).getOrElse(Uri.Query.Empty)
+      paramsWithScope ++ extraAuthParams.map(eap => Uri.Query(eap)).getOrElse(Uri.Query.Empty)
 
     paramsWithScopeAndExtraAuthParams
   }
