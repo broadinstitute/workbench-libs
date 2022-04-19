@@ -41,7 +41,7 @@ class OpenIDConnectAkkaHttpSpec extends AnyFlatSpecLike with Matchers with Workb
         handled shouldBe true
         status shouldBe StatusCodes.Found
         header[Location].map(_.value) shouldBe Some(
-          "https://terradevb2c.b2clogin.com/terradevb2c.onmicrosoft.com/b2c_1a_signup_signin/oauth2/authorize?id=client_id&scope=foo+bar&foo=bar&abc=def"
+          "https://terradevb2c.b2clogin.com/terradevb2c.onmicrosoft.com/b2c_1a_signup_signin/oauth2/authorize?id=client_id&scope=foo+bar+some_client&foo=bar&abc=def"
         )
       }
     } yield ()
@@ -110,7 +110,7 @@ class OpenIDConnectAkkaHttpSpec extends AnyFlatSpecLike with Matchers with Workb
       _ <- req ~> config.swaggerRoutes("swagger/swagger.yaml") ~> checkIO {
         handled shouldBe true
         status shouldBe StatusCodes.OK
-        contentType shouldBe ContentTypes.`application/octet-stream`
+        contentType shouldBe ContentTypes.`text/html(UTF-8)`
         val resp = responseAs[String]
         resp should include(
           """  var clientIds = {

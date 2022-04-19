@@ -6,6 +6,8 @@ import org.broadinstitute.dsde.workbench.util2.WorkbenchTestSuite
 import org.scalatest.flatspec.AnyFlatSpecLike
 import org.scalatest.matchers.should.Matchers
 
+import scala.io.Source
+
 class OpenIDConnectConfigurationSpec extends AnyFlatSpecLike with Matchers with WorkbenchTestSuite {
 
   "OpenIDConnectConfiguration" should "initialize with Google metadata" in {
@@ -34,7 +36,21 @@ class OpenIDConnectConfigurationSpec extends AnyFlatSpecLike with Matchers with 
     res.unsafeRunSync
   }
 
-  "processAuthorizeQueryParams" should "inject extra auth params" in {
+  "processAuthorizeQueryParams" should "inject the client_id to the scope" in {
+    val interp = new OpenIDConnectInterpreter(OpenIDProviderMetadata("issuer", "authorize", "token"),
+                                              ClientId("client_id"),
+                                              None,
+                                              None,
+                                              None
+    )
+
+    val params = List("foo" -> "bar", "abc" -> "123", "scope" -> "openid email profile")
+    val res = interp.processAuthorizeQueryParams(params)
+
+    res shouldBe List("foo" -> "bar", "abc" -> "123", "scope" -> "openid email profile client_id")
+  }
+
+  "processAuthorizeQueryParams" should "inject the client_id and extra auth params" in {
     val interp = new OpenIDConnectInterpreter(OpenIDProviderMetadata("issuer", "authorize", "token"),
                                               ClientId("client_id"),
                                               None,
@@ -47,13 +63,13 @@ class OpenIDConnectConfigurationSpec extends AnyFlatSpecLike with Matchers with 
 
     res shouldBe List("foo" -> "bar",
                       "abc" -> "123",
-                      "scope" -> "openid email profile",
+                      "scope" -> "openid email profile client_id",
                       "extra" -> "1",
                       "fields" -> "more"
     )
   }
 
-  it should "not inject extra auth params if not configured" in {
+  it should "not inject scope or extra auth params if not configured" in {
     val interp =
       new OpenIDConnectInterpreter(OpenIDProviderMetadata("https://accounts.google.com", "authorize", "token"),
                                    ClientId("client_id"),
@@ -63,21 +79,6 @@ class OpenIDConnectConfigurationSpec extends AnyFlatSpecLike with Matchers with 
       )
 
     val params = List("foo" -> "bar", "abc" -> "123", "scope" -> "openid email profile")
-    val res = interp.processAuthorizeQueryParams(params)
-
-    res shouldBe params
-  }
-
-  it should "not inject the clientId if scope is not present" in {
-    val interp =
-      new OpenIDConnectInterpreter(OpenIDProviderMetadata("issuer", "authorize", "token"),
-                                   ClientId("client_id"),
-                                   None,
-                                   None,
-                                   None
-      )
-
-    val params = List("foo" -> "bar", "abc" -> "123")
     val res = interp.processAuthorizeQueryParams(params)
 
     res shouldBe params
@@ -131,7 +132,7 @@ class OpenIDConnectConfigurationSpec extends AnyFlatSpecLike with Matchers with 
     res shouldBe fields
   }
 
-  "getSwaggerUiIndex" should "replace client ids and uri" in {
+  "processSwaggerUiIndex" should "replace client ids and uri" in {
     val interp =
       new OpenIDConnectInterpreter(OpenIDProviderMetadata("issuer", "authorize", "token"),
                                    ClientId("client_id"),
@@ -139,7 +140,11 @@ class OpenIDConnectConfigurationSpec extends AnyFlatSpecLike with Matchers with 
                                    None,
                                    Some(ClientId("extra_client_id"))
       )
-    val res = interp.getSwaggerUiIndex("/api-docs.yaml")
+    val source = Source.fromResource("swagger/index.html")
+    val contents =
+      try source.mkString
+      finally source.close()
+    val res = interp.processSwaggerUiIndex(contents, "/api-docs.yaml")
     res should include(
       """  var clientIds = {
         |    googleoauth: 'extra_client_id',

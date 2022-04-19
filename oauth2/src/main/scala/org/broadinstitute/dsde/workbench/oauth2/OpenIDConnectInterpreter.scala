@@ -39,14 +39,9 @@ class OpenIDConnectInterpreter private[oauth2] (providerMetadata: OpenIDProvider
       case None => fields
     }
 
-  override def getSwaggerUiIndex(openApiYamlPath: String): String = {
-    val source = Source.fromResource("swagger/index.html")
-    try
-      source.mkString
-        .replace("url: ''", s"url: '$openApiYamlPath'")
-        .replace("googleoauth: ''", s"googleoauth: '${extraGoogleClientId.map(_.value).getOrElse("")}'")
-        .replace("oidc: ''", s"oidc: '${oidcClientId.value}'")
-    finally
-      source.close()
-  }
+  override def processSwaggerUiIndex(contents: String, openApiYamlPath: String): String =
+    contents
+      .replace("url: ''", s"url: '$openApiYamlPath'")
+      .replace("googleoauth: ''", s"googleoauth: '${extraGoogleClientId.map(_.value).getOrElse("")}'")
+      .replace("oidc: ''", s"oidc: '${oidcClientId.value}'")
 }

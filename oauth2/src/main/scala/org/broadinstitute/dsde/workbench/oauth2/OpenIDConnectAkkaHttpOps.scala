@@ -6,6 +6,8 @@ import akka.http.scaladsl.model.HttpMethods.POST
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
+import akka.stream.scaladsl.Flow
+import akka.util.ByteString
 
 import java.nio.file.Paths
 
@@ -44,9 +46,13 @@ class OpenIDConnectAkkaHttpOps(private val config: OpenIDConnectConfiguration) {
     val openApiFilename = Paths.get(openApiYamlResource).getFileName.toString
     path("") {
       get {
-        complete(
-          HttpEntity(ContentTypes.`application/octet-stream`, config.getSwaggerUiIndex("/" + openApiFilename).getBytes)
-        )
+        mapResponseEntity { entityFromJar =>
+          entityFromJar.transformDataBytes(Flow.fromFunction { original =>
+            ByteString(config.processSwaggerUiIndex(original.utf8String, "/" + openApiFilename))
+          })
+        } {
+          getFromResource("swagger/index.html")
+        }
       }
     } ~
       path(openApiFilename) {

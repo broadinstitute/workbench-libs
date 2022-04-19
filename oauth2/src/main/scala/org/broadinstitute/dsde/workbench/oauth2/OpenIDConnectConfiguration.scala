@@ -44,7 +44,7 @@ trait OpenIDConnectConfiguration {
   def getTokenEndpoint: String
   def processTokenFormFields(fields: Seq[(String, String)]): Seq[(String, String)]
 
-  def getSwaggerUiIndex(openApiYamlPath: String): String
+  def processSwaggerUiIndex(contents: String, openApiFileName: String): String
 }
 
 object OpenIDConnectConfiguration {
