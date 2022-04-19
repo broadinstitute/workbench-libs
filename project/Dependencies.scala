@@ -100,6 +100,7 @@ object Dependencies {
   val prometheusServer: ModuleID = "io.prometheus" % "simpleclient_httpserver" % "0.15.0"
   val sealerate: ModuleID = "ca.mrvisser" %% "sealerate" % "0.0.6"
   val scalaCache = "com.github.cb372" %% "scalacache-caffeine" % "1.0.0-M6"
+  val swaggerUiDist = "org.webjars.npm" % "swagger-ui-dist" % "4.10.3"
 
   val commonDependencies = Seq(
     scalatest,
@@ -239,6 +240,7 @@ object Dependencies {
     http4sCirce,
     http4sBlazeClient,
     http4sDsl,
+    swaggerUiDist,
     // note the following akka dependencies have "provided" scope, meaning the system using
     // this module needs to provide the dependency.
     akkaHttp,

@@ -2,6 +2,8 @@ package org.broadinstitute.dsde.workbench.oauth2
 
 import akka.http.scaladsl.model.Uri
 
+import scala.io.Source
+
 class OpenIDConnectInterpreter private[oauth2] (providerMetadata: OpenIDProviderMetadata,
                                                 oidcClientId: ClientId,
                                                 oidcClientSecret: Option[ClientSecret],
@@ -38,8 +40,14 @@ class OpenIDConnectInterpreter private[oauth2] (providerMetadata: OpenIDProvider
       case None => fields
     }
 
-  override def processSwaggerUiIndex(content: String): String =
-    content
-      .replace("googleoauth: ''", s"googleoauth: '${extraGoogleClientId.map(_.value).getOrElse("")}'")
-      .replace("oidc: ''", s"oidc: '${oidcClientId.value}'")
+  override def getSwaggerUiIndex(openApiYamlPath: String): String = {
+    val source = Source.fromResource("swagger/index.html")
+    try
+      source.mkString
+        .replace("url: ''", s"url: '$openApiYamlPath'")
+        .replace("googleoauth: ''", s"googleoauth: '${extraGoogleClientId.map(_.value).getOrElse("")}'")
+        .replace("oidc: ''", s"oidc: '${oidcClientId.value}'")
+    finally
+      source.close()
+  }
 }

@@ -1,13 +1,5 @@
 package org.broadinstitute.dsde.workbench.oauth2
 
-import akka.actor.ActorSystem
-import akka.http.scaladsl.Http
-import akka.http.scaladsl.model.HttpMethods.POST
-import akka.http.scaladsl.model.{FormData, HttpRequest, StatusCodes, Uri => AkkaUri}
-import akka.http.scaladsl.server.Directives._
-import akka.http.scaladsl.server.Route
-import akka.stream.scaladsl.Flow
-import akka.util.ByteString
 import cats.effect.Async
 import cats.syntax.all._
 import io.circe.Decoder
@@ -31,9 +23,8 @@ import org.http4s.circe.CirceEntityDecoder._
  *
  * There are 2 choices for using this class:
  *
- *   1. If your service is using akka-http, you can generate an akka-http route using
- *      `toAkkaHttpRoute` and add it directly to your service. Additionally `serviceSwaggerUiIndex`
- *      can be used to serve Swagger UI index.html with the right oauth fields populated.
+ *   1. If your service is using akka-http, you can generate akka-http routes using the
+ *      `OpenIDConnectAkkaHttpOps` class and add them directly to your service.
  *      Note: ensure the service is using a compatible akka-http version with the version
  *      workbench-libs is compiled against.
  *
@@ -53,7 +44,7 @@ trait OpenIDConnectConfiguration {
   def getTokenEndpoint: String
   def processTokenFormFields(fields: Seq[(String, String)]): Seq[(String, String)]
 
-  def processSwaggerUiIndex(content: String): String
+  def getSwaggerUiIndex(openApiYamlPath: String): String
 }
 
 object OpenIDConnectConfiguration {
@@ -79,44 +70,6 @@ object OpenIDConnectConfiguration {
       )
     }
 
-  final class OpenIDConnectConfigurationOps(private val config: OpenIDConnectConfiguration) extends AnyVal {
-    def toAkkaHttpRoute(implicit actorSystem: ActorSystem): Route =
-      pathPrefix("oauth2") {
-        path("authorize") {
-          get {
-            parameterSeq { params =>
-              val newQuery = AkkaUri.Query(config.processAuthorizeQueryParams(params): _*)
-              val newUri = AkkaUri(config.getAuthorizationEndpoint).withQuery(newQuery)
-              redirect(newUri, StatusCodes.Found)
-            }
-          }
-        } ~
-          path("token") {
-            post {
-              formFieldSeq { fields =>
-                complete {
-                  val newRequest = HttpRequest(
-                    POST,
-                    uri = AkkaUri(config.getTokenEndpoint),
-                    entity = FormData(config.processTokenFormFields(fields): _*).toEntity
-                  )
-                  Http().singleRequest(newRequest)
-                }
-              }
-            }
-          }
-      }
-
-    def serveSwaggerUiIndex: Route =
-      mapResponseEntity { entityFromJar =>
-        entityFromJar.transformDataBytes(Flow.fromFunction { original =>
-          ByteString(config.processSwaggerUiIndex(original.utf8String))
-        })
-      } {
-        getFromResource("swagger/index.html")
-      }
-  }
-
   implicit private val openIDProviderMetadataDecoder: Decoder[OpenIDProviderMetadata] = Decoder.instance { x =>
     for {
       issuer <- x.downField("issuer").as[String]
@@ -125,8 +78,8 @@ object OpenIDConnectConfiguration {
     } yield OpenIDProviderMetadata(issuer, authorizationEndpoint, tokenEndpoint)
   }
 
-  implicit def openIDConnectConfigurationOps(config: OpenIDConnectConfiguration): OpenIDConnectConfigurationOps =
-    new OpenIDConnectConfigurationOps(config)
+  implicit def openIDConnectConfigurationOps(config: OpenIDConnectConfiguration): OpenIDConnectAkkaHttpOps =
+    new OpenIDConnectAkkaHttpOps(config)
 }
 
 case class ClientId(value: String) extends AnyVal
