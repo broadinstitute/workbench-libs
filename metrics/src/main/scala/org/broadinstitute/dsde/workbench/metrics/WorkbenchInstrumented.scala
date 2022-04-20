@@ -5,7 +5,7 @@ import com.codahale.metrics.{Gauge => DropwizardGauge}
 import nl.grons.metrics4.scala.{DefaultInstrumented, MetricName}
 import nl.grons.metrics4.scala.{Gauge => GronsGauge}
 import org.broadinstitute.dsde.workbench.metrics.Expansion._
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import scala.language.implicitConversions
 
 /**
