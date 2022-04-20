@@ -13,7 +13,7 @@ trait MethodFixtures extends ExceptionHandling with RandomUtil { self: TestSuite
   )(implicit token: AuthToken): Unit = {
     // create a method
     val methodName: String = uuidWithPrefix(testName)
-    for (i <- 1 to numSnapshots)
+    for (_ <- 1 to numSnapshots)
       Orchestration.methods.createMethod(method.creationAttributes + ("name" -> methodName))
     try testCode(methodName)
     catch {

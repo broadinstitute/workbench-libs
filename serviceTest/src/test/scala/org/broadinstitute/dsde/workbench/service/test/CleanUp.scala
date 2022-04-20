@@ -8,7 +8,7 @@ import org.scalatest.{Outcome, TestSuite, TestSuiteMixin}
 import spray.json._
 
 import java.util.concurrent.ConcurrentLinkedDeque
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import scala.util.{Failure, Success, Try}
 
 /**
