@@ -67,6 +67,12 @@ lazy val workbenchNotifications = project
   .dependsOn(workbenchGoogle)
   .withTestSettings
 
+lazy val workbenchOauth2 = project
+  .in(file("oauth2"))
+  .settings(oauth2Settings: _*)
+  .dependsOn(workbenchUtil2 % testAndCompile)
+  .withTestSettings
+
 /*
 lazy val workbenchUiTest = project.in(file("uiTest"))
   .settings(uiTestSettings)
@@ -86,3 +92,4 @@ lazy val workbenchLibs = project
   .aggregate(workbenchGoogle2)
   .aggregate(workbenchServiceTest)
   .aggregate(workbenchNotifications)
+  .aggregate(workbenchOauth2)
