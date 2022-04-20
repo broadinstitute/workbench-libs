@@ -122,8 +122,8 @@ Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-notifi
 
 ## workbench-oauth2
 
-Contains utilities for integrating with Google and B2C Oauth2. Targets Scala 2.12 and 2.13.
+Contains utilities for integrating with Google and B2C oauth. 
 
-Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-oauth2" % "0.3-TRAVIS-REPLACE-ME"`
+Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-oauth2" % "0.1-TRAVIS-REPLACE-ME"`
 
 [Changelog](oauth2/CHANGELOG.md)
