@@ -8,7 +8,7 @@ object Dependencies {
   val scalaLoggingV = "3.9.4"
   val scalaTestV    = "3.2.11"
   val circeVersion = "0.14.1"
-  val http4sVersion = "1.0.0-M32"
+  val http4sVersion = "1.0.0-M30"
   val bouncyCastleVersion = "1.70"
   val openCensusV = "0.31.0"
 
@@ -27,6 +27,7 @@ object Dependencies {
   val akkaHttpSprayJson: ModuleID = "com.typesafe.akka" %% "akka-http-spray-json" % akkaHttpV % "provided"
   val akkaTestkit: ModuleID =       "com.typesafe.akka" %% "akka-testkit"         % akkaV     % "test"
   val akkaHttpTestkit: ModuleID =   "com.typesafe.akka" %% "akka-http-testkit"    % akkaHttpV % "test"
+  val akkaStreamTestkit: ModuleID = "com.typesafe.akka" %% "akka-stream-testkit"  % akkaV % "test"
   val scalaCheck: ModuleID =        "org.scalacheck"      %%  "scalacheck"        % "1.15.4"  % "test"
   val commonsCodec: ModuleID = "commons-codec" % "commons-codec" % "20041127.091804" % "test"
 
@@ -99,6 +100,7 @@ object Dependencies {
   val prometheusServer: ModuleID = "io.prometheus" % "simpleclient_httpserver" % "0.15.0"
   val sealerate: ModuleID = "ca.mrvisser" %% "sealerate" % "0.0.6"
   val scalaCache = "com.github.cb372" %% "scalacache-caffeine" % "1.0.0-M6"
+  val swaggerUi = "org.webjars" % "swagger-ui" % "4.10.3"
 
   val commonDependencies = Seq(
     scalatest,
@@ -233,4 +235,18 @@ object Dependencies {
   )
 
   val uiTestDependencies = commonDependencies
+
+  val oauth2Depdendencies = commonDependencies ++ Seq(
+    http4sCirce,
+    http4sBlazeClient,
+    http4sDsl,
+    swaggerUi,
+    // note the following akka dependencies have "provided" scope, meaning the system using
+    // this module needs to provide the dependency.
+    akkaHttp,
+    akkaStream,
+    // test dependencies
+    akkaHttpTestkit,
+    akkaStreamTestkit
+  )
 }
