@@ -4,7 +4,7 @@ import org.openqa.selenium.support.ui.WebDriverWait
 import org.openqa.selenium.{StaleElementReferenceException, WebDriver}
 import org.scalatestplus.selenium.WebBrowser
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 
 /**
  * Mix-in utilities for ScalaTest's WebBrowser.

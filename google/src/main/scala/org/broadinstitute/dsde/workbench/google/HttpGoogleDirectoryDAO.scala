@@ -235,7 +235,7 @@ class HttpGoogleDirectoryDAO(appName: String,
   override def listGroupMembers(groupEmail: WorkbenchEmail): Future[Option[Seq[String]]] = {
     val fetcher = directory.members.list(groupEmail.value).setMaxResults(maxPageSize)
 
-    import scala.collection.JavaConverters._
+    import scala.jdk.CollectionConverters._
     listGroupMembersRecursive(fetcher) map { pagesOption =>
       pagesOption.map { pages =>
         pages.flatMap { page =>

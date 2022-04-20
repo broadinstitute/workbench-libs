@@ -17,7 +17,7 @@ import org.openqa.selenium.remote._
 import org.openqa.selenium.{OutputType, TakesScreenshot, WebDriver}
 import org.scalatest.Suite
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import scala.util.{Failure, Success, Try}
 
 /**
@@ -236,7 +236,7 @@ trait WebBrowserSpec extends WebBrowserUtil with ExceptionHandling with LazyLogg
       PosixFilePermission.OTHERS_EXECUTE
     )
 
-    import scala.collection.JavaConverters._
+    import scala.jdk.CollectionConverters._
     Files.setPosixFilePermissions(path, permissions.asJava)
     path.toString
   }

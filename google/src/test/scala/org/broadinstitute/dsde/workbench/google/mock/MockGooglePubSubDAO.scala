@@ -10,7 +10,7 @@ import org.broadinstitute.dsde.workbench.google.GooglePubSubDAO
 import org.broadinstitute.dsde.workbench.google.GooglePubSubDAO.PubSubMessage
 import org.broadinstitute.dsde.workbench.model.{WorkbenchEmail, WorkbenchException}
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import scala.collection.{mutable, _}
 import scala.concurrent.{ExecutionContext, Future}
 

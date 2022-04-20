@@ -15,7 +15,7 @@ import org.broadinstitute.dsde.workbench.google.GoogleUtilities.RetryPredicates.
 import org.broadinstitute.dsde.workbench.metrics.GoogleInstrumentedService
 import org.broadinstitute.dsde.workbench.model.google.GoogleResourceTypes.GoogleParentResourceType
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import scala.concurrent.{ExecutionContext, Future}
 
 class HttpGoogleProjectDAO(appName: String,

@@ -24,7 +24,7 @@ import org.broadinstitute.dsde.workbench.model.google.GcsLifecycleTypes.{Delete,
 import org.broadinstitute.dsde.workbench.model.google.GcsRoles.{GcsRole, Owner, Reader}
 import org.broadinstitute.dsde.workbench.model.google._
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import scala.concurrent.{ExecutionContext, Future}
 
 class HttpGoogleStorageDAO(appName: String,

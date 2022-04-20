@@ -8,7 +8,7 @@ import org.broadinstitute.dsde.workbench.util.MockitoTestUtils
 import org.mockito.Mockito.{atLeastOnce, inOrder => mockitoInOrder}
 import org.scalatest.concurrent.Eventually
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import scala.concurrent.duration._
 
 /**

@@ -5,7 +5,7 @@ import java.io.ByteArrayInputStream
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential
 import org.broadinstitute.dsde.workbench.config.ServiceTestConfig
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 
 case class ServiceAccountAuthTokenFromJson(privateKeyJsonString: String, scopes: Option[Seq[String]] = None)
     extends AuthToken {

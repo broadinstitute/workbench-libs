@@ -14,7 +14,7 @@ import org.broadinstitute.dsde.workbench.metrics.{GoogleInstrumented, Histogram,
 import org.broadinstitute.dsde.workbench.model.ErrorReport
 import spray.json.{JsValue, RootJsonFormat}
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import scala.concurrent._
 import scala.util.{Failure, Success, Try}
 

@@ -8,7 +8,7 @@ import com.google.api.client.json.jackson2.JacksonFactory
 import com.google.api.client.util.Charsets
 import org.broadinstitute.dsde.workbench.model.WorkbenchEmail
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 
 /**
  * Created by rtitle on 1/30/18.

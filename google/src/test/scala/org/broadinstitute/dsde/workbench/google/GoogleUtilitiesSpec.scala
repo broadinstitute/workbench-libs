@@ -16,7 +16,7 @@ import org.scalatest.matchers.should.Matchers
 import org.scalatest.concurrent.{Eventually, ScalaFutures}
 import spray.json._
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 
@@ -34,7 +34,7 @@ class GoogleUtilitiesSpec
   implicit val executionContext = ExecutionContext.global
   implicit def histo: Histogram = ExpandedMetricBuilder.empty.asHistogram("histo")
 
-  override def afterAll: Unit =
+  override def afterAll(): Unit =
     TestKit.shutdownActorSystem(system)
 
   // a total of 4 attempts (include the first one that has no delay)

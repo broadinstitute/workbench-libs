@@ -12,7 +12,7 @@ import org.scalatest.flatspec.AnyFlatSpecLike
 import org.scalatest.matchers.should.Matchers
 import org.slf4j.{Logger => SLF4JLogger}
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import scala.concurrent.Future
 import scala.concurrent.duration._
 

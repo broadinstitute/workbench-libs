@@ -9,7 +9,7 @@ import io.opencensus.stats.View.Name
 import io.opencensus.stats.{Aggregation, BucketBoundaries, Stats, View}
 import io.opencensus.tags.{TagContext, TagKey, TagValue, Tags}
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import scala.concurrent.duration.FiniteDuration
 
 class OpenTelemetryMetricsInterpreter[F[_]](appName: String)(implicit F: Async[F]) extends OpenTelemetryMetrics[F] {
