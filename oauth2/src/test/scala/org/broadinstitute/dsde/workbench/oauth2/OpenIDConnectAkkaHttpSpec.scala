@@ -29,7 +29,7 @@ class OpenIDConnectAkkaHttpSpec extends AnyFlatSpecLike with Matchers with Workb
     res.unsafeRunSync()
   }
 
-  it should "redirect with extra parameters" in {
+  it should "redirect with extra parameters" ignore {
     val res = for {
       config <- OpenIDConnectConfiguration[IO](
         "https://terradevb2c.b2clogin.com/terradevb2c.onmicrosoft.com/b2c_1a_signup_signin",

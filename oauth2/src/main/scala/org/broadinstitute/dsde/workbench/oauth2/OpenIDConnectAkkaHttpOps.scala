@@ -21,7 +21,6 @@ class OpenIDConnectAkkaHttpOps(private val config: OpenIDConnectConfiguration) {
           parameterSeq { params =>
             val newQuery = Uri.Query(config.processAuthorizeQueryParams(params): _*)
             val newUri = Uri(config.getAuthorizationEndpoint).withQuery(newQuery)
-            actorSystem.log.info("XXX newUri: " + newUri)
             redirect(newUri, StatusCodes.Found)
           }
         }
