@@ -29,7 +29,7 @@ class OpenIDConnectAkkaHttpSpec extends AnyFlatSpecLike with Matchers with Workb
     res.unsafeRunSync()
   }
 
-  it should "redirect with extra parameters" ignore {
+  it should "redirect with extra parameters" in {
     val res = for {
       config <- OpenIDConnectConfiguration[IO](
         "https://terradevb2c.b2clogin.com/terradevb2c.onmicrosoft.com/b2c_1a_signup_signin",
@@ -61,7 +61,8 @@ class OpenIDConnectAkkaHttpSpec extends AnyFlatSpecLike with Matchers with Workb
     res.unsafeRunSync()
   }
 
-  "the token endpoint" should "proxy requests" in {
+  // Ignored because of issues calling the third party endpoint from github actions
+  "the token endpoint" should "proxy requests" ignore {
     val res = for {
       config <- OpenIDConnectConfiguration[IO]("https://accounts.google.com", ClientId("some_client"))
       req = Post("/oauth2/token").withEntity(
