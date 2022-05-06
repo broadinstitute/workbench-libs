@@ -8,7 +8,7 @@ This file documents changes to the `workbench-util` library, including notes on 
 - Cross build 2.13
 - Target java 11
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util" % "0.6-TRAVIS-REPLACE-ME"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util" % "0.6-a78f6e9"`
 
 ## 0.5
 - add retry for IO
