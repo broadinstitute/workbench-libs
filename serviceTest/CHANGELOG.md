@@ -3,7 +3,7 @@
 This file documents changes to the `workbench-service-test` library, including notes on how to upgrade to new versions.
 
 ## 2.0
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "2.0-TRAVIS-REPLACE-ME"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "2.0-a78f6e9"`
 
 ### Changed
 Breaking changes:

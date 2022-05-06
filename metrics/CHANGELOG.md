@@ -9,7 +9,7 @@ This file documents changes to the `workbench-metrics` library, including notes 
 - Publish 2.13
 - Target java 11
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util" % "0.5-TRAVIS-REPLACE-ME"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util" % "0.5-a78f6e9"`
 
 ## 0.4
 - upgrade cats to 1.4.0 and scala to 2.12.7
