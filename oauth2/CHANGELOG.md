@@ -8,5 +8,5 @@ This file documents changes to the `workbench-oauth2` library, including notes o
 - Provides functionality for /oauth2 routes needed by services rolling out B2C
 - Includes swagger-ui dependency and provides Swagger routes
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-oauth2" % "0.1-448015f"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-oauth2" % "0.1-TRAVIS-REPLACE-ME"`
 
