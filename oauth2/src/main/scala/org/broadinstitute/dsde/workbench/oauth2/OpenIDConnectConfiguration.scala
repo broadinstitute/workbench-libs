@@ -55,7 +55,7 @@ object OpenIDConnectConfiguration {
                          oidcClientSecret: Option[ClientSecret] = None,
                          extraAuthParams: Option[String] = None,
                          extraGoogleClientId: Option[ClientId] = None
-  ) = for {
+  ): F[OpenIDConnectConfiguration] = for {
     metadata <- getProviderMetadata(authorityEndpoint)
   } yield new OpenIDConnectInterpreter(metadata, oidcClientId, oidcClientSecret, extraAuthParams, extraGoogleClientId)
 
