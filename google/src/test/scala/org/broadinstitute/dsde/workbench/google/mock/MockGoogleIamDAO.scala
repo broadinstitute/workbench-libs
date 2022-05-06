@@ -13,7 +13,7 @@ import org.broadinstitute.dsde.workbench.model.google._
 
 import scala.collection.concurrent.TrieMap
 import scala.collection.mutable
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import scala.concurrent.Future
 import scala.util.Random
 

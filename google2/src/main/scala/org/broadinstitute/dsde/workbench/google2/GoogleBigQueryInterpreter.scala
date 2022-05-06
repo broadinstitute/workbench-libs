@@ -8,7 +8,7 @@ import org.broadinstitute.dsde.workbench.model.google.{BigQueryDatasetName, BigQ
 import org.broadinstitute.dsde.workbench.model.{WorkbenchEmail, WorkbenchException}
 import org.typelevel.log4cats.StructuredLogger
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 
 private[google2] class GoogleBigQueryInterpreter[F[_]: StructuredLogger](client: BigQuery)(implicit F: Async[F])
     extends GoogleBigQueryService[F] {

@@ -13,7 +13,7 @@ import org.broadinstitute.dsde.workbench.model.google._
 import org.typelevel.log4cats.StructuredLogger
 
 import java.time.ZonedDateTime
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 
 final private[google2] class GoogleStorageTransferInterpreter[F[_]](client: StorageTransferServiceClient)(implicit
   F: Sync[F] with Temporal[F],
