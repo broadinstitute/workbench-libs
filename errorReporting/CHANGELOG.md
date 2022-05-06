@@ -11,7 +11,7 @@ Dependency Upgrades:
 |----------|:-------------:|------:|
 | google-cloud-errorreporting |  0.120.42-beta | 0.122.9-beta |
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-error-reporting" % "0.2-21c84d8"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-error-reporting" % "0.2-a78f6e9"`
 
 ## 0.1
 

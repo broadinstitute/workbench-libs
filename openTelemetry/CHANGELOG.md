@@ -7,7 +7,7 @@ Breaking Changes
 
 - Remove stackdriver stats exporter
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-opentelemetry" % "0.3-ea061ce"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-opentelemetry" % "0.3-a78f6e9"`
 
 ## 0.2
 Breaking Changes:
