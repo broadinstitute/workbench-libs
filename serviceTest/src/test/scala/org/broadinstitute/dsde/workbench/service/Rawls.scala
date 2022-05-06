@@ -330,13 +330,13 @@ trait Rawls extends RestClient with LazyLogging {
     }
 
     def getAuthDomainsInWorkspace(namespace: String, name: String)(implicit token: AuthToken): List[String] = {
-      import scala.collection.JavaConverters._
+      import scala.jdk.CollectionConverters._
       val response = getWorkspaceDetails(namespace, name)
       mapper.readTree(response).at("/workspace/authorizationDomain").findValuesAsText("membersGroupName").asScala.toList
     }
 
     def getWorkspaceNames()(implicit token: AuthToken): List[String] = {
-      import scala.collection.JavaConverters._
+      import scala.jdk.CollectionConverters._
       val response = list()
       mapper.readTree(response).findValuesAsText("name").asScala.toList
     }
@@ -421,7 +421,7 @@ trait Rawls extends RestClient with LazyLogging {
 
       // workflows are JSON maps with (optional) workflowIds.  Collect the IDs that are defined
 
-      import scala.collection.JavaConverters._
+      import scala.jdk.CollectionConverters._
       val workflows: List[JsonNode] = mapper.readTree(response).get("workflows").elements().asScala.toList
 
       val ids = workflows flatMap { wf =>

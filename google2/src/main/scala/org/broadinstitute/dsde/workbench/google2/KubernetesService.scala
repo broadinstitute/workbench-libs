@@ -14,7 +14,7 @@ import org.typelevel.log4cats.StructuredLogger
 import scalacache.Cache
 
 import java.nio.file.Path
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 
 trait KubernetesService[F[_]] {
   // These methods do not fail on 409 in the case of create and 404 in the case of delete

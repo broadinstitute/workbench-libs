@@ -18,7 +18,7 @@ import org.broadinstitute.dsde.workbench.model.{TraceId, WorkbenchException}
 import org.broadinstitute.dsde.workbench.{DoneCheckable, DoneCheckableInstances, RetryConfig}
 import org.typelevel.log4cats.StructuredLogger
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import scala.concurrent.duration._
 
 private[google2] class GoogleDataprocInterpreter[F[_]: Parallel](
