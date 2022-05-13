@@ -17,7 +17,7 @@ import scala.util.{Failure, Success, Try}
 trait CleanUp extends TestSuiteMixin with ExceptionHandling with LazyLogging { self: TestSuite =>
   implicit val errorReportSource: ErrorReportSource = ErrorReportSource(self.suiteName)
 
-  private val cleanUpFunctions = new ConcurrentLinkedDeque[() => Any]()
+  private val cleanUpFunctions = new ConcurrentLinkedDeque[() => Any]
 
   /**
    * Verb object for the DSL for registering clean-up functions.

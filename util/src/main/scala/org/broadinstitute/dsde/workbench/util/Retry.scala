@@ -117,7 +117,7 @@ trait Retry {
       // take the head (most recent) error
       case Left(NonEmptyList(t, _)) => Future.failed(t)
       // return the successful result, throw out any errors
-      case Right((_, a)) => Future.successful(a)
+      case Right(_, a) => Future.successful(a)
     }
 
 }

@@ -64,12 +64,12 @@ class HttpGoogleStorageDAO(appName: String,
                             owners: List[GcsEntity] = List.empty
   ): Future[GcsBucketName] = {
     val bucketAcl =
-      readers.map(entity => new BucketAccessControl().setEntity(entity.toString).setRole(Reader.value)) ++ owners
-        .map(entity => new BucketAccessControl().setEntity(entity.toString).setRole(Owner.value))
+      readers.map(entity => new BucketAccessControl.setEntity(entity.toString).setRole(Reader.value)) ++ owners
+        .map(entity => new BucketAccessControl.setEntity(entity.toString).setRole(Owner.value))
     val defaultBucketObjectAcl = readers.map(entity =>
-      new ObjectAccessControl().setEntity(entity.toString).setRole(Reader.value)
-    ) ++ owners.map(entity => new ObjectAccessControl().setEntity(entity.toString).setRole(Owner.value))
-    val bucket = new Bucket()
+      new ObjectAccessControl.setEntity(entity.toString).setRole(Reader.value)
+    ) ++ owners.map(entity => new ObjectAccessControl.setEntity(entity.toString).setRole(Owner.value))
+    val bucket = new Bucket
       .setName(bucketName.value)
       .setAcl(bucketAcl.asJava)
       .setDefaultObjectAcl(defaultBucketObjectAcl.asJava)
@@ -146,7 +146,7 @@ class HttpGoogleStorageDAO(appName: String,
                           objectName: GcsObjectName,
                           content: AbstractInputStreamContent
   ): Future[Unit] = {
-    val storageObject = new StorageObject().setName(objectName.value)
+    val storageObject = new StorageObject.setName(objectName.value)
     retry(when5xx, whenUsageLimited, when404, whenInvalidValueOnBucketCreation, whenNonHttpIOException) { () =>
       val inserter = storage.objects().insert(bucketName.value, storageObject, content)
       inserter.getMediaHttpUploader.setDirectUploadEnabled(true)
@@ -160,7 +160,7 @@ class HttpGoogleStorageDAO(appName: String,
       try {
         val getter = storage.objects().get(bucketName.value, objectName.value)
         getter.getMediaHttpDownloader.setDirectDownloadEnabled(true)
-        val objectBytes = new ByteArrayOutputStream()
+        val objectBytes = new ByteArrayOutputStream
         getter.executeMediaAndDownloadTo(objectBytes)
         executeGoogleRequest(getter)
         Option(objectBytes)
@@ -288,10 +288,10 @@ class HttpGoogleStorageDAO(appName: String,
                                   lifecycleAge: Int,
                                   lifecycleType: GcsLifecycleType = Delete
   ): Future[Unit] = {
-    val lifecycle = new Lifecycle.Rule()
-      .setAction(new Action().setType(lifecycleType.value))
-      .setCondition(new Condition().setAge(lifecycleAge))
-    val bucket = new Bucket().setName(bucketName.value).setLifecycle(new Lifecycle().setRule(List(lifecycle).asJava))
+    val lifecycle = new Lifecycle.Rule
+      .setAction(new Action.setType(lifecycleType.value))
+      .setCondition(new Condition.setAge(lifecycleAge))
+    val bucket = new Bucket.setName(bucketName.value).setLifecycle(new Lifecycle.setRule(List(lifecycle).asJava))
     val updater = storage.buckets().update(bucketName.value, bucket)
 
     retry(when5xx, whenUsageLimited, when404, whenInvalidValueOnBucketCreation, whenNonHttpIOException) { () =>
@@ -306,14 +306,14 @@ class HttpGoogleStorageDAO(appName: String,
   ): Future[Unit] = {
     val copier = storage
       .objects()
-      .copy(srcBucketName.value, srcObjectName.value, destBucketName.value, destObjectName.value, new StorageObject())
+      .copy(srcBucketName.value, srcObjectName.value, destBucketName.value, destObjectName.value, new StorageObject)
     retry(when5xx, whenUsageLimited, when404, whenInvalidValueOnBucketCreation, whenNonHttpIOException) { () =>
       executeGoogleRequest(copier)
     }
   }
 
   override def setBucketAccessControl(bucketName: GcsBucketName, entity: GcsEntity, role: GcsRole): Future[Unit] = {
-    val acl = new BucketAccessControl().setEntity(entity.toString).setRole(role.value)
+    val acl = new BucketAccessControl.setEntity(entity.toString).setRole(role.value)
     val inserter = storage.bucketAccessControls().insert(bucketName.value, acl)
 
     retry(when5xx, whenUsageLimited, when404, whenInvalidValueOnBucketCreation, whenNonHttpIOException)(() =>
@@ -338,7 +338,7 @@ class HttpGoogleStorageDAO(appName: String,
                                       entity: GcsEntity,
                                       role: GcsRole
   ): Future[Unit] = {
-    val acl = new ObjectAccessControl().setEntity(entity.toString).setRole(role.value)
+    val acl = new ObjectAccessControl.setEntity(entity.toString).setRole(role.value)
     val inserter = storage.objectAccessControls().insert(bucketName.value, objectName.value, acl)
 
     retry(when5xx, whenUsageLimited, when404, whenInvalidValueOnBucketCreation, whenNonHttpIOException)(() =>
@@ -365,7 +365,7 @@ class HttpGoogleStorageDAO(appName: String,
                                              entity: GcsEntity,
                                              role: GcsRole
   ): Future[Unit] = {
-    val acl = new ObjectAccessControl().setEntity(entity.toString).setRole(role.value)
+    val acl = new ObjectAccessControl.setEntity(entity.toString).setRole(role.value)
     val inserter = storage.defaultObjectAccessControls().insert(bucketName.value, acl)
 
     retry(when5xx, whenUsageLimited, when404, whenInvalidValueOnBucketCreation, whenNonHttpIOException)(() =>
@@ -401,7 +401,7 @@ class HttpGoogleStorageDAO(appName: String,
       //   change requester pays setting to the requested setting.
       // else do nothing
       if (bucket.getBilling == null || bucket.getBilling.getRequesterPays != requesterPays) {
-        val rp = new Bucket.Billing().setRequesterPays(requesterPays)
+        val rp = new Bucket.Billing.setRequesterPays(requesterPays)
         retry(when5xx, whenUsageLimited, when404, whenInvalidValueOnBucketCreation, whenNonHttpIOException) { () =>
           executeGoogleRequest(storage.buckets().patch(bucketName.value, bucket.setBilling(rp)))
         }

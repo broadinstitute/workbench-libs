@@ -106,10 +106,10 @@ trait WorkbenchInstrumented extends DefaultInstrumented {
 
   object ExpandedMetricBuilder {
     def expand[A: Expansion](key: String, a: A): ExpandedMetricBuilder =
-      new ExpandedMetricBuilder().expand(key, a)
+      new ExpandedMetricBuilder.expand(key, a)
 
     def empty: ExpandedMetricBuilder =
-      new ExpandedMetricBuilder()
+      new ExpandedMetricBuilder
   }
 
   // Keys for expanded metric fragments

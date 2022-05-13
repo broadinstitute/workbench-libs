@@ -32,7 +32,7 @@ object GoogleCredentialModes {
                  serviceAccountUser: Option[WorkbenchEmail] = None
   ) extends GoogleCredentialMode {
     def toGoogleCredential(scopes: Seq[String]): GoogleCredential =
-      new GoogleCredential.Builder()
+      new GoogleCredential.Builder
         .setTransport(httpTransport)
         .setJsonFactory(jsonFactory)
         .setServiceAccountId(serviceAccountClientId.value)
@@ -51,7 +51,7 @@ object GoogleCredentialModes {
 
       // unfortunately there is no built in way to set the service account user once creds are built from stream
       // so rebuild them (this used to call creds.createScoped which does the same thing under the hood)
-      new GoogleCredential.Builder()
+      new GoogleCredential.Builder
         .setServiceAccountPrivateKey(creds.getServiceAccountPrivateKey)
         .setServiceAccountPrivateKeyId(creds.getServiceAccountPrivateKeyId)
         .setServiceAccountId(creds.getServiceAccountId)
@@ -79,7 +79,7 @@ object GoogleCredentialModes {
    */
   case class Token(tokenProvider: () => String) extends GoogleCredentialMode {
     override def toGoogleCredential(scopes: Seq[String]): GoogleCredential =
-      new GoogleCredential().setAccessToken(tokenProvider())
+      new GoogleCredential.setAccessToken(tokenProvider())
   }
 
   /**

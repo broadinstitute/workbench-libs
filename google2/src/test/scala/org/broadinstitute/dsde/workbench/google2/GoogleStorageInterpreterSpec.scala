@@ -64,7 +64,7 @@ class GoogleStorageInterpreterSpec extends AsyncFlatSpec with Matchers with Work
     for {
       _ <- localStorage.createBlob(bucketName, blobName, objectBody, objectType).compile.drain
       stream <- localStorage.getBlobBody(bucketName, blobName).compile.toList
-    } yield stream.take(5) shouldBe (objectBody.take(5))
+    } yield stream.take(5) shouldBe objectBody.take(5)
   }
 
   it should "return None if object doesn't exist" in ioAssertion {
@@ -83,7 +83,7 @@ class GoogleStorageInterpreterSpec extends AsyncFlatSpec with Matchers with Work
       r <- localStorage.getBlob(bucketName, blobName, None).compile.lastOrError
     } yield {
       r.getBucket shouldBe bucketName.value
-      r.getBlobId.getName shouldBe (blobName.value)
+      r.getBlobId.getName shouldBe blobName.value
     }
   }
 
@@ -92,7 +92,7 @@ class GoogleStorageInterpreterSpec extends AsyncFlatSpec with Matchers with Work
     val blobName = genGcsBlobName.sample.get
     for {
       r <- localStorage.getObjectMetadata(bucketName, blobName, None).compile.lastOrError
-    } yield r shouldBe (GetMetadataResponse.NotFound)
+    } yield r shouldBe GetMetadataResponse.NotFound
   }
 
   "ioStorage removeObject" should "remove an object" in ioAssertion {
@@ -120,7 +120,7 @@ class GoogleStorageInterpreterSpec extends AsyncFlatSpec with Matchers with Work
     for {
       _ <- allObjects.parTraverse(obj => localStorage.createBlob(bucketName, obj, objectBody, objectType).compile.drain)
       allObjectsWithPrefix <- localStorage.unsafeListObjectsWithPrefix(bucketName, prefix)
-    } yield allObjectsWithPrefix.map(_.value) should contain theSameElementsAs (blobNameWithPrefix.map(_.value))
+    } yield allObjectsWithPrefix.map(_.value) should contain theSameElementsAs blobNameWithPrefix.map(_.value)
   }
 
   it should "list objects with / properly" in ioAssertion {
@@ -153,7 +153,7 @@ class GoogleStorageInterpreterSpec extends AsyncFlatSpec with Matchers with Work
       _ <- allObjectsWithPrefix.traverse(obj =>
         localStorage.removeObject(bucketName, GcsBlobName(obj.value), None).compile.drain
       ) // clean up test objects
-    } yield allObjectsWithPrefix.map(_.value) should contain theSameElementsAs (blobNameWithPrefix.map(_.value))
+    } yield allObjectsWithPrefix.map(_.value) should contain theSameElementsAs blobNameWithPrefix.map(_.value)
   }
 
   it should "do not list duplicate entries" in ioAssertion {

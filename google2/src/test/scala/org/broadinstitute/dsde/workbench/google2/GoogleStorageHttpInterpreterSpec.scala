@@ -35,7 +35,7 @@ class GoogleStorageNotificationCreatorInterpreterSpec
         json <- parse(jsonString)
         r <- json.as[NotificationResponse]
       } yield r
-      result shouldBe (Right(notificationResponse))
+      result shouldBe Right(notificationResponse)
     }
   }
 

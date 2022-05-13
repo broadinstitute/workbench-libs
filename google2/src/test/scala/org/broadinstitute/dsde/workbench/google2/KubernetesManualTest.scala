@@ -68,17 +68,17 @@ final class Test(credPathStr: String,
     val network: String = KubernetesNetwork(project, NetworkName(networkNameStr)).idString
 
     val cluster =
-      new com.google.api.services.container.model.Cluster()
+      new com.google.api.services.container.model.Cluster
         .setName(clusterName.right.get.value)
         .setNodePools(List(getLegacyNodepool(getDefaultNodepoolConfig(nodepoolName.right.get))).asJava)
         .setNetwork(network)
         .setSubnetwork(KubernetesSubNetwork(project, RegionName(regionStr), SubnetworkName(subnetworkNameStr)).idString)
         .setNetworkPolicy(getDefaultLegacyNetworkPolicy())
         .setMasterAuthorizedNetworksConfig(
-          new com.google.api.services.container.model.MasterAuthorizedNetworksConfig()
+          new com.google.api.services.container.model.MasterAuthorizedNetworksConfig
             .setEnabled(true)
             .setCidrBlocks(
-              ips.map(ip => new com.google.api.services.container.model.CidrBlock().setCidrBlock(ip)).asJava
+              ips.map(ip => new com.google.api.services.container.model.CidrBlock.setCidrBlock(ip)).asJava
             )
         )
 
@@ -275,7 +275,7 @@ object KubernetesConstants {
   )
 
   def getDefaultLegacyNetworkPolicy(): com.google.api.services.container.model.NetworkPolicy =
-    new com.google.api.services.container.model.NetworkPolicy()
+    new com.google.api.services.container.model.NetworkPolicy
       .setEnabled(true)
 
   def getDefaultCluster(nodepoolName: NodepoolName, clusterName: KubernetesClusterName): Cluster =
@@ -314,9 +314,9 @@ object KubernetesConstants {
       )
 
   def getLegacyNodepool(config: NodepoolConfig): com.google.api.services.container.model.NodePool =
-    new com.google.api.services.container.model.NodePool()
+    new com.google.api.services.container.model.NodePool
       .setConfig(
-        new com.google.api.services.container.model.NodeConfig()
+        new com.google.api.services.container.model.NodeConfig
           .setMachineType(config.machineType.value)
           .setDiskSizeGb(config.diskSize)
           .setServiceAccount(config.serviceAccount.value)
@@ -324,10 +324,10 @@ object KubernetesConstants {
       .setInitialNodeCount(config.initialNodes)
       .setName(config.name.value)
       .setManagement(
-        new com.google.api.services.container.model.NodeManagement().setAutoUpgrade(true).setAutoRepair(true)
+        new com.google.api.services.container.model.NodeManagement.setAutoUpgrade(true).setAutoRepair(true)
       )
       .setAutoscaling(
-        new com.google.api.services.container.model.NodePoolAutoscaling()
+        new com.google.api.services.container.model.NodePoolAutoscaling
           .setEnabled(true)
           .setMinNodeCount(config.autoscalingConfig.minimumNodes)
           .setMaxNodeCount(config.autoscalingConfig.maximumNodes)

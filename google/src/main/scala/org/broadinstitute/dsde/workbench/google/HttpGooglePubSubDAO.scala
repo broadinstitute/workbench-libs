@@ -53,7 +53,7 @@ class HttpGooglePubSubDAO(appName: String,
   override def createTopic(topicName: String) =
     retryWithRecover(when5xx, whenUsageLimited, when404, whenInvalidValueOnBucketCreation, whenNonHttpIOException) {
       () =>
-        executeGoogleRequest(pubSub.projects().topics().create(topicToFullPath(topicName), new Topic()))
+        executeGoogleRequest(pubSub.projects().topics().create(topicToFullPath(topicName), new Topic))
         true
     } {
       case t: HttpResponseException if t.getStatusCode == 409 => false
@@ -81,10 +81,10 @@ class HttpGooglePubSubDAO(appName: String,
       val memberType = if (isServiceAccount(userEmail)) "serviceAccount" else "user"
       val email = s"$memberType:${userEmail.value}"
 
-      new Binding().setMembers(List(email).asJava).setRole(role)
+      new Binding.setMembers(List(email).asJava).setRole(role)
     }
 
-    val request = new SetIamPolicyRequest().setPolicy(new Policy().setBindings(bindings.toList.asJava))
+    val request = new SetIamPolicyRequest.setPolicy(new Policy.setBindings(bindings.toList.asJava))
 
     retry(when5xx, whenUsageLimited, when404, whenInvalidValueOnBucketCreation, whenNonHttpIOException) { () =>
       executeGoogleRequest(pubSub.projects().topics().setIamPolicy(topicToFullPath(topicName), request))
@@ -94,7 +94,7 @@ class HttpGooglePubSubDAO(appName: String,
   override def createSubscription(topicName: String, subscriptionName: String) =
     retryWithRecover(when5xx, whenUsageLimited, when404, whenInvalidValueOnBucketCreation, whenNonHttpIOException) {
       () =>
-        val subscription = new Subscription().setTopic(topicToFullPath(topicName))
+        val subscription = new Subscription.setTopic(topicToFullPath(topicName))
         executeGoogleRequest(
           pubSub.projects().subscriptions().create(subscriptionToFullPath(subscriptionName), subscription)
         )
@@ -118,8 +118,8 @@ class HttpGooglePubSubDAO(appName: String,
       .traverse(messages.grouped(1000)) { messageBatch =>
         retry(when5xx, whenUsageLimited, when404, whenInvalidValueOnBucketCreation, whenNonHttpIOException) { () =>
           val pubsubMessages =
-            messageBatch.map(text => new PubsubMessage().encodeData(text.getBytes(characterEncoding)))
-          val pubsubRequest = new PublishRequest().setMessages(pubsubMessages.asJava)
+            messageBatch.map(text => new PubsubMessage.encodeData(text.getBytes(characterEncoding)))
+          val pubsubRequest = new PublishRequest.setMessages(pubsubMessages.asJava)
           executeGoogleRequest(pubSub.projects().topics().publish(topicToFullPath(topicName), pubsubRequest))
         }
       }
@@ -131,7 +131,7 @@ class HttpGooglePubSubDAO(appName: String,
 
   override def acknowledgeMessagesById(subscriptionName: String, ackIds: scala.collection.Seq[String]) =
     retry(when5xx, whenUsageLimited, when404, whenInvalidValueOnBucketCreation, whenNonHttpIOException) { () =>
-      val ackRequest = new AcknowledgeRequest().setAckIds(ackIds.asJava)
+      val ackRequest = new AcknowledgeRequest.setAckIds(ackIds.asJava)
       executeGoogleRequest(
         pubSub.projects().subscriptions().acknowledge(subscriptionToFullPath(subscriptionName), ackRequest)
       )
@@ -139,7 +139,7 @@ class HttpGooglePubSubDAO(appName: String,
 
   override def pullMessages(subscriptionName: String, maxMessages: Int): Future[scala.collection.Seq[PubSubMessage]] =
     retry(when5xx, whenUsageLimited, when404, whenInvalidValueOnBucketCreation, whenNonHttpIOException) { () =>
-      val pullRequest = new PullRequest()
+      val pullRequest = new PullRequest
         .setReturnImmediately(true)
         .setMaxMessages(maxMessages) // won't keep the connection open if there's no msgs available
       val messages = executeGoogleRequest(

@@ -34,7 +34,7 @@ class OpenIDConnectInterpreter private[oauth2] (providerMetadata: OpenIDProvider
     oidcClientSecret match {
       case Some(secret) =>
         if (providerMetadata.isGoogle && !fields.exists(_._1 == clientSecretParam))
-          fields :+ (clientSecretParam -> secret.value)
+          fields :+ clientSecretParam -> secret.value
         else fields
       case None => fields
     }

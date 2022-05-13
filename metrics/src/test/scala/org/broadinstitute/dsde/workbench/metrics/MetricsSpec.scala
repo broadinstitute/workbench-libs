@@ -177,7 +177,7 @@ class MetricsSpec extends AnyFlatSpecLike with Matchers with BeforeAndAfter with
 
     ri.metricRegistry.getNames should contain(counter.name)
     ctrBuilder.unregisterMetric(counter)
-    ri.metricRegistry.getNames should not contain (counter.name)
+    ri.metricRegistry.getNames should not contain counter.name
   }
 
   "DropWizard health checks" should "reflect current health" in {

@@ -22,7 +22,7 @@ trait RestClient extends Retry with LazyLogging {
   implicit val system = ActorSystem()
   implicit val ec: ExecutionContext = system.dispatcher
 
-  val mapper = new ObjectMapper()
+  val mapper = new ObjectMapper
   mapper.registerModule(DefaultScalaModule)
 
   implicit protected class JsonStringUtil(s: String) {

@@ -51,7 +51,7 @@ class MockGoogleDirectoryDAO(implicit val executionContext: ExecutionContext) ex
 
   override def getGoogleGroup(groupEmail: WorkbenchEmail): Future[Option[Group]] =
     Future.successful(groups.get(groupEmail).map { _ =>
-      val googleGroup = new Group()
+      val googleGroup = new Group
       googleGroup.setEmail(groupEmail.value)
       googleGroup
     })

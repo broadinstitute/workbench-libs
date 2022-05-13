@@ -131,9 +131,9 @@ class HttpGoogleIamDAO(appName: String, googleCredentialMode: GoogleCredentialMo
                                     serviceAccountName: ServiceAccountName,
                                     displayName: ServiceAccountDisplayName
   ): Future[google.ServiceAccount] = {
-    val request = new CreateServiceAccountRequest()
+    val request = new CreateServiceAccountRequest
       .setAccountId(serviceAccountName.value)
-      .setServiceAccount(new ServiceAccount().setDisplayName(displayName.value))
+      .setServiceAccount(new ServiceAccount.setDisplayName(displayName.value))
     val inserter = iam.projects().serviceAccounts().create(s"projects/${serviceAccountProject.value}", request)
     retryWithRecover(when5xx,
                      whenUsageLimited,
@@ -178,7 +178,7 @@ class HttpGoogleIamDAO(appName: String, googleCredentialMode: GoogleCredentialMo
   override def testIamPermission(project: GoogleProject,
                                  iamPermissions: Set[IamPermission]
   ): Future[Set[IamPermission]] = {
-    val testRequest = new TestIamPermissionsRequest().setPermissions(iamPermissions.map(p => p.value).toList.asJava)
+    val testRequest = new TestIamPermissionsRequest.setPermissions(iamPermissions.map(p => p.value).toList.asJava)
     val request = cloudResourceManager.projects().testIamPermissions(project.value, testRequest)
     retry(when5xx, whenUsageLimited, when404, whenInvalidValueOnBucketCreation, whenNonHttpIOException) { () =>
       executeGoogleRequest(request)
@@ -248,7 +248,7 @@ class HttpGoogleIamDAO(appName: String, googleCredentialMode: GoogleCredentialMo
     if (existingPolicy == updatedPolicy) {
       false
     } else {
-      val policyRequest = new ProjectSetIamPolicyRequest().setPolicy(updatedPolicy).setUpdateMask("bindings,etag")
+      val policyRequest = new ProjectSetIamPolicyRequest.setPolicy(updatedPolicy).setUpdateMask("bindings,etag")
       executeGoogleRequest(cloudResourceManager.projects().setIamPolicy(iamProject.value, policyRequest))
       true
     }
@@ -280,7 +280,7 @@ class HttpGoogleIamDAO(appName: String, googleCredentialMode: GoogleCredentialMo
     getServiceAccountPolicy(serviceAccountProject, serviceAccount).flatMap { policy =>
       val updatedPolicy =
         updatePolicy(policy, member, MemberType.ServiceAccount, rolesToAdd, Set.empty)
-      val policyRequest = new ServiceAccountSetIamPolicyRequest().setPolicy(updatedPolicy)
+      val policyRequest = new ServiceAccountSetIamPolicyRequest.setPolicy(updatedPolicy)
       val request = iam
         .projects()
         .serviceAccounts()
@@ -303,7 +303,7 @@ class HttpGoogleIamDAO(appName: String, googleCredentialMode: GoogleCredentialMo
   override def createServiceAccountKey(serviceAccountProject: GoogleProject,
                                        serviceAccountEmail: WorkbenchEmail
   ): Future[ServiceAccountKey] = {
-    val request = new CreateServiceAccountKeyRequest()
+    val request = new CreateServiceAccountKeyRequest
       .setPrivateKeyType("TYPE_GOOGLE_CREDENTIALS_FILE")
       .setKeyAlgorithm("KEY_ALG_RSA_2048")
     val creater = iam
@@ -481,11 +481,11 @@ object HttpGoogleIamDAO {
     Policy(serviceAccountPolicy.getBindings.map(fromServiceAccountBinding).toSet, serviceAccountPolicy.getEtag)
 
   implicit private def toServiceAccountPolicy(policy: Policy): ServiceAccountPolicy =
-    new ServiceAccountPolicy()
+    new ServiceAccountPolicy
       .setBindings(
         policy.bindings
           .map { b =>
-            new ServiceAccountBinding().setRole(b.role).setMembers(b.members.toList.asJava)
+            new ServiceAccountBinding.setRole(b.role).setMembers(b.members.toList.asJava)
           }
           .toList
           .asJava
@@ -493,11 +493,11 @@ object HttpGoogleIamDAO {
       .setEtag(policy.etag)
 
   implicit private def toProjectPolicy(policy: Policy): ProjectPolicy =
-    new ProjectPolicy()
+    new ProjectPolicy
       .setBindings(
         policy.bindings
           .map { b =>
-            new ProjectBinding().setRole(b.role).setMembers(b.members.toList.asJava)
+            new ProjectBinding.setRole(b.role).setMembers(b.members.toList.asJava)
           }
           .toList
           .asJava

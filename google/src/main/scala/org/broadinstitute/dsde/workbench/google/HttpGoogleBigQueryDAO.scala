@@ -38,11 +38,11 @@ class HttpGoogleBigQueryDAO(
   }
 
   override def startQuery(project: GoogleProject, querySql: String): Future[JobReference] = {
-    val job = new Job()
+    val job = new Job
       .setConfiguration(
-        new JobConfiguration()
+        new JobConfiguration
           .setQuery(
-            new JobConfigurationQuery()
+            new JobConfigurationQuery
               .setQuery(querySql)
           )
       )
@@ -55,11 +55,11 @@ class HttpGoogleBigQueryDAO(
                                        queryParameters: List[QueryParameter],
                                        parameterMode: String
   ): Future[JobReference] = {
-    val job = new Job()
+    val job = new Job
       .setConfiguration(
-        new JobConfiguration()
+        new JobConfiguration
           .setQuery(
-            new JobConfigurationQuery()
+            new JobConfigurationQuery
               // This defaults to true in current version. Standard SQL is required for query parameters.
               .setUseLegacySql(false)
               .setParameterMode(parameterMode)

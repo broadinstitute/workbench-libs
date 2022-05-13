@@ -22,9 +22,9 @@ import scala.util.Random
  */
 class MockGoogleIamDAO extends GoogleIamDAO {
 
-  val serviceAccounts: mutable.Map[WorkbenchEmail, ServiceAccount] = new TrieMap()
+  val serviceAccounts: mutable.Map[WorkbenchEmail, ServiceAccount] = new TrieMap
   val serviceAccountKeys: mutable.Map[WorkbenchEmail, mutable.Map[ServiceAccountKeyId, ServiceAccountKey]] =
-    new TrieMap()
+    new TrieMap
 
   override def findServiceAccount(serviceAccountProject: GoogleProject,
                                   serviceAccountName: ServiceAccountName
@@ -48,7 +48,7 @@ class MockGoogleIamDAO extends GoogleIamDAO {
     val uniqueId = ServiceAccountSubjectId(Random.nextLong.toString)
     val sa = ServiceAccount(uniqueId, email, displayName)
     serviceAccounts += email -> sa
-    serviceAccountKeys += email -> new TrieMap()
+    serviceAccountKeys += email -> new TrieMap
     Future.successful(sa)
   }
 
@@ -162,11 +162,11 @@ object MockGoogleIamDAO {
   private case class Policy(bindings: Set[Binding], etag: String)
 
   implicit private def toProjectPolicy(policy: Policy): ProjectPolicy =
-    new ProjectPolicy()
+    new ProjectPolicy
       .setBindings(
         policy.bindings
           .map { b =>
-            new ProjectBinding().setRole(b.role).setMembers(b.members.toList.asJava)
+            new ProjectBinding.setRole(b.role).setMembers(b.members.toList.asJava)
           }
           .toList
           .asJava

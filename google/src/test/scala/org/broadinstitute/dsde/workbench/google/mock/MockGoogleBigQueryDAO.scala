@@ -11,10 +11,10 @@ class MockGoogleBigQueryDAO extends GoogleBigQueryDAO {
   val testProject = GoogleProject("firecloud-project")
   val testQuery = "SELECT * FROM users"
   val testParamQuery = "SELECT * FROM @table"
-  val testParameters = List[QueryParameter](new QueryParameter().set("table", "users"))
+  val testParameters = List[QueryParameter](new QueryParameter.set("table", "users"))
   val testParameterMode = "NAMED"
-  val testJobReference: JobReference = new JobReference().setJobId("test job id")
-  val testJob: Job = new Job().setJobReference(testJobReference)
+  val testJobReference: JobReference = new JobReference.setJobId("test job id")
+  val testJob: Job = new Job.setJobReference(testJobReference)
   val testResponse = new GetQueryResultsResponse
   val unexpectedInputsError = "MockGoogleBigQueryDAO had unexpected inputs"
 

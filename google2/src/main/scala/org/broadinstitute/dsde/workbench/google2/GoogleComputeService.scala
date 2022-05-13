@@ -160,7 +160,7 @@ object GoogleComputeService {
     numOfThreads: Int = 20
   ): Resource[F, GoogleComputeService[F]] = {
     val credentialsProvider = FixedCredentialsProvider.create(googleCredentials)
-    val threadFactory = new ThreadFactoryBuilder().setNameFormat("goog-compute-%d").setDaemon(true).build()
+    val threadFactory = new ThreadFactoryBuilder.setNameFormat("goog-compute-%d").setDaemon(true).build()
     val fixedExecutorProvider =
       FixedExecutorProvider.create(new ScheduledThreadPoolExecutor(numOfThreads, threadFactory))
 

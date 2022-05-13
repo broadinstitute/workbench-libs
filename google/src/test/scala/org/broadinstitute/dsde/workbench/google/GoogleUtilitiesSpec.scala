@@ -41,22 +41,22 @@ class GoogleUtilitiesSpec
   override def exponentialBackOffIntervals = Seq(10 milliseconds, 20 milliseconds, 40 milliseconds)
 
   def buildHttpResponseException(statusCode: Int): HttpResponseException =
-    new HttpResponseException.Builder(statusCode, null, new HttpHeaders()).build
+    new HttpResponseException.Builder(statusCode, null, new HttpHeaders).build
 
   def buildGoogleJsonResponseException(statusCode: Int,
                                        message: Option[String] = None,
                                        reason: Option[String] = None,
                                        domain: Option[String] = None
   ): GoogleJsonResponseException = {
-    val httpExc = new HttpResponseException.Builder(statusCode, null, new HttpHeaders())
-    val errInfo = new ErrorInfo()
+    val httpExc = new HttpResponseException.Builder(statusCode, null, new HttpHeaders)
+    val errInfo = new ErrorInfo
 
     message foreach httpExc.setMessage
     message foreach errInfo.setMessage
     reason foreach errInfo.setReason
     domain foreach errInfo.setDomain
 
-    val gjError = new GoogleJsonError()
+    val gjError = new GoogleJsonError
     gjError.setErrors(Seq(errInfo).asJava)
     new GoogleJsonResponseException(httpExc, gjError)
   }
@@ -194,7 +194,7 @@ class GoogleUtilitiesSpec
 
   "retry" should "retry once per backoff interval and then fail" in {
     withStatsD {
-      val counter = new Counter()
+      val counter = new Counter
       whenReady(retry(whenNonHttpIOException(_))(() => counter.alwaysBoom()).failed) { f =>
         f shouldBe a[IOException]
         counter.counter shouldBe 4 // extra one for the first attempt
@@ -207,7 +207,7 @@ class GoogleUtilitiesSpec
 
   it should "not retry after a success" in {
     withStatsD {
-      val counter = new Counter()
+      val counter = new Counter
       whenReady(retry(whenNonHttpIOException(_))(() => counter.boomOnce())) { s =>
         s shouldBe 42
         counter.counter shouldBe 2
@@ -256,7 +256,7 @@ class GoogleUtilitiesSpec
 
   "retryWithRecover" should "stop retrying if it recovers" in {
     withStatsD {
-      val counter = new Counter()
+      val counter = new Counter
 
       def recoverIO: PartialFunction[Throwable, Int] = { case _: IOException =>
         42
@@ -274,7 +274,7 @@ class GoogleUtilitiesSpec
 
   it should "keep retrying and fail if it doesn't recover" in {
     withStatsD {
-      val counter = new Counter()
+      val counter = new Counter
 
       def recoverHttp: PartialFunction[Throwable, Int] = {
         case h: HttpResponseException if h.getStatusCode == 404 => 42

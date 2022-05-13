@@ -63,7 +63,7 @@ object GoogleBigQueryService {
     for {
       client <- Resource.eval[F, BigQuery](
         Async[F].delay(
-          new DefaultBigQueryFactory().create(
+          new DefaultBigQueryFactory.create(
             BigQueryOptions
               .newBuilder()
               .setCredentials(credentials)

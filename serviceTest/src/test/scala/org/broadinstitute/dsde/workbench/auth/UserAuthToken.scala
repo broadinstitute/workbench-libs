@@ -10,7 +10,7 @@ case class UserAuthToken(user: Credentials, scopes: Seq[String]) extends AuthTok
     val pemfile = new java.io.File(ServiceTestConfig.GCS.pathToQAPem)
     val email = ServiceTestConfig.GCS.qaEmail
 
-    new GoogleCredential.Builder()
+    new GoogleCredential.Builder
       .setTransport(httpTransport)
       .setJsonFactory(jsonFactory)
       .setServiceAccountId(email)

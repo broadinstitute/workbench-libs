@@ -13,7 +13,7 @@ class MockGKEService extends GKEService[IO] {
   override def createCluster(request: GKEModels.KubernetesCreateClusterRequest)(implicit
     ev: Ask[IO, TraceId]
   ): IO[Option[com.google.api.services.container.model.Operation]] =
-    IO(Some(new com.google.api.services.container.model.Operation().setName("opName")))
+    IO(Some(new com.google.api.services.container.model.Operation.setName("opName")))
 
   override def deleteCluster(clusterId: GKEModels.KubernetesClusterId)(implicit
     ev: Ask[IO, TraceId]

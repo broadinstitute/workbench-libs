@@ -410,7 +410,7 @@ object Implicits {
         NonEmptyList
           .fromList(binding._2.toList)
           .map { identities =>
-            builder += (StorageRole.fromString(binding._1.getValue) -> identities)
+            builder += StorageRole.fromString(binding._1.getValue) -> identities
           }
           .getOrElse(builder)
       }

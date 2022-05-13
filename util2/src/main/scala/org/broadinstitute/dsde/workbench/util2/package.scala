@@ -13,10 +13,10 @@ import scala.concurrent.duration._
 
 package object util2 {
   def addJitter(baseTime: FiniteDuration, maxJitterToAdd: Duration): FiniteDuration =
-    baseTime + ((scala.util.Random.nextFloat * maxJitterToAdd.toNanos) nanoseconds)
+    baseTime + (scala.util.Random.nextFloat * maxJitterToAdd.toNanos) nanoseconds
 
   def addJitter(baseTime: FiniteDuration): FiniteDuration =
-    if (baseTime <= (10 seconds)) {
+    if (baseTime <= 10 seconds) {
       addJitter(baseTime, baseTime * 0.1)
     } else {
       addJitter(baseTime, 1 second)

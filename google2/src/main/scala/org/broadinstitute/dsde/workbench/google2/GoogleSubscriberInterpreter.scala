@@ -31,7 +31,7 @@ private[google2] class GoogleSubscriberInterpreter[F[_], MessageType](
   def start: F[Unit] = F.async[Unit] { callback =>
     F.delay {
       subscriber.addListener(
-        new ApiService.Listener() {
+        new ApiService.Listener {
           override def failed(from: ApiService.State, failure: Throwable): Unit =
             callback(Left(failure))
 
@@ -48,7 +48,7 @@ private[google2] class GoogleSubscriberInterpreter[F[_], MessageType](
     F.async[Unit] { callback =>
       F.delay {
         subscriber.addListener(
-          new ApiService.Listener() {
+          new ApiService.Listener {
             override def failed(from: ApiService.State, failure: Throwable): Unit =
               callback(Left(failure))
 
@@ -72,7 +72,7 @@ object GoogleSubscriberInterpreter {
   private[google2] def receiver[F[_], MessageType: Decoder](
     queue: cats.effect.std.Queue[F, Event[MessageType]],
     dispatcher: Dispatcher[F]
-  )(implicit logger: StructuredLogger[F], F: Async[F]): MessageReceiver = new MessageReceiver() {
+  )(implicit logger: StructuredLogger[F], F: Async[F]): MessageReceiver = new MessageReceiver {
     override def receiveMessage(message: PubsubMessage, consumer: AckReplyConsumer): Unit = {
       val parseEvent = for {
         isJson <- F.fromEither(parse(message.getData.toStringUtf8)).attempt
@@ -117,7 +117,7 @@ object GoogleSubscriberInterpreter {
   private[google2] def stringReceiver[F[_]](queue: cats.effect.std.Queue[F, Event[String]],
                                             dispatcher: Dispatcher[F]
   ): MessageReceiver =
-    new MessageReceiver() {
+    new MessageReceiver {
       override def receiveMessage(message: PubsubMessage, consumer: AckReplyConsumer): Unit = {
         val enqueueAction = queue.offer(
           Event(message.getData.toStringUtf8,
@@ -182,7 +182,7 @@ object GoogleSubscriberInterpreter {
     flowControlSettings: Option[FlowControlSettings],
     numOfThreads: Int
   ): Resource[F, Subscriber] = Dispatcher[F].flatMap { d =>
-    val threadFactory = new ThreadFactoryBuilder().setNameFormat("goog-subscriber-%d").setDaemon(true).build()
+    val threadFactory = new ThreadFactoryBuilder.setNameFormat("goog-subscriber-%d").setDaemon(true).build()
     val fixedExecutorProvider =
       FixedExecutorProvider.create(new ScheduledThreadPoolExecutor(numOfThreads, threadFactory))
 

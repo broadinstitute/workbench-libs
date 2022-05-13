@@ -23,7 +23,7 @@ object ServiceAccountAuthTokenFromPem {
 class ServiceAccountAuthTokenFromPem(clientId: String, pemFilePath: String, scopes: Option[Seq[String]] = None)
     extends AuthToken {
   def buildCredential(): GoogleCredential = {
-    val builder = new GoogleCredential.Builder()
+    val builder = new GoogleCredential.Builder
       .setTransport(httpTransport)
       .setJsonFactory(jsonFactory)
       .setServiceAccountId(clientId)

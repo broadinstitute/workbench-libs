@@ -28,7 +28,7 @@ trait GoogleDirectoryDAO {
   def listGroupMembers(groupEmail: WorkbenchEmail): Future[Option[Seq[String]]]
 
   def lockedDownGroupSettings =
-    new GroupSettings()
+    new GroupSettings
       .setWhoCanAdd("ALL_OWNERS_CAN_ADD")
       .setWhoCanJoin("INVITED_CAN_JOIN")
       .setWhoCanViewMembership("ALL_MANAGERS_CAN_VIEW")

@@ -113,7 +113,7 @@ object GoogleDataprocService {
     retryConfig: RetryConfig = RetryPredicates.standardGoogleRetryConfig,
     numOfThreads: Int = 20
   ): Resource[F, GoogleDataprocService[F]] = {
-    val threadFactory = new ThreadFactoryBuilder().setNameFormat("goog-dataproc-%d").setDaemon(true).build()
+    val threadFactory = new ThreadFactoryBuilder.setNameFormat("goog-dataproc-%d").setDaemon(true).build()
     val fixedExecutorProvider =
       FixedExecutorProvider.create(new ScheduledThreadPoolExecutor(numOfThreads, threadFactory))
 

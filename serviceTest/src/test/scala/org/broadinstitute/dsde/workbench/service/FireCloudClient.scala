@@ -18,7 +18,7 @@ trait FireCloudClient {
   implicit val system = ActorSystem()
   implicit val ec: ExecutionContextExecutor = system.dispatcher
 
-  val mapper = new ObjectMapper()
+  val mapper = new ObjectMapper
   mapper.registerModule(DefaultScalaModule)
 
   implicit protected class JsonStringUtil(s: String) {

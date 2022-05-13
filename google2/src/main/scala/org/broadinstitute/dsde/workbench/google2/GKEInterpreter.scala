@@ -33,7 +33,7 @@ final class GKEInterpreter[F[_]: StructuredLogger](
     // the newer com.google.container.v1 client because certain options like Workload Identity
     // are only available in the old client.
 
-    val googleRequest = new com.google.api.services.container.model.CreateClusterRequest()
+    val googleRequest = new com.google.api.services.container.model.CreateClusterRequest
       .setCluster(request.cluster)
 
     tracedGoogleRetryWithBlocker(

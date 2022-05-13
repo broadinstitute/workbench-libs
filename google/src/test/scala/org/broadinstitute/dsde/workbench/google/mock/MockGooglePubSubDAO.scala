@@ -21,7 +21,7 @@ class MockGooglePubSubDAO extends GooglePubSubDAO {
   implicit val executionContext: ExecutionContext = ExecutionContext.global
 
   val topics: concurrent.Map[String, mutable.Set[Subscription]] =
-    new ConcurrentHashMap[String, mutable.Set[Subscription]]().asScala
+    new ConcurrentHashMap[String, mutable.Set[Subscription]].asScala
   val subscriptionsByName = collection.concurrent.TrieMap.empty[String, Subscription]
 
   val messageLog = new ConcurrentLinkedQueue[String]
@@ -33,7 +33,7 @@ class MockGooglePubSubDAO extends GooglePubSubDAO {
 
   override def createTopic(topicName: String): Future[Boolean] = {
     val initialCount = topics.size
-    topics += (topicName -> Collections.synchronizedSet(new util.HashSet[Subscription]()).asScala)
+    topics += topicName -> Collections.synchronizedSet(new util.HashSet[Subscription]).asScala
     Future.successful(topics.size != initialCount)
   }
 
@@ -89,7 +89,7 @@ class MockGooglePubSubDAO extends GooglePubSubDAO {
     if (subscriptionsByName.contains(subscriptionName)) {
       false
     } else {
-      val subscription = Subscription(subscriptionName, topicName, new ConcurrentLinkedQueue[String]())
+      val subscription = Subscription(subscriptionName, topicName, new ConcurrentLinkedQueue[String])
       topics(topicName) += subscription
       subscriptionsByName += subscriptionName -> subscription
       true
@@ -97,7 +97,7 @@ class MockGooglePubSubDAO extends GooglePubSubDAO {
   }
 
   def getPreparedMockGoogleCredential: MockGoogleCredential = {
-    val credential = new MockGoogleCredential.Builder().build()
+    val credential = new MockGoogleCredential.Builder.build()
     credential.setAccessToken(MockGoogleCredential.ACCESS_TOKEN)
 //    credential.setRefreshToken(token)
     credential.setExpiresInSeconds(1000000L) // make sure not to refresh this token

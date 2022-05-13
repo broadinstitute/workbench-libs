@@ -29,7 +29,7 @@ class MockGoogleStorageDAO(implicit val executionContext: ExecutionContext) exte
   }
 
   override def getBucket(bucketName: GcsBucketName): Future[Bucket] =
-    Future.successful(new Bucket().setName(bucketName.value))
+    Future.successful(new Bucket.setName(bucketName.value))
 
   override def deleteBucket(bucketName: GcsBucketName, recurse: Boolean): Future[Unit] = {
     buckets.remove(bucketName)
@@ -87,7 +87,7 @@ class MockGoogleStorageDAO(implicit val executionContext: ExecutionContext) exte
                          objectName: GcsObjectName
   ): Future[Option[ByteArrayOutputStream]] = {
     val current = buckets.get(bucketName)
-    val response = new ByteArrayOutputStream()
+    val response = new ByteArrayOutputStream
 
     Future {
       current match {
@@ -175,9 +175,9 @@ class MockGoogleStorageDAO(implicit val executionContext: ExecutionContext) exte
     Future.successful(())
 
   override def getBucketAccessControls(bucketName: GcsBucketName): Future[BucketAccessControls] =
-    Future.successful(new BucketAccessControls())
+    Future.successful(new BucketAccessControls)
   override def getDefaultObjectAccessControls(bucketName: GcsBucketName): Future[ObjectAccessControls] =
-    Future.successful(new ObjectAccessControls())
+    Future.successful(new ObjectAccessControls)
 
   override def setRequesterPays(bucketName: GcsBucketName, requesterPays: Boolean): Future[Unit] = Future.successful(())
 }

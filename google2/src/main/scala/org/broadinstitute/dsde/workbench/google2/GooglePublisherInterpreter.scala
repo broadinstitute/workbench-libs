@@ -119,7 +119,7 @@ object GooglePublisherInterpreter {
                                             credential: ServiceAccountCredentials,
                                             numOfThreads: Int
   ): Resource[F, Publisher] = {
-    val threadFactory = new ThreadFactoryBuilder().setNameFormat("goog-publisher-%d").setDaemon(true).build()
+    val threadFactory = new ThreadFactoryBuilder.setNameFormat("goog-publisher-%d").setDaemon(true).build()
     val fixedExecutorProvider =
       FixedExecutorProvider.create(new ScheduledThreadPoolExecutor(numOfThreads, threadFactory))
 

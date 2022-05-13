@@ -35,7 +35,7 @@ class ErrorReportSpec extends AnyFlatSpecLike with BeforeAndAfterAll with Matche
   }
 
   it should "return exception class if no message exists" in {
-    val noMsgExc = new RuntimeException()
+    val noMsgExc = new RuntimeException
     ErrorReport.message(noMsgExc) shouldBe "RuntimeException"
   }
 

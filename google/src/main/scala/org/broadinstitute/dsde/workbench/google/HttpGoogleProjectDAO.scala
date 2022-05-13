@@ -43,7 +43,7 @@ class HttpGoogleProjectDAO(appName: String,
   override def createProject(projectName: String): Future[String] =
     retry(when5xx, whenUsageLimited, when404, whenInvalidValueOnBucketCreation, whenNonHttpIOException) { () =>
       executeGoogleRequest(
-        cloudResManager.projects().create(new Project().setName(projectName).setProjectId(projectName))
+        cloudResManager.projects().create(new Project.setName(projectName).setProjectId(projectName))
       )
     }.map { operation =>
       operation.getName
@@ -58,10 +58,10 @@ class HttpGoogleProjectDAO(appName: String,
         cloudResManager
           .projects()
           .create(
-            new Project()
+            new Project
               .setName(projectName)
               .setProjectId(projectName)
-              .setParent(new ResourceId().setId(parentId).setType(parentType.value))
+              .setParent(new ResourceId.setId(parentId).setType(parentType.value))
           )
       )
     }.map { operation =>
@@ -107,7 +107,7 @@ class HttpGoogleProjectDAO(appName: String,
       executeGoogleRequest(
         serviceManagement
           .services()
-          .enable(serviceName, new EnableServiceRequest().setConsumerId(s"project:$projectName"))
+          .enable(serviceName, new EnableServiceRequest.setConsumerId(s"project:$projectName"))
       )
     }.map { operation =>
       operation.getName
@@ -123,7 +123,7 @@ class HttpGoogleProjectDAO(appName: String,
 
   override def getAncestry(projectName: String): Future[Seq[Ancestor]] =
     retry(when5xx, whenUsageLimited, when404, whenInvalidValueOnBucketCreation, whenNonHttpIOException) { () =>
-      executeGoogleRequest(cloudResManager.projects().getAncestry(projectName, new GetAncestryRequest()))
+      executeGoogleRequest(cloudResManager.projects().getAncestry(projectName, new GetAncestryRequest))
     }.map { ancestry =>
       Option(ancestry.getAncestor).map(_.asScala.toSeq).getOrElse(Seq.empty)
     }

@@ -26,7 +26,7 @@ object Settings {
   )
 
   lazy val commonCompilerSettings = scalacOptions ++= (CrossVersion.partialVersion(scalaVersion.value) match {
-    case Some((2, 13)) =>
+    case Some(2, 13) =>
       Seq(
 //      "-deprecation", // Emit warning and location for usages of deprecated APIs. TODO: enable this when we migrate off of 2.12
         "-explaintypes", // Explain type errors in more detail.

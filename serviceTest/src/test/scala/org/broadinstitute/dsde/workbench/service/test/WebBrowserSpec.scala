@@ -111,7 +111,7 @@ trait WebBrowserSpec extends WebBrowserUtil with ExceptionHandling with LazyLogg
     )
 
     // ChromeDriver log
-    val logPref = new LoggingPreferences()
+    val logPref = new LoggingPreferences
     logPref.enable(LogType.BROWSER, Level.ALL)
     logPref.enable(LogType.CLIENT, Level.ALL)
     logPref.enable(LogType.DRIVER, Level.ALL)
@@ -125,7 +125,7 @@ trait WebBrowserSpec extends WebBrowserUtil with ExceptionHandling with LazyLogg
   lazy val chromeDriverFile: File = new File(ServiceTestConfig.ChromeSettings.chromeDriverPath)
 
   private def runLocalChrome(options: ChromeOptions, testCode: WebDriver => Any): Unit = {
-    val service = new ChromeDriverService.Builder().usingDriverExecutable(chromeDriverFile).usingAnyFreePort().build()
+    val service = new ChromeDriverService.Builder.usingDriverExecutable(chromeDriverFile).usingAnyFreePort().build()
     service.start()
     implicit val driver: RemoteWebDriver = startRemoteWebdriver(service.getUrl, options)
     try
@@ -168,7 +168,7 @@ trait WebBrowserSpec extends WebBrowserUtil with ExceptionHandling with LazyLogg
         logger.error(s"Failed to start a new Chrome RemoteWebDriver.", e)
         throw e
       case Success(driver) =>
-        driver.setFileDetector(new LocalFileDetector())
+        driver.setFileDetector(new LocalFileDetector)
         driver
     }
   }
@@ -186,7 +186,7 @@ trait WebBrowserSpec extends WebBrowserUtil with ExceptionHandling with LazyLogg
     try f
     catch {
       case t: Throwable =>
-        val date = new SimpleDateFormat("HH-mm-ss-SSS").format(new java.util.Date())
+        val date = new SimpleDateFormat("HH-mm-ss-SSS").format(new java.util.Date)
         val path = "failure_screenshots"
         val name = s"${suiteName}_$date"
         val fileName = s"$path/$name.png"
@@ -197,7 +197,7 @@ trait WebBrowserSpec extends WebBrowserUtil with ExceptionHandling with LazyLogg
           if (!directory.exists()) {
             directory.mkdir()
           }
-          val tmpFile = new Augmenter().augment(driver).asInstanceOf[TakesScreenshot].getScreenshotAs(OutputType.FILE)
+          val tmpFile = new Augmenter.augment(driver).asInstanceOf[TakesScreenshot].getScreenshotAs(OutputType.FILE)
           logger.error(s"Failure screenshot saved to $fileName")
           new FileOutputStream(new File(fileName)).getChannel
             .transferFrom(new FileInputStream(tmpFile).getChannel, 0, Long.MaxValue)

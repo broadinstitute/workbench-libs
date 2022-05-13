@@ -59,8 +59,8 @@ class OpenIDConnectAkkaHttpOps(private val config: OpenIDConnectConfiguration) {
           getFromResource(openApiYamlResource)
         }
       } ~
-      (pathPrefixTest("swagger-ui") | pathPrefixTest("oauth2-redirect") | pathSuffixTest("js")
-        | pathSuffixTest("css") | pathPrefixTest("favicon")) {
+      pathPrefixTest("swagger-ui") | pathPrefixTest("oauth2-redirect") | pathSuffixTest("js")
+        | pathSuffixTest("css") | pathPrefixTest("favicon") {
         get {
           getFromResourceDirectory(swaggerUiPath)
         }

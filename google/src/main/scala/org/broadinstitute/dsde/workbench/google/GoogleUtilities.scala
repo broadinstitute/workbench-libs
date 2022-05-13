@@ -145,9 +145,9 @@ trait GoogleUtilities extends LazyLogging with InstrumentedRetry with GoogleInst
   protected def when500orGoogleError(throwable: Throwable): Boolean =
     throwable match {
       case t: GoogleJsonResponseException =>
-        ((t.getStatusCode == 403 || t.getStatusCode == 429) && t.getDetails.getErrors.asScala.head.getDomain
-          .equalsIgnoreCase("usageLimits")) ||
-        (t.getStatusCode == 400 && t.getDetails.getErrors.asScala.head.getReason.equalsIgnoreCase("invalid")) ||
+        (t.getStatusCode == 403 || t.getStatusCode == 429) && t.getDetails.getErrors.asScala.head.getDomain
+          .equalsIgnoreCase("usageLimits") ||
+        t.getStatusCode == 400 && t.getDetails.getErrors.asScala.head.getReason.equalsIgnoreCase("invalid") ||
         t.getStatusCode == 404 ||
         t.getStatusCode / 100 == 5
       case t: GoogleHttpResponseException => t.getStatusCode / 100 == 5
@@ -249,7 +249,7 @@ trait GoogleUtilities extends LazyLogging with InstrumentedRetry with GoogleInst
         Option(request.getHttpContent) match {
           case Some(content: JsonHttpContent) =>
             Try {
-              val outputStream = new ByteArrayOutputStream()
+              val outputStream = new ByteArrayOutputStream
               content.writeTo(outputStream)
               outputStream.toString.parseJson
             }.toOption

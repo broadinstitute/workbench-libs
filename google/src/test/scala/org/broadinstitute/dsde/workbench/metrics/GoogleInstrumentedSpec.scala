@@ -26,7 +26,7 @@ class GoogleInstrumentedSpec
   override val workbenchMetricBaseName = "test"
 
   val httpTransport = GoogleNetHttpTransport.newTrustedTransport
-  val mockTransport = new MockHttpTransport()
+  val mockTransport = new MockHttpTransport
   val jsonFactory = JacksonFactory.getDefaultInstance
   val credential = new HttpRequestInitializer {
     override def initialize(request: HttpRequest): Unit = ()

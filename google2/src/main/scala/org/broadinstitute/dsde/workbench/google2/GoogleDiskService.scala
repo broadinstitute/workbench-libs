@@ -62,7 +62,7 @@ object GoogleDiskService {
     numOfThreads: Int = 20
   ): Resource[F, GoogleDiskService[F]] = {
     val credentialsProvider = FixedCredentialsProvider.create(googleCredentials)
-    val threadFactory = new ThreadFactoryBuilder().setNameFormat("goog-disk-%d").setDaemon(true).build()
+    val threadFactory = new ThreadFactoryBuilder.setNameFormat("goog-disk-%d").setDaemon(true).build()
     val fixedExecutorProvider =
       FixedExecutorProvider.create(new ScheduledThreadPoolExecutor(numOfThreads, threadFactory))
 

@@ -109,7 +109,7 @@ class HttpGoogleDirectoryDAO(appName: String,
                            groupSettings: Option[GroupSettings] = None
   ): Future[Unit] = {
     val groups = directory.groups
-    val group = new Group()
+    val group = new Group
       .setEmail(groupEmail.value)
       .setName(displayName.take(60)) // max google group name length is 60 characters
     val inserter = groups.insert(group)
@@ -136,7 +136,7 @@ class HttpGoogleDirectoryDAO(appName: String,
       }
       _ <- groupSettings match {
         case None           => Future.successful(())
-        case Some(settings) => new GroupSettingsDAO().updateGroupSettings(groupEmail, settings)
+        case Some(settings) => new GroupSettingsDAO.updateGroupSettings(groupEmail, settings)
       }
     } yield ()
   }
@@ -161,12 +161,12 @@ class HttpGoogleDirectoryDAO(appName: String,
   }
 
   override def addMemberToGroup(groupEmail: WorkbenchEmail, memberEmail: WorkbenchEmail): Future[Unit] = {
-    val member = new Member().setEmail(memberEmail.value)
+    val member = new Member.setEmail(memberEmail.value)
     addMemberToGroup(groupEmail, member)
   }
 
   override def addServiceAccountToGroup(groupEmail: WorkbenchEmail, serviceAccount: ServiceAccount): Future[Unit] = {
-    val member = new Member().setId(serviceAccount.subjectId.value)
+    val member = new Member.setId(serviceAccount.subjectId.value)
     addMemberToGroup(groupEmail, member)
   }
 
