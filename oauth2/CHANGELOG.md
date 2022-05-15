@@ -2,6 +2,17 @@
 
 This file documents changes to the `workbench-oauth2` library, including notes on how to upgrade to new versions.
 
+## 0.2
+
+Changed:
+- Changed method on `OpenIDConnectConfiguration` to return `OpenIDProviderMetadata` case class instead of strings
+
+Added:
+- Added methods for clientId and authorityEndpoint to `OpenIDConnectConfiguration`
+- Added akka-http route `/oauth2/configuration` which returns JSON containing the clientId and authorityEndpoint
+
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-oauth2" % "0.2-TRAVIS-REPLACE-ME"`
+
 ## 0.1
 
 - Initial commit
