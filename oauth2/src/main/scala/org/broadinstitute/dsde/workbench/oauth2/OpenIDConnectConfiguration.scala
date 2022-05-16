@@ -31,19 +31,19 @@ import org.http4s.circe.CirceEntityDecoder._
  *   2. Otherwise, the service should add 2 backend routes as follows:
  *     - GET /oauth2/authorize:
  *         This route should call `processAuthorizeQueryParams` on the incoming querystring params
- *         and redirect to the endpoint returned by `getAuthorizationEndpoint`.
+ *         and redirect to the authorize endpoint defined in `providerMetadata`.
  *     - POST /oauth2/token:
  *         This route should only accept Content-Type: application/x-www-form-urlencoded.
  *         It should call `processTokenFormFields` on the incoming form fields and _proxy_ the request
- *         to the endpoint returned by `getTokenEndpoint`.
+ *         to the token endpoint defined in `providerMetadata`.
  */
 trait OpenIDConnectConfiguration {
-  def getAuthorizationEndpoint: String
+  def clientId: ClientId
+  def authorityEndpoint: String
+  def providerMetadata: OpenIDProviderMetadata
+
   def processAuthorizeQueryParams(params: Seq[(String, String)]): Seq[(String, String)]
-
-  def getTokenEndpoint: String
   def processTokenFormFields(fields: Seq[(String, String)]): Seq[(String, String)]
-
   def processSwaggerUiIndex(contents: String, openApiFileName: String): String
 }
 
@@ -57,7 +57,13 @@ object OpenIDConnectConfiguration {
                          extraGoogleClientId: Option[ClientId] = None
   ): F[OpenIDConnectConfiguration] = for {
     metadata <- getProviderMetadata(authorityEndpoint)
-  } yield new OpenIDConnectInterpreter(metadata, oidcClientId, oidcClientSecret, extraAuthParams, extraGoogleClientId)
+  } yield new OpenIDConnectInterpreter(oidcClientId,
+                                       authorityEndpoint,
+                                       metadata,
+                                       oidcClientSecret,
+                                       extraAuthParams,
+                                       extraGoogleClientId
+  )
 
   // Grabs the authorize and token endpoints from the authority metadata JSON
   private[oauth2] def getProviderMetadata[F[_]: Async](authorityEndpoint: String): F[OpenIDProviderMetadata] =
@@ -77,7 +83,6 @@ object OpenIDConnectConfiguration {
       tokenEndpoint <- x.downField("token_endpoint").as[String]
     } yield OpenIDProviderMetadata(issuer, authorizationEndpoint, tokenEndpoint)
   }
-
   implicit def openIDConnectConfigurationOps(config: OpenIDConnectConfiguration): OpenIDConnectAkkaHttpOps =
     new OpenIDConnectAkkaHttpOps(config)
 }

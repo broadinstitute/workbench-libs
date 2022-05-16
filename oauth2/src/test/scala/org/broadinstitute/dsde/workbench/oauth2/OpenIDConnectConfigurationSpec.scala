@@ -9,6 +9,8 @@ import org.scalatest.matchers.should.Matchers
 import scala.io.Source
 
 class OpenIDConnectConfigurationSpec extends AnyFlatSpecLike with Matchers with WorkbenchTestSuite {
+  val fakeMetadata = OpenIDProviderMetadata("issuer", "authorize", "token")
+  val googleMetadata = OpenIDProviderMetadata("https://accounts.google.com", "authorize", "token")
 
   "OpenIDConnectConfiguration" should "initialize with Google metadata" in {
     val res = for {
@@ -37,12 +39,7 @@ class OpenIDConnectConfigurationSpec extends AnyFlatSpecLike with Matchers with 
   }
 
   "processAuthorizeQueryParams" should "inject the client_id to the scope" in {
-    val interp = new OpenIDConnectInterpreter(OpenIDProviderMetadata("issuer", "authorize", "token"),
-                                              ClientId("client_id"),
-                                              None,
-                                              None,
-                                              None
-    )
+    val interp = new OpenIDConnectInterpreter(ClientId("client_id"), "fake-authority", fakeMetadata, None, None, None)
 
     val params = List("foo" -> "bar", "abc" -> "123", "scope" -> "openid email profile")
     val res = interp.processAuthorizeQueryParams(params)
@@ -51,8 +48,9 @@ class OpenIDConnectConfigurationSpec extends AnyFlatSpecLike with Matchers with 
   }
 
   "processAuthorizeQueryParams" should "inject the client_id and extra auth params" in {
-    val interp = new OpenIDConnectInterpreter(OpenIDProviderMetadata("issuer", "authorize", "token"),
-                                              ClientId("client_id"),
+    val interp = new OpenIDConnectInterpreter(ClientId("client_id"),
+                                              "fake-authority",
+                                              fakeMetadata,
                                               None,
                                               Some("extra=1&fields=more"),
                                               None
@@ -71,8 +69,9 @@ class OpenIDConnectConfigurationSpec extends AnyFlatSpecLike with Matchers with 
 
   it should "not inject scope or extra auth params if not configured" in {
     val interp =
-      new OpenIDConnectInterpreter(OpenIDProviderMetadata("https://accounts.google.com", "authorize", "token"),
-                                   ClientId("client_id"),
+      new OpenIDConnectInterpreter(ClientId("client_id"),
+                                   "https://accounts.google.com",
+                                   googleMetadata,
                                    None,
                                    None,
                                    None
@@ -86,8 +85,9 @@ class OpenIDConnectConfigurationSpec extends AnyFlatSpecLike with Matchers with 
 
   "processTokenFormFields" should "inject the client secret" in {
     val interp =
-      new OpenIDConnectInterpreter(OpenIDProviderMetadata("https://accounts.google.com", "authorize", "token"),
-                                   ClientId("client_id"),
+      new OpenIDConnectInterpreter(ClientId("client_id"),
+                                   "https://accounts.google.com",
+                                   googleMetadata,
                                    Some(ClientSecret("client_secret")),
                                    None,
                                    None
@@ -102,11 +102,13 @@ class OpenIDConnectConfigurationSpec extends AnyFlatSpecLike with Matchers with 
 
   it should "not inject the client secret if absent" in {
     val interp =
-      new OpenIDConnectInterpreter(OpenIDProviderMetadata("https://accounts.google.com", "authorize", "token"),
-                                   ClientId("client_id"),
-                                   None,
-                                   None,
-                                   None
+      new OpenIDConnectInterpreter(
+        ClientId("client_id"),
+        "https://accounts.google.com",
+        googleMetadata,
+        None,
+        None,
+        None
       )
     val fields = List(
       "client_id" -> "client_id",
@@ -118,8 +120,9 @@ class OpenIDConnectConfigurationSpec extends AnyFlatSpecLike with Matchers with 
 
   it should "not inject the client secret if non-Google" in {
     val interp =
-      new OpenIDConnectInterpreter(OpenIDProviderMetadata("issuer", "authorize", "token"),
-                                   ClientId("client_id"),
+      new OpenIDConnectInterpreter(ClientId("client_id"),
+                                   "fake-authority",
+                                   fakeMetadata,
                                    Some(ClientSecret("client_secret")),
                                    None,
                                    None
@@ -134,8 +137,9 @@ class OpenIDConnectConfigurationSpec extends AnyFlatSpecLike with Matchers with 
 
   "processSwaggerUiIndex" should "replace client ids and uri" in {
     val interp =
-      new OpenIDConnectInterpreter(OpenIDProviderMetadata("issuer", "authorize", "token"),
-                                   ClientId("client_id"),
+      new OpenIDConnectInterpreter(ClientId("client_id"),
+                                   "fake-authority",
+                                   fakeMetadata,
                                    None,
                                    None,
                                    Some(ClientId("extra_client_id"))

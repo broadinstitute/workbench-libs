@@ -2,23 +2,20 @@ package org.broadinstitute.dsde.workbench.oauth2
 
 import akka.http.scaladsl.model.Uri
 
-import scala.io.Source
-
-class OpenIDConnectInterpreter private[oauth2] (providerMetadata: OpenIDProviderMetadata,
-                                                oidcClientId: ClientId,
-                                                oidcClientSecret: Option[ClientSecret],
+class OpenIDConnectInterpreter private[oauth2] (val clientId: ClientId,
+                                                val authorityEndpoint: String,
+                                                val providerMetadata: OpenIDProviderMetadata,
+                                                clientSecret: Option[ClientSecret],
                                                 extraAuthParams: Option[String],
                                                 extraGoogleClientId: Option[ClientId]
 ) extends OpenIDConnectConfiguration {
   private val scopeParam = "scope"
   private val clientSecretParam = "client_secret"
 
-  override def getAuthorizationEndpoint: String = providerMetadata.authorizeEndpoint
-
   override def processAuthorizeQueryParams(params: Seq[(String, String)]): Seq[(String, String)] = {
     val paramsWithScope = if (!providerMetadata.isGoogle) {
       params.map { case (k, v) =>
-        if (k == scopeParam) (k, v + " " + oidcClientId.value) else (k, v)
+        if (k == scopeParam) (k, v + " " + clientId.value) else (k, v)
       }
     } else params
 
@@ -28,10 +25,8 @@ class OpenIDConnectInterpreter private[oauth2] (providerMetadata: OpenIDProvider
     paramsWithScopeAndExtraAuthParams
   }
 
-  override def getTokenEndpoint: String = providerMetadata.tokenEndpoint
-
   override def processTokenFormFields(fields: Seq[(String, String)]): Seq[(String, String)] =
-    oidcClientSecret match {
+    clientSecret match {
       case Some(secret) =>
         if (providerMetadata.isGoogle && !fields.exists(_._1 == clientSecretParam))
           fields :+ (clientSecretParam -> secret.value)
@@ -43,5 +38,5 @@ class OpenIDConnectInterpreter private[oauth2] (providerMetadata: OpenIDProvider
     contents
       .replace("url: ''", s"url: '$openApiYamlPath'")
       .replace("googleoauth: ''", s"googleoauth: '${extraGoogleClientId.map(_.value).getOrElse("")}'")
-      .replace("oidc: ''", s"oidc: '${oidcClientId.value}'")
+      .replace("oidc: ''", s"oidc: '${clientId.value}'")
 }
