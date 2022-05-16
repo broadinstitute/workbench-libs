@@ -9,6 +9,9 @@ import akka.http.scaladsl.testkit.ScalatestRouteTest
 import cats.effect.IO
 import cats.effect.unsafe.implicits.global
 import cats.syntax.all._
+import io.circe.Decoder
+import io.circe.parser._
+import org.broadinstitute.dsde.workbench.oauth2.OpenIDConnectAkkaHttpOps.ConfigurationResponse
 import org.broadinstitute.dsde.workbench.util2.WorkbenchTestSuite
 import org.scalatest.flatspec.AnyFlatSpecLike
 import org.scalatest.matchers.should.Matchers
@@ -143,7 +146,53 @@ class OpenIDConnectAkkaHttpSpec extends AnyFlatSpecLike with Matchers with Workb
     res.unsafeRunSync()
   }
 
+  "the configuration route" should "return google config" in {
+    val res = for {
+      config <- OpenIDConnectConfiguration[IO](
+        "https://accounts.google.com",
+        ClientId("some_client")
+      )
+      req = Get(Uri("/oauth2/configuration"))
+      _ <- req ~> config.oauth2Routes ~> checkIO {
+        handled shouldBe true
+        status shouldBe StatusCodes.OK
+        val responseString = responseAs[String]
+        val configResponse = decode[ConfigurationResponse](responseString)
+        configResponse.map(_.clientId) shouldBe Right(ClientId("some_client"))
+        configResponse.map(_.authorityEndpoint) shouldBe Right(
+          "https://accounts.google.com"
+        )
+      }
+    } yield ()
+    res.unsafeRunSync()
+  }
+
+  it should "return b2c config" in {
+    val res = for {
+      config <- OpenIDConnectConfiguration[IO](
+        "https://terradevb2c.b2clogin.com/terradevb2c.onmicrosoft.com/b2c_1a_signup_signin",
+        ClientId("some_client")
+      )
+      req = Get(Uri("/oauth2/configuration"))
+      _ <- req ~> config.oauth2Routes ~> checkIO {
+        handled shouldBe true
+        status shouldBe StatusCodes.OK
+        val responseString = responseAs[String]
+        val configResponse = decode[ConfigurationResponse](responseString)
+        configResponse.map(_.clientId) shouldBe Right(ClientId("some_client"))
+        configResponse.map(_.authorityEndpoint) shouldBe Right(
+          "https://terradevb2c.b2clogin.com/terradevb2c.onmicrosoft.com/b2c_1a_signup_signin"
+        )
+      }
+    } yield ()
+    res.unsafeRunSync()
+  }
+
   private def checkIO[T](body: => T): RouteTestResult => IO[T] = check(body).andThen(IO(_))
 
   private def allMethods = List(CONNECT, DELETE, GET, HEAD, PATCH, POST, PUT, TRACE)
+
+  implicit private val clientIdDecoder: Decoder[ClientId] = Decoder.decodeString.map(ClientId)
+  implicit private val configurationResponseDecoder: Decoder[ConfigurationResponse] =
+    Decoder.forProduct2("authorityEndpoint", "clientId")(ConfigurationResponse.apply)
 }
