@@ -7,6 +7,8 @@ import com.google.auth.oauth2.ServiceAccountCredentials
 import com.google.longrunning.Operation
 import com.google.storagetransfer.v1.proto.TransferTypes.TransferJob
 import com.google.storagetransfer.v1.proto.{StorageTransferServiceClient, StorageTransferServiceSettings}
+import org.broadinstitute.dsde.workbench.google2.GoogleStorageTransferService.ObjectDeletionOption.NeverDeleteSourceObjects
+import org.broadinstitute.dsde.workbench.google2.GoogleStorageTransferService.ObjectOverwriteOption.OverwriteObjectsIfDifferent
 import org.broadinstitute.dsde.workbench.google2.GoogleStorageTransferService._
 import org.broadinstitute.dsde.workbench.model.ValueObject
 import org.broadinstitute.dsde.workbench.model.google.{GcsBucketName, GoogleProject, ServiceAccount}
@@ -21,7 +23,8 @@ trait GoogleStorageTransferService[F[_]] {
                         projectToBill: GoogleProject,
                         originBucket: GcsBucketName,
                         destinationBucket: GcsBucketName,
-                        schedule: JobTransferSchedule
+                        schedule: JobTransferSchedule,
+                        options: Option[JobTransferOptions] = None
   ): F[TransferJob]
 
   def getTransferJob(jobName: JobName, project: GoogleProject): F[TransferJob]
@@ -49,6 +52,35 @@ object GoogleStorageTransferService {
     def fromString(name: String): Either[String, JobName] =
       if (name.startsWith(prefix)) Right(JobName(name))
       else Left(s"""Illegal job name - "$name" must start with "$prefix".""")
+  }
+
+  final case class JobTransferOptions(whenToOverwrite: ObjectOverwriteOption = OverwriteObjectsIfDifferent,
+                                      whenToDelete: ObjectDeletionOption = NeverDeleteSourceObjects
+  )
+
+  sealed trait ObjectOverwriteOption extends Product with Serializable
+
+  final object ObjectOverwriteOption {
+
+    /** Transfer objects from source if not binary equivalent to those at destination. */
+    final case object OverwriteObjectsIfDifferent extends ObjectOverwriteOption
+
+    /** Always transfer objects from the source bucket, even if they exist at destination. */
+    final case object OverwriteObjectsAlreadyExistingInSink extends ObjectOverwriteOption
+  }
+
+  sealed trait ObjectDeletionOption extends Product with Serializable
+
+  final object ObjectDeletionOption {
+
+    /** Never delete objects from source. */
+    final case object NeverDeleteSourceObjects extends ObjectDeletionOption
+
+    /** Delete objects from source after they've been transferred. */
+    final case object DeleteSourceObjectsAfterTransfer extends ObjectDeletionOption
+
+    /** Delete files from destination if they're not at source. */
+    final case object DeleteObjectsUniqueInSink extends ObjectDeletionOption
   }
 
   final case class OperationName(value: String) extends ValueObject
