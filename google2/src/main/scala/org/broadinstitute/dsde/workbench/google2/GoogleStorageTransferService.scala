@@ -58,29 +58,29 @@ object GoogleStorageTransferService {
                                       whenToDelete: ObjectDeletionOption = NeverDeleteSourceObjects
   )
 
-  sealed trait ObjectOverwriteOption
+  sealed trait ObjectOverwriteOption extends Product with Serializable
 
   final object ObjectOverwriteOption {
 
     /** Transfer objects from source if not binary equivalent to those at destination. */
-    final object OverwriteObjectsIfDifferent extends ObjectOverwriteOption
+    final case object OverwriteObjectsIfDifferent extends ObjectOverwriteOption
 
     /** Always transfer objects from the source bucket, even if they exist at destination. */
-    final object OverwriteObjectsAlreadyExistingInSink extends ObjectOverwriteOption
+    final case object OverwriteObjectsAlreadyExistingInSink extends ObjectOverwriteOption
   }
 
-  sealed trait ObjectDeletionOption
+  sealed trait ObjectDeletionOption extends Product with Serializable
 
   final object ObjectDeletionOption {
 
     /** Never delete objects from source. */
-    final object NeverDeleteSourceObjects extends ObjectDeletionOption
+    final case object NeverDeleteSourceObjects extends ObjectDeletionOption
 
     /** Delete objects from source after they've been transferred. */
-    final object DeleteSourceObjectsAfterTransfer extends ObjectDeletionOption
+    final case object DeleteSourceObjectsAfterTransfer extends ObjectDeletionOption
 
     /** Delete files from destination if they're not at source. */
-    final object DeleteObjectsUniqueInSink extends ObjectDeletionOption
+    final case object DeleteObjectsUniqueInSink extends ObjectDeletionOption
   }
 
   final case class OperationName(value: String) extends ValueObject
