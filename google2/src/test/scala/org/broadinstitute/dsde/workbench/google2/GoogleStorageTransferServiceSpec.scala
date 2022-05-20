@@ -170,12 +170,12 @@ class GoogleStorageTransferServiceSpec extends AsyncFlatSpec with Matchers with 
         serviceAccountList = NonEmptyList.one(Identity.serviceAccount(serviceAccount.email.value))
 
         _ <- (for {
-          // STS Service Account requires "Storage Object Admin" and "Storage Legacy Bucket Reader"
+          // STS Service Account requires "Storage Object Reader" and "Storage Legacy Bucket Writer"
           // roles on the bucket it transfers from
           _ <- storage.setIamPolicy(srcBucket,
                                     Map(
-                                      StorageRole.LegacyBucketReader -> serviceAccountList,
-                                      StorageRole.ObjectAdmin -> serviceAccountList
+                                      StorageRole.LegacyBucketWriter -> serviceAccountList,
+                                      StorageRole.ObjectViewer -> serviceAccountList
                                     )
           )
           // STS Service Account requires "Storage Object Creator" and "Storage Legacy Bucket Writer"
