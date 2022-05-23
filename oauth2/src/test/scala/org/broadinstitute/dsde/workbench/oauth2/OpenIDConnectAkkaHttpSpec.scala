@@ -1,20 +1,25 @@
 package org.broadinstitute.dsde.workbench.oauth2
 
+import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.HttpMethods._
 import akka.http.scaladsl.model.Uri.Query
 import akka.http.scaladsl.model.headers.Location
 import akka.http.scaladsl.model.{ContentTypes, FormData, StatusCodes, Uri}
+import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.{MethodRejection, UnsupportedRequestContentTypeRejection}
 import akka.http.scaladsl.testkit.ScalatestRouteTest
-import cats.effect.IO
 import cats.effect.unsafe.implicits.global
+import cats.effect.{IO, Resource}
 import cats.syntax.all._
 import io.circe.Decoder
 import io.circe.parser._
-import org.broadinstitute.dsde.workbench.oauth2.OpenIDConnectAkkaHttpOps.ConfigurationResponse
+import io.circe.syntax._
+import org.broadinstitute.dsde.workbench.oauth2.OpenIDConnectAkkaHttpOps.{ConfigurationResponse, _}
 import org.broadinstitute.dsde.workbench.util2.WorkbenchTestSuite
 import org.scalatest.flatspec.AnyFlatSpecLike
 import org.scalatest.matchers.should.Matchers
+
+import scala.concurrent.duration._
 
 class OpenIDConnectAkkaHttpSpec extends AnyFlatSpecLike with Matchers with WorkbenchTestSuite with ScalatestRouteTest {
   "authorize endpoint" should "redirect" in {
@@ -64,19 +69,48 @@ class OpenIDConnectAkkaHttpSpec extends AnyFlatSpecLike with Matchers with Workb
     res.unsafeRunSync()
   }
 
-  // Ignored because of issues calling the third party endpoint from github actions
-  "the token endpoint" should "proxy requests" ignore {
+  "the token endpoint" should "proxy requests" in {
+    val formData = Map("grant_type" -> "authorization_code", "code" -> "1234", "client_id" -> "some_client")
+    val backendRoute = path(".well-known" / "openid-configuration") {
+      get {
+        complete {
+          Map("issuer" -> "unused",
+              "authorization_endpoint" -> "unused",
+              "token_endpoint" -> "http://localhost:9000/token"
+          )
+        }
+      }
+    } ~
+      path("token") {
+        post {
+          formFieldSeq { fields =>
+            fields.toMap shouldBe formData
+            complete(Map("token" -> "a-token"))
+          }
+        }
+      }
+    val mockServer =
+      Resource.make(IO.fromFuture(IO(Http().newServerAt("0.0.0.0", 9000).bind(backendRoute))))(serverBinding =>
+        IO.fromFuture(IO(serverBinding.terminate(3.seconds))).void
+      )
+
     val res = for {
-      config <- OpenIDConnectConfiguration[IO]("https://accounts.google.com", ClientId("some_client"))
+      config <- OpenIDConnectConfiguration[IO]("http://localhost:9000",
+                                               ClientId("some_client"),
+                                               Some(ClientSecret("some_long_client_secret"))
+      )
       req = Post("/oauth2/token").withEntity(
-        FormData("grant_type" -> "authorization_code", "code" -> "1234", "client_id" -> "some_client").toEntity
+        FormData(formData).toEntity
       )
       _ <- req ~> config.oauth2Routes ~> checkIO {
         handled shouldBe true
-        status shouldBe StatusCodes.Unauthorized
+        status shouldBe StatusCodes.OK
+        val resp = responseAs[String]
+        resp shouldBe (Map("token" -> "a-token")).asJson.noSpaces
       }
     } yield ()
-    res.unsafeRunSync()
+
+    mockServer.use(_ => res).unsafeRunSync()
   }
 
   it should "reject non-POST requests" in {

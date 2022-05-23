@@ -15,11 +15,13 @@ import io.circe.syntax._
 import org.broadinstitute.dsde.workbench.oauth2.OpenIDConnectAkkaHttpOps.ConfigurationResponse
 
 import java.nio.file.Paths
+import scala.concurrent.duration._
 
 class OpenIDConnectAkkaHttpOps(private val config: OpenIDConnectConfiguration) {
   private val swaggerUiPath = "META-INF/resources/webjars/swagger-ui/4.10.3"
 
-  def oauth2Routes(implicit actorSystem: ActorSystem): Route =
+  def oauth2Routes(implicit actorSystem: ActorSystem): Route = {
+    implicit val ec = actorSystem.dispatcher
     pathPrefix("oauth2") {
       path("authorize") {
         get {
@@ -39,7 +41,7 @@ class OpenIDConnectAkkaHttpOps(private val config: OpenIDConnectConfiguration) {
                   uri = Uri(config.providerMetadata.tokenEndpoint),
                   entity = FormData(config.processTokenFormFields(fields): _*).toEntity
                 )
-                Http().singleRequest(newRequest)
+                Http().singleRequest(newRequest).map(_.toStrict(5.seconds))
               }
             }
           }
@@ -52,6 +54,7 @@ class OpenIDConnectAkkaHttpOps(private val config: OpenIDConnectConfiguration) {
           }
         }
     }
+  }
 
   def swaggerRoutes(openApiYamlResource: String): Route = {
     val openApiFilename = Paths.get(openApiYamlResource).getFileName.toString

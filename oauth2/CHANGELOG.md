@@ -6,12 +6,13 @@ This file documents changes to the `workbench-oauth2` library, including notes o
 
 Changed:
 - Changed method on `OpenIDConnectConfiguration` to return `OpenIDProviderMetadata` case class instead of strings
+- Fixed issue causing akka-http `Stream cannot be materialized more than once` on `/oauth2/token` endpoint
 
 Added:
 - Added methods for clientId and authorityEndpoint to `OpenIDConnectConfiguration`
 - Added akka-http route `/oauth2/configuration` which returns JSON containing the clientId and authorityEndpoint
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-oauth2" % "0.2-5bc9c03"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-oauth2" % "0.2-TRAVIS-REPLACE-ME"`
 
 ## 0.1
 
