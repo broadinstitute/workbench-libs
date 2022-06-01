@@ -10,6 +10,7 @@ Changed:
 - Drop 2.12 support
 - Exposed storage transfer job customization options
 - Add `GoogleStorageService.setRequesterPays`
+- Change `GoogleStorageService.getBucket` to return `BucketInfo`
 
 Dependency Upgrades:
 | Dependency   |      Old Version      |  New Version |
