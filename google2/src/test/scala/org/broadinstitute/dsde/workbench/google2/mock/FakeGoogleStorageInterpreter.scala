@@ -166,6 +166,13 @@ class BaseFakeGoogleStorage extends GoogleStorageService[IO] {
                          bucketGetOptions: List[Storage.BucketGetOption],
                          traceId: Option[TraceId]
   ): IO[Option[Bucket]] = IO.pure(None)
+
+  override def setRequesterPays(googleProject: GoogleProject,
+                                bucketName: GcsBucketName,
+                                requesterPaysEnabled: Boolean,
+                                traceId: Option[TraceId] = None,
+                                retryConfig: RetryConfig
+  ): Stream[IO, Unit] = Stream.empty
 }
 
 object FakeGoogleStorageInterpreter extends BaseFakeGoogleStorage

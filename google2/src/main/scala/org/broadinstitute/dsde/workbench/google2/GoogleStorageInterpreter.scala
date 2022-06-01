@@ -402,10 +402,9 @@ private[google2] class GoogleStorageInterpreter[F[_]](
     retryF(retryConfig)(
       updateBucket,
       traceId,
-      s"com.google.cloud.storage.Storage.update($bucketName)"
+      s"com.google.cloud.storage.Storage.update($bucketName, requesterPays=$requesterPaysEnabled)"
     ).void
   }
-
 
   override def setBucketPolicyOnly(bucketName: GcsBucketName,
                                    bucketPolicyOnlyEnabled: Boolean,
