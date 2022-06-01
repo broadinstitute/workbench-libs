@@ -224,6 +224,13 @@ trait GoogleStorageService[F[_]] {
                 traceId: Option[TraceId] = None
   ): F[Option[Bucket]]
 
+  def setRequesterPays(googleProject: GoogleProject,
+                       bucketName: GcsBucketName,
+                       requesterPaysEnabled: Boolean,
+                       traceId: Option[TraceId] = None,
+                       retryConfig: RetryConfig = standardGoogleRetryConfig
+  ): Stream[F, Unit]
+
   /**
    * @param googleProject The name of the Google project to create the bucket in
    * @param traceId uuid for tracing a unique call flow in logging

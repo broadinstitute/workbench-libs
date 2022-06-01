@@ -389,6 +389,24 @@ private[google2] class GoogleStorageInterpreter[F[_]](
     withLogging(fa, traceId, s"com.google.cloud.storage.Storage.get(${bucketName.value}, $bucketGetOptions)")
   }
 
+  override def setRequesterPays(googleProject: GoogleProject,
+                                bucketName: GcsBucketName,
+                                requesterPaysEnabled: Boolean,
+                                traceId: Option[TraceId] = None,
+                                retryConfig: RetryConfig
+  ): Stream[F, Unit] = {
+    val updateBucket = blockingF(
+      Async[F].delay(db.update(BucketInfo.newBuilder(bucketName.value).setRequesterPays(requesterPaysEnabled).build()))
+    )
+
+    retryF(retryConfig)(
+      updateBucket,
+      traceId,
+      s"com.google.cloud.storage.Storage.update($bucketName)"
+    ).void
+  }
+
+
   override def setBucketPolicyOnly(bucketName: GcsBucketName,
                                    bucketPolicyOnlyEnabled: Boolean,
                                    traceId: Option[TraceId] = None,
