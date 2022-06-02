@@ -389,8 +389,7 @@ private[google2] class GoogleStorageInterpreter[F[_]](
     withLogging(fa, traceId, s"com.google.cloud.storage.Storage.get(${bucketName.value}, $bucketGetOptions)")
   }
 
-  override def setRequesterPays(googleProject: GoogleProject,
-                                bucketName: GcsBucketName,
+  override def setRequesterPays(bucketName: GcsBucketName,
                                 requesterPaysEnabled: Boolean,
                                 traceId: Option[TraceId] = None,
                                 retryConfig: RetryConfig

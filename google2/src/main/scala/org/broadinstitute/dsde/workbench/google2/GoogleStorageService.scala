@@ -224,8 +224,7 @@ trait GoogleStorageService[F[_]] {
                 traceId: Option[TraceId] = None
   ): F[Option[BucketInfo]]
 
-  def setRequesterPays(googleProject: GoogleProject,
-                       bucketName: GcsBucketName,
+  def setRequesterPays(bucketName: GcsBucketName,
                        requesterPaysEnabled: Boolean,
                        traceId: Option[TraceId] = None,
                        retryConfig: RetryConfig = standardGoogleRetryConfig
