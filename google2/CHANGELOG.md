@@ -9,6 +9,8 @@ Changed:
 - Remove `ComputePollOperation`
 - Drop 2.12 support
 - Exposed storage transfer job customization options
+- Add `GoogleStorageService.setRequesterPays`
+- Change `GoogleStorageService.getBucket` to return `BucketInfo`
 
 Dependency Upgrades:
 | Dependency   |      Old Version      |  New Version |
@@ -26,7 +28,7 @@ Dependency Upgrades:
 | simpleclient_httpserver |   0.12.0   | 0.15.0 |
 | log4cats-slf4j |  2.1.1   |  2.3.0 |
 
-SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.24-3343121"`
+SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.24-TRAVIS-REPLACE-ME"`
 
 ## 0.23
 Added:

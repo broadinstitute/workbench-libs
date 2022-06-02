@@ -9,7 +9,7 @@ import cats.syntax.all._
 import com.google.auth.Credentials
 import com.google.auth.oauth2.{AccessToken, GoogleCredentials}
 import com.google.cloud.storage.BucketInfo.LifecycleRule
-import com.google.cloud.storage.{Acl, Blob, BlobId, Bucket, StorageOptions}
+import com.google.cloud.storage.{Acl, Blob, BlobId, BucketInfo, StorageOptions}
 import com.google.cloud.{Identity, Policy, Role}
 import fs2.{Pipe, Stream}
 import com.google.cloud.storage.Storage.{BucketGetOption, BucketSourceOption}
@@ -222,7 +222,13 @@ trait GoogleStorageService[F[_]] {
                 bucketName: GcsBucketName,
                 bucketGetOptions: List[BucketGetOption] = List.empty,
                 traceId: Option[TraceId] = None
-  ): F[Option[Bucket]]
+  ): F[Option[BucketInfo]]
+
+  def setRequesterPays(bucketName: GcsBucketName,
+                       requesterPaysEnabled: Boolean,
+                       traceId: Option[TraceId] = None,
+                       retryConfig: RetryConfig = standardGoogleRetryConfig
+  ): Stream[F, Unit]
 
   /**
    * @param googleProject The name of the Google project to create the bucket in
