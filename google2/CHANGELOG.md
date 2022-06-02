@@ -28,7 +28,7 @@ Dependency Upgrades:
 | simpleclient_httpserver |   0.12.0   | 0.15.0 |
 | log4cats-slf4j |  2.1.1   |  2.3.0 |
 
-SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.24-TRAVIS-REPLACE-ME"`
+SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.24-1931420"`
 
 ## 0.23
 Added:
