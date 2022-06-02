@@ -385,7 +385,8 @@ private[google2] class GoogleStorageInterpreter[F[_]](
                          traceId: Option[TraceId] = None
   ): F[Option[BucketInfo]] = {
     val dbForProject = db.getOptions.toBuilder.setProjectId(googleProject.value).build().getService
-    val fa: F[Option[BucketInfo]] = Async[F].delay(dbForProject.get(bucketName.value, bucketGetOptions: _*)).map(Option(_))
+    val fa: F[Option[BucketInfo]] =
+      Async[F].delay(dbForProject.get(bucketName.value, bucketGetOptions: _*)).map(Option(_))
     withLogging(fa, traceId, s"com.google.cloud.storage.Storage.get(${bucketName.value}, $bucketGetOptions)")
   }
 
