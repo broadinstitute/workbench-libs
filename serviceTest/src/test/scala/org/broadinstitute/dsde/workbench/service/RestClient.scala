@@ -123,7 +123,7 @@ trait RestClient extends Retry with LazyLogging {
   private def requestWithJsonContent(method: HttpMethod,
                                      uri: String,
                                      content: Any,
-                                     httpHeaders: List[HttpHeader] = List()
+                                     httpHeaders: List[HttpHeader] = List.empty
   )(implicit token: AuthToken): String = {
     val req = HttpRequest(method,
                           encodeUri(uri),
