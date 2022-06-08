@@ -30,7 +30,7 @@ Dependency Upgrades:
 | log4cats-slf4j |  2.1.1   |  2.3.0 |
 | http4s |  1.0.0-M32   |  1.0.0-M33 |
 
-SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.24-TRAVIS-REPLACE-ME"`
+SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.24-d6bf85d"`
 
 ## 0.23
 Added:
