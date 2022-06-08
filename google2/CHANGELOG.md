@@ -19,6 +19,7 @@ Dependency Upgrades:
 | akka |   2.6.18   |   2.6.19 |
 | akka-http |   10.2.7   |   10.2.9 |
 | com.google.guava |   31.0.1-jre   |   31.1-jre |
+| grpc-core |   1.43.2   |   1.44.1 |
 | google-cloud-nio |   0.123.25   |   0.123.28 |
 | google-cloud-container |   2.3.0   |   2.3.7 |
 | google-cloud-firestore | 2.6.2 | 3.1.0 |
@@ -27,6 +28,7 @@ Dependency Upgrades:
 | google-cloud-resourcemanager |   1.2.0   |  1.2.11 |
 | simpleclient_httpserver |   0.12.0   | 0.15.0 |
 | log4cats-slf4j |  2.1.1   |  2.3.0 |
+| http4s |  1.0.0-M32   |  1.0.0-M33 |
 
 SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.24-1931420"`
 
