@@ -142,14 +142,14 @@ trait SubWorkflowFixtures extends RandomUtil {
                                      scatterCount: Int
   ): Method = {
 
+
+    var orchUrl = ServiceTestConfig.FireCloud.orchApiUrl
+
     // Orchestration in real environments has a globally resolvable name like "firecloud-orchestration.dsde-dev.b.o"
     // but not in FIABs; instead they can use the docker network name
-
-    val orchUrl =
-      if (ServiceTestConfig.FireCloud.orchApiUrl.contains("fiab"))
-        "http://orch-app:8080/"
-      else
-        ServiceTestConfig.FireCloud.orchApiUrl
+    // TODO once we have fully migrated to BEEs we won't need this hack any longer
+    if (orchUrl.contains("fiab") && !orchUrl.contains("bee.envs-terra.bio"))
+      orchUrl = "http://orch-app:8080/"
 
     val childUrl =
       s"${orchUrl}ga4gh/v1/tools/${child.methodNamespace}:${child.methodName}/versions/1/plain-WDL/descriptor"
