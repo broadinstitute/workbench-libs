@@ -11,6 +11,7 @@ Changed:
 - Exposed storage transfer job customization options
 - Add `GoogleStorageService.setRequesterPays`
 - Change `GoogleStorageService.getBucket` to return `BucketInfo`
+- k8s client upgrade (added our own enums since k8s removed theirs)
 
 Dependency Upgrades:
 | Dependency   |      Old Version      |  New Version |
@@ -30,7 +31,7 @@ Dependency Upgrades:
 | log4cats-slf4j |  2.1.1   |  2.3.0 |
 | http4s |  1.0.0-M32   |  1.0.0-M33 |
 
-SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.24-f7da25e"`
+SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.24-TRAVIS-REPLACE-ME"`
 
 ## 0.23
 Added:
