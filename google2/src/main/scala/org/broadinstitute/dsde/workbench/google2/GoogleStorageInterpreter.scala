@@ -11,10 +11,18 @@ import cats.effect.std.Semaphore
 import cats.syntax.all._
 import com.google.auth.oauth2.ServiceAccountCredentials
 import com.google.cloud.storage.BucketInfo.LifecycleRule
-import com.google.cloud.storage.Storage.{BlobListOption, BlobSourceOption, BlobTargetOption, BlobWriteOption, BucketGetOption, BucketSourceOption, BucketTargetOption}
+import com.google.cloud.storage.Storage.{
+  BlobListOption,
+  BlobSourceOption,
+  BlobTargetOption,
+  BlobWriteOption,
+  BucketGetOption,
+  BucketSourceOption,
+  BucketTargetOption
+}
 import com.google.cloud.storage.{Acl, Blob, BlobId, BlobInfo, BucketInfo, Storage, StorageOptions}
 import com.google.cloud.{Identity, Policy, Role}
-import fs2.{Pipe, Stream, text}
+import fs2.{text, Pipe, Stream}
 import org.typelevel.log4cats.StructuredLogger
 import io.circe.Decoder
 import io.circe.fs2._
@@ -389,7 +397,11 @@ private[google2] class GoogleStorageInterpreter[F[_]](
                                 retryConfig: RetryConfig
   ): Stream[F, Unit] = {
     val updateBucket = blockingF(
-      Async[F].delay(db.update(BucketInfo.newBuilder(bucketName.value).setRequesterPays(requesterPaysEnabled).build(), bucketTargetOptions: _*))
+      Async[F].delay(
+        db.update(BucketInfo.newBuilder(bucketName.value).setRequesterPays(requesterPaysEnabled).build(),
+                  bucketTargetOptions: _*
+        )
+      )
     )
 
     retryF(retryConfig)(
