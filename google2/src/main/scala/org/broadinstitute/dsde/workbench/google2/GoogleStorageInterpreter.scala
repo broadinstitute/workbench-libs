@@ -4,7 +4,6 @@ package google2
 import java.nio.channels.Channels
 import java.nio.file.{Path, Paths}
 import java.time.Instant
-
 import fs2.io.file.Files
 import cats.data.NonEmptyList
 import cats.effect._
@@ -12,17 +11,10 @@ import cats.effect.std.Semaphore
 import cats.syntax.all._
 import com.google.auth.oauth2.ServiceAccountCredentials
 import com.google.cloud.storage.BucketInfo.LifecycleRule
-import com.google.cloud.storage.Storage.{
-  BlobListOption,
-  BlobSourceOption,
-  BlobTargetOption,
-  BlobWriteOption,
-  BucketGetOption,
-  BucketSourceOption
-}
+import com.google.cloud.storage.Storage.{BlobListOption, BlobSourceOption, BlobTargetOption, BlobWriteOption, BucketGetOption, BucketSourceOption, BucketTargetOption}
 import com.google.cloud.storage.{Acl, Blob, BlobId, BlobInfo, BucketInfo, Storage, StorageOptions}
 import com.google.cloud.{Identity, Policy, Role}
-import fs2.{text, Pipe, Stream}
+import fs2.{Pipe, Stream, text}
 import org.typelevel.log4cats.StructuredLogger
 import io.circe.Decoder
 import io.circe.fs2._
@@ -392,17 +384,18 @@ private[google2] class GoogleStorageInterpreter[F[_]](
 
   override def setRequesterPays(bucketName: GcsBucketName,
                                 requesterPaysEnabled: Boolean,
+                                bucketTargetOptions: List[BucketTargetOption] = List.empty,
                                 traceId: Option[TraceId] = None,
                                 retryConfig: RetryConfig
   ): Stream[F, Unit] = {
     val updateBucket = blockingF(
-      Async[F].delay(db.update(BucketInfo.newBuilder(bucketName.value).setRequesterPays(requesterPaysEnabled).build()))
+      Async[F].delay(db.update(BucketInfo.newBuilder(bucketName.value).setRequesterPays(requesterPaysEnabled).build(), bucketTargetOptions: _*))
     )
 
     retryF(retryConfig)(
       updateBucket,
       traceId,
-      s"com.google.cloud.storage.Storage.update($bucketName, requesterPays=$requesterPaysEnabled)"
+      s"com.google.cloud.storage.Storage.update($bucketName, requesterPays=$requesterPaysEnabled, $bucketTargetOptions)"
     ).void
   }
 

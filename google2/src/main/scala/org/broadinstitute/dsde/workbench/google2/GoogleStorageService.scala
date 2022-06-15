@@ -12,7 +12,7 @@ import com.google.cloud.storage.BucketInfo.LifecycleRule
 import com.google.cloud.storage.{Acl, Blob, BlobId, BucketInfo, StorageOptions}
 import com.google.cloud.{Identity, Policy, Role}
 import fs2.{Pipe, Stream}
-import com.google.cloud.storage.Storage.{BucketGetOption, BucketSourceOption}
+import com.google.cloud.storage.Storage.{BucketGetOption, BucketSourceOption, BucketTargetOption}
 import org.broadinstitute.dsde.workbench.google2.Implicits.PolicyToStorageRoles
 import org.typelevel.log4cats.StructuredLogger
 import org.broadinstitute.dsde.workbench.google2.util.RetryPredicates.standardGoogleRetryConfig
@@ -226,6 +226,7 @@ trait GoogleStorageService[F[_]] {
 
   def setRequesterPays(bucketName: GcsBucketName,
                        requesterPaysEnabled: Boolean,
+                       bucketTargetOptions: List[BucketTargetOption] = List.empty,
                        traceId: Option[TraceId] = None,
                        retryConfig: RetryConfig = standardGoogleRetryConfig
   ): Stream[F, Unit]
