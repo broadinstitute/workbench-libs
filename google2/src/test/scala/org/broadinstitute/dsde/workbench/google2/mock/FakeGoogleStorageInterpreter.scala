@@ -5,7 +5,15 @@ import java.nio.file.Path
 import cats.data.NonEmptyList
 import cats.effect.IO
 import com.google.auth.Credentials
-import com.google.cloud.storage.Storage.{BlobGetOption, BlobListOption, BlobSourceOption, BlobTargetOption, BlobWriteOption, BucketSourceOption, BucketTargetOption}
+import com.google.cloud.storage.Storage.{
+  BlobGetOption,
+  BlobListOption,
+  BlobSourceOption,
+  BlobTargetOption,
+  BlobWriteOption,
+  BucketSourceOption,
+  BucketTargetOption
+}
 import com.google.cloud.storage.{Acl, Blob, BlobId, BucketInfo, Storage}
 import com.google.cloud.{Identity, Policy}
 import fs2.{Pipe, Stream}
