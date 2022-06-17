@@ -2,6 +2,7 @@ package org.broadinstitute.dsde.workbench.google2
 
 import cats.data.NonEmptyList
 import cats.effect.IO
+import com.google.cloud.storage.Storage.BucketSourceOption
 import com.google.cloud.{Identity, Policy, Role}
 import org.broadinstitute.dsde.workbench.RetryConfig
 import org.broadinstitute.dsde.workbench.google2.mock.BaseFakeGoogleStorage
@@ -26,7 +27,8 @@ class GoogleStorageServiceSpec extends AsyncFlatSpec with Matchers with Workbenc
     val storageService = new BaseFakeGoogleStorage {
       override def getIamPolicy(bucketName: GcsBucketName,
                                 traceId: Option[TraceId],
-                                retryConfig: RetryConfig
+                                retryConfig: RetryConfig,
+                                bucketSourceOptions: List[BucketSourceOption]
       ): fs2.Stream[IO, Policy] =
         fs2.Stream.emit {
           Policy.newBuilder
@@ -38,7 +40,8 @@ class GoogleStorageServiceSpec extends AsyncFlatSpec with Matchers with Workbenc
       override def setIamPolicy(bucketName: GcsBucketName,
                                 roles: Map[StorageRole, NonEmptyList[Identity]],
                                 traceId: Option[TraceId],
-                                retryConfig: RetryConfig
+                                retryConfig: RetryConfig,
+                                bucketSourceOptions: List[BucketSourceOption]
       ): fs2.Stream[IO, Unit] =
         fs2.Stream.eval {
           val objectAdmins = roles(StorageRole.ObjectAdmin).toList
