@@ -12,7 +12,16 @@ import com.google.cloud.storage.BucketInfo.LifecycleRule
 import com.google.cloud.storage.{Acl, Blob, BlobId, BucketInfo, StorageOptions}
 import com.google.cloud.{Identity, Policy, Role}
 import fs2.{Pipe, Stream}
-import com.google.cloud.storage.Storage.{BlobGetOption, BlobListOption, BlobSourceOption, BlobTargetOption, BlobWriteOption, BucketGetOption, BucketSourceOption, BucketTargetOption}
+import com.google.cloud.storage.Storage.{
+  BlobGetOption,
+  BlobListOption,
+  BlobSourceOption,
+  BlobTargetOption,
+  BlobWriteOption,
+  BucketGetOption,
+  BucketSourceOption,
+  BucketTargetOption
+}
 import org.broadinstitute.dsde.workbench.google2.Implicits.PolicyToStorageRoles
 import org.typelevel.log4cats.StructuredLogger
 import org.broadinstitute.dsde.workbench.google2.util.RetryPredicates.standardGoogleRetryConfig

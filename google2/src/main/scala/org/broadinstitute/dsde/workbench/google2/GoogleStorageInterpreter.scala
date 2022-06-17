@@ -11,10 +11,19 @@ import cats.effect.std.Semaphore
 import cats.syntax.all._
 import com.google.auth.oauth2.ServiceAccountCredentials
 import com.google.cloud.storage.BucketInfo.LifecycleRule
-import com.google.cloud.storage.Storage.{BlobGetOption, BlobListOption, BlobSourceOption, BlobTargetOption, BlobWriteOption, BucketGetOption, BucketSourceOption, BucketTargetOption}
+import com.google.cloud.storage.Storage.{
+  BlobGetOption,
+  BlobListOption,
+  BlobSourceOption,
+  BlobTargetOption,
+  BlobWriteOption,
+  BucketGetOption,
+  BucketSourceOption,
+  BucketTargetOption
+}
 import com.google.cloud.storage.{Acl, Blob, BlobId, BlobInfo, BucketInfo, Storage, StorageOptions}
 import com.google.cloud.{Identity, Policy, Role}
-import fs2.{Pipe, Stream, text}
+import fs2.{text, Pipe, Stream}
 import org.typelevel.log4cats.StructuredLogger
 import io.circe.Decoder
 import io.circe.fs2._
@@ -38,9 +47,8 @@ private[google2] class GoogleStorageInterpreter[F[_]](
                                      retryConfig: RetryConfig,
                                      blobListOptions: List[BlobListOption]
   ): Stream[F, GcsObjectName] =
-    listBlobsWithPrefix(bucketName, objectNamePrefix, isRecursive, maxPageSize, traceId, retryConfig, blobListOptions).map(blob =>
-      GcsObjectName(blob.getName, Instant.ofEpochMilli(blob.getCreateTime))
-    )
+    listBlobsWithPrefix(bucketName, objectNamePrefix, isRecursive, maxPageSize, traceId, retryConfig, blobListOptions)
+      .map(blob => GcsObjectName(blob.getName, Instant.ofEpochMilli(blob.getCreateTime)))
 
   override def listBlobsWithPrefix(bucketName: GcsBucketName,
                                    objectNamePrefix: String,
@@ -77,7 +85,10 @@ private[google2] class GoogleStorageInterpreter[F[_]](
                                  retryConfig: RetryConfig,
                                  blobGetOptions: List[BlobGetOption]
   ): F[Option[String]] =
-    getBlobBody(bucketName, blobName, traceId, retryConfig, blobGetOptions).through(text.utf8Decode).compile.foldSemigroup
+    getBlobBody(bucketName, blobName, traceId, retryConfig, blobGetOptions)
+      .through(text.utf8Decode)
+      .compile
+      .foldSemigroup
 
   override def getBlobBody(bucketName: GcsBucketName,
                            blobName: GcsBlobName,
@@ -85,7 +96,8 @@ private[google2] class GoogleStorageInterpreter[F[_]](
                            retryConfig: RetryConfig,
                            blobGetOptions: List[BlobGetOption] = List.empty
   ): Stream[F, Byte] = {
-    val getBlobs = blockingF(F.delay(db.get(BlobId.of(bucketName.value, blobName.value), blobGetOptions: _*))).map(Option(_))
+    val getBlobs =
+      blockingF(F.delay(db.get(BlobId.of(bucketName.value, blobName.value), blobGetOptions: _*))).map(Option(_))
 
     for {
       blobOpt <- retryF(retryConfig)(
@@ -126,7 +138,8 @@ private[google2] class GoogleStorageInterpreter[F[_]](
     }
 
     val getBlobs =
-      blockingF(Async[F].delay(dbForCredential.get(BlobId.of(bucketName.value, blobName.value), blobGetOptions: _*))).map(Option(_))
+      blockingF(Async[F].delay(dbForCredential.get(BlobId.of(bucketName.value, blobName.value), blobGetOptions: _*)))
+        .map(Option(_))
 
     retryF(retryConfig)(
       getBlobs,
@@ -152,7 +165,8 @@ private[google2] class GoogleStorageInterpreter[F[_]](
                                  retryConfig: RetryConfig,
                                  blobGetOptions: List[BlobGetOption]
   ): Stream[F, GetMetadataResponse] = {
-    val getBlobs = blockingF(Async[F].delay(db.get(BlobId.of(bucketName.value, blobName.value), blobGetOptions: _*))).map(Option(_))
+    val getBlobs =
+      blockingF(Async[F].delay(db.get(BlobId.of(bucketName.value, blobName.value), blobGetOptions: _*))).map(Option(_))
 
     for {
       blobOpt <- retryF(retryConfig)(
@@ -221,7 +235,9 @@ private[google2] class GoogleStorageInterpreter[F[_]](
     }
 
     val outputStream = F.delay {
-      val options = if (overwrite) generationOption else List(BlobWriteOption.doesNotExist()) ++ generationOption ++ blobWriteOptions
+      val options =
+        if (overwrite) generationOption
+        else List(BlobWriteOption.doesNotExist()) ++ generationOption ++ blobWriteOptions
       val writer = db.writer(blobInfo, options: _*)
       Channels.newOutputStream(writer)
     }
@@ -333,10 +349,11 @@ private[google2] class GoogleStorageInterpreter[F[_]](
 
     val dbForProject = db.getOptions.toBuilder.setProjectId(googleProject.value).build().getService
 
-    val createBucket = blockingF(Async[F].delay(dbForProject.create(bucketInfo, bucketTargetOptions: _*))).void.recoverWith {
-      case e: com.google.cloud.storage.StorageException if e.getCode == 409 =>
-        StructuredLogger[F].info(s"$bucketName already exists")
-    }
+    val createBucket =
+      blockingF(Async[F].delay(dbForProject.create(bucketInfo, bucketTargetOptions: _*))).void.recoverWith {
+        case e: com.google.cloud.storage.StorageException if e.getCode == 409 =>
+          StructuredLogger[F].info(s"$bucketName already exists")
+      }
 
     retryF(retryConfig)(
       createBucket,
@@ -423,7 +440,11 @@ private[google2] class GoogleStorageInterpreter[F[_]](
     val iamConfiguration =
       BucketInfo.IamConfiguration.newBuilder().setIsUniformBucketLevelAccessEnabled(bucketPolicyOnlyEnabled).build()
     val updateBucket = blockingF(
-      Async[F].delay(db.update(BucketInfo.newBuilder(bucketName.value).setIamConfiguration(iamConfiguration).build(), bucketTargetOptions: _*))
+      Async[F].delay(
+        db.update(BucketInfo.newBuilder(bucketName.value).setIamConfiguration(iamConfiguration).build(),
+                  bucketTargetOptions: _*
+        )
+      )
     )
 
     retryF(retryConfig)(
@@ -440,7 +461,9 @@ private[google2] class GoogleStorageInterpreter[F[_]](
                                bucketTargetOptions: List[BucketTargetOption]
   ): Stream[F, Unit] = {
     val updateBucket = blockingF(
-      Async[F].delay(db.update(BucketInfo.newBuilder(bucketName.value).setLabels(labels.asJava).build(), bucketTargetOptions: _*))
+      Async[F].delay(
+        db.update(BucketInfo.newBuilder(bucketName.value).setLabels(labels.asJava).build(), bucketTargetOptions: _*)
+      )
     )
 
     retryF(retryConfig)(
@@ -488,7 +511,9 @@ private[google2] class GoogleStorageInterpreter[F[_]](
       )
       .build()
 
-    val overrideIam = blockingF(Async[F].delay(db.setIamPolicy(bucketName.value, overrideIamPolicy, bucketSourceOptions: _*)))
+    val overrideIam = blockingF(
+      Async[F].delay(db.setIamPolicy(bucketName.value, overrideIamPolicy, bucketSourceOptions: _*))
+    )
 
     retryF(retryConfig)(
       overrideIam,
@@ -524,9 +549,10 @@ private[google2] class GoogleStorageInterpreter[F[_]](
       .toBuilder
       .setLifecycleRules(lifecycleRules.asJava)
       .build()
-    retryF(retryConfig)(blockingF(Async[F].delay(db.update(bucketInfo, bucketTargetOptions: _*))),
-                        traceId,
-                        s"com.google.cloud.storage.Storage.update($bucketInfo, $bucketTargetOptions)"
+    retryF(retryConfig)(
+      blockingF(Async[F].delay(db.update(bucketInfo, bucketTargetOptions: _*))),
+      traceId,
+      s"com.google.cloud.storage.Storage.update($bucketInfo, $bucketTargetOptions)"
     ).void
   }
 
