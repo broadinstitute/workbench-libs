@@ -12,7 +12,7 @@ import com.google.cloud.storage.BucketInfo.LifecycleRule
 import com.google.cloud.storage.{Acl, Blob, BlobId, BucketInfo, StorageOptions}
 import com.google.cloud.{Identity, Policy, Role}
 import fs2.{Pipe, Stream}
-import com.google.cloud.storage.Storage.{BucketGetOption, BucketSourceOption, BucketTargetOption}
+import com.google.cloud.storage.Storage.{BlobGetOption, BlobListOption, BlobSourceOption, BlobTargetOption, BlobWriteOption, BucketGetOption, BucketSourceOption, BucketTargetOption}
 import org.broadinstitute.dsde.workbench.google2.Implicits.PolicyToStorageRoles
 import org.typelevel.log4cats.StructuredLogger
 import org.broadinstitute.dsde.workbench.google2.util.RetryPredicates.standardGoogleRetryConfig
@@ -37,7 +37,8 @@ trait GoogleStorageService[F[_]] {
                             isRecursive: Boolean = false,
                             maxPageSize: Long = 1000,
                             traceId: Option[TraceId] = None,
-                            retryConfig: RetryConfig = standardGoogleRetryConfig
+                            retryConfig: RetryConfig = standardGoogleRetryConfig,
+                            blobListOptions: List[BlobListOption] = List.empty
   ): Stream[F, GcsObjectName]
 
   /**
@@ -48,7 +49,8 @@ trait GoogleStorageService[F[_]] {
                           isRecursive: Boolean,
                           maxPageSize: Long = 1000,
                           traceId: Option[TraceId] = None,
-                          retryConfig: RetryConfig = standardGoogleRetryConfig
+                          retryConfig: RetryConfig = standardGoogleRetryConfig,
+                          blobListOptions: List[BlobListOption] = List.empty
   ): Stream[F, Blob]
 
   /**
@@ -60,7 +62,8 @@ trait GoogleStorageService[F[_]] {
     objectNamePrefix: String,
     maxPageSize: Long = 1000,
     traceId: Option[TraceId] = None,
-    retryConfig: RetryConfig = standardGoogleRetryConfig
+    retryConfig: RetryConfig = standardGoogleRetryConfig,
+    blobListOptions: List[BlobListOption] = List.empty
   )(implicit sf: Sync[F]): F[List[GcsObjectName]] =
     listObjectsWithPrefix(bucketName,
                           objectNamePrefix,
@@ -88,7 +91,8 @@ trait GoogleStorageService[F[_]] {
                        metadata: Map[String, String] = Map.empty,
                        generation: Option[Long] = None,
                        overwrite: Boolean = true,
-                       traceId: Option[TraceId] = None
+                       traceId: Option[TraceId] = None,
+                       blobWriteOptions: List[BlobWriteOption] = List.empty
   ): Pipe[F, Byte, Unit]
 
   /**
@@ -111,7 +115,8 @@ trait GoogleStorageService[F[_]] {
   def setBucketLifecycle(bucketName: GcsBucketName,
                          lifecycleRules: List[LifecycleRule],
                          traceId: Option[TraceId] = None,
-                         retryConfig: RetryConfig = standardGoogleRetryConfig
+                         retryConfig: RetryConfig = standardGoogleRetryConfig,
+                         bucketTargetOptions: List[BucketTargetOption] = List.empty
   ): Stream[F, Unit]
 
   /**
@@ -133,7 +138,8 @@ trait GoogleStorageService[F[_]] {
   def unsafeGetBlobBody(bucketName: GcsBucketName,
                         blobName: GcsBlobName,
                         traceId: Option[TraceId] = None,
-                        retryConfig: RetryConfig = standardGoogleRetryConfig
+                        retryConfig: RetryConfig = standardGoogleRetryConfig,
+                        blobGetOptions: List[BlobGetOption] = List.empty
   ): F[Option[String]]
 
   /**
@@ -153,7 +159,8 @@ trait GoogleStorageService[F[_]] {
   def getBlobBody(bucketName: GcsBucketName,
                   blobName: GcsBlobName,
                   traceId: Option[TraceId] = None,
-                  retryConfig: RetryConfig = standardGoogleRetryConfig
+                  retryConfig: RetryConfig = standardGoogleRetryConfig,
+                  blobGetOptions: List[BlobGetOption] = List.empty
   ): Stream[F, Byte]
 
   /**
@@ -164,7 +171,8 @@ trait GoogleStorageService[F[_]] {
               blobName: GcsBlobName,
               credential: Option[Credentials] = None,
               traceId: Option[TraceId] = None,
-              retryConfig: RetryConfig = standardGoogleRetryConfig
+              retryConfig: RetryConfig = standardGoogleRetryConfig,
+              blobGetOptions: List[BlobGetOption] = List.empty
   ): Stream[F, Blob]
 
   /**
@@ -173,7 +181,8 @@ trait GoogleStorageService[F[_]] {
   def downloadObject(blobId: BlobId,
                      path: Path,
                      traceId: Option[TraceId] = None,
-                     retryConfig: RetryConfig = standardGoogleRetryConfig
+                     retryConfig: RetryConfig = standardGoogleRetryConfig,
+                     blobGetOptions: List[BlobGetOption] = List.empty
   ): Stream[F, Unit]
 
   /**
@@ -182,7 +191,8 @@ trait GoogleStorageService[F[_]] {
   def getObjectMetadata(bucketName: GcsBucketName,
                         blobName: GcsBlobName,
                         traceId: Option[TraceId] = None,
-                        retryConfig: RetryConfig = standardGoogleRetryConfig
+                        retryConfig: RetryConfig = standardGoogleRetryConfig,
+                        blobGetOptions: List[BlobGetOption] = List.empty
   ): Stream[F, GetMetadataResponse]
 
   /**
@@ -192,7 +202,8 @@ trait GoogleStorageService[F[_]] {
                         blobName: GcsBlobName,
                         metadata: Map[String, String],
                         traceId: Option[TraceId],
-                        retryConfig: RetryConfig = standardGoogleRetryConfig
+                        retryConfig: RetryConfig = standardGoogleRetryConfig,
+                        blobTargetOptions: List[BlobTargetOption] = List.empty
   ): Stream[F, Unit]
 
   /**
@@ -202,7 +213,8 @@ trait GoogleStorageService[F[_]] {
                    blobName: GcsBlobName,
                    generation: Option[Long] = None,
                    traceId: Option[TraceId] = None,
-                   retryConfig: RetryConfig = standardGoogleRetryConfig
+                   retryConfig: RetryConfig = standardGoogleRetryConfig,
+                   blobSourceOptions: List[BlobSourceOption] = List.empty
   ): Stream[F, RemoveObjectResult]
 
   /**
@@ -226,9 +238,9 @@ trait GoogleStorageService[F[_]] {
 
   def setRequesterPays(bucketName: GcsBucketName,
                        requesterPaysEnabled: Boolean,
-                       bucketTargetOptions: List[BucketTargetOption] = List.empty,
                        traceId: Option[TraceId] = None,
-                       retryConfig: RetryConfig = standardGoogleRetryConfig
+                       retryConfig: RetryConfig = standardGoogleRetryConfig,
+                       bucketTargetOptions: List[BucketTargetOption] = List.empty
   ): Stream[F, Unit]
 
   /**
@@ -245,7 +257,8 @@ trait GoogleStorageService[F[_]] {
                    bucketPolicyOnlyEnabled: Boolean = false,
                    logBucket: Option[GcsBucketName] = None,
                    retryConfig: RetryConfig = standardGoogleRetryConfig,
-                   location: Option[String] = None
+                   location: Option[String] = None,
+                   bucketTargetOptions: List[BucketTargetOption] = List.empty
   ): Stream[F, Unit]
 
   /**
@@ -267,13 +280,15 @@ trait GoogleStorageService[F[_]] {
   def setBucketPolicyOnly(bucketName: GcsBucketName,
                           bucketPolicyOnlyEnabled: Boolean,
                           traceId: Option[TraceId] = None,
-                          retryConfig: RetryConfig = standardGoogleRetryConfig
+                          retryConfig: RetryConfig = standardGoogleRetryConfig,
+                          bucketTargetOptions: List[BucketTargetOption] = List.empty
   ): Stream[F, Unit]
 
   def setBucketLabels(bucketName: GcsBucketName,
                       labels: Map[String, String],
                       traceId: Option[TraceId] = None,
-                      retryConfig: RetryConfig = standardGoogleRetryConfig
+                      retryConfig: RetryConfig = standardGoogleRetryConfig,
+                      bucketTargetOptions: List[BucketTargetOption] = List.empty
   ): Stream[F, Unit]
 
   /**
@@ -282,7 +297,8 @@ trait GoogleStorageService[F[_]] {
   def setIamPolicy(bucketName: GcsBucketName,
                    roles: Map[StorageRole, NonEmptyList[Identity]],
                    traceId: Option[TraceId] = None,
-                   retryConfig: RetryConfig = standardGoogleRetryConfig
+                   retryConfig: RetryConfig = standardGoogleRetryConfig,
+                   bucketSourceOptions: List[BucketSourceOption] = List.empty
   ): Stream[F, Unit]
 
   /**
@@ -291,12 +307,14 @@ trait GoogleStorageService[F[_]] {
   def overrideIamPolicy(bucketName: GcsBucketName,
                         roles: Map[StorageRole, NonEmptyList[Identity]],
                         traceId: Option[TraceId] = None,
-                        retryConfig: RetryConfig = standardGoogleRetryConfig
+                        retryConfig: RetryConfig = standardGoogleRetryConfig,
+                        bucketSourceOptions: List[BucketSourceOption] = List.empty
   ): Stream[F, Policy]
 
   def getIamPolicy(bucketName: GcsBucketName,
                    traceId: Option[TraceId] = None,
-                   retryConfig: RetryConfig = standardGoogleRetryConfig
+                   retryConfig: RetryConfig = standardGoogleRetryConfig,
+                   bucketSourceOptions: List[BucketSourceOption] = List.empty
   ): Stream[F, Policy]
 
   /**
@@ -305,7 +323,8 @@ trait GoogleStorageService[F[_]] {
   def removeIamPolicy(bucketName: GcsBucketName,
                       rolesToRemove: Map[StorageRole, NonEmptyList[Identity]],
                       traceId: Option[TraceId] = None,
-                      retryConfig: RetryConfig = standardGoogleRetryConfig
+                      retryConfig: RetryConfig = standardGoogleRetryConfig,
+                      bucketTargetOptions: List[BucketTargetOption] = List.empty
   ): Stream[F, Unit] =
     for {
       currentPolicy <- getIamPolicy(bucketName, traceId, retryConfig)

@@ -38,6 +38,7 @@ Added:
 - Legacy Cloud Storage roles to `GoogleStorageService`
 - `GoogleStorageService/removeIamPolicy` to remove the specified roles from the bucket IAM policy.
 - Extension method `asStorageRoles` on `Policy` to convert to `StorageRole`s map
+- Added options list to all `GoogleStorageInterpreter` functions
 
 Changed:
 - Set `goog-compute-%d` threads as daemon so that they won't prevent JVM from shutdown
