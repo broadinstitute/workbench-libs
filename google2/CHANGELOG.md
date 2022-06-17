@@ -30,7 +30,7 @@ Dependency Upgrades:
 | log4cats-slf4j |  2.1.1   |  2.3.0 |
 | http4s |  1.0.0-M32   |  1.0.0-M33 |
 
-SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.24-d6bf85d"`
+SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.24-TRAVIS-REPLACE-ME"`
 
 ## 0.23
 Added:
@@ -38,6 +38,7 @@ Added:
 - Legacy Cloud Storage roles to `GoogleStorageService`
 - `GoogleStorageService/removeIamPolicy` to remove the specified roles from the bucket IAM policy.
 - Extension method `asStorageRoles` on `Policy` to convert to `StorageRole`s map
+- Added options list to all `GoogleStorageInterpreter` functions
 
 Changed:
 - Set `goog-compute-%d` threads as daemon so that they won't prevent JVM from shutdown
