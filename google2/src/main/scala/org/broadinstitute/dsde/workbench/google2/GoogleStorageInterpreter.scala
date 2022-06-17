@@ -41,9 +41,9 @@ private[google2] class GoogleStorageInterpreter[F[_]](
     extends GoogleStorageService[F] {
   override def listObjectsWithPrefix(bucketName: GcsBucketName,
                                      objectNamePrefix: String,
-                                     isRecursive: Boolean = false,
-                                     maxPageSize: Long = 1000,
-                                     traceId: Option[TraceId] = None,
+                                     isRecursive: Boolean,
+                                     maxPageSize: Long,
+                                     traceId: Option[TraceId],
                                      retryConfig: RetryConfig,
                                      blobListOptions: List[BlobListOption]
   ): Stream[F, GcsObjectName] =
@@ -53,7 +53,7 @@ private[google2] class GoogleStorageInterpreter[F[_]](
   override def listBlobsWithPrefix(bucketName: GcsBucketName,
                                    objectNamePrefix: String,
                                    isRecursive: Boolean,
-                                   maxPageSize: Long = 1000,
+                                   maxPageSize: Long,
                                    traceId: Option[TraceId],
                                    retryConfig: RetryConfig,
                                    blobListOptions: List[BlobListOption]
@@ -92,9 +92,9 @@ private[google2] class GoogleStorageInterpreter[F[_]](
 
   override def getBlobBody(bucketName: GcsBucketName,
                            blobName: GcsBlobName,
-                           traceId: Option[TraceId] = None,
+                           traceId: Option[TraceId],
                            retryConfig: RetryConfig,
-                           blobGetOptions: List[BlobGetOption] = List.empty
+                           blobGetOptions: List[BlobGetOption]
   ): Stream[F, Byte] = {
     val getBlobs =
       blockingF(F.delay(db.get(BlobId.of(bucketName.value, blobName.value), blobGetOptions: _*))).map(Option(_))
@@ -127,8 +127,8 @@ private[google2] class GoogleStorageInterpreter[F[_]](
 
   override def getBlob(bucketName: GcsBucketName,
                        blobName: GcsBlobName,
-                       credentials: Option[Credentials] = None,
-                       traceId: Option[TraceId] = None,
+                       credentials: Option[Credentials],
+                       traceId: Option[TraceId],
                        retryConfig: RetryConfig,
                        blobGetOptions: List[BlobGetOption]
   ): Stream[F, Blob] = {
@@ -247,10 +247,10 @@ private[google2] class GoogleStorageInterpreter[F[_]](
   override def createBlob(bucketName: GcsBucketName,
                           objectName: GcsBlobName,
                           objectContents: Array[Byte],
-                          objectType: String = "text/plain",
-                          metadata: Map[String, String] = Map.empty,
-                          generation: Option[Long] = None,
-                          traceId: Option[TraceId] = None,
+                          objectType: String,
+                          metadata: Map[String, String],
+                          generation: Option[Long],
+                          traceId: Option[TraceId],
                           retryConfig: RetryConfig
   ): Stream[F, Blob] = {
     val storeObject: F[Blob] = generation match {
@@ -412,7 +412,7 @@ private[google2] class GoogleStorageInterpreter[F[_]](
 
   override def setRequesterPays(bucketName: GcsBucketName,
                                 requesterPaysEnabled: Boolean,
-                                traceId: Option[TraceId] = None,
+                                traceId: Option[TraceId],
                                 retryConfig: RetryConfig,
                                 bucketTargetOptions: List[BucketTargetOption]
   ): Stream[F, Unit] = {
@@ -433,7 +433,7 @@ private[google2] class GoogleStorageInterpreter[F[_]](
 
   override def setBucketPolicyOnly(bucketName: GcsBucketName,
                                    bucketPolicyOnlyEnabled: Boolean,
-                                   traceId: Option[TraceId] = None,
+                                   traceId: Option[TraceId],
                                    retryConfig: RetryConfig,
                                    bucketTargetOptions: List[BucketTargetOption]
   ): Stream[F, Unit] = {
@@ -456,7 +456,7 @@ private[google2] class GoogleStorageInterpreter[F[_]](
 
   override def setBucketLabels(bucketName: GcsBucketName,
                                labels: Map[String, String],
-                               traceId: Option[TraceId] = None,
+                               traceId: Option[TraceId],
                                retryConfig: RetryConfig,
                                bucketTargetOptions: List[BucketTargetOption]
   ): Stream[F, Unit] = {
@@ -475,7 +475,7 @@ private[google2] class GoogleStorageInterpreter[F[_]](
 
   override def setIamPolicy(bucketName: GcsBucketName,
                             roles: Map[StorageRole, NonEmptyList[Identity]],
-                            traceId: Option[TraceId] = None,
+                            traceId: Option[TraceId],
                             retryConfig: RetryConfig,
                             bucketSourceOptions: List[BucketSourceOption]
   ): Stream[F, Unit] = {
@@ -499,7 +499,7 @@ private[google2] class GoogleStorageInterpreter[F[_]](
 
   override def overrideIamPolicy(bucketName: GcsBucketName,
                                  roles: Map[StorageRole, NonEmptyList[Identity]],
-                                 traceId: Option[TraceId] = None,
+                                 traceId: Option[TraceId],
                                  retryConfig: RetryConfig,
                                  bucketSourceOptions: List[BucketSourceOption]
   ): Stream[F, Policy] = {
@@ -523,7 +523,7 @@ private[google2] class GoogleStorageInterpreter[F[_]](
   }
 
   override def getIamPolicy(bucketName: GcsBucketName,
-                            traceId: Option[TraceId] = None,
+                            traceId: Option[TraceId],
                             retryConfig: RetryConfig,
                             bucketSourceOptions: List[BucketSourceOption]
   ): Stream[F, Policy] = {
