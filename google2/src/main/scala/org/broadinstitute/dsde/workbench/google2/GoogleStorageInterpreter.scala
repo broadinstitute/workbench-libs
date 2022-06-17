@@ -480,7 +480,7 @@ private[google2] class GoogleStorageInterpreter[F[_]](
                             bucketSourceOptions: List[BucketSourceOption]
   ): Stream[F, Unit] = {
     val getAndSetIamPolicy = for {
-      policy <- blockingF(Async[F].delay(db.getIamPolicy(bucketName.value)))
+      policy <- blockingF(Async[F].delay(db.getIamPolicy(bucketName.value, bucketSourceOptions: _*)))
       policyBuilder = policy.toBuilder()
       updatedPolicy = roles
         .foldLeft(policyBuilder)((currentBuilder, item) =>

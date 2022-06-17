@@ -78,7 +78,8 @@ trait GoogleStorageService[F[_]] {
                           objectNamePrefix,
                           maxPageSize = maxPageSize,
                           traceId = traceId,
-                          retryConfig = retryConfig
+                          retryConfig = retryConfig,
+                          blobListOptions = blobListOptions
     ).compile.toList
 
   /**
@@ -333,17 +334,17 @@ trait GoogleStorageService[F[_]] {
                       rolesToRemove: Map[StorageRole, NonEmptyList[Identity]],
                       traceId: Option[TraceId] = None,
                       retryConfig: RetryConfig = standardGoogleRetryConfig,
-                      bucketTargetOptions: List[BucketTargetOption] = List.empty
+                      bucketSourceOptions: List[BucketSourceOption] = List.empty
   ): Stream[F, Unit] =
     for {
-      currentPolicy <- getIamPolicy(bucketName, traceId, retryConfig)
+      currentPolicy <- getIamPolicy(bucketName, traceId, retryConfig, bucketSourceOptions)
       newRoles = rolesToRemove
         .foldLeft(currentPolicy.toBuilder) { (builder, role) =>
           builder.removeIdentity(Role.of(role._1.name), role._2.head, role._2.tail: _*)
         }
         .build
         .asStorageRoles
-      _ <- overrideIamPolicy(bucketName, newRoles, traceId, retryConfig)
+      _ <- overrideIamPolicy(bucketName, newRoles, traceId, retryConfig, bucketSourceOptions)
     } yield ()
 }
 
