@@ -8,7 +8,7 @@ object Dependencies {
   val scalaLoggingV = "3.9.4"
   val scalaTestV    = "3.2.12"
   val circeVersion = "0.14.1"
-  val http4sVersion = "1.0.0-M33"
+  val http4sVersion = "1.0.0-M32"
   val bouncyCastleVersion = "1.70"
   val openCensusV = "0.31.1"
 
@@ -69,7 +69,7 @@ object Dependencies {
   val googleComputeNew: ModuleID = "com.google.cloud" % "google-cloud-compute" % "1.9.1"
   val googleDataproc: ModuleID =    "com.google.cloud" % "google-cloud-dataproc" % "3.0.4"
   val googleContainer: ModuleID = "com.google.cloud" % "google-cloud-container" % "2.3.7"
-  val kubernetesClient: ModuleID = "io.kubernetes" % "client-java" % "15.0.0"
+  val kubernetesClient: ModuleID = "io.kubernetes" % "client-java" % "15.0.1"
   val googleBigQueryNew: ModuleID = "com.google.cloud" % "google-cloud-bigquery" % "2.6.2"
   val google2CloudBilling = "com.google.cloud" % "google-cloud-billing" % "2.1.12"
   val googleStorageTransferService: ModuleID = "com.google.cloud" % "google-cloud-storage-transfer" % "1.0.5"

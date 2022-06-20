@@ -153,7 +153,16 @@ object JavaSerializableInstances {
   val DEFAULT_POD_KIND = "Pod"
   val SERVICE_KIND = "Service"
   // For session affinity, see https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.12/#service-v1-core
-  val STICKY_SESSION_AFFINITY = io.kubernetes.client.openapi.models.V1ServiceSpec.SessionAffinityEnum.CLIENTIP
+  sealed trait KubernetesSessionAffinityEnum extends Product with Serializable {
+    def value: String
+  }
+
+  object KubernetesSessionAffinityEnum {
+    case object clientIp extends KubernetesSessionAffinityEnum {
+      override def value: String = "ClientIP"
+    }
+  }
+  val STICKY_SESSION_AFFINITY = KubernetesSessionAffinityEnum.clientIp.value
 
   private def getNameSerialization(name: KubernetesSerializableName): V1ObjectMeta =
     new V1ObjectMeta().name(name.value)
@@ -291,7 +300,7 @@ object JavaSerializableInstances {
 
       v1Port.port(servicePort.num.value)
       v1Port.setName(servicePort.name.value)
-      v1Port.setProtocol(servicePort.protocol)
+      v1Port.setProtocol(servicePort.protocol.value)
       v1Port.setTargetPort(intOrString)
 
       v1Port
@@ -307,7 +316,7 @@ object JavaSerializableInstances {
       val serviceSpec = new V1ServiceSpec()
       serviceSpec.ports(serviceKind.ports.map(_.getJavaSerialization).toList.asJava)
       serviceSpec.selector(serviceKind.selector.labels.asJava)
-      serviceSpec.setType(serviceKind.kindName)
+      serviceSpec.setType(serviceKind.kindName.value)
       // if we ever enter a scenario where the service acts as a load-balancer to multiple pods, this ensures that clients stick with the container that they initially connected with
       serviceSpec.setSessionAffinity(STICKY_SESSION_AFFINITY)
       v1Service.setSpec(serviceSpec)
@@ -384,44 +393,66 @@ object KubernetesModels {
                                        resourceLimits: Option[Map[String, String]] = None
   )
 
+  sealed trait KubernetesServiceTypeEnum extends Product with Serializable {
+    def value: String
+  }
+
+  object KubernetesServiceTypeEnum {
+    case object clusterIp extends KubernetesServiceTypeEnum {
+      override def value: String = "ClusterIP"
+    }
+    case object nodePort extends KubernetesServiceTypeEnum {
+      override def value: String = "NodePort"
+    }
+    case object loadBalancer extends KubernetesServiceTypeEnum {
+      override def value: String = "LoadBalancer"
+    }
+  }
+
   sealed trait KubernetesServiceKind extends Product with Serializable {
-    def kindName: io.kubernetes.client.openapi.models.V1ServiceSpec.TypeEnum
+    def kindName: KubernetesServiceTypeEnum
     def serviceName: ServiceName
     def selector: KubernetesSelector
     def ports: Set[ServicePort]
   }
 
   object KubernetesServiceKind {
-    val SERVICE_TYPE_NODEPORT = io.kubernetes.client.openapi.models.V1ServiceSpec.TypeEnum.NODEPORT
-    val SERVICE_TYPE_LOADBALANCER = io.kubernetes.client.openapi.models.V1ServiceSpec.TypeEnum.LOADBALANCER
-    val SERVICE_TYPE_CLUSTERIP = io.kubernetes.client.openapi.models.V1ServiceSpec.TypeEnum.CLUSTERIP
-
     final case class KubernetesLoadBalancerService(selector: KubernetesSelector,
                                                    ports: Set[ServicePort],
                                                    serviceName: ServiceName
     ) extends KubernetesServiceKind {
-      val kindName = SERVICE_TYPE_LOADBALANCER
+      val kindName = KubernetesServiceTypeEnum.loadBalancer
     }
 
     final case class KubernetesNodePortService(selector: KubernetesSelector,
                                                ports: Set[ServicePort],
                                                serviceName: ServiceName
     ) extends KubernetesServiceKind {
-      val kindName = SERVICE_TYPE_NODEPORT
+      val kindName = KubernetesServiceTypeEnum.nodePort
     }
 
     final case class KubernetesClusterIPService(selector: KubernetesSelector,
                                                 ports: Set[ServicePort],
                                                 serviceName: ServiceName
     ) extends KubernetesServiceKind {
-      val kindName = SERVICE_TYPE_CLUSTERIP
+      val kindName = KubernetesServiceTypeEnum.clusterIp
+    }
+  }
+
+  sealed trait KubernetesServiceProtocolEnum extends Product with Serializable {
+    def value: String
+  }
+
+  object KubernetesServiceProtocolEnum {
+    case object tcp extends KubernetesServiceProtocolEnum {
+      override def value: String = "TCP"
     }
   }
 
   final case class ServicePort(num: PortNum,
                                name: PortName,
                                targetPort: TargetPortNum,
-                               protocol: io.kubernetes.client.openapi.models.V1ServicePort.ProtocolEnum
+                               protocol: KubernetesServiceProtocolEnum
   )
 
   final case class PortNum(value: Int) extends AnyVal

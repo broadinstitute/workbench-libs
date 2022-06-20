@@ -255,7 +255,7 @@ object KubernetesConstants {
       PortNum(8080),
       KubernetesName.withValidation("testport", PortName).right.get,
       TargetPortNum(8080),
-      io.kubernetes.client.openapi.models.V1ServicePort.ProtocolEnum.TCP
+      KubernetesServiceProtocolEnum.tcp
     )
   )
 

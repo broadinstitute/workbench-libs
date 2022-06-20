@@ -97,7 +97,7 @@ class KubernetesInterpreter[F[_]](
         .map { l =>
           l.asScala.toList.foldMap(v1Pod =>
             PodStatus.stringToPodStatus
-              .get(v1Pod.getStatus.getPhase.getValue)
+              .get(v1Pod.getStatus.getPhase)
               .map(s => List(KubernetesPodStatus(PodName(v1Pod.getMetadata.getName), s)))
               .toRight(new RuntimeException(s"Unknown Google status ${v1Pod.getStatus.getPhase}"))
           )
