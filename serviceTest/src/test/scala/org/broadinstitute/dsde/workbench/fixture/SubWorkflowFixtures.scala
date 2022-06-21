@@ -142,7 +142,6 @@ trait SubWorkflowFixtures extends RandomUtil {
                                      scatterCount: Int
   ): Method = {
 
-
     var orchUrl = ServiceTestConfig.FireCloud.orchApiUrl
 
     // Orchestration in real environments has a globally resolvable name like "firecloud-orchestration.dsde-dev.b.o"
