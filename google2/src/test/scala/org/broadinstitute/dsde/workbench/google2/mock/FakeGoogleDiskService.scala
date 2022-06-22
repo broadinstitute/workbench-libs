@@ -20,6 +20,10 @@ class MockGoogleDiskService extends GoogleDiskService[IO] {
     ev: Ask[IO, TraceId]
   ): IO[Option[OperationFuture[Operation, Operation]]] = IO.pure(Some(new FakeComputeOperationFuture))
 
+  override def createDiskClone(project: GoogleProject, zone: ZoneName, newDisk: Disk, sourceDisk: Disk)(implicit
+    ev: Ask[IO, TraceId]
+  ): IO[Option[OperationFuture[Operation, Operation]]] = IO.pure(Some(new FakeComputeOperationFuture))
+
   override def deleteDisk(project: GoogleProject, zone: ZoneName, diskName: DiskName)(implicit
     ev: Ask[IO, TraceId]
   ): IO[Option[OperationFuture[Operation, Operation]]] =

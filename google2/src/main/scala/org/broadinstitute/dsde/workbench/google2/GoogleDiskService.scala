@@ -26,6 +26,10 @@ trait GoogleDiskService[F[_]] {
     ev: Ask[F, TraceId]
   ): F[Option[OperationFuture[Operation, Operation]]]
 
+  def createDiskClone(project: GoogleProject, zone: ZoneName, newDisk: Disk, sourceDisk: Disk)(implicit
+    ev: Ask[F, TraceId]
+  ): F[Option[OperationFuture[Operation, Operation]]]
+
   def deleteDisk(project: GoogleProject, zone: ZoneName, diskName: DiskName)(implicit
     ev: Ask[F, TraceId]
   ): F[Option[OperationFuture[Operation, Operation]]]

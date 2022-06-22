@@ -31,6 +31,21 @@ private[google2] class GoogleDiskInterpreter[F[_]: StructuredLogger](
       s"com.google.cloud.compute.v1DiskClient.insertDisk(${project.value}, ${zone.value}, ${disk.getName})"
     ).compile.lastOrError
 
+  override def createDiskClone(project: GoogleProject, zone: ZoneName, newDisk: Disk, sourceDisk: Disk)(implicit
+    ev: Ask[F, TraceId]
+  ): F[Option[OperationFuture[Operation, Operation]]] = {
+    val insert = InsertDiskRequest
+      .newBuilder()
+      .setProject(project.value)
+      .setZone(zone.value)
+      .setDiskResource(newDisk.toBuilder.setSourceDisk(sourceDisk.getSelfLink))
+      .build()
+    retryF(
+      recoverF(F.blocking(diskClient.insertAsync(insert)), whenStatusCode(409)),
+      s"com.google.cloud.compute.v1DiskClient.insertDisk(${project.value}, ${zone.value}, ${newDisk.getName})"
+    ).compile.lastOrError
+  }
+
   def getDisk(project: GoogleProject, zone: ZoneName, diskName: DiskName)(implicit
     ev: Ask[F, TraceId]
   ): F[Option[Disk]] = {
