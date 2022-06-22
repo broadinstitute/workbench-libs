@@ -53,7 +53,7 @@ private[google2] class GoogleComputeInterpreter[F[_]: Parallel: StructuredLogger
                 .setDiskAutoDeleteAsync(project.value, zone.value, instanceName.value, true, deviceName.asString)
             ),
             Some(traceId),
-            s"com.google.cloud.compute.v1.InstancesClient.setDiskAutoDelete(${project.value}, ${zone.value}, ${instanceName.value}, true, ${diskName.value})"
+            s"com.google.cloud.compute.v1.InstancesClient.setDiskAutoDelete(${project.value}, ${zone.value}, ${instanceName.value}, true, ${deviceName.asString})"
           )
           res <- F.blocking(opFuture.get())
           _ <- F.raiseUnless(isSuccess(res.getHttpErrorStatusCode))(new Exception(s"setDiskAutoDeleteAsync failed"))
