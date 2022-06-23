@@ -37,7 +37,7 @@ trait GoogleComputeService[F[_]] {
   def deleteInstanceWithAutoDeleteDisk(project: GoogleProject,
                                        zone: ZoneName,
                                        instanceName: InstanceName,
-                                       autoDeleteDisks: Set[DiskName]
+                                       autoDeleteDisks: Set[DeviceName]
   )(implicit
     ev: Ask[F, TraceId]
   ): F[Option[OperationFuture[Operation, Operation]]]

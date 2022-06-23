@@ -39,21 +39,21 @@ private[google2] class GoogleComputeInterpreter[F[_]: Parallel: StructuredLogger
   override def deleteInstanceWithAutoDeleteDisk(project: GoogleProject,
                                                 zone: ZoneName,
                                                 instanceName: InstanceName,
-                                                autoDeleteDisks: Set[DiskName]
+                                                autoDeleteDisks: Set[DeviceName]
   )(implicit
     ev: Ask[F, TraceId]
   ): F[Option[OperationFuture[Operation, Operation]]] =
     for {
       traceId <- ev.ask
-      _ <- autoDeleteDisks.toList.parTraverse { diskName =>
+      _ <- autoDeleteDisks.toList.parTraverse { deviceName =>
         for {
           opFuture <- withLogging(
             F.delay(
               instanceClient
-                .setDiskAutoDeleteAsync(project.value, zone.value, instanceName.value, true, diskName.value)
+                .setDiskAutoDeleteAsync(project.value, zone.value, instanceName.value, true, deviceName.asString)
             ),
             Some(traceId),
-            s"com.google.cloud.compute.v1.InstancesClient.setDiskAutoDelete(${project.value}, ${zone.value}, ${instanceName.value}, true, ${diskName.value})"
+            s"com.google.cloud.compute.v1.InstancesClient.setDiskAutoDelete(${project.value}, ${zone.value}, ${instanceName.value}, true, ${deviceName.asString})"
           )
           res <- F.blocking(opFuture.get())
           _ <- F.raiseUnless(isSuccess(res.getHttpErrorStatusCode))(new Exception(s"setDiskAutoDeleteAsync failed"))
