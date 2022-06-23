@@ -103,7 +103,7 @@ class FakeGoogleComputeService extends GoogleComputeService[IO] {
     project: GoogleProject,
     zone: ZoneName,
     instanceName: InstanceName,
-    autoDeleteDisks: Set[DiskName]
+    autoDeleteDisks: Set[DeviceName]
   )(implicit ev: Ask[IO, TraceId]): IO[Option[OperationFuture[Operation, Operation]]] =
     IO.pure(
       Some(
