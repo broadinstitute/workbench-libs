@@ -19,7 +19,6 @@ class AzureVmServiceInterp[F[_]](clientSecretCredential: ClientSecretCredential)
 ) extends AzureVmService[F] {
 
   def getAzureVm(name: String, cloudContext: AzureCloudContext)(implicit
-    logger: StructuredLogger[F],
     ev: Ask[F, TraceId]
   ): F[Option[VirtualMachine]] =
     for {

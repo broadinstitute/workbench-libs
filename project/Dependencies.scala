@@ -104,6 +104,7 @@ object Dependencies {
 
   val azureResourceManager = "com.azure.resourcemanager" % "azure-resourcemanager" % "2.16.0"
   val azureIdentity =  "com.azure" % "azure-identity" % "1.5.2"
+  val azureRelay =     "com.azure.resourcemanager" % "azure-resourcemanager-relay" % "1.0.0-beta.1"
 
   val commonDependencies = Seq(
     scalatest,
@@ -197,7 +198,8 @@ object Dependencies {
   val azureDependencies = List(
     log4cats,
     azureResourceManager,
-    azureIdentity
+    azureIdentity,
+    azureRelay
   )
 
   val openTelemetryDependencies = List(

@@ -99,5 +99,6 @@ lazy val workbenchLibs = project
   .aggregate(workbenchGoogle)
   .aggregate(workbenchGoogle2)
   .aggregate(workbenchServiceTest)
+  .aggregate(workbenchAzure)
   .aggregate(workbenchNotifications)
   .aggregate(workbenchOauth2)
