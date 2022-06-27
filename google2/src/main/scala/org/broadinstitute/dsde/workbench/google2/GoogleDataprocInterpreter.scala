@@ -15,6 +15,7 @@ import org.broadinstitute.dsde.workbench.google2.GoogleDataprocInterpreter._
 import org.broadinstitute.dsde.workbench.google2.util.RetryPredicates._
 import org.broadinstitute.dsde.workbench.model.google.GoogleProject
 import org.broadinstitute.dsde.workbench.model.{TraceId, WorkbenchException}
+import org.broadinstitute.dsde.workbench.util2.withLogging
 import org.broadinstitute.dsde.workbench.{DoneCheckable, DoneCheckableInstances, RetryConfig}
 import org.typelevel.log4cats.StructuredLogger
 
