@@ -15,7 +15,6 @@ import org.broadinstitute.dsde.workbench.model.google.GoogleProject
 import org.broadinstitute.dsde.workbench.model.{TraceId, WorkbenchException}
 
 import scala.jdk.CollectionConverters._
-import scala.concurrent.duration._
 
 private[google2] class GoogleComputeInterpreter[F[_]: Parallel: StructuredLogger](
   instanceClient: InstancesClient,
