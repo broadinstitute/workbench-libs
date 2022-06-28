@@ -4,6 +4,7 @@ import cats.effect.{Async, Resource}
 import cats.mtl.Ask
 import com.azure.identity.ClientSecretCredentialBuilder
 import com.azure.resourcemanager.compute.models.VirtualMachine
+import com.azure.resourcemanager.resources.fluentcore.model.Accepted
 import org.broadinstitute.dsde.workbench.model.TraceId
 import org.typelevel.log4cats.StructuredLogger
 
@@ -12,9 +13,9 @@ trait AzureVmService[F[_]] {
     ev: Ask[F, TraceId]
   ): F[Option[VirtualMachine]]
 
-  def deleteAzureVm(name: String, cloudContext: AzureCloudContext)(implicit
+  def deleteAzureVm(name: String, cloudContext: AzureCloudContext, forceDeletion: Boolean)(implicit
     ev: Ask[F, TraceId]
-  ): F[Option[VirtualMachine]]
+  ): F[Option[Accepted[Void]]]
 }
 
 object AzureVmService {
