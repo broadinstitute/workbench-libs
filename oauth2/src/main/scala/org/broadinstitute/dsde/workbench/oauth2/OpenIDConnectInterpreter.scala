@@ -1,6 +1,7 @@
 package org.broadinstitute.dsde.workbench.oauth2
 
 import akka.http.scaladsl.model.Uri
+import org.broadinstitute.dsde.workbench.oauth2.OpenIDConnectConfiguration.policyParam
 
 class OpenIDConnectInterpreter private[oauth2] (val clientId: ClientId,
                                                 val authorityEndpoint: String,
@@ -11,7 +12,6 @@ class OpenIDConnectInterpreter private[oauth2] (val clientId: ClientId,
 ) extends OpenIDConnectConfiguration {
   private val scopeParam = "scope"
   private val clientSecretParam = "client_secret"
-  private val policyParam = "p"
 
   override def processAuthorizeQueryParams(params: Seq[(String, String)]): Seq[(String, String)] = {
     val paramsWithScope = if (!providerMetadata.isGoogle) {

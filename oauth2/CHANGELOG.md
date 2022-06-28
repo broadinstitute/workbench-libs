@@ -9,6 +9,7 @@ Changed:
 - Fixed issue causing akka-http `Stream cannot be materialized more than once` on `/oauth2/token` endpoint
 - Support authority endpoints with a dynamic policy on the query string, e.g.:
    - https://terradevb2c.b2clogin.com/terradevb2c.onmicrosoft.com/v2.0?p=B2C_1A_SIGNUP_SIGNIN
+- Update swagger-ui to 4.11.1
 
 Added:
 - Added methods for clientId and authorityEndpoint to `OpenIDConnectConfiguration`

@@ -14,13 +14,13 @@ import akka.util.ByteString
 import io.circe.Encoder
 import io.circe.syntax._
 import org.broadinstitute.dsde.workbench.oauth2.OpenIDConnectAkkaHttpOps.ConfigurationResponse
+import org.broadinstitute.dsde.workbench.oauth2.OpenIDConnectConfiguration.policyParam
 
 import java.nio.file.Paths
 import scala.concurrent.duration._
 
 class OpenIDConnectAkkaHttpOps(private val config: OpenIDConnectConfiguration) {
-  private val swaggerUiPath = "META-INF/resources/webjars/swagger-ui/4.10.3"
-  private val policyParam = "p"
+  private val swaggerUiPath = "META-INF/resources/webjars/swagger-ui/4.11.1"
 
   def oauth2Routes(implicit actorSystem: ActorSystem): Route = {
     implicit val ec = actorSystem.dispatcher
