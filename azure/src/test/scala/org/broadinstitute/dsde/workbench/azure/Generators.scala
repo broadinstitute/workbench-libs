@@ -2,7 +2,7 @@ package org.broadinstitute.dsde.workbench.azure
 
 import org.scalacheck.Gen
 
-class Generators {
+object Generators {
   val genTenantId = Gen.uuid.map(x => TenantId(x.toString))
   val genSubscriptionId = Gen.uuid.map(x => SubscriptionId(x.toString))
   val genMrg = Gen.hexStr.map(s => ManagedResourceGroupName(s"mrg-${s}"))
