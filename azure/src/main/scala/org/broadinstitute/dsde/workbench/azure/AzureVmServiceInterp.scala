@@ -9,6 +9,7 @@ import com.azure.core.management.profile.AzureProfile
 import com.azure.identity.ClientSecretCredential
 import com.azure.resourcemanager.compute.ComputeManager
 import com.azure.resourcemanager.compute.models.VirtualMachine
+import com.azure.resourcemanager.resources.fluentcore.model.Accepted
 import org.broadinstitute.dsde.workbench.model.TraceId
 import org.broadinstitute.dsde.workbench.util2.tracedLogging
 import org.typelevel.log4cats.StructuredLogger
@@ -38,6 +39,28 @@ class AzureVmServiceInterp[F[_]](clientSecretCredential: ClientSecretCredential)
       res <- tracedLogging(
         fa,
         s"com.azure.resourcemanager.resources.fluentcore.arm.collection.SupportsGettingByResourceGroup.getByResourceGroup(${cloudContext.managedResourceGroupName.value}, ${name})"
+      )
+    } yield res
+
+  def deleteAzureVm(name: String, cloudContext: AzureCloudContext, forceDeletion: Boolean)(implicit
+    ev: Ask[F, TraceId]
+  ): F[Option[Accepted[Void]]] =
+    for {
+      azureComputeManager <- buildComputeManager(cloudContext)
+      fa = F
+        .delay(
+          azureComputeManager
+            .virtualMachines()
+            .beginDeleteByResourceGroup(cloudContext.managedResourceGroupName.value, name, forceDeletion)
+        )
+        .map(Option(_))
+        .handleErrorWith {
+          case e: ManagementException if e.getValue.getCode().equals("ResourceNotFound") => F.pure(none[Accepted[Void]])
+          case e => F.raiseError[Option[Accepted[Void]]](e)
+        }
+      res <- tracedLogging(
+        fa,
+        s"com.azure.resourcemanager.compute.models.VirtualMachines.beginDeleteByResourceGroup(${cloudContext.managedResourceGroupName.value}, ${name}, ${forceDeletion})"
       )
     } yield res
 
