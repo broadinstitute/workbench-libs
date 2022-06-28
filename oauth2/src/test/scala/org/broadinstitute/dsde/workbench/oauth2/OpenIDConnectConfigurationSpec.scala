@@ -38,6 +38,21 @@ class OpenIDConnectConfigurationSpec extends AnyFlatSpecLike with Matchers with 
     res.unsafeRunSync
   }
 
+  it should "initialize with B2C metadata using query string" in {
+    val res = for {
+      metadata <- OpenIDConnectConfiguration.getProviderMetadata[IO](
+        "https://terradevb2c.b2clogin.com/terradevb2c.onmicrosoft.com/v2.0?p=b2c_1a_signup_signin"
+      )
+    } yield {
+      metadata.issuer should startWith(
+        "https://terradevb2c.b2clogin.com/"
+      )
+      metadata.authorizeEndpoint shouldBe "https://terradevb2c.b2clogin.com/terradevb2c.onmicrosoft.com/oauth2/v2.0/authorize?p=b2c_1a_signup_signin"
+      metadata.tokenEndpoint shouldBe "https://terradevb2c.b2clogin.com/terradevb2c.onmicrosoft.com/oauth2/v2.0/token?p=b2c_1a_signup_signin"
+    }
+    res.unsafeRunSync
+  }
+
   "processAuthorizeQueryParams" should "inject the client_id to the scope" in {
     val interp = new OpenIDConnectInterpreter(ClientId("client_id"), "fake-authority", fakeMetadata, None, None, None)
 
@@ -47,7 +62,7 @@ class OpenIDConnectConfigurationSpec extends AnyFlatSpecLike with Matchers with 
     res shouldBe List("foo" -> "bar", "abc" -> "123", "scope" -> "openid email profile client_id")
   }
 
-  "processAuthorizeQueryParams" should "inject the client_id and extra auth params" in {
+  it should "inject the client_id and extra auth params" in {
     val interp = new OpenIDConnectInterpreter(ClientId("client_id"),
                                               "fake-authority",
                                               fakeMetadata,
@@ -132,6 +147,17 @@ class OpenIDConnectConfigurationSpec extends AnyFlatSpecLike with Matchers with 
       "access_token" -> "the-token"
     )
     val res = interp.processTokenFormFields(fields)
+    res shouldBe fields
+  }
+
+  it should "filter out the policy" in {
+    val interp =
+      new OpenIDConnectInterpreter(ClientId("client_id"), "fake-authority", fakeMetadata, None, None, None)
+    val fields = List(
+      "client_id" -> "client_id",
+      "access_token" -> "the-token"
+    )
+    val res = interp.processTokenFormFields(fields :+ ("p" -> "some-policy"))
     res shouldBe fields
   }
 

@@ -5,6 +5,7 @@ import akka.http.scaladsl.Http
 import akka.http.scaladsl.marshalling.{Marshaller, ToEntityMarshaller}
 import akka.http.scaladsl.model.ContentTypes._
 import akka.http.scaladsl.model.HttpMethods.POST
+import akka.http.scaladsl.model.Uri.Query
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
@@ -19,6 +20,7 @@ import scala.concurrent.duration._
 
 class OpenIDConnectAkkaHttpOps(private val config: OpenIDConnectConfiguration) {
   private val swaggerUiPath = "META-INF/resources/webjars/swagger-ui/4.10.3"
+  private val policyParam = "p"
 
   def oauth2Routes(implicit actorSystem: ActorSystem): Route = {
     implicit val ec = actorSystem.dispatcher
@@ -38,7 +40,8 @@ class OpenIDConnectAkkaHttpOps(private val config: OpenIDConnectConfiguration) {
               complete {
                 val newRequest = HttpRequest(
                   POST,
-                  uri = Uri(config.providerMetadata.tokenEndpoint),
+                  uri = Uri(config.providerMetadata.tokenEndpoint)
+                    .withQuery(fields.find(_._1 == policyParam).map(Query(_)).getOrElse(Query.Empty)),
                   entity = FormData(config.processTokenFormFields(fields): _*).toEntity
                 )
                 Http().singleRequest(newRequest).map(_.toStrict(5.seconds))
