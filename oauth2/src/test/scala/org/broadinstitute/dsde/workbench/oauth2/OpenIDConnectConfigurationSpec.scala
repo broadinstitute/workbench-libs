@@ -150,17 +150,6 @@ class OpenIDConnectConfigurationSpec extends AnyFlatSpecLike with Matchers with 
     res shouldBe fields
   }
 
-  it should "filter out the policy" in {
-    val interp =
-      new OpenIDConnectInterpreter(ClientId("client_id"), "fake-authority", fakeMetadata, None, None, None)
-    val fields = List(
-      "client_id" -> "client_id",
-      "access_token" -> "the-token"
-    )
-    val res = interp.processTokenFormFields(fields :+ ("p" -> "some-policy"))
-    res shouldBe fields
-  }
-
   "processSwaggerUiIndex" should "replace client ids and uri" in {
     val interp =
       new OpenIDConnectInterpreter(ClientId("client_id"),

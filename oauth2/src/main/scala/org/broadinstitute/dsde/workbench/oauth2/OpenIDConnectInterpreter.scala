@@ -26,19 +26,14 @@ class OpenIDConnectInterpreter private[oauth2] (val clientId: ClientId,
     paramsWithScopeAndExtraAuthParams
   }
 
-  override def processTokenFormFields(fields: Seq[(String, String)]): Seq[(String, String)] = {
-    val fieldsWithClientSecret = clientSecret match {
+  override def processTokenFormFields(fields: Seq[(String, String)]): Seq[(String, String)] =
+    clientSecret match {
       case Some(secret) =>
         if (providerMetadata.isGoogle && !fields.exists(_._1 == clientSecretParam))
           fields :+ (clientSecretParam -> secret.value)
         else fields
       case None => fields
     }
-
-    val fieldsWithoutPolicy = fieldsWithClientSecret.filterNot(_._1 == policyParam)
-
-    fieldsWithoutPolicy
-  }
 
   override def processSwaggerUiIndex(contents: String, openApiYamlPath: String): String =
     contents

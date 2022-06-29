@@ -132,7 +132,11 @@ class OpenIDConnectAkkaHttpSpec extends AnyFlatSpecLike with Matchers with Workb
   }
 
   it should "proxy requests with a policy field" in {
-    val formData = Map("grant_type" -> "authorization_code", "code" -> "1234", "client_id" -> "some_client")
+    val formData = Map("grant_type" -> "authorization_code",
+                       "code" -> "1234",
+                       "client_id" -> "some_client",
+                       "p" -> "some-other-policy"
+    )
     val backendRoute = path(".well-known" / "openid-configuration") {
       get {
         complete {
@@ -165,13 +169,13 @@ class OpenIDConnectAkkaHttpSpec extends AnyFlatSpecLike with Matchers with Workb
                                                Some(ClientSecret("some_long_client_secret"))
       )
       req = Post("/oauth2/token").withEntity(
-        FormData(formData + ("p" -> "some-other-policy")).toEntity
+        FormData(formData).toEntity
       )
       _ <- req ~> config.oauth2Routes ~> checkIO {
         handled shouldBe true
         status shouldBe StatusCodes.OK
         val resp = responseAs[String]
-        resp shouldBe (Map("token" -> "a-token")).asJson.noSpaces
+        resp shouldBe Map("token" -> "a-token").asJson.noSpaces
       }
     } yield ()
 
