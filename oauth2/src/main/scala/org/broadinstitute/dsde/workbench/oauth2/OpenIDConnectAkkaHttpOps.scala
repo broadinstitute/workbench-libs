@@ -28,8 +28,12 @@ class OpenIDConnectAkkaHttpOps(private val config: OpenIDConnectConfiguration) {
       path("authorize") {
         get {
           parameterSeq { params =>
-            val newQuery = Uri.Query(config.processAuthorizeQueryParams(params): _*)
-            val newUri = Uri(config.providerMetadata.authorizeEndpoint).withQuery(newQuery)
+            val authorizeUri = Uri(config.providerMetadata.authorizeEndpoint)
+            val incomingQuery = config.processAuthorizeQueryParams(params)
+            // Combine the query string from the incoming request and the authorizeUri.
+            // Parameters in the incoming query take precedence.
+            val newQuery = Uri.Query((authorizeUri.query() ++ incomingQuery).toMap)
+            val newUri = authorizeUri.withQuery(newQuery)
             redirect(newUri, StatusCodes.Found)
           }
         }

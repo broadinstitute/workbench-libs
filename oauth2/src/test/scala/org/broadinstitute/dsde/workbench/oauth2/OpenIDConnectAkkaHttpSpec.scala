@@ -56,7 +56,7 @@ class OpenIDConnectAkkaHttpSpec extends AnyFlatSpecLike with Matchers with Workb
     res.unsafeRunSync()
   }
 
-  it should "redirect with a policy field" in {
+  it should "redirect to a different policy" in {
     val res = for {
       config <- OpenIDConnectConfiguration[IO](
         "https://terradevb2c.b2clogin.com/terradevb2c.onmicrosoft.com/v2.0?p=b2c_1a_signup_signin",
