@@ -14,13 +14,13 @@ import akka.util.ByteString
 import io.circe.Encoder
 import io.circe.syntax._
 import org.broadinstitute.dsde.workbench.oauth2.OpenIDConnectAkkaHttpOps.ConfigurationResponse
-import org.broadinstitute.dsde.workbench.oauth2.OpenIDConnectConfiguration.policyParam
 
 import java.nio.file.Paths
 import scala.concurrent.duration._
 
 class OpenIDConnectAkkaHttpOps(private val config: OpenIDConnectConfiguration) {
   private val swaggerUiPath = "META-INF/resources/webjars/swagger-ui/4.11.1"
+  private val policyParam = "p"
 
   def oauth2Routes(implicit actorSystem: ActorSystem): Route = {
     implicit val ec = actorSystem.dispatcher
@@ -30,8 +30,8 @@ class OpenIDConnectAkkaHttpOps(private val config: OpenIDConnectConfiguration) {
           parameterSeq { params =>
             val authorizeUri = Uri(config.providerMetadata.authorizeEndpoint)
             val incomingQuery = config.processAuthorizeQueryParams(params)
-            // Combine the query string from the incoming request and the authorizeUri.
-            // Parameters in the incoming query take precedence.
+            // Combine the query strings from the incoming request and the authorizeUri.
+            // Parameters from the incoming request take precedence.
             val newQuery = Uri.Query((authorizeUri.query() ++ incomingQuery).toMap)
             val newUri = authorizeUri.withQuery(newQuery)
             redirect(newUri, StatusCodes.Found)

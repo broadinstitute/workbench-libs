@@ -49,7 +49,6 @@ trait OpenIDConnectConfiguration {
 
 object OpenIDConnectConfiguration {
   private val oidcMetadataUrlSuffix = ".well-known/openid-configuration"
-  private[oauth2] val policyParam = "p"
 
   def apply[F[_]: Async](authorityEndpoint: String,
                          oidcClientId: ClientId,
