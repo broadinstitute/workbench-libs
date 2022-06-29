@@ -42,10 +42,13 @@ class OpenIDConnectAkkaHttpOps(private val config: OpenIDConnectConfiguration) {
           post {
             formFieldSeq { fields =>
               complete {
+                val tokenUri = Uri(config.providerMetadata.tokenEndpoint)
+                // If the policy was passed as a parameter in the incoming request,
+                // pass it to the token endpoint as a query string parameter.
                 val newRequest = HttpRequest(
                   POST,
-                  uri = Uri(config.providerMetadata.tokenEndpoint)
-                    .withQuery(fields.find(_._1 == policyParam).map(Query(_)).getOrElse(Query.Empty)),
+                  uri = tokenUri
+                    .withQuery(fields.find(_._1 == policyParam).map(Query(_)).getOrElse(tokenUri.query())),
                   entity = FormData(config.processTokenFormFields(fields): _*).toEntity
                 )
                 Http().singleRequest(newRequest).map(_.toStrict(5.seconds))
