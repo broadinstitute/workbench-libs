@@ -100,7 +100,7 @@ object Dependencies {
   val prometheusServer: ModuleID = "io.prometheus" % "simpleclient_httpserver" % "0.15.0"
   val sealerate: ModuleID = "ca.mrvisser" %% "sealerate" % "0.0.6"
   val scalaCache = "com.github.cb372" %% "scalacache-caffeine" % "1.0.0-M6"
-  val swaggerUi = "org.webjars" % "swagger-ui" % "4.10.3"
+  val swaggerUi = "org.webjars" % "swagger-ui" % "4.11.1"
 
   val commonDependencies = Seq(
     scalatest,

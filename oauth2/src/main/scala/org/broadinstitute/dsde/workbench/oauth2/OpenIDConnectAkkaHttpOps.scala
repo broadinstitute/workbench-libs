@@ -5,6 +5,7 @@ import akka.http.scaladsl.Http
 import akka.http.scaladsl.marshalling.{Marshaller, ToEntityMarshaller}
 import akka.http.scaladsl.model.ContentTypes._
 import akka.http.scaladsl.model.HttpMethods.POST
+import akka.http.scaladsl.model.Uri.Query
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
@@ -18,7 +19,8 @@ import java.nio.file.Paths
 import scala.concurrent.duration._
 
 class OpenIDConnectAkkaHttpOps(private val config: OpenIDConnectConfiguration) {
-  private val swaggerUiPath = "META-INF/resources/webjars/swagger-ui/4.10.3"
+  private val swaggerUiPath = "META-INF/resources/webjars/swagger-ui/4.11.1"
+  private val policyParam = "p"
 
   def oauth2Routes(implicit actorSystem: ActorSystem): Route = {
     implicit val ec = actorSystem.dispatcher
@@ -26,8 +28,12 @@ class OpenIDConnectAkkaHttpOps(private val config: OpenIDConnectConfiguration) {
       path("authorize") {
         get {
           parameterSeq { params =>
-            val newQuery = Uri.Query(config.processAuthorizeQueryParams(params): _*)
-            val newUri = Uri(config.providerMetadata.authorizeEndpoint).withQuery(newQuery)
+            val authorizeUri = Uri(config.providerMetadata.authorizeEndpoint)
+            val incomingQuery = config.processAuthorizeQueryParams(params)
+            // Combine the query strings from the incoming request and the authorizeUri.
+            // Parameters from the incoming request take precedence.
+            val newQuery = Uri.Query((authorizeUri.query() ++ incomingQuery).toMap)
+            val newUri = authorizeUri.withQuery(newQuery)
             redirect(newUri, StatusCodes.Found)
           }
         }
@@ -36,9 +42,13 @@ class OpenIDConnectAkkaHttpOps(private val config: OpenIDConnectConfiguration) {
           post {
             formFieldSeq { fields =>
               complete {
+                val tokenUri = Uri(config.providerMetadata.tokenEndpoint)
+                // If the policy was passed as a parameter in the incoming request,
+                // pass it to the token endpoint as a query string parameter.
                 val newRequest = HttpRequest(
                   POST,
-                  uri = Uri(config.providerMetadata.tokenEndpoint),
+                  uri = tokenUri
+                    .withQuery(fields.find(_._1 == policyParam).map(Query(_)).getOrElse(tokenUri.query())),
                   entity = FormData(config.processTokenFormFields(fields): _*).toEntity
                 )
                 Http().singleRequest(newRequest).map(_.toStrict(5.seconds))

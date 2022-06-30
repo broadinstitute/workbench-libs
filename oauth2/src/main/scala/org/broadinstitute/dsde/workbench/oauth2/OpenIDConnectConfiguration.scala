@@ -67,14 +67,17 @@ object OpenIDConnectConfiguration {
 
   // Grabs the authorize and token endpoints from the authority metadata JSON
   private[oauth2] def getProviderMetadata[F[_]: Async](authorityEndpoint: String): F[OpenIDProviderMetadata] =
-    BlazeClientBuilder[F].resource.use { client =>
-      val req = Uri.unsafeFromString(authorityEndpoint + "/" + oidcMetadataUrlSuffix)
-      client.expectOr[OpenIDProviderMetadata](req)(onError =>
-        Async[F].raiseError(
-          new RuntimeException(s"Error reading OIDC configuration endpoint: ${onError.status.reason}")
+    for {
+      uri <- Async[F].fromEither(Uri.fromString(authorityEndpoint))
+      req = uri.addPath(oidcMetadataUrlSuffix)
+      resp <- BlazeClientBuilder[F].resource.use { client =>
+        client.expectOr[OpenIDProviderMetadata](req)(onError =>
+          Async[F].raiseError(
+            new RuntimeException(s"Error reading OIDC configuration endpoint: ${onError.status.reason}")
+          )
         )
-      )
-    }
+      }
+    } yield resp
 
   implicit private val openIDProviderMetadataDecoder: Decoder[OpenIDProviderMetadata] = Decoder.instance { x =>
     for {
