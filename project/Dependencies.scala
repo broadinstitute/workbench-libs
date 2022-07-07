@@ -64,7 +64,7 @@ object Dependencies {
   val googleFirestore: ModuleID = "com.google.cloud" % "google-cloud-firestore" % "3.1.0"
   val googleStorageNew: ModuleID = "com.google.cloud" % "google-cloud-storage" % "2.6.1"
   val googleStorageLocal: ModuleID = "com.google.cloud" % "google-cloud-nio" % "0.123.28" % "test"
-  val googlePubsubNew: ModuleID = "com.google.cloud" % "google-cloud-pubsub" % "1.116.4"
+  val googlePubsubNew: ModuleID = "com.google.cloud" % "google-cloud-pubsub" % "1.120.0"
   val googleKms: ModuleID = "com.google.cloud" % "google-cloud-kms" % "2.3.1"
   val googleComputeNew: ModuleID = "com.google.cloud" % "google-cloud-compute" % "1.9.1"
   val googleDataproc: ModuleID =    "com.google.cloud" % "google-cloud-dataproc" % "3.0.4"
