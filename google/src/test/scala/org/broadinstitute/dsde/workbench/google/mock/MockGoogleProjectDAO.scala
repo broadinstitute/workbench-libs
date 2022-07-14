@@ -30,7 +30,10 @@ class MockGoogleProjectDAO extends GoogleProjectDAO {
 
   override def getAncestry(projectName: String): Future[Seq[Ancestor]] =
     Future.successful(
-      Seq(new Ancestor().setResourceId(new ResourceId().setId("mock-org-number").setType("organization")))
+      Seq(
+        new Ancestor().setResourceId(new ResourceId().setId(projectName).setType("project")),
+        new Ancestor().setResourceId(new ResourceId().setId("mock-org-number").setType("organization"))
+      )
     )
 
   override def getProjectNumber(projectName: String): Future[Option[Long]] = Future.successful(Some(1234))

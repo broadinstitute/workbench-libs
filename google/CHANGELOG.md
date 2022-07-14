@@ -4,7 +4,7 @@ This file documents changes to the `workbench-google` library, including notes o
 
 ## 0.21
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.21-a78f6e9"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.21-TRAVIS-REPLACE-ME"`
 
 ### Added
 
@@ -36,6 +36,7 @@ when we retried creation. Changed to delete the partially created group before r
 - Cross build to scala 2.13
 - Fix potential NPE in `HttpGoogleProjectDAO.isBillingActive()`
 - Target java 11
+- MockGoogleProjectDAO.getAncestry returns 2 elements consistent with reality
 
 ## 0.20
 
