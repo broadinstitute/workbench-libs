@@ -62,9 +62,9 @@ object Dependencies {
 
   val googleRpc2: ModuleID =               "io.grpc" % "grpc-core" % "1.44.1"
   val googleFirestore: ModuleID = "com.google.cloud" % "google-cloud-firestore" % "3.1.0"
-  val googleStorageNew: ModuleID = "com.google.cloud" % "google-cloud-storage" % "2.6.1"
+  val googleStorageNew: ModuleID = "com.google.cloud" % "google-cloud-storage" % "2.9.2"
   val googleStorageLocal: ModuleID = "com.google.cloud" % "google-cloud-nio" % "0.123.28" % "test"
-  val googlePubsubNew: ModuleID = "com.google.cloud" % "google-cloud-pubsub" % "1.116.4"
+  val googlePubsubNew: ModuleID = "com.google.cloud" % "google-cloud-pubsub" % "1.120.0"
   val googleKms: ModuleID = "com.google.cloud" % "google-cloud-kms" % "2.3.1"
   val googleComputeNew: ModuleID = "com.google.cloud" % "google-cloud-compute" % "1.9.1"
   val googleDataproc: ModuleID =    "com.google.cloud" % "google-cloud-dataproc" % "3.0.4"
@@ -72,7 +72,7 @@ object Dependencies {
   val kubernetesClient: ModuleID = "io.kubernetes" % "client-java" % "15.0.1"
   val googleBigQueryNew: ModuleID = "com.google.cloud" % "google-cloud-bigquery" % "2.6.2"
   val google2CloudBilling = "com.google.cloud" % "google-cloud-billing" % "2.1.12"
-  val googleStorageTransferService: ModuleID = "com.google.cloud" % "google-cloud-storage-transfer" % "1.0.5"
+  val googleStorageTransferService: ModuleID = "com.google.cloud" % "google-cloud-storage-transfer" % "1.2.0"
   val googleResourceManager =  "com.google.cloud" % "google-cloud-resourcemanager" % "1.2.11"
   //the below v1 module is a dependency for v2 because it contains the OAuth scopes necessary to created scoped credentials
   val googleContainerV1: ModuleID = "com.google.apis" % "google-api-services-container" % "v1-rev20220419-1.32.1"
