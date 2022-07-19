@@ -102,6 +102,10 @@ object Dependencies {
   val scalaCache = "com.github.cb372" %% "scalacache-caffeine" % "1.0.0-M6"
   val swaggerUi = "org.webjars" % "swagger-ui" % "4.11.1"
 
+  val azureResourceManager = "com.azure.resourcemanager" % "azure-resourcemanager" % "2.16.0"
+  val azureIdentity =  "com.azure" % "azure-identity" % "1.5.2"
+  val azureRelay =     "com.azure.resourcemanager" % "azure-resourcemanager-relay" % "1.0.0-beta.1"
+
   val commonDependencies = Seq(
     scalatest,
     scalaCheck,
@@ -191,6 +195,13 @@ object Dependencies {
     scalaTestMockito
   )
 
+  val azureDependencies = List(
+    log4cats,
+    azureResourceManager,
+    azureIdentity,
+    azureRelay
+  )
+
   val openTelemetryDependencies = List(
     catsEffect,
     log4cats,
@@ -214,7 +225,8 @@ object Dependencies {
     circeFs2,
     circeCore,
     circeParser,
-    circeGeneric
+    circeGeneric,
+    catsMtl
   )
 
   val serviceTestDependencies = commonDependencies ++ Seq(
