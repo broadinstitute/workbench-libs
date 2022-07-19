@@ -124,7 +124,7 @@ class OpenIDConnectAkkaHttpSpec extends AnyFlatSpecLike with Matchers with Workb
         handled shouldBe true
         status shouldBe StatusCodes.OK
         val resp = responseAs[String]
-        resp shouldBe (Map("token" -> "a-token")).asJson.noSpaces
+        resp shouldBe Map("token" -> "a-token").asJson.noSpaces
       }
     } yield ()
 
