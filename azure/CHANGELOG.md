@@ -6,4 +6,4 @@ This file documents changes to the `workbench-azure` library, including notes on
 
 ### Added
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.1-TRAVIS-REPLACE-ME"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.1-91d3580"`
