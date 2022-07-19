@@ -72,7 +72,7 @@ class HttpGoogleBigQueryDAO(
   }
 
   override def getQueryStatus(jobRef: JobReference): Future[Job] = {
-    val statusRequest = bigquery.jobs.get(jobRef.getProjectId, jobRef.getJobId)
+    val statusRequest = bigquery.jobs.get(jobRef.getProjectId, jobRef.getJobId).setLocation(jobRef.getLocation)
 
     retry(when5xx, whenUsageLimited, when404, whenInvalidValueOnBucketCreation, whenNonHttpIOException) { () =>
       executeGoogleRequest(statusRequest)
@@ -83,7 +83,9 @@ class HttpGoogleBigQueryDAO(
     if (job.getStatus.getState != "DONE")
       Future.failed(new WorkbenchException(s"job ${job.getJobReference.getJobId} not done"))
 
-    val resultRequest = bigquery.jobs.getQueryResults(job.getJobReference.getProjectId, job.getJobReference.getJobId)
+    val resultRequest = bigquery.jobs
+      .getQueryResults(job.getJobReference.getProjectId, job.getJobReference.getJobId)
+      .setLocation(job.getJobReference.getLocation)
     retry(when5xx, whenUsageLimited, when404, whenInvalidValueOnBucketCreation, whenNonHttpIOException) { () =>
       executeGoogleRequest(resultRequest)
     }
