@@ -222,7 +222,7 @@ object RegionName {
     if (x.isEmpty)
       None
     else
-      (x.split("/").lastOption).map(RegionName(_))
+      x.split("/").lastOption.map(RegionName(_))
   }
 }
 
@@ -232,6 +232,6 @@ object ZoneName {
     if (x.isEmpty)
       None
     else
-      (x.split("/").lastOption).map(ZoneName(_))
+      x.split("/").lastOption.map(ZoneName(_))
   }
 }

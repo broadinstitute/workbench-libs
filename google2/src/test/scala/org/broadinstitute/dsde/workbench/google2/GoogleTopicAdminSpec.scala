@@ -41,7 +41,7 @@ class GoogleTopicAdminSpec extends AnyFlatSpecLike with Matchers with WorkbenchT
           caught = the[com.google.api.gax.rpc.NotFoundException] thrownBy {
             topicAdmin.getTopic(topic)
           }
-        } yield (caught.getMessage should include("NOT_FOUND"))
+        } yield caught.getMessage should include("NOT_FOUND")
       }
 
       result.unsafeRunSync()
