@@ -13,7 +13,7 @@ import com.google.cloud.compute.v1._
 import org.broadinstitute.dsde.workbench.google2.util.RetryPredicates._
 import org.broadinstitute.dsde.workbench.model.google.GoogleProject
 import org.broadinstitute.dsde.workbench.model.{TraceId, WorkbenchException}
-import org.broadinstitute.dsde.workbench.util2.withLogging
+import org.broadinstitute.dsde.workbench.util2.{withLogging, InstanceName}
 
 import scala.jdk.CollectionConverters._
 

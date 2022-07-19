@@ -14,6 +14,7 @@ import org.broadinstitute.dsde.workbench.RetryConfig
 import org.broadinstitute.dsde.workbench.google2.util.RetryPredicates
 import org.broadinstitute.dsde.workbench.model.google.GoogleProject
 import org.broadinstitute.dsde.workbench.model.{TraceId, WorkbenchEmail}
+import org.broadinstitute.dsde.workbench.util2.InstanceName
 
 import java.util.concurrent.ScheduledThreadPoolExecutor
 import scala.jdk.CollectionConverters._
