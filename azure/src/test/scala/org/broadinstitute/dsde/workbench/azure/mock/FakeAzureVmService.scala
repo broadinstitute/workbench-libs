@@ -7,13 +7,14 @@ import com.azure.resourcemanager.compute.models.VirtualMachine
 import com.azure.resourcemanager.resources.fluentcore.model.Accepted
 import org.broadinstitute.dsde.workbench.azure.AzureVmService
 import org.broadinstitute.dsde.workbench.model.TraceId
+import org.broadinstitute.dsde.workbench.util2.InstanceName
 
 class FakeAzureVmService extends AzureVmService[IO] {
-  override def getAzureVm(name: String, cloudContext: AzureCloudContext)(implicit
+  override def getAzureVm(name: InstanceName, cloudContext: AzureCloudContext)(implicit
     ev: Ask[IO, TraceId]
   ): IO[Option[VirtualMachine]] = IO.pure(None)
 
-  override def deleteAzureVm(name: String, cloudContext: AzureCloudContext, forceDeletion: Boolean)(implicit
+  override def deleteAzureVm(name: InstanceName, cloudContext: AzureCloudContext, forceDeletion: Boolean)(implicit
     ev: Ask[IO, TraceId]
   ): IO[Option[Accepted[Void]]] = IO.pure(None)
 }

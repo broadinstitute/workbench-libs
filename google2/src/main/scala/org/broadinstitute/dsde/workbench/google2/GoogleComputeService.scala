@@ -209,7 +209,6 @@ object GoogleComputeService {
   }
 }
 
-final case class InstanceName(value: String) extends AnyVal
 final case class FirewallRuleName(value: String) extends AnyVal
 final case class MachineTypeName(value: String) extends AnyVal
 final case class NetworkName(value: String) extends AnyVal

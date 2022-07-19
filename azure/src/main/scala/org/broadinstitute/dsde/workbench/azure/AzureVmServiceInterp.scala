@@ -11,7 +11,7 @@ import com.azure.resourcemanager.compute.ComputeManager
 import com.azure.resourcemanager.compute.models.VirtualMachine
 import com.azure.resourcemanager.resources.fluentcore.model.Accepted
 import org.broadinstitute.dsde.workbench.model.TraceId
-import org.broadinstitute.dsde.workbench.util2.tracedLogging
+import org.broadinstitute.dsde.workbench.util2.{tracedLogging, InstanceName}
 import org.typelevel.log4cats.StructuredLogger
 
 class AzureVmServiceInterp[F[_]](clientSecretCredential: ClientSecretCredential)(implicit
@@ -19,7 +19,7 @@ class AzureVmServiceInterp[F[_]](clientSecretCredential: ClientSecretCredential)
   logger: StructuredLogger[F]
 ) extends AzureVmService[F] {
 
-  def getAzureVm(name: String, cloudContext: AzureCloudContext)(implicit
+  def getAzureVm(name: InstanceName, cloudContext: AzureCloudContext)(implicit
     ev: Ask[F, TraceId]
   ): F[Option[VirtualMachine]] =
     for {
@@ -29,7 +29,7 @@ class AzureVmServiceInterp[F[_]](clientSecretCredential: ClientSecretCredential)
         .delay(
           azureComputeManager
             .virtualMachines()
-            .getByResourceGroup(cloudContext.managedResourceGroupName.value, name)
+            .getByResourceGroup(cloudContext.managedResourceGroupName.value, name.value)
         )
         .map(Option(_))
         .handleErrorWith {
@@ -42,7 +42,7 @@ class AzureVmServiceInterp[F[_]](clientSecretCredential: ClientSecretCredential)
       )
     } yield res
 
-  def deleteAzureVm(name: String, cloudContext: AzureCloudContext, forceDeletion: Boolean)(implicit
+  def deleteAzureVm(name: InstanceName, cloudContext: AzureCloudContext, forceDeletion: Boolean)(implicit
     ev: Ask[F, TraceId]
   ): F[Option[Accepted[Void]]] =
     for {
@@ -51,7 +51,10 @@ class AzureVmServiceInterp[F[_]](clientSecretCredential: ClientSecretCredential)
         .delay(
           azureComputeManager
             .virtualMachines()
-            .beginDeleteByResourceGroup(cloudContext.managedResourceGroupName.value, name, forceDeletion)
+            .beginDeleteByResourceGroup(cloudContext.managedResourceGroupName.value,
+                                        name.value,
+                                        forceDeletion
+            ) // Begins force deleting a virtual machine from Azure
         )
         .map(Option(_))
         .handleErrorWith {
