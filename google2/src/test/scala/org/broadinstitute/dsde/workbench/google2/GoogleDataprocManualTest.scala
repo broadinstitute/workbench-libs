@@ -9,7 +9,7 @@ import com.google.cloud.compute.v1.Operation
 import com.google.cloud.dataproc.v1.{Cluster, ClusterOperationMetadata}
 import org.broadinstitute.dsde.workbench.model.TraceId
 import org.broadinstitute.dsde.workbench.model.google.GoogleProject
-import org.broadinstitute.dsde.workbench.util2.{ConsoleLogger, LogLevel}
+import org.broadinstitute.dsde.workbench.util2.{ConsoleLogger, InstanceName, LogLevel}
 
 import java.util.UUID
 

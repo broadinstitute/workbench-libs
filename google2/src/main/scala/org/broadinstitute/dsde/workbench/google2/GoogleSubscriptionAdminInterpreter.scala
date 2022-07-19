@@ -8,6 +8,7 @@ import com.google.pubsub.v1.{ProjectName, ProjectSubscriptionName, Subscription}
 import fs2.Stream
 import org.broadinstitute.dsde.workbench.model.TraceId
 import org.broadinstitute.dsde.workbench.model.google.GoogleProject
+import org.broadinstitute.dsde.workbench.util2.tracedLogging
 import org.typelevel.log4cats.StructuredLogger
 
 import scala.jdk.CollectionConverters._

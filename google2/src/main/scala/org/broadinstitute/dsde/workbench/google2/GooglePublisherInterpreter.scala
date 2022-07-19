@@ -15,6 +15,7 @@ import fs2.{Pipe, Stream}
 import io.circe.Encoder
 import io.circe.syntax._
 import org.broadinstitute.dsde.workbench.model.TraceId
+import org.broadinstitute.dsde.workbench.util2.{tracedLogging, withLogging}
 import org.typelevel.log4cats.StructuredLogger
 
 import java.util.concurrent.ScheduledThreadPoolExecutor

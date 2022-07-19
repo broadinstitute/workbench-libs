@@ -9,6 +9,7 @@ import com.google.cloud.dataproc.v1.{Cluster, ClusterOperationMetadata}
 import com.google.protobuf.Empty
 import org.broadinstitute.dsde.workbench.model.TraceId
 import org.broadinstitute.dsde.workbench.model.google.GoogleProject
+import org.broadinstitute.dsde.workbench.util2.InstanceName
 
 class BaseFakeGoogleDataprocService extends GoogleDataprocService[IO] {
   override def createCluster(

@@ -31,6 +31,7 @@ import org.broadinstitute.dsde.workbench.google2.util.RetryPredicates.standardGo
 import org.broadinstitute.dsde.workbench.model.{TraceId, WorkbenchException}
 import org.broadinstitute.dsde.workbench.model.google.{GcsBucketName, GcsObjectName, GoogleProject}
 import com.google.auth.Credentials
+import org.broadinstitute.dsde.workbench.util2.withLogging
 
 import scala.jdk.CollectionConverters._
 

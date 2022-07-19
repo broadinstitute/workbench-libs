@@ -8,6 +8,7 @@ import com.google.cloud.resourcemanager.{Project, ResourceManager}
 import org.broadinstitute.dsde.workbench.google2.util.RetryPredicates._
 import org.broadinstitute.dsde.workbench.model.TraceId
 import org.broadinstitute.dsde.workbench.model.google.GoogleProject
+import org.broadinstitute.dsde.workbench.util2.tracedLogging
 import org.typelevel.log4cats.StructuredLogger
 
 import scala.jdk.CollectionConverters._

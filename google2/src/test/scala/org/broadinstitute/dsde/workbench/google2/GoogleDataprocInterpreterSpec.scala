@@ -17,7 +17,13 @@ import org.broadinstitute.dsde.workbench.google2.Generators.genGoogleProject
 import org.broadinstitute.dsde.workbench.google2.mock.FakeGoogleComputeService
 import org.broadinstitute.dsde.workbench.google2.util.RetryPredicates
 import org.broadinstitute.dsde.workbench.model.TraceId
-import org.broadinstitute.dsde.workbench.util2.{ConsoleLogger, LogLevel, PropertyBasedTesting, WorkbenchTestSuite}
+import org.broadinstitute.dsde.workbench.util2.{
+  ConsoleLogger,
+  InstanceName,
+  LogLevel,
+  PropertyBasedTesting,
+  WorkbenchTestSuite
+}
 import org.mockito.ArgumentMatchers.{any, anyString}
 import org.mockito.BDDMockito.`given`
 import org.mockito.{MockSettings, Mockito}

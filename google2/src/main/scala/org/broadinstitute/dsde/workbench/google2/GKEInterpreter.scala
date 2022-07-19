@@ -11,6 +11,7 @@ import fs2.Stream
 import org.broadinstitute.dsde.workbench.google2.GKEModels._
 import org.broadinstitute.dsde.workbench.google2.util.RetryPredicates._
 import org.broadinstitute.dsde.workbench.model.TraceId
+import org.broadinstitute.dsde.workbench.util2.withLogging
 import org.broadinstitute.dsde.workbench.{DoneCheckable, RetryConfig}
 import org.typelevel.log4cats.StructuredLogger
 
