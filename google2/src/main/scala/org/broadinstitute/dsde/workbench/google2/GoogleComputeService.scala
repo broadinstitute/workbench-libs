@@ -14,6 +14,7 @@ import org.broadinstitute.dsde.workbench.RetryConfig
 import org.broadinstitute.dsde.workbench.google2.util.RetryPredicates
 import org.broadinstitute.dsde.workbench.model.google.GoogleProject
 import org.broadinstitute.dsde.workbench.model.{TraceId, WorkbenchEmail}
+import org.broadinstitute.dsde.workbench.util2.InstanceName
 
 import java.util.concurrent.ScheduledThreadPoolExecutor
 import scala.jdk.CollectionConverters._
@@ -209,7 +210,6 @@ object GoogleComputeService {
   }
 }
 
-final case class InstanceName(value: String) extends AnyVal
 final case class FirewallRuleName(value: String) extends AnyVal
 final case class MachineTypeName(value: String) extends AnyVal
 final case class NetworkName(value: String) extends AnyVal
@@ -222,7 +222,7 @@ object RegionName {
     if (x.isEmpty)
       None
     else
-      (x.split("/").lastOption).map(RegionName(_))
+      x.split("/").lastOption.map(RegionName(_))
   }
 }
 
@@ -232,6 +232,6 @@ object ZoneName {
     if (x.isEmpty)
       None
     else
-      (x.split("/").lastOption).map(ZoneName(_))
+      x.split("/").lastOption.map(ZoneName(_))
   }
 }

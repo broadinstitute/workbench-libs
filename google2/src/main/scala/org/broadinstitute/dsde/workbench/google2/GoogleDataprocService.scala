@@ -16,6 +16,7 @@ import org.broadinstitute.dsde.workbench.RetryConfig
 import org.broadinstitute.dsde.workbench.google2.util.RetryPredicates
 import org.broadinstitute.dsde.workbench.model.TraceId
 import org.broadinstitute.dsde.workbench.model.google.{GcsBucketName, GoogleProject}
+import org.broadinstitute.dsde.workbench.util2.InstanceName
 import org.typelevel.log4cats.StructuredLogger
 
 import java.util.concurrent.ScheduledThreadPoolExecutor
