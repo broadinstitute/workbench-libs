@@ -6,6 +6,7 @@ import com.google.cloud.bigquery.Acl.{Group, User}
 import com.google.cloud.bigquery._
 import org.broadinstitute.dsde.workbench.model.google.{BigQueryDatasetName, BigQueryTableName, GoogleProject}
 import org.broadinstitute.dsde.workbench.model.{WorkbenchEmail, WorkbenchException}
+import org.broadinstitute.dsde.workbench.util2.withLogging
 import org.typelevel.log4cats.StructuredLogger
 
 import scala.jdk.CollectionConverters._

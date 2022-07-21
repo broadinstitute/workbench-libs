@@ -163,7 +163,7 @@ trait Rawls extends RestClient with LazyLogging {
 
     def copyMethodConfigFromMethodRepo(request: Map[String, Any])(implicit token: AuthToken): String = {
       logger.info(s"Copying method configuration from method repo: $request")
-      postRequest((url + "api/methodconfigs/copyFromMethodRepo"), request)
+      postRequest(url + "api/methodconfigs/copyFromMethodRepo", request)
     }
 
     def getMethodConfigSyntaxValidationInWorkspace(workspaceNamespace: String,
