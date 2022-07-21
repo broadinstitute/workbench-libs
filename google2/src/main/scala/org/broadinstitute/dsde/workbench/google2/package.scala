@@ -4,12 +4,9 @@ import cats.Show
 import cats.effect.{Resource, Sync, Temporal}
 import cats.mtl.Ask
 import cats.syntax.all._
-import cats.effect.syntax.all._
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential
 import com.google.api.core.ApiFutureCallback
 import com.google.api.gax.core.BackgroundResource
-import com.google.api.gax.longrunning.OperationSnapshot
-import com.google.api.gax.retrying.RetryingFuture
 import com.google.api.services.container.ContainerScopes
 import com.google.auth.oauth2.{ServiceAccountCredentials, UserCredentials}
 import com.google.cloud.billing.v1.ProjectBillingInfo
@@ -17,9 +14,9 @@ import com.google.cloud.compute.v1.Operation
 import com.google.cloud.resourcemanager.Project
 import fs2.{RaiseThrowable, Stream}
 import io.circe.Encoder
-import io.circe.syntax._
 import org.broadinstitute.dsde.workbench.DoneCheckableSyntax._
 import org.broadinstitute.dsde.workbench.model.{ErrorReportSource, TraceId, WorkbenchException}
+import org.broadinstitute.dsde.workbench.util2.withLogging
 import org.typelevel.log4cats.StructuredLogger
 
 import scala.concurrent.duration._
@@ -30,11 +27,6 @@ package object google2 {
   implicit val errorReportSource = ErrorReportSource("google2")
 
   implicit val finiteDurationEncoder: Encoder[FiniteDuration] = Encoder.encodeString.contramap(_.toString())
-
-  implicit private val loggableGoogleCallEncoder: Encoder[LoggableGoogleCall] = Encoder.forProduct2(
-    "response",
-    "result"
-  )(x => LoggableGoogleCall.unapply(x).get)
 
   def retryF[F[_]: RaiseThrowable: Temporal, A](
     retryConfig: RetryConfig
@@ -52,52 +44,6 @@ package object google2 {
                        retryConfig.retryable
     )
   }
-
-  def withLogging[F[_]: Temporal, A](fa: F[A],
-                                     traceId: Option[TraceId],
-                                     action: String,
-                                     resultFormatter: Show[A] =
-                                       Show.show[A](a => if (a == null) "null" else a.toString.take(1024))
-  )(implicit
-    logger: StructuredLogger[F]
-  ): F[A] =
-    for {
-      res <- Temporal[F].timed(fa.attempt)
-      loggingCtx = Map(
-        "traceId" -> traceId.map(_.asString).getOrElse(""),
-        "googleCall" -> action,
-        "duration" -> res._1.toMillis.toString
-      )
-      _ <- res._2 match {
-        case Left(e: io.kubernetes.client.openapi.ApiException) =>
-          val loggableGoogleCall = LoggableGoogleCall(Some(e.getResponseBody), "Failed")
-          val ctx = loggingCtx ++ Map("result" -> "Failed")
-          logger.error(ctx, e)(loggableGoogleCall.asJson.noSpaces)
-        case Left(e) =>
-          val loggableGoogleCall = LoggableGoogleCall(None, "Failed")
-          val ctx = loggingCtx ++ Map("result" -> "Failed")
-          logger.error(ctx, e)(loggableGoogleCall.asJson.noSpaces)
-        case Right(r) =>
-          val response = Option(resultFormatter.show(r))
-          val loggableGoogleCall = LoggableGoogleCall(response, "Succeeded")
-          val ctx = loggingCtx ++ Map("result" -> "Succeeded")
-          logger.info(ctx)(loggableGoogleCall.asJson.noSpaces)
-      }
-      result <- Temporal[F].fromEither(res._2)
-    } yield result
-
-  def tracedLogging[F[_]: Temporal, A](fa: F[A],
-                                       action: String,
-                                       resultFormatter: Show[A] =
-                                         Show.show[A](a => if (a == null) "null" else a.toString.take(1024))
-  )(implicit
-    logger: StructuredLogger[F],
-    ev: Ask[F, TraceId]
-  ): F[A] =
-    for {
-      traceId <- ev.ask
-      result <- withLogging(fa, Some(traceId), action, resultFormatter)
-    } yield result
 
   def tracedRetryF[F[_]: Temporal: RaiseThrowable: StructuredLogger, A](
     retryConfig: RetryConfig
