@@ -24,7 +24,7 @@ trait GoogleServiceHttp[F[_]] {
 }
 
 object GoogleServiceHttp {
-  def withRetryAndLogging[F[_]: Temporal: Async: Logger](
+  def withRetryAndLogging[F[_]: Async: Logger](
     httpClient: Client[F],
     config: NotificationCreaterConfig
   ): Resource[F, GoogleServiceHttp[F]] = {
@@ -36,7 +36,7 @@ object GoogleServiceHttp {
     } yield new GoogleServiceHttpInterpreter[F](clientWithRetryAndLogging, config, credentials)
   }
 
-  def withoutRetryAndLogging[F[_]: Temporal: Async: Logger](
+  def withoutRetryAndLogging[F[_]: Async: Logger](
     httpClient: Client[F],
     config: NotificationCreaterConfig
   ): Resource[F, GoogleServiceHttp[F]] =

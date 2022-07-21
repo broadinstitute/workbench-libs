@@ -7,6 +7,7 @@ import cats.mtl.Ask
 import com.google.cloud.compute.v1.Instance
 import org.broadinstitute.dsde.workbench.model.TraceId
 import org.broadinstitute.dsde.workbench.model.google.GoogleProject
+import org.broadinstitute.dsde.workbench.util2.InstanceName
 import org.typelevel.log4cats.slf4j.Slf4jLogger
 
 import java.util.UUID
