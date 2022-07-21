@@ -12,6 +12,7 @@ import org.broadinstitute.dsde.workbench.google2.GoogleStorageTransferService.Ob
 import org.broadinstitute.dsde.workbench.google2.GoogleStorageTransferService._
 import org.broadinstitute.dsde.workbench.model.WorkbenchEmail
 import org.broadinstitute.dsde.workbench.model.google._
+import org.broadinstitute.dsde.workbench.util2.withLogging
 import org.typelevel.log4cats.StructuredLogger
 
 import java.time.ZonedDateTime

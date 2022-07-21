@@ -9,7 +9,6 @@ import org.broadinstitute.dsde.workbench.google2.{
   DiskName,
   FirewallRuleName,
   GoogleComputeService,
-  InstanceName,
   MachineTypeName,
   NetworkName,
   RegionName,
@@ -18,6 +17,7 @@ import org.broadinstitute.dsde.workbench.google2.{
 }
 import org.broadinstitute.dsde.workbench.model.TraceId
 import org.broadinstitute.dsde.workbench.model.google.GoogleProject
+import org.broadinstitute.dsde.workbench.util2.InstanceName
 
 class FakeGoogleComputeService extends GoogleComputeService[IO] {
   override def createInstance(project: GoogleProject, zone: ZoneName, instance: Instance)(implicit

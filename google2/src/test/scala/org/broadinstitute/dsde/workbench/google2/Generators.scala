@@ -3,7 +3,6 @@ package google2
 
 import java.nio.charset.Charset
 import java.time.Instant
-
 import cats.data.NonEmptyList
 import com.google.pubsub.v1.TopicName
 import org.broadinstitute.dsde.workbench.google2.DataprocRole.{Master, SecondaryWorker, Worker}
@@ -15,6 +14,7 @@ import org.broadinstitute.dsde.workbench.google2.GKEModels.{
 }
 import org.broadinstitute.dsde.workbench.google2.NotificationEventTypes._
 import org.broadinstitute.dsde.workbench.model.google._
+import org.broadinstitute.dsde.workbench.util2.InstanceName
 import org.scalacheck.{Arbitrary, Gen}
 
 object Generators {
