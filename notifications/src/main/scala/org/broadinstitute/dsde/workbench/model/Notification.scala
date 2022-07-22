@@ -119,6 +119,20 @@ object Notifications {
     override val description = "Workspace changed"
   })
 
+  case class TerminalSubmissionNotification(recipientUserId: WorkbenchUserId,
+                                            workspaceName: WorkspaceName,
+                                            submissionId: String,
+                                            comment: String,
+                                            workflowStatuses: Map[String, Int],
+                                            workflowConfiguration: String,
+                                            submittedDate: String
+                                           )
+    extends WorkspaceNotification
+  val TerminalSubmissionNotificationType = register(new WorkspaceNotificationType[TerminalSubmissionNotification] {
+    override val format = jsonFormat7(TerminalSubmissionNotification.apply)
+    override val description = "Terminal submission"
+  })
+
   case class GroupAccessRequestNotification(recipientUserId: WorkbenchUserId,
                                             groupName: String,
                                             replyToIds: Set[WorkbenchUserId],
