@@ -14,7 +14,7 @@ object Dependencies {
 
   def excludeGuavaJDK5(m: ModuleID): ModuleID = m.exclude("com.google.guava", "guava-jdk5")
 
-  val logstashLogback: ModuleID = "net.logstash.logback"      % "logstash-logback-encoder" % "7.0.1" % "provided"
+  val logstashLogback: ModuleID = "net.logstash.logback"      % "logstash-logback-encoder" % "7.2" % "provided"
   val scalaLogging: ModuleID = "com.typesafe.scala-logging"    %% "scala-logging" % scalaLoggingV  % "provided"
   val scalatest: ModuleID =    "org.scalatest"                 %% "scalatest"     % scalaTestV  % "test"
   val scalaTestScalaCheck = "org.scalatestplus" %% "scalacheck-1-15" % "3.2.11.0" % Test //Since scalatest 3.1.0, scalacheck support is moved to `scalatestplus`
