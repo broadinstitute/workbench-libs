@@ -4,7 +4,6 @@ package mock
 import cats.effect.IO
 import cats.mtl.Ask
 import com.google.api.gax.longrunning.OperationFuture
-import com.google.cloud.compute.v1.Operation
 import com.google.cloud.dataproc.v1.{Cluster, ClusterOperationMetadata}
 import com.google.protobuf.Empty
 import org.broadinstitute.dsde.workbench.model.TraceId
