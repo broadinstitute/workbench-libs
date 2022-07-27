@@ -7,14 +7,14 @@ object Dependencies {
   val googleV       = "1.22.0"
   val scalaLoggingV = "3.9.5"
   val scalaTestV    = "3.2.12"
-  val circeVersion = "0.14.1"
+  val circeVersion = "0.14.2"
   val http4sVersion = "1.0.0-M34"
   val bouncyCastleVersion = "1.70"
   val openCensusV = "0.31.1"
 
   def excludeGuavaJDK5(m: ModuleID): ModuleID = m.exclude("com.google.guava", "guava-jdk5")
 
-  val logstashLogback: ModuleID = "net.logstash.logback"      % "logstash-logback-encoder" % "7.0.1" % "provided"
+  val logstashLogback: ModuleID = "net.logstash.logback"      % "logstash-logback-encoder" % "7.2" % "provided"
   val scalaLogging: ModuleID = "com.typesafe.scala-logging"    %% "scala-logging" % scalaLoggingV  % "provided"
   val scalatest: ModuleID =    "org.scalatest"                 %% "scalatest"     % scalaTestV  % "test"
   val scalaTestScalaCheck = "org.scalatestplus" %% "scalacheck-1-15" % "3.2.11.0" % Test //Since scalatest 3.1.0, scalacheck support is moved to `scalatestplus`
@@ -37,7 +37,7 @@ object Dependencies {
   val bouncyCastleProviderExt: ModuleID = "org.bouncycastle" % "bcprov-ext-jdk15on" % bouncyCastleVersion
   val bouncyCastleProvider: ModuleID = "org.bouncycastle" % "bcprov-jdk15on" % bouncyCastleVersion
 
-  val catsEffect: ModuleID = "org.typelevel" %% "cats-effect" % "3.3.13"
+  val catsEffect: ModuleID = "org.typelevel" %% "cats-effect" % "3.3.14"
 
   // metrics-scala transitively pulls in io.dropwizard.metrics:metrics-core
   val metricsScala: ModuleID =      "nl.grons"              %% "metrics4-scala"    % "4.2.8"
@@ -60,16 +60,16 @@ object Dependencies {
   val googleGuava: ModuleID = "com.google.guava"  % "guava" % "31.1-jre"
   val googleRpc: ModuleID =               "io.grpc" % "grpc-core" % "1.34.0"
 
-  val googleRpc2: ModuleID =               "io.grpc" % "grpc-core" % "1.44.1"
+  val googleRpc2: ModuleID =               "io.grpc" % "grpc-core" % "1.48.0"
   val googleFirestore: ModuleID = "com.google.cloud" % "google-cloud-firestore" % "3.1.0"
-  val googleStorageNew: ModuleID = "com.google.cloud" % "google-cloud-storage" % "2.9.2"
-  val googleStorageLocal: ModuleID = "com.google.cloud" % "google-cloud-nio" % "0.123.28" % "test"
-  val googlePubsubNew: ModuleID = "com.google.cloud" % "google-cloud-pubsub" % "1.120.0"
+  val googleStorageNew: ModuleID = "com.google.cloud" % "google-cloud-storage" % "2.9.3"
+  val googleStorageLocal: ModuleID = "com.google.cloud" % "google-cloud-nio" % "0.124.10" % "test"
+  val googlePubsubNew: ModuleID = "com.google.cloud" % "google-cloud-pubsub" % "1.120.1"
   val googleKms: ModuleID = "com.google.cloud" % "google-cloud-kms" % "2.3.1"
   val googleComputeNew: ModuleID = "com.google.cloud" % "google-cloud-compute" % "1.11.0"
-  val googleDataproc: ModuleID =    "com.google.cloud" % "google-cloud-dataproc" % "3.0.4"
-  val googleContainer: ModuleID = "com.google.cloud" % "google-cloud-container" % "2.4.1"
-  val kubernetesClient: ModuleID = "io.kubernetes" % "client-java" % "15.0.1"
+  val googleDataproc: ModuleID =    "com.google.cloud" % "google-cloud-dataproc" % "3.1.2"
+  val googleContainer: ModuleID = "com.google.cloud" % "google-cloud-container" % "2.5.0"
+  val kubernetesClient: ModuleID = "io.kubernetes" % "client-java" % "16.0.0"
   val googleBigQueryNew: ModuleID = "com.google.cloud" % "google-cloud-bigquery" % "2.6.2"
   val google2CloudBilling = "com.google.cloud" % "google-cloud-billing" % "2.1.12"
   val googleStorageTransferService: ModuleID = "com.google.cloud" % "google-cloud-storage-transfer" % "1.2.0"
@@ -82,14 +82,14 @@ object Dependencies {
   val circeParser: ModuleID = "io.circe" %% "circe-parser" % circeVersion
   val circeGeneric: ModuleID = "io.circe" %% "circe-generic" % circeVersion % "test"
   val circeFs2: ModuleID = "io.circe" %% "circe-fs2" % "0.14.0"
-  val log4cats = "org.typelevel" %% "log4cats-slf4j"   % "2.3.2"
-  val catsMtl = "org.typelevel" %% "cats-mtl" % "1.2.1"
+  val log4cats = "org.typelevel" %% "log4cats-slf4j"   % "2.4.0"
+  val catsMtl = "org.typelevel" %% "cats-mtl" % "1.3.0"
 
   val http4sCirce = "org.http4s" %% "http4s-circe" % http4sVersion
   val http4sBlazeClient = "org.http4s" %% "http4s-blaze-client" % http4sVersion
   val http4sDsl = "org.http4s"      %% "http4s-dsl"          % http4sVersion
 
-  val fs2Io: ModuleID = "co.fs2" %% "fs2-io" % "3.2.9"
+  val fs2Io: ModuleID = "co.fs2" %% "fs2-io" % "3.2.10"
   val rawlsModel: ModuleID = "org.broadinstitute.dsde" %% "rawls-model" % "0.1-384ab501b" exclude("com.typesafe.scala-logging", "scala-logging_2.13") exclude("com.typesafe.akka", "akka-stream_2.13")
   val openCensusApi: ModuleID = "io.opencensus" % "opencensus-api" % openCensusV
   val openCensusImpl: ModuleID = "io.opencensus" % "opencensus-impl" % openCensusV
@@ -97,13 +97,13 @@ object Dependencies {
   val openCensusStatsStackDriver: ModuleID = "io.opencensus" % "opencensus-exporter-stats-stackdriver" % openCensusV
   val openCensusTraceStackDriver: ModuleID = "io.opencensus" % "opencensus-exporter-trace-stackdriver" % openCensusV
   val openCensusTraceLogging: ModuleID = "io.opencensus" % "opencensus-exporter-trace-logging" % openCensusV
-  val prometheusServer: ModuleID = "io.prometheus" % "simpleclient_httpserver" % "0.15.0"
+  val prometheusServer: ModuleID = "io.prometheus" % "simpleclient_httpserver" % "0.16.0"
   val sealerate: ModuleID = "ca.mrvisser" %% "sealerate" % "0.0.6"
   val scalaCache = "com.github.cb372" %% "scalacache-caffeine" % "1.0.0-M6"
   val swaggerUi = "org.webjars" % "swagger-ui" % "4.11.1"
 
   val azureResourceManager = "com.azure.resourcemanager" % "azure-resourcemanager" % "2.16.0"
-  val azureIdentity =  "com.azure" % "azure-identity" % "1.5.2"
+  val azureIdentity =  "com.azure" % "azure-identity" % "1.5.3"
   val azureRelay =     "com.azure.resourcemanager" % "azure-resourcemanager-relay" % "1.0.0-beta.1"
 
   val commonDependencies = Seq(
