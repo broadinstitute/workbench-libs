@@ -8,6 +8,7 @@ import com.google.cloud.billing.v1.{CloudBillingClient, ProjectBillingInfo}
 import org.broadinstitute.dsde.workbench.google2.util.RetryPredicates._
 import org.broadinstitute.dsde.workbench.model.TraceId
 import org.broadinstitute.dsde.workbench.model.google.GoogleProject
+import org.broadinstitute.dsde.workbench.util2.tracedLogging
 import org.typelevel.log4cats.StructuredLogger
 
 private[google2] class GoogleBillingInterpreter[F[_]: StructuredLogger](

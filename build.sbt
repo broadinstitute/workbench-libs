@@ -12,6 +12,7 @@ lazy val workbenchUtil = project
 lazy val workbenchUtil2 = project
   .in(file("util2"))
   .settings(util2Settings: _*)
+  .dependsOn(workbenchModel)
   .withTestSettings
 
 lazy val workbenchModel = project
@@ -37,6 +38,13 @@ lazy val workbenchGoogle = project
 lazy val workbenchGoogle2 = project
   .in(file("google2"))
   .settings(google2Settings: _*)
+  .dependsOn(workbenchUtil2 % testAndCompile)
+  .dependsOn(workbenchModel)
+  .withTestSettings
+
+lazy val workbenchAzure = project
+  .in(file("azure"))
+  .settings(azureSettings: _*)
   .dependsOn(workbenchUtil2 % testAndCompile)
   .dependsOn(workbenchModel)
   .withTestSettings
@@ -91,5 +99,6 @@ lazy val workbenchLibs = project
   .aggregate(workbenchGoogle)
   .aggregate(workbenchGoogle2)
   .aggregate(workbenchServiceTest)
+  .aggregate(workbenchAzure)
   .aggregate(workbenchNotifications)
   .aggregate(workbenchOauth2)

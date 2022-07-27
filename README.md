@@ -9,6 +9,16 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for information about library versioning.
 
 In this repo:
 
+## workbench-azure
+
+Workbench utility libraries, built for 2.13. You can find the full list of packages at [Artifactory](https://broadinstitute.jfrog.io/broadinstitute/webapp/#/artifacts/browse/tree/General/libs-release-local/org/broadinstitute/dsde/workbench/).
+
+Contains utility functions for talking to Google APIs via com.google.cloud client library (more recent) via gRPC.
+
+Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-azure" % "0.1-91d3580"`
+
+[Changelog](azure/CHANGELOG.md)
+
 ## workbench-utils
 
 Workbench utility libraries, built for 2.13. You can find the full list of packages at [Artifactory](https://broadinstitute.jfrog.io/broadinstitute/webapp/#/artifacts/browse/tree/General/libs-release-local/org/broadinstitute/dsde/workbench/).
@@ -58,7 +68,7 @@ Workbench utility libraries, built for 2.13. You can find the full list of packa
 
 Contains utility functions for talking to Google APIs and DAOs for Google PubSub, Google Directory, Google IAM, and Google BigQuery. 
 
-Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.21-c7d6911"`
+Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.21-c1379f4"`
 
 To depend on the `MockGoogle*` classes, additionally depend on:
 

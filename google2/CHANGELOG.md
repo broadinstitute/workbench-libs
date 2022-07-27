@@ -29,7 +29,7 @@ Dependency Upgrades:
 | google-cloud-resourcemanager |   1.2.0   |  1.2.11 |
 | simpleclient_httpserver |   0.12.0   | 0.15.0 |
 | log4cats-slf4j |  2.1.1   |  2.3.0 |
-| http4s |  1.0.0-M32   |  1.0.0-M33 |
+| http4s |  1.0.0-M34   |  1.0.0-M33 |
 
 SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.24-11969af"`
 
@@ -125,7 +125,7 @@ Dependency Updates (latest):
 - Update google-cloud-kms from 1.40.5 to 1.40.8 (#539) (2 hours ago) <Scala Steward>
 - Update google-cloud-billing from 1.1.12 to 1.1.15 (#558) (2 hours ago) <Scala Steward>
 - Update google-cloud-storage from 1.113.13 to 1.113.14 (#566) (2 hours ago) <Scala Steward>
-- Update scala-logging from 3.9.2 to 3.9.4 (#568) (2 hours ago) <Scala Steward>
+- Update scala-logging from 3.9.2 to 3.9.5 (#568) (2 hours ago) <Scala Steward>
 - Update log4cats-slf4j
 - Update google-cloud-pubsub 
 - Update google-cloud-bigquery from 1.127.7 to 1.127.11
