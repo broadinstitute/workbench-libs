@@ -11,43 +11,61 @@ import org.typelevel.log4cats.slf4j.Slf4jLogger
 
 import scala.concurrent.duration._
 
-final class AzureStorageManualTest(connectionAuthString: String, container: String = "testconn") {
+final class AzureStorageManualTest(
+  sasToken: String =
+    "",
+  endpointUrl: String =
+    "",
+  container: String = "testconn"
+) {
 
   implicit val traceId = Ask.const[IO, TraceId](TraceId(UUID.randomUUID()))
 
   implicit def logger = Slf4jLogger.getLogger[IO]
 
   val serviceResource: Resource[IO, AzureStorageService[IO]] =
-    AzureStorageService.fromAzureAppRegistrationConfig(AzureStorageConfig(10 minutes))
+    AzureStorageService.fromSasToken(AzureStorageConfig(10 minutes, sasToken, endpointUrl))
 
   def useService(fa: AzureStorageService[IO] => IO[Unit]) =
     serviceResource.use { service =>
       fa(service)
     }
 
-  val connectionString: ConnectionString = ConnectionString(connectionAuthString)
   val containerName = ContainerName(container)
 
   val defaultBlobName = "testblob"
 
-  def createContainer(): IO[Unit] =
-    serviceResource.use { s =>
-      s.createContainer(connectionString, containerName)
-    }
+//  def createContainer(): IO[Unit] =
+//    serviceResource.use { s =>
+//      s.createContainer(containerName)
+//    }
 
   def uploadBlob(uploadString: String = "contents", blobName: String = defaultBlobName): IO[Unit] =
     serviceResource.use { s =>
       fs2.Stream
         .emits(uploadString.getBytes(Charset.forName("UTF-8")))
         .covary[IO]
-        .through(s.uploadBlob(connectionString, containerName, BlobName(blobName)))
+        .through(s.uploadBlob(containerName, BlobName(blobName)))
         .compile
         .drain
     }
 
+  def deleteBlob(blobName: String): IO[Unit] =
+    serviceResource.use { s =>
+      s.deleteBlob(containerName, BlobName(blobName))
+    }
+
+  def listBlob(): IO[List[String]] =
+    serviceResource.use { s =>
+      s.listObjects(containerName, None)
+        .compile
+        .toList
+        .map(_.map(_.getName))
+    }
+
   def getBlob(): IO[String] =
     serviceResource.use { s =>
-      s.getBlob(connectionString, containerName, BlobName(defaultBlobName))
+      s.getBlob(containerName, BlobName(defaultBlobName))
         .compile
         .toList
         .map(bytes => new String(bytes.toArray, StandardCharsets.UTF_8))
@@ -55,7 +73,7 @@ final class AzureStorageManualTest(connectionAuthString: String, container: Stri
 
   def downloadBlob(path: Path = Paths.get("/tmp/out.txt")): IO[Unit] =
     serviceResource.use { s =>
-      s.downloadBlob(connectionString, containerName, BlobName(defaultBlobName), path, true)
+      s.downloadBlob(containerName, BlobName(defaultBlobName), path, overwrite = true)
     }
 
 }
