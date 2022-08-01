@@ -12,10 +12,8 @@ import org.typelevel.log4cats.slf4j.Slf4jLogger
 import scala.concurrent.duration._
 
 final class AzureStorageManualTest(
-  sasToken: String =
-    "",
-  endpointUrl: String =
-    "",
+  sasToken: String = "",
+  endpointUrl: String = "",
   container: String = "testconn"
 ) {
 
