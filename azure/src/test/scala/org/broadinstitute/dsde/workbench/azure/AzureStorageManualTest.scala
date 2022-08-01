@@ -35,11 +35,6 @@ final class AzureStorageManualTest(
 
   val defaultBlobName = "testblob"
 
-//  def createContainer(): IO[Unit] =
-//    serviceResource.use { s =>
-//      s.createContainer(containerName)
-//    }
-
   def uploadBlob(uploadString: String = "contents", blobName: String = defaultBlobName): IO[Unit] =
     serviceResource.use { s =>
       fs2.Stream
