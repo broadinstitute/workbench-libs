@@ -43,15 +43,17 @@ object AzureStorageService {
       storageServiceClient <- Resource.eval(
         Async[F].delay(
           new BlobServiceClientBuilder()
-            .sasToken(azureStorageConfig.sasToken)
-            .endpoint(azureStorageConfig.endpointUrl)
+            .sasToken(azureStorageConfig.sasToken.value)
+            .endpoint(azureStorageConfig.endpointUrl.value)
             .buildClient()
         )
       )
     } yield new AzureStorageInterp(azureStorageConfig, storageServiceClient)
 }
 
-final case class AzureStorageConfig(listTimeout: FiniteDuration, sasToken: String, endpointUrl: String)
+final case class AzureStorageConfig(listTimeout: FiniteDuration, sasToken: SasToken, endpointUrl: EndpointUrl)
+final case class SasToken(value: String) extends AnyVal
+final case class EndpointUrl(value: String) extends AnyVal
 
 // See this article for more information on connection strings: https://docs.microsoft.com/en-us/azure/storage/blobs/storage-quickstart-blobs-java?tabs=powershell%2Cenvironment-variable-windows#get-the-connection-string
 final case class ConnectionString(value: String) extends AnyVal

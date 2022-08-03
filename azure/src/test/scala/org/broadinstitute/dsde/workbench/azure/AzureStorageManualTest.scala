@@ -22,7 +22,7 @@ final class AzureStorageManualTest(
   implicit def logger = Slf4jLogger.getLogger[IO]
 
   val serviceResource: Resource[IO, AzureStorageService[IO]] =
-    AzureStorageService.fromSasToken(AzureStorageConfig(10 minutes, sasToken, endpointUrl))
+    AzureStorageService.fromSasToken(AzureStorageConfig(10 minutes, SasToken(sasToken), EndpointUrl(endpointUrl)))
 
   def useService(fa: AzureStorageService[IO] => IO[Unit]) =
     serviceResource.use { service =>
