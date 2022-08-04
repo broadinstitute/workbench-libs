@@ -161,7 +161,7 @@ object Notifications {
     extends WorkspaceNotification
   val AbortedSubmissionNotificationType = register(new WorkspaceNotificationType[AbortedSubmissionNotification] {
     override val format = jsonFormat8(AbortedSubmissionNotification.apply)
-    override val description = "Abirted submission"
+    override val description = "Aborted submission"
   })
 
   case class GroupAccessRequestNotification(recipientUserId: WorkbenchUserId,
