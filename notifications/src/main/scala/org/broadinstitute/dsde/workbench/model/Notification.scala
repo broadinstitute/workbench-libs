@@ -127,8 +127,7 @@ object Notifications {
                                               dataEntity: String,
                                               workflowCount: Long,
                                               comment: String
-                                             )
-    extends WorkspaceNotification
+  ) extends WorkspaceNotification
   val SuccessfulSubmissionNotificationType = register(new WorkspaceNotificationType[SuccessfulSubmissionNotification] {
     override val format = jsonFormat8(SuccessfulSubmissionNotification.apply)
     override val description = "Successful submission"
@@ -142,8 +141,7 @@ object Notifications {
                                           dataEntity: String,
                                           workflowCount: Long,
                                           comment: String
-                                         )
-    extends WorkspaceNotification
+  ) extends WorkspaceNotification
   val FailedSubmissionNotificationType = register(new WorkspaceNotificationType[FailedSubmissionNotification] {
     override val format = jsonFormat8(FailedSubmissionNotification.apply)
     override val description = "Failed submission"
@@ -157,8 +155,7 @@ object Notifications {
                                            dataEntity: String,
                                            workflowCount: Long,
                                            comment: String
-                                          )
-    extends WorkspaceNotification
+  ) extends WorkspaceNotification
   val AbortedSubmissionNotificationType = register(new WorkspaceNotificationType[AbortedSubmissionNotification] {
     override val format = jsonFormat8(AbortedSubmissionNotification.apply)
     override val description = "Aborted submission"
