@@ -4,7 +4,7 @@ This file documents changes to the `workbench-notifications` library, including 
 
 ## 0.3
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util" % "0.3-a78f6e9"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util" % "0.3-TRAVIS-REPLACE-ME"`
 
 ### Changed
 - Moved `SamModel`
@@ -12,6 +12,7 @@ SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util" % "0.3-
 
 ### Added
 - Support scala 2.13
+- Added notifications for successful, failed, and aborted submissions
 
 ## 0.2
 - upgrade cats to 1.4.0 and scala to 2.12.7
