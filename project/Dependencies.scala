@@ -102,7 +102,7 @@ object Dependencies {
   val scalaCache = "com.github.cb372" %% "scalacache-caffeine" % "1.0.0-M6"
   val swaggerUi = "org.webjars" % "swagger-ui" % "4.11.1"
 
-  val azureResourceManager = "com.azure.resourcemanager" % "azure-resourcemanager" % "2.16.0"
+  val azureResourceManager = "com.azure.resourcemanager" % "azure-resourcemanager" % "2.17.0"
   val azureIdentity =  "com.azure" % "azure-identity" % "1.5.3"
   val azureRelay =     "com.azure.resourcemanager" % "azure-resourcemanager-relay" % "1.0.0-beta.2"
   val azureStorageBlob =  "com.azure" % "azure-storage-blob" % "12.13.0"
