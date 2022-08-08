@@ -105,7 +105,7 @@ object Dependencies {
   val azureResourceManager = "com.azure.resourcemanager" % "azure-resourcemanager" % "2.16.0"
   val azureIdentity =  "com.azure" % "azure-identity" % "1.5.3"
   val azureRelay =     "com.azure.resourcemanager" % "azure-resourcemanager-relay" % "1.0.0-beta.2"
-  val azureStorageBlob =  "com.azure" % "azure-storage-blob" % "12.13.0"
+  val azureStorageBlob =  "com.azure" % "azure-storage-blob" % "12.18.0"
 
   val commonDependencies = Seq(
     scalatest,
