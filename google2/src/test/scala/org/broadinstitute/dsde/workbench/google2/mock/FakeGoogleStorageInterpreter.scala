@@ -2,6 +2,7 @@ package org.broadinstitute.dsde.workbench.google2
 package mock
 
 import java.nio.file.Path
+
 import cats.data.NonEmptyList
 import cats.effect.IO
 import com.google.auth.Credentials
@@ -22,6 +23,7 @@ import org.broadinstitute.dsde.workbench.google2.GoogleStorageInterpreterSpec._
 import org.broadinstitute.dsde.workbench.google2.util.RetryPredicates.standardGoogleRetryConfig
 import org.broadinstitute.dsde.workbench.model.TraceId
 import org.broadinstitute.dsde.workbench.model.google.{GcsBucketName, GcsObjectName, GoogleProject}
+import org.broadinstitute.dsde.workbench.util2.RemoveObjectResult
 
 class BaseFakeGoogleStorage extends GoogleStorageService[IO] {
   override def listObjectsWithPrefix(bucketName: GcsBucketName,

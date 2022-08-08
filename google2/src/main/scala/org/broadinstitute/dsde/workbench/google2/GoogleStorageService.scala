@@ -2,6 +2,7 @@ package org.broadinstitute.dsde.workbench
 package google2
 
 import java.nio.file.Path
+
 import cats.data.NonEmptyList
 import cats.effect._
 import cats.effect.std.Semaphore
@@ -27,6 +28,7 @@ import org.typelevel.log4cats.StructuredLogger
 import org.broadinstitute.dsde.workbench.google2.util.RetryPredicates.standardGoogleRetryConfig
 import org.broadinstitute.dsde.workbench.model.TraceId
 import org.broadinstitute.dsde.workbench.model.google.{GcsBucketName, GcsObjectName, GoogleProject}
+import org.broadinstitute.dsde.workbench.util2.RemoveObjectResult
 
 import scala.collection.convert.ImplicitConversions._
 import scala.language.higherKinds
@@ -391,14 +393,6 @@ object GoogleStorageService {
 }
 
 final case class GcsBlobName(value: String) extends AnyVal
-
-sealed trait RemoveObjectResult extends Product with Serializable
-object RemoveObjectResult {
-  def apply(res: Boolean): RemoveObjectResult = if (res) Removed else NotFound
-
-  final case object Removed extends RemoveObjectResult
-  final case object NotFound extends RemoveObjectResult
-}
 
 sealed abstract class StorageRole extends Product with Serializable {
   def name: String

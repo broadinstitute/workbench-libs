@@ -10,6 +10,7 @@ import fs2.{Pipe, Stream}
 import org.broadinstitute.dsde.workbench.model.TraceId
 import org.typelevel.log4cats.StructuredLogger
 import cats.implicits._
+import org.broadinstitute.dsde.workbench.util2.RemoveObjectResult
 
 import scala.concurrent.duration.FiniteDuration
 
@@ -32,7 +33,7 @@ trait AzureStorageService[F[_]] {
 
   def deleteBlob(containerName: ContainerName, blobName: BlobName)(implicit
     ev: Ask[F, TraceId]
-  ): F[Unit]
+  ): F[RemoveObjectResult]
 }
 
 object AzureStorageService {
@@ -51,7 +52,11 @@ object AzureStorageService {
     } yield new AzureStorageInterp(azureStorageConfig, storageServiceClient)
 }
 
-final case class AzureStorageConfig(listTimeout: FiniteDuration, sasToken: SasToken, endpointUrl: EndpointUrl)
+final case class AzureStorageConfig(generalTimeout: FiniteDuration,
+                                    listTimeout: FiniteDuration,
+                                    sasToken: SasToken,
+                                    endpointUrl: EndpointUrl
+)
 final case class SasToken(value: String) extends AnyVal
 final case class EndpointUrl(value: String) extends AnyVal
 
