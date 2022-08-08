@@ -119,7 +119,7 @@ object Notifications {
     override val description = "Workspace changed"
   })
 
-  case class SuccessfulSubmissionNotification(recipientUserId: WorkbenchUserId,
+  final case class SuccessfulSubmissionNotification(recipientUserId: WorkbenchUserId,
                                               workspaceName: WorkspaceName,
                                               submissionId: String,
                                               dateSubmitted: String,
@@ -133,7 +133,7 @@ object Notifications {
     override val description = "Successful submission"
   })
 
-  case class FailedSubmissionNotification(recipientUserId: WorkbenchUserId,
+  final case class FailedSubmissionNotification(recipientUserId: WorkbenchUserId,
                                           workspaceName: WorkspaceName,
                                           submissionId: String,
                                           dateSubmitted: String,
@@ -147,7 +147,7 @@ object Notifications {
     override val description = "Failed submission"
   })
 
-  case class AbortedSubmissionNotification(recipientUserId: WorkbenchUserId,
+  final case class AbortedSubmissionNotification(recipientUserId: WorkbenchUserId,
                                            workspaceName: WorkspaceName,
                                            submissionId: String,
                                            dateSubmitted: String,
