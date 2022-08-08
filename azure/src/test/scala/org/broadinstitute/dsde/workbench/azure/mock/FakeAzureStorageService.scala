@@ -10,6 +10,7 @@ import fs2.Pipe
 import fs2.Stream
 import org.broadinstitute.dsde.workbench.azure.{AzureStorageService, BlobName, ConnectionString, ContainerName}
 import org.broadinstitute.dsde.workbench.model.TraceId
+import org.broadinstitute.dsde.workbench.util2.RemoveObjectResult
 
 class FakeAzureStorageService extends AzureStorageService[IO] {
   override def listObjects(containerName: ContainerName, opts: Option[ListBlobsOptions])(implicit
@@ -28,6 +29,8 @@ class FakeAzureStorageService extends AzureStorageService[IO] {
     ev: Ask[IO, TraceId]
   ): fs2.Stream[IO, Byte] = Stream.eval(IO(100.toByte))
 
-  override def deleteBlob(containerName: ContainerName, blobName: BlobName)(implicit ev: Ask[IO, TraceId]): IO[Unit] =
-    IO.unit
+  override def deleteBlob(containerName: ContainerName, blobName: BlobName)(implicit
+    ev: Ask[IO, TraceId]
+  ): IO[RemoveObjectResult] =
+    IO(RemoveObjectResult(true))
 }

@@ -3,7 +3,7 @@ package org.broadinstitute.dsde.workbench.azure
 import java.io.{InputStream, OutputStream}
 
 import cats.effect.Async
-import com.azure.storage.blob.models.{BlobItem, ListBlobsOptions}
+import com.azure.storage.blob.models.{BlobItem, BlobRequestConditions, ListBlobsOptions}
 import com.azure.storage.blob.{
   BlobClient,
   BlobContainerClient,
@@ -14,11 +14,12 @@ import com.azure.storage.blob.{
 import cats.implicits._
 import java.time.Duration
 
-import org.broadinstitute.dsde.workbench.util2.tracedLogging
+import org.broadinstitute.dsde.workbench.util2.{tracedLogging, RemoveObjectResult}
 import fs2.{Pipe, Stream}
 import java.nio.file.Path
 
 import cats.mtl.Ask
+import com.azure.core.util.Context
 import org.broadinstitute.dsde.workbench.model.TraceId
 
 import scala.jdk.CollectionConverters._
@@ -88,14 +89,31 @@ class AzureStorageInterp[F[_]](config: AzureStorageConfig, blobServiceClient: Bl
 
   override def deleteBlob(containerName: ContainerName, blobName: BlobName)(implicit
     ev: Ask[F, TraceId]
-  ): F[Unit] =
+  ): F[RemoveObjectResult] =
     for {
+      traceId <- ev.ask
       client <- buildBlobClient(containerName, blobName)
-      _ <- tracedLogging(F.delay(client.delete()),
-                         s"com.azure.storage.blob.BlobClient($containerName, $blobName).delete()"
+      resp <- tracedLogging(
+        F.delay(
+          RemoveObjectResult(
+            202 == client
+              .deleteWithResponse(
+                null,
+                null,
+                Duration.ofMillis(config.generalTimeout.toMillis),
+                new Context("traceId", traceId)
+              )
+              .getStatusCode
+          )
+        ).handleErrorWith {
+          case e: com.azure.storage.blob.models.BlobStorageException if e.getStatusCode == 404 =>
+            F.pure(RemoveObjectResult(false))
+          case e => F.raiseError(e)
+        },
+        s"com.azure.storage.blob.BlobClient($containerName, $blobName).deleteWithResponse(null, null, ${Duration
+            .ofMillis(config.generalTimeout.toMillis)}, Context('traceId', $traceId))"
       )
-
-    } yield ()
+    } yield resp
 
   private def buildContainerClient(containerName: ContainerName): F[BlobContainerClient] =
     F.delay(
