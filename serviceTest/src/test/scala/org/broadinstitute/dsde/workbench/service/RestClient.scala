@@ -94,7 +94,6 @@ trait RestClient extends Retry with LazyLogging {
       case x => x.toString
     }
 
-  
   def logRequestResponse(httpRequest: HttpRequest, response: HttpResponse): Unit =
     logger.debug(
       s"API request: ${httpRequest.method.value} ${httpRequest.uri.toString()} " +
