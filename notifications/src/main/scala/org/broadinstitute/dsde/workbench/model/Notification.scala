@@ -120,13 +120,13 @@ object Notifications {
   })
 
   final case class SuccessfulSubmissionNotification(recipientUserId: WorkbenchUserId,
-                                              workspaceName: WorkspaceName,
-                                              submissionId: String,
-                                              dateSubmitted: String,
-                                              workflowConfiguration: String,
-                                              dataEntity: String,
-                                              workflowCount: Long,
-                                              comment: String
+                                                    workspaceName: WorkspaceName,
+                                                    submissionId: String,
+                                                    dateSubmitted: String,
+                                                    workflowConfiguration: String,
+                                                    dataEntity: String,
+                                                    workflowCount: Long,
+                                                    comment: String
   ) extends WorkspaceNotification
   val SuccessfulSubmissionNotificationType = register(new WorkspaceNotificationType[SuccessfulSubmissionNotification] {
     override val format = jsonFormat8(SuccessfulSubmissionNotification.apply)
@@ -134,13 +134,13 @@ object Notifications {
   })
 
   final case class FailedSubmissionNotification(recipientUserId: WorkbenchUserId,
-                                          workspaceName: WorkspaceName,
-                                          submissionId: String,
-                                          dateSubmitted: String,
-                                          workflowConfiguration: String,
-                                          dataEntity: String,
-                                          workflowCount: Long,
-                                          comment: String
+                                                workspaceName: WorkspaceName,
+                                                submissionId: String,
+                                                dateSubmitted: String,
+                                                workflowConfiguration: String,
+                                                dataEntity: String,
+                                                workflowCount: Long,
+                                                comment: String
   ) extends WorkspaceNotification
   val FailedSubmissionNotificationType = register(new WorkspaceNotificationType[FailedSubmissionNotification] {
     override val format = jsonFormat8(FailedSubmissionNotification.apply)
@@ -148,13 +148,13 @@ object Notifications {
   })
 
   final case class AbortedSubmissionNotification(recipientUserId: WorkbenchUserId,
-                                           workspaceName: WorkspaceName,
-                                           submissionId: String,
-                                           dateSubmitted: String,
-                                           workflowConfiguration: String,
-                                           dataEntity: String,
-                                           workflowCount: Long,
-                                           comment: String
+                                                 workspaceName: WorkspaceName,
+                                                 submissionId: String,
+                                                 dateSubmitted: String,
+                                                 workflowConfiguration: String,
+                                                 dataEntity: String,
+                                                 workflowCount: Long,
+                                                 comment: String
   ) extends WorkspaceNotification
   val AbortedSubmissionNotificationType = register(new WorkspaceNotificationType[AbortedSubmissionNotification] {
     override val format = jsonFormat8(AbortedSubmissionNotification.apply)
