@@ -715,7 +715,7 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
       parseResponseAs[List[Map[String, String]]](getRequest(apiUrl(s"api/profile/billing")))
 
     def getUserBillingProjectStatus(projectName: String)(implicit token: AuthToken): Map[String, String] = {
-      println("I AM THE RIGHT VERSION")
+      logger.info("I AM THE RIGHT VERSION")
       parseResponseAs[Map[String, String]](getRequest(apiUrl(s"api/profile/billing/$projectName")))
     }
   }
