@@ -53,13 +53,14 @@ trait RestClient extends Retry with LazyLogging {
     val responseFuture = retryExponentially() { () =>
       for {
         response <- Http().singleRequest(request = httpRequest)
-        strictEntity <- if (response.entity.isStrict()) {
-          // if the response is not strict then repeated reads of the entity with fail.
-          // some of the test code does repeated reads so make it strict.
-          Future.successful(response.entity)
-        } else {
-          response.entity.toStrict(5 minutes)
-        }
+        strictEntity <-
+          if (response.entity.isStrict()) {
+            // if the response is not strict then repeated reads of the entity with fail.
+            // some of the test code does repeated reads so make it strict.
+            Future.successful(response.entity)
+          } else {
+            response.entity.toStrict(5 minutes)
+          }
       } yield {
         val strictResponse = response.withEntity(strictEntity)
 
@@ -67,7 +68,9 @@ trait RestClient extends Retry with LazyLogging {
         // retry any 401 or 500 errors - this is because we have seen the proxy get backend errors
         // from google querying for token info which causes a 401 if it is at the level if the
         // service being directly called or a 500 if it happens at a lower level service
-        if (strictResponse.status == StatusCodes.Unauthorized || strictResponse.status == StatusCodes.InternalServerError) {
+        if (
+          strictResponse.status == StatusCodes.Unauthorized || strictResponse.status == StatusCodes.InternalServerError
+        ) {
           throwRestException(strictResponse)
         } else {
           strictResponse
