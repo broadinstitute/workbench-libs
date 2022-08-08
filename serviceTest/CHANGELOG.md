@@ -3,9 +3,11 @@
 This file documents changes to the `workbench-service-test` library, including notes on how to upgrade to new versions.
 
 ## 2.0
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "2.0-a78f6e9"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "2.0-TRAVIS-REPLACE-ME"`
 
 ### Changed
+- ensure http response entities are read only once
+
 Breaking changes:
 - The `GPAllocFixtures` and `BillingFixtures` traits has been removed.
 - A `BillingFixtures` object has been added; exporting means of creating and using temporary v2
