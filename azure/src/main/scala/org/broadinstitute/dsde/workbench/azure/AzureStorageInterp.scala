@@ -103,15 +103,16 @@ class AzureStorageInterp[F[_]](config: AzureStorageConfig, blobServiceClient: Bl
               new Context("traceId", traceId)
             )
             .getStatusCode
-        ).handleErrorWith {
-          case e: com.azure.storage.blob.models.BlobStorageException if e.getStatusCode == 404 =>
-            F.pure(RemoveObjectResult(false))
-          case e => F.raiseError(e)
-        },
+        ).map(code => RemoveObjectResult(code == 202))
+          .handleErrorWith {
+            case e: com.azure.storage.blob.models.BlobStorageException if e.getStatusCode == 404 =>
+              F.pure(RemoveObjectResult(false))
+            case e => F.raiseError(e)
+          },
         s"com.azure.storage.blob.BlobClient($containerName, $blobName).deleteWithResponse(null, null, ${Duration
             .ofMillis(config.generalTimeout.toMillis)}, Context('traceId', $traceId))"
       )
-    } yield RemoveObjectResult(resp == 202)
+    } yield resp
 
   private def buildContainerClient(containerName: ContainerName): F[BlobContainerClient] =
     F.delay(
