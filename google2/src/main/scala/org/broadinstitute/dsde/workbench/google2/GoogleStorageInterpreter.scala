@@ -4,6 +4,7 @@ package google2
 import java.nio.channels.Channels
 import java.nio.file.{Path, Paths}
 import java.time.Instant
+
 import fs2.io.file.Files
 import cats.data.NonEmptyList
 import cats.effect._
@@ -31,7 +32,7 @@ import org.broadinstitute.dsde.workbench.google2.util.RetryPredicates.standardGo
 import org.broadinstitute.dsde.workbench.model.{TraceId, WorkbenchException}
 import org.broadinstitute.dsde.workbench.model.google.{GcsBucketName, GcsObjectName, GoogleProject}
 import com.google.auth.Credentials
-import org.broadinstitute.dsde.workbench.util2.withLogging
+import org.broadinstitute.dsde.workbench.util2.{withLogging, RemoveObjectResult}
 
 import scala.jdk.CollectionConverters._
 
