@@ -95,16 +95,14 @@ class AzureStorageInterp[F[_]](config: AzureStorageConfig, blobServiceClient: Bl
       client <- buildBlobClient(containerName, blobName)
       resp <- tracedLogging(
         F.delay(
-          RemoveObjectResult(
-            202 == client
-              .deleteWithResponse(
-                null,
-                null,
-                Duration.ofMillis(config.generalTimeout.toMillis),
-                new Context("traceId", traceId)
-              )
-              .getStatusCode
-          )
+          client
+            .deleteWithResponse(
+              null,
+              null,
+              Duration.ofMillis(config.generalTimeout.toMillis),
+              new Context("traceId", traceId)
+            )
+            .getStatusCode
         ).handleErrorWith {
           case e: com.azure.storage.blob.models.BlobStorageException if e.getStatusCode == 404 =>
             F.pure(RemoveObjectResult(false))
@@ -113,7 +111,7 @@ class AzureStorageInterp[F[_]](config: AzureStorageConfig, blobServiceClient: Bl
         s"com.azure.storage.blob.BlobClient($containerName, $blobName).deleteWithResponse(null, null, ${Duration
             .ofMillis(config.generalTimeout.toMillis)}, Context('traceId', $traceId))"
       )
-    } yield resp
+    } yield RemoveObjectResult(resp == 202)
 
   private def buildContainerClient(containerName: ContainerName): F[BlobContainerClient] =
     F.delay(
