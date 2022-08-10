@@ -5,6 +5,7 @@ import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.HttpMethods._
 import akka.http.scaladsl.model.headers.{Authorization, OAuth2BearerToken}
 import akka.http.scaladsl.model.{Multipart, _}
+import akka.stream.Materializer
 import akka.stream.scaladsl._
 import akka.util.ByteString
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -21,6 +22,7 @@ trait RestClient extends Retry with LazyLogging {
 
   implicit val system = ActorSystem()
   implicit val ec: ExecutionContext = system.dispatcher
+  implicit val materializer = Materializer(system)
 
   val mapper = new ObjectMapper()
   mapper.registerModule(DefaultScalaModule)
@@ -49,15 +51,29 @@ trait RestClient extends Retry with LazyLogging {
   // Send an http request with retries
   def sendRequest(httpRequest: HttpRequest): HttpResponse = {
     val responseFuture = retryExponentially() { () =>
-      Http().singleRequest(request = httpRequest).map { response =>
-        logRequestResponse(httpRequest, response)
+      for {
+        response <- Http().singleRequest(request = httpRequest)
+        strictEntity <-
+          if (response.entity.isStrict()) {
+            // if the response is not strict then repeated reads of the entity with fail.
+            // some of the test code does repeated reads so make it strict.
+            Future.successful(response.entity)
+          } else {
+            response.entity.toStrict(5 minutes)
+          }
+      } yield {
+        val strictResponse = response.withEntity(strictEntity)
+
+        logRequestResponse(httpRequest, strictResponse)
         // retry any 401 or 500 errors - this is because we have seen the proxy get backend errors
         // from google querying for token info which causes a 401 if it is at the level if the
         // service being directly called or a 500 if it happens at a lower level service
-        if (response.status == StatusCodes.Unauthorized || response.status == StatusCodes.InternalServerError) {
-          throwRestException(response)
+        if (
+          strictResponse.status == StatusCodes.Unauthorized || strictResponse.status == StatusCodes.InternalServerError
+        ) {
+          throwRestException(strictResponse)
         } else {
-          response
+          strictResponse
         }
       }
     }

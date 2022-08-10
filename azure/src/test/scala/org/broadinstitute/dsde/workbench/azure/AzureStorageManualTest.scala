@@ -7,6 +7,7 @@ import java.util.UUID
 import cats.effect.{IO, Resource}
 import cats.mtl.Ask
 import org.broadinstitute.dsde.workbench.model.TraceId
+import org.broadinstitute.dsde.workbench.util2.RemoveObjectResult
 import org.typelevel.log4cats.slf4j.Slf4jLogger
 
 import scala.concurrent.duration._
@@ -22,7 +23,9 @@ final class AzureStorageManualTest(
   implicit def logger = Slf4jLogger.getLogger[IO]
 
   val serviceResource: Resource[IO, AzureStorageService[IO]] =
-    AzureStorageService.fromSasToken(AzureStorageConfig(10 minutes, SasToken(sasToken), EndpointUrl(endpointUrl)))
+    AzureStorageService.fromSasToken(
+      AzureStorageConfig(10 minutes, 10 minutes, SasToken(sasToken), EndpointUrl(endpointUrl))
+    )
 
   def useService(fa: AzureStorageService[IO] => IO[Unit]) =
     serviceResource.use { service =>
@@ -43,7 +46,7 @@ final class AzureStorageManualTest(
         .drain
     }
 
-  def deleteBlob(blobName: String): IO[Unit] =
+  def deleteBlob(blobName: String): IO[RemoveObjectResult] =
     serviceResource.use { s =>
       s.deleteBlob(containerName, BlobName(blobName))
     }

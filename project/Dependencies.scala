@@ -6,9 +6,9 @@ object Dependencies {
   val jacksonV      = "2.13.3"
   val googleV       = "1.22.0"
   val scalaLoggingV = "3.9.5"
-  val scalaTestV    = "3.2.12"
+  val scalaTestV    = "3.2.13"
   val circeVersion = "0.14.2"
-  val http4sVersion = "1.0.0-M34"
+  val http4sVersion = "1.0.0-M35"
   val bouncyCastleVersion = "1.70"
   val openCensusV = "0.31.1"
 
@@ -60,18 +60,17 @@ object Dependencies {
   val googleGuava: ModuleID = "com.google.guava"  % "guava" % "31.1-jre"
   val googleRpc: ModuleID =               "io.grpc" % "grpc-core" % "1.34.0"
 
-  val googleRpc2: ModuleID =               "io.grpc" % "grpc-core" % "1.48.0"
-  val googleFirestore: ModuleID = "com.google.cloud" % "google-cloud-firestore" % "3.1.0"
-  val googleStorageNew: ModuleID = "com.google.cloud" % "google-cloud-storage" % "2.9.3"
-  val googleStorageLocal: ModuleID = "com.google.cloud" % "google-cloud-nio" % "0.124.10" % "test"
-  val googlePubsubNew: ModuleID = "com.google.cloud" % "google-cloud-pubsub" % "1.120.1"
+  val googleRpc2: ModuleID =               "io.grpc" % "grpc-core" % "1.48.1"
+  val googleStorageNew: ModuleID = "com.google.cloud" % "google-cloud-storage" % "2.11.2"
+  val googleStorageLocal: ModuleID = "com.google.cloud" % "google-cloud-nio" % "0.124.13" % "test"
+  val googlePubsubNew: ModuleID = "com.google.cloud" % "google-cloud-pubsub" % "1.120.11"
   val googleKms: ModuleID = "com.google.cloud" % "google-cloud-kms" % "2.3.1"
   val googleComputeNew: ModuleID = "com.google.cloud" % "google-cloud-compute" % "1.11.0"
-  val googleDataproc: ModuleID =    "com.google.cloud" % "google-cloud-dataproc" % "3.1.2"
+  val googleDataproc: ModuleID =    "com.google.cloud" % "google-cloud-dataproc" % "4.0.0"
   val googleContainer: ModuleID = "com.google.cloud" % "google-cloud-container" % "2.5.0"
   val kubernetesClient: ModuleID = "io.kubernetes" % "client-java" % "16.0.0"
   val googleBigQueryNew: ModuleID = "com.google.cloud" % "google-cloud-bigquery" % "2.6.2"
-  val google2CloudBilling = "com.google.cloud" % "google-cloud-billing" % "2.1.12"
+  val google2CloudBilling = "com.google.cloud" % "google-cloud-billing" % "2.3.0"
   val googleStorageTransferService: ModuleID = "com.google.cloud" % "google-cloud-storage-transfer" % "1.2.0"
   val googleResourceManager =  "com.google.cloud" % "google-cloud-resourcemanager" % "1.2.11"
   //the below v1 module is a dependency for v2 because it contains the OAuth scopes necessary to created scoped credentials
@@ -89,7 +88,7 @@ object Dependencies {
   val http4sBlazeClient = "org.http4s" %% "http4s-blaze-client" % http4sVersion
   val http4sDsl = "org.http4s"      %% "http4s-dsl"          % http4sVersion
 
-  val fs2Io: ModuleID = "co.fs2" %% "fs2-io" % "3.2.10"
+  val fs2Io: ModuleID = "co.fs2" %% "fs2-io" % "3.2.11"
   val rawlsModel: ModuleID = "org.broadinstitute.dsde" %% "rawls-model" % "0.1-384ab501b" exclude("com.typesafe.scala-logging", "scala-logging_2.13") exclude("com.typesafe.akka", "akka-stream_2.13")
   val openCensusApi: ModuleID = "io.opencensus" % "opencensus-api" % openCensusV
   val openCensusImpl: ModuleID = "io.opencensus" % "opencensus-impl" % openCensusV
@@ -100,12 +99,12 @@ object Dependencies {
   val prometheusServer: ModuleID = "io.prometheus" % "simpleclient_httpserver" % "0.16.0"
   val sealerate: ModuleID = "ca.mrvisser" %% "sealerate" % "0.0.6"
   val scalaCache = "com.github.cb372" %% "scalacache-caffeine" % "1.0.0-M6"
-  val swaggerUi = "org.webjars" % "swagger-ui" % "4.11.1"
+  val swaggerUi = "org.webjars" % "swagger-ui" % "4.13.2"
 
-  val azureResourceManager = "com.azure.resourcemanager" % "azure-resourcemanager" % "2.16.0"
+  val azureResourceManager = "com.azure.resourcemanager" % "azure-resourcemanager" % "2.17.0"
   val azureIdentity =  "com.azure" % "azure-identity" % "1.5.3"
   val azureRelay =     "com.azure.resourcemanager" % "azure-resourcemanager-relay" % "1.0.0-beta.2"
-  val azureStorageBlob =  "com.azure" % "azure-storage-blob" % "12.13.0"
+  val azureStorageBlob =  "com.azure" % "azure-storage-blob" % "12.18.0"
 
   val commonDependencies = Seq(
     scalatest,
@@ -171,7 +170,6 @@ object Dependencies {
     bouncyCastleProviderExt,
     bouncyCastleProvider,
     googleRpc2,
-    googleFirestore,
     googleStorageNew,
     googleStorageLocal,
     googlePubsubNew,
