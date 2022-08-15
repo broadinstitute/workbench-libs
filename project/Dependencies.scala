@@ -43,7 +43,6 @@ object Dependencies {
   val metricsScala: ModuleID =      "nl.grons"              %% "metrics4-scala"    % "4.2.9"
   val metricsStatsd: ModuleID =     "com.readytalk"         %  "metrics3-statsd"  % "4.2.0"
 
-  val googleApiClient: ModuleID =            "com.google.api-client" % "google-api-client"                        % googleV
   val googleCloudBilling: ModuleID =         "com.google.apis"       % "google-api-services-cloudbilling"         % s"v1-rev21-$googleV"
   val googleGenomics: ModuleID =             "com.google.apis"       % "google-api-services-genomics"             % s"v1-rev504-$googleV"
   val googleStorage: ModuleID =              "com.google.apis"       % "google-api-services-storage"              % s"v1-rev109-$googleV"
@@ -61,7 +60,7 @@ object Dependencies {
   val googleRpc: ModuleID =               "io.grpc" % "grpc-core" % "1.34.0"
 
   val googleRpc2: ModuleID =               "io.grpc" % "grpc-core" % "1.48.1"
-  val googleStorageNew: ModuleID = "com.google.cloud" % "google-cloud-storage" % "2.11.2"
+  val googleStorageNew: ModuleID = "com.google.cloud" % "google-cloud-storage" % "2.9.3"
   val googleStorageLocal: ModuleID = "com.google.cloud" % "google-cloud-nio" % "0.124.13" % "test"
   val googlePubsubNew: ModuleID = "com.google.cloud" % "google-cloud-pubsub" % "1.120.11"
   val googleKms: ModuleID = "com.google.cloud" % "google-cloud-kms" % "2.3.1"
@@ -101,8 +100,8 @@ object Dependencies {
   val scalaCache = "com.github.cb372" %% "scalacache-caffeine" % "1.0.0-M6"
   val swaggerUi = "org.webjars" % "swagger-ui" % "4.13.2"
 
-  val azureResourceManager = "com.azure.resourcemanager" % "azure-resourcemanager" % "2.17.0"
-  val azureIdentity =  "com.azure" % "azure-identity" % "1.5.3"
+  val azureResourceManagerCompute = "com.azure.resourcemanager" % "azure-resourcemanager-compute" % "2.17.0"
+  val azureIdentity =  "com.azure" % "azure-identity" % "1.5.4"
   val azureRelay =     "com.azure.resourcemanager" % "azure-resourcemanager-relay" % "1.0.0-beta.2"
   val azureStorageBlob =  "com.azure" % "azure-storage-blob" % "12.18.0"
 
@@ -196,7 +195,7 @@ object Dependencies {
 
   val azureDependencies = List(
     log4cats,
-    azureResourceManager,
+    azureResourceManagerCompute,
     azureIdentity,
     azureRelay,
     azureStorageBlob
