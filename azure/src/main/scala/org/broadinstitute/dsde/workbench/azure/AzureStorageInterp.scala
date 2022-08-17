@@ -25,7 +25,8 @@ import org.broadinstitute.dsde.workbench.model.TraceId
 import scala.jdk.CollectionConverters._
 import org.typelevel.log4cats.StructuredLogger
 
-class AzureStorageInterp[F[_]](config: AzureStorageConfig, blobServiceClient: BlobServiceClient)(implicit
+class AzureStorageInterp[F[_]](config: AzureStorageConfig, containerClients: Map[ContainerName, BlobContainerClient])(
+  implicit
   val F: Async[F],
   logger: StructuredLogger[F]
 ) extends AzureStorageService[F] {
@@ -34,7 +35,7 @@ class AzureStorageInterp[F[_]](config: AzureStorageConfig, blobServiceClient: Bl
     ev: Ask[F, TraceId]
   ): Stream[F, BlobItem] =
     for {
-      containerClient <- Stream.eval(buildContainerClient(containerName))
+      containerClient <- Stream.eval(getContainerClient(containerName))
       pages <- Stream.eval(opts.fold {
         tracedLogging(F.delay(containerClient.listBlobs()), s"com.azure.storage.blob.BlobContainerClient.listBlobs()")
       } { opts =>
@@ -114,15 +115,12 @@ class AzureStorageInterp[F[_]](config: AzureStorageConfig, blobServiceClient: Bl
       )
     } yield resp
 
-  private def buildContainerClient(containerName: ContainerName): F[BlobContainerClient] =
-    F.delay(
-      blobServiceClient
-        .getBlobContainerClient(containerName.value)
-    )
+  private def getContainerClient(containerName: ContainerName): F[BlobContainerClient] =
+    F.fromOption(containerClients.get(containerName), new RuntimeException(s"no client for ${containerName} found"))
 
   private def buildBlobClient(containerName: ContainerName, blobName: BlobName): F[BlobClient] =
     for {
-      containerClient <- buildContainerClient(containerName)
+      containerClient <- getContainerClient(containerName)
       blobClient <- F.delay(containerClient.getBlobClient(blobName.value))
     } yield blobClient
 
