@@ -49,12 +49,12 @@ class AzureStorageInterp[F[_]](config: AzureStorageConfig, containerClients: Map
 
   // See below article for more info on the code that can be used for uploading as a stream
   // https://docs.microsoft.com/en-us/java/api/overview/azure/storage-blob-readme?view=azure-java-stable#upload-data-to-a-blob
-  override def uploadBlob(containerName: ContainerName, blobName: BlobName)(implicit
+  override def uploadBlob(containerName: ContainerName, blobName: BlobName, overwrite: Boolean)(implicit
     ev: Ask[F, TraceId]
   ): Pipe[F, Byte, Unit] = {
     val outputStream = for {
       blobClient <- buildBlobClient(containerName, blobName)
-      outputStream <- F.delay(blobClient.getBlockBlobClient.getBlobOutputStream)
+      outputStream <- F.delay(blobClient.getBlockBlobClient.getBlobOutputStream(overwrite))
       // This is a subclass of OutputStream, but the scala code is not happy without the explicit conversion since its a java subclass
     } yield outputStream: OutputStream
     fs2.io.writeOutputStream(outputStream, closeAfterUse = true)
@@ -89,7 +89,7 @@ class AzureStorageInterp[F[_]](config: AzureStorageConfig, containerClients: Map
         )
         .recoverWith {
           case t: com.azure.storage.blob.models.BlobStorageException if t.getStatusCode == 404 =>
-            Stream.empty[Byte]
+            Stream.empty
         }
     } yield is
 

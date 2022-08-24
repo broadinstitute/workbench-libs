@@ -42,7 +42,7 @@ final class AzureStorageManualTest(
       fs2.Stream
         .emits(uploadString.getBytes(Charset.forName("UTF-8")))
         .covary[IO]
-        .through(s.uploadBlob(containerName, BlobName(blobName)))
+        .through(s.uploadBlob(containerName, BlobName(blobName), false))
         .compile
         .drain
     }

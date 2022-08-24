@@ -18,7 +18,7 @@ trait AzureStorageService[F[_]] {
     ev: Ask[F, TraceId]
   ): Stream[F, BlobItem]
 
-  def uploadBlob(containerName: ContainerName, blobName: BlobName)(implicit
+  def uploadBlob(containerName: ContainerName, blobName: BlobName, overwrite: Boolean)(implicit
     ev: Ask[F, TraceId]
   ): Pipe[F, Byte, Unit]
 
