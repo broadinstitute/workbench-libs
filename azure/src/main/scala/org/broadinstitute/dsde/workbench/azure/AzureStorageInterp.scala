@@ -81,11 +81,16 @@ class AzureStorageInterp[F[_]](config: AzureStorageConfig, containerClients: Map
       client <- Stream.eval(
         buildBlobClient(containerName, blobName)
       )
-      is <- fs2.io.readInputStream(
-        F.delay(client.openInputStream(): InputStream),
-        1024,
-        closeAfterUse = true
-      )
+      is <- fs2.io
+        .readInputStream(
+          F.delay(client.openInputStream(): InputStream),
+          1024,
+          closeAfterUse = true
+        )
+        .recoverWith {
+          case t: com.azure.storage.blob.models.BlobStorageException if t.getStatusCode == 404 =>
+            Stream.empty[Byte]
+        }
     } yield is
 
   override def deleteBlob(containerName: ContainerName, blobName: BlobName)(implicit
