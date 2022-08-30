@@ -1,10 +1,9 @@
 package org.broadinstitute.dsde.workbench.azure
 
 import java.nio.file.Path
-
 import cats.effect.{Async, Resource}
 import cats.mtl.Ask
-import com.azure.storage.blob.{BlobServiceClient, BlobServiceClientBuilder}
+import com.azure.storage.blob.{BlobContainerClientBuilder, BlobServiceClient, BlobServiceClientBuilder}
 import com.azure.storage.blob.models.{BlobItem, ListBlobsOptions}
 import fs2.{Pipe, Stream}
 import org.broadinstitute.dsde.workbench.model.TraceId
@@ -19,7 +18,7 @@ trait AzureStorageService[F[_]] {
     ev: Ask[F, TraceId]
   ): Stream[F, BlobItem]
 
-  def uploadBlob(containerName: ContainerName, blobName: BlobName)(implicit
+  def uploadBlob(containerName: ContainerName, blobName: BlobName, overwrite: Boolean)(implicit
     ev: Ask[F, TraceId]
   ): Pipe[F, Byte, Unit]
 
@@ -37,26 +36,29 @@ trait AzureStorageService[F[_]] {
 }
 
 object AzureStorageService {
+  // Note SAS token has expiration time. If the token expires, the client will not work
   def fromSasToken[F[_]: Async: StructuredLogger](
-    azureStorageConfig: AzureStorageConfig
+    azureStorageConfig: AzureStorageConfig,
+    azureStorageConfigs: Map[ContainerName, ContainerAuthConfig]
   ): Resource[F, AzureStorageService[F]] =
-    for {
-      storageServiceClient <- Resource.eval(
-        Async[F].delay(
-          new BlobServiceClientBuilder()
-            .sasToken(azureStorageConfig.sasToken.value)
-            .endpoint(azureStorageConfig.endpointUrl.value)
+    Resource.eval(
+      Async[F]
+        .delay(azureStorageConfigs.map { case (containerName, config) =>
+          val client = new BlobContainerClientBuilder()
+            .sasToken(config.sasToken.value)
+            .endpoint(config.endpointUrl.value)
+            .containerName(containerName.value)
             .buildClient()
-        )
-      )
-    } yield new AzureStorageInterp(azureStorageConfig, storageServiceClient)
+
+          containerName -> client
+        })
+        .map(mp => new AzureStorageInterp(azureStorageConfig, mp))
+    )
 }
 
-final case class AzureStorageConfig(generalTimeout: FiniteDuration,
-                                    listTimeout: FiniteDuration,
-                                    sasToken: SasToken,
-                                    endpointUrl: EndpointUrl
-)
+final case class AzureStorageConfig(generalTimeout: FiniteDuration, listTimeout: FiniteDuration)
+final case class ContainerAuthConfig(sasToken: SasToken, endpointUrl: EndpointUrl)
+
 final case class SasToken(value: String) extends AnyVal
 final case class EndpointUrl(value: String) extends AnyVal
 
