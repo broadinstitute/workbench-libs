@@ -9,7 +9,7 @@ object Dependencies {
   val scalaTestV    = "3.2.13"
   val circeVersion = "0.14.2"
   val http4sVersion = "1.0.0-M35"
-  val bouncyCastleVersion = "1.70"
+  val bouncyCastleVersion = "1.71"
   val openCensusV = "0.31.1"
 
   def excludeGuavaJDK5(m: ModuleID): ModuleID = m.exclude("com.google.guava", "guava-jdk5")
@@ -34,7 +34,7 @@ object Dependencies {
   val jacksonModule: ModuleID =   "com.fasterxml.jackson.module" %% "jackson-module-scala"   % jacksonV % "test"
 
   val bouncyCastle: ModuleID = "org.bouncycastle" % "bcpkix-jdk15on" % bouncyCastleVersion
-  val bouncyCastleProviderExt: ModuleID = "org.bouncycastle" % "bcprov-ext-jdk15on" % bouncyCastleVersion
+  val bouncyCastleProviderExt: ModuleID = "org.bouncycastle" % "bcprov-ext-jdk18on" % bouncyCastleVersion
   val bouncyCastleProvider: ModuleID = "org.bouncycastle" % "bcprov-jdk15on" % bouncyCastleVersion
 
   val catsEffect: ModuleID = "org.typelevel" %% "cats-effect" % "3.3.14"
