@@ -25,7 +25,8 @@ import org.broadinstitute.dsde.workbench.model.TraceId
 import scala.jdk.CollectionConverters._
 import org.typelevel.log4cats.StructuredLogger
 
-class AzureStorageInterp[F[_]](config: AzureStorageConfig, blobServiceClient: BlobServiceClient)(implicit
+class AzureStorageInterp[F[_]](config: AzureStorageConfig, containerClients: Map[ContainerName, BlobContainerClient])(
+  implicit
   val F: Async[F],
   logger: StructuredLogger[F]
 ) extends AzureStorageService[F] {
@@ -34,7 +35,7 @@ class AzureStorageInterp[F[_]](config: AzureStorageConfig, blobServiceClient: Bl
     ev: Ask[F, TraceId]
   ): Stream[F, BlobItem] =
     for {
-      containerClient <- Stream.eval(buildContainerClient(containerName))
+      containerClient <- Stream.eval(getContainerClient(containerName))
       pages <- Stream.eval(opts.fold {
         tracedLogging(F.delay(containerClient.listBlobs()), s"com.azure.storage.blob.BlobContainerClient.listBlobs()")
       } { opts =>
@@ -48,12 +49,12 @@ class AzureStorageInterp[F[_]](config: AzureStorageConfig, blobServiceClient: Bl
 
   // See below article for more info on the code that can be used for uploading as a stream
   // https://docs.microsoft.com/en-us/java/api/overview/azure/storage-blob-readme?view=azure-java-stable#upload-data-to-a-blob
-  override def uploadBlob(containerName: ContainerName, blobName: BlobName)(implicit
+  override def uploadBlob(containerName: ContainerName, blobName: BlobName, overwrite: Boolean)(implicit
     ev: Ask[F, TraceId]
   ): Pipe[F, Byte, Unit] = {
     val outputStream = for {
       blobClient <- buildBlobClient(containerName, blobName)
-      outputStream <- F.delay(blobClient.getBlockBlobClient.getBlobOutputStream)
+      outputStream <- F.delay(blobClient.getBlockBlobClient.getBlobOutputStream(overwrite))
       // This is a subclass of OutputStream, but the scala code is not happy without the explicit conversion since its a java subclass
     } yield outputStream: OutputStream
     fs2.io.writeOutputStream(outputStream, closeAfterUse = true)
@@ -80,11 +81,16 @@ class AzureStorageInterp[F[_]](config: AzureStorageConfig, blobServiceClient: Bl
       client <- Stream.eval(
         buildBlobClient(containerName, blobName)
       )
-      is <- fs2.io.readInputStream(
-        F.delay(client.openInputStream(): InputStream),
-        1024,
-        closeAfterUse = true
-      )
+      is <- fs2.io
+        .readInputStream(
+          F.delay(client.openInputStream(): InputStream),
+          1024,
+          closeAfterUse = true
+        )
+        .recoverWith {
+          case t: com.azure.storage.blob.models.BlobStorageException if t.getStatusCode == 404 =>
+            Stream.empty
+        }
     } yield is
 
   override def deleteBlob(containerName: ContainerName, blobName: BlobName)(implicit
@@ -114,15 +120,12 @@ class AzureStorageInterp[F[_]](config: AzureStorageConfig, blobServiceClient: Bl
       )
     } yield resp
 
-  private def buildContainerClient(containerName: ContainerName): F[BlobContainerClient] =
-    F.delay(
-      blobServiceClient
-        .getBlobContainerClient(containerName.value)
-    )
+  private def getContainerClient(containerName: ContainerName): F[BlobContainerClient] =
+    F.fromOption(containerClients.get(containerName), new RuntimeException(s"no client for ${containerName} found"))
 
   private def buildBlobClient(containerName: ContainerName, blobName: BlobName): F[BlobClient] =
     for {
-      containerClient <- buildContainerClient(containerName)
+      containerClient <- getContainerClient(containerName)
       blobClient <- F.delay(containerClient.getBlobClient(blobName.value))
     } yield blobClient
 
