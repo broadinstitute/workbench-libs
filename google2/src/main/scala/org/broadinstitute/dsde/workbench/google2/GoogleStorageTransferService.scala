@@ -3,9 +3,8 @@ package google2
 
 import cats.effect.{Resource, Sync, Temporal}
 import com.google.api.gax.core.FixedCredentialsProvider
-import com.google.auth.oauth2.ServiceAccountCredentials
-import com.google.longrunning.Operation
-import com.google.storagetransfer.v1.proto.TransferTypes.TransferJob
+import com.google.auth.Credentials
+import com.google.storagetransfer.v1.proto.TransferTypes.{TransferJob, TransferOperation}
 import com.google.storagetransfer.v1.proto.{StorageTransferServiceClient, StorageTransferServiceSettings}
 import org.broadinstitute.dsde.workbench.google2.GoogleStorageTransferService.ObjectDeletionOption.NeverDeleteSourceObjects
 import org.broadinstitute.dsde.workbench.google2.GoogleStorageTransferService.ObjectOverwriteOption.OverwriteObjectsIfDifferent
@@ -29,9 +28,9 @@ trait GoogleStorageTransferService[F[_]] {
 
   def getTransferJob(jobName: JobName, project: GoogleProject): F[TransferJob]
 
-  def listTransferOperations(jobName: JobName, project: GoogleProject): F[Seq[Operation]]
+  def listTransferOperations(jobName: JobName, project: GoogleProject): F[Seq[TransferOperation]]
 
-  def getTransferOperation(operationName: OperationName): F[Operation]
+  def getTransferOperation(operationName: OperationName): F[TransferOperation]
 }
 
 object GoogleStorageTransferService {
@@ -101,7 +100,7 @@ object GoogleStorageTransferService {
       .fromAutoCloseable(F.delay(StorageTransferServiceClient.create))
       .map(new GoogleStorageTransferInterpreter[F](_))
 
-  def resource[F[_]](credential: ServiceAccountCredentials)(implicit
+  def resource[F[_]](credential: Credentials)(implicit
     F: Sync[F] with Temporal[F],
     logger: StructuredLogger[F]
   ): Resource[F, GoogleStorageTransferService[F]] = {
