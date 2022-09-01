@@ -2,6 +2,19 @@
 
 This file documents changes to the `workbench-google2` library, including notes on how to upgrade to new versions.
 
+## 0.25
+Changed:
+- GoogleStorageTransferService now returns `TransferOperation` rather than `Operation`
+- Added `MockGoogleStorageTransferService` to test sources
+
+Dependency Upgrades:
+|          Dependency           | Old Version | New Version |
+|-------------------------------|:-----------:|------------:|
+| google-cloud-storage-transfer |    1.2.0    |    1.2.1    |
+
+
+SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.25-TRAVIS-REPLACE-ME"`
+
 ## 0.24
 
 Changed:
