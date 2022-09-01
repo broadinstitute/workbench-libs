@@ -7,7 +7,7 @@ import cats.effect.{IO, Resource}
 import cats.implicits._
 import com.google.cloud.Identity
 import com.google.cloud.storage.StorageOptions
-import org.broadinstitute.dsde.workbench.google2.GetMetadataResponse.{Metadata, NotFound}
+import org.broadinstitute.dsde.workbench.google2.GetMetadataResponse.NotFound
 import org.broadinstitute.dsde.workbench.google2.GoogleStorageTransferService.ObjectDeletionOption.DeleteSourceObjectsAfterTransfer
 import org.broadinstitute.dsde.workbench.google2.GoogleStorageTransferService._
 import org.broadinstitute.dsde.workbench.model.WorkbenchException
@@ -30,7 +30,7 @@ class GoogleStorageTransferServiceSpec extends AsyncFlatSpec with Matchers with 
   def randomize(name: String): IO[String] =
     UUIDGen[IO].randomUUID.map(name ++ _.toString.replace("-", ""))
 
-  def temporaryGcsBucket[A](project: GoogleProject, bucketPrefix: String): Resource[IO, GcsBucketName] =
+  def temporaryGcsBucket(project: GoogleProject, bucketPrefix: String): Resource[IO, GcsBucketName] =
     Resource.make(
       for {
         bucketName <- randomize(bucketPrefix).map(GcsBucketName)
@@ -38,7 +38,7 @@ class GoogleStorageTransferServiceSpec extends AsyncFlatSpec with Matchers with 
       } yield bucketName
     )(storage.deleteBucket(project, _, isRecursive = true).compile.drain)
 
-  "JobName" should """fail when the name is not prefixed with "transferJobs/"""" ignore ioAssertion {
+  "JobName" should """fail when the name is not prefixed with "transferJobs/"""" in ioAssertion {
     randomize("test").map { name =>
       JobName.fromString(name) match {
         case Left(msg) =>
@@ -49,7 +49,7 @@ class GoogleStorageTransferServiceSpec extends AsyncFlatSpec with Matchers with 
     }
   }
 
-  it should """succeed when the name is prefixed with "transferJobs/"""" ignore ioAssertion {
+  it should """succeed when the name is prefixed with "transferJobs/"""" in ioAssertion {
     randomize("transferJobs/test").map { name =>
       JobName.fromString(name) match {
         case Right(JobName(jn)) => jn shouldBe name
@@ -58,7 +58,7 @@ class GoogleStorageTransferServiceSpec extends AsyncFlatSpec with Matchers with 
     }
   }
 
-  "OperationName" should """fail when the name is not prefixed with "transferOperations/"""" ignore ioAssertion {
+  "OperationName" should """fail when the name is not prefixed with "transferOperations/"""" in ioAssertion {
     // Required in Scala 2.12 as another `OperationName` specific to GCE is defined in this package.
     import GoogleStorageTransferService.OperationName
     randomize("test").map { name =>
@@ -71,7 +71,7 @@ class GoogleStorageTransferServiceSpec extends AsyncFlatSpec with Matchers with 
     }
   }
 
-  it should """succeed when the name is prefixed with "transferOperations/"""" ignore ioAssertion {
+  it should """succeed when the name is prefixed with "transferOperations/"""" in ioAssertion {
     // Required in Scala 2.12 as another `OperationName` specific to GCE is defined in this package.
     import GoogleStorageTransferService.OperationName
     randomize("transferOperations/test").map { name =>
@@ -85,8 +85,7 @@ class GoogleStorageTransferServiceSpec extends AsyncFlatSpec with Matchers with 
   "getStsServiceAccount" should "return a google-owned SA specific to the google project" ignore ioAssertion {
     GoogleStorageTransferService.resource[IO].use { sts =>
       sts.getStsServiceAccount(googleProject) map { case ServiceAccount(_, email, _) =>
-        email.value should include("storage-transfer")
-        email.value should endWith("gserviceaccount.com")
+        email.value should endWith("storage-transfer-service.iam.gserviceaccount.com")
       }
     }
   }
@@ -95,7 +94,7 @@ class GoogleStorageTransferServiceSpec extends AsyncFlatSpec with Matchers with 
     def await(jobName: JobName): IO[Unit] = IO.sleep(5 seconds).untilM_ {
       sts.listTransferOperations(jobName, googleProject).map {
         case Seq() => false
-        case xs    => xs.forall(_.getDone)
+        case xs    => xs.forall(_.hasEndTime)
       }
     }
   }

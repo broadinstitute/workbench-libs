@@ -80,21 +80,22 @@ final private[google2] class GoogleStorageTransferInterpreter[F[_]](client: Stor
     withLogging(getTransferJob, None, s"${client.getClass.getName}.getTransferJob")
   }
 
-  override def listTransferOperations(jobName: JobName, project: GoogleProject): F[Seq[Operation]] = {
+  override def listTransferOperations(jobName: JobName, project: GoogleProject): F[Seq[TransferOperation]] = {
     val request = ListOperationsRequest.newBuilder
       .setFilter(s"""{"projectId":"$project","jobNames":["$jobName"]}""")
       .build
 
     val operationsClient = client.getOperationsClient
-    val listOperations = F.delay(client.getOperationsClient.listOperations(request))
+    val listOperations = F.delay(operationsClient.listOperations(request))
     withLogging(listOperations, None, s"${operationsClient.getClass.getName}.listOperations")
-      .map(_.iterateAll.asScala.toSeq)
+      .map(_.iterateAll.asScala.map(parseTransferOperation).toSeq)
   }
 
-  override def getTransferOperation(operationName: OperationName): F[Operation] = {
+  override def getTransferOperation(operationName: OperationName): F[TransferOperation] = {
     val operationsClient = client.getOperationsClient
-    val getOperation = F.delay(client.getOperationsClient.getOperation(operationName.value))
+    val getOperation = F.delay(operationsClient.getOperation(operationName.value))
     withLogging(getOperation, None, s"${operationsClient.getClass.getName}.getOperation")
+      .map(parseTransferOperation)
   }
 
   private object Date {
@@ -124,4 +125,7 @@ final private[google2] class GoogleStorageTransferInterpreter[F[_]](client: Stor
         .setDeleteObjectsFromSourceAfterTransfer(delete == DeleteSourceObjectsAfterTransfer)
         .build
   }
+
+  private def parseTransferOperation(operation: Operation): TransferOperation =
+    TransferOperation.parseFrom(operation.getMetadata.getValue)
 }
