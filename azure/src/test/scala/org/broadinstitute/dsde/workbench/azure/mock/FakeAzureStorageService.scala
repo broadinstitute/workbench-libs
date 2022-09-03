@@ -17,7 +17,7 @@ class FakeAzureStorageService extends AzureStorageService[IO] {
     ev: Ask[IO, TraceId]
   ): fs2.Stream[IO, BlobItem] = Stream.eval(IO(new BlobItem()))
 
-  override def uploadBlob(containerName: ContainerName, blobName: BlobName)(implicit
+  override def uploadBlob(containerName: ContainerName, blobName: BlobName, overwrite: Boolean)(implicit
     ev: Ask[IO, TraceId]
   ): Pipe[IO, Byte, Unit] = _ => Stream.eval(IO.pure())
 

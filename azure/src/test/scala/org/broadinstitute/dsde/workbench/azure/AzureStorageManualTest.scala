@@ -22,17 +22,18 @@ final class AzureStorageManualTest(
 
   implicit def logger = Slf4jLogger.getLogger[IO]
 
+  val containerName = ContainerName(container)
+
   val serviceResource: Resource[IO, AzureStorageService[IO]] =
     AzureStorageService.fromSasToken(
-      AzureStorageConfig(10 minutes, 10 minutes, SasToken(sasToken), EndpointUrl(endpointUrl))
+      AzureStorageConfig(10 minutes, 10 minutes),
+      Map(containerName -> ContainerAuthConfig(SasToken(sasToken), EndpointUrl(endpointUrl)))
     )
 
   def useService(fa: AzureStorageService[IO] => IO[Unit]) =
     serviceResource.use { service =>
       fa(service)
     }
-
-  val containerName = ContainerName(container)
 
   val defaultBlobName = "testblob"
 
@@ -41,7 +42,7 @@ final class AzureStorageManualTest(
       fs2.Stream
         .emits(uploadString.getBytes(Charset.forName("UTF-8")))
         .covary[IO]
-        .through(s.uploadBlob(containerName, BlobName(blobName)))
+        .through(s.uploadBlob(containerName, BlobName(blobName), false))
         .compile
         .drain
     }
