@@ -98,7 +98,7 @@ object Dependencies {
   val prometheusServer: ModuleID = "io.prometheus" % "simpleclient_httpserver" % "0.16.0"
   val sealerate: ModuleID = "ca.mrvisser" %% "sealerate" % "0.0.6"
   val scalaCache = "com.github.cb372" %% "scalacache-caffeine" % "1.0.0-M6"
-  val swaggerUi = "org.webjars" % "swagger-ui" % "4.13.2"
+  val swaggerUi = "org.webjars" % "swagger-ui" % "4.14.0"
 
   val azureResourceManagerCompute = "com.azure.resourcemanager" % "azure-resourcemanager-compute" % "2.17.0"
   val azureIdentity =  "com.azure" % "azure-identity" % "1.5.4"
