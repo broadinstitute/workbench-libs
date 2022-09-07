@@ -82,13 +82,14 @@ class HttpGoogleDirectoryDAO(appName: String,
            appName: String,
            workbenchMetricBaseName: String
   )(implicit system: ActorSystem, executionContext: ExecutionContext) =
-    this(appName,
-         Pem(
-           WorkbenchEmail(clientSecrets.getDetails.get("client_email").toString),
-           new File(pemFile),
-           Some(WorkbenchEmail(clientSecrets.getDetails.get("sub_email").toString))
-         ),
-         workbenchMetricBaseName
+    this(
+      appName,
+      Pem(
+        WorkbenchEmail(clientSecrets.getDetails.get("client_email").toString),
+        new File(pemFile),
+        Some(WorkbenchEmail(clientSecrets.getDetails.get("sub_email").toString))
+      ),
+      workbenchMetricBaseName
     )
 
   override val scopes = Seq(DirectoryScopes.ADMIN_DIRECTORY_GROUP)
