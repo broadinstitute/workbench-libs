@@ -15,7 +15,7 @@ Added:
 - Added methods for clientId and authorityEndpoint to `OpenIDConnectConfiguration`
 - Added akka-http route `/oauth2/configuration` which returns JSON containing the clientId and authorityEndpoint
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-oauth2" % "0.2-20f9225"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-oauth2" % "0.2-TRAVIS-REPLACE-ME"`
 
 ## 0.1
 
