@@ -134,6 +134,6 @@ Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-notifi
 
 Contains utilities for integrating with Google and B2C oauth. 
 
-Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-oauth2" % "0.2-20f9225"`
+Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-oauth2" % "0.2-c70ff12"`
 
 [Changelog](oauth2/CHANGELOG.md)
