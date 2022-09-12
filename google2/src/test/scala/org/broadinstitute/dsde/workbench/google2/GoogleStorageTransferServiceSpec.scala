@@ -148,7 +148,7 @@ class GoogleStorageTransferServiceSpec extends AsyncFlatSpec with Matchers with 
     }
   }
 
-  it should "delete source objects and preserve storage class when so configured" in ioAssertion {
+  it should "delete source objects and preserve storage class when so configured" ignore ioAssertion {
     val blobName = GcsBlobName("test.txt")
     val storageClass = StorageClass.COLDLINE
 
