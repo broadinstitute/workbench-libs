@@ -209,7 +209,6 @@ private[google2] class GoogleStorageInterpreter[F[_]](
     ).void
   }
 
-  /** Rewrite the object with the specified storage class */
   override def setObjectStorageClass(bucketName: GcsBucketName,
                                      blobName: GcsBlobName,
                                      storageClass: StorageClass,
