@@ -4,7 +4,6 @@ package google2
 import java.nio.channels.Channels
 import java.nio.file.{Path, Paths}
 import java.time.Instant
-
 import fs2.io.file.Files
 import cats.data.NonEmptyList
 import cats.effect._
@@ -20,9 +19,10 @@ import com.google.cloud.storage.Storage.{
   BlobWriteOption,
   BucketGetOption,
   BucketSourceOption,
-  BucketTargetOption
+  BucketTargetOption,
+  CopyRequest
 }
-import com.google.cloud.storage.{Acl, Blob, BlobId, BlobInfo, BucketInfo, Storage, StorageOptions}
+import com.google.cloud.storage.{Acl, Blob, BlobId, BlobInfo, BucketInfo, Storage, StorageClass, StorageOptions}
 import com.google.cloud.{Identity, Policy, Role}
 import fs2.{text, Pipe, Stream}
 import org.typelevel.log4cats.StructuredLogger
@@ -206,6 +206,31 @@ private[google2] class GoogleStorageInterpreter[F[_]](
     retryF(retryConfig)(metadataUpdate,
                         traceId,
                         s"com.google.cloud.storage.Storage.update($bucketName/${objectName.value}, $blobTargetOptions)"
+    ).void
+  }
+
+  /** Rewrite the object with the specified storage class */
+  override def setObjectStorageClass(bucketName: GcsBucketName,
+                                     blobName: GcsBlobName,
+                                     storageClass: StorageClass,
+                                     traceId: Option[TraceId],
+                                     retryConfig: RetryConfig,
+                                     blobTargetOptions: List[BlobTargetOption]
+  ): Stream[F, Unit] = {
+    val blobId = BlobId.of(bucketName.value, blobName.value)
+    val blobInfo = BlobInfo
+      .newBuilder(blobId)
+      .setStorageClass(storageClass)
+      .build()
+    val copyRequest = CopyRequest
+      .newBuilder()
+      .setSource(blobId)
+      .setTarget(blobInfo, blobTargetOptions: _*)
+      .build()
+    retryF(retryConfig)(
+      blockingF(Async[F].delay(db.copy(copyRequest))),
+      traceId,
+      s"com.google.cloud.storage.Storage.copy($bucketName/${blobName.value}, $blobTargetOptions)"
     ).void
   }
 

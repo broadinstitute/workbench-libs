@@ -7,6 +7,7 @@ Changed:
 - GoogleStorageTransferService now returns `TransferOperation` rather than `Operation`
 - Added `MockGoogleStorageTransferService` to test sources
 - Exposed preserving object storage class via the `ObjectStorageClassOption` enum
+- Added `setObjectStorageClass` in `GoogleStorageService`
 
 Dependency Upgrades:
 |          Dependency           | Old Version | New Version |

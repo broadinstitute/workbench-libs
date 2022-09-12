@@ -6,9 +6,10 @@ import cats.effect.unsafe.implicits.global
 import cats.effect.{IO, Resource}
 import cats.implicits._
 import com.google.cloud.Identity
-import com.google.cloud.storage.StorageOptions
+import com.google.cloud.storage.{StorageClass, StorageOptions}
 import org.broadinstitute.dsde.workbench.google2.GetMetadataResponse.NotFound
 import org.broadinstitute.dsde.workbench.google2.GoogleStorageTransferService.ObjectDeletionOption.DeleteSourceObjectsAfterTransfer
+import org.broadinstitute.dsde.workbench.google2.GoogleStorageTransferService.ObjectStorageClassOption.PreserveStorageClass
 import org.broadinstitute.dsde.workbench.google2.GoogleStorageTransferService._
 import org.broadinstitute.dsde.workbench.model.WorkbenchException
 import org.broadinstitute.dsde.workbench.model.google._
@@ -147,17 +148,22 @@ class GoogleStorageTransferServiceSpec extends AsyncFlatSpec with Matchers with 
     }
   }
 
-  it should "delete source objects when so configured" ignore ioAssertion {
+  it should "delete source objects and preserve storage class when so configured" in ioAssertion {
     val blobName = GcsBlobName("test.txt")
+    val storageClass = StorageClass.COLDLINE
+
     val fixtures = for {
       tmpSrcBucket <- temporaryGcsBucket(googleProject, "workbench-libs-")
       _ <- Resource.liftK {
-        storage
-          .streamUploadBlob(tmpSrcBucket, blobName) {
-            fs2.Stream.emits("hello, world!".getBytes)
-          }
-          .compile
-          .drain
+        for {
+          _ <- storage
+            .streamUploadBlob(tmpSrcBucket, blobName) {
+              fs2.Stream.emits("hello, world!".getBytes)
+            }
+            .compile
+            .drain
+          _ <- storage.setObjectStorageClass(tmpSrcBucket, blobName, storageClass).compile.drain
+        } yield ()
       }
       tmpDstBucket <- temporaryGcsBucket(googleProject, "workbench-libs-")
       transferService <- GoogleStorageTransferService.resource[IO]
@@ -198,16 +204,20 @@ class GoogleStorageTransferServiceSpec extends AsyncFlatSpec with Matchers with 
           srcBucket,
           dstBucket,
           JobTransferSchedule.Immediately,
-          options = JobTransferOptions(whenToDelete = DeleteSourceObjectsAfterTransfer).some
+          options = JobTransferOptions(
+            whenToDelete = DeleteSourceObjectsAfterTransfer,
+            storageClassOption = PreserveStorageClass
+          ).some
         )
 
         _ <- sts.await(jobName)
 
         srcObj <- storage.getObjectMetadata(srcBucket, blobName).compile.lastOrError
-        dstObj <- storage.getObjectMetadata(dstBucket, blobName).compile.lastOrError
+        dstObj <- storage.getBlob(dstBucket, blobName).compile.lastOrError
       } yield {
         srcObj shouldBe NotFound
         dstObj should not be NotFound
+        dstObj.getStorageClass shouldBe storageClass
       }
     }
   }
