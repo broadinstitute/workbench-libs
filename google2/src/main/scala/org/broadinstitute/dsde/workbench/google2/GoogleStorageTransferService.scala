@@ -8,6 +8,7 @@ import com.google.storagetransfer.v1.proto.TransferTypes.{TransferJob, TransferO
 import com.google.storagetransfer.v1.proto.{StorageTransferServiceClient, StorageTransferServiceSettings}
 import org.broadinstitute.dsde.workbench.google2.GoogleStorageTransferService.ObjectDeletionOption.NeverDeleteSourceObjects
 import org.broadinstitute.dsde.workbench.google2.GoogleStorageTransferService.ObjectOverwriteOption.OverwriteObjectsIfDifferent
+import org.broadinstitute.dsde.workbench.google2.GoogleStorageTransferService.ObjectStorageClassOption.DestinationBucketDefault
 import org.broadinstitute.dsde.workbench.google2.GoogleStorageTransferService._
 import org.broadinstitute.dsde.workbench.model.ValueObject
 import org.broadinstitute.dsde.workbench.model.google.{GcsBucketName, GoogleProject, ServiceAccount}
@@ -53,8 +54,10 @@ object GoogleStorageTransferService {
       else Left(s"""Illegal job name - "$name" must start with "$prefix".""")
   }
 
-  final case class JobTransferOptions(whenToOverwrite: ObjectOverwriteOption = OverwriteObjectsIfDifferent,
-                                      whenToDelete: ObjectDeletionOption = NeverDeleteSourceObjects
+  final case class JobTransferOptions(
+    whenToOverwrite: ObjectOverwriteOption = OverwriteObjectsIfDifferent,
+    whenToDelete: ObjectDeletionOption = NeverDeleteSourceObjects,
+    storageClassOption: ObjectStorageClassOption = DestinationBucketDefault
   )
 
   sealed trait ObjectOverwriteOption extends Product with Serializable
@@ -80,6 +83,17 @@ object GoogleStorageTransferService {
 
     /** Delete files from destination if they're not at source. */
     final case object DeleteObjectsUniqueInSink extends ObjectDeletionOption
+  }
+
+  sealed trait ObjectStorageClassOption extends Product with Serializable
+
+  final object ObjectStorageClassOption {
+
+    /** Use destination bucket's default storage class */
+    final case object DestinationBucketDefault extends ObjectStorageClassOption
+
+    /** Preserve the source object's storage class in the destination bucket */
+    final case object PreserveStorageClass extends ObjectStorageClassOption
   }
 
   final case class OperationName(value: String) extends ValueObject
