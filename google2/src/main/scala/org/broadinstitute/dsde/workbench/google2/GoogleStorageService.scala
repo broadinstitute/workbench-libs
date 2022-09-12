@@ -2,7 +2,6 @@ package org.broadinstitute.dsde.workbench
 package google2
 
 import java.nio.file.Path
-
 import cats.data.NonEmptyList
 import cats.effect._
 import cats.effect.std.Semaphore
@@ -10,7 +9,7 @@ import cats.syntax.all._
 import com.google.auth.Credentials
 import com.google.auth.oauth2.{AccessToken, GoogleCredentials}
 import com.google.cloud.storage.BucketInfo.LifecycleRule
-import com.google.cloud.storage.{Acl, Blob, BlobId, BucketInfo, StorageOptions}
+import com.google.cloud.storage.{Acl, Blob, BlobId, BucketInfo, StorageClass, StorageOptions}
 import com.google.cloud.{Identity, Policy, Role}
 import fs2.{Pipe, Stream}
 import com.google.cloud.storage.Storage.{
@@ -216,6 +215,14 @@ trait GoogleStorageService[F[_]] {
                         traceId: Option[TraceId],
                         retryConfig: RetryConfig = standardGoogleRetryConfig,
                         blobTargetOptions: List[BlobTargetOption] = List.empty
+  ): Stream[F, Unit]
+
+  def setObjectStorageClass(bucketName: GcsBucketName,
+                            blobName: GcsBlobName,
+                            storageClass: StorageClass,
+                            traceId: Option[TraceId] = None,
+                            retryConfig: RetryConfig = standardGoogleRetryConfig,
+                            blobTargetOptions: List[BlobTargetOption] = List.empty
   ): Stream[F, Unit]
 
   /**

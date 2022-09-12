@@ -2,7 +2,6 @@ package org.broadinstitute.dsde.workbench.google2
 package mock
 
 import java.nio.file.Path
-
 import cats.data.NonEmptyList
 import cats.effect.IO
 import com.google.auth.Credentials
@@ -15,7 +14,7 @@ import com.google.cloud.storage.Storage.{
   BucketSourceOption,
   BucketTargetOption
 }
-import com.google.cloud.storage.{Acl, Blob, BlobId, BucketInfo, Storage}
+import com.google.cloud.storage.{Acl, Blob, BlobId, BucketInfo, Storage, StorageClass}
 import com.google.cloud.{Identity, Policy}
 import fs2.{Pipe, Stream}
 import org.broadinstitute.dsde.workbench.RetryConfig
@@ -100,6 +99,15 @@ class BaseFakeGoogleStorage extends GoogleStorageService[IO] {
                                  retryConfig: RetryConfig,
                                  blobTargetOptions: List[BlobTargetOption]
   ): Stream[IO, Unit] = Stream.eval(IO.unit)
+
+  override def setObjectStorageClass(bucketName: GcsBucketName,
+                                     blobName: GcsBlobName,
+                                     storageClass: StorageClass,
+                                     traceId: Option[TraceId],
+                                     retryConfig: RetryConfig,
+                                     blobTargetOptions: List[BlobTargetOption]
+  ): Stream[IO, Unit] =
+    localStorage.setObjectStorageClass(bucketName, blobName, storageClass, traceId, retryConfig, blobTargetOptions)
 
   override def removeObject(bucketName: GcsBucketName,
                             blobName: GcsBlobName,

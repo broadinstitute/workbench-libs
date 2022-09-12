@@ -126,7 +126,7 @@ final private[google2] class GoogleStorageTransferInterpreter[F[_]](client: Stor
     case JobTransferOptions(whenToOverwrite, whenToDelete, storageClassOption) =>
       val storageClass = storageClassOption match {
         case DestinationBucketDefault => StorageClass.STORAGE_CLASS_DESTINATION_BUCKET_DEFAULT
-        case PreserveStorageClass => StorageClass.STORAGE_CLASS_PRESERVE
+        case PreserveStorageClass     => StorageClass.STORAGE_CLASS_PRESERVE
       }
 
       val metadataOptions = MetadataOptions.newBuilder
