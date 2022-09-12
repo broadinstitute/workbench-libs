@@ -5,10 +5,15 @@ import cats.implicits.toFunctorOps
 import com.google.`type`.Date
 import com.google.longrunning.{ListOperationsRequest, Operation}
 import com.google.storagetransfer.v1.proto.TransferProto._
+import com.google.storagetransfer.v1.proto.TransferTypes.MetadataOptions.StorageClass
 import com.google.storagetransfer.v1.proto.TransferTypes._
 import com.google.storagetransfer.v1.proto.{StorageTransferServiceClient, TransferProto}
 import org.broadinstitute.dsde.workbench.google2.GoogleStorageTransferService.ObjectDeletionOption._
 import org.broadinstitute.dsde.workbench.google2.GoogleStorageTransferService.ObjectOverwriteOption._
+import org.broadinstitute.dsde.workbench.google2.GoogleStorageTransferService.ObjectStorageClassOption.{
+  DestinationBucketDefault,
+  PreserveStorageClass
+}
 import org.broadinstitute.dsde.workbench.google2.GoogleStorageTransferService._
 import org.broadinstitute.dsde.workbench.model.WorkbenchEmail
 import org.broadinstitute.dsde.workbench.model.google._
@@ -117,12 +122,22 @@ final private[google2] class GoogleStorageTransferInterpreter[F[_]](client: Stor
         .build
   }
 
-  private def makeTransferOptions(options: JobTransferOptions): TransferOptions = options match {
-    case JobTransferOptions(overwrite, delete) =>
+  private def makeTransferOptions: JobTransferOptions => TransferOptions = {
+    case JobTransferOptions(whenToOverwrite, whenToDelete, storageClassOption) =>
+      val storageClass = storageClassOption match {
+        case DestinationBucketDefault => StorageClass.STORAGE_CLASS_DESTINATION_BUCKET_DEFAULT
+        case PreserveStorageClass => StorageClass.STORAGE_CLASS_PRESERVE
+      }
+
+      val metadataOptions = MetadataOptions.newBuilder
+        .setStorageClass(storageClass)
+        .build
+
       TransferOptions.newBuilder
-        .setOverwriteObjectsAlreadyExistingInSink(overwrite == OverwriteObjectsAlreadyExistingInSink)
-        .setDeleteObjectsUniqueInSink(delete == DeleteObjectsUniqueInSink)
-        .setDeleteObjectsFromSourceAfterTransfer(delete == DeleteSourceObjectsAfterTransfer)
+        .setOverwriteObjectsAlreadyExistingInSink(whenToOverwrite == OverwriteObjectsAlreadyExistingInSink)
+        .setDeleteObjectsUniqueInSink(whenToDelete == DeleteObjectsUniqueInSink)
+        .setDeleteObjectsFromSourceAfterTransfer(whenToDelete == DeleteSourceObjectsAfterTransfer)
+        .setMetadataOptions(metadataOptions)
         .build
   }
 
