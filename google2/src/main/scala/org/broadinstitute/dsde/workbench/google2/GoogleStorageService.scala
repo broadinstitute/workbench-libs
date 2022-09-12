@@ -217,6 +217,7 @@ trait GoogleStorageService[F[_]] {
                         blobTargetOptions: List[BlobTargetOption] = List.empty
   ): Stream[F, Unit]
 
+  /** Rewrite the object with the specified storage class */
   def setObjectStorageClass(bucketName: GcsBucketName,
                             blobName: GcsBlobName,
                             storageClass: StorageClass,
