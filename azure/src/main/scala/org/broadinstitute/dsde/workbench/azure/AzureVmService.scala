@@ -17,6 +17,14 @@ trait AzureVmService[F[_]] {
   def deleteAzureVm(name: InstanceName, cloudContext: AzureCloudContext, forceDeletion: Boolean)(implicit
     ev: Ask[F, TraceId]
   ): F[Option[Accepted[Void]]]
+
+  def startAzureVm(name: InstanceName, cloudContext: AzureCloudContext)(implicit
+                                                                        ev: Ask[F, TraceId]
+  ): F[Option[VirtualMachine]]
+
+  def stopAzureVm(name: InstanceName, cloudContext: AzureCloudContext)(implicit
+                                                                        ev: Ask[F, TraceId]
+  ): F[Option[VirtualMachine]]
 }
 
 object AzureVmService {
