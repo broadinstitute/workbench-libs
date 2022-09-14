@@ -70,7 +70,7 @@ class AzureVmServiceInterp[F[_]](clientSecretCredential: ClientSecretCredential)
 
   def startAzureVm(name: InstanceName, cloudContext: AzureCloudContext)(implicit
                                                                         ev: Ask[F, TraceId]
-  ): F[Option[VirtualMachine]] = for {
+  ): F[Option[Mono[Void]]] = for {
     azureComputeManager <- buildComputeManager(cloudContext)
     fa = F
       .delay(
@@ -93,7 +93,7 @@ class AzureVmServiceInterp[F[_]](clientSecretCredential: ClientSecretCredential)
 
   def stopAzureVm(name: InstanceName, cloudContext: AzureCloudContext)(implicit
                                                                         ev: Ask[F, TraceId]
-  ): F[Option[VirtualMachine]] = for {
+  ): F[Option[Mono[Void]]] = for {
     azureComputeManager <- buildComputeManager(cloudContext)
     fa = F
       .delay(

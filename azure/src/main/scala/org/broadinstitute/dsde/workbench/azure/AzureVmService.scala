@@ -8,6 +8,7 @@ import com.azure.resourcemanager.resources.fluentcore.model.Accepted
 import org.broadinstitute.dsde.workbench.model.TraceId
 import org.broadinstitute.dsde.workbench.util2.InstanceName
 import org.typelevel.log4cats.StructuredLogger
+import reactor.core.publisher.Mono
 
 trait AzureVmService[F[_]] {
   def getAzureVm(name: InstanceName, cloudContext: AzureCloudContext)(implicit
@@ -20,11 +21,11 @@ trait AzureVmService[F[_]] {
 
   def startAzureVm(name: InstanceName, cloudContext: AzureCloudContext)(implicit
                                                                         ev: Ask[F, TraceId]
-  ): F[Option[VirtualMachine]]
+  ): F[Option[Mono[Void]]]
 
   def stopAzureVm(name: InstanceName, cloudContext: AzureCloudContext)(implicit
                                                                         ev: Ask[F, TraceId]
-  ): F[Option[VirtualMachine]]
+  ): F[Option[Mono[Void]]]
 }
 
 object AzureVmService {
