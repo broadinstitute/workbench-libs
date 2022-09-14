@@ -13,7 +13,7 @@ Dependency Upgrades:
 | google-cloud-storage-transfer |    1.2.0    |    1.2.1    |
 
 
-SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.25-26f31cd"`
+SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "TRAVIS-REPLACE-ME"`
 
 ## 0.24
 
