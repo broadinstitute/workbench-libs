@@ -19,6 +19,9 @@ private[google2] class GoogleBigQueryInterpreter[F[_]: StructuredLogger](client:
       if (tableResult == null) "null" else s"total row count: ${tableResult.getTotalRows}"
     )
 
+  private val jobFormatter: Show[Job] =
+    Show.show((job: Job) => if (job == null) "null" else s"jobId: ${job.getJobId}")
+
   override def query(queryJobConfiguration: QueryJobConfiguration, options: BigQuery.JobOption*): F[TableResult] =
     withLogging(
       F.blocking[TableResult] {
@@ -27,6 +30,16 @@ private[google2] class GoogleBigQueryInterpreter[F[_]: StructuredLogger](client:
       None,
       s"com.google.cloud.bigquery.BigQuery.query(${queryJobConfiguration.getQuery})",
       tableResultFormatter
+    )
+
+  def runJob(jobInfo: JobInfo, options: BigQuery.JobOption*): F[Job] =
+    withLogging(
+      F.blocking[Job] {
+        client.create(jobInfo, options: _*)
+      },
+      None,
+      s"com.google.cloud.bigquery.BigQuery.query(${jobInfo.getJobId})",
+      jobFormatter
     )
 
   override def query(queryJobConfiguration: QueryJobConfiguration,
