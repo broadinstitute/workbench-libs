@@ -7,6 +7,7 @@ Changed:
 - GoogleStorageTransferService now returns `TransferOperation` rather than `Operation`
 - Added `MockGoogleStorageTransferService` to test sources
 - Added `GoogleBigQueryInterpreter.runJob` to allow for running a generic job
+- Update `FakeComputeOperationFuture`
 
 Dependency Upgrades:
 |          Dependency           | Old Version | New Version |
@@ -14,7 +15,7 @@ Dependency Upgrades:
 | google-cloud-storage-transfer |    1.2.0    |    1.2.1    |
 
 
-SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.25-f7103bc"`
+SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.25-TRAVIS-REPLACE-ME"`
 
 ## 0.24
 
