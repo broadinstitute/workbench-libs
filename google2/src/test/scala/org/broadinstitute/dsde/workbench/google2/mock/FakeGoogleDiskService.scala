@@ -72,7 +72,13 @@ class BaseFakeOperationFuture[A, B] extends OperationFuture[A, B] {
 }
 
 class FakeComputeOperationFuture extends BaseFakeOperationFuture[Operation, Operation] {
-  override def get(timeout: Long, unit: TimeUnit): Operation = ???
+  override def get(timeout: Long, unit: TimeUnit): Operation = Operation
+    .newBuilder()
+    .setId(123)
+    .setHttpErrorStatusCode(200)
+    .setName("opName")
+    .setTargetId(258165385)
+    .build()
 
   override def get(): Operation =
     Operation
