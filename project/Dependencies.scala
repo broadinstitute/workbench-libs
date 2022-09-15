@@ -61,10 +61,10 @@ object Dependencies {
 
   val googleRpc2: ModuleID =               "io.grpc" % "grpc-core" % "1.49.0"
   val googleStorageNew: ModuleID = "com.google.cloud" % "google-cloud-storage" % "2.9.3"
-  val googleStorageLocal: ModuleID = "com.google.cloud" % "google-cloud-nio" % "0.124.13" % "test"
+  val googleStorageLocal: ModuleID = "com.google.cloud" % "google-cloud-nio" % "0.124.14" % "test"
   val googlePubsubNew: ModuleID = "com.google.cloud" % "google-cloud-pubsub" % "1.120.12"
-  val googleKms: ModuleID = "com.google.cloud" % "google-cloud-kms" % "2.3.1"
-  val googleComputeNew: ModuleID = "com.google.cloud" % "google-cloud-compute" % "1.11.0"
+  val googleKms: ModuleID = "com.google.cloud" % "google-cloud-kms" % "2.6.4"
+  val googleComputeNew: ModuleID = "com.google.cloud" % "google-cloud-compute" % "1.12.0"
   val googleDataproc: ModuleID =    "com.google.cloud" % "google-cloud-dataproc" % "4.0.2"
   val googleContainer: ModuleID = "com.google.cloud" % "google-cloud-container" % "2.5.0"
   val kubernetesClient: ModuleID = "io.kubernetes" % "client-java" % "16.0.0"
@@ -98,7 +98,11 @@ object Dependencies {
   val prometheusServer: ModuleID = "io.prometheus" % "simpleclient_httpserver" % "0.16.0"
   val sealerate: ModuleID = "ca.mrvisser" %% "sealerate" % "0.0.6"
   val scalaCache = "com.github.cb372" %% "scalacache-caffeine" % "1.0.0-M6"
-  val swaggerUi = "org.webjars" % "swagger-ui" % "4.14.0"
+
+  // [TOAZ-205] Rawls checks-in a customised version of swagger-ui's index.html supporting Terra
+  // on Azure and upgrading subsequently caused failures. Pin swagger-ui version until this
+  // has been made more upgrade-safe.
+  val swaggerUi = "org.webjars" % "swagger-ui" % "4.11.1"
 
   val azureResourceManagerCompute = "com.azure.resourcemanager" % "azure-resourcemanager-compute" % "2.17.0"
   val azureIdentity =  "com.azure" % "azure-identity" % "1.5.4"
