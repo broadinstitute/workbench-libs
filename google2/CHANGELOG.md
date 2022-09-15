@@ -43,7 +43,7 @@ Dependency Upgrades:
 | google-cloud-resourcemanager |   1.2.0   |  1.2.11 |
 | simpleclient_httpserver |   0.12.0   | 0.15.0 |
 | log4cats-slf4j |  2.1.1   |  2.3.0 |
-| http4s |  1.0.0-M35   |  1.0.0-M33 |
+| http4s |  1.0.0-M36   |  1.0.0-M33 |
 
 SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.24-0096bac"`
 
