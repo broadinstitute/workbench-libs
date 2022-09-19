@@ -16,12 +16,12 @@ import org.typelevel.log4cats.StructuredLogger
 import reactor.core.publisher.Mono
 
 class AzureVmServiceInterp[F[_]](clientSecretCredential: ClientSecretCredential)(implicit
-  val F: Async[F],
-  logger: StructuredLogger[F]
+                                                                                 val F: Async[F],
+                                                                                 logger: StructuredLogger[F]
 ) extends AzureVmService[F] {
 
   def getAzureVm(name: InstanceName, cloudContext: AzureCloudContext)(implicit
-    ev: Ask[F, TraceId]
+                                                                      ev: Ask[F, TraceId]
   ): F[Option[VirtualMachine]] =
     for {
       azureComputeManager <- buildComputeManager(cloudContext)
@@ -44,7 +44,7 @@ class AzureVmServiceInterp[F[_]](clientSecretCredential: ClientSecretCredential)
     } yield res
 
   def deleteAzureVm(name: InstanceName, cloudContext: AzureCloudContext, forceDeletion: Boolean)(implicit
-    ev: Ask[F, TraceId]
+                                                                                                 ev: Ask[F, TraceId]
   ): F[Option[Accepted[Void]]] =
     for {
       azureComputeManager <- buildComputeManager(cloudContext)
@@ -53,8 +53,8 @@ class AzureVmServiceInterp[F[_]](clientSecretCredential: ClientSecretCredential)
           azureComputeManager
             .virtualMachines()
             .beginDeleteByResourceGroup(cloudContext.managedResourceGroupName.value,
-                                        name.value,
-                                        forceDeletion
+              name.value,
+              forceDeletion
             ) // Begins force deleting a virtual machine from Azure
         )
         .map(Option(_))
@@ -92,7 +92,7 @@ class AzureVmServiceInterp[F[_]](clientSecretCredential: ClientSecretCredential)
   } yield res
 
   def stopAzureVm(name: InstanceName, cloudContext: AzureCloudContext)(implicit
-                                                                        ev: Ask[F, TraceId]
+                                                                       ev: Ask[F, TraceId]
   ): F[Option[Mono[Void]]] = for {
     azureComputeManager <- buildComputeManager(cloudContext)
     fa = F
