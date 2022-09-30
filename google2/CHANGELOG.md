@@ -7,14 +7,15 @@ Changed:
 - GoogleStorageTransferService now returns `TransferOperation` rather than `Operation`
 - Added `MockGoogleStorageTransferService` to test sources
 - Added `GoogleBigQueryInterpreter.runJob` to allow for running a generic job
+- Update `FakeComputeOperationFuture`
 
 Dependency Upgrades:
 |          Dependency           | Old Version | New Version |
 |-------------------------------|:-----------:|------------:|
 | google-cloud-storage-transfer |    1.2.0    |    1.2.1    |
+| google-cloud-container |    2.5.0    |    2.5.2    |
 
-
-SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.25-f7103bc"`
+SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.25-5c7738b"`
 
 ## 0.24
 
@@ -32,7 +33,7 @@ Dependency Upgrades:
 |----------|:-------------:|------:|
 | google-cloud-compute |   1.4.4.alpha   |   1.9.1 |
 | akka |   2.6.18   |   2.6.19 |
-| akka-http |   10.2.7   |   10.2.9 |
+| akka-http |   10.2.7   |   10.2.10 |
 | com.google.guava |   31.0.1-jre   |   31.1-jre |
 | grpc-core |   1.43.2   |   1.44.1 |
 | google-cloud-nio |   0.123.25   |   0.123.28 |
