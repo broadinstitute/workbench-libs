@@ -37,15 +37,15 @@ class AzureContainerServiceInterp[F[_]](clientSecretCredential: ClientSecretCred
       )
       kubeConfig <- F.fromOption(resp.kubeconfigs().asScala.headOption, new WorkbenchException("No AKS credential"))
       // Parse the kubeconfig file
-      kubeConfig <- F.delay(
+      parsedKubeConfig <- F.delay(
         KubeConfig.loadKubeConfig(new InputStreamReader(new ByteArrayInputStream(kubeConfig.value)))
       )
       // Null-check fields from the Java API
-      server <- F.fromOption(Option(kubeConfig.getServer).map(AKSServer), new WorkbenchException("No AKS server"))
-      userToken <- F.fromOption(kubeConfig.getCredentials.asScala.get("token").map(AKSToken),
+      server <- F.fromOption(Option(parsedKubeConfig.getServer).map(AKSServer), new WorkbenchException("No AKS server"))
+      userToken <- F.fromOption(parsedKubeConfig.getCredentials.asScala.get("token").map(AKSToken),
                                 new WorkbenchException("No AKS token")
       )
-      certificate <- F.fromOption(Option(kubeConfig.getCertificateAuthorityData).map(AKSCertificate),
+      certificate <- F.fromOption(Option(parsedKubeConfig.getCertificateAuthorityData).map(AKSCertificate),
                                   new WorkbenchException("No AKS certificate")
       )
 
