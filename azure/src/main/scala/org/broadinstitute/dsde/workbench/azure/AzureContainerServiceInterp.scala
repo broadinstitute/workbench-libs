@@ -19,7 +19,7 @@ class AzureContainerServiceInterp[F[_]](clientSecretCredential: ClientSecretCred
   val F: Async[F],
   logger: StructuredLogger[F]
 ) extends AzureContainerService[F] {
-  override def getCredentials(name: AKSClusterName, cloudContext: AzureCloudContext)(implicit
+  override def getClusterCredentials(name: AKSClusterName, cloudContext: AzureCloudContext)(implicit
     ev: Ask[F, TraceId]
   ): F[AKSCredentials] =
     for {
@@ -35,12 +35,10 @@ class AzureContainerServiceInterp[F[_]](clientSecretCredential: ClientSecretCred
         ),
         s"com.azure.resourcemanager.containerservice.fluent.ManagedClustersClient.listClusterMonitoringUserCredentials(${cloudContext.managedResourceGroupName.value}, ${name})"
       )
-      clusterCredential <- F.fromOption(resp.kubeconfigs().asScala.headOption,
-                                        new WorkbenchException("No AKS credential")
-      )
+      kubeConfig <- F.fromOption(resp.kubeconfigs().asScala.headOption, new WorkbenchException("No AKS credential"))
       // Parse the kubeconfig file
       kubeConfig <- F.delay(
-        KubeConfig.loadKubeConfig(new InputStreamReader(new ByteArrayInputStream(clusterCredential.value)))
+        KubeConfig.loadKubeConfig(new InputStreamReader(new ByteArrayInputStream(kubeConfig.value)))
       )
       // Null-check fields from the Java API
       server <- F.fromOption(Option(kubeConfig.getServer).map(AKSServer), new WorkbenchException("No AKS server"))

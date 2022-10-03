@@ -7,7 +7,7 @@ import org.broadinstitute.dsde.workbench.model.TraceId
 import org.typelevel.log4cats.StructuredLogger
 
 trait AzureContainerService[F[_]] {
-  def getCredentials(name: AKSClusterName, cloudContext: AzureCloudContext)(implicit
+  def getClusterCredentials(name: AKSClusterName, cloudContext: AzureCloudContext)(implicit
     ev: Ask[F, TraceId]
   ): F[AKSCredentials]
 }
