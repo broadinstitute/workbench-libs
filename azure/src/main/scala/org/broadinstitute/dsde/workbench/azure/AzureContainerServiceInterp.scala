@@ -7,6 +7,7 @@ import com.azure.core.management.AzureEnvironment
 import com.azure.core.management.profile.AzureProfile
 import com.azure.identity.ClientSecretCredential
 import com.azure.resourcemanager.containerservice.ContainerServiceManager
+import com.azure.resourcemanager.containerservice.models.KubernetesCluster
 import io.kubernetes.client.util.KubeConfig
 import org.broadinstitute.dsde.workbench.model.{TraceId, WorkbenchException}
 import org.broadinstitute.dsde.workbench.util2.tracedLogging
@@ -19,6 +20,22 @@ class AzureContainerServiceInterp[F[_]](clientSecretCredential: ClientSecretCred
   val F: Async[F],
   logger: StructuredLogger[F]
 ) extends AzureContainerService[F] {
+
+  override def getCluster(name: AKSClusterName, cloudContext: AzureCloudContext)(implicit
+    ev: Ask[F, TraceId]
+  ): F[KubernetesCluster] =
+    for {
+      mgr <- buildContainerServiceManager(cloudContext)
+      resp <- tracedLogging(
+        F.delay(
+          mgr
+            .kubernetesClusters()
+            .getByResourceGroup(cloudContext.managedResourceGroupName.value, name.value)
+        ),
+        s"com.azure.resourcemanager.resources.fluentcore.arm.collection,getByResourceGroup(${cloudContext.managedResourceGroupName.value}, ${name.value})"
+      )
+    } yield resp
+
   override def getClusterCredentials(name: AKSClusterName, cloudContext: AzureCloudContext)(implicit
     ev: Ask[F, TraceId]
   ): F[AKSCredentials] =
@@ -33,7 +50,7 @@ class AzureContainerServiceInterp[F[_]](clientSecretCredential: ClientSecretCred
             .getManagedClusters()
             .listClusterUserCredentials(cloudContext.managedResourceGroupName.value, name.value)
         ),
-        s"com.azure.resourcemanager.containerservice.fluent.ManagedClustersClient.listClusterUserCredentials(${cloudContext.managedResourceGroupName.value}, ${name})"
+        s"com.azure.resourcemanager.containerservice.fluent.ManagedClustersClient.listClusterUserCredentials(${cloudContext.managedResourceGroupName.value}, ${name.value})"
       )
       kubeConfig <- F.fromOption(resp.kubeconfigs().asScala.headOption, new WorkbenchException("No AKS credential"))
       // Parse the kubeconfig file
