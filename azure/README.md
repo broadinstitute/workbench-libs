@@ -28,11 +28,13 @@ val cloudContext = AzureCloudContext(
   TenantId("0cb7a640-45a2-4ed6-be9f-63519f86e04b"), 
   SubscriptionId("3efc5bdf-be0e-44e7-b1d7-c08931e3c16c"), 
   ManagedResourceGroupName("mrg-rt-aks-end-to-end-20220930090032"))
+
 // Get from vault
 val config = AzureAppRegistrationConfig(
   ClientId("<client>>"), 
   ClientSecret("<secret>"), 
   ManagedAppTenantId("<tenant>"))
+
 val clusterName = AKSClusterName("lz961d62cced17ccac037ce22")
 ```
 

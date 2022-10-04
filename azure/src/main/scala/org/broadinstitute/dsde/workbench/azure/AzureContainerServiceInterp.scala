@@ -31,9 +31,9 @@ class AzureContainerServiceInterp[F[_]](clientSecretCredential: ClientSecretCred
             .manager()
             .serviceClient()
             .getManagedClusters()
-            .listClusterMonitoringUserCredentials(cloudContext.managedResourceGroupName.value, name.value)
+            .listClusterUserCredentials(cloudContext.managedResourceGroupName.value, name.value)
         ),
-        s"com.azure.resourcemanager.containerservice.fluent.ManagedClustersClient.listClusterMonitoringUserCredentials(${cloudContext.managedResourceGroupName.value}, ${name})"
+        s"com.azure.resourcemanager.containerservice.fluent.ManagedClustersClient.listClusterUserCredentials(${cloudContext.managedResourceGroupName.value}, ${name})"
       )
       kubeConfig <- F.fromOption(resp.kubeconfigs().asScala.headOption, new WorkbenchException("No AKS credential"))
       // Parse the kubeconfig file
