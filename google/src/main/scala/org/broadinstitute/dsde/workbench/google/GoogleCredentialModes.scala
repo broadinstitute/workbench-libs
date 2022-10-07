@@ -1,13 +1,11 @@
 package org.broadinstitute.dsde.workbench.google
 
-import java.io.{ByteArrayInputStream, File}
-
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport
-import com.google.api.client.json.jackson2.JacksonFactory
 import com.google.api.client.util.Charsets
 import org.broadinstitute.dsde.workbench.model.WorkbenchEmail
 
+import java.io.{ByteArrayInputStream, File}
 import scala.jdk.CollectionConverters._
 
 /**
@@ -15,7 +13,7 @@ import scala.jdk.CollectionConverters._
  */
 object GoogleCredentialModes {
   val httpTransport = GoogleNetHttpTransport.newTrustedTransport
-  val jsonFactory = JacksonFactory.getDefaultInstance
+  val jsonFactory = com.google.api.client.json.gson.GsonFactory.getDefaultInstance
 
   /**
    * Represents a way of obtaining a GoogleCredential.

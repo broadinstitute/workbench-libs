@@ -10,8 +10,6 @@ import akka.http.scaladsl.model.headers.OAuth2BearerToken
 import akka.http.scaladsl.model.{StatusCodes, _}
 import cats.syntax.all._
 import com.google.api.client.http.{AbstractInputStreamContent, FileContent, HttpResponseException, InputStreamContent}
-import com.google.api.services.compute.ComputeScopes
-import com.google.api.services.plus.PlusScopes
 import com.google.api.services.storage.model.Bucket.Lifecycle
 import com.google.api.services.storage.model.Bucket.Lifecycle.Rule.{Action, Condition}
 import com.google.api.services.storage.model._
@@ -47,10 +45,11 @@ class HttpGoogleStorageDAO(appName: String,
            maxPageSize: Long
   )(implicit system: ActorSystem, executionContext: ExecutionContext) =
     this(appName, Pem(WorkbenchEmail(serviceAccountClientId), new File(pemFile)), workbenchMetricBaseName, maxPageSize)
-  override val scopes = Seq(StorageScopes.DEVSTORAGE_FULL_CONTROL,
-                            "https://www.googleapis.com/auth/cloud-platform",
-                            PlusScopes.USERINFO_EMAIL,
-                            PlusScopes.USERINFO_PROFILE
+  override val scopes = Seq(
+    StorageScopes.DEVSTORAGE_FULL_CONTROL,
+    "https://www.googleapis.com/auth/cloud-platform",
+    "https://www.googleapis.com/auth/userinfo.email",
+    "https://www.googleapis.com/auth/userinfo.profile"
   )
 
   implicit override val service = GoogleInstrumentedService.Storage

@@ -6,7 +6,6 @@ import akka.http.scaladsl.model.StatusCodes
 import com.google.api.client.auth.oauth2.TokenResponseException
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport
-import com.google.api.client.json.jackson2.JacksonFactory
 import com.typesafe.scalalogging.LazyLogging
 import org.broadinstitute.dsde.workbench.service.util.Retry
 
@@ -26,7 +25,7 @@ object AuthTokenScopes {
 
 trait AuthToken extends LazyLogging {
   val httpTransport = GoogleNetHttpTransport.newTrustedTransport
-  val jsonFactory = JacksonFactory.getDefaultInstance
+  val jsonFactory = com.google.api.client.json.gson.GsonFactory.getDefaultInstance
 
   lazy val value: String = makeToken()
 
