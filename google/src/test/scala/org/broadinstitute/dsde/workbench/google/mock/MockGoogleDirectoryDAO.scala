@@ -1,6 +1,6 @@
 package org.broadinstitute.dsde.workbench.google.mock
 
-import com.google.api.services.admin.directory.model.Group
+import com.google.api.services.directory.model.Group
 import com.google.api.services.groupssettings.model.{Groups => GroupSettings}
 import org.broadinstitute.dsde.workbench.google.GoogleDirectoryDAO
 import org.broadinstitute.dsde.workbench.model._

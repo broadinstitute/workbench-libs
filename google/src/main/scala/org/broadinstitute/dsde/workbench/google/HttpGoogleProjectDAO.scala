@@ -6,9 +6,8 @@ import com.google.api.client.http.HttpResponseException
 import com.google.api.services.cloudbilling.Cloudbilling
 import com.google.api.services.cloudresourcemanager.CloudResourceManager
 import com.google.api.services.cloudresourcemanager.model._
-import com.google.api.services.compute.ComputeScopes
-import com.google.api.services.servicemanagement.ServiceManagement
-import com.google.api.services.servicemanagement.model.EnableServiceRequest
+import com.google.api.services.serviceusage.v1.ServiceUsage
+import com.google.api.services.serviceusage.v1.model.EnableServiceRequest
 import org.broadinstitute.dsde.workbench.google.GoogleCredentialModes._
 import org.broadinstitute.dsde.workbench.google.GoogleCredentialModes.GoogleCredentialMode
 import org.broadinstitute.dsde.workbench.google.GoogleUtilities.RetryPredicates._
@@ -27,7 +26,7 @@ class HttpGoogleProjectDAO(appName: String,
 ) extends AbstractHttpGoogleDAO(appName, googleCredentialMode, workbenchMetricBaseName)
     with GoogleProjectDAO {
 
-  override val scopes = Seq(ComputeScopes.CLOUD_PLATFORM)
+  override val scopes = Seq("https://www.googleapis.com/auth/cloud-platform")
 
   implicit override val service = GoogleInstrumentedService.Projects
 
@@ -35,7 +34,7 @@ class HttpGoogleProjectDAO(appName: String,
     new CloudResourceManager.Builder(httpTransport, jsonFactory, googleCredential).setApplicationName(appName).build()
 
   private def serviceManagement =
-    new ServiceManagement.Builder(httpTransport, jsonFactory, googleCredential).setApplicationName(appName).build()
+    new ServiceUsage.Builder(httpTransport, jsonFactory, googleCredential).setApplicationName(appName).build()
 
   private def billing: Cloudbilling =
     new Cloudbilling.Builder(httpTransport, jsonFactory, googleCredential).setApplicationName(appName).build()
@@ -107,7 +106,7 @@ class HttpGoogleProjectDAO(appName: String,
       executeGoogleRequest(
         serviceManagement
           .services()
-          .enable(serviceName, new EnableServiceRequest().setConsumerId(s"project:$projectName"))
+          .enable(serviceName, new EnableServiceRequest().set("project", projectName))
       )
     }.map { operation =>
       operation.getName
