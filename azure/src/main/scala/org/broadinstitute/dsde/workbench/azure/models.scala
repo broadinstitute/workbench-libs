@@ -37,3 +37,9 @@ final case class AzureAppRegistrationConfig(clientId: ClientId,
 final case class RelayNamespace(value: String) extends AnyVal
 final case class RelayHybridConnectionName(value: String) extends AnyVal
 final case class PrimaryKey(value: String) extends AnyVal
+
+final case class AKSClusterName(value: String) extends AnyVal
+final case class AKSServer(value: String) extends AnyVal
+final case class AKSToken(value: String) extends AnyVal
+final case class AKSCertificate(value: String) extends AnyVal
+final case class AKSCredentials(server: AKSServer, token: AKSToken, certificate: AKSCertificate)

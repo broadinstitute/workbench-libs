@@ -13,6 +13,7 @@ import com.azure.resourcemanager.resources.fluentcore.model.Accepted
 import org.broadinstitute.dsde.workbench.model.TraceId
 import org.broadinstitute.dsde.workbench.util2.{tracedLogging, InstanceName}
 import org.typelevel.log4cats.StructuredLogger
+import reactor.core.publisher.Mono
 
 class AzureVmServiceInterp[F[_]](clientSecretCredential: ClientSecretCredential)(implicit
   val F: Async[F],
@@ -67,9 +68,51 @@ class AzureVmServiceInterp[F[_]](clientSecretCredential: ClientSecretCredential)
       )
     } yield res
 
+  def startAzureVm(name: InstanceName, cloudContext: AzureCloudContext)(implicit
+    ev: Ask[F, TraceId]
+  ): F[Option[Mono[Void]]] = for {
+    azureComputeManager <- buildComputeManager(cloudContext)
+    fa = F
+      .delay(
+        azureComputeManager
+          .virtualMachines()
+          .startAsync(cloudContext.managedResourceGroupName.value, name.value)
+      )
+      .map(Option(_))
+      .handleErrorWith {
+        case e: ManagementException if e.getValue.getCode().equals("ResourceNotFound") => F.pure(none[Mono[Void]])
+        case e => F.raiseError[Option[Mono[Void]]](e)
+      }
+    res <- tracedLogging(
+      fa,
+      s"com.azure.resourcemanager.compute.models.VirtualMachines.startAsync(${cloudContext.managedResourceGroupName.value}, ${name})"
+    )
+  } yield res
+
   private def buildComputeManager(azureCloudContext: AzureCloudContext): F[ComputeManager] = {
     val azureProfile =
       new AzureProfile(azureCloudContext.tenantId.value, azureCloudContext.subscriptionId.value, AzureEnvironment.AZURE)
     F.delay(ComputeManager.authenticate(clientSecretCredential, azureProfile))
   }
+
+  def stopAzureVm(name: InstanceName, cloudContext: AzureCloudContext)(implicit
+    ev: Ask[F, TraceId]
+  ): F[Option[Mono[Void]]] = for {
+    azureComputeManager <- buildComputeManager(cloudContext)
+    fa = F
+      .delay(
+        azureComputeManager
+          .virtualMachines()
+          .powerOffAsync(cloudContext.managedResourceGroupName.value, name.value)
+      )
+      .map(Option(_))
+      .handleErrorWith {
+        case e: ManagementException if e.getValue.getCode().equals("ResourceNotFound") => F.pure(none[Mono[Void]])
+        case e => F.raiseError[Option[Mono[Void]]](e)
+      }
+    res <- tracedLogging(
+      fa,
+      s"com.azure.resourcemanager.compute.models.VirtualMachines.powerOffAsync(${cloudContext.managedResourceGroupName.value}, ${name})"
+    )
+  } yield res
 }

@@ -13,9 +13,9 @@ Dependency Upgrades:
 |          Dependency           | Old Version | New Version |
 |-------------------------------|:-----------:|------------:|
 | google-cloud-storage-transfer |    1.2.0    |    1.2.1    |
+| google-cloud-container |    2.5.0    |    2.5.2    |
 
-
-SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.25-ab5b203"`
+SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.25-5c7738b"`
 
 ## 0.24
 
