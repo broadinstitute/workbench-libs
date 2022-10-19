@@ -373,7 +373,7 @@ trait Rawls extends RestClient with LazyLogging {
                        useReferenceDisks: Boolean,
                        memoryRetryMultiplier: Double,
                        workflowFailureMode: String = "NoNewCalls",
-                       ignoreEmptyColumns: Boolean = False
+                       ignoreEmptyColumns: Boolean = false
     )(implicit token: AuthToken): String = {
       val body: Map[String, Any] = Map(
         "methodConfigurationNamespace" -> methodConfigurationNamespace,
