@@ -372,7 +372,8 @@ trait Rawls extends RestClient with LazyLogging {
                        deleteIntermediateOutputFiles: Boolean,
                        useReferenceDisks: Boolean,
                        memoryRetryMultiplier: Double,
-                       workflowFailureMode: String = "NoNewCalls"
+                       workflowFailureMode: String = "NoNewCalls",
+                       ignoreEmptyOutputs: Boolean = false
     )(implicit token: AuthToken): String = {
       val body: Map[String, Any] = Map(
         "methodConfigurationNamespace" -> methodConfigurationNamespace,
@@ -384,7 +385,8 @@ trait Rawls extends RestClient with LazyLogging {
         "deleteIntermediateOutputFiles" -> deleteIntermediateOutputFiles,
         "useReferenceDisks" -> useReferenceDisks,
         "memoryRetryMultiplier" -> memoryRetryMultiplier,
-        "workflowFailureMode" -> workflowFailureMode
+        "workflowFailureMode" -> workflowFailureMode,
+        "ignoreEmptyOutput" -> ignoreEmptyOutputs
       )
       logger.info(
         s"Creating a submission: $billingProject/$workspaceName config: $methodConfigurationNamespace/$methodConfigurationName with body $body"
