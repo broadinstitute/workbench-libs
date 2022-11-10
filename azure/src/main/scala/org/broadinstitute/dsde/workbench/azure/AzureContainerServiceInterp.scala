@@ -8,9 +8,13 @@ import com.azure.core.management.profile.AzureProfile
 import com.azure.identity.ClientSecretCredential
 import com.azure.resourcemanager.containerservice.ContainerServiceManager
 import com.azure.resourcemanager.containerservice.models.KubernetesCluster
+import io.kubernetes.client.openapi.apis.CoreV1Api
+import io.kubernetes.client.openapi.models.V1Status
+import io.kubernetes.client.proto.V1
+import io.kubernetes.client.proto.V1.PodStatus
 import io.kubernetes.client.util.KubeConfig
 import org.broadinstitute.dsde.workbench.model.{TraceId, WorkbenchException}
-import org.broadinstitute.dsde.workbench.util2.tracedLogging
+import org.broadinstitute.dsde.workbench.util2.{tracedLogging, withLogging}
 import org.typelevel.log4cats.StructuredLogger
 
 import java.io.{ByteArrayInputStream, InputStreamReader}
@@ -73,4 +77,47 @@ class AzureContainerServiceInterp[F[_]](clientSecretCredential: ClientSecretCred
       new AzureProfile(cloudContext.tenantId.value, cloudContext.subscriptionId.value, AzureEnvironment.AZURE)
     F.delay(ContainerServiceManager.authenticate(clientSecretCredential, azureProfile))
   }
+
+  private def getKubeV1Api(name: AKSClusterName, cloudContext: AzureCloudContext)(implicit
+    ev: Ask[F, TraceId]
+  ): F[CoreV1Api] =
+    for {
+      credentials <- getClusterCredentials(name, cloudContext)
+      apiClient = new io.kubernetes.client.openapi.ApiClient()
+      _ <- F.blocking(apiClient.setApiKey(credentials.token.value))
+      _ <- F.blocking(apiClient.setBasePath(credentials.server.value))
+      api = new CoreV1Api(apiClient)
+    } yield api
+
+  override def listNamespacePods(clusterName: AKSClusterName, namespaceName: String, cloudContext: AzureCloudContext)(
+    implicit ev: Ask[F, TraceId]
+  ): F[List[io.kubernetes.client.openapi.models.V1Pod]] = for {
+    traceId <- ev.ask
+    api <- getKubeV1Api(clusterName, cloudContext)
+    call =
+      F.blocking(
+        api.listNamespacedPod(namespaceName, "true", null, null, null, null, null, null, null, null, null)
+      )
+
+    response <- withLogging(
+      call,
+      Some(traceId),
+      s"io.kubernetes.client.apis.CoreV1Api.listNamespacedPod(${namespaceName}, true, null, null, null, null, null, null, null, null)"
+    )
+    pods = response.getItems.asScala.toList
+  } yield pods
+
+  override def deleteNamespace(name: AKSClusterName, namespace: String, cloudContext: AzureCloudContext)(implicit
+    ev: Ask[F, TraceId]
+  ): F[io.kubernetes.client.openapi.models.V1Status] =
+    for {
+      traceId <- ev.ask
+      api <- getKubeV1Api(name, cloudContext)
+      call = F.blocking(api.deleteNamespace(namespace, null, null, null, null, null, null))
+      res <- withLogging(
+        call,
+        Some(traceId),
+        s"io.kubernetes.client.apis.CoreV1Api.deleteNamespace(${namespace}, null, null, null, null, null, null)"
+      )
+    } yield res
 }
