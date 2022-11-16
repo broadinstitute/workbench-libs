@@ -4,7 +4,15 @@ import cats.effect.IO
 import cats.mtl.Ask
 import com.azure.resourcemanager.containerservice.models.KubernetesCluster
 import io.kubernetes.client.openapi.models.{V1Pod, V1Status}
-import org.broadinstitute.dsde.workbench.azure.{AKSCertificate, AKSClusterName, AKSCredentials, AKSServer, AKSToken, AzureCloudContext, AzureContainerService}
+import org.broadinstitute.dsde.workbench.azure.{
+  AKSCertificate,
+  AKSClusterName,
+  AKSCredentials,
+  AKSServer,
+  AKSToken,
+  AzureCloudContext,
+  AzureContainerService
+}
 import org.broadinstitute.dsde.workbench.model.TraceId
 
 class FakeAzureContainerService extends AzureContainerService[IO] {
@@ -18,10 +26,14 @@ class FakeAzureContainerService extends AzureContainerService[IO] {
     IO.raiseError(new NotImplementedError())
 
   /** Lists pods in a AKS cluster's namespace. */
-  override def listNamespacePods(name: AKSClusterName, namespace: String, cloudContext: AzureCloudContext)(implicit ev: Ask[IO, TraceId]): IO[List[V1Pod]] =
+  override def listNamespacePods(name: AKSClusterName, namespace: String, cloudContext: AzureCloudContext)(implicit
+    ev: Ask[IO, TraceId]
+  ): IO[List[V1Pod]] =
     IO.raiseError(new NotImplementedError())
 
   /** Deletes a AKS namespace. */
-  override def deleteNamespace(name: AKSClusterName, namespace: String, cloudContext: AzureCloudContext)(implicit ev: Ask[IO, TraceId]): IO[V1Status] =
+  override def deleteNamespace(name: AKSClusterName, namespace: String, cloudContext: AzureCloudContext)(implicit
+    ev: Ask[IO, TraceId]
+  ): IO[V1Status] =
     IO.raiseError(new NotImplementedError())
 }
