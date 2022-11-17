@@ -2,7 +2,7 @@ name: Publish Jar
 
 on:
   push:
-    branches: [ develop, deps ]
+    branches: [ develop ]
 
 jobs:
   publish:
