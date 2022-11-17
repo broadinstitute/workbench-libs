@@ -6,10 +6,10 @@ object Dependencies {
   val jacksonV      = "2.13.4"
   val googleV       = "2.0.0"
   val scalaLoggingV = "3.9.5"
-  val scalaTestV    = "3.2.13"
-  val circeVersion = "0.14.2"
-  val http4sVersion = "1.0.0-M35"
-  val bouncyCastleVersion = "1.70"
+  val scalaTestV    = "3.2.14"
+  val circeVersion = "0.14.3"
+  val http4sVersion = "1.0.0-M37"
+  val bouncyCastleVersion = "1.72"
   val openCensusV = "0.31.1"
 
   def excludeGuavaJDK5(m: ModuleID): ModuleID = m.exclude("com.google.guava", "guava-jdk5")
@@ -28,7 +28,7 @@ object Dependencies {
   val akkaTestkit: ModuleID =       "com.typesafe.akka" %% "akka-testkit"         % akkaV     % "test"
   val akkaHttpTestkit: ModuleID =   "com.typesafe.akka" %% "akka-http-testkit"    % akkaHttpV % "test"
   val akkaStreamTestkit: ModuleID = "com.typesafe.akka" %% "akka-stream-testkit"  % akkaV % "test"
-  val scalaCheck: ModuleID =        "org.scalacheck"      %%  "scalacheck"        % "1.16.0"  % "test"
+  val scalaCheck: ModuleID =        "org.scalacheck"      %%  "scalacheck"        % "1.17.0"  % "test"
   val commonsCodec: ModuleID = "commons-codec" % "commons-codec" % "20041127.091804" % "test"
 
   val jacksonModule: ModuleID =   "com.fasterxml.jackson.module" %% "jackson-module-scala"   % jacksonV % "test"
@@ -55,12 +55,12 @@ object Dependencies {
   val googleIam: ModuleID =                  "com.google.apis"       % "google-api-services-iam"                  % s"v1-rev20220825-$googleV"
   val googleBigQuery: ModuleID =             "com.google.apis"       % "google-api-services-bigquery"             % s"v2-rev20220924-$googleV"
   val googleGuava: ModuleID = "com.google.guava"  % "guava" % "31.1-jre"
-  val googleRpc: ModuleID =               "io.grpc" % "grpc-core" % "1.49.0"
+  val googleRpc: ModuleID =               "io.grpc" % "grpc-core" % "1.51.0"
 
-  val googleRpc2: ModuleID =               "io.grpc" % "grpc-core" % "1.49.0"
+  val googleRpc2: ModuleID =               "io.grpc" % "grpc-core" % "1.51.0"
   val googleStorageNew: ModuleID = "com.google.cloud" % "google-cloud-storage" % "2.14.0"
-  val googleStorageLocal: ModuleID = "com.google.cloud" % "google-cloud-nio" % "0.124.14" % "test"
-  val googlePubsubNew: ModuleID = "com.google.cloud" % "google-cloud-pubsub" % "1.120.15"
+  val googleStorageLocal: ModuleID = "com.google.cloud" % "google-cloud-nio" % "0.124.19" % "test"
+  val googlePubsubNew: ModuleID = "com.google.cloud" % "google-cloud-pubsub" % "1.120.24"
   val googleKms: ModuleID = "com.google.cloud" % "google-cloud-kms" % "2.6.4"
   val googleComputeNew: ModuleID = "com.google.cloud" % "google-cloud-compute" % "1.12.0"
   val googleDataproc: ModuleID =    "com.google.cloud" % "google-cloud-dataproc" % "4.0.8"
@@ -78,14 +78,14 @@ object Dependencies {
   val circeParser: ModuleID = "io.circe" %% "circe-parser" % circeVersion
   val circeGeneric: ModuleID = "io.circe" %% "circe-generic" % circeVersion % "test"
   val circeFs2: ModuleID = "io.circe" %% "circe-fs2" % "0.14.0"
-  val log4cats = "org.typelevel" %% "log4cats-slf4j"   % "2.4.0"
+  val log4cats = "org.typelevel" %% "log4cats-slf4j"   % "2.5.0"
   val catsMtl = "org.typelevel" %% "cats-mtl" % "1.3.0"
 
   val http4sCirce = "org.http4s" %% "http4s-circe" % http4sVersion
   val http4sBlazeClient = "org.http4s" %% "http4s-blaze-client" % http4sVersion
   val http4sDsl = "org.http4s"      %% "http4s-dsl"          % http4sVersion
 
-  val fs2Io: ModuleID = "co.fs2" %% "fs2-io" % "3.2.14"
+  val fs2Io: ModuleID = "co.fs2" %% "fs2-io" % "3.3.0"
   val rawlsModel: ModuleID = "org.broadinstitute.dsde" %% "rawls-model" % "0.1-384ab501b" exclude("com.typesafe.scala-logging", "scala-logging_2.13") exclude("com.typesafe.akka", "akka-stream_2.13")
   val openCensusApi: ModuleID = "io.opencensus" % "opencensus-api" % openCensusV
   val openCensusImpl: ModuleID = "io.opencensus" % "opencensus-impl" % openCensusV
