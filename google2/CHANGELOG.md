@@ -32,7 +32,7 @@ Dependency Upgrades:
 | Dependency   |      Old Version      |  New Version |
 |----------|:-------------:|------:|
 | google-cloud-compute |   1.4.4.alpha   |   1.9.1 |
-| akka |   2.6.18   |   2.6.19 |
+| akka |   2.6.18   |   2.6.20 |
 | akka-http |   10.2.7   |   10.2.10 |
 | com.google.guava |   31.0.1-jre   |   31.1-jre |
 | grpc-core |   1.43.2   |   1.44.1 |
