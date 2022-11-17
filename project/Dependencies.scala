@@ -2,9 +2,9 @@ import sbt._
 
 object Dependencies {
   val akkaV         = "2.6.20"
-  val akkaHttpV     = "10.2.9"
-  val jacksonV      = "2.13.3"
-  val googleV       = "1.22.0"
+  val akkaHttpV     = "10.2.10"
+  val jacksonV      = "2.13.4"
+  val googleV       = "2.0.0"
   val scalaLoggingV = "3.9.5"
   val scalaTestV    = "3.2.13"
   val circeVersion = "0.14.2"
@@ -43,37 +43,35 @@ object Dependencies {
   val metricsScala: ModuleID =      "nl.grons"              %% "metrics4-scala"    % "4.2.9"
   val metricsStatsd: ModuleID =     "com.readytalk"         %  "metrics3-statsd"  % "4.2.0"
 
-  val googleCloudBilling: ModuleID =         "com.google.apis"       % "google-api-services-cloudbilling"         % s"v1-rev21-$googleV"
-  val googleGenomics: ModuleID =             "com.google.apis"       % "google-api-services-genomics"             % s"v1-rev504-$googleV"
-  val googleStorage: ModuleID =              "com.google.apis"       % "google-api-services-storage"              % s"v1-rev109-$googleV"
-  val googleCloudResourceManager: ModuleID = "com.google.apis"       % "google-api-services-cloudresourcemanager" % s"v1-rev446-$googleV"
-  val googleCompute: ModuleID =              "com.google.apis"       % "google-api-services-compute"              % s"v1-rev152-$googleV"
-  val googleAdminDirectory: ModuleID =       "com.google.apis"       % "google-api-services-admin-directory"      % s"directory_v1-rev82-$googleV"
-  val googleGroupsSettings: ModuleID =       "com.google.apis"       % "google-api-services-groupssettings"       % s"v1-rev74-$googleV"
-  val googlePlus: ModuleID =                 "com.google.apis"       % "google-api-services-plus"                 % s"v1-rev529-$googleV"
-  val googleOAuth2: ModuleID =               "com.google.apis"       % "google-api-services-oauth2"               % s"v1-rev127-$googleV"
-  val googlePubSub: ModuleID =               "com.google.apis"       % "google-api-services-pubsub"               % s"v1-rev357-$googleV"
-  val googleServicemanagement: ModuleID =    "com.google.apis"       % "google-api-services-servicemanagement"    % s"v1-rev359-$googleV"
-  val googleIam: ModuleID =                  "com.google.apis"       % "google-api-services-iam"                  % s"v1-rev215-$googleV"
-  val googleBigQuery: ModuleID =             "com.google.apis"       % "google-api-services-bigquery"             % s"v2-rev377-$googleV"
+  val googleCloudBilling: ModuleID =         "com.google.apis"       % "google-api-services-cloudbilling"         % s"v1-rev20220908-$googleV"
+  val googleGenomics: ModuleID =             "com.google.apis"       % "google-api-services-genomics"             % s"v2alpha1-rev20220913-$googleV"
+  val googleStorage: ModuleID =              "com.google.apis"       % "google-api-services-storage"              % s"v1-rev20220705-$googleV"
+  val googleCloudResourceManager: ModuleID = "com.google.apis"       % "google-api-services-cloudresourcemanager" % s"v1-rev20220828-$googleV"
+  val googleAdminDirectory: ModuleID =       "com.google.apis"       % "google-api-services-admin-directory"      % s"directory_v1-rev20220919-$googleV"
+  val googleGroupsSettings: ModuleID =       "com.google.apis"       % "google-api-services-groupssettings"       % s"v1-rev20210624-$googleV"
+  val googleOAuth2: ModuleID =               "com.google.apis"       % "google-api-services-oauth2"               % s"v2-rev20200213-$googleV"
+  val googlePubSub: ModuleID =               "com.google.apis"       % "google-api-services-pubsub"               % s"v1-rev20220904-$googleV"
+  val googleServicemanagement: ModuleID =    "com.google.apis"       % "google-api-services-serviceusage"    % s"v1-rev20220907-$googleV"
+  val googleIam: ModuleID =                  "com.google.apis"       % "google-api-services-iam"                  % s"v1-rev20220825-$googleV"
+  val googleBigQuery: ModuleID =             "com.google.apis"       % "google-api-services-bigquery"             % s"v2-rev20220924-$googleV"
   val googleGuava: ModuleID = "com.google.guava"  % "guava" % "31.1-jre"
-  val googleRpc: ModuleID =               "io.grpc" % "grpc-core" % "1.34.0"
+  val googleRpc: ModuleID =               "io.grpc" % "grpc-core" % "1.49.0"
 
   val googleRpc2: ModuleID =               "io.grpc" % "grpc-core" % "1.49.0"
-  val googleStorageNew: ModuleID = "com.google.cloud" % "google-cloud-storage" % "2.9.3"
+  val googleStorageNew: ModuleID = "com.google.cloud" % "google-cloud-storage" % "2.14.0"
   val googleStorageLocal: ModuleID = "com.google.cloud" % "google-cloud-nio" % "0.124.14" % "test"
-  val googlePubsubNew: ModuleID = "com.google.cloud" % "google-cloud-pubsub" % "1.120.12"
+  val googlePubsubNew: ModuleID = "com.google.cloud" % "google-cloud-pubsub" % "1.120.15"
   val googleKms: ModuleID = "com.google.cloud" % "google-cloud-kms" % "2.6.4"
   val googleComputeNew: ModuleID = "com.google.cloud" % "google-cloud-compute" % "1.12.0"
-  val googleDataproc: ModuleID =    "com.google.cloud" % "google-cloud-dataproc" % "4.0.2"
-  val googleContainer: ModuleID = "com.google.cloud" % "google-cloud-container" % "2.5.0"
-  val kubernetesClient: ModuleID = "io.kubernetes" % "client-java" % "16.0.0"
-  val googleBigQueryNew: ModuleID = "com.google.cloud" % "google-cloud-bigquery" % "2.6.2"
+  val googleDataproc: ModuleID =    "com.google.cloud" % "google-cloud-dataproc" % "4.0.8"
+  val googleContainer: ModuleID = "com.google.cloud" % "google-cloud-container" % "2.5.2"
+  val kubernetesClient: ModuleID = "io.kubernetes" % "client-java" % "16.0.1"
+  val googleBigQueryNew: ModuleID = "com.google.cloud" % "google-cloud-bigquery" % "2.16.0"
   val google2CloudBilling = "com.google.cloud" % "google-cloud-billing" % "2.3.0"
-  val googleStorageTransferService: ModuleID = "com.google.cloud" % "google-cloud-storage-transfer" % "1.2.1"
-  val googleResourceManager =  "com.google.cloud" % "google-cloud-resourcemanager" % "1.2.11"
+  val googleStorageTransferService: ModuleID = "com.google.cloud" % "google-cloud-storage-transfer" % "1.2.2"
+  val googleResourceManager =  "com.google.cloud" % "google-cloud-resourcemanager" % "1.5.4"
   //the below v1 module is a dependency for v2 because it contains the OAuth scopes necessary to created scoped credentials
-  val googleContainerV1: ModuleID = "com.google.apis" % "google-api-services-container" % "v1-rev20220419-1.32.1"
+  val googleContainerV1: ModuleID = "com.google.apis" % "google-api-services-container" % "v1-rev20220826-2.0.0"
 
 
   val circeCore: ModuleID = "io.circe" %% "circe-core" % circeVersion
@@ -87,7 +85,7 @@ object Dependencies {
   val http4sBlazeClient = "org.http4s" %% "http4s-blaze-client" % http4sVersion
   val http4sDsl = "org.http4s"      %% "http4s-dsl"          % http4sVersion
 
-  val fs2Io: ModuleID = "co.fs2" %% "fs2-io" % "3.2.12"
+  val fs2Io: ModuleID = "co.fs2" %% "fs2-io" % "3.2.14"
   val rawlsModel: ModuleID = "org.broadinstitute.dsde" %% "rawls-model" % "0.1-384ab501b" exclude("com.typesafe.scala-logging", "scala-logging_2.13") exclude("com.typesafe.akka", "akka-stream_2.13")
   val openCensusApi: ModuleID = "io.opencensus" % "opencensus-api" % openCensusV
   val openCensusImpl: ModuleID = "io.opencensus" % "opencensus-impl" % openCensusV
@@ -105,9 +103,10 @@ object Dependencies {
   val swaggerUi = "org.webjars" % "swagger-ui" % "4.11.1"
 
   val azureResourceManagerCompute = "com.azure.resourcemanager" % "azure-resourcemanager-compute" % "2.17.0"
-  val azureIdentity =  "com.azure" % "azure-identity" % "1.5.4"
+  val azureIdentity =  "com.azure" % "azure-identity" % "1.5.5"
   val azureRelay =     "com.azure.resourcemanager" % "azure-resourcemanager-relay" % "1.0.0-beta.2"
-  val azureStorageBlob =  "com.azure" % "azure-storage-blob" % "12.19.0"
+  val azureStorageBlob =  "com.azure" % "azure-storage-blob" % "12.19.1"
+  val azureResourceManagerContainerService = "com.azure.resourcemanager" % "azure-resourcemanager-containerservice" % "2.19.0"
 
   val commonDependencies = Seq(
     scalatest,
@@ -148,10 +147,8 @@ object Dependencies {
     googleGenomics,
     googleStorage,
     googleCloudResourceManager,
-    googleCompute,
     googleAdminDirectory,
     googleGroupsSettings,
-    googlePlus,
     googleOAuth2,
     googlePubSub,
     googleServicemanagement,
@@ -202,7 +199,9 @@ object Dependencies {
     azureResourceManagerCompute,
     azureIdentity,
     azureRelay,
-    azureStorageBlob
+    azureStorageBlob,
+    azureResourceManagerContainerService,
+    kubernetesClient
   )
 
   val openTelemetryDependencies = List(

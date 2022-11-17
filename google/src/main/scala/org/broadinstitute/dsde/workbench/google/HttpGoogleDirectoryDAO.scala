@@ -1,14 +1,13 @@
 package org.broadinstitute.dsde.workbench.google
 
 import java.io.File
-
 import akka.actor.ActorSystem
 import akka.http.scaladsl.model.StatusCodes
 import com.google.api.client.googleapis.auth.oauth2.GoogleClientSecrets
 import com.google.api.client.googleapis.json.GoogleJsonResponseException
 import com.google.api.client.http.HttpResponseException
-import com.google.api.services.admin.directory.model.{Group, Member, Members}
-import com.google.api.services.admin.directory.{Directory, DirectoryScopes}
+import com.google.api.services.directory.{Directory, DirectoryScopes}
+import com.google.api.services.directory.model.{Group, Member, Members}
 import com.google.api.services.groupssettings.model.{Groups => GroupSettings}
 import com.google.api.services.groupssettings.{Groupssettings, GroupssettingsScopes}
 import org.broadinstitute.dsde.workbench.google.GoogleCredentialModes._
