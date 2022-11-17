@@ -3,7 +3,7 @@ import sbt._
 object Dependencies {
   val akkaV         = "2.6.19"
   val akkaHttpV     = "10.2.10"
-  val jacksonV      = "2.13.3"
+  val jacksonV      = "2.13.4"
   val googleV       = "2.0.0"
   val scalaLoggingV = "3.9.5"
   val scalaTestV    = "3.2.13"
@@ -58,12 +58,12 @@ object Dependencies {
   val googleRpc: ModuleID =               "io.grpc" % "grpc-core" % "1.49.0"
 
   val googleRpc2: ModuleID =               "io.grpc" % "grpc-core" % "1.49.0"
-  val googleStorageNew: ModuleID = "com.google.cloud" % "google-cloud-storage" % "2.11.3"
+  val googleStorageNew: ModuleID = "com.google.cloud" % "google-cloud-storage" % "2.14.0"
   val googleStorageLocal: ModuleID = "com.google.cloud" % "google-cloud-nio" % "0.124.14" % "test"
   val googlePubsubNew: ModuleID = "com.google.cloud" % "google-cloud-pubsub" % "1.120.15"
   val googleKms: ModuleID = "com.google.cloud" % "google-cloud-kms" % "2.6.4"
   val googleComputeNew: ModuleID = "com.google.cloud" % "google-cloud-compute" % "1.12.0"
-  val googleDataproc: ModuleID =    "com.google.cloud" % "google-cloud-dataproc" % "4.0.4"
+  val googleDataproc: ModuleID =    "com.google.cloud" % "google-cloud-dataproc" % "4.0.8"
   val googleContainer: ModuleID = "com.google.cloud" % "google-cloud-container" % "2.8.0"
   val kubernetesClient: ModuleID = "io.kubernetes" % "client-java" % "16.0.1"
   val googleBigQueryNew: ModuleID = "com.google.cloud" % "google-cloud-bigquery" % "2.16.0"
@@ -71,7 +71,7 @@ object Dependencies {
   val googleStorageTransferService: ModuleID = "com.google.cloud" % "google-cloud-storage-transfer" % "1.2.2"
   val googleResourceManager =  "com.google.cloud" % "google-cloud-resourcemanager" % "1.5.4"
   //the below v1 module is a dependency for v2 because it contains the OAuth scopes necessary to created scoped credentials
-  val googleContainerV1: ModuleID = "com.google.apis" % "google-api-services-container" % "v1-rev20220727-2.0.0"
+  val googleContainerV1: ModuleID = "com.google.apis" % "google-api-services-container" % "v1-rev20220826-2.0.0"
 
 
   val circeCore: ModuleID = "io.circe" %% "circe-core" % circeVersion
