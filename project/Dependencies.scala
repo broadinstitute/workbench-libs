@@ -1,13 +1,13 @@
 import sbt._
 
 object Dependencies {
-  val akkaV         = "2.6.19"
+  val akkaV         = "2.6.20"
   val akkaHttpV     = "10.2.10"
-  val jacksonV      = "2.13.3"
+  val jacksonV      = "2.13.4"
   val googleV       = "2.0.0"
   val scalaLoggingV = "3.9.5"
-  val scalaTestV    = "3.2.13"
-  val circeVersion = "0.14.2"
+  val scalaTestV    = "3.2.14"
+  val circeVersion = "0.14.3"
   val http4sVersion = "1.0.0-M35"
   val bouncyCastleVersion = "1.70"
   val openCensusV = "0.31.1"
@@ -28,7 +28,7 @@ object Dependencies {
   val akkaTestkit: ModuleID =       "com.typesafe.akka" %% "akka-testkit"         % akkaV     % "test"
   val akkaHttpTestkit: ModuleID =   "com.typesafe.akka" %% "akka-http-testkit"    % akkaHttpV % "test"
   val akkaStreamTestkit: ModuleID = "com.typesafe.akka" %% "akka-stream-testkit"  % akkaV % "test"
-  val scalaCheck: ModuleID =        "org.scalacheck"      %%  "scalacheck"        % "1.16.0"  % "test"
+  val scalaCheck: ModuleID =        "org.scalacheck"      %%  "scalacheck"        % "1.17.0"  % "test"
   val commonsCodec: ModuleID = "commons-codec" % "commons-codec" % "20041127.091804" % "test"
 
   val jacksonModule: ModuleID =   "com.fasterxml.jackson.module" %% "jackson-module-scala"   % jacksonV % "test"
@@ -55,37 +55,37 @@ object Dependencies {
   val googleIam: ModuleID =                  "com.google.apis"       % "google-api-services-iam"                  % s"v1-rev20220825-$googleV"
   val googleBigQuery: ModuleID =             "com.google.apis"       % "google-api-services-bigquery"             % s"v2-rev20220924-$googleV"
   val googleGuava: ModuleID = "com.google.guava"  % "guava" % "31.1-jre"
-  val googleRpc: ModuleID =               "io.grpc" % "grpc-core" % "1.49.0"
+  val googleRpc: ModuleID =               "io.grpc" % "grpc-core" % "1.51.0"
 
-  val googleRpc2: ModuleID =               "io.grpc" % "grpc-core" % "1.49.0"
-  val googleStorageNew: ModuleID = "com.google.cloud" % "google-cloud-storage" % "2.11.3"
-  val googleStorageLocal: ModuleID = "com.google.cloud" % "google-cloud-nio" % "0.124.14" % "test"
-  val googlePubsubNew: ModuleID = "com.google.cloud" % "google-cloud-pubsub" % "1.120.15"
+  val googleRpc2: ModuleID =               "io.grpc" % "grpc-core" % "1.51.0"
+  val googleStorageNew: ModuleID = "com.google.cloud" % "google-cloud-storage" % "2.14.0"
+  val googleStorageLocal: ModuleID = "com.google.cloud" % "google-cloud-nio" % "0.124.19" % "test"
+  val googlePubsubNew: ModuleID = "com.google.cloud" % "google-cloud-pubsub" % "1.120.24"
   val googleKms: ModuleID = "com.google.cloud" % "google-cloud-kms" % "2.6.4"
   val googleComputeNew: ModuleID = "com.google.cloud" % "google-cloud-compute" % "1.12.0"
-  val googleDataproc: ModuleID =    "com.google.cloud" % "google-cloud-dataproc" % "4.0.4"
-  val googleContainer: ModuleID = "com.google.cloud" % "google-cloud-container" % "2.5.2"
-  val kubernetesClient: ModuleID = "io.kubernetes" % "client-java" % "16.0.0"
+  val googleDataproc: ModuleID =    "com.google.cloud" % "google-cloud-dataproc" % "4.0.8"
+  val googleContainer: ModuleID = "com.google.cloud" % "google-cloud-container" % "2.8.0"
+  val kubernetesClient: ModuleID = "io.kubernetes" % "client-java" % "16.0.1"
   val googleBigQueryNew: ModuleID = "com.google.cloud" % "google-cloud-bigquery" % "2.16.0"
   val google2CloudBilling = "com.google.cloud" % "google-cloud-billing" % "2.3.0"
   val googleStorageTransferService: ModuleID = "com.google.cloud" % "google-cloud-storage-transfer" % "1.2.2"
   val googleResourceManager =  "com.google.cloud" % "google-cloud-resourcemanager" % "1.5.4"
   //the below v1 module is a dependency for v2 because it contains the OAuth scopes necessary to created scoped credentials
-  val googleContainerV1: ModuleID = "com.google.apis" % "google-api-services-container" % "v1-rev20220727-2.0.0"
+  val googleContainerV1: ModuleID = "com.google.apis" % "google-api-services-container" % "v1-rev20220826-2.0.0"
 
 
   val circeCore: ModuleID = "io.circe" %% "circe-core" % circeVersion
   val circeParser: ModuleID = "io.circe" %% "circe-parser" % circeVersion
   val circeGeneric: ModuleID = "io.circe" %% "circe-generic" % circeVersion % "test"
   val circeFs2: ModuleID = "io.circe" %% "circe-fs2" % "0.14.0"
-  val log4cats = "org.typelevel" %% "log4cats-slf4j"   % "2.4.0"
+  val log4cats = "org.typelevel" %% "log4cats-slf4j"   % "2.5.0"
   val catsMtl = "org.typelevel" %% "cats-mtl" % "1.3.0"
 
   val http4sCirce = "org.http4s" %% "http4s-circe" % http4sVersion
   val http4sBlazeClient = "org.http4s" %% "http4s-blaze-client" % http4sVersion
   val http4sDsl = "org.http4s"      %% "http4s-dsl"          % http4sVersion
 
-  val fs2Io: ModuleID = "co.fs2" %% "fs2-io" % "3.2.14"
+  val fs2Io: ModuleID = "co.fs2" %% "fs2-io" % "3.3.0"
   val rawlsModel: ModuleID = "org.broadinstitute.dsde" %% "rawls-model" % "0.1-384ab501b" exclude("com.typesafe.scala-logging", "scala-logging_2.13") exclude("com.typesafe.akka", "akka-stream_2.13")
   val openCensusApi: ModuleID = "io.opencensus" % "opencensus-api" % openCensusV
   val openCensusImpl: ModuleID = "io.opencensus" % "opencensus-impl" % openCensusV
