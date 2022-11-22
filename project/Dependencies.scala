@@ -63,7 +63,7 @@ object Dependencies {
   val googlePubsubNew: ModuleID = "com.google.cloud" % "google-cloud-pubsub" % "1.120.25"
   val googleKms: ModuleID = "com.google.cloud" % "google-cloud-kms" % "2.6.4"
   val googleComputeNew: ModuleID = "com.google.cloud" % "google-cloud-compute" % "1.12.0"
-  val googleDataproc: ModuleID =    "com.google.cloud" % "google-cloud-dataproc" % "4.0.8"
+  val googleDataproc: ModuleID =    "com.google.cloud" % "google-cloud-dataproc" % "4.3.0"
   val googleContainer: ModuleID = "com.google.cloud" % "google-cloud-container" % "2.8.0"
   val kubernetesClient: ModuleID = "io.kubernetes" % "client-java" % "16.0.2"
   val googleBigQueryNew: ModuleID = "com.google.cloud" % "google-cloud-bigquery" % "2.16.0"
