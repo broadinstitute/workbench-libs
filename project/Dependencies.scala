@@ -71,7 +71,7 @@ object Dependencies {
   val googleStorageTransferService: ModuleID = "com.google.cloud" % "google-cloud-storage-transfer" % "1.6.0"
   val googleResourceManager =  "com.google.cloud" % "google-cloud-resourcemanager" % "1.5.4"
   //the below v1 module is a dependency for v2 because it contains the OAuth scopes necessary to created scoped credentials
-  val googleContainerV1: ModuleID = "com.google.apis" % "google-api-services-container" % "v1-rev20220826-2.0.0"
+  val googleContainerV1: ModuleID = "com.google.apis" % "google-api-services-container" % "v1-rev20221031-2.0.0"
 
 
   val circeCore: ModuleID = "io.circe" %% "circe-core" % circeVersion
