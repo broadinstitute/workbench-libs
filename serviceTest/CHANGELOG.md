@@ -3,11 +3,12 @@
 This file documents changes to the `workbench-service-test` library, including notes on how to upgrade to new versions.
 
 ## 2.0
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "2.0-6b83810"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "2.0-TRAVIS-REPLACE-ME"`
 
 ### Changed
 - ensure http response entities are read only once
 - add optional param for ignoreEmptyColumns in rawls submission API
+- updated `rawls-model` dependency to `0.1-04a7a76b` 
 
 Breaking changes:
 - The `GPAllocFixtures` and `BillingFixtures` traits has been removed.
