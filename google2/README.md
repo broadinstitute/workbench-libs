@@ -13,7 +13,7 @@ file with which we can create a GoogleStorageService object.
 [info] Done compiling.
 [info] Starting scala interpreter...
 
-Welcome to Scala 2.12.8 (Java HotSpot(TM) 64-Bit Server VM, Java 1.8.0_172).
+Welcome to Scala 2.12.8 (Java HotSpot(TM) 64-Bit Server VM, Java 1.8.2_172).
 Type in expressions for evaluation. Or try :help.
 
 ```scala
