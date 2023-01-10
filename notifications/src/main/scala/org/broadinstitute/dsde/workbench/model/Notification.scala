@@ -112,6 +112,17 @@ object Notifications {
     override val alwaysOn = true
   })
 
+  case class BillingProjectInvitedNotification(recipientUserEmail: WorkbenchEmail,
+                                          requesterId: WorkbenchUserId,
+                                          billingProjectName: WorkspaceName
+                                         ) extends Notification
+
+  val BillingProjectInvitedNotificationType = register(new NotificationType[BillingProjectInvitedNotification] {
+    override val format = jsonFormat3(BillingProjectInvitedNotification.apply)
+    override val description = "Billing Project Invitation"
+    override val alwaysOn = true
+  })
+
   case class WorkspaceChangedNotification(recipientUserId: WorkbenchUserId, workspaceName: WorkspaceName)
       extends WorkspaceNotification
   val WorkspaceChangedNotificationType = register(new WorkspaceNotificationType[WorkspaceChangedNotification] {
