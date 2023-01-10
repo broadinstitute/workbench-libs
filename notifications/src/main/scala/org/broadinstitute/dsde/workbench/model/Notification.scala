@@ -114,7 +114,7 @@ object Notifications {
 
   case class BillingProjectInvitedNotification(recipientUserEmail: WorkbenchEmail,
                                           requesterId: WorkbenchUserId,
-                                          billingProjectName: WorkspaceName
+                                          billingProjectName: String
                                          ) extends Notification
 
   val BillingProjectInvitedNotificationType = register(new NotificationType[BillingProjectInvitedNotification] {
