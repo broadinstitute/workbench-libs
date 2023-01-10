@@ -113,9 +113,9 @@ object Notifications {
   })
 
   case class BillingProjectInvitedNotification(recipientUserEmail: WorkbenchEmail,
-                                          requesterId: WorkbenchUserId,
-                                          billingProjectName: String
-                                         ) extends Notification
+                                               requesterId: WorkbenchUserId,
+                                               billingProjectName: String
+  ) extends Notification
 
   val BillingProjectInvitedNotificationType = register(new NotificationType[BillingProjectInvitedNotification] {
     override val format = jsonFormat3(BillingProjectInvitedNotification.apply)
