@@ -55,9 +55,9 @@ object Dependencies {
   val googleIam: ModuleID =                  "com.google.apis"       % "google-api-services-iam"                  % s"v1-rev20220825-$googleV"
   val googleBigQuery: ModuleID =             "com.google.apis"       % "google-api-services-bigquery"             % s"v2-rev20220924-$googleV"
   val googleGuava: ModuleID = "com.google.guava"  % "guava" % "31.1-jre"
-  val googleRpc: ModuleID =               "io.grpc" % "grpc-core" % "1.51.1"
+  val googleRpc: ModuleID =               "io.grpc" % "grpc-core" % "1.52.1"
 
-  val googleRpc2: ModuleID =               "io.grpc" % "grpc-core" % "1.51.1"
+  val googleRpc2: ModuleID =               "io.grpc" % "grpc-core" % "1.52.1"
   val googleStorageNew: ModuleID = "com.google.cloud" % "google-cloud-storage" % "2.16.0"
   val googleStorageLocal: ModuleID = "com.google.cloud" % "google-cloud-nio" % "0.126.0" % "test"
   val googlePubsubNew: ModuleID = "com.google.cloud" % "google-cloud-pubsub" % "1.122.2"
