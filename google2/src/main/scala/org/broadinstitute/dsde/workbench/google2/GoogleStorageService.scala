@@ -366,20 +366,24 @@ object GoogleStorageService {
       db <- GoogleStorageInterpreter.storage[F](pathToCredentialJson, project)
     } yield GoogleStorageInterpreter[F](db, blockerBound)
 
-  def fromApplicationDefault[F[_]: Async: StructuredLogger](
-    blockerBound: Option[Semaphore[F]] = None
+  def fromCredentials[F[_]: Async: StructuredLogger](credentials: GoogleCredentials,
+                                                     blockerBound: Option[Semaphore[F]] = None
   ): Resource[F, GoogleStorageService[F]] =
     for {
       db <- Resource.eval(
         Sync[F].delay(
           StorageOptions
             .newBuilder()
-            .setCredentials(GoogleCredentials.getApplicationDefault())
+            .setCredentials(credentials)
             .build()
             .getService
         )
       )
     } yield GoogleStorageInterpreter[F](db, blockerBound)
+
+  def fromApplicationDefault[F[_]: Async: StructuredLogger](
+    blockerBound: Option[Semaphore[F]] = None
+  ): Resource[F, GoogleStorageService[F]] = fromCredentials(GoogleCredentials.getApplicationDefault(), blockerBound)
 
   def fromAccessToken[F[_]: Async: StructuredLogger](
     accessToken: AccessToken,
