@@ -68,7 +68,7 @@ Workbench utility libraries, built for 2.13. You can find the full list of packa
 
 Contains utility functions for talking to Google APIs and DAOs for Google PubSub, Google Directory, Google IAM, and Google BigQuery. 
 
-Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.22-e6ad8a1"`
+Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.22-TRAVIS-REPLACE-ME"`
 
 To depend on the `MockGoogle*` classes, additionally depend on:
 
@@ -82,7 +82,7 @@ Workbench utility libraries, built for 2.13. You can find the full list of packa
 
 Contains utility functions for talking to Google APIs via com.google.cloud client library (more recent) via gRPC. 
 
-Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.25-1a6839f"`
+Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.25-TRAVIS-REPLACE-ME"`
 
 To start the Google PubSub emulator for unit testing:
 

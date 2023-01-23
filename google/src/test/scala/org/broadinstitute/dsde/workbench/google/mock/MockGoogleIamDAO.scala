@@ -3,8 +3,8 @@ package org.broadinstitute.dsde.workbench.google.mock
 import java.nio.charset.StandardCharsets
 import java.time.Instant
 import java.util.{Base64, UUID}
-
 import com.google.api.services.cloudresourcemanager.model.{Binding => ProjectBinding, Policy => ProjectPolicy}
+import com.google.api.services.iam.v1.model.Role
 import org.broadinstitute.dsde.workbench.google.GoogleIamDAO
 import org.broadinstitute.dsde.workbench.google.GoogleIamDAO.MemberType
 import org.broadinstitute.dsde.workbench.google.mock.MockGoogleIamDAO.{Binding, Policy}
@@ -140,6 +140,7 @@ class MockGoogleIamDAO extends GoogleIamDAO {
   ): Future[Seq[ServiceAccountKey]] =
     Future.successful(serviceAccountKeys(serviceAccountEmail).values.toSeq)
 
+  override def getRole(roleName: String): Future[Option[Role]] = Future.successful(None)
 }
 
 object MockGoogleIamDAO {

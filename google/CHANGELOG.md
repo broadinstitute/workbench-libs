@@ -4,13 +4,14 @@ This file documents changes to the `workbench-google` library, including notes o
 
 ## 0.22
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.22-e6ad8a1"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.22-TRAVIS-REPLACE-ME"`
 
 ### Changed
 - Update `google-api-client` to `2.0.0`
 - Removed `google-api-services-plus`, because it is removed from in https://github.com/googleapis/google-api-java-client-services/pull/5947 back in 2020. 
 The only usage of this library here and in `Rawls` are references to `PlusScopes.USERINFO_EMAIL`, and `PlusScopes.USERINFO_PROFILE`, which can easily
 be replaced with `https://www.googleapis.com/auth/userinfo.email`, `https://www.googleapis.com/auth/userinfo.profile` respectively
+- Added `GoogleIamDAO.getRole`
 
 ## 0.21
 

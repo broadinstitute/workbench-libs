@@ -4,7 +4,6 @@ import java.io.File
 import java.time.Instant
 import java.time.format.DateTimeFormatter
 import java.util.Collections
-
 import akka.actor.ActorSystem
 import akka.http.scaladsl.model.StatusCodes
 import cats.data.OptionT
@@ -19,21 +18,8 @@ import com.google.api.client.googleapis.auth.oauth2.GoogleClientSecrets
 import com.google.api.client.googleapis.json.GoogleJsonResponseException
 import com.google.api.client.http.HttpResponseException
 import com.google.api.services.cloudresourcemanager.CloudResourceManager
-import com.google.api.services.cloudresourcemanager.model.{
-  Binding => ProjectBinding,
-  Policy => ProjectPolicy,
-  SetIamPolicyRequest => ProjectSetIamPolicyRequest,
-  TestIamPermissionsRequest
-}
-import com.google.api.services.iam.v1.model.{
-  Binding => ServiceAccountBinding,
-  CreateServiceAccountKeyRequest,
-  CreateServiceAccountRequest,
-  Policy => ServiceAccountPolicy,
-  ServiceAccount,
-  ServiceAccountKey => GoogleServiceAccountKey,
-  SetIamPolicyRequest => ServiceAccountSetIamPolicyRequest
-}
+import com.google.api.services.cloudresourcemanager.model.{TestIamPermissionsRequest, Binding => ProjectBinding, Policy => ProjectPolicy, SetIamPolicyRequest => ProjectSetIamPolicyRequest}
+import com.google.api.services.iam.v1.model.{CreateServiceAccountKeyRequest, CreateServiceAccountRequest, Role, ServiceAccount, Binding => ServiceAccountBinding, Policy => ServiceAccountPolicy, ServiceAccountKey => GoogleServiceAccountKey, SetIamPolicyRequest => ServiceAccountSetIamPolicyRequest}
 import com.google.api.services.iam.v1.{Iam, IamScopes}
 import org.broadinstitute.dsde.workbench.google.GoogleCredentialModes._
 import org.broadinstitute.dsde.workbench.google.GoogleIamDAO.MemberType
@@ -55,7 +41,7 @@ class HttpGoogleIamDAO(appName: String, googleCredentialMode: GoogleCredentialMo
   system: ActorSystem,
   executionContext: ExecutionContext
 ) extends AbstractHttpGoogleDAO(appName, googleCredentialMode, workbenchMetricBaseName)
-    with GoogleIamDAO {
+  with GoogleIamDAO {
 
   @deprecated(
     message =
@@ -63,8 +49,8 @@ class HttpGoogleIamDAO(appName: String, googleCredentialMode: GoogleCredentialMo
     since = "0.15"
   )
   def this(serviceAccountClientId: String, pemFile: String, appName: String, workbenchMetricBaseName: String)(implicit
-    system: ActorSystem,
-    executionContext: ExecutionContext
+                                                                                                              system: ActorSystem,
+                                                                                                              executionContext: ExecutionContext
   ) =
     this(appName, Pem(WorkbenchEmail(serviceAccountClientId), new File(pemFile)), workbenchMetricBaseName)
 
@@ -79,8 +65,8 @@ class HttpGoogleIamDAO(appName: String, googleCredentialMode: GoogleCredentialMo
     executionContext: ExecutionContext
   ) =
     this(appName,
-         Pem(WorkbenchEmail(clientSecrets.getDetails.get("client_email").toString), new File(pemFile)),
-         workbenchMetricBaseName
+      Pem(WorkbenchEmail(clientSecrets.getDetails.get("client_email").toString), new File(pemFile)),
+      workbenchMetricBaseName
     )
 
   override val scopes = List(IamScopes.CLOUD_PLATFORM)
@@ -95,7 +81,7 @@ class HttpGoogleIamDAO(appName: String, googleCredentialMode: GoogleCredentialMo
 
   override def findServiceAccount(serviceAccountProject: GoogleProject,
                                   serviceAccountName: ServiceAccountName
-  ): Future[Option[google.ServiceAccount]] =
+                                 ): Future[Option[google.ServiceAccount]] =
     findServiceAccount(serviceAccountProject, toServiceAccountEmail(serviceAccountProject, serviceAccountName))
 
   override def findServiceAccount(serviceAccountProject: GoogleProject, serviceAccountEmail: WorkbenchEmail) = {
@@ -111,8 +97,8 @@ class HttpGoogleIamDAO(appName: String, googleCredentialMode: GoogleCredentialMo
         case t: GoogleJsonResponseException if t.getStatusCode == 404 =>
           None
         case t: GoogleJsonResponseException
-            if t.getStatusCode == 403 && t.getDetails.getErrors.asScala.head.getMessage
-              .equalsIgnoreCase("Unable to extract resource containers.") =>
+          if t.getStatusCode == 403 && t.getDetails.getErrors.asScala.head.getMessage
+            .equalsIgnoreCase("Unable to extract resource containers.") =>
           // added to catch and fix a google issue that popped up https://console.cloud.google.com/support/cases/detail/17978989?project=broad-dsde-prod
           None
       }
@@ -121,8 +107,8 @@ class HttpGoogleIamDAO(appName: String, googleCredentialMode: GoogleCredentialMo
     // Turn it into a Workbench SA type.
     (findOption map { serviceAccount =>
       google.ServiceAccount(ServiceAccountSubjectId(serviceAccount.getUniqueId),
-                            WorkbenchEmail(serviceAccount.getEmail),
-                            ServiceAccountDisplayName(serviceAccount.getDisplayName)
+        WorkbenchEmail(serviceAccount.getEmail),
+        ServiceAccountDisplayName(serviceAccount.getDisplayName)
       )
     }).value
   }
@@ -130,17 +116,17 @@ class HttpGoogleIamDAO(appName: String, googleCredentialMode: GoogleCredentialMo
   override def createServiceAccount(serviceAccountProject: GoogleProject,
                                     serviceAccountName: ServiceAccountName,
                                     displayName: ServiceAccountDisplayName
-  ): Future[google.ServiceAccount] = {
+                                   ): Future[google.ServiceAccount] = {
     val request = new CreateServiceAccountRequest()
       .setAccountId(serviceAccountName.value)
       .setServiceAccount(new ServiceAccount().setDisplayName(displayName.value))
     val inserter = iam.projects().serviceAccounts().create(s"projects/${serviceAccountProject.value}", request)
     retryWithRecover(when5xx,
-                     whenUsageLimited,
-                     whenGlobalUsageLimited,
-                     when404,
-                     whenInvalidValueOnBucketCreation,
-                     whenNonHttpIOException
+      whenUsageLimited,
+      whenGlobalUsageLimited,
+      when404,
+      whenInvalidValueOnBucketCreation,
+      whenNonHttpIOException
     ) { () =>
       executeGoogleRequest(inserter)
     } {
@@ -148,24 +134,24 @@ class HttpGoogleIamDAO(appName: String, googleCredentialMode: GoogleCredentialMo
         throw new WorkbenchException(s"The project [${serviceAccountProject.value}] was not found")
     } map { serviceAccount =>
       google.ServiceAccount(ServiceAccountSubjectId(serviceAccount.getUniqueId),
-                            WorkbenchEmail(serviceAccount.getEmail),
-                            ServiceAccountDisplayName(serviceAccount.getDisplayName)
+        WorkbenchEmail(serviceAccount.getEmail),
+        ServiceAccountDisplayName(serviceAccount.getDisplayName)
       )
     }
   }
 
   override def removeServiceAccount(serviceAccountProject: GoogleProject,
                                     serviceAccountName: ServiceAccountName
-  ): Future[Unit] = {
+                                   ): Future[Unit] = {
     val serviceAccountEmail = toServiceAccountEmail(serviceAccountProject, serviceAccountName)
     val name = s"projects/${serviceAccountProject.value}/serviceAccounts/${serviceAccountEmail.value}"
     val deleter = iam.projects().serviceAccounts().delete(name)
     retryWithRecover(when5xx,
-                     whenUsageLimited,
-                     whenGlobalUsageLimited,
-                     when404,
-                     whenInvalidValueOnBucketCreation,
-                     whenNonHttpIOException
+      whenUsageLimited,
+      whenGlobalUsageLimited,
+      when404,
+      whenInvalidValueOnBucketCreation,
+      whenNonHttpIOException
     ) { () =>
       executeGoogleRequest(deleter)
       ()
@@ -177,7 +163,7 @@ class HttpGoogleIamDAO(appName: String, googleCredentialMode: GoogleCredentialMo
 
   override def testIamPermission(project: GoogleProject,
                                  iamPermissions: Set[IamPermission]
-  ): Future[Set[IamPermission]] = {
+                                ): Future[Set[IamPermission]] = {
     val testRequest = new TestIamPermissionsRequest().setPermissions(iamPermissions.map(p => p.value).toList.asJava)
     val request = cloudResourceManager.projects().testIamPermissions(project.value, testRequest)
     retry(when5xx, whenUsageLimited, when404, whenInvalidValueOnBucketCreation, whenNonHttpIOException) { () =>
@@ -192,7 +178,7 @@ class HttpGoogleIamDAO(appName: String, googleCredentialMode: GoogleCredentialMo
                            memberType: MemberType,
                            rolesToAdd: Set[String],
                            retryIfGroupDoesNotExist: Boolean = false
-  ): Future[Boolean] =
+                          ): Future[Boolean] =
     modifyIamRoles(iamProject, userEmail, memberType, rolesToAdd, Set.empty, retryIfGroupDoesNotExist)
 
   override def removeIamRoles(iamProject: GoogleProject,
@@ -200,7 +186,7 @@ class HttpGoogleIamDAO(appName: String, googleCredentialMode: GoogleCredentialMo
                               memberType: MemberType,
                               rolesToRemove: Set[String],
                               retryIfGroupDoesNotExist: Boolean = false
-  ): Future[Boolean] =
+                             ): Future[Boolean] =
     modifyIamRoles(iamProject, userEmail, memberType, Set.empty, rolesToRemove, retryIfGroupDoesNotExist)
 
   private def modifyIamRoles(iamProject: GoogleProject,
@@ -209,21 +195,21 @@ class HttpGoogleIamDAO(appName: String, googleCredentialMode: GoogleCredentialMo
                              rolesToAdd: Set[String],
                              rolesToRemove: Set[String],
                              retryIfGroupDoesNotExist: Boolean
-  ): Future[Boolean] = {
+                            ): Future[Boolean] = {
     // Note the project here is the one in which we're removing the IAM roles
     // Retry 409s here as recommended for concurrent modifications of the IAM policy
 
     val basePredicateList: Seq[Throwable => Boolean] = Seq(when5xx,
-                                                           whenUsageLimited,
-                                                           whenGlobalUsageLimited,
-                                                           when404,
-                                                           whenInvalidValueOnBucketCreation,
-                                                           whenNonHttpIOException,
-                                                           when409
+      whenUsageLimited,
+      whenGlobalUsageLimited,
+      when404,
+      whenInvalidValueOnBucketCreation,
+      whenNonHttpIOException,
+      when409
     )
     val finalPredicateList: Seq[Throwable => Boolean] =
       basePredicateList ++ (if (retryIfGroupDoesNotExist) Seq(whenGroupDoesNotExist: Throwable => Boolean)
-                            else Nil)
+      else Nil)
 
     retry(
       finalPredicateList: _*
@@ -237,7 +223,7 @@ class HttpGoogleIamDAO(appName: String, googleCredentialMode: GoogleCredentialMo
                               memberType: MemberType,
                               rolesToAdd: Set[String],
                               rolesToRemove: Set[String]
-  ): Boolean = {
+                             ): Boolean = {
     // It is important that we call getIamPolicy within the same retry block as we call setIamPolicy
     // getIamPolicy gets the etag that is used in setIamPolicy, the etag is used to detect concurrent
     // modifications and if that happens we need to be sure to get a new etag before retrying setIamPolicy
@@ -256,12 +242,12 @@ class HttpGoogleIamDAO(appName: String, googleCredentialMode: GoogleCredentialMo
 
   override def getProjectPolicy(iamProject: GoogleProject): Future[ProjectPolicy] =
     retry(when5xx,
-          whenUsageLimited,
-          whenGlobalUsageLimited,
-          when404,
-          whenInvalidValueOnBucketCreation,
-          whenNonHttpIOException,
-          when409
+      whenUsageLimited,
+      whenGlobalUsageLimited,
+      when404,
+      whenInvalidValueOnBucketCreation,
+      whenNonHttpIOException,
+      when409
     ) { () =>
       executeGoogleRequest(cloudResourceManager.projects().getIamPolicy(iamProject.value, null))
     }
@@ -276,7 +262,7 @@ class HttpGoogleIamDAO(appName: String, googleCredentialMode: GoogleCredentialMo
                                                    serviceAccount: WorkbenchEmail,
                                                    member: WorkbenchEmail,
                                                    rolesToAdd: Set[String]
-  ): Future[Unit] =
+                                                  ): Future[Unit] =
     getServiceAccountPolicy(serviceAccountProject, serviceAccount).flatMap { policy =>
       val updatedPolicy =
         updatePolicy(policy, member, MemberType.ServiceAccount, rolesToAdd, Set.empty)
@@ -293,16 +279,16 @@ class HttpGoogleIamDAO(appName: String, googleCredentialMode: GoogleCredentialMo
   override def addServiceAccountUserRoleForUser(serviceAccountProject: GoogleProject,
                                                 serviceAccountEmail: WorkbenchEmail,
                                                 userEmail: WorkbenchEmail
-  ): Future[Unit] =
+                                               ): Future[Unit] =
     addIamPolicyBindingOnServiceAccount(serviceAccountProject,
-                                        serviceAccountEmail,
-                                        userEmail,
-                                        Set("roles/iam.serviceAccountUser")
+      serviceAccountEmail,
+      userEmail,
+      Set("roles/iam.serviceAccountUser")
     )
 
   override def createServiceAccountKey(serviceAccountProject: GoogleProject,
                                        serviceAccountEmail: WorkbenchEmail
-  ): Future[ServiceAccountKey] = {
+                                      ): Future[ServiceAccountKey] = {
     val request = new CreateServiceAccountKeyRequest()
       .setPrivateKeyType("TYPE_GOOGLE_CREDENTIALS_FILE")
       .setKeyAlgorithm("KEY_ALG_RSA_2048")
@@ -312,11 +298,11 @@ class HttpGoogleIamDAO(appName: String, googleCredentialMode: GoogleCredentialMo
       .keys()
       .create(s"projects/${serviceAccountProject.value}/serviceAccounts/${serviceAccountEmail.value}", request)
     retry(when5xx,
-          whenUsageLimited,
-          whenGlobalUsageLimited,
-          when404,
-          whenInvalidValueOnBucketCreation,
-          whenNonHttpIOException
+      whenUsageLimited,
+      whenGlobalUsageLimited,
+      when404,
+      whenInvalidValueOnBucketCreation,
+      whenNonHttpIOException
     ) { () =>
       executeGoogleRequest(creater)
     } map googleKeyToWorkbenchKey
@@ -325,7 +311,7 @@ class HttpGoogleIamDAO(appName: String, googleCredentialMode: GoogleCredentialMo
   override def removeServiceAccountKey(serviceAccountProject: GoogleProject,
                                        serviceAccountEmail: WorkbenchEmail,
                                        keyId: ServiceAccountKeyId
-  ): Future[Unit] = {
+                                      ): Future[Unit] = {
     val request = iam
       .projects()
       .serviceAccounts()
@@ -344,7 +330,7 @@ class HttpGoogleIamDAO(appName: String, googleCredentialMode: GoogleCredentialMo
 
   override def listServiceAccountKeys(serviceAccountProject: GoogleProject,
                                       serviceAccountEmail: WorkbenchEmail
-  ): Future[Seq[ServiceAccountKey]] = {
+                                     ): Future[Seq[ServiceAccountKey]] = {
     val request = iam
       .projects()
       .serviceAccounts()
@@ -359,9 +345,9 @@ class HttpGoogleIamDAO(appName: String, googleCredentialMode: GoogleCredentialMo
   }
 
   override def listUserManagedServiceAccountKeys(
-    serviceAccountProject: GoogleProject,
-    serviceAccountEmail: WorkbenchEmail
-  ): Future[Seq[ServiceAccountKey]] = {
+                                                  serviceAccountProject: GoogleProject,
+                                                  serviceAccountEmail: WorkbenchEmail
+                                                ): Future[Seq[ServiceAccountKey]] = {
     val request = iam
       .projects()
       .serviceAccounts()
@@ -373,6 +359,17 @@ class HttpGoogleIamDAO(appName: String, googleCredentialMode: GoogleCredentialMo
       executeGoogleRequest(request)
     } map { response =>
       Option(response.getKeys).getOrElse(Collections.emptyList()).asScala.toSeq map googleKeyToWorkbenchKey
+    }
+  }
+
+  override def getRole(roleName: String): Future[Option[Role]] = {
+    val request = iam.roles().get(roleName)
+
+    retryWithRecover(when5xx, whenUsageLimited, whenInvalidValueOnBucketCreation, whenNonHttpIOException) { () =>
+      Option(executeGoogleRequest(request))
+    } {
+      case t: GoogleJsonResponseException if t.getStatusCode == 404 =>
+        None
     }
   }
 
@@ -391,7 +388,7 @@ class HttpGoogleIamDAO(appName: String, googleCredentialMode: GoogleCredentialMo
 
   private def getServiceAccountPolicy(serviceAccountProject: GoogleProject,
                                       serviceAccountEmail: WorkbenchEmail
-  ): Future[Policy] = {
+                                     ): Future[Policy] = {
     val request = iam
       .projects()
       .serviceAccounts()
@@ -410,7 +407,7 @@ class HttpGoogleIamDAO(appName: String, googleCredentialMode: GoogleCredentialMo
                            memberType: MemberType,
                            rolesToAdd: Set[String],
                            rolesToRemove: Set[String]
-  ): Policy = {
+                          ): Policy = {
     val memberTypeAndEmail = s"$memberType:${email.value}"
 
     // Current members grouped by role

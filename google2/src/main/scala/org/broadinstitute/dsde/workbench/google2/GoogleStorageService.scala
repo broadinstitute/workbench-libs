@@ -2,7 +2,6 @@ package org.broadinstitute.dsde.workbench
 package google2
 
 import java.nio.file.Path
-
 import cats.data.NonEmptyList
 import cats.effect._
 import cats.effect.std.Semaphore
@@ -13,21 +12,12 @@ import com.google.cloud.storage.BucketInfo.LifecycleRule
 import com.google.cloud.storage.{Acl, Blob, BlobId, BucketInfo, StorageOptions}
 import com.google.cloud.{Identity, Policy, Role}
 import fs2.{Pipe, Stream}
-import com.google.cloud.storage.Storage.{
-  BlobGetOption,
-  BlobListOption,
-  BlobSourceOption,
-  BlobTargetOption,
-  BlobWriteOption,
-  BucketGetOption,
-  BucketSourceOption,
-  BucketTargetOption
-}
+import com.google.cloud.storage.Storage.{BlobGetOption, BlobListOption, BlobSourceOption, BlobTargetOption, BlobWriteOption, BucketGetOption, BucketSourceOption, BucketTargetOption}
 import org.broadinstitute.dsde.workbench.google2.Implicits.PolicyToStorageRoles
 import org.typelevel.log4cats.StructuredLogger
 import org.broadinstitute.dsde.workbench.google2.util.RetryPredicates.standardGoogleRetryConfig
 import org.broadinstitute.dsde.workbench.model.TraceId
-import org.broadinstitute.dsde.workbench.model.google.{GcsBucketName, GcsObjectName, GoogleProject}
+import org.broadinstitute.dsde.workbench.model.google.{GcsBucketName, GcsObjectName, GoogleProject, IamPermission}
 import org.broadinstitute.dsde.workbench.util2.RemoveObjectResult
 
 import scala.collection.convert.ImplicitConversions._
@@ -328,6 +318,13 @@ trait GoogleStorageService[F[_]] {
                    retryConfig: RetryConfig = standardGoogleRetryConfig,
                    bucketSourceOptions: List[BucketSourceOption] = List.empty
   ): Stream[F, Policy]
+
+  def testIamPermissions(bucketName: GcsBucketName,
+                         permissions: List[IamPermission],
+                         traceId: Option[TraceId] = None,
+                         retryConfig: RetryConfig = standardGoogleRetryConfig,
+                         bucketSourceOptions: List[BucketSourceOption] = List.empty
+                        ): Stream[F, List[IamPermission]]
 
   /**
    * Remove the specified roles from the bucket IAM policy

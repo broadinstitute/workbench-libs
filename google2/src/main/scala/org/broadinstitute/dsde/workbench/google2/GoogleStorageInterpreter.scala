@@ -4,7 +4,6 @@ package google2
 import java.nio.channels.Channels
 import java.nio.file.{Path, Paths}
 import java.time.Instant
-
 import fs2.io.file.Files
 import cats.data.NonEmptyList
 import cats.effect._
@@ -12,27 +11,18 @@ import cats.effect.std.Semaphore
 import cats.syntax.all._
 import com.google.auth.oauth2.ServiceAccountCredentials
 import com.google.cloud.storage.BucketInfo.LifecycleRule
-import com.google.cloud.storage.Storage.{
-  BlobGetOption,
-  BlobListOption,
-  BlobSourceOption,
-  BlobTargetOption,
-  BlobWriteOption,
-  BucketGetOption,
-  BucketSourceOption,
-  BucketTargetOption
-}
+import com.google.cloud.storage.Storage.{BlobGetOption, BlobListOption, BlobSourceOption, BlobTargetOption, BlobWriteOption, BucketGetOption, BucketSourceOption, BucketTargetOption}
 import com.google.cloud.storage.{Acl, Blob, BlobId, BlobInfo, BucketInfo, Storage, StorageOptions}
 import com.google.cloud.{Identity, Policy, Role}
-import fs2.{text, Pipe, Stream}
+import fs2.{Pipe, Stream, text}
 import org.typelevel.log4cats.StructuredLogger
 import io.circe.Decoder
 import io.circe.fs2._
 import org.broadinstitute.dsde.workbench.google2.util.RetryPredicates.standardGoogleRetryConfig
 import org.broadinstitute.dsde.workbench.model.{TraceId, WorkbenchException}
-import org.broadinstitute.dsde.workbench.model.google.{GcsBucketName, GcsObjectName, GoogleProject}
+import org.broadinstitute.dsde.workbench.model.google.{GcsBucketName, GcsObjectName, GoogleProject, IamPermission}
 import com.google.auth.Credentials
-import org.broadinstitute.dsde.workbench.util2.{withLogging, RemoveObjectResult}
+import org.broadinstitute.dsde.workbench.util2.{RemoveObjectResult, withLogging}
 
 import scala.jdk.CollectionConverters._
 
@@ -538,6 +528,24 @@ private[google2] class GoogleStorageInterpreter[F[_]](
       traceId,
       s"com.google.cloud.storage.Storage.getIamPolicy($bucketName, $bucketSourceOptions)"
     )
+  }
+
+  override def testIamPermissions(bucketName: GcsBucketName,
+                                  permissions: List[IamPermission],
+                                  traceId: Option[TraceId] = None,
+                                  retryConfig: RetryConfig = standardGoogleRetryConfig,
+                                  bucketSourceOptions: List[BucketSourceOption] = List.empty
+                        ): Stream[F, List[IamPermission]] = {
+    retryF(retryConfig)(
+      blockingF(Async[F].delay(db.testIamPermissions(bucketName.value, permissions.map(_.value).asJava, bucketSourceOptions: _*))),
+      traceId,
+      s"com.google.cloud.storage.Storage.testIamPermissions($bucketName, ${permissions.mkString(",")})"
+    ).map { results =>
+      results.asScala.map(_.booleanValue()).zipWithIndex.flatMap {
+        case (true, index) => permissions.get(index)
+        case (false, _) => None
+      }.toList
+    }
   }
 
   override def setBucketLifecycle(bucketName: GcsBucketName,
