@@ -30,7 +30,9 @@ object Retry extends LazyLogging {
         }
     }
 
-  def retry[T](interval: FiniteDuration, timeout: FiniteDuration, initialDelay: Option[FiniteDuration] = None)(op: => Option[T]): Option[T] = {
+  def retry[T](interval: FiniteDuration, timeout: FiniteDuration, initialDelay: Option[FiniteDuration] = None)(
+    op: => Option[T]
+  ): Option[T] = {
     initialDelay.foreach(delay => Thread.sleep(delay.toMillis))
     val iterations = (timeout / interval).round.toInt
     retry(Seq.fill(iterations)(interval))(op)

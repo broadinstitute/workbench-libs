@@ -334,16 +334,18 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
     def waitForBucketReadAccess(workspaceNamespace: String, workspaceName: String)(implicit token: AuthToken): Unit = {
       logger.info(s"Bucket read access checking on workspace: $workspaceNamespace/$workspaceName")
       val consecutiveSuccesses = 2
-      for(_ <- 1 to consecutiveSuccesses) {
+      for (_ <- 1 to consecutiveSuccesses)
         Retry.retry(30.seconds, 10.minutes, initialDelay = Option(30.seconds)) {
           val response = getRequest(apiUrl(s"api/workspaces/$workspaceNamespace/$workspaceName/checkBucketReadAccess"))
           if (response.status.isSuccess()) Some("done") else None
         } match {
-          case None => throw new Exception(s"workspace $workspaceNamespace/$workspaceName bucket did not become readable")
+          case None =>
+            throw new Exception(s"workspace $workspaceNamespace/$workspaceName bucket did not become readable")
           case Some(_) =>
-            logger.info(s"Bucket read access check passed: workspace $workspaceNamespace/$workspaceName bucket readable")
+            logger.info(
+              s"Bucket read access check passed: workspace $workspaceNamespace/$workspaceName bucket readable"
+            )
         }
-      }
     }
   }
 
