@@ -4,7 +4,7 @@ This file documents changes to the `workbench-google` library, including notes o
 
 ## 0.22
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.22-TRAVIS-REPLACE-ME"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.22-46d1df6"`
 
 ### Changed
 - Update `google-api-client` to `2.0.0`
