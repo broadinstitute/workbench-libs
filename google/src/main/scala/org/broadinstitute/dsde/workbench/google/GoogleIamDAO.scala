@@ -2,6 +2,7 @@ package org.broadinstitute.dsde.workbench.google
 
 import ca.mrvisser.sealerate
 import com.google.api.services.cloudresourcemanager.model.{Policy => ProjectPolicy}
+import com.google.api.services.iam.v1.model.Role
 import org.broadinstitute.dsde.workbench.google.GoogleIamDAO.MemberType
 import org.broadinstitute.dsde.workbench.model._
 import org.broadinstitute.dsde.workbench.model.google._
@@ -23,8 +24,9 @@ trait GoogleIamDAO {
 
   /**
    * Looks for a service account in the given project.
+   *
    * @param serviceAccountProject the project in which to create the service account
-   * @param serviceAccountName the service account name
+   * @param serviceAccountName    the service account name
    * @return An option representing either finding the SA, or not, wrapped in a Future, representing any other failures.
    */
   def findServiceAccount(serviceAccountProject: GoogleProject,
@@ -33,8 +35,9 @@ trait GoogleIamDAO {
 
   /**
    * Looks for a service account in the given project.
+   *
    * @param serviceAccountProject the project in which to create the service account
-   * @param serviceAccountEmail the service account email
+   * @param serviceAccountEmail   the service account email
    * @return An option representing either finding the SA, or not, wrapped in a Future, representing any other failures.
    */
   def findServiceAccount(serviceAccountProject: GoogleProject,
@@ -43,9 +46,10 @@ trait GoogleIamDAO {
 
   /**
    * Creates a service account in the given project.
+   *
    * @param serviceAccountProject the project in which to create the service account
-   * @param serviceAccountName the service account name, which Google will use to construct the SA's email
-   * @param displayName the service account display name
+   * @param serviceAccountName    the service account name, which Google will use to construct the SA's email
+   * @param displayName           the service account display name
    * @return newly created service account
    */
   def createServiceAccount(serviceAccountProject: GoogleProject,
@@ -55,9 +59,10 @@ trait GoogleIamDAO {
 
   /**
    * Get or create a service account in the given project.
+   *
    * @param serviceAccountProject the project in which to create the service account
-   * @param serviceAccountName the service account name
-   * @param displayName the service account display name
+   * @param serviceAccountName    the service account name
+   * @param displayName           the service account display name
    * @return the service account. Note that it may not have the same display name as the request you made if one already existed.
    */
   def getOrCreateServiceAccount(
@@ -72,14 +77,16 @@ trait GoogleIamDAO {
 
   /**
    * Removes a service account in the given project.
+   *
    * @param serviceAccountProject the project in which to remove the service account
-   * @param serviceAccountName the service account name
+   * @param serviceAccountName    the service account name
    */
   def removeServiceAccount(serviceAccountProject: GoogleProject, serviceAccountName: ServiceAccountName): Future[Unit]
 
   /**
    * Test that the caller has a specified permission on the project.
-   * @param project the project in which to test permissions.
+   *
+   * @param project        the project in which to test permissions.
    * @param iamPermissions a set of IAM permissions (not IAM roles) to test.
    * @return the set of iam permissions allowed to the caller overlapping with the supplied permission set.
    */
@@ -89,8 +96,9 @@ trait GoogleIamDAO {
    * Adds project-level IAM roles for the given user.
    * This method will perform a read-modify-write of the project's IAM policy, and return a Boolean
    * indicating whether a change was actually made.
+   *
    * @param iamProject the project in which to add the roles
-   * @param email the user email address
+   * @param email      the user email address
    * @param rolesToAdd Set of roles to add (example: roles/storage.admin)
    * @return true if the policy was updated; false otherwise.
    */
@@ -102,8 +110,9 @@ trait GoogleIamDAO {
    * Removes project-level IAM roles for the given user.
    * This method will perform a read-modify-write of the project's IAM policy, and return a Boolean
    * indicating whether a change was actually made.
-   * @param iamProject the google project in which to remove the roles
-   * @param email the user email address
+   *
+   * @param iamProject    the google project in which to remove the roles
+   * @param email         the user email address
    * @param rolesToRemove Set of roles to remove (example: roles/dataproc.worker)
    * @return true if the policy was updated; false otherwise.
    */
@@ -118,10 +127,11 @@ trait GoogleIamDAO {
    * Adds project-level IAM roles for the given member type.
    * This method will perform a read-modify-write of the project's IAM policy, and return a Boolean
    * indicating whether a change was actually made.
-   * @param iamProject the project in which to add the roles
-   * @param email the email address
-   * @param memberType the type of member (e.g. 'user', 'group', 'service account')
-   * @param rolesToAdd Set of roles to add (example: roles/storage.admin)
+   *
+   * @param iamProject               the project in which to add the roles
+   * @param email                    the email address
+   * @param memberType               the type of member (e.g. 'user', 'group', 'service account')
+   * @param rolesToAdd               Set of roles to add (example: roles/storage.admin)
    * @param retryIfGroupDoesNotExist optional parameter to rerun if the group does not exist (yet), since Google can
    *                                 take up to 1 hour to propagate some changes.
    * @return true if the policy was updated; false otherwise.
@@ -137,10 +147,11 @@ trait GoogleIamDAO {
    * Removes project-level IAM roles for the given member type.
    * This method will perform a read-modify-write of the project's IAM policy, and return a Boolean
    * indicating whether a change was actually made.
-   * @param iamProject the google project in which to remove the roles
-   * @param email the email address
-   * @param memberType the type of member (e.g. 'user', 'group', 'service account')
-   * @param rolesToRemove Set of roles to remove (example: roles/dataproc.worker)
+   *
+   * @param iamProject               the google project in which to remove the roles
+   * @param email                    the email address
+   * @param memberType               the type of member (e.g. 'user', 'group', 'service account')
+   * @param rolesToRemove            Set of roles to remove (example: roles/dataproc.worker)
    * @param retryIfGroupDoesNotExist optional parameter to rerun if the group does not exist (yet), since Google can
    *                                 take up to 1 hour to propagate some changes.
    * @return true if the policy was updated; false otherwise.
@@ -154,6 +165,7 @@ trait GoogleIamDAO {
 
   /**
    * Gets ProjectPolicy which includes project-level IAM roles for the given project
+   *
    * @param iamProject the google project to get the policy for
    * @return the policy of the project, which lists all roles
    */
@@ -161,9 +173,9 @@ trait GoogleIamDAO {
 
   /**
    * @param serviceAccountProject the google project where serviceAccount lives
-   * @param serviceAccount the service account (i.e. the IAM resource) to which to add the policy binding
-   * @param member the user email address for which to add the roles to
-   * @param rolesToAdd set of roles to add to the member
+   * @param serviceAccount        the service account (i.e. the IAM resource) to which to add the policy binding
+   * @param member                the user email address for which to add the roles to
+   * @param rolesToAdd            set of roles to add to the member
    * @return
    */
   def addIamPolicyBindingOnServiceAccount(serviceAccountProject: GoogleProject,
@@ -175,10 +187,11 @@ trait GoogleIamDAO {
   /**
    * Adds the Service Account User role for the given users on the given service account.
    * This allows the users to impersonate as the service account.
+   *
    * @param serviceAccountProject the project in which to add the roles
-   * @param serviceAccountEmail the service account on which to add the Service Account User role
-   *                               (i.e. the IAM resource).
-   * @param email the user email address for which to add Service Account User
+   * @param serviceAccountEmail   the service account on which to add the Service Account User role
+   *                              (i.e. the IAM resource).
+   * @param email                 the user email address for which to add Service Account User
    */
   def addServiceAccountUserRoleForUser(serviceAccountProject: GoogleProject,
                                        serviceAccountEmail: WorkbenchEmail,
@@ -187,8 +200,9 @@ trait GoogleIamDAO {
 
   /**
    * Creates a user-managed key for the given service account.
+   *
    * @param serviceAccountProject the google project the service account resides in
-   * @param serviceAccountEmail the service account email
+   * @param serviceAccountEmail   the service account email
    * @return instance of ServiceAccountKey
    */
   def createServiceAccountKey(serviceAccountProject: GoogleProject,
@@ -197,9 +211,10 @@ trait GoogleIamDAO {
 
   /**
    * Deletes a user-managed key for the given service account.
+   *
    * @param serviceAccountProject the google project the service account resides in
-   * @param serviceAccountEmail the service account email
-   * @param keyId the key identifier
+   * @param serviceAccountEmail   the service account email
+   * @param keyId                 the key identifier
    */
   def removeServiceAccountKey(serviceAccountProject: GoogleProject,
                               serviceAccountEmail: WorkbenchEmail,
@@ -208,8 +223,9 @@ trait GoogleIamDAO {
 
   /**
    * Lists keys associated with a given service account.
+   *
    * @param serviceAccountProject the google project the service account resides in
-   * @param serviceAccountEmail the service account email
+   * @param serviceAccountEmail   the service account email
    * @return list of service account keys
    */
   def listServiceAccountKeys(serviceAccountProject: GoogleProject,
@@ -218,13 +234,21 @@ trait GoogleIamDAO {
 
   /**
    * Lists user managed keys associated with a given service account.
+   *
    * @param serviceAccountProject the google project the service account resides in
-   * @param serviceAccountEmail the service account email
+   * @param serviceAccountEmail   the service account email
    * @return list of service account keys
    */
   def listUserManagedServiceAccountKeys(serviceAccountProject: GoogleProject,
                                         serviceAccountEmail: WorkbenchEmail
   ): Future[Seq[ServiceAccountKey]]
+
+  /**
+   * see https://cloud.google.com/iam/docs/reference/rest/v1/organizations.roles/get
+   * @param roleName passed as-is to name parameter of google api
+   * @return
+   */
+  def getOrganizationCustomRole(roleName: String): Future[Option[Role]]
 }
 
 object GoogleIamDAO {

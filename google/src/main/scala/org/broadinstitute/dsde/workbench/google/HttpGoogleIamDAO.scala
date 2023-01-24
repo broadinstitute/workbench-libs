@@ -4,7 +4,6 @@ import java.io.File
 import java.time.Instant
 import java.time.format.DateTimeFormatter
 import java.util.Collections
-
 import akka.actor.ActorSystem
 import akka.http.scaladsl.model.StatusCodes
 import cats.data.OptionT
@@ -30,6 +29,7 @@ import com.google.api.services.iam.v1.model.{
   CreateServiceAccountKeyRequest,
   CreateServiceAccountRequest,
   Policy => ServiceAccountPolicy,
+  Role,
   ServiceAccount,
   ServiceAccountKey => GoogleServiceAccountKey,
   SetIamPolicyRequest => ServiceAccountSetIamPolicyRequest
@@ -373,6 +373,17 @@ class HttpGoogleIamDAO(appName: String, googleCredentialMode: GoogleCredentialMo
       executeGoogleRequest(request)
     } map { response =>
       Option(response.getKeys).getOrElse(Collections.emptyList()).asScala.toSeq map googleKeyToWorkbenchKey
+    }
+  }
+
+  override def getOrganizationCustomRole(roleName: String): Future[Option[Role]] = {
+    val request = iam.organizations().roles().get(roleName)
+
+    retryWithRecover(when5xx, whenUsageLimited, whenInvalidValueOnBucketCreation, whenNonHttpIOException) { () =>
+      Option(executeGoogleRequest(request))
+    } {
+      case t: GoogleJsonResponseException if t.getStatusCode == 404 =>
+        None
     }
   }
 

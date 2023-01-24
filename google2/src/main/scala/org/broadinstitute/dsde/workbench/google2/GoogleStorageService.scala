@@ -2,7 +2,6 @@ package org.broadinstitute.dsde.workbench
 package google2
 
 import java.nio.file.Path
-
 import cats.data.NonEmptyList
 import cats.effect._
 import cats.effect.std.Semaphore
@@ -27,7 +26,7 @@ import org.broadinstitute.dsde.workbench.google2.Implicits.PolicyToStorageRoles
 import org.typelevel.log4cats.StructuredLogger
 import org.broadinstitute.dsde.workbench.google2.util.RetryPredicates.standardGoogleRetryConfig
 import org.broadinstitute.dsde.workbench.model.TraceId
-import org.broadinstitute.dsde.workbench.model.google.{GcsBucketName, GcsObjectName, GoogleProject}
+import org.broadinstitute.dsde.workbench.model.google.{GcsBucketName, GcsObjectName, GoogleProject, IamPermission}
 import org.broadinstitute.dsde.workbench.util2.RemoveObjectResult
 
 import scala.collection.convert.ImplicitConversions._
@@ -329,6 +328,13 @@ trait GoogleStorageService[F[_]] {
                    bucketSourceOptions: List[BucketSourceOption] = List.empty
   ): Stream[F, Policy]
 
+  def testIamPermissions(bucketName: GcsBucketName,
+                         permissions: List[IamPermission],
+                         traceId: Option[TraceId] = None,
+                         retryConfig: RetryConfig = standardGoogleRetryConfig,
+                         bucketSourceOptions: List[BucketSourceOption] = List.empty
+  ): Stream[F, List[IamPermission]]
+
   /**
    * Remove the specified roles from the bucket IAM policy
    */
@@ -360,20 +366,24 @@ object GoogleStorageService {
       db <- GoogleStorageInterpreter.storage[F](pathToCredentialJson, project)
     } yield GoogleStorageInterpreter[F](db, blockerBound)
 
-  def fromApplicationDefault[F[_]: Async: StructuredLogger](
-    blockerBound: Option[Semaphore[F]] = None
+  def fromCredentials[F[_]: Async: StructuredLogger](credentials: GoogleCredentials,
+                                                     blockerBound: Option[Semaphore[F]] = None
   ): Resource[F, GoogleStorageService[F]] =
     for {
       db <- Resource.eval(
         Sync[F].delay(
           StorageOptions
             .newBuilder()
-            .setCredentials(GoogleCredentials.getApplicationDefault())
+            .setCredentials(credentials)
             .build()
             .getService
         )
       )
     } yield GoogleStorageInterpreter[F](db, blockerBound)
+
+  def fromApplicationDefault[F[_]: Async: StructuredLogger](
+    blockerBound: Option[Semaphore[F]] = None
+  ): Resource[F, GoogleStorageService[F]] = fromCredentials(GoogleCredentials.getApplicationDefault(), blockerBound)
 
   def fromAccessToken[F[_]: Async: StructuredLogger](
     accessToken: AccessToken,

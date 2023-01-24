@@ -2,7 +2,6 @@ package org.broadinstitute.dsde.workbench.google2
 package mock
 
 import java.nio.file.Path
-
 import cats.data.NonEmptyList
 import cats.effect.IO
 import com.google.auth.Credentials
@@ -22,7 +21,7 @@ import org.broadinstitute.dsde.workbench.RetryConfig
 import org.broadinstitute.dsde.workbench.google2.GoogleStorageInterpreterSpec._
 import org.broadinstitute.dsde.workbench.google2.util.RetryPredicates.standardGoogleRetryConfig
 import org.broadinstitute.dsde.workbench.model.TraceId
-import org.broadinstitute.dsde.workbench.model.google.{GcsBucketName, GcsObjectName, GoogleProject}
+import org.broadinstitute.dsde.workbench.model.google.{GcsBucketName, GcsObjectName, GoogleProject, IamPermission}
 import org.broadinstitute.dsde.workbench.util2.RemoveObjectResult
 
 class BaseFakeGoogleStorage extends GoogleStorageService[IO] {
@@ -199,6 +198,14 @@ class BaseFakeGoogleStorage extends GoogleStorageService[IO] {
                                 retryConfig: RetryConfig,
                                 bucketTargetOptions: List[BucketTargetOption]
   ): Stream[IO, Unit] = Stream.empty
+
+  override def testIamPermissions(bucketName: GcsBucketName,
+                                  permissions: List[IamPermission],
+                                  traceId: Option[TraceId],
+                                  retryConfig: RetryConfig,
+                                  bucketSourceOptions: List[BucketSourceOption]
+  ): Stream[IO, List[IamPermission]] =
+    localStorage.testIamPermissions(bucketName, permissions, traceId, retryConfig, bucketSourceOptions)
 }
 
 object FakeGoogleStorageInterpreter extends BaseFakeGoogleStorage
