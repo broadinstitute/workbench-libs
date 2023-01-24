@@ -7,12 +7,14 @@ import com.google.cloud.{Identity, Policy, Role}
 import org.broadinstitute.dsde.workbench.RetryConfig
 import org.broadinstitute.dsde.workbench.google2.mock.BaseFakeGoogleStorage
 import org.broadinstitute.dsde.workbench.model.TraceId
-import org.broadinstitute.dsde.workbench.model.google.GcsBucketName
+import org.broadinstitute.dsde.workbench.model.google.{GcsBucketName, IamPermission}
 import org.broadinstitute.dsde.workbench.util2.WorkbenchTestSuite
 import org.scalatest.flatspec.AsyncFlatSpec
 import org.scalatest.matchers.should.Matchers
 
+import java.util
 import scala.collection.convert.ImplicitConversions._
+import scala.concurrent.Future
 
 class GoogleStorageServiceSpec extends AsyncFlatSpec with Matchers with WorkbenchTestSuite {
 
@@ -63,6 +65,13 @@ class GoogleStorageServiceSpec extends AsyncFlatSpec with Matchers with Workbenc
         .compile
         .drain
     } yield succeed
+  }
+
+  "mapTestPermissionResultsToIamPermissions" should "work" in Future {
+    val results: util.List[java.lang.Boolean] = util.Arrays.asList(true, false, true, true, false)
+    val permissions = "abcde".toList.map(c => IamPermission(c.toString))
+    val actual = GoogleStorageInterpreter.mapTestPermissionResultsToIamPermissions(results, permissions)
+    actual should contain theSameElementsInOrderAs "acd".toList.map(c => IamPermission(c.toString))
   }
 
 }
