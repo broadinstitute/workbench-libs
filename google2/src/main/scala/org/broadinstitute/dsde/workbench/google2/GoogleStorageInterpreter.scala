@@ -11,19 +11,10 @@ import cats.effect.std.Semaphore
 import cats.syntax.all._
 import com.google.auth.oauth2.ServiceAccountCredentials
 import com.google.cloud.storage.BucketInfo.LifecycleRule
-import com.google.cloud.storage.Storage.{
-  BlobGetOption,
-  BlobListOption,
-  BlobSourceOption,
-  BlobTargetOption,
-  BlobWriteOption,
-  BucketGetOption,
-  BucketSourceOption,
-  BucketTargetOption
-}
+import com.google.cloud.storage.Storage.{BlobGetOption, BlobListOption, BlobSourceOption, BlobTargetOption, BlobWriteOption, BucketGetOption, BucketSourceOption, BucketTargetOption}
 import com.google.cloud.storage.{Acl, Blob, BlobId, BlobInfo, BucketInfo, Storage, StorageOptions}
 import com.google.cloud.{Identity, Policy, Role}
-import fs2.{text, Pipe, Stream}
+import fs2.{Pipe, Stream, text}
 import org.typelevel.log4cats.StructuredLogger
 import io.circe.Decoder
 import io.circe.fs2._
@@ -31,8 +22,9 @@ import org.broadinstitute.dsde.workbench.google2.util.RetryPredicates.standardGo
 import org.broadinstitute.dsde.workbench.model.{TraceId, WorkbenchException}
 import org.broadinstitute.dsde.workbench.model.google.{GcsBucketName, GcsObjectName, GoogleProject, IamPermission}
 import com.google.auth.Credentials
-import org.broadinstitute.dsde.workbench.util2.{withLogging, RemoveObjectResult}
+import org.broadinstitute.dsde.workbench.util2.{RemoveObjectResult, withLogging}
 
+import java.{lang, util}
 import scala.jdk.CollectionConverters._
 
 private[google2] class GoogleStorageInterpreter[F[_]](
@@ -554,14 +546,7 @@ private[google2] class GoogleStorageInterpreter[F[_]](
       traceId,
       s"com.google.cloud.storage.Storage.testIamPermissions($bucketName, ${permissions.mkString(",")})"
     ).map { results =>
-      results.asScala
-        .map(_.booleanValue())
-        .zipWithIndex
-        .flatMap {
-          case (true, index) => permissions.get(index)
-          case (false, _)    => None
-        }
-        .toList
+      GoogleStorageInterpreter.mapTestPermissionResultsToIamPermissions(results, permissions)
     }
 
   override def setBucketLifecycle(bucketName: GcsBucketName,
@@ -656,6 +641,17 @@ object GoogleStorageInterpreter {
         )
       )
     } yield db
+
+  def mapTestPermissionResultsToIamPermissions(results: util.List[lang.Boolean], permissions: List[IamPermission]): List[IamPermission] = {
+    results.asScala
+      .map(_.booleanValue())
+      .zipWithIndex
+      .flatMap {
+        case (true, index) => permissions.get(index)
+        case (false, _) => None
+      }
+      .toList
+  }
 
   implicit val googleProjectDecoder: Decoder[GoogleProject] = Decoder.forProduct1(
     "project_id"
