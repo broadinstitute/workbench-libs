@@ -244,11 +244,11 @@ trait GoogleIamDAO {
   ): Future[Seq[ServiceAccountKey]]
 
   /**
-   * see https://cloud.google.com/iam/docs/reference/rest/v1/roles/get
+   * see https://cloud.google.com/iam/docs/reference/rest/v1/organizations.roles/get
    * @param roleName passed as-is to name parameter of google api
    * @return
    */
-  def getRole(roleName: String): Future[Option[Role]]
+  def getOrganizationCustomRole(roleName: String): Future[Option[Role]]
 }
 
 object GoogleIamDAO {

@@ -376,8 +376,8 @@ class HttpGoogleIamDAO(appName: String, googleCredentialMode: GoogleCredentialMo
     }
   }
 
-  override def getRole(roleName: String): Future[Option[Role]] = {
-    val request = iam.roles().get(roleName)
+  override def getOrganizationCustomRole(roleName: String): Future[Option[Role]] = {
+    val request = iam.organizations().roles().get(roleName)
 
     retryWithRecover(when5xx, whenUsageLimited, whenInvalidValueOnBucketCreation, whenNonHttpIOException) { () =>
       Option(executeGoogleRequest(request))

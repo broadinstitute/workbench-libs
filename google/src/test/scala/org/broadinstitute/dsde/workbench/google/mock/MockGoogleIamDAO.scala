@@ -140,7 +140,7 @@ class MockGoogleIamDAO extends GoogleIamDAO {
   ): Future[Seq[ServiceAccountKey]] =
     Future.successful(serviceAccountKeys(serviceAccountEmail).values.toSeq)
 
-  override def getRole(roleName: String): Future[Option[Role]] = Future.successful(None)
+  override def getOrganizationCustomRole(roleName: String): Future[Option[Role]] = Future.successful(None)
 }
 
 object MockGoogleIamDAO {
