@@ -332,7 +332,7 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
      * @param token
      */
     def waitForBucketReadAccess(workspaceNamespace: String, workspaceName: String)(implicit token: AuthToken): Unit = {
-      logger.info(s"Bucket read access checking on workspace: $workspaceNamespace/$workspaceName")
+      logger.info(s"Workspace access check on workspace: $workspaceNamespace/$workspaceName")
       /*
       At the beginning of 2023, google rolled out some changes to IAM propagation that make detecting IAM propagation
       when google groups are involved tricky. At this time all access to google cloud resources involves a google group.
@@ -350,7 +350,7 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
       val workspaceDetails = Rawls.workspaces.getWorkspaceDetails(workspaceNamespace, workspaceName)
       val googleProject = mapper.readTree(workspaceDetails).at("/workspace/googleProject").textValue()
       val petEmail = Sam.user.petServiceAccountEmail(googleProject)
-      logger.info(s"waitForBucketReadAccess will use pet $petEmail")
+      logger.info(s"Workspace access check will use pet $petEmail")
 
       Thread.sleep(ServiceTestConfig.FireCloud.waitForAccessTime.toMillis)
 
