@@ -3,7 +3,6 @@ package org.broadinstitute.dsde.workbench.config
 import com.typesafe.config.ConfigFactory
 import spray.json._
 import DefaultJsonProtocol._
-import org.broadinstitute.dsde.rawls.util.ScalaConfig._
 import org.broadinstitute.dsde.workbench.util.ScalaConfig.EnhancedScalaConfig
 
 import java.time.temporal.{ChronoUnit, TemporalUnit}
