@@ -360,7 +360,9 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
           s"Workspace access check passed: workspace $workspaceNamespace/$workspaceName accessible"
         )
       } else {
-        throw new Exception(s"Workspace access check failed: workspace $workspaceNamespace/$workspaceName did not become accessible after ${ServiceTestConfig.FireCloud.waitForAccessTime}")
+        throw new Exception(
+          s"Workspace access check failed: workspace $workspaceNamespace/$workspaceName did not become accessible after ${ServiceTestConfig.FireCloud.waitForAccessTime}"
+        )
       }
     }
   }

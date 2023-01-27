@@ -65,7 +65,12 @@ trait CommonConfig {
     } else {
       "dataRepoApiUrl-value-not-in-config-file"
     }
-    val waitForAccessTime: FiniteDuration = Duration.fromNanos(fireCloudConfig.getDurationOption("waitForAccessDuration").getOrElse(java.time.Duration.of(2, ChronoUnit.MINUTES)).toNanos)
+    val waitForAccessTime: FiniteDuration = Duration.fromNanos(
+      fireCloudConfig
+        .getDurationOption("waitForAccessDuration")
+        .getOrElse(java.time.Duration.of(2, ChronoUnit.MINUTES))
+        .toNanos
+    )
   }
 
   trait CommonChromeSettings {
