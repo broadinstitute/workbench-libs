@@ -3,6 +3,10 @@ package org.broadinstitute.dsde.workbench.config
 import com.typesafe.config.ConfigFactory
 import spray.json._
 import DefaultJsonProtocol._
+import org.broadinstitute.dsde.workbench.util.ScalaConfig.EnhancedScalaConfig
+
+import java.time.temporal.{ChronoUnit, TemporalUnit}
+import scala.concurrent.duration.{Duration, FiniteDuration}
 
 trait CommonConfig {
   protected val config = ConfigFactory.load()
@@ -60,6 +64,12 @@ trait CommonConfig {
     } else {
       "dataRepoApiUrl-value-not-in-config-file"
     }
+    val waitForAccessTime: FiniteDuration = Duration.fromNanos(
+      fireCloudConfig
+        .getDurationOption("waitForAccessDuration")
+        .getOrElse(java.time.Duration.of(2, ChronoUnit.MINUTES))
+        .toNanos
+    )
   }
 
   trait CommonChromeSettings {
