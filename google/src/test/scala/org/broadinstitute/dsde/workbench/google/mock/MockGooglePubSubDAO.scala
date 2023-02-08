@@ -3,8 +3,8 @@ package org.broadinstitute.dsde.workbench.google.mock
 import java.util
 import java.util.concurrent.{ConcurrentHashMap, ConcurrentLinkedQueue}
 import java.util.{Collections, UUID}
-
 import com.google.api.client.googleapis.testing.auth.oauth2.MockGoogleCredential
+import com.google.api.services.pubsub.model
 import com.google.api.services.pubsub.model.Topic
 import org.broadinstitute.dsde.workbench.google.GooglePubSubDAO
 import org.broadinstitute.dsde.workbench.google.GooglePubSubDAO.PubSubMessage
@@ -95,6 +95,16 @@ class MockGooglePubSubDAO extends GooglePubSubDAO {
       true
     }
   }
+
+  override def extendDeadline(subscriptionName: String,
+                              messages: scala.collection.Seq[PubSubMessage],
+                              extendDeadlineBySeconds: Int
+  ): Future[Unit] = Future.unit
+
+  override def extendDeadlineById(subscriptionName: String,
+                                  ackIds: scala.collection.Seq[String],
+                                  extendDeadlineBySeconds: Int
+  ): Future[Unit] = Future.unit
 
   def getPreparedMockGoogleCredential: MockGoogleCredential = {
     val credential = new MockGoogleCredential.Builder().build()

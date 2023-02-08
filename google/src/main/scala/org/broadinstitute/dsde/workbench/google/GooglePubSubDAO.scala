@@ -45,6 +45,16 @@ trait GooglePubSubDAO {
 
   def acknowledgeMessagesById(subscriptionName: String, ackIds: scala.collection.Seq[String]): Future[Unit]
 
+  def extendDeadline(subscriptionName: String,
+                     messages: scala.collection.Seq[PubSubMessage],
+                     extendDeadlineBySeconds: Int
+  ): Future[Unit]
+
+  def extendDeadlineById(subscriptionName: String,
+                         ackIds: scala.collection.Seq[String],
+                         extendDeadlineBySeconds: Int
+  ): Future[Unit]
+
   def pullMessages(subscriptionName: String, maxMessages: Int): Future[scala.collection.Seq[PubSubMessage]]
 
   def withMessage(subscriptionName: String)(op: (String) => Future[AckStatus]): Future[HandledStatus] =
