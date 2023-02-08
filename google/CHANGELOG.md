@@ -4,7 +4,7 @@ This file documents changes to the `workbench-google` library, including notes o
 
 ## 0.22
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.22-46d1df6"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.22-TRAVIS-REPLACE-ME"`
 
 ### Changed
 - Update `google-api-client` to `2.0.0`
@@ -12,6 +12,7 @@ SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.
 The only usage of this library here and in `Rawls` are references to `PlusScopes.USERINFO_EMAIL`, and `PlusScopes.USERINFO_PROFILE`, which can easily
 be replaced with `https://www.googleapis.com/auth/userinfo.email`, `https://www.googleapis.com/auth/userinfo.profile` respectively
 - Added `GoogleIamDAO.getOrganizationCustomRole`
+- Added `GooglePubSubDAO.extendDeadline` and `GooglePubSubDAO.extendDeadlineById`
 
 ## 0.21
 

@@ -137,6 +137,27 @@ class HttpGooglePubSubDAO(appName: String,
       )
     }
 
+  override def extendDeadline(subscriptionName: String,
+                              messages: scala.collection.Seq[PubSubMessage],
+                              extendDeadlineBySeconds: Int
+  ): Future[Unit] =
+    extendDeadlineById(subscriptionName, messages.map(_.ackId), extendDeadlineBySeconds)
+
+  override def extendDeadlineById(subscriptionName: String,
+                                  ackIds: scala.collection.Seq[String],
+                                  extendDeadlineBySeconds: Int
+  ): Future[Unit] =
+    retry(when5xx, whenUsageLimited, when404, whenInvalidValueOnBucketCreation, whenNonHttpIOException) { () =>
+      val modifyAckDeadlineRequest =
+        new ModifyAckDeadlineRequest().setAckDeadlineSeconds(extendDeadlineBySeconds).setAckIds(ackIds.asJava)
+      executeGoogleRequest(
+        pubSub
+          .projects()
+          .subscriptions()
+          .modifyAckDeadline(subscriptionToFullPath(subscriptionName), modifyAckDeadlineRequest)
+      )
+    }
+
   override def pullMessages(subscriptionName: String, maxMessages: Int): Future[scala.collection.Seq[PubSubMessage]] =
     retry(when5xx, whenUsageLimited, when404, whenInvalidValueOnBucketCreation, whenNonHttpIOException) { () =>
       val pullRequest = new PullRequest()
