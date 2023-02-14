@@ -36,6 +36,19 @@ class AzureContainerServiceInterp[F[_]](clientSecretCredential: ClientSecretCred
       )
     } yield resp
 
+  override def listClusters(cloudContext: AzureCloudContext)(implicit ev: Ask[F, TraceId]): F[List[KubernetesCluster]] =
+    for {
+      mgr <- buildContainerServiceManager(cloudContext)
+      resp <- tracedLogging(
+        F.delay(
+          mgr
+            .kubernetesClusters()
+            .listByResourceGroup(cloudContext.managedResourceGroupName.value)
+        ),
+        s"com.azure.resourcemanager.resources.fluentcore.arm.collection,listByResourceGroup(${cloudContext.managedResourceGroupName.value})"
+      )
+    } yield resp
+
   override def getClusterCredentials(name: AKSClusterName, cloudContext: AzureCloudContext)(implicit
     ev: Ask[F, TraceId]
   ): F[AKSCredentials] =
