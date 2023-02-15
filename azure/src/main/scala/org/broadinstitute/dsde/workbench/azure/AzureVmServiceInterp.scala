@@ -34,7 +34,9 @@ class AzureVmServiceInterp[F[_]](clientSecretCredential: ClientSecretCredential)
         )
         .map(Option(_))
         .handleErrorWith {
-          case e: ManagementException if e.getValue.getCode().equals("ResourceNotFound") => F.pure(none[VirtualMachine])
+          case e: ManagementException
+              if e.getValue.getCode().equals("ResourceNotFound") | e.getValue.getCode().equals("AuthorizationFailed") =>
+            F.pure(none[VirtualMachine])
           case e => F.raiseError[Option[VirtualMachine]](e)
         }
       res <- tracedLogging(
@@ -59,7 +61,9 @@ class AzureVmServiceInterp[F[_]](clientSecretCredential: ClientSecretCredential)
         )
         .map(Option(_))
         .handleErrorWith {
-          case e: ManagementException if e.getValue.getCode().equals("ResourceNotFound") => F.pure(none[Accepted[Void]])
+          case e: ManagementException
+              if e.getValue.getCode().equals("ResourceNotFound") | e.getValue.getCode().equals("AuthorizationFailed") =>
+            F.pure(none[Accepted[Void]])
           case e => F.raiseError[Option[Accepted[Void]]](e)
         }
       res <- tracedLogging(
@@ -80,7 +84,9 @@ class AzureVmServiceInterp[F[_]](clientSecretCredential: ClientSecretCredential)
       )
       .map(Option(_))
       .handleErrorWith {
-        case e: ManagementException if e.getValue.getCode().equals("ResourceNotFound") => F.pure(none[Mono[Void]])
+        case e: ManagementException
+            if e.getValue.getCode().equals("ResourceNotFound") | e.getValue.getCode().equals("AuthorizationFailed") =>
+          F.pure(none[Mono[Void]])
         case e => F.raiseError[Option[Mono[Void]]](e)
       }
     res <- tracedLogging(
@@ -107,7 +113,9 @@ class AzureVmServiceInterp[F[_]](clientSecretCredential: ClientSecretCredential)
       )
       .map(Option(_))
       .handleErrorWith {
-        case e: ManagementException if e.getValue.getCode().equals("ResourceNotFound") => F.pure(none[Mono[Void]])
+        case e: ManagementException
+            if e.getValue.getCode().equals("ResourceNotFound") | e.getValue.getCode().equals("AuthorizationFailed") =>
+          F.pure(none[Mono[Void]])
         case e => F.raiseError[Option[Mono[Void]]](e)
       }
     res <- tracedLogging(

@@ -14,6 +14,9 @@ trait AzureContainerService[F[_]] {
     ev: Ask[F, TraceId]
   ): F[KubernetesCluster]
 
+  /** Lists AKS clusters in a resource group. */
+  def listClusters(cloudContext: AzureCloudContext)(implicit ev: Ask[F, TraceId]): F[List[KubernetesCluster]]
+
   /** Gets credentials used to connect to an AKS cluster. */
   def getClusterCredentials(name: AKSClusterName, cloudContext: AzureCloudContext)(implicit
     ev: Ask[F, TraceId]
