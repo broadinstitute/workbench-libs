@@ -91,10 +91,13 @@ class HttpGooglePubSubDAO(appName: String,
     }
   }
 
-  override def createSubscription(topicName: String, subscriptionName: String) =
+  override def createSubscription(topicName: String, subscriptionName: String, ackDeadlineSeconds: Option[Int] = None) =
     retryWithRecover(when5xx, whenUsageLimited, when404, whenInvalidValueOnBucketCreation, whenNonHttpIOException) {
       () =>
         val subscription = new Subscription().setTopic(topicToFullPath(topicName))
+        ackDeadlineSeconds.map { secs =>
+          subscription.setAckDeadlineSeconds(secs)
+        }
         executeGoogleRequest(
           pubSub.projects().subscriptions().create(subscriptionToFullPath(subscriptionName), subscription)
         )
@@ -112,13 +115,17 @@ class HttpGooglePubSubDAO(appName: String,
       case e: HttpResponseException if e.getStatusCode == StatusCodes.NotFound.intValue => false
     }
 
-  override def publishMessages(topicName: String, messages: scala.collection.Seq[String]) = {
+  override def publishMessages(topicName: String, messages: scala.collection.Seq[MessageRequest]) = {
     logger.debug(s"publishing to google pubsub topic $topicName, messages [${messages.mkString(", ")}]")
     Future
       .traverse(messages.grouped(1000)) { messageBatch =>
         retry(when5xx, whenUsageLimited, when404, whenInvalidValueOnBucketCreation, whenNonHttpIOException) { () =>
           val pubsubMessages =
-            messageBatch.map(text => new PubsubMessage().encodeData(text.getBytes(characterEncoding)))
+            messageBatch.map(messageRequest =>
+              new PubsubMessage()
+                .encodeData(messageRequest.text.getBytes(characterEncoding))
+                .setAttributes(messageRequest.attributes.asJava)
+            )
           val pubsubRequest = new PublishRequest().setMessages(pubsubMessages.asJava)
           executeGoogleRequest(pubSub.projects().topics().publish(topicToFullPath(topicName), pubsubRequest))
         }

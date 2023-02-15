@@ -2,6 +2,7 @@ package org.broadinstitute.dsde.workbench.dataaccess
 
 import com.typesafe.scalalogging.LazyLogging
 import org.broadinstitute.dsde.workbench.google.GooglePubSubDAO
+import org.broadinstitute.dsde.workbench.google.GooglePubSubDAO.MessageRequest
 import org.broadinstitute.dsde.workbench.model.Notifications.{Notification, NotificationFormat}
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -30,5 +31,5 @@ class PubSubNotificationDAO(googlePubSubDAO: GooglePubSubDAO, topicName: String)
   }
 
   protected def sendNotifications(notification: Traversable[String]): Future[Unit] =
-    googlePubSubDAO.publishMessages(topicName, notification.toSeq)
+    googlePubSubDAO.publishMessages(topicName, notification.toList.map(MessageRequest(_)))
 }

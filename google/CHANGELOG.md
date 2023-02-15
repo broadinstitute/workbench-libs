@@ -2,11 +2,23 @@
 
 This file documents changes to the `workbench-google` library, including notes on how to upgrade to new versions.
 
+## 0.23
+
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.23-TRAVIS-REPLACE-ME"`
+
+### Changed
+
+- Introduced `MessageRequest` case class in place of using `String` for messages
+- Changed `publishMessages` signature to use new `MessageRequest`
+- Added `ackDeadlineSeconds` as an optional parameter for `createSubscription`
+- Added `attributes` as an optional parameter to `PubSubMessage`
+
 ## 0.22
 
 SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.22-abd44a6"`
 
 ### Changed
+
 - Update `google-api-client` to `2.0.0`
 - Removed `google-api-services-plus`, because it is removed from in https://github.com/googleapis/google-api-java-client-services/pull/5947 back in 2020. 
 The only usage of this library here and in `Rawls` are references to `PlusScopes.USERINFO_EMAIL`, and `PlusScopes.USERINFO_PROFILE`, which can easily
