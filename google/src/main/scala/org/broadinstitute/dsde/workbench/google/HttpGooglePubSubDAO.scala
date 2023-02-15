@@ -122,7 +122,9 @@ class HttpGooglePubSubDAO(appName: String,
         retry(when5xx, whenUsageLimited, when404, whenInvalidValueOnBucketCreation, whenNonHttpIOException) { () =>
           val pubsubMessages =
             messageBatch.map(messageRequest =>
-              new PubsubMessage().encodeData(messageRequest.text.getBytes(characterEncoding))
+              new PubsubMessage()
+                .encodeData(messageRequest.text.getBytes(characterEncoding))
+                .setAttributes(messageRequest.attributes.asJava)
             )
           val pubsubRequest = new PublishRequest().setMessages(pubsubMessages.asJava)
           executeGoogleRequest(pubSub.projects().topics().publish(topicToFullPath(topicName), pubsubRequest))
