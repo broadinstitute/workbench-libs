@@ -3,7 +3,6 @@ package org.broadinstitute.dsde.workbench.azure
 import cats.effect.Async
 import cats.mtl.Ask
 import cats.syntax.all._
-import com.azure.core.http.rest.PagedIterable
 import com.azure.core.management.AzureEnvironment
 import com.azure.core.management.profile.AzureProfile
 import com.azure.identity.ClientSecretCredential
@@ -18,14 +17,14 @@ class AzureApplicationInsightsServiceInterp[F[_]](clientSecretCredential: Client
   logger: StructuredLogger[F]
 ) extends AzureApplicationInsightsService[F] {
 
-  override def getApplicationInsights(cloudContext: AzureCloudContext)(implicit
+  override def getApplicationInsights(name: ApplicationInsightsName, cloudContext: AzureCloudContext)(implicit
     ev: Ask[F, TraceId]
-  ): F[PagedIterable[ApplicationInsightsComponent]] =
+  ): F[ApplicationInsightsComponent] =
     for {
       mgr <- buildApplicationInsightsManager(cloudContext)
       resp <- tracedLogging(
         F.delay(
-          mgr.components().listByResourceGroup(cloudContext.managedResourceGroupName.value)
+          mgr.components().getByResourceGroup(cloudContext.managedResourceGroupName.value, name.value)
         ),
         s"com.azure.resourcemanager.applicationinsights,listByResourceGroup(${cloudContext.managedResourceGroupName.value})"
       )
