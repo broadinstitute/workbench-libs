@@ -26,7 +26,7 @@ class AzureApplicationInsightsServiceInterp[F[_]](clientSecretCredential: Client
         F.delay(
           mgr.components().getByResourceGroup(cloudContext.managedResourceGroupName.value, name.value)
         ),
-        s"com.azure.resourcemanager.applicationinsights,listByResourceGroup(${cloudContext.managedResourceGroupName.value})"
+        s"com.azure.resourcemanager.applicationinsights,getByResourceGroup(${cloudContext.managedResourceGroupName.value}, ${name.value})"
       )
     } yield resp
 
