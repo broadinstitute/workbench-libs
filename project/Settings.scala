@@ -119,7 +119,7 @@ object Settings {
   val azureSettings = commonSettings ++ List(
     name := "workbench-azure",
     libraryDependencies ++= azureDependencies,
-    version := createVersion("0.1")
+    version := createVersion("0.2")
   ) ++ publishSettings
 
   val openTelemetrySettings = commonSettings ++ List(
