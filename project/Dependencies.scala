@@ -203,7 +203,8 @@ object Dependencies {
     azureRelay,
     azureStorageBlob,
     azureResourceManagerContainerService,
-    kubernetesClient
+    kubernetesClient,
+    azureResourceManagerApplicationInsights
   )
 
   val openTelemetryDependencies = List(
