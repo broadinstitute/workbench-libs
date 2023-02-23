@@ -13,9 +13,9 @@ In this repo:
 
 Workbench utility libraries, built for 2.13. You can find the full list of packages at [Artifactory](https://broadinstitute.jfrog.io/broadinstitute/webapp/#/artifacts/browse/tree/General/libs-release-local/org/broadinstitute/dsde/workbench/).
 
-Contains utility functions for talking to Google APIs via com.google.cloud client library (more recent) via gRPC.
+Contains utility functions for talking to Azure APIs.
 
-Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-azure" % "0.1-ae71f2f"`
+Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-azure" % "0.2-TRAVIS-REPLACE-ME"`
 
 [Changelog](azure/CHANGELOG.md)
 
@@ -66,7 +66,7 @@ Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-metric
 
 Workbench utility libraries, built for 2.13. You can find the full list of packages at [Artifactory](https://broadinstitute.jfrog.io/broadinstitute/webapp/#/artifacts/browse/tree/General/libs-release-local/org/broadinstitute/dsde/workbench/).
 
-Contains utility functions for talking to Google APIs and DAOs for Google PubSub, Google Directory, Google IAM, and Google BigQuery. 
+Contains utility functions for talking to Google APIs and DAOs for Google PubSub, Google Directory, Google IAM, and Google BigQuery.
 
 Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.23-df84a1e"`
 
@@ -80,7 +80,7 @@ To depend on the `MockGoogle*` classes, additionally depend on:
 
 Workbench utility libraries, built for 2.13. You can find the full list of packages at [Artifactory](https://broadinstitute.jfrog.io/broadinstitute/webapp/#/artifacts/browse/tree/General/libs-release-local/org/broadinstitute/dsde/workbench/).
 
-Contains utility functions for talking to Google APIs via com.google.cloud client library (more recent) via gRPC. 
+Contains utility functions for talking to Google APIs via com.google.cloud client library (more recent) via gRPC.
 
 Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.25-46d1df6"`
 
@@ -94,7 +94,7 @@ To start the Google PubSub emulator for unit testing:
 
 Workbench utility libraries, built for 2.13. You can find the full list of packages at [Artifactory](https://broadinstitute.jfrog.io/broadinstitute/webapp/#/artifacts/browse/tree/General/libs-release-local/org/broadinstitute/dsde/workbench/).
 
-Contains utility functions for publishing custom metrics using openTelemetry (openCensus and openTracing). 
+Contains utility functions for publishing custom metrics using openTelemetry (openCensus and openTracing).
 
 Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-opentelemetry" % "0.3-a78f6e9"`
 
@@ -104,7 +104,7 @@ Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-opente
 
 Workbench utility libraries, built for 2.13. You can find the full list of packages at [Artifactory](https://broadinstitute.jfrog.io/broadinstitute/webapp/#/artifacts/browse/tree/General/libs-release-local/org/broadinstitute/dsde/workbench/).
 
-Contains utility functions for publishing custom metrics using openTelemetry (openCensus and openTracing). 
+Contains utility functions for publishing custom metrics using openTelemetry (openCensus and openTracing).
 
 Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-error-reporting" % "0.2-a78f6e9"`
 
@@ -132,7 +132,7 @@ Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-notifi
 
 ## workbench-oauth2
 
-Contains utilities for integrating with Google and B2C oauth. 
+Contains utilities for integrating with Google and B2C oauth.
 
 Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-oauth2" % "0.2-c70ff12"`
 
