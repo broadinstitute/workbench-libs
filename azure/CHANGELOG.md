@@ -14,5 +14,6 @@ This file documents changes to the `workbench-azure` library, including notes on
 
 - Added AzureStorageService and AzureStorageManualTest
 - Added AzureContainerService#listClusters
+- Added AzureApplicationInsightsService
 
-latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-azure" % "TRAVIS-REPLACE-ME"`
+latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-azure" % "0.2-TRAVIS-REPLACE-ME"`
