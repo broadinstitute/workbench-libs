@@ -3,6 +3,7 @@ package org.broadinstitute.dsde.workbench.google
 import java.io.File
 import akka.actor.ActorSystem
 import akka.http.scaladsl.model.StatusCodes
+import cats.effect.IO
 import com.google.api.client.googleapis.auth.oauth2.GoogleClientSecrets
 import com.google.api.client.googleapis.json.GoogleJsonResponseException
 import com.google.api.client.http.HttpResponseException
@@ -15,9 +16,10 @@ import org.broadinstitute.dsde.workbench.google.GoogleUtilities.RetryPredicates.
 import org.broadinstitute.dsde.workbench.metrics.GoogleInstrumentedService
 import org.broadinstitute.dsde.workbench.model._
 import org.broadinstitute.dsde.workbench.model.google.ServiceAccount
+import org.broadinstitute.dsde.workbench.openTelemetry.OpenTelemetryMetrics
 
 import scala.concurrent.{ExecutionContext, Future}
-import scala.util.Try
+import scala.util.{Failure, Success, Try}
 
 /**
  * Created by mbemis on 8/17/17.
@@ -25,10 +27,13 @@ import scala.util.Try
 class HttpGoogleDirectoryDAO(appName: String,
                              googleCredentialMode: GoogleCredentialMode,
                              workbenchMetricBaseName: String,
-                             maxPageSize: Int = 200
+                             maxPageSize: Int = 200,
+                             openTelemetry: Option[OpenTelemetryMetrics[IO]] = None
 )(implicit system: ActorSystem, executionContext: ExecutionContext)
     extends AbstractHttpGoogleDAO(appName, googleCredentialMode, workbenchMetricBaseName)
     with GoogleDirectoryDAO {
+
+  private val openTelemetryTags: Map[String, String] = Map("cloudPlatform" -> "GCP", "googleApi" -> "directory")
 
   /**
    * This is a nested class because the scopes need to be different and having one credential with scopes for both
@@ -100,6 +105,12 @@ class HttpGoogleDirectoryDAO(appName: String,
 
   private lazy val directory =
     new Directory.Builder(httpTransport, jsonFactory, googleCredential).setApplicationName(appName).build()
+  private def sendMetrics[A](metricName: String): PartialFunction[A, Unit] = {
+    case Success(_) =>
+      openTelemetry.foreach(ot => ot.incrementCounter(s"${metricName}Success", tags = openTelemetryTags))
+    case Failure(_) =>
+      openTelemetry.foreach(ot => ot.incrementCounter(s"${metricName}Failure", tags = openTelemetryTags))
+  }
 
   override def createGroup(groupId: WorkbenchGroupName, groupEmail: WorkbenchEmail): Future[Unit] =
     createGroup(groupId.value, groupEmail)
@@ -114,7 +125,7 @@ class HttpGoogleDirectoryDAO(appName: String,
       .setName(displayName.take(60)) // max google group name length is 60 characters
     val inserter = groups.insert(group)
 
-    for {
+    (for {
       _ <- retryWithRecover(when5xx,
                             whenUsageLimited,
                             when404,
@@ -138,7 +149,7 @@ class HttpGoogleDirectoryDAO(appName: String,
         case None           => Future.successful(())
         case Some(settings) => new GroupSettingsDAO().updateGroupSettings(groupEmail, settings)
       }
-    } yield ()
+    } yield ()).andThen(sendMetrics("createGoogleGroup"))
   }
 
   override def deleteGroup(groupEmail: WorkbenchEmail): Future[Unit] = {
@@ -157,6 +168,8 @@ class HttpGoogleDirectoryDAO(appName: String,
     } {
       case e: HttpResponseException if e.getStatusCode == StatusCodes.NotFound.intValue =>
         () // if the group is already gone, don't fail
+    } andThen {
+      sendMetrics("deleteGoogleGroup")
     }
   }
 
@@ -183,6 +196,8 @@ class HttpGoogleDirectoryDAO(appName: String,
         () // if the member is already there, then don't keep trying to add them
       // Recover from http 412 errors because they can be spuriously thrown by Google, but the operation succeeds
       case e: HttpResponseException if e.getStatusCode == StatusCodes.PreconditionFailed.intValue => ()
+    } andThen {
+      sendMetrics("addMemberToGoogleGroup")
     }
   }
 
@@ -201,6 +216,8 @@ class HttpGoogleDirectoryDAO(appName: String,
             "Missing required field: memberKey"
           ) =>
         () // this means the member does not exist
+    } andThen {
+      sendMetrics("removeMemberFromGoogleGroup")
     }
   }
 
@@ -212,6 +229,8 @@ class HttpGoogleDirectoryDAO(appName: String,
         Option(executeGoogleRequest(getter))
     } {
       case e: HttpResponseException if e.getStatusCode == StatusCodes.NotFound.intValue => None
+    } andThen {
+      sendMetrics("getGoogleGroup")
     }
   }
 
@@ -229,6 +248,8 @@ class HttpGoogleDirectoryDAO(appName: String,
             "Missing required field: memberKey"
           ) =>
         false // this means the member does not exist
+    } andThen {
+      sendMetrics("isGoogleGroupMember")
     }
   }
 
@@ -245,6 +266,8 @@ class HttpGoogleDirectoryDAO(appName: String,
           }
         }
       }
+    } andThen {
+      sendMetrics("listGoogleGroupMembers")
     }
   }
 
@@ -262,6 +285,7 @@ class HttpGoogleDirectoryDAO(appName: String,
     accumulated: Option[List[Members]] = Some(Nil)
   ): Future[Option[List[Members]]] = {
     implicit val service = GoogleInstrumentedService.Groups
+    val metricsName = "listGoogleGroupMembers"
     accumulated match {
       // when accumulated has a Nil list then this must be the first request
       case Some(Nil) =>
@@ -270,13 +294,21 @@ class HttpGoogleDirectoryDAO(appName: String,
             Option(executeGoogleRequest(fetcher))
         } {
           case e: HttpResponseException if e.getStatusCode == StatusCodes.NotFound.intValue => None
-        }.flatMap(firstPage => listGroupMembersRecursive(fetcher, firstPage.map(List(_))))
+        } andThen {
+          sendMetrics(metricsName)
+        } flatMap { firstPage =>
+          listGroupMembersRecursive(fetcher, firstPage.map(List(_)))
+        }
 
       // the head is the Members object of the prior request which contains next page token
       case Some(head :: _) if head.getNextPageToken != null =>
         retry(when5xx, whenUsageLimited, when404, whenInvalidValueOnBucketCreation, whenNonHttpIOException) { () =>
           executeGoogleRequest(fetcher.setPageToken(head.getNextPageToken))
-        }.flatMap(nextPage => listGroupMembersRecursive(fetcher, accumulated.map(pages => nextPage :: pages)))
+        } andThen {
+          sendMetrics(metricsName)
+        } flatMap { nextPage =>
+          listGroupMembersRecursive(fetcher, accumulated.map(pages => nextPage :: pages))
+        }
 
       // when accumulated is None (group does not exist) or next page token is null
       case _ => Future.successful(accumulated)
