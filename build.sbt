@@ -15,6 +15,12 @@ lazy val workbenchUtil2 = project
   .dependsOn(workbenchModel)
   .withTestSettings
 
+lazy val workbenchOpenTelemetry = project
+  .in(file("openTelemetry"))
+  .settings(openTelemetrySettings: _*)
+  .dependsOn(workbenchUtil2 % testAndCompile)
+  .withTestSettings
+
 lazy val workbenchModel = project
   .in(file("model"))
   .settings(modelSettings: _*)
@@ -33,6 +39,7 @@ lazy val workbenchGoogle = project
   .dependsOn(workbenchUtil2 % testAndCompile)
   .dependsOn(workbenchModel)
   .dependsOn(workbenchMetrics % testAndCompile)
+  .dependsOn(workbenchOpenTelemetry)
   .withTestSettings
 
 lazy val workbenchGoogle2 = project
@@ -47,12 +54,6 @@ lazy val workbenchAzure = project
   .settings(azureSettings: _*)
   .dependsOn(workbenchUtil2 % testAndCompile)
   .dependsOn(workbenchModel)
-  .withTestSettings
-
-lazy val workbenchOpenTelemetry = project
-  .in(file("openTelemetry"))
-  .settings(openTelemetrySettings: _*)
-  .dependsOn(workbenchUtil2 % testAndCompile)
   .withTestSettings
 
 lazy val workbenchErrorReporting = project
