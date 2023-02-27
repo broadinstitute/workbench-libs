@@ -2,6 +2,12 @@
 
 This file documents changes to the `workbench-azure` library, including notes on how to upgrade to new versions.
 
+## 0.2
+
+### Changed
+
+- AzureVmService now calls deallocateAsync instead of powerOffAsync when pausing an Azure virtual machine.
+
 ## 0.1
 
 ### Added
@@ -10,4 +16,4 @@ This file documents changes to the `workbench-azure` library, including notes on
 - Added AzureContainerService#listClusters
 - Added AzureApplicationInsightsService
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.1-ea65777"`
+latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-azure" % "0.2-TRAVIS-REPLACE-ME"`
