@@ -109,7 +109,7 @@ class AzureVmServiceInterp[F[_]](clientSecretCredential: ClientSecretCredential)
       .delay(
         azureComputeManager
           .virtualMachines()
-          .powerOffAsync(cloudContext.managedResourceGroupName.value, name.value)
+          .deallocateAsync(cloudContext.managedResourceGroupName.value, name.value)
       )
       .map(Option(_))
       .handleErrorWith {
@@ -120,7 +120,7 @@ class AzureVmServiceInterp[F[_]](clientSecretCredential: ClientSecretCredential)
       }
     res <- tracedLogging(
       fa,
-      s"com.azure.resourcemanager.compute.models.VirtualMachines.powerOffAsync(${cloudContext.managedResourceGroupName.value}, ${name})"
+      s"com.azure.resourcemanager.compute.models.VirtualMachines.deallocateAsync(${cloudContext.managedResourceGroupName.value}, ${name})"
     )
   } yield res
 }
