@@ -27,4 +27,3 @@ object AzureBatchService {
     Resource.eval(Async[F].pure(new AzureBatchServiceInterp(clientSecretCredential)))
   }
 }
-

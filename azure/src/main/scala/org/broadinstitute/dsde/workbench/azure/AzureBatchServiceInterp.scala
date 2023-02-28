@@ -36,4 +36,3 @@ class AzureBatchServiceInterp[F[_]](clientSecretCredential: ClientSecretCredenti
     F.delay(BatchManager.authenticate(clientSecretCredential, azureProfile))
   }
 }
-
