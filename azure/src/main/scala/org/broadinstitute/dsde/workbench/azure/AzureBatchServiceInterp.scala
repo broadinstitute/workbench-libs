@@ -26,7 +26,7 @@ class AzureBatchServiceInterp[F[_]](clientSecretCredential: ClientSecretCredenti
         F.delay(
           mgr.batchAccounts().getByResourceGroup(cloudContext.managedResourceGroupName.value, name.value)
         ),
-        s"com.azure.resourcemanager.applicationinsights,getByResourceGroup(${cloudContext.managedResourceGroupName.value}, ${name.value})"
+        s"com.azure.resourcemanager.batch,getByResourceGroup(${cloudContext.managedResourceGroupName.value}, ${name.value})"
       )
     } yield resp
 
