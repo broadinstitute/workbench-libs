@@ -109,6 +109,8 @@ object Dependencies {
   val azureResourceManagerContainerService = "com.azure.resourcemanager" % "azure-resourcemanager-containerservice" % "2.19.0"
   val azureResourceManagerApplicationInsights =
     "com.azure.resourcemanager" % "azure-resourcemanager-applicationinsights" % "1.0.0-beta.5"
+  val azureResourceManagerBatchAccount =
+    "com.azure.resourcemanager" % "azure-resourcemanager-batch" % "1.0.0"
 
   val commonDependencies = Seq(
     scalatest,
@@ -204,7 +206,8 @@ object Dependencies {
     azureStorageBlob,
     azureResourceManagerContainerService,
     kubernetesClient,
-    azureResourceManagerApplicationInsights
+    azureResourceManagerApplicationInsights,
+    azureResourceManagerBatchAccount
   )
 
   val openTelemetryDependencies = List(
