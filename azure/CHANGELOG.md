@@ -2,7 +2,7 @@
 
 This file documents changes to the `workbench-azure` library, including notes on how to upgrade to new versions.
 
-latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-azure" % "0.2-TRAVIS-REPLACE-ME"`
+latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-azure" % "0.2-4b46aac"`
 
 ## 0.2
 
