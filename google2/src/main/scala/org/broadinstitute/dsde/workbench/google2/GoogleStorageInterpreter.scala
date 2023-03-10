@@ -313,7 +313,8 @@ private[google2] class GoogleStorageInterpreter[F[_]](
                             logBucket: Option[GcsBucketName],
                             retryConfig: RetryConfig,
                             location: Option[String],
-                            bucketTargetOptions: List[BucketTargetOption]
+                            bucketTargetOptions: List[BucketTargetOption],
+                            autoclassEnabled: Boolean
   ): Stream[F, Unit] = {
 
     if (acl.isDefined && bucketPolicyOnlyEnabled) {
@@ -330,6 +331,7 @@ private[google2] class GoogleStorageInterpreter[F[_]](
       .toBuilder
       .setLabels(labels.asJava)
       .setIamConfiguration(iamConfig)
+      .setAutoclass(BucketInfo.Autoclass.newBuilder().setEnabled(autoclassEnabled).build())
 
     logBucket.map { logBucketName =>
       val logging = BucketInfo.Logging.newBuilder().setLogBucket(logBucketName.value).build()
