@@ -9,6 +9,7 @@ Changed:
 - Added `GoogleBigQueryInterpreter.runJob` to allow for running a generic job
 - Update `FakeComputeOperationFuture`
 - Added `GoogleStorageService.testIamPermissions`
+- Added support for enabling Autoclass on GCS buckets
 
 Dependency Upgrades:
 |          Dependency           | Old Version | New Version |
@@ -16,7 +17,7 @@ Dependency Upgrades:
 | google-cloud-storage-transfer |    1.2.0    |    1.2.1    |
 | google-cloud-container |    2.5.0    |    2.5.2    |
 
-SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.25-46d1df6"`
+SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.25-TRAVIS-REPLACE-ME"`
 
 ## 0.24
 
