@@ -135,6 +135,7 @@ trait GoogleIamDAO {
    * @param rolesToAdd               Set of roles to add (example: roles/storage.admin)
    * @param retryIfGroupDoesNotExist optional parameter to rerun if the group does not exist (yet), since Google can
    *                                 take up to 1 hour to propagate some changes.
+   * @param condition                an optional Expr condition to set a condition on the IAM Policy Bindings
    * @return true if the policy was updated; false otherwise.
    */
   def addIamRoles(iamProject: GoogleProject,
