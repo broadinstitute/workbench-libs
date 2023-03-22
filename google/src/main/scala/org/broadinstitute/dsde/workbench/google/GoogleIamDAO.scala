@@ -4,6 +4,7 @@ import ca.mrvisser.sealerate
 import com.google.api.services.cloudresourcemanager.model.{Policy => ProjectPolicy}
 import com.google.api.services.iam.v1.model.Role
 import org.broadinstitute.dsde.workbench.google.GoogleIamDAO.MemberType
+import org.broadinstitute.dsde.workbench.google.IamModel.Expr
 import org.broadinstitute.dsde.workbench.model._
 import org.broadinstitute.dsde.workbench.model.google._
 
@@ -140,7 +141,8 @@ trait GoogleIamDAO {
                   email: WorkbenchEmail,
                   memberType: MemberType,
                   rolesToAdd: Set[String],
-                  retryIfGroupDoesNotExist: Boolean = false
+                  retryIfGroupDoesNotExist: Boolean = false,
+                  condition: Option[Expr] = None
   ): Future[Boolean]
 
   /**
