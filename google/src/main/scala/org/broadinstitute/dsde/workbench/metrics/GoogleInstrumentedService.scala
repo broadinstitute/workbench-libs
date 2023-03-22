@@ -6,6 +6,7 @@ package org.broadinstitute.dsde.workbench.metrics
 object GoogleInstrumentedService extends Enumeration {
   type GoogleInstrumentedService = Value
   val Billing, Storage, Genomics, Groups, PubSub, Projects, Dataproc, Iam, BigQuery, Compute = Value
+  val Sam = Value
 
   /**
    * Expansion for GoogleInstrumentedService which uses the default toString implementation.

@@ -4,6 +4,7 @@ import ca.mrvisser.sealerate
 import com.google.api.services.cloudresourcemanager.model.{Policy => ProjectPolicy}
 import com.google.api.services.iam.v1.model.Role
 import org.broadinstitute.dsde.workbench.google.GoogleIamDAO.MemberType
+import org.broadinstitute.dsde.workbench.google.IamModel.Expr
 import org.broadinstitute.dsde.workbench.model._
 import org.broadinstitute.dsde.workbench.model.google._
 
@@ -134,13 +135,15 @@ trait GoogleIamDAO {
    * @param rolesToAdd               Set of roles to add (example: roles/storage.admin)
    * @param retryIfGroupDoesNotExist optional parameter to rerun if the group does not exist (yet), since Google can
    *                                 take up to 1 hour to propagate some changes.
+   * @param condition                an optional Expr condition to set a condition on the IAM Policy Bindings
    * @return true if the policy was updated; false otherwise.
    */
   def addIamRoles(iamProject: GoogleProject,
                   email: WorkbenchEmail,
                   memberType: MemberType,
                   rolesToAdd: Set[String],
-                  retryIfGroupDoesNotExist: Boolean = false
+                  retryIfGroupDoesNotExist: Boolean = false,
+                  condition: Option[Expr] = None
   ): Future[Boolean]
 
   /**

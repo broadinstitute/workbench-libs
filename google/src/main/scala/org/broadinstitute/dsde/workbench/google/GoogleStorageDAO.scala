@@ -2,6 +2,9 @@ package org.broadinstitute.dsde.workbench.google
 
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream, File}
 import com.google.api.services.storage.model.{Bucket, BucketAccessControls, ObjectAccessControls}
+import org.broadinstitute.dsde.workbench.google.GoogleIamDAO.MemberType
+import org.broadinstitute.dsde.workbench.google.IamModel.Expr
+import org.broadinstitute.dsde.workbench.model.WorkbenchEmail
 import org.broadinstitute.dsde.workbench.model.google.GcsLifecycleTypes.{Delete, GcsLifecycleType}
 import org.broadinstitute.dsde.workbench.model.google.GcsRoles.GcsRole
 import org.broadinstitute.dsde.workbench.model.google.{GcsBucketName, GcsEntity, GcsObjectName, GoogleProject}
@@ -69,4 +72,19 @@ trait GoogleStorageDAO {
   def getDefaultObjectAccessControls(bucketName: GcsBucketName): Future[ObjectAccessControls]
 
   def setRequesterPays(bucketName: GcsBucketName, requesterPays: Boolean): Future[Unit]
+
+  def addIamRoles(bucketName: GcsBucketName,
+                  userEmail: WorkbenchEmail,
+                  memberType: MemberType,
+                  rolesToAdd: Set[String],
+                  retryIfGroupDoesNotExist: Boolean = false,
+                  condition: Option[Expr] = None
+  ): Future[Boolean]
+
+  def removeIamRoles(bucketName: GcsBucketName,
+                     userEmail: WorkbenchEmail,
+                     memberType: MemberType,
+                     rolesToRemove: Set[String],
+                     retryIfGroupDoesNotExist: Boolean = false
+  ): Future[Boolean]
 }
