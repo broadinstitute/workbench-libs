@@ -8,18 +8,14 @@ import akka.actor.ActorSystem
 import akka.http.scaladsl.model.StatusCodes
 import cats.data.OptionT
 import cats.instances.future._
-import cats.instances.list._
-import cats.instances.set._
-import cats.instances.map._
-import cats.syntax.foldable._
 import cats.syntax.functor._
-import cats.syntax.semigroup._
 import com.google.api.client.googleapis.auth.oauth2.GoogleClientSecrets
 import com.google.api.client.googleapis.json.GoogleJsonResponseException
 import com.google.api.client.http.HttpResponseException
 import com.google.api.services.cloudresourcemanager.CloudResourceManager
 import com.google.api.services.cloudresourcemanager.model.{
   Binding => ProjectBinding,
+  Expr => ProjectExpr,
   Policy => ProjectPolicy,
   SetIamPolicyRequest => ProjectSetIamPolicyRequest,
   TestIamPermissionsRequest
@@ -28,6 +24,7 @@ import com.google.api.services.iam.v1.model.{
   Binding => ServiceAccountBinding,
   CreateServiceAccountKeyRequest,
   CreateServiceAccountRequest,
+  Expr => ServiceAccountExpr,
   Policy => ServiceAccountPolicy,
   Role,
   ServiceAccount,
@@ -39,6 +36,7 @@ import org.broadinstitute.dsde.workbench.google.GoogleCredentialModes._
 import org.broadinstitute.dsde.workbench.google.GoogleIamDAO.MemberType
 import org.broadinstitute.dsde.workbench.google.GoogleUtilities.RetryPredicates._
 import org.broadinstitute.dsde.workbench.google.HttpGoogleIamDAO._
+import org.broadinstitute.dsde.workbench.google.IamModel.{updatePolicy, Binding, Expr, Policy}
 import org.broadinstitute.dsde.workbench.metrics.GoogleInstrumentedService
 import org.broadinstitute.dsde.workbench.model._
 import org.broadinstitute.dsde.workbench.model.google._
@@ -191,9 +189,10 @@ class HttpGoogleIamDAO(appName: String, googleCredentialMode: GoogleCredentialMo
                            userEmail: WorkbenchEmail,
                            memberType: MemberType,
                            rolesToAdd: Set[String],
-                           retryIfGroupDoesNotExist: Boolean = false
+                           retryIfGroupDoesNotExist: Boolean = false,
+                           condition: Option[Expr] = None
   ): Future[Boolean] =
-    modifyIamRoles(iamProject, userEmail, memberType, rolesToAdd, Set.empty, retryIfGroupDoesNotExist)
+    modifyIamRoles(iamProject, userEmail, memberType, rolesToAdd, Set.empty, retryIfGroupDoesNotExist, condition)
 
   override def removeIamRoles(iamProject: GoogleProject,
                               userEmail: WorkbenchEmail,
@@ -208,7 +207,8 @@ class HttpGoogleIamDAO(appName: String, googleCredentialMode: GoogleCredentialMo
                              memberType: MemberType,
                              rolesToAdd: Set[String],
                              rolesToRemove: Set[String],
-                             retryIfGroupDoesNotExist: Boolean
+                             retryIfGroupDoesNotExist: Boolean,
+                             condition: Option[Expr] = None
   ): Future[Boolean] = {
     // Note the project here is the one in which we're removing the IAM roles
     // Retry 409s here as recommended for concurrent modifications of the IAM policy
@@ -228,7 +228,7 @@ class HttpGoogleIamDAO(appName: String, googleCredentialMode: GoogleCredentialMo
     retry(
       finalPredicateList: _*
     ) { () =>
-      updateIamPolicy(iamProject, userEmail, memberType, rolesToAdd, rolesToRemove)
+      updateIamPolicy(iamProject, userEmail, memberType, rolesToAdd, rolesToRemove, condition)
     }
   }
 
@@ -236,13 +236,14 @@ class HttpGoogleIamDAO(appName: String, googleCredentialMode: GoogleCredentialMo
                               userEmail: WorkbenchEmail,
                               memberType: MemberType,
                               rolesToAdd: Set[String],
-                              rolesToRemove: Set[String]
+                              rolesToRemove: Set[String],
+                              condition: Option[Expr] = None
   ): Boolean = {
     // It is important that we call getIamPolicy within the same retry block as we call setIamPolicy
     // getIamPolicy gets the etag that is used in setIamPolicy, the etag is used to detect concurrent
     // modifications and if that happens we need to be sure to get a new etag before retrying setIamPolicy
     val existingPolicy = executeGoogleRequest(cloudResourceManager.projects().getIamPolicy(iamProject.value, null))
-    val updatedPolicy = updatePolicy(existingPolicy, userEmail, memberType, rolesToAdd, rolesToRemove)
+    val updatedPolicy = updatePolicy(existingPolicy, userEmail, memberType, rolesToAdd, rolesToRemove, condition)
 
     // Policy objects use Sets so are not sensitive to ordering and duplication
     if (existingPolicy == updatedPolicy) {
@@ -411,53 +412,6 @@ class HttpGoogleIamDAO(appName: String, googleCredentialMode: GoogleCredentialMo
       executeGoogleRequest(request)
     }
   }
-
-  /**
-   * Read-modify-write a Policy to insert or remove new bindings for the given member and roles.
-   * Note that if the same role is in both rolesToAdd and rolesToRemove, the deletion takes precedence.
-   */
-  private def updatePolicy(policy: Policy,
-                           email: WorkbenchEmail,
-                           memberType: MemberType,
-                           rolesToAdd: Set[String],
-                           rolesToRemove: Set[String]
-  ): Policy = {
-    val memberTypeAndEmail = s"$memberType:${email.value}"
-
-    // Current members grouped by role
-    val curMembersByRole: Map[String, Set[String]] = policy.bindings.toList.foldMap { binding =>
-      Map(binding.role -> binding.members)
-    }
-
-    // Apply additions
-    val withAdditions = if (rolesToAdd.nonEmpty) {
-      val rolesToAddMap = rolesToAdd.map(_ -> Set(memberTypeAndEmail)).toMap
-      curMembersByRole |+| rolesToAddMap
-    } else {
-      curMembersByRole
-    }
-
-    // Apply deletions
-    val newMembersByRole = if (rolesToRemove.nonEmpty) {
-      withAdditions.toList.foldMap { case (role, members) =>
-        if (rolesToRemove.contains(role)) {
-          val filtered = members.filterNot(_ == memberTypeAndEmail)
-          if (filtered.isEmpty) Map.empty[String, Set[String]]
-          else Map(role -> filtered)
-        } else {
-          Map(role -> members)
-        }
-      }
-    } else {
-      withAdditions
-    }
-
-    val bindings = newMembersByRole.map { case (role, members) =>
-      Binding(role, members)
-    }.toSet
-
-    Policy(bindings, policy.etag)
-  }
 }
 
 object HttpGoogleIamDAO {
@@ -476,39 +430,76 @@ object HttpGoogleIamDAO {
    * {Policy, Binding} case classes in Scala, with implicit conversions to/from the above Google classes.
    */
 
-  private case class Binding(role: String, members: Set[String])
-  private case class Policy(bindings: Set[Binding], etag: String)
+  implicit private def fromProjectExpr(projectExpr: ProjectExpr): Expr =
+    if (projectExpr == null) {
+      null
+    } else {
+      Expr(projectExpr.getDescription, projectExpr.getExpression, projectExpr.getLocation, projectExpr.getTitle)
+    }
+
+  implicit def toProjectExpr(expr: Expr): ProjectExpr =
+    if (expr == null) {
+      null
+    } else {
+      new ProjectExpr()
+        .setDescription(expr.description)
+        .setExpression(expr.expression)
+        .setLocation(expr.location)
+        .setTitle(expr.title)
+    }
+
+  implicit private def fromServiceAccountExpr(serviceAccountExpr: ServiceAccountExpr): Expr =
+    if (serviceAccountExpr == null) {
+      null
+    } else {
+      Expr(serviceAccountExpr.getDescription,
+           serviceAccountExpr.getExpression,
+           serviceAccountExpr.getLocation,
+           serviceAccountExpr.getTitle
+      )
+    }
+
+  implicit def toServiceAccountExpr(expr: Expr): ServiceAccountExpr =
+    if (expr == null) {
+      null
+    } else {
+      new ServiceAccountExpr()
+        .setDescription(expr.description)
+        .setExpression(expr.expression)
+        .setLocation(expr.location)
+        .setTitle(expr.title)
+    }
 
   implicit private def fromProjectBinding(projectBinding: ProjectBinding): Binding =
-    Binding(projectBinding.getRole, projectBinding.getMembers.toSet)
+    Binding(projectBinding.getRole, projectBinding.getMembers.toSet, projectBinding.getCondition)
 
   implicit private def fromServiceAccountBinding(serviceAccountBinding: ServiceAccountBinding): Binding =
-    Binding(serviceAccountBinding.getRole, serviceAccountBinding.getMembers.toSet)
+    Binding(serviceAccountBinding.getRole, serviceAccountBinding.getMembers.toSet, serviceAccountBinding.getCondition)
 
-  implicit private def fromProjectPolicy(projectPolicy: ProjectPolicy): Policy =
+  implicit def fromProjectPolicy(projectPolicy: ProjectPolicy): Policy =
     Policy(projectPolicy.getBindings.map(fromProjectBinding).toSet, projectPolicy.getEtag)
 
-  implicit private def fromServiceAccountPolicy(serviceAccountPolicy: ServiceAccountPolicy): Policy =
-    Policy(serviceAccountPolicy.getBindings.map(fromServiceAccountBinding).toSet, serviceAccountPolicy.getEtag)
-
-  implicit private def toServiceAccountPolicy(policy: Policy): ServiceAccountPolicy =
-    new ServiceAccountPolicy()
+  implicit def toProjectPolicy(policy: Policy): ProjectPolicy =
+    new ProjectPolicy()
       .setBindings(
         policy.bindings
           .map { b =>
-            new ServiceAccountBinding().setRole(b.role).setMembers(b.members.toList.asJava)
+            new ProjectBinding().setRole(b.role).setMembers(b.members.toList.asJava).setCondition(b.condition)
           }
           .toList
           .asJava
       )
       .setEtag(policy.etag)
 
-  implicit private def toProjectPolicy(policy: Policy): ProjectPolicy =
-    new ProjectPolicy()
+  implicit def fromServiceAccountPolicy(serviceAccountPolicy: ServiceAccountPolicy): Policy =
+    Policy(serviceAccountPolicy.getBindings.map(fromServiceAccountBinding).toSet, serviceAccountPolicy.getEtag)
+
+  implicit def toServiceAccountPolicy(policy: Policy): ServiceAccountPolicy =
+    new ServiceAccountPolicy()
       .setBindings(
         policy.bindings
           .map { b =>
-            new ProjectBinding().setRole(b.role).setMembers(b.members.toList.asJava)
+            new ServiceAccountBinding().setRole(b.role).setMembers(b.members.toList.asJava).setCondition(b.condition)
           }
           .toList
           .asJava

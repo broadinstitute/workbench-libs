@@ -2,7 +2,6 @@ package org.broadinstitute.dsde.workbench.google
 
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream, File}
 import java.time.Instant
-
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.marshalling.Marshal
@@ -12,10 +11,24 @@ import cats.syntax.all._
 import com.google.api.client.http.{AbstractInputStreamContent, FileContent, HttpResponseException, InputStreamContent}
 import com.google.api.services.storage.model.Bucket.Lifecycle
 import com.google.api.services.storage.model.Bucket.Lifecycle.Rule.{Action, Condition}
-import com.google.api.services.storage.model._
+import com.google.api.services.storage.model.Policy.{Bindings => BucketBinding}
+import com.google.api.services.storage.model.{
+  Bucket,
+  BucketAccessControl,
+  BucketAccessControls,
+  Expr => BucketExpr,
+  ObjectAccessControl,
+  ObjectAccessControls,
+  Objects,
+  Policy => BucketPolicy,
+  StorageObject
+}
 import com.google.api.services.storage.{Storage, StorageScopes}
 import org.broadinstitute.dsde.workbench.google.GoogleCredentialModes._
+import org.broadinstitute.dsde.workbench.google.GoogleIamDAO.MemberType
 import org.broadinstitute.dsde.workbench.google.GoogleUtilities.RetryPredicates._
+import org.broadinstitute.dsde.workbench.google.IamModel.{updatePolicy, Binding, Expr, Policy}
+import org.broadinstitute.dsde.workbench.google.HttpGoogleStorageDAO._
 import org.broadinstitute.dsde.workbench.metrics.GoogleInstrumentedService
 import org.broadinstitute.dsde.workbench.model.WorkbenchEmail
 import org.broadinstitute.dsde.workbench.model.google.GcsLifecycleTypes.{Delete, GcsLifecycleType}
@@ -407,4 +420,126 @@ class HttpGoogleStorageDAO(appName: String,
       }
     }
 
+  override def addIamRoles(bucketName: GcsBucketName,
+                           userEmail: WorkbenchEmail,
+                           memberType: MemberType,
+                           rolesToAdd: Set[String],
+                           retryIfGroupDoesNotExist: Boolean = false,
+                           condition: Option[Expr] = None
+  ): Future[Boolean] =
+    modifyIamRoles(bucketName, userEmail, memberType, rolesToAdd, Set.empty, retryIfGroupDoesNotExist, condition)
+
+  override def removeIamRoles(bucketName: GcsBucketName,
+                              userEmail: WorkbenchEmail,
+                              memberType: MemberType,
+                              rolesToRemove: Set[String],
+                              retryIfGroupDoesNotExist: Boolean = false
+  ): Future[Boolean] =
+    modifyIamRoles(bucketName, userEmail, memberType, Set.empty, rolesToRemove, retryIfGroupDoesNotExist)
+
+  private def modifyIamRoles(bucketName: GcsBucketName,
+                             userEmail: WorkbenchEmail,
+                             memberType: MemberType,
+                             rolesToAdd: Set[String],
+                             rolesToRemove: Set[String],
+                             retryIfGroupDoesNotExist: Boolean,
+                             condition: Option[Expr] = None
+  ): Future[Boolean] = {
+    // Note the project here is the one in which we're removing the IAM roles
+    // Retry 409s here as recommended for concurrent modifications of the IAM policy
+
+    val basePredicateList: Seq[Throwable => Boolean] = Seq(when5xx,
+                                                           whenUsageLimited,
+                                                           whenGlobalUsageLimited,
+                                                           when404,
+                                                           whenInvalidValueOnBucketCreation,
+                                                           whenNonHttpIOException,
+                                                           when409
+    )
+    val finalPredicateList: Seq[Throwable => Boolean] =
+      basePredicateList ++ (if (retryIfGroupDoesNotExist) Seq(whenGroupDoesNotExist: Throwable => Boolean)
+                            else Nil)
+
+    retry(
+      finalPredicateList: _*
+    ) { () =>
+      updateIamPolicy(bucketName, userEmail, memberType, rolesToAdd, rolesToRemove, condition)
+    }
+  }
+  private def updateIamPolicy(bucketName: GcsBucketName,
+                              userEmail: WorkbenchEmail,
+                              memberType: MemberType,
+                              rolesToAdd: Set[String],
+                              rolesToRemove: Set[String],
+                              condition: Option[Expr] = None
+  ): Boolean = {
+    // It is important that we call getIamPolicy within the same retry block as we call setIamPolicy
+    // getIamPolicy gets the etag that is used in setIamPolicy, the etag is used to detect concurrent
+    // modifications and if that happens we need to be sure to get a new etag before retrying setIamPolicy
+    val existingPolicy = executeGoogleRequest(storage.buckets().getIamPolicy(bucketName.value))
+    val updatedPolicy = updatePolicy(existingPolicy, userEmail, memberType, rolesToAdd, rolesToRemove, condition)
+
+    // Policy objects use Sets so are not sensitive to ordering and duplication
+    if (existingPolicy == updatedPolicy) {
+      false
+    } else {
+      executeGoogleRequest(storage.buckets().setIamPolicy(bucketName.value, updatedPolicy))
+      true
+    }
+  }
+}
+
+object HttpGoogleStorageDAO {
+  import scala.language.implicitConversions
+
+  /*
+   * Google has different model classes for policy manipulation depending on the type of resource.
+   *
+   * For project-level policies we have:
+   *   com.google.api.services.cloudresourcemanager.model.{Policy, Binding}
+   *
+   * For service account-level policies we have:
+   *   com.google.api.services.iam.v1.model.{Policy, Binding}
+   *
+   * These classes are for all intents and purposes identical. To deal with this we create our own
+   * {Policy, Binding} case classes in Scala, with implicit conversions to/from the above Google classes.
+   */
+
+  implicit private def fromBucketExpr(bucketExpr: BucketExpr): Expr =
+    if (bucketExpr == null) {
+      null
+    } else {
+      Expr(bucketExpr.getDescription, bucketExpr.getExpression, bucketExpr.getLocation, bucketExpr.getTitle)
+    }
+
+  implicit def toBucketExpr(expr: Expr): BucketExpr =
+    if (expr == null) {
+      null
+    } else {
+      new BucketExpr()
+        .setDescription(expr.description)
+        .setExpression(expr.expression)
+        .setLocation(expr.location)
+        .setTitle(expr.title)
+    }
+  implicit private def fromBucketBinding(bucketBinding: BucketBinding): Binding =
+    Binding(bucketBinding.getRole, bucketBinding.getMembers.toSet, bucketBinding.getCondition)
+
+  implicit def fromBucketPolicy(bucketPolicy: BucketPolicy): Policy =
+    Policy(bucketPolicy.getBindings.map(fromBucketBinding).toSet, bucketPolicy.getEtag)
+
+  implicit def toBucketPolicy(policy: Policy): BucketPolicy =
+    new BucketPolicy()
+      .setBindings(
+        policy.bindings
+          .map { b =>
+            new BucketBinding().setRole(b.role).setMembers(b.members.toList.asJava).setCondition(b.condition)
+          }
+          .toList
+          .asJava
+      )
+      .setEtag(policy.etag)
+
+  implicit private def nullSafeList[A](list: java.util.List[A]): List[A] =
+    Option(list).map(_.asScala.toList).getOrElse(List.empty[A])
 }
