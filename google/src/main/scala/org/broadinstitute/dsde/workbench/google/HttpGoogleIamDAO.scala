@@ -490,6 +490,7 @@ object HttpGoogleIamDAO {
           .asJava
       )
       .setEtag(policy.etag)
+      .setVersion(3)
 
   implicit def fromServiceAccountPolicy(serviceAccountPolicy: ServiceAccountPolicy): Policy =
     Policy(serviceAccountPolicy.getBindings.map(fromServiceAccountBinding).toSet, serviceAccountPolicy.getEtag)
@@ -505,6 +506,7 @@ object HttpGoogleIamDAO {
           .asJava
       )
       .setEtag(policy.etag)
+      .setVersion(3)
 
   implicit private def nullSafeList[A](list: java.util.List[A]): List[A] =
     Option(list).map(_.asScala.toList).getOrElse(List.empty[A])

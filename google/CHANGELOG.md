@@ -4,13 +4,14 @@ This file documents changes to the `workbench-google` library, including notes o
 
 ## 0.24
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.24-867ff8b"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.24-TRAVIS-REPLACE-ME"`
 
 ### Changed
 - Implemented `addIamRoles` and `removeIamRoles` in `HttpGoogleStorageDAO`
 - In both `HttpGoogleStorageDAO` and `HttpGoogleIamDAO`, the `addIamRoles` method takes an optional `condition` arg. Defaults to `None`.
 - Pulled Iam Policy models out of `HttpGoogleIamDAO` and into `IamModel` for code-sharing purposes.
 - No code changes should be necessary when updating to this version.
+- Google Policy Version 3 for IAM requests to support conditions.
 
 ## 0.23
 
