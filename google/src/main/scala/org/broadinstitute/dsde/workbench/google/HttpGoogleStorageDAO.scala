@@ -539,6 +539,7 @@ object HttpGoogleStorageDAO {
           .asJava
       )
       .setEtag(policy.etag)
+      .setVersion(3)
 
   implicit private def nullSafeList[A](list: java.util.List[A]): List[A] =
     Option(list).map(_.asScala.toList).getOrElse(List.empty[A])
