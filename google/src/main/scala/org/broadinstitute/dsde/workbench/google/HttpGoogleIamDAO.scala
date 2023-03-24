@@ -16,6 +16,8 @@ import com.google.api.services.cloudresourcemanager.CloudResourceManager
 import com.google.api.services.cloudresourcemanager.model.{
   Binding => ProjectBinding,
   Expr => ProjectExpr,
+  GetIamPolicyRequest,
+  GetPolicyOptions,
   Policy => ProjectPolicy,
   SetIamPolicyRequest => ProjectSetIamPolicyRequest,
   TestIamPermissionsRequest
@@ -36,7 +38,7 @@ import org.broadinstitute.dsde.workbench.google.GoogleCredentialModes._
 import org.broadinstitute.dsde.workbench.google.GoogleIamDAO.MemberType
 import org.broadinstitute.dsde.workbench.google.GoogleUtilities.RetryPredicates._
 import org.broadinstitute.dsde.workbench.google.HttpGoogleIamDAO._
-import org.broadinstitute.dsde.workbench.google.IamModel.{updatePolicy, Binding, Expr, Policy}
+import org.broadinstitute.dsde.workbench.google.IamModel.{policyVersion, updatePolicy, Binding, Expr, Policy}
 import org.broadinstitute.dsde.workbench.metrics.GoogleInstrumentedService
 import org.broadinstitute.dsde.workbench.model._
 import org.broadinstitute.dsde.workbench.model.google._
@@ -242,7 +244,8 @@ class HttpGoogleIamDAO(appName: String, googleCredentialMode: GoogleCredentialMo
     // It is important that we call getIamPolicy within the same retry block as we call setIamPolicy
     // getIamPolicy gets the etag that is used in setIamPolicy, the etag is used to detect concurrent
     // modifications and if that happens we need to be sure to get a new etag before retrying setIamPolicy
-    val existingPolicy = executeGoogleRequest(cloudResourceManager.projects().getIamPolicy(iamProject.value, null))
+    val request = new GetIamPolicyRequest().setOptions(new GetPolicyOptions().setRequestedPolicyVersion(policyVersion))
+    val existingPolicy = executeGoogleRequest(cloudResourceManager.projects().getIamPolicy(iamProject.value, request))
     val updatedPolicy = updatePolicy(existingPolicy, userEmail, memberType, rolesToAdd, rolesToRemove, condition)
 
     // Policy objects use Sets so are not sensitive to ordering and duplication
@@ -264,7 +267,9 @@ class HttpGoogleIamDAO(appName: String, googleCredentialMode: GoogleCredentialMo
           whenNonHttpIOException,
           when409
     ) { () =>
-      executeGoogleRequest(cloudResourceManager.projects().getIamPolicy(iamProject.value, null))
+      val request =
+        new GetIamPolicyRequest().setOptions(new GetPolicyOptions().setRequestedPolicyVersion(policyVersion))
+      executeGoogleRequest(cloudResourceManager.projects().getIamPolicy(iamProject.value, request))
     }
 
   // Note the project here is the one in which we're adding the IAM roles.
@@ -408,6 +413,7 @@ class HttpGoogleIamDAO(appName: String, googleCredentialMode: GoogleCredentialMo
       .projects()
       .serviceAccounts()
       .getIamPolicy(s"projects/${serviceAccountProject.value}/serviceAccounts/${serviceAccountEmail.value}")
+      .setOptionsRequestedPolicyVersion(policyVersion)
     retry(when5xx, whenUsageLimited, when404, whenInvalidValueOnBucketCreation, whenNonHttpIOException) { () =>
       executeGoogleRequest(request)
     }
@@ -490,7 +496,7 @@ object HttpGoogleIamDAO {
           .asJava
       )
       .setEtag(policy.etag)
-      .setVersion(3)
+      .setVersion(policyVersion)
 
   implicit def fromServiceAccountPolicy(serviceAccountPolicy: ServiceAccountPolicy): Policy =
     Policy(serviceAccountPolicy.getBindings.map(fromServiceAccountBinding).toSet, serviceAccountPolicy.getEtag)
@@ -506,7 +512,7 @@ object HttpGoogleIamDAO {
           .asJava
       )
       .setEtag(policy.etag)
-      .setVersion(3)
+      .setVersion(policyVersion)
 
   implicit private def nullSafeList[A](list: java.util.List[A]): List[A] =
     Option(list).map(_.asScala.toList).getOrElse(List.empty[A])

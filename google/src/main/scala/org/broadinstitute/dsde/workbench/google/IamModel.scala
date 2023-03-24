@@ -10,6 +10,8 @@ import cats.syntax.semigroup._
 
 object IamModel {
 
+  val policyVersion = 3
+
   case class Binding(role: String, members: Set[String], condition: Expr)
 
   case class Policy(bindings: Set[Binding], etag: String)
