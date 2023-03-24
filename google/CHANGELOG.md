@@ -4,7 +4,7 @@ This file documents changes to the `workbench-google` library, including notes o
 
 ## 0.24
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.24-TRAVIS-REPLACE-ME"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.24-c8db4fb"`
 
 ### Changed
 - Implemented `addIamRoles` and `removeIamRoles` in `HttpGoogleStorageDAO`
