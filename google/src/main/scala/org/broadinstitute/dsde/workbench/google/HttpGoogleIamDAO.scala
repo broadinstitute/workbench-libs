@@ -280,7 +280,7 @@ class HttpGoogleIamDAO(appName: String, googleCredentialMode: GoogleCredentialMo
   ): Future[Unit] =
     getServiceAccountPolicy(serviceAccountProject, serviceAccount).flatMap { policy =>
       val updatedPolicy =
-        updatePolicy(policy, member, MemberType.ServiceAccount, rolesToAdd, Set.empty)
+        updatePolicy(policy, member, MemberType.ServiceAccount, rolesToAdd, Set.empty, None)
       val policyRequest = new ServiceAccountSetIamPolicyRequest().setPolicy(updatedPolicy)
       val request = iam
         .projects()

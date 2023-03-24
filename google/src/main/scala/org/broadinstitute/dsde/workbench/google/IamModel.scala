@@ -7,7 +7,6 @@ import cats.instances.set._
 import cats.instances.map._
 import cats.syntax.foldable._
 import cats.syntax.semigroup._
-import org.broadinstitute.dsde.workbench.google.HttpGoogleIamDAO._
 
 object IamModel {
 
@@ -19,6 +18,7 @@ object IamModel {
 
   /**
    * Read-modify-write a Policy to insert or remove new bindings for the given member and roles.
+   * The optional condition, if present, will be applied to new role bindings for the member, not existing ones
    * Note that if the same role is in both rolesToAdd and rolesToRemove, the deletion takes precedence.
    */
   def updatePolicy(policy: Policy,
@@ -26,7 +26,32 @@ object IamModel {
                    memberType: MemberType,
                    rolesToAdd: Set[String],
                    rolesToRemove: Set[String],
-                   condition: Option[Expr] = None
+                   condition: Option[Expr]
+  ): Policy =
+    condition match {
+      case Some(realCondition) =>
+        updatePolicyWithCondition(policy, email, memberType, rolesToAdd, rolesToRemove, realCondition)
+      case None => updatePolicyWithoutCondition(policy, email, memberType, rolesToAdd, rolesToRemove)
+    }
+
+  private def updatePolicyWithCondition(policy: Policy,
+                                        email: WorkbenchEmail,
+                                        memberType: MemberType,
+                                        rolesToAdd: Set[String],
+                                        rolesToRemove: Set[String],
+                                        condition: Expr
+  ): Policy = {
+    val memberTypeAndEmail = s"$memberType:${email.value}"
+    val withRolesRemoved = updatePolicyWithoutCondition(policy, email, memberType, Set.empty, rolesToRemove)
+    val bindingsWithCondition = rolesToAdd.map(role => Binding(role, Set(memberTypeAndEmail), condition))
+    Policy(withRolesRemoved.bindings ++ bindingsWithCondition, withRolesRemoved.etag)
+  }
+
+  private def updatePolicyWithoutCondition(policy: Policy,
+                                           email: WorkbenchEmail,
+                                           memberType: MemberType,
+                                           rolesToAdd: Set[String],
+                                           rolesToRemove: Set[String]
   ): Policy = {
     val memberTypeAndEmail = s"$memberType:${email.value}"
 
@@ -59,7 +84,7 @@ object IamModel {
     }
 
     val bindings = newMembersByRole.map { case (role, members) =>
-      Binding(role, members, condition.orNull)
+      Binding(role, members, null)
     }.toSet
 
     Policy(bindings, policy.etag)
