@@ -99,6 +99,26 @@ object BillingFixtures extends LazyLogging {
       }
     }
 
+    def destroyBillingProject(projectName: String): F[Unit] = F.unit <* F.delay {
+      Orchestration.billingV2.deleteBillingProject(projectName)(creatorAuthToken)
+      if (
+        Retry.retryWithPredicate(1.seconds, 1.minutes) {
+          isBillingProjectDeleted(projectName, creatorAuthToken)
+        }
+      ) {
+        true
+      } else {
+        throw new Exception("Error deleting billing project")
+      }
+    }
+
+    def addMembers(projectName: String, emails: List[String], role: BillingProjectRole): Resource[F, Unit] =
+      emails.traverse_ { email =>
+        Resource.eval(F.delay {
+          Orchestration.billingV2.addUserToBillingProject(projectName, email, role)(creatorAuthToken)
+        })
+      }
+
     def isBillingProjectDeleted(projectName: String, authToken: AuthToken): Boolean =
       try {
         logger.info(s"Checking deletion status of billing project ${projectName}...")
@@ -120,28 +140,7 @@ object BillingFixtures extends LazyLogging {
       logger.info(s"Checking creation status of billing project ${projectName}...")
       val bp = Orchestration.billingV2.getBillingProject(projectName)(authToken)
       bp("status").equalsIgnoreCase("ready")
-
     }
-
-    def destroyBillingProject(projectName: String): F[Unit] = F.unit <* F.delay {
-      Orchestration.billingV2.deleteBillingProject(projectName)(creatorAuthToken)
-      if (
-        Retry.retryWithPredicate(1.seconds, 1.minutes) {
-          isBillingProjectDeleted(projectName, creatorAuthToken)
-        }
-      ) {
-        true
-      } else {
-        throw new Exception("Error deleting billing project")
-      }
-    }
-
-    def addMembers(projectName: String, emails: List[String], role: BillingProjectRole): Resource[F, Unit] =
-      emails.traverse_ { email =>
-        Resource.eval(F.delay {
-          Orchestration.billingV2.addUserToBillingProject(projectName, email, role)(creatorAuthToken)
-        })
-      }
 
     for {
       billingProject <- Resource.make(createBillingProject)(destroyBillingProject)
