@@ -148,4 +148,81 @@ class IamModelSpec extends AnyFlatSpecLike with Matchers {
     updatedPolicy.bindings should be(expectedBindings)
   }
 
+  it should "leave other conditional bindings in-place when adding new conditional bindings" in {
+    val oldBinding1 =
+      Binding("role1", Set(s"${MemberType.User}:lincoln@firecloud.org"), null)
+    val oldBinding2 = Binding("role2", Set(s"${MemberType.User}:washington@firecloud.org"), null)
+    val oldBinding3 = Binding("role3",
+                              Set(s"${MemberType.User}:adams@firecloud.org"),
+                              Expr("existing condition", "2 > 3", null, "existing condition title")
+    )
+    val oldBindings = Set(oldBinding1, oldBinding2, oldBinding3)
+    val oldPolicy = Policy(oldBindings, etag = "abcd")
+
+    val conditionExpr = Expr("new condition", "1 > 2", null, "new condition title")
+    val updatedPolicy = IamModel.updatePolicy(oldPolicy,
+                                              WorkbenchEmail("pet-adams@firecloud.org"),
+                                              MemberType.ServiceAccount,
+                                              Set("role3"),
+                                              Set.empty,
+                                              Some(conditionExpr)
+    )
+
+    val expectedBindings =
+      oldBindings + Binding("role3", Set(s"${MemberType.ServiceAccount}:pet-adams@firecloud.org"), conditionExpr)
+    updatedPolicy.bindings should be(expectedBindings)
+  }
+
+  it should "add a user to an existing conditional policy if the condition is the same" in {
+    val conditionExpr = Expr("condition", "1 > 2", null, "condition title")
+    val oldBinding1 =
+      Binding("role1", Set(s"${MemberType.User}:lincoln@firecloud.org"), null)
+    val oldBinding2 = Binding("role2", Set(s"${MemberType.User}:washington@firecloud.org"), null)
+    val oldBinding3 = Binding("role3", Set(s"${MemberType.User}:adams@firecloud.org"), conditionExpr)
+    val oldBindings = Set(oldBinding1, oldBinding2, oldBinding3)
+    val oldPolicy = Policy(oldBindings, etag = "abcd")
+
+    val updatedPolicy = IamModel.updatePolicy(oldPolicy,
+                                              WorkbenchEmail("pet-adams@firecloud.org"),
+                                              MemberType.ServiceAccount,
+                                              Set("role3"),
+                                              Set.empty,
+                                              Some(conditionExpr)
+    )
+
+    val expectedBindings =
+      Set(oldBinding1,
+          oldBinding2,
+          oldBinding3.copy(members = oldBinding3.members + s"${MemberType.ServiceAccount}:pet-adams@firecloud.org")
+      )
+    updatedPolicy.bindings should be(expectedBindings)
+  }
+
+  it should "remove a user from a role both with and without conditions" in {
+    val conditionExpr = Expr("condition", "1 > 2", null, "condition title")
+
+    val oldBinding1 =
+      Binding("role1", Set(s"${MemberType.User}:lincoln@firecloud.org"), null)
+    val oldBinding2 = Binding("role2", Set(s"${MemberType.User}:washington@firecloud.org"), null)
+    val oldBinding3 =
+      Binding("role3",
+              Set(s"${MemberType.User}:adams@firecloud.org", s"${MemberType.User}:lincoln@firecloud.org"),
+              conditionExpr
+      )
+    val oldBindings = Set(oldBinding1, oldBinding2, oldBinding3)
+    val oldPolicy = Policy(oldBindings, etag = "abcd")
+
+    val updatedPolicy = IamModel.updatePolicy(oldPolicy,
+                                              WorkbenchEmail("lincoln@firecloud.org"),
+                                              MemberType.User,
+                                              Set.empty,
+                                              Set("role1", "role3"),
+                                              None
+    )
+
+    val expectedBindings =
+      Set(oldBinding2, Binding("role3", Set(s"${MemberType.User}:adams@firecloud.org"), conditionExpr))
+    updatedPolicy.bindings should be(expectedBindings)
+  }
+
 }
