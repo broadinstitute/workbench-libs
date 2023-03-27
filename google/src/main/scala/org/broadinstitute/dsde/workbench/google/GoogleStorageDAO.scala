@@ -83,15 +83,17 @@ trait GoogleStorageDAO {
                   memberType: MemberType,
                   rolesToAdd: Set[String],
                   retryIfGroupDoesNotExist: Boolean = false,
-                  condition: Option[Expr] = None
+                  condition: Option[Expr] = None,
+                  googleProject: Option[GoogleProject] = None
   ): Future[Boolean]
 
   def removeIamRoles(bucketName: GcsBucketName,
                      userEmail: WorkbenchEmail,
                      memberType: MemberType,
                      rolesToRemove: Set[String],
-                     retryIfGroupDoesNotExist: Boolean = false
+                     retryIfGroupDoesNotExist: Boolean = false,
+                     googleProject: Option[GoogleProject]
   ): Future[Boolean]
 
-  def getBucketPolicy(bucketName: GcsBucketName): Future[BucketPolicy]
+  def getBucketPolicy(bucketName: GcsBucketName, googleProject: Option[GoogleProject]): Future[BucketPolicy]
 }
