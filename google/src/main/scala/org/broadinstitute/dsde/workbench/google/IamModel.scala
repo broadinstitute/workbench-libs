@@ -10,6 +10,8 @@ import cats.syntax.semigroup._
 
 object IamModel {
 
+  val policyVersion = 3
+
   case class Binding(role: String, members: Set[String], condition: Expr)
 
   case class Policy(bindings: Set[Binding], etag: String)
@@ -27,53 +29,29 @@ object IamModel {
                    rolesToAdd: Set[String],
                    rolesToRemove: Set[String],
                    condition: Option[Expr]
-  ): Policy =
-    condition match {
-      case Some(realCondition) =>
-        updatePolicyWithCondition(policy, email, memberType, rolesToAdd, rolesToRemove, realCondition)
-      case None => updatePolicyWithoutCondition(policy, email, memberType, rolesToAdd, rolesToRemove)
-    }
-
-  private def updatePolicyWithCondition(policy: Policy,
-                                        email: WorkbenchEmail,
-                                        memberType: MemberType,
-                                        rolesToAdd: Set[String],
-                                        rolesToRemove: Set[String],
-                                        condition: Expr
-  ): Policy = {
-    val memberTypeAndEmail = s"$memberType:${email.value}"
-    val withRolesRemoved = updatePolicyWithoutCondition(policy, email, memberType, Set.empty, rolesToRemove)
-    val bindingsWithCondition = rolesToAdd.map(role => Binding(role, Set(memberTypeAndEmail), condition))
-    Policy(withRolesRemoved.bindings ++ bindingsWithCondition, withRolesRemoved.etag)
-  }
-
-  private def updatePolicyWithoutCondition(policy: Policy,
-                                           email: WorkbenchEmail,
-                                           memberType: MemberType,
-                                           rolesToAdd: Set[String],
-                                           rolesToRemove: Set[String]
   ): Policy = {
     val memberTypeAndEmail = s"$memberType:${email.value}"
 
     // Current members grouped by role
-    val curMembersByRole: Map[String, Set[String]] = policy.bindings.toList.foldMap { binding =>
-      Map(binding.role -> binding.members)
+    val curMembersByRole: Map[(String, Expr), Set[String]] = policy.bindings.toList.foldMap { binding =>
+      Map((binding.role, binding.condition) -> binding.members)
     }
 
     // Apply additions
     val withAdditions = if (rolesToAdd.nonEmpty) {
-      val rolesToAddMap = rolesToAdd.map(_ -> Set(memberTypeAndEmail)).toMap
+      val rolesToAddMap: Map[(String, Expr), Set[String]] =
+        rolesToAdd.map(r => (r, condition.orNull) -> Set(memberTypeAndEmail)).toMap
       curMembersByRole |+| rolesToAddMap
     } else {
       curMembersByRole
     }
 
     // Apply deletions
-    val newMembersByRole = if (rolesToRemove.nonEmpty) {
+    val newMembersByRole: Map[(String, Expr), Set[String]] = if (rolesToRemove.nonEmpty) {
       withAdditions.toList.foldMap { case (role, members) =>
-        if (rolesToRemove.contains(role)) {
+        if (rolesToRemove.contains(role._1)) {
           val filtered = members.filterNot(_ == memberTypeAndEmail)
-          if (filtered.isEmpty) Map.empty[String, Set[String]]
+          if (filtered.isEmpty) Map.empty[(String, Expr), Set[String]]
           else Map(role -> filtered)
         } else {
           Map(role -> members)
@@ -84,7 +62,7 @@ object IamModel {
     }
 
     val bindings = newMembersByRole.map { case (role, members) =>
-      Binding(role, members, null)
+      Binding(role._1, members, role._2)
     }.toSet
 
     Policy(bindings, policy.etag)
