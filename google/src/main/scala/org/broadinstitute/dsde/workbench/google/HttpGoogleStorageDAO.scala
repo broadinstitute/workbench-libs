@@ -27,7 +27,7 @@ import com.google.api.services.storage.{Storage, StorageScopes}
 import org.broadinstitute.dsde.workbench.google.GoogleCredentialModes._
 import org.broadinstitute.dsde.workbench.google.GoogleIamDAO.MemberType
 import org.broadinstitute.dsde.workbench.google.GoogleUtilities.RetryPredicates._
-import org.broadinstitute.dsde.workbench.google.IamModel.{updatePolicy, Binding, Expr, Policy}
+import org.broadinstitute.dsde.workbench.google.IamModel.{policyVersion, updatePolicy, Binding, Expr, Policy}
 import org.broadinstitute.dsde.workbench.google.HttpGoogleStorageDAO._
 import org.broadinstitute.dsde.workbench.metrics.GoogleInstrumentedService
 import org.broadinstitute.dsde.workbench.model.WorkbenchEmail
@@ -476,7 +476,9 @@ class HttpGoogleStorageDAO(appName: String,
     // It is important that we call getIamPolicy within the same retry block as we call setIamPolicy
     // getIamPolicy gets the etag that is used in setIamPolicy, the etag is used to detect concurrent
     // modifications and if that happens we need to be sure to get a new etag before retrying setIamPolicy
-    val existingPolicy = executeGoogleRequest(storage.buckets().getIamPolicy(bucketName.value))
+    val existingPolicy = executeGoogleRequest(
+      storage.buckets().getIamPolicy(bucketName.value).setOptionsRequestedPolicyVersion(policyVersion)
+    )
     val updatedPolicy = updatePolicy(existingPolicy, userEmail, memberType, rolesToAdd, rolesToRemove, condition)
 
     // Policy objects use Sets so are not sensitive to ordering and duplication
@@ -539,7 +541,7 @@ object HttpGoogleStorageDAO {
           .asJava
       )
       .setEtag(policy.etag)
-      .setVersion(3)
+      .setVersion(policyVersion)
 
   implicit private def nullSafeList[A](list: java.util.List[A]): List[A] =
     Option(list).map(_.asScala.toList).getOrElse(List.empty[A])
