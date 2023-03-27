@@ -2,10 +2,12 @@ package org.broadinstitute.dsde.workbench.google.mock
 
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream, File}
 import java.nio.file.Files
-
 import com.google.api.client.util.IOUtils
 import com.google.api.services.storage.model.{Bucket, BucketAccessControls, ObjectAccessControls}
+import org.broadinstitute.dsde.workbench.google.GoogleIamDAO.MemberType
 import org.broadinstitute.dsde.workbench.google.GoogleStorageDAO
+import org.broadinstitute.dsde.workbench.google.IamModel.Expr
+import org.broadinstitute.dsde.workbench.model.WorkbenchEmail
 import org.broadinstitute.dsde.workbench.model.google.GcsLifecycleTypes.{Delete, GcsLifecycleType}
 import org.broadinstitute.dsde.workbench.model.google.GcsRoles.GcsRole
 import org.broadinstitute.dsde.workbench.model.google.{GcsBucketName, GcsEntity, GcsObjectName, GoogleProject}
@@ -180,4 +182,19 @@ class MockGoogleStorageDAO(implicit val executionContext: ExecutionContext) exte
     Future.successful(new ObjectAccessControls())
 
   override def setRequesterPays(bucketName: GcsBucketName, requesterPays: Boolean): Future[Unit] = Future.successful(())
+
+  override def addIamRoles(bucketName: GcsBucketName,
+                           userEmail: WorkbenchEmail,
+                           memberType: MemberType,
+                           rolesToAdd: Set[String],
+                           retryIfGroupDoesNotExist: Boolean = false,
+                           condition: Option[Expr] = None
+  ): Future[Boolean] = Future.successful(false)
+
+  override def removeIamRoles(bucketName: GcsBucketName,
+                              userEmail: WorkbenchEmail,
+                              memberType: MemberType,
+                              rolesToRemove: Set[String],
+                              retryIfGroupDoesNotExist: Boolean = false
+  ): Future[Boolean] = Future.successful(false)
 }

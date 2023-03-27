@@ -3,17 +3,17 @@ package org.broadinstitute.dsde.workbench.google.mock
 import java.nio.charset.StandardCharsets
 import java.time.Instant
 import java.util.{Base64, UUID}
-import com.google.api.services.cloudresourcemanager.model.{Binding => ProjectBinding, Policy => ProjectPolicy}
+import com.google.api.services.cloudresourcemanager.model.{Policy => ProjectPolicy}
 import com.google.api.services.iam.v1.model.Role
+import org.broadinstitute.dsde.workbench.google.HttpGoogleIamDAO.toProjectPolicy
 import org.broadinstitute.dsde.workbench.google.GoogleIamDAO
 import org.broadinstitute.dsde.workbench.google.GoogleIamDAO.MemberType
-import org.broadinstitute.dsde.workbench.google.mock.MockGoogleIamDAO.{Binding, Policy}
+import org.broadinstitute.dsde.workbench.google.IamModel.{Binding, Expr, Policy}
 import org.broadinstitute.dsde.workbench.model._
 import org.broadinstitute.dsde.workbench.model.google._
 
 import scala.collection.concurrent.TrieMap
 import scala.collection.mutable
-import scala.jdk.CollectionConverters._
 import scala.concurrent.Future
 import scala.util.Random
 
@@ -64,7 +64,8 @@ class MockGoogleIamDAO extends GoogleIamDAO {
                            userEmail: WorkbenchEmail,
                            memberType: MemberType,
                            rolesToAdd: Set[String],
-                           retryIfGroupDoesNotExist: Boolean = false
+                           retryIfGroupDoesNotExist: Boolean = false,
+                           condition: Option[Expr] = None
   ): Future[Boolean] =
     Future.successful(false)
 
@@ -82,7 +83,7 @@ class MockGoogleIamDAO extends GoogleIamDAO {
     Future.successful(iamPermissions)
 
   override def getProjectPolicy(iamProject: GoogleProject): Future[ProjectPolicy] =
-    Future.successful(Policy(Set(Binding("owner", Set("unused@unused.com"))), "etag"))
+    Future.successful(Policy(Set(Binding("owner", Set("unused@unused.com"), null)), "etag"))
 
   override def addIamPolicyBindingOnServiceAccount(serviceAccountProject: GoogleProject,
                                                    serviceAccountEmail: WorkbenchEmail,
@@ -141,36 +142,4 @@ class MockGoogleIamDAO extends GoogleIamDAO {
     Future.successful(serviceAccountKeys(serviceAccountEmail).values.toSeq)
 
   override def getOrganizationCustomRole(roleName: String): Future[Option[Role]] = Future.successful(None)
-}
-
-object MockGoogleIamDAO {
-  import scala.language.implicitConversions
-
-  /*
-   * Google has different model classes for policy manipulation depending on the type of resource.
-   *
-   * For project-level policies we have:
-   *   com.google.api.services.cloudresourcemanager.model.{Policy, Binding}
-   *
-   * For service account-level policies we have:
-   *   com.google.api.services.iam.v1.model.{Policy, Binding}
-   *
-   * These classes are for all intents and purposes identical. To deal with this we create our own
-   * {Policy, Binding} case classes in Scala, with implicit conversions to/from the above Google classes.
-   */
-
-  private case class Binding(role: String, members: Set[String])
-  private case class Policy(bindings: Set[Binding], etag: String)
-
-  implicit private def toProjectPolicy(policy: Policy): ProjectPolicy =
-    new ProjectPolicy()
-      .setBindings(
-        policy.bindings
-          .map { b =>
-            new ProjectBinding().setRole(b.role).setMembers(b.members.toList.asJava)
-          }
-          .toList
-          .asJava
-      )
-      .setEtag(policy.etag)
 }
