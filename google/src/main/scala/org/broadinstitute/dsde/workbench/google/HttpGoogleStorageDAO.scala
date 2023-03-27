@@ -425,17 +425,48 @@ class HttpGoogleStorageDAO(appName: String,
                            memberType: MemberType,
                            rolesToAdd: Set[String],
                            retryIfGroupDoesNotExist: Boolean = false,
-                           condition: Option[Expr] = None
+                           condition: Option[Expr] = None,
+                           userProject: Option[GoogleProject]
   ): Future[Boolean] =
-    modifyIamRoles(bucketName, userEmail, memberType, rolesToAdd, Set.empty, retryIfGroupDoesNotExist, condition)
+    modifyIamRoles(bucketName,
+                   userEmail,
+                   memberType,
+                   rolesToAdd,
+                   Set.empty,
+                   retryIfGroupDoesNotExist,
+                   condition,
+                   userProject
+    )
 
   override def removeIamRoles(bucketName: GcsBucketName,
                               userEmail: WorkbenchEmail,
                               memberType: MemberType,
                               rolesToRemove: Set[String],
-                              retryIfGroupDoesNotExist: Boolean = false
+                              retryIfGroupDoesNotExist: Boolean = false,
+                              userProject: Option[GoogleProject]
   ): Future[Boolean] =
-    modifyIamRoles(bucketName, userEmail, memberType, Set.empty, rolesToRemove, retryIfGroupDoesNotExist)
+    modifyIamRoles(bucketName,
+                   userEmail,
+                   memberType,
+                   Set.empty,
+                   rolesToRemove,
+                   retryIfGroupDoesNotExist,
+                   None,
+                   userProject
+    )
+
+  override def getBucketPolicy(bucketName: GcsBucketName, userProject: Option[GoogleProject]): Future[BucketPolicy] =
+    retry(when5xx,
+          whenUsageLimited,
+          whenGlobalUsageLimited,
+          when404,
+          whenInvalidValueOnBucketCreation,
+          whenNonHttpIOException,
+          when409
+    ) { () =>
+      val request = storage.buckets().getIamPolicy(bucketName.value).setOptionsRequestedPolicyVersion(policyVersion)
+      executeGoogleRequest(userProject.map(p => request.setUserProject(p.value)).getOrElse(request))
+    }
 
   private def modifyIamRoles(bucketName: GcsBucketName,
                              userEmail: WorkbenchEmail,
@@ -443,7 +474,8 @@ class HttpGoogleStorageDAO(appName: String,
                              rolesToAdd: Set[String],
                              rolesToRemove: Set[String],
                              retryIfGroupDoesNotExist: Boolean,
-                             condition: Option[Expr] = None
+                             condition: Option[Expr] = None,
+                             userProject: Option[GoogleProject]
   ): Future[Boolean] = {
     // Note the project here is the one in which we're removing the IAM roles
     // Retry 409s here as recommended for concurrent modifications of the IAM policy
@@ -463,7 +495,7 @@ class HttpGoogleStorageDAO(appName: String,
     retry(
       finalPredicateList: _*
     ) { () =>
-      updateIamPolicy(bucketName, userEmail, memberType, rolesToAdd, rolesToRemove, condition)
+      updateIamPolicy(bucketName, userEmail, memberType, rolesToAdd, rolesToRemove, condition, userProject)
     }
   }
   private def updateIamPolicy(bucketName: GcsBucketName,
@@ -471,13 +503,16 @@ class HttpGoogleStorageDAO(appName: String,
                               memberType: MemberType,
                               rolesToAdd: Set[String],
                               rolesToRemove: Set[String],
-                              condition: Option[Expr] = None
+                              condition: Option[Expr] = None,
+                              userProject: Option[GoogleProject]
   ): Boolean = {
     // It is important that we call getIamPolicy within the same retry block as we call setIamPolicy
     // getIamPolicy gets the etag that is used in setIamPolicy, the etag is used to detect concurrent
     // modifications and if that happens we need to be sure to get a new etag before retrying setIamPolicy
-    val existingPolicy = executeGoogleRequest(
+    val existingPolicyRequest =
       storage.buckets().getIamPolicy(bucketName.value).setOptionsRequestedPolicyVersion(policyVersion)
+    val existingPolicy = executeGoogleRequest(
+      userProject.map(p => existingPolicyRequest.setUserProject(p.value)).getOrElse(existingPolicyRequest)
     )
     val updatedPolicy = updatePolicy(existingPolicy, userEmail, memberType, rolesToAdd, rolesToRemove, condition)
 
@@ -485,7 +520,8 @@ class HttpGoogleStorageDAO(appName: String,
     if (existingPolicy == updatedPolicy) {
       false
     } else {
-      executeGoogleRequest(storage.buckets().setIamPolicy(bucketName.value, updatedPolicy))
+      val request = storage.buckets().setIamPolicy(bucketName.value, updatedPolicy)
+      executeGoogleRequest(userProject.map(project => request.setUserProject(project.value)).getOrElse(request))
       true
     }
   }

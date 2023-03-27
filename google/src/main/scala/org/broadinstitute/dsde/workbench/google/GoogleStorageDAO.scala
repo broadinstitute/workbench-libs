@@ -1,7 +1,12 @@
 package org.broadinstitute.dsde.workbench.google
 
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream, File}
-import com.google.api.services.storage.model.{Bucket, BucketAccessControls, ObjectAccessControls}
+import com.google.api.services.storage.model.{
+  Bucket,
+  BucketAccessControls,
+  ObjectAccessControls,
+  Policy => BucketPolicy
+}
 import org.broadinstitute.dsde.workbench.google.GoogleIamDAO.MemberType
 import org.broadinstitute.dsde.workbench.google.IamModel.Expr
 import org.broadinstitute.dsde.workbench.model.WorkbenchEmail
@@ -78,13 +83,17 @@ trait GoogleStorageDAO {
                   memberType: MemberType,
                   rolesToAdd: Set[String],
                   retryIfGroupDoesNotExist: Boolean = false,
-                  condition: Option[Expr] = None
+                  condition: Option[Expr] = None,
+                  userProject: Option[GoogleProject] = None
   ): Future[Boolean]
 
   def removeIamRoles(bucketName: GcsBucketName,
                      userEmail: WorkbenchEmail,
                      memberType: MemberType,
                      rolesToRemove: Set[String],
-                     retryIfGroupDoesNotExist: Boolean = false
+                     retryIfGroupDoesNotExist: Boolean = false,
+                     userProject: Option[GoogleProject] = None
   ): Future[Boolean]
+
+  def getBucketPolicy(bucketName: GcsBucketName, userProject: Option[GoogleProject] = None): Future[BucketPolicy]
 }
