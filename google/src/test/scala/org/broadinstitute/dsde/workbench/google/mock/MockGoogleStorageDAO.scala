@@ -195,7 +195,7 @@ class MockGoogleStorageDAO(implicit val executionContext: ExecutionContext) exte
                            rolesToAdd: Set[String],
                            retryIfGroupDoesNotExist: Boolean = false,
                            condition: Option[Expr] = None,
-                           googleProject: Option[GoogleProject]
+                           userProject: Option[GoogleProject]
   ): Future[Boolean] = Future.successful(false)
 
   override def removeIamRoles(bucketName: GcsBucketName,
@@ -203,9 +203,9 @@ class MockGoogleStorageDAO(implicit val executionContext: ExecutionContext) exte
                               memberType: MemberType,
                               rolesToRemove: Set[String],
                               retryIfGroupDoesNotExist: Boolean = false,
-                              googleProject: Option[GoogleProject]
+                              userProject: Option[GoogleProject]
   ): Future[Boolean] = Future.successful(false)
 
-  override def getBucketPolicy(bucketName: GcsBucketName, googleProject: Option[GoogleProject]): Future[BucketPolicy] =
+  override def getBucketPolicy(bucketName: GcsBucketName, userProject: Option[GoogleProject]): Future[BucketPolicy] =
     Future.successful(Policy(Set.empty, ""))
 }

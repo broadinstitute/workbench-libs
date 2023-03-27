@@ -426,7 +426,7 @@ class HttpGoogleStorageDAO(appName: String,
                            rolesToAdd: Set[String],
                            retryIfGroupDoesNotExist: Boolean = false,
                            condition: Option[Expr] = None,
-                           googleProject: Option[GoogleProject]
+                           userProject: Option[GoogleProject]
   ): Future[Boolean] =
     modifyIamRoles(bucketName,
                    userEmail,
@@ -435,7 +435,7 @@ class HttpGoogleStorageDAO(appName: String,
                    Set.empty,
                    retryIfGroupDoesNotExist,
                    condition,
-                   googleProject
+                   userProject
     )
 
   override def removeIamRoles(bucketName: GcsBucketName,
@@ -443,7 +443,7 @@ class HttpGoogleStorageDAO(appName: String,
                               memberType: MemberType,
                               rolesToRemove: Set[String],
                               retryIfGroupDoesNotExist: Boolean = false,
-                              googleProject: Option[GoogleProject]
+                              userProject: Option[GoogleProject]
   ): Future[Boolean] =
     modifyIamRoles(bucketName,
                    userEmail,
@@ -452,10 +452,10 @@ class HttpGoogleStorageDAO(appName: String,
                    rolesToRemove,
                    retryIfGroupDoesNotExist,
                    None,
-                   googleProject
+                   userProject
     )
 
-  override def getBucketPolicy(bucketName: GcsBucketName, googleProject: Option[GoogleProject]): Future[BucketPolicy] =
+  override def getBucketPolicy(bucketName: GcsBucketName, userProject: Option[GoogleProject]): Future[BucketPolicy] =
     retry(when5xx,
           whenUsageLimited,
           whenGlobalUsageLimited,
@@ -465,7 +465,7 @@ class HttpGoogleStorageDAO(appName: String,
           when409
     ) { () =>
       val request = storage.buckets().getIamPolicy(bucketName.value).setOptionsRequestedPolicyVersion(policyVersion)
-      executeGoogleRequest(googleProject.map(p => request.setUserProject(p.value)).getOrElse(request))
+      executeGoogleRequest(userProject.map(p => request.setUserProject(p.value)).getOrElse(request))
     }
 
   private def modifyIamRoles(bucketName: GcsBucketName,
@@ -475,7 +475,7 @@ class HttpGoogleStorageDAO(appName: String,
                              rolesToRemove: Set[String],
                              retryIfGroupDoesNotExist: Boolean,
                              condition: Option[Expr] = None,
-                             googleProject: Option[GoogleProject] = None
+                             userProject: Option[GoogleProject] = None
   ): Future[Boolean] = {
     // Note the project here is the one in which we're removing the IAM roles
     // Retry 409s here as recommended for concurrent modifications of the IAM policy
@@ -495,7 +495,7 @@ class HttpGoogleStorageDAO(appName: String,
     retry(
       finalPredicateList: _*
     ) { () =>
-      updateIamPolicy(bucketName, userEmail, memberType, rolesToAdd, rolesToRemove, condition, googleProject)
+      updateIamPolicy(bucketName, userEmail, memberType, rolesToAdd, rolesToRemove, condition, userProject)
     }
   }
   private def updateIamPolicy(bucketName: GcsBucketName,
