@@ -1,7 +1,12 @@
 package org.broadinstitute.dsde.workbench.google
 
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream, File}
-import com.google.api.services.storage.model.{Bucket, BucketAccessControls, ObjectAccessControls}
+import com.google.api.services.storage.model.{
+  Bucket,
+  BucketAccessControls,
+  ObjectAccessControls,
+  Policy => BucketPolicy
+}
 import org.broadinstitute.dsde.workbench.google.GoogleIamDAO.MemberType
 import org.broadinstitute.dsde.workbench.google.IamModel.Expr
 import org.broadinstitute.dsde.workbench.model.WorkbenchEmail
@@ -87,4 +92,6 @@ trait GoogleStorageDAO {
                      rolesToRemove: Set[String],
                      retryIfGroupDoesNotExist: Boolean = false
   ): Future[Boolean]
+
+  def getBucketPolicy(bucketName: GcsBucketName): Future[BucketPolicy]
 }

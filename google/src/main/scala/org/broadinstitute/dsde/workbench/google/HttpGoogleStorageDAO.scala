@@ -437,6 +437,20 @@ class HttpGoogleStorageDAO(appName: String,
   ): Future[Boolean] =
     modifyIamRoles(bucketName, userEmail, memberType, Set.empty, rolesToRemove, retryIfGroupDoesNotExist)
 
+  override def getBucketPolicy(bucketName: GcsBucketName): Future[BucketPolicy] =
+    retry(when5xx,
+          whenUsageLimited,
+          whenGlobalUsageLimited,
+          when404,
+          whenInvalidValueOnBucketCreation,
+          whenNonHttpIOException,
+          when409
+    ) { () =>
+      executeGoogleRequest(
+        storage.buckets().getIamPolicy(bucketName.value).setOptionsRequestedPolicyVersion(policyVersion)
+      )
+    }
+
   private def modifyIamRoles(bucketName: GcsBucketName,
                              userEmail: WorkbenchEmail,
                              memberType: MemberType,

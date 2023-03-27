@@ -3,14 +3,20 @@ package org.broadinstitute.dsde.workbench.google.mock
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream, File}
 import java.nio.file.Files
 import com.google.api.client.util.IOUtils
-import com.google.api.services.storage.model.{Bucket, BucketAccessControls, ObjectAccessControls}
+import com.google.api.services.storage.model.{
+  Bucket,
+  BucketAccessControls,
+  ObjectAccessControls,
+  Policy => BucketPolicy
+}
 import org.broadinstitute.dsde.workbench.google.GoogleIamDAO.MemberType
 import org.broadinstitute.dsde.workbench.google.GoogleStorageDAO
-import org.broadinstitute.dsde.workbench.google.IamModel.Expr
+import org.broadinstitute.dsde.workbench.google.IamModel.{Expr, Policy}
 import org.broadinstitute.dsde.workbench.model.WorkbenchEmail
 import org.broadinstitute.dsde.workbench.model.google.GcsLifecycleTypes.{Delete, GcsLifecycleType}
 import org.broadinstitute.dsde.workbench.model.google.GcsRoles.GcsRole
 import org.broadinstitute.dsde.workbench.model.google.{GcsBucketName, GcsEntity, GcsObjectName, GoogleProject}
+import org.broadinstitute.dsde.workbench.google.HttpGoogleStorageDAO._
 
 import scala.collection.concurrent.TrieMap
 import scala.concurrent.{ExecutionContext, Future}
@@ -197,4 +203,7 @@ class MockGoogleStorageDAO(implicit val executionContext: ExecutionContext) exte
                               rolesToRemove: Set[String],
                               retryIfGroupDoesNotExist: Boolean = false
   ): Future[Boolean] = Future.successful(false)
+
+  override def getBucketPolicy(bucketName: GcsBucketName): Future[BucketPolicy] =
+    Future.successful(Policy(Set.empty, ""))
 }
