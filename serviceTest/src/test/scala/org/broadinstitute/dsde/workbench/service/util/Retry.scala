@@ -2,7 +2,6 @@ package org.broadinstitute.dsde.workbench.service.util
 
 import com.typesafe.scalalogging.LazyLogging
 
-import scala.annotation.tailrec
 import scala.concurrent.duration.FiniteDuration
 
 /**
