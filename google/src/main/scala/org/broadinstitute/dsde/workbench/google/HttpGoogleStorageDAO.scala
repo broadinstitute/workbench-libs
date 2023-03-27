@@ -475,7 +475,7 @@ class HttpGoogleStorageDAO(appName: String,
                              rolesToRemove: Set[String],
                              retryIfGroupDoesNotExist: Boolean,
                              condition: Option[Expr] = None,
-                             userProject: Option[GoogleProject] = None
+                             userProject: Option[GoogleProject]
   ): Future[Boolean] = {
     // Note the project here is the one in which we're removing the IAM roles
     // Retry 409s here as recommended for concurrent modifications of the IAM policy
@@ -504,7 +504,7 @@ class HttpGoogleStorageDAO(appName: String,
                               rolesToAdd: Set[String],
                               rolesToRemove: Set[String],
                               condition: Option[Expr] = None,
-                              userProject: Option[GoogleProject] = None
+                              userProject: Option[GoogleProject]
   ): Boolean = {
     // It is important that we call getIamPolicy within the same retry block as we call setIamPolicy
     // getIamPolicy gets the etag that is used in setIamPolicy, the etag is used to detect concurrent
