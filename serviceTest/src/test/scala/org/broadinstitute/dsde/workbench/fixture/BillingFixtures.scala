@@ -127,9 +127,7 @@ object BillingFixtures extends LazyLogging {
         false
       } catch {
         case e: RestException =>
-          if (
-            e.statusCode == StatusCodes.NotFound
-          ) {
+          if (e.statusCode == StatusCodes.NotFound) {
             logger.info(s"Billing project ${projectName} deleted.")
             true
           } else {
