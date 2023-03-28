@@ -120,7 +120,7 @@ trait RestClient extends Retry with LazyLogging {
     }
 
   private def throwRestException(response: HttpResponse) =
-    throw RestException(extractResponseString(response))
+    throw RestException(extractResponseString(response), response.status)
 
   import scala.reflect.{classTag, ClassTag}
   def parseResponseAs[T: ClassTag](response: HttpResponse): T = {

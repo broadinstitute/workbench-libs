@@ -5,6 +5,7 @@ import akka.http.scaladsl.model.HttpResponse
 import akka.http.scaladsl.model.headers.Cookie
 import cats.implicits.catsSyntaxOptionId
 import com.typesafe.scalalogging.LazyLogging
+import org.broadinstitute.dsde.rawls.model.AzureManagedAppCoordinates
 import org.broadinstitute.dsde.workbench.auth.AuthToken
 import org.broadinstitute.dsde.workbench.config.ServiceTestConfig
 import org.broadinstitute.dsde.workbench.fixture.MethodData.SimpleMethod
@@ -106,13 +107,20 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
 
   object billingV2 {
 
-    def createBillingProject(projectName: String, billingAccount: String, servicePerimeterOpt: Option[String] = None)(
-      implicit token: AuthToken
+    def createBillingProject(projectName: String,
+                             billingInformation: Either[String, AzureManagedAppCoordinates],
+                             servicePerimeterOpt: Option[String] = None
+    )(implicit
+      token: AuthToken
     ): String = {
-      logger.info(s"Creating billing project $projectName in billing account $billingAccount")
-      val request = Map("projectName" -> projectName, "billingAccount" -> billingAccount) ++ servicePerimeterOpt.map(
-        servicePerimeter => "servicePerimeter" -> servicePerimeter
-      )
+      logger.info(s"Creating billing project $projectName with billing information $billingInformation")
+      val billing = billingInformation match {
+        case Left(billingAccountId)            => Map("billingAccount" -> billingAccountId)
+        case Right(azureManagedAppCoordinates) => Map("managedAppCoordinates" -> azureManagedAppCoordinates)
+      }
+      val request = Map("projectName" -> projectName) ++ servicePerimeterOpt.map(servicePerimeter =>
+        "servicePerimeter" -> servicePerimeter
+      ) ++ billing
       postRequest(apiUrl("api/billing/v2"), request)
     }
 

@@ -30,11 +30,35 @@ object Retry extends LazyLogging {
         }
     }
 
+  def retryWithPredicate(remainingBackOffIntervals: Seq[FiniteDuration])(op: => Boolean): Boolean =
+    op match {
+      case true => true
+      case false =>
+        remainingBackOffIntervals match {
+          case Nil => false
+          case h :: t =>
+            logger.info(s"Retrying: ${remainingBackOffIntervals.size} retries remaining, retrying in $h")
+            Thread sleep h.toMillis
+            retryWithPredicate(t)(op)
+        }
+    }
+
   def retry[T](interval: FiniteDuration, timeout: FiniteDuration, initialDelay: Option[FiniteDuration] = None)(
     op: => Option[T]
   ): Option[T] = {
     initialDelay.foreach(delay => Thread.sleep(delay.toMillis))
     val iterations = (timeout / interval).round.toInt
     retry(Seq.fill(iterations)(interval))(op)
+  }
+
+  def retryWithPredicate[T](interval: FiniteDuration,
+                            timeout: FiniteDuration,
+                            initialDelay: Option[FiniteDuration] = None
+  )(
+    op: => Boolean
+  ): Boolean = {
+    initialDelay.foreach(delay => Thread.sleep(delay.toMillis))
+    val iterations = (timeout / interval).round.toInt
+    retryWithPredicate(Seq.fill(iterations)(interval))(op)
   }
 }
