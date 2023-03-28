@@ -1,5 +1,6 @@
 package org.broadinstitute.dsde.workbench.fixture
 
+import akka.http.scaladsl.model.{StatusCode, StatusCodes}
 import cats.effect.kernel.Resource
 import cats.effect.unsafe.implicits.global
 import cats.effect.{IO, Sync}
@@ -127,7 +128,7 @@ object BillingFixtures extends LazyLogging {
       } catch {
         case e: RestException =>
           if (
-            e.message.contains("The requested resource could not be found but may be available again in the future")
+            e.statusCode == StatusCodes.NotFound
           ) {
             logger.info(s"Billing project ${projectName} deleted.")
             true
