@@ -4,9 +4,9 @@ import ca.mrvisser.sealerate
 import com.google.api.services.cloudresourcemanager.model.{Policy => ProjectPolicy}
 import com.google.api.services.iam.v1.model.Role
 import org.broadinstitute.dsde.workbench.google.GoogleIamDAO.MemberType
-import org.broadinstitute.dsde.workbench.google.IamModel.Expr
 import org.broadinstitute.dsde.workbench.model._
 import org.broadinstitute.dsde.workbench.model.google._
+import org.broadinstitute.dsde.workbench.model.google.iam.Expr
 
 import scala.concurrent.{ExecutionContext, Future}
 

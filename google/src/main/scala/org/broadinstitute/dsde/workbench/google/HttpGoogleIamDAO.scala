@@ -38,10 +38,11 @@ import org.broadinstitute.dsde.workbench.google.GoogleCredentialModes._
 import org.broadinstitute.dsde.workbench.google.GoogleIamDAO.MemberType
 import org.broadinstitute.dsde.workbench.google.GoogleUtilities.RetryPredicates._
 import org.broadinstitute.dsde.workbench.google.HttpGoogleIamDAO._
-import org.broadinstitute.dsde.workbench.google.IamModel.{policyVersion, updatePolicy, Binding, Expr, Policy}
+import org.broadinstitute.dsde.workbench.google.IamModelOperations.{policyVersion, updatePolicy}
 import org.broadinstitute.dsde.workbench.metrics.GoogleInstrumentedService
 import org.broadinstitute.dsde.workbench.model._
-import org.broadinstitute.dsde.workbench.model.google._
+import org.broadinstitute.dsde.workbench.model.google.{iam, _}
+import org.broadinstitute.dsde.workbench.model.google.iam.{Binding, Expr, Policy}
 
 import scala.jdk.CollectionConverters._
 import scala.concurrent.{ExecutionContext, Future}
@@ -477,10 +478,13 @@ object HttpGoogleIamDAO {
     }
 
   implicit private def fromProjectBinding(projectBinding: ProjectBinding): Binding =
-    Binding(projectBinding.getRole, projectBinding.getMembers.toSet, projectBinding.getCondition)
+    iam.Binding(projectBinding.getRole, projectBinding.getMembers.toSet, projectBinding.getCondition)
 
   implicit private def fromServiceAccountBinding(serviceAccountBinding: ServiceAccountBinding): Binding =
-    Binding(serviceAccountBinding.getRole, serviceAccountBinding.getMembers.toSet, serviceAccountBinding.getCondition)
+    iam.Binding(serviceAccountBinding.getRole,
+                serviceAccountBinding.getMembers.toSet,
+                serviceAccountBinding.getCondition
+    )
 
   implicit def fromProjectPolicy(projectPolicy: ProjectPolicy): Policy =
     Policy(projectPolicy.getBindings.map(fromProjectBinding).toSet, projectPolicy.getEtag)

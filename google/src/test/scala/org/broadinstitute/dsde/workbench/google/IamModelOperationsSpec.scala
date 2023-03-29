@@ -1,12 +1,12 @@
 package org.broadinstitute.dsde.workbench.google
 
 import org.broadinstitute.dsde.workbench.google.GoogleIamDAO.MemberType
-import org.broadinstitute.dsde.workbench.google.IamModel.{Binding, Expr, Policy}
 import org.broadinstitute.dsde.workbench.model.WorkbenchEmail
+import org.broadinstitute.dsde.workbench.model.google.iam.{Binding, Expr, Policy}
 import org.scalatest.flatspec.AnyFlatSpecLike
 import org.scalatest.matchers.should.Matchers
 
-class IamModelSpec extends AnyFlatSpecLike with Matchers {
+class IamModelOperationsSpec extends AnyFlatSpecLike with Matchers {
 
   "updatePolicy" should "only add conditions to new policy bindings" in {
     val oldBinding1 = Binding("role1", Set(s"${MemberType.User}:lincoln@firecloud.org"), null)
@@ -15,12 +15,12 @@ class IamModelSpec extends AnyFlatSpecLike with Matchers {
     val oldPolicy = Policy(oldBindings, etag = "abcd")
 
     val conditionExpr = Expr("desc", "1 > 2", null, "title")
-    val updatedPolicy = IamModel.updatePolicy(oldPolicy,
-                                              WorkbenchEmail("adams@firecloud.org"),
-                                              MemberType.User,
-                                              Set("role1"),
-                                              Set.empty,
-                                              Some(conditionExpr)
+    val updatedPolicy = IamModelOperations.updatePolicy(oldPolicy,
+                                                        WorkbenchEmail("adams@firecloud.org"),
+                                                        MemberType.User,
+                                                        Set("role1"),
+                                                        Set.empty,
+                                                        Some(conditionExpr)
     )
 
     val role1Bindings = updatedPolicy.bindings.filter(b => b.role.equals("role1"))
@@ -39,12 +39,12 @@ class IamModelSpec extends AnyFlatSpecLike with Matchers {
     val oldBindings = Set(oldBinding1, oldBinding2)
     val oldPolicy = Policy(oldBindings, etag = "abcd")
 
-    val updatedPolicy = IamModel.updatePolicy(oldPolicy,
-                                              WorkbenchEmail("lincoln@firecloud.org"),
-                                              MemberType.User,
-                                              Set.empty,
-                                              Set("role1"),
-                                              None
+    val updatedPolicy = IamModelOperations.updatePolicy(oldPolicy,
+                                                        WorkbenchEmail("lincoln@firecloud.org"),
+                                                        MemberType.User,
+                                                        Set.empty,
+                                                        Set("role1"),
+                                                        None
     )
 
     updatedPolicy should be(Policy(Set(oldBinding2), "abcd"))
@@ -58,12 +58,12 @@ class IamModelSpec extends AnyFlatSpecLike with Matchers {
 
     val conditionExpr = Expr("desc", "1 > 2", null, "title")
 
-    val updatedPolicy = IamModel.updatePolicy(oldPolicy,
-                                              WorkbenchEmail("lincoln@firecloud.org"),
-                                              MemberType.User,
-                                              Set.empty,
-                                              Set("role1"),
-                                              Some(conditionExpr)
+    val updatedPolicy = IamModelOperations.updatePolicy(oldPolicy,
+                                                        WorkbenchEmail("lincoln@firecloud.org"),
+                                                        MemberType.User,
+                                                        Set.empty,
+                                                        Set("role1"),
+                                                        Some(conditionExpr)
     )
 
     updatedPolicy.bindings should be(Set(oldBinding2))
@@ -75,12 +75,12 @@ class IamModelSpec extends AnyFlatSpecLike with Matchers {
     val oldBindings = Set(oldBinding1, oldBinding2)
     val oldPolicy = Policy(oldBindings, etag = "abcd")
 
-    val updatedPolicy = IamModel.updatePolicy(oldPolicy,
-                                              WorkbenchEmail("lincoln@firecloud.org"),
-                                              MemberType.User,
-                                              Set("role3"),
-                                              Set("role1"),
-                                              None
+    val updatedPolicy = IamModelOperations.updatePolicy(oldPolicy,
+                                                        WorkbenchEmail("lincoln@firecloud.org"),
+                                                        MemberType.User,
+                                                        Set("role3"),
+                                                        Set("role1"),
+                                                        None
     )
 
     val expectedBindings = Set(oldBinding2, Binding("role3", Set(s"${MemberType.User}:lincoln@firecloud.org"), null))
@@ -94,12 +94,12 @@ class IamModelSpec extends AnyFlatSpecLike with Matchers {
     val oldPolicy = Policy(oldBindings, etag = "abcd")
 
     val conditionExpr = Expr("desc", "1 > 2", null, "title")
-    val updatedPolicy = IamModel.updatePolicy(oldPolicy,
-                                              WorkbenchEmail("lincoln@firecloud.org"),
-                                              MemberType.User,
-                                              Set("role3"),
-                                              Set("role1"),
-                                              Some(conditionExpr)
+    val updatedPolicy = IamModelOperations.updatePolicy(oldPolicy,
+                                                        WorkbenchEmail("lincoln@firecloud.org"),
+                                                        MemberType.User,
+                                                        Set("role3"),
+                                                        Set("role1"),
+                                                        Some(conditionExpr)
     )
 
     val expectedBindings =
@@ -114,12 +114,12 @@ class IamModelSpec extends AnyFlatSpecLike with Matchers {
     val oldPolicy = Policy(oldBindings, etag = "abcd")
 
     val conditionExpr = Expr("desc", "1 > 2", null, "title")
-    val updatedPolicy = IamModel.updatePolicy(oldPolicy,
-                                              WorkbenchEmail("lincoln@firecloud.org"),
-                                              MemberType.User,
-                                              Set.empty,
-                                              Set("role3"),
-                                              Some(conditionExpr)
+    val updatedPolicy = IamModelOperations.updatePolicy(oldPolicy,
+                                                        WorkbenchEmail("lincoln@firecloud.org"),
+                                                        MemberType.User,
+                                                        Set.empty,
+                                                        Set("role3"),
+                                                        Some(conditionExpr)
     )
 
     updatedPolicy.bindings should be(oldBindings)
@@ -136,12 +136,12 @@ class IamModelSpec extends AnyFlatSpecLike with Matchers {
     val oldPolicy = Policy(oldBindings, etag = "abcd")
 
     val conditionExpr = Expr("desc", "1 > 2", null, "title")
-    val updatedPolicy = IamModel.updatePolicy(oldPolicy,
-                                              WorkbenchEmail("lincoln@firecloud.org"),
-                                              MemberType.User,
-                                              Set.empty,
-                                              Set("role1"),
-                                              Some(conditionExpr)
+    val updatedPolicy = IamModelOperations.updatePolicy(oldPolicy,
+                                                        WorkbenchEmail("lincoln@firecloud.org"),
+                                                        MemberType.User,
+                                                        Set.empty,
+                                                        Set("role1"),
+                                                        Some(conditionExpr)
     )
 
     val expectedBindings = Set(oldBinding2, Binding("role1", Set(s"${MemberType.User}:adams@firecloud.org"), null))
@@ -160,12 +160,12 @@ class IamModelSpec extends AnyFlatSpecLike with Matchers {
     val oldPolicy = Policy(oldBindings, etag = "abcd")
 
     val conditionExpr = Expr("new condition", "1 > 2", null, "new condition title")
-    val updatedPolicy = IamModel.updatePolicy(oldPolicy,
-                                              WorkbenchEmail("pet-adams@firecloud.org"),
-                                              MemberType.ServiceAccount,
-                                              Set("role3"),
-                                              Set.empty,
-                                              Some(conditionExpr)
+    val updatedPolicy = IamModelOperations.updatePolicy(oldPolicy,
+                                                        WorkbenchEmail("pet-adams@firecloud.org"),
+                                                        MemberType.ServiceAccount,
+                                                        Set("role3"),
+                                                        Set.empty,
+                                                        Some(conditionExpr)
     )
 
     val expectedBindings =
@@ -182,12 +182,12 @@ class IamModelSpec extends AnyFlatSpecLike with Matchers {
     val oldBindings = Set(oldBinding1, oldBinding2, oldBinding3)
     val oldPolicy = Policy(oldBindings, etag = "abcd")
 
-    val updatedPolicy = IamModel.updatePolicy(oldPolicy,
-                                              WorkbenchEmail("pet-adams@firecloud.org"),
-                                              MemberType.ServiceAccount,
-                                              Set("role3"),
-                                              Set.empty,
-                                              Some(conditionExpr)
+    val updatedPolicy = IamModelOperations.updatePolicy(oldPolicy,
+                                                        WorkbenchEmail("pet-adams@firecloud.org"),
+                                                        MemberType.ServiceAccount,
+                                                        Set("role3"),
+                                                        Set.empty,
+                                                        Some(conditionExpr)
     )
 
     val expectedBindings =
@@ -212,12 +212,12 @@ class IamModelSpec extends AnyFlatSpecLike with Matchers {
     val oldBindings = Set(oldBinding1, oldBinding2, oldBinding3)
     val oldPolicy = Policy(oldBindings, etag = "abcd")
 
-    val updatedPolicy = IamModel.updatePolicy(oldPolicy,
-                                              WorkbenchEmail("lincoln@firecloud.org"),
-                                              MemberType.User,
-                                              Set.empty,
-                                              Set("role1", "role3"),
-                                              None
+    val updatedPolicy = IamModelOperations.updatePolicy(oldPolicy,
+                                                        WorkbenchEmail("lincoln@firecloud.org"),
+                                                        MemberType.User,
+                                                        Set.empty,
+                                                        Set("role1", "role3"),
+                                                        None
     )
 
     val expectedBindings =

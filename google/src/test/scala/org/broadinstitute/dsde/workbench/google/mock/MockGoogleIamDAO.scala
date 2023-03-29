@@ -8,9 +8,9 @@ import com.google.api.services.iam.v1.model.Role
 import org.broadinstitute.dsde.workbench.google.HttpGoogleIamDAO.toProjectPolicy
 import org.broadinstitute.dsde.workbench.google.GoogleIamDAO
 import org.broadinstitute.dsde.workbench.google.GoogleIamDAO.MemberType
-import org.broadinstitute.dsde.workbench.google.IamModel.{Binding, Expr, Policy}
 import org.broadinstitute.dsde.workbench.model._
 import org.broadinstitute.dsde.workbench.model.google._
+import org.broadinstitute.dsde.workbench.model.google.iam.{Binding, Expr, Policy}
 
 import scala.collection.concurrent.TrieMap
 import scala.collection.mutable

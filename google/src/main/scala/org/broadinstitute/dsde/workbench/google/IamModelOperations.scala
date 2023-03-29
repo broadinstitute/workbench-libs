@@ -7,16 +7,11 @@ import cats.instances.set._
 import cats.instances.map._
 import cats.syntax.foldable._
 import cats.syntax.semigroup._
+import org.broadinstitute.dsde.workbench.model.google.iam.{Binding, Expr, Policy}
 
-object IamModel {
+object IamModelOperations {
 
   val policyVersion = 3
-
-  case class Binding(role: String, members: Set[String], condition: Expr)
-
-  case class Policy(bindings: Set[Binding], etag: String)
-
-  case class Expr(description: String, expression: String, location: String, title: String)
 
   /**
    * Read-modify-write a Policy to insert or remove new bindings for the given member and roles.
