@@ -9,13 +9,13 @@ import com.google.api.services.storage.model.{
   ObjectAccessControls,
   Policy => BucketPolicy
 }
-import org.broadinstitute.dsde.workbench.google.GoogleIamDAO.MemberType
 import org.broadinstitute.dsde.workbench.google.GoogleStorageDAO
 import org.broadinstitute.dsde.workbench.model.WorkbenchEmail
 import org.broadinstitute.dsde.workbench.model.google.GcsLifecycleTypes.{Delete, GcsLifecycleType}
 import org.broadinstitute.dsde.workbench.model.google.GcsRoles.GcsRole
 import org.broadinstitute.dsde.workbench.model.google.{GcsBucketName, GcsEntity, GcsObjectName, GoogleProject}
 import org.broadinstitute.dsde.workbench.google.HttpGoogleStorageDAO._
+import org.broadinstitute.dsde.workbench.model.google.iam.IamMemberTypes.IamMemberType
 import org.broadinstitute.dsde.workbench.model.google.iam.{Expr, Policy}
 
 import scala.collection.concurrent.TrieMap
@@ -191,7 +191,7 @@ class MockGoogleStorageDAO(implicit val executionContext: ExecutionContext) exte
 
   override def addIamRoles(bucketName: GcsBucketName,
                            userEmail: WorkbenchEmail,
-                           memberType: MemberType,
+                           memberType: IamMemberType,
                            rolesToAdd: Set[String],
                            retryIfGroupDoesNotExist: Boolean = false,
                            condition: Option[Expr] = None,
@@ -200,7 +200,7 @@ class MockGoogleStorageDAO(implicit val executionContext: ExecutionContext) exte
 
   override def removeIamRoles(bucketName: GcsBucketName,
                               userEmail: WorkbenchEmail,
-                              memberType: MemberType,
+                              memberType: IamMemberType,
                               rolesToRemove: Set[String],
                               retryIfGroupDoesNotExist: Boolean = false,
                               userProject: Option[GoogleProject]

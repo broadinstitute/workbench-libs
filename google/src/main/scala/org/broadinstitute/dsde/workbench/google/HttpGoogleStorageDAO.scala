@@ -25,14 +25,14 @@ import com.google.api.services.storage.model.{
 }
 import com.google.api.services.storage.{Storage, StorageScopes}
 import org.broadinstitute.dsde.workbench.google.GoogleCredentialModes._
-import org.broadinstitute.dsde.workbench.google.GoogleIamDAO.MemberType
 import org.broadinstitute.dsde.workbench.google.GoogleUtilities.RetryPredicates._
-import org.broadinstitute.dsde.workbench.google.IamModelOperations.{policyVersion, updatePolicy}
+import org.broadinstitute.dsde.workbench.google.IamOperations.{policyVersion, updatePolicy}
 import org.broadinstitute.dsde.workbench.google.HttpGoogleStorageDAO._
 import org.broadinstitute.dsde.workbench.metrics.GoogleInstrumentedService
 import org.broadinstitute.dsde.workbench.model.WorkbenchEmail
 import org.broadinstitute.dsde.workbench.model.google.GcsLifecycleTypes.{Delete, GcsLifecycleType}
 import org.broadinstitute.dsde.workbench.model.google.GcsRoles.{GcsRole, Owner, Reader}
+import org.broadinstitute.dsde.workbench.model.google.iam.IamMemberTypes.IamMemberType
 import org.broadinstitute.dsde.workbench.model.google._
 import org.broadinstitute.dsde.workbench.model.google.iam.{Binding, Expr, Policy}
 
@@ -423,7 +423,7 @@ class HttpGoogleStorageDAO(appName: String,
 
   override def addIamRoles(bucketName: GcsBucketName,
                            userEmail: WorkbenchEmail,
-                           memberType: MemberType,
+                           memberType: IamMemberType,
                            rolesToAdd: Set[String],
                            retryIfGroupDoesNotExist: Boolean = false,
                            condition: Option[Expr] = None,
@@ -441,7 +441,7 @@ class HttpGoogleStorageDAO(appName: String,
 
   override def removeIamRoles(bucketName: GcsBucketName,
                               userEmail: WorkbenchEmail,
-                              memberType: MemberType,
+                              memberType: IamMemberType,
                               rolesToRemove: Set[String],
                               retryIfGroupDoesNotExist: Boolean = false,
                               userProject: Option[GoogleProject]
@@ -471,7 +471,7 @@ class HttpGoogleStorageDAO(appName: String,
 
   private def modifyIamRoles(bucketName: GcsBucketName,
                              userEmail: WorkbenchEmail,
-                             memberType: MemberType,
+                             memberType: IamMemberType,
                              rolesToAdd: Set[String],
                              rolesToRemove: Set[String],
                              retryIfGroupDoesNotExist: Boolean,
@@ -501,7 +501,7 @@ class HttpGoogleStorageDAO(appName: String,
   }
   private def updateIamPolicy(bucketName: GcsBucketName,
                               userEmail: WorkbenchEmail,
-                              memberType: MemberType,
+                              memberType: IamMemberType,
                               rolesToAdd: Set[String],
                               rolesToRemove: Set[String],
                               condition: Option[Expr],

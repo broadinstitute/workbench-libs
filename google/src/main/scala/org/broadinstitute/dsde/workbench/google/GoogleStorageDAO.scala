@@ -7,10 +7,10 @@ import com.google.api.services.storage.model.{
   ObjectAccessControls,
   Policy => BucketPolicy
 }
-import org.broadinstitute.dsde.workbench.google.GoogleIamDAO.MemberType
 import org.broadinstitute.dsde.workbench.model.WorkbenchEmail
 import org.broadinstitute.dsde.workbench.model.google.GcsLifecycleTypes.{Delete, GcsLifecycleType}
 import org.broadinstitute.dsde.workbench.model.google.GcsRoles.GcsRole
+import org.broadinstitute.dsde.workbench.model.google.iam.IamMemberTypes.IamMemberType
 import org.broadinstitute.dsde.workbench.model.google.iam.Expr
 import org.broadinstitute.dsde.workbench.model.google.{GcsBucketName, GcsEntity, GcsObjectName, GoogleProject}
 
@@ -80,7 +80,7 @@ trait GoogleStorageDAO {
 
   def addIamRoles(bucketName: GcsBucketName,
                   userEmail: WorkbenchEmail,
-                  memberType: MemberType,
+                  memberType: IamMemberType,
                   rolesToAdd: Set[String],
                   retryIfGroupDoesNotExist: Boolean = false,
                   condition: Option[Expr] = None,
@@ -89,7 +89,7 @@ trait GoogleStorageDAO {
 
   def removeIamRoles(bucketName: GcsBucketName,
                      userEmail: WorkbenchEmail,
-                     memberType: MemberType,
+                     memberType: IamMemberType,
                      rolesToRemove: Set[String],
                      retryIfGroupDoesNotExist: Boolean = false,
                      userProject: Option[GoogleProject] = None

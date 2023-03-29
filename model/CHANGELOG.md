@@ -7,7 +7,7 @@ This file documents changes to the `workbench-model` library, including notes on
 SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-model" % "0.16-TRAVIS-REPLACE-ME"`
 
 ### Added
-- AzureB2CId to WorkbenchUser
+- `IamModel`, `IamMemberTypes`, and `IamResourceTypes`
 
 ## 0.15
 
