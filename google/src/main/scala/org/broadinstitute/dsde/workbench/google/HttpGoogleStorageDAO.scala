@@ -6,7 +6,7 @@ import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.marshalling.Marshal
 import akka.http.scaladsl.model.headers.OAuth2BearerToken
-import akka.http.scaladsl.model.{StatusCodes, _}
+import akka.http.scaladsl.model._
 import cats.syntax.all._
 import com.google.api.client.http.{AbstractInputStreamContent, FileContent, HttpResponseException, InputStreamContent}
 import com.google.api.services.storage.model.Bucket.Lifecycle
@@ -25,15 +25,16 @@ import com.google.api.services.storage.model.{
 }
 import com.google.api.services.storage.{Storage, StorageScopes}
 import org.broadinstitute.dsde.workbench.google.GoogleCredentialModes._
-import org.broadinstitute.dsde.workbench.google.GoogleIamDAO.MemberType
 import org.broadinstitute.dsde.workbench.google.GoogleUtilities.RetryPredicates._
-import org.broadinstitute.dsde.workbench.google.IamModel.{policyVersion, updatePolicy, Binding, Expr, Policy}
+import org.broadinstitute.dsde.workbench.google.IamOperations.{policyVersion, updatePolicy}
 import org.broadinstitute.dsde.workbench.google.HttpGoogleStorageDAO._
 import org.broadinstitute.dsde.workbench.metrics.GoogleInstrumentedService
 import org.broadinstitute.dsde.workbench.model.WorkbenchEmail
 import org.broadinstitute.dsde.workbench.model.google.GcsLifecycleTypes.{Delete, GcsLifecycleType}
 import org.broadinstitute.dsde.workbench.model.google.GcsRoles.{GcsRole, Owner, Reader}
+import org.broadinstitute.dsde.workbench.model.google.iam.IamMemberTypes.IamMemberType
 import org.broadinstitute.dsde.workbench.model.google._
+import org.broadinstitute.dsde.workbench.model.google.iam.{Binding, Expr, Policy}
 
 import scala.jdk.CollectionConverters._
 import scala.concurrent.{ExecutionContext, Future}
@@ -422,7 +423,7 @@ class HttpGoogleStorageDAO(appName: String,
 
   override def addIamRoles(bucketName: GcsBucketName,
                            userEmail: WorkbenchEmail,
-                           memberType: MemberType,
+                           memberType: IamMemberType,
                            rolesToAdd: Set[String],
                            retryIfGroupDoesNotExist: Boolean = false,
                            condition: Option[Expr] = None,
@@ -440,7 +441,7 @@ class HttpGoogleStorageDAO(appName: String,
 
   override def removeIamRoles(bucketName: GcsBucketName,
                               userEmail: WorkbenchEmail,
-                              memberType: MemberType,
+                              memberType: IamMemberType,
                               rolesToRemove: Set[String],
                               retryIfGroupDoesNotExist: Boolean = false,
                               userProject: Option[GoogleProject]
@@ -470,11 +471,11 @@ class HttpGoogleStorageDAO(appName: String,
 
   private def modifyIamRoles(bucketName: GcsBucketName,
                              userEmail: WorkbenchEmail,
-                             memberType: MemberType,
+                             memberType: IamMemberType,
                              rolesToAdd: Set[String],
                              rolesToRemove: Set[String],
                              retryIfGroupDoesNotExist: Boolean,
-                             condition: Option[Expr] = None,
+                             condition: Option[Expr],
                              userProject: Option[GoogleProject]
   ): Future[Boolean] = {
     // Note the project here is the one in which we're removing the IAM roles
@@ -500,10 +501,10 @@ class HttpGoogleStorageDAO(appName: String,
   }
   private def updateIamPolicy(bucketName: GcsBucketName,
                               userEmail: WorkbenchEmail,
-                              memberType: MemberType,
+                              memberType: IamMemberType,
                               rolesToAdd: Set[String],
                               rolesToRemove: Set[String],
-                              condition: Option[Expr] = None,
+                              condition: Option[Expr],
                               userProject: Option[GoogleProject]
   ): Boolean = {
     // It is important that we call getIamPolicy within the same retry block as we call setIamPolicy
@@ -561,7 +562,7 @@ object HttpGoogleStorageDAO {
         .setTitle(expr.title)
     }
   implicit private def fromBucketBinding(bucketBinding: BucketBinding): Binding =
-    Binding(bucketBinding.getRole, bucketBinding.getMembers.toSet, bucketBinding.getCondition)
+    iam.Binding(bucketBinding.getRole, bucketBinding.getMembers.toSet, bucketBinding.getCondition)
 
   implicit def fromBucketPolicy(bucketPolicy: BucketPolicy): Policy =
     Policy(bucketPolicy.getBindings.map(fromBucketBinding).toSet, bucketPolicy.getEtag)

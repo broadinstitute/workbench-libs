@@ -7,10 +7,11 @@ import com.google.api.services.cloudresourcemanager.model.{Policy => ProjectPoli
 import com.google.api.services.iam.v1.model.Role
 import org.broadinstitute.dsde.workbench.google.HttpGoogleIamDAO.toProjectPolicy
 import org.broadinstitute.dsde.workbench.google.GoogleIamDAO
-import org.broadinstitute.dsde.workbench.google.GoogleIamDAO.MemberType
-import org.broadinstitute.dsde.workbench.google.IamModel.{Binding, Expr, Policy}
+import org.broadinstitute.dsde.workbench.google.GoogleIamDAO.{MemberType => DeprecatedMemberType}
 import org.broadinstitute.dsde.workbench.model._
+import org.broadinstitute.dsde.workbench.model.google.iam.IamMemberTypes.IamMemberType
 import org.broadinstitute.dsde.workbench.model.google._
+import org.broadinstitute.dsde.workbench.model.google.iam.{Binding, Expr, Policy}
 
 import scala.collection.concurrent.TrieMap
 import scala.collection.mutable
@@ -62,18 +63,35 @@ class MockGoogleIamDAO extends GoogleIamDAO {
 
   override def addIamRoles(googleProject: GoogleProject,
                            userEmail: WorkbenchEmail,
-                           memberType: MemberType,
+                           memberType: DeprecatedMemberType,
                            rolesToAdd: Set[String],
                            retryIfGroupDoesNotExist: Boolean = false,
                            condition: Option[Expr] = None
+  ): Future[Boolean] =
+    addRoles(googleProject, userEmail, memberType.toIamMemberType, rolesToAdd, retryIfGroupDoesNotExist, condition)
+
+  override def addRoles(googleProject: GoogleProject,
+                        userEmail: WorkbenchEmail,
+                        memberType: IamMemberType,
+                        rolesToAdd: Set[String],
+                        retryIfGroupDoesNotExist: Boolean = false,
+                        condition: Option[Expr] = None
   ): Future[Boolean] =
     Future.successful(false)
 
   override def removeIamRoles(googleProject: GoogleProject,
                               userEmail: WorkbenchEmail,
-                              memberType: MemberType,
+                              memberType: DeprecatedMemberType,
                               rolesToRemove: Set[String],
                               retryIfGroupDoesNotExist: Boolean = false
+  ): Future[Boolean] =
+    removeRoles(googleProject, userEmail, memberType.toIamMemberType, rolesToRemove, retryIfGroupDoesNotExist)
+
+  override def removeRoles(googleProject: GoogleProject,
+                           userEmail: WorkbenchEmail,
+                           memberType: IamMemberType,
+                           rolesToRemove: Set[String],
+                           retryIfGroupDoesNotExist: Boolean = false
   ): Future[Boolean] =
     Future.successful(false)
 

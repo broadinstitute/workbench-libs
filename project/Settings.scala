@@ -94,7 +94,7 @@ object Settings {
   val modelSettings = commonSettings ++ List(
     name := "workbench-model",
     libraryDependencies ++= modelDependencies,
-    version := createVersion("0.15")
+    version := createVersion("0.16")
   ) ++ publishSettings
 
   val metricsSettings = commonSettings ++ List(
@@ -106,7 +106,7 @@ object Settings {
   val googleSettings = commonSettings ++ List(
     name := "workbench-google",
     libraryDependencies ++= googleDependencies,
-    version := createVersion("0.24"),
+    version := createVersion("0.25"),
     coverageExcludedPackages := ".*HttpGoogle.*DAO.*"
   ) ++ publishSettings
 
