@@ -94,7 +94,7 @@ object Settings {
   val modelSettings = commonSettings ++ List(
     name := "workbench-model",
     libraryDependencies ++= modelDependencies,
-    version := createVersion("0.15")
+    version := createVersion("0.16")
   ) ++ publishSettings
 
   val metricsSettings = commonSettings ++ List(
