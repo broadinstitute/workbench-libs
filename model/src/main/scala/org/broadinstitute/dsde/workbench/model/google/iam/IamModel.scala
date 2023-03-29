@@ -23,7 +23,7 @@ object IamMemberTypes {
   def withName(name: String): IamMemberType = name.toLowerCase() match {
     case "user"           => User
     case "group"          => Group
-    case "serviceAccount" => ServiceAccount
+    case "serviceaccount" => ServiceAccount
     case "domain"         => Domain
   }
 }
