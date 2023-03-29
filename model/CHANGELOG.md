@@ -4,7 +4,7 @@ This file documents changes to the `workbench-model` library, including notes on
 
 ## 0.16
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-model" % "0.16-TRAVIS-REPLACE-ME"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-model" % "0.16-e20067a"`
 
 ### Added
 - `IamModel`, `IamMemberTypes`, and `IamResourceTypes`

@@ -4,7 +4,7 @@ This file documents changes to the `workbench-google` library, including notes o
 
 ## 0.25
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.25-TRAVIS-REPLACE-ME"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.25-e20067a"`
 
 ### Changed
 - Deprecated `GoogleIamDAO.MemberType`, `GoogleIamDAO.addIamRoles`, and `GoogleIamDAO.removeIamRoles`
