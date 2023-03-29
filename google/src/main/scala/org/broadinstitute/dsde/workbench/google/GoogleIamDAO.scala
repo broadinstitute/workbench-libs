@@ -1,5 +1,6 @@
 package org.broadinstitute.dsde.workbench.google
 
+import ca.mrvisser.sealerate
 import com.google.api.services.cloudresourcemanager.model.{Policy => ProjectPolicy}
 import com.google.api.services.iam.v1.model.Role
 import org.broadinstitute.dsde.workbench.google.GoogleIamDAO.{MemberType => DeprecatedMemberType}
@@ -311,5 +312,6 @@ object GoogleIamDAO {
       override def toIamMemberType: IamMemberType = IamMemberTypes.Domain
     }
 
+    val stringToMemberType: Map[String, MemberType] = sealerate.collect[MemberType].map(p => (p.toString, p)).toMap
   }
 }
