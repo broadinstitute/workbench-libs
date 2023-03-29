@@ -2,17 +2,24 @@
 
 This file documents changes to the `workbench-google` library, including notes on how to upgrade to new versions.
 
-## 0.24
+## 0.25
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.24-TRAVIS-REPLACE-ME"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.25-TRAVIS-REPLACE-ME"`
 
 ### Changed
 - Deprecated `GoogleIamDAO.MemberType`, `GoogleIamDAO.addIamRoles`, and `GoogleIamDAO.removeIamRoles`
 - Implemented `GoogleIamDAO.addRoles` and `GoogleIamDAO.removeRoles`
+- Pulled Iam Policy models out of `HttpGoogleIamDAO` and into `IamOperations` for code-sharing purposes.
+
+## 0.24
+
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.24-b63a7db"`
+
+### Changed
 - Implemented `addIamRoles` and `removeIamRoles` in `HttpGoogleStorageDAO`.
 - Implemented `getBucketPolicy` in `HttpGoogleStorageDAO`.
-- In both `HttpGoogleStorageDAO.addIamRoles` and `HttpGoogleIamDAO.addRoles` methods take an optional `condition` arg. Defaults to `None`.
-- Pulled Iam Policy models out of `HttpGoogleIamDAO` and into `IamOperations` for code-sharing purposes.
+- In both `HttpGoogleStorageDAO` and `HttpGoogleIamDAO`, the `addIamRoles` method takes an optional `condition` arg. Defaults to `None`.
+- Pulled Iam Policy models out of `HttpGoogleIamDAO` and into `IamModel` for code-sharing purposes.
 - No code changes should be necessary when updating to this version.
 - Google Policy Version 3 for IAM requests to support conditions.
 
