@@ -35,13 +35,14 @@ import com.google.api.services.iam.v1.model.{
 }
 import com.google.api.services.iam.v1.{Iam, IamScopes}
 import org.broadinstitute.dsde.workbench.google.GoogleCredentialModes._
-import org.broadinstitute.dsde.workbench.google.GoogleIamDAO.MemberType
 import org.broadinstitute.dsde.workbench.google.GoogleUtilities.RetryPredicates._
 import org.broadinstitute.dsde.workbench.google.HttpGoogleIamDAO._
-import org.broadinstitute.dsde.workbench.google.IamModel.{policyVersion, updatePolicy, Binding, Expr, Policy}
+import org.broadinstitute.dsde.workbench.google.IamOperations.{policyVersion, updatePolicy}
 import org.broadinstitute.dsde.workbench.metrics.GoogleInstrumentedService
 import org.broadinstitute.dsde.workbench.model._
-import org.broadinstitute.dsde.workbench.model.google._
+import org.broadinstitute.dsde.workbench.model.google.iam.IamMemberTypes.IamMemberType
+import org.broadinstitute.dsde.workbench.model.google.{iam, _}
+import org.broadinstitute.dsde.workbench.model.google.iam.{Binding, Expr, IamMemberTypes, Policy}
 
 import scala.jdk.CollectionConverters._
 import scala.concurrent.{ExecutionContext, Future}
@@ -187,26 +188,26 @@ class HttpGoogleIamDAO(appName: String, googleCredentialMode: GoogleCredentialMo
     }
   }
 
-  override def addIamRoles(iamProject: GoogleProject,
-                           userEmail: WorkbenchEmail,
-                           memberType: MemberType,
-                           rolesToAdd: Set[String],
-                           retryIfGroupDoesNotExist: Boolean = false,
-                           condition: Option[Expr] = None
+  override def addRoles(iamProject: GoogleProject,
+                        userEmail: WorkbenchEmail,
+                        memberType: IamMemberType,
+                        rolesToAdd: Set[String],
+                        retryIfGroupDoesNotExist: Boolean = false,
+                        condition: Option[Expr] = None
   ): Future[Boolean] =
     modifyIamRoles(iamProject, userEmail, memberType, rolesToAdd, Set.empty, retryIfGroupDoesNotExist, condition)
 
-  override def removeIamRoles(iamProject: GoogleProject,
-                              userEmail: WorkbenchEmail,
-                              memberType: MemberType,
-                              rolesToRemove: Set[String],
-                              retryIfGroupDoesNotExist: Boolean = false
+  override def removeRoles(iamProject: GoogleProject,
+                           userEmail: WorkbenchEmail,
+                           memberType: IamMemberType,
+                           rolesToRemove: Set[String],
+                           retryIfGroupDoesNotExist: Boolean = false
   ): Future[Boolean] =
     modifyIamRoles(iamProject, userEmail, memberType, Set.empty, rolesToRemove, retryIfGroupDoesNotExist)
 
   private def modifyIamRoles(iamProject: GoogleProject,
                              userEmail: WorkbenchEmail,
-                             memberType: MemberType,
+                             memberType: IamMemberType,
                              rolesToAdd: Set[String],
                              rolesToRemove: Set[String],
                              retryIfGroupDoesNotExist: Boolean,
@@ -236,7 +237,7 @@ class HttpGoogleIamDAO(appName: String, googleCredentialMode: GoogleCredentialMo
 
   private def updateIamPolicy(iamProject: GoogleProject,
                               userEmail: WorkbenchEmail,
-                              memberType: MemberType,
+                              memberType: IamMemberType,
                               rolesToAdd: Set[String],
                               rolesToRemove: Set[String],
                               condition: Option[Expr]
@@ -285,7 +286,7 @@ class HttpGoogleIamDAO(appName: String, googleCredentialMode: GoogleCredentialMo
   ): Future[Unit] =
     getServiceAccountPolicy(serviceAccountProject, serviceAccount).flatMap { policy =>
       val updatedPolicy =
-        updatePolicy(policy, member, MemberType.ServiceAccount, rolesToAdd, Set.empty, None)
+        updatePolicy(policy, member, IamMemberTypes.ServiceAccount, rolesToAdd, Set.empty, None)
       val policyRequest = new ServiceAccountSetIamPolicyRequest().setPolicy(updatedPolicy)
       val request = iam
         .projects()
@@ -477,10 +478,13 @@ object HttpGoogleIamDAO {
     }
 
   implicit private def fromProjectBinding(projectBinding: ProjectBinding): Binding =
-    Binding(projectBinding.getRole, projectBinding.getMembers.toSet, projectBinding.getCondition)
+    iam.Binding(projectBinding.getRole, projectBinding.getMembers.toSet, projectBinding.getCondition)
 
   implicit private def fromServiceAccountBinding(serviceAccountBinding: ServiceAccountBinding): Binding =
-    Binding(serviceAccountBinding.getRole, serviceAccountBinding.getMembers.toSet, serviceAccountBinding.getCondition)
+    iam.Binding(serviceAccountBinding.getRole,
+                serviceAccountBinding.getMembers.toSet,
+                serviceAccountBinding.getCondition
+    )
 
   implicit def fromProjectPolicy(projectPolicy: ProjectPolicy): Policy =
     Policy(projectPolicy.getBindings.map(fromProjectBinding).toSet, projectPolicy.getEtag)

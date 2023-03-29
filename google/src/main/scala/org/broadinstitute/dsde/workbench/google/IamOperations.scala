@@ -1,22 +1,17 @@
 package org.broadinstitute.dsde.workbench.google
 
-import org.broadinstitute.dsde.workbench.google.GoogleIamDAO.MemberType
 import org.broadinstitute.dsde.workbench.model.WorkbenchEmail
 import cats.instances.list._
 import cats.instances.set._
 import cats.instances.map._
 import cats.syntax.foldable._
 import cats.syntax.semigroup._
+import org.broadinstitute.dsde.workbench.model.google.iam.IamMemberTypes.IamMemberType
+import org.broadinstitute.dsde.workbench.model.google.iam.{Binding, Expr, Policy}
 
-object IamModel {
+object IamOperations {
 
   val policyVersion = 3
-
-  case class Binding(role: String, members: Set[String], condition: Expr)
-
-  case class Policy(bindings: Set[Binding], etag: String)
-
-  case class Expr(description: String, expression: String, location: String, title: String)
 
   /**
    * Read-modify-write a Policy to insert or remove new bindings for the given member and roles.
@@ -25,12 +20,12 @@ object IamModel {
    */
   def updatePolicy(policy: Policy,
                    email: WorkbenchEmail,
-                   memberType: MemberType,
+                   memberType: IamMemberType,
                    rolesToAdd: Set[String],
                    rolesToRemove: Set[String],
                    condition: Option[Expr]
   ): Policy = {
-    val memberTypeAndEmail = s"$memberType:${email.value}"
+    val memberTypeAndEmail = s"${memberType.value}:${email.value}"
 
     // Current members grouped by role
     val curMembersByRole: Map[(String, Expr), Set[String]] = policy.bindings.toList.foldMap { binding =>
