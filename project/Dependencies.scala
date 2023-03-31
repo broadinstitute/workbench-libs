@@ -11,7 +11,6 @@ object Dependencies {
   val http4sVersion = "1.0.0-M38"
   val bouncyCastleVersion = "1.70"
   val openCensusV = "0.31.1"
-  val jsonSmartV = "2.4.10"
 
   // avoid expoit https://nvd.nist.gov/vuln/detail/CVE-2023-1370 (see [IA-4176])
   val jsonSmartV = "2.4.10"
