@@ -2,6 +2,36 @@
 
 This file documents changes to the `workbench-google` library, including notes on how to upgrade to new versions.
 
+## 0.26
+
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.26-TRAVIS-REPLACE-ME"`
+
+### Dependency upgrades
+| Dependency   |      Old Version      |  New Version |
+|----------|:-------------:|------:|
+| azure-resourcemanager-compute |  xxx | 2.25.0 |
+| azure-resourcemanager-containerservice |  xxx | 2.25.0 |
+| azure-storage-blob |  xxx | 12.21.1 |
+| cats-effect |  xxx | 3.4.8 |
+| circe-core |  xxx | 0.14.5 |
+| circe-fs2 |  xxx | 0.14.1 |
+| client-java |  xxx | 17.0.1 |
+| fs2-io |  xxx | 3.6.1 |
+| google-api-services-container |  xxx | v1-rev20230304-2.0.0 |
+| google-cloud-bigquery |  xxx | 2.20.2 |
+| google-cloud-container |  xxx | 2.16.0 |
+| google-cloud-dataproc |  xxx | 4.10.0 |
+| google-cloud-nio |  xxx | 0.126.10 |
+| google-cloud-pubsub |  xxx | 1.123.7 |
+| google-cloud-storage |  xxx | 2.20.2 |
+| google-cloud-storage-transfer |  xxx | 1.13.0 |
+| grpc-core |  xxx | 1.51.3 |
+| http4s-circe |  xxx | 1.0.0-M39 |
+| jackson-module-scala |  xxx | 2.14.2 |
+| logstash-logback-encoder |  xxx | 7.3 |
+| sbt-scoverage |  xxx | 2.0.7 |
+| scalatest |  xxx | 3.2.15 |
+
 ## 0.25
 
 SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.25-e20067a"`
@@ -41,7 +71,7 @@ SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.
 ### Changed
 
 - Update `google-api-client` to `2.0.0`
-- Removed `google-api-services-plus`, because it is removed from in https://github.com/googleapis/google-api-java-client-services/pull/5947 back in 2020. 
+- Removed `google-api-services-plus`, because it is removed from in https://github.com/googleapis/google-api-java-client-services/pull/5947 back in 2020.
 The only usage of this library here and in `Rawls` are references to `PlusScopes.USERINFO_EMAIL`, and `PlusScopes.USERINFO_PROFILE`, which can easily
 be replaced with `https://www.googleapis.com/auth/userinfo.email`, `https://www.googleapis.com/auth/userinfo.profile` respectively
 - Added `GoogleIamDAO.getOrganizationCustomRole`
@@ -76,7 +106,7 @@ SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.
   - These methods now retry 409s, indicating concurrent modifications to the policy. We retry the entire
     read-modify-write operation as recommended by Google.
 - Made `RetryPredicates` handle `null`s more safely
-- Creating a group sometimes returns a 5xx error code and leaves behind a partially created group which caused problems 
+- Creating a group sometimes returns a 5xx error code and leaves behind a partially created group which caused problems
 when we retried creation. Changed to delete the partially created group before retrying
 - Cross build to scala 2.13
 - Fix potential NPE in `HttpGoogleProjectDAO.isBillingActive()`
@@ -145,11 +175,11 @@ SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.
    - `org.broadinstitute.dsde.workbench.google.GoogleBigQueryDAO#startParameterizedQuery(project: GoogleProject, querySql: String, queryParameters: java.util.List[QueryParameter], parameterMode: String)`
 - Added `GoogleProjectDAO`
 - Added `testIamPermission` method to `GoogleIamDAO`
-- Added optional group settings when creating google groups 
+- Added optional group settings when creating google groups
 - Added a way to set service account user when constructing credentials via json
 - Added `isProjectActive` and `isBillingActive` to `GoogleProjectDAO`
 - Added `getBucket` to `GoogleStorageDAO`
-   
+
 ### Changed
 - org.broadinstitute.dsde.workbench.google.mock.MockGoogleIamDAO supports multiple keys for a service account (like the real thing)
 
@@ -169,7 +199,7 @@ SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.
    - This allows for more flexibility in how Google DAOs can be used.
 - Updated methods in GoogleStorageDAO:
    - Added `copyObject`
- 
+
 ## 0.14
 
 SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.14-6800f3a"`
@@ -181,7 +211,7 @@ SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.
    - Added methods to create/remove bucket/object ACLs
    - Added `bucketExists(GcsBucketName): Future[Boolean]`
    - Added `storeObject` variants which take an `ByteArrayInputStream` or a `File`
-   
+
 ### Removed
 
 - `org.broadinstitute.dsde.workbench.google.gcs` package (functionality moved to workbench-model)
@@ -221,7 +251,7 @@ SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.
 ### Changed
 
 - Moved GoogleProject to model lib
-- Updated for 0.8 version of model 
+- Updated for 0.8 version of model
 
 ## 0.9
 
@@ -251,7 +281,7 @@ To depend on the `MockGoogle*` classes, additionally depend on:
 
 ### Fixed
 
-- Fixes finding, creating, and removing service accounts per corrections in `workbench-model v0.5`. 
+- Fixes finding, creating, and removing service accounts per corrections in `workbench-model v0.5`.
 
 ### Upgrade notes
 
@@ -269,7 +299,7 @@ To depend on the `MockGoogle*` classes, additionally depend on:
 
 ### Changed
 
-- Mocks moved to the `test` package. 
+- Mocks moved to the `test` package.
 
 ## 0.5
 
@@ -302,10 +332,10 @@ SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.
 ### Added
 
 - `gcs` package containing:
-   - rich model types for GCS full path, bucket, relative path 
+   - rich model types for GCS full path, bucket, relative path
    - ability to parse and validate a GCS path from a string
    - ability to generate a unique valid bucket name given a prefix
-- `Dataproc` instrumented service 
+- `Dataproc` instrumented service
 
 ## 0.2
 
