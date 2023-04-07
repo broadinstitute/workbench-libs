@@ -1,9 +1,17 @@
 package org.broadinstitute.dsde.workbench.google
 
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream, File}
-import com.google.api.services.storage.model.{Bucket, BucketAccessControls, ObjectAccessControls}
+import com.google.api.services.storage.model.{
+  Bucket,
+  BucketAccessControls,
+  ObjectAccessControls,
+  Policy => BucketPolicy
+}
+import org.broadinstitute.dsde.workbench.model.WorkbenchEmail
 import org.broadinstitute.dsde.workbench.model.google.GcsLifecycleTypes.{Delete, GcsLifecycleType}
 import org.broadinstitute.dsde.workbench.model.google.GcsRoles.GcsRole
+import org.broadinstitute.dsde.workbench.model.google.iam.IamMemberTypes.IamMemberType
+import org.broadinstitute.dsde.workbench.model.google.iam.Expr
 import org.broadinstitute.dsde.workbench.model.google.{GcsBucketName, GcsEntity, GcsObjectName, GoogleProject}
 
 import scala.concurrent.Future
@@ -69,4 +77,23 @@ trait GoogleStorageDAO {
   def getDefaultObjectAccessControls(bucketName: GcsBucketName): Future[ObjectAccessControls]
 
   def setRequesterPays(bucketName: GcsBucketName, requesterPays: Boolean): Future[Unit]
+
+  def addIamRoles(bucketName: GcsBucketName,
+                  userEmail: WorkbenchEmail,
+                  memberType: IamMemberType,
+                  rolesToAdd: Set[String],
+                  retryIfGroupDoesNotExist: Boolean = false,
+                  condition: Option[Expr] = None,
+                  userProject: Option[GoogleProject] = None
+  ): Future[Boolean]
+
+  def removeIamRoles(bucketName: GcsBucketName,
+                     userEmail: WorkbenchEmail,
+                     memberType: IamMemberType,
+                     rolesToRemove: Set[String],
+                     retryIfGroupDoesNotExist: Boolean = false,
+                     userProject: Option[GoogleProject] = None
+  ): Future[Boolean]
+
+  def getBucketPolicy(bucketName: GcsBucketName, userProject: Option[GoogleProject] = None): Future[BucketPolicy]
 }
