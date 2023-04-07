@@ -2,6 +2,43 @@
 
 This file documents changes to the `workbench-model` library, including notes on how to upgrade to new versions.
 
+## 0.17
+
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-model" % "0.17-01a11c3"`
+
+### Dependency upgrades
+| Dependency   |      Old Version      |  New Version |
+|----------|:-------------:|------:|
+| azure-resourcemanager-compute |  2.17.0 | 2.25.0 |
+| azure-resourcemanager-containerservice |  2.19.0 | 2.25.0 |
+| azure-storage-blob |  12.19.1 | 12.21.1 |
+| cats-effect |  3.4.4 | 3.4.8 |
+| circe-core |  0.14.3 | 0.14.5 |
+| circe-fs2 |  0.14.0 | 0.14.1 |
+| client-java |  17.0.0 | 17.0.1 |
+| fs2-io |  3.4.0 | 3.6.1 |
+| google-api-services-container |  v1-rev20221110-2.0.0 | v1-rev20230304-2.0.0 |
+| google-cloud-bigquery |  2.20.0 | 2.20.2 |
+| google-cloud-container |  2.10.0 | 2.16.0 |
+| google-cloud-dataproc |  4.4.0 | 4.10.0 |
+| google-cloud-nio |  0.126.0 | 0.126.10 |
+| google-cloud-pubsub |  1.122.2 | 1.123.7 |
+| google-cloud-storage |  2.16.0 | 2.20.2 |
+| google-cloud-storage-transfer |  1.6.0 | 1.13.0 |
+| grpc-core |  1.51.1 | 1.51.3 |
+| http4s-circe |  1.0.0-M35 | 1.0.0-M38 |
+| jackson-module-scala |  2.14.1 | 2.14.2 |
+| logstash-logback-encoder |  7.2 | 7.3 |
+| sbt-scoverage |  2.0.6 | 2.0.7 |
+| scalatest |  3.2.14 | 3.2.15 |
+
+## 0.16
+
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-model" % "0.16-e20067a"`
+
+### Added
+- `IamModel`, `IamMemberTypes`, and `IamResourceTypes`
+
 ## 0.15
 
 SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-model" % "0.15-a78f6e9"`
@@ -17,7 +54,7 @@ SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-model" % "0.1
 SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-model" % "0.14-89d0d9e"`
 
 ### Changed
-- added IdentityConcentratorId to WorkbenchUser 
+- added IdentityConcentratorId to WorkbenchUser
 - Cross build 2.13
 - added TraceId to ErrorReport
 - added BigQuery dataset and table types
@@ -59,7 +96,7 @@ SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-model" % "0.1
 
 - `EmailGcsEntity` and `ProjectGcsEntity` as implementations of `GcsEntity`, which is now a `trait`
 - `ProjectNumber` to model Google project numbers (distinct from project IDs)
-- `ProjectTeamType` ADT to correspond to `entity` in [Google bucket access control resource](https://cloud.google.com/storage/docs/json_api/v1/bucketAccessControls)  
+- `ProjectTeamType` ADT to correspond to `entity` in [Google bucket access control resource](https://cloud.google.com/storage/docs/json_api/v1/bucketAccessControls)
 - `IamPermission` used by workbench-google `testIamPermission`
 
 ### Deprecated
@@ -100,7 +137,7 @@ SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-model" % "0.8
 
 ## Added
 
-- PetServiceAccount and PetServiceAccountId 
+- PetServiceAccount and PetServiceAccountId
 
 ## 0.7
 
@@ -143,7 +180,7 @@ SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-model" % "0.5
 1. The service account's unique id (subject id); and
 2. The [local-part](https://en.wikipedia.org/wiki/Email_address)(i.e. before the `@`) of the service account's generated email address.
 
-The first of these is now known as `WorkbenchUserServiceAccountUniqueId` and has replaced the second in the definition of `WorkbenchUserServiceAccount`.  
+The first of these is now known as `WorkbenchUserServiceAccountUniqueId` and has replaced the second in the definition of `WorkbenchUserServiceAccount`.
 The second has been renamed to `WorkbenchUserServiceAccountName`.
 
 Users are advised to watch for compile errors around `WorkbenchUserServiceAccount`. The `WorkbenchUserServiceAccountId` class no longer exists so errors should be easy to spot.
@@ -153,7 +190,7 @@ Users are advised to watch for compile errors around `WorkbenchUserServiceAccoun
 SBT depdendency:  `"org.broadinstitute.dsde.workbench" %% "workbench-model" % "0.4-72adc94"`
 
 ### Removed
- 
+
 - Moved `WorkbenchUserEmail.isServiceAccount` method to the `google` module
 
 ## 0.3

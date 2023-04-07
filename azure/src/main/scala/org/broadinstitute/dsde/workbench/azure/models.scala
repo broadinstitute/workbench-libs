@@ -43,3 +43,5 @@ final case class AKSServer(value: String) extends AnyVal
 final case class AKSToken(value: String) extends AnyVal
 final case class AKSCertificate(value: String) extends AnyVal
 final case class AKSCredentials(server: AKSServer, token: AKSToken, certificate: AKSCertificate)
+final case class ApplicationInsightsName(value: String) extends AnyVal
+final case class BatchAccountName(value: String) extends AnyVal

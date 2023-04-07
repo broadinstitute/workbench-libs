@@ -2,6 +2,7 @@ package org.broadinstitute.dsde.workbench.util
 
 import com.typesafe.config.{Config, ConfigException, ConfigObject}
 
+import java.time.Duration
 import scala.util.{Failure, Success, Try}
 
 object ScalaConfig {
@@ -14,6 +15,7 @@ object ScalaConfig {
     def getLongOption(key: String): Option[Long] = getOption(key, config.getLong)
     def getDoubleOption(key: String): Option[Double] = getOption(key, config.getDouble)
     def getObjectOption(key: String): Option[ConfigObject] = getOption(key, config.getObject)
+    def getDurationOption(key: String): Option[Duration] = getOption(key, config.getDuration)
     def getStringOr(key: String, default: => String = ""): String = getStringOption(key) getOrElse default
     def getBooleanOr(key: String, default: => Boolean = false): Boolean = getBooleanOption(key) getOrElse default
     def getIntOr(key: String, default: => Int = 0): Int = getIntOption(key) getOrElse default
