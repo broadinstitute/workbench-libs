@@ -81,6 +81,13 @@ object Notifications {
     override val alwaysOn = true
   })
 
+  case class AzurePreviewActivationNotification(recipientUserId: WorkbenchUserId) extends UserNotification
+  val AzurePreviewActivationNotificationType = register(new NotificationType[AzurePreviewActivationNotification] {
+    override val format = jsonFormat1(AzurePreviewActivationNotification.apply)
+    override val description = "Azure Preview Account Activation"
+    override val alwaysOn = true
+  })
+
   case class WorkspaceAddedNotification(recipientUserId: WorkbenchUserId,
                                         accessLevel: String,
                                         workspaceName: WorkspaceName,
@@ -109,6 +116,17 @@ object Notifications {
   val WorkspaceInvitedNotificationType = register(new NotificationType[WorkspaceInvitedNotification] {
     override val format = jsonFormat4(WorkspaceInvitedNotification.apply)
     override val description = "Invitation"
+    override val alwaysOn = true
+  })
+
+  case class BillingProjectInvitedNotification(recipientUserEmail: WorkbenchEmail,
+                                               requesterId: WorkbenchUserId,
+                                               billingProjectName: String
+  ) extends Notification
+
+  val BillingProjectInvitedNotificationType = register(new NotificationType[BillingProjectInvitedNotification] {
+    override val format = jsonFormat3(BillingProjectInvitedNotification.apply)
+    override val description = "Billing Project Invitation"
     override val alwaysOn = true
   })
 

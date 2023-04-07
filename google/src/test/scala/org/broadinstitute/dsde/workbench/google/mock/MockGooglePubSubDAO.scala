@@ -3,11 +3,11 @@ package org.broadinstitute.dsde.workbench.google.mock
 import java.util
 import java.util.concurrent.{ConcurrentHashMap, ConcurrentLinkedQueue}
 import java.util.{Collections, UUID}
-
 import com.google.api.client.googleapis.testing.auth.oauth2.MockGoogleCredential
+import com.google.api.services.pubsub.model
 import com.google.api.services.pubsub.model.Topic
 import org.broadinstitute.dsde.workbench.google.GooglePubSubDAO
-import org.broadinstitute.dsde.workbench.google.GooglePubSubDAO.PubSubMessage
+import org.broadinstitute.dsde.workbench.google.GooglePubSubDAO.{MessageRequest, PubSubMessage}
 import org.broadinstitute.dsde.workbench.model.{WorkbenchEmail, WorkbenchException}
 
 import scala.jdk.CollectionConverters._
@@ -45,7 +45,7 @@ class MockGooglePubSubDAO extends GooglePubSubDAO {
     (0 until maxMessages)
       .map(_ => Option(subscription.queue.poll()))
       .collect { case Some(message) =>
-        PubSubMessage(UUID.randomUUID().toString, message)
+        PubSubMessage(UUID.randomUUID().toString, message.text, message.attributes)
       }
   }
 
@@ -57,14 +57,15 @@ class MockGooglePubSubDAO extends GooglePubSubDAO {
   override def acknowledgeMessagesById(subscriptionName: String, ackIds: scala.collection.Seq[String]): Future[Unit] =
     Future.successful(ackIds.foreach(acks.add))
 
-  override def publishMessages(topicName: String, messages: scala.collection.Seq[String]): Future[Unit] = Future {
-    val subscriptions = topics.getOrElse(topicName, throw new WorkbenchException(s"no topic named $topicName"))
-    messages.foreach(logMessage(topicName, _))
-    for {
-      sub <- subscriptions
-      message <- messages
-    } yield sub.queue.add(message)
-  }
+  override def publishMessages(topicName: String, messages: scala.collection.Seq[MessageRequest]): Future[Unit] =
+    Future {
+      val subscriptions = topics.getOrElse(topicName, throw new WorkbenchException(s"no topic named $topicName"))
+      messages.foreach(message => logMessage(topicName, message.text))
+      for {
+        sub <- subscriptions
+        message <- messages
+      } yield sub.queue.add(message)
+    }
 
   override def deleteSubscription(subscriptionName: String): Future[Boolean] = Future {
     subscriptionsByName.get(subscriptionName) match {
@@ -84,17 +85,30 @@ class MockGooglePubSubDAO extends GooglePubSubDAO {
     startingLength != topics.size
   }
 
-  override def createSubscription(topicName: String, subscriptionName: String): Future[Boolean] = Future {
+  override def createSubscription(topicName: String,
+                                  subscriptionName: String,
+                                  ackDeadlineSeconds: Option[Int] = None
+  ): Future[Boolean] = Future {
     if (!topics.contains(topicName)) throw new WorkbenchException(s"no topic named $topicName")
     if (subscriptionsByName.contains(subscriptionName)) {
       false
     } else {
-      val subscription = Subscription(subscriptionName, topicName, new ConcurrentLinkedQueue[String]())
+      val subscription = Subscription(subscriptionName, topicName, new ConcurrentLinkedQueue[MessageRequest]())
       topics(topicName) += subscription
       subscriptionsByName += subscriptionName -> subscription
       true
     }
   }
+
+  override def extendDeadline(subscriptionName: String,
+                              messages: scala.collection.Seq[PubSubMessage],
+                              extendDeadlineBySeconds: Int
+  ): Future[Unit] = Future.unit
+
+  override def extendDeadlineById(subscriptionName: String,
+                                  ackIds: scala.collection.Seq[String],
+                                  extendDeadlineBySeconds: Int
+  ): Future[Unit] = Future.unit
 
   def getPreparedMockGoogleCredential: MockGoogleCredential = {
     val credential = new MockGoogleCredential.Builder().build()
@@ -119,5 +133,5 @@ class MockGooglePubSubDAO extends GooglePubSubDAO {
   ): Future[Unit] =
     Future.successful(())
 
-  case class Subscription(name: String, topic: String, queue: ConcurrentLinkedQueue[String])
+  case class Subscription(name: String, topic: String, queue: ConcurrentLinkedQueue[MessageRequest])
 }

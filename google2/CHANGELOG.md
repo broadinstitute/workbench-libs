@@ -2,12 +2,44 @@
 
 This file documents changes to the `workbench-google2` library, including notes on how to upgrade to new versions.
 
+## 0.26
+
+SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.26-01a11c3"`
+
+### Dependency upgrades
+| Dependency   |      Old Version      |  New Version |
+|----------|:-------------:|------:|
+| azure-resourcemanager-compute |  2.17.0 | 2.25.0 |
+| azure-resourcemanager-containerservice |  2.19.0 | 2.25.0 |
+| azure-storage-blob |  12.19.1 | 12.21.1 |
+| cats-effect |  3.4.4 | 3.4.8 |
+| circe-core |  0.14.3 | 0.14.5 |
+| circe-fs2 |  0.14.0 | 0.14.1 |
+| client-java |  17.0.0 | 17.0.1 |
+| fs2-io |  3.4.0 | 3.6.1 |
+| google-api-services-container |  v1-rev20221110-2.0.0 | v1-rev20230304-2.0.0 |
+| google-cloud-bigquery |  2.20.0 | 2.20.2 |
+| google-cloud-container |  2.10.0 | 2.16.0 |
+| google-cloud-dataproc |  4.4.0 | 4.10.0 |
+| google-cloud-nio |  0.126.0 | 0.126.10 |
+| google-cloud-pubsub |  1.122.2 | 1.123.7 |
+| google-cloud-storage |  2.16.0 | 2.20.2 |
+| google-cloud-storage-transfer |  1.6.0 | 1.13.0 |
+| grpc-core |  1.51.1 | 1.51.3 |
+| http4s-circe |  1.0.0-M35 | 1.0.0-M38 |
+| jackson-module-scala |  2.14.1 | 2.14.2 |
+| logstash-logback-encoder |  7.2 | 7.3 |
+| sbt-scoverage |  2.0.6 | 2.0.7 |
+| scalatest |  3.2.14 | 3.2.15 |
+
 ## 0.25
 Changed:
 - GoogleStorageTransferService now returns `TransferOperation` rather than `Operation`
 - Added `MockGoogleStorageTransferService` to test sources
 - Added `GoogleBigQueryInterpreter.runJob` to allow for running a generic job
 - Update `FakeComputeOperationFuture`
+- Added `GoogleStorageService.testIamPermissions`
+- Added support for enabling Autoclass on GCS buckets
 
 Dependency Upgrades:
 |          Dependency           | Old Version | New Version |
@@ -15,7 +47,7 @@ Dependency Upgrades:
 | google-cloud-storage-transfer |    1.2.0    |    1.2.1    |
 | google-cloud-container |    2.5.0    |    2.5.2    |
 
-SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.25-1a6839f"`
+SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.25-db348ae"`
 
 ## 0.24
 
@@ -107,7 +139,7 @@ SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0
 ## 0.21
 Breaking Changes:
 - Rename `retryGoogleF` and `tracedRetryGoogleF` to `retryF` and `tracedRetryF`
-  
+
 Added:
 - Added `getDataset` and `getTable` to `GoogleBigQueryService`
 - Added `RetryConfig` parameter to `GoogleDataprocService`. Defaults to `standardRetryConfig`.
@@ -142,7 +174,7 @@ Dependency Updates (latest):
 - Update google-cloud-storage from 1.113.13 to 1.113.14 (#566) (2 hours ago) <Scala Steward>
 - Update scala-logging from 3.9.2 to 3.9.5 (#568) (2 hours ago) <Scala Steward>
 - Update log4cats-slf4j
-- Update google-cloud-pubsub 
+- Update google-cloud-pubsub
 - Update google-cloud-bigquery from 1.127.7 to 1.127.11
 - Update guava from 30.1-jre to 30.1.1-jre (#567)
 - Update google-cloud-container from 1.2.6 to 1.3.0
@@ -160,7 +192,7 @@ Changed:
 - Removed `RetryConfig` from `GoogleDataprocService` constructors
 - `GoogleComputeInterpreter` now returns none if it encounters a disabled billing project during `getInstance`
 - Update `GKEInterpreter.pollOperation` to log each polling call
-- Log `traceId` as mdc context in `GoogleSubscriberInterpreter` 
+- Log `traceId` as mdc context in `GoogleSubscriberInterpreter`
 
 Added:
 - Added `GoogleDataprocService.startCluster`
@@ -219,7 +251,7 @@ Update mockito-core from 3.6.28 to 3.7.0 (#472) (3 hours ago)
 Update sbt-scalafix from 0.9.23 to 0.9.24 (#424)
 ```
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.18-7fe0192"` 
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.18-7fe0192"`
 
 ## 0.17
 Added:
@@ -249,7 +281,7 @@ Update mockito-core to 3.6.28 (#414)
 Update guava to 30.0-jre (#390)
 Update `io.kubernetes client-java` from `5.0.0` to `10.0.0` (This has some breaking changes if you're using the library's API directly)
 ```
-      
+
 SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.17-1e1f697"`
 
 ## 0.16
@@ -290,8 +322,8 @@ SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0
 
 ## 0.15
 Added:
-- Add `FakeGooglePublisher` mock	
-- Add `publishOne` to `GooglePublisher`	
+- Add `FakeGooglePublisher` mock
+- Add `publishOne` to `GooglePublisher`
 
 Changed:
 - Upgrade `cats-mtl` to `1.0.0`
@@ -377,15 +409,15 @@ Added:
 SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.10-5c4e637"`
 
 ## 0.9
-Changed: 
+Changed:
 - Fix a bug in `GoogleDataprocService` where region is not set properly
-- A few minor dependency updates 
+- A few minor dependency updates
 - Upgrade Google PubSub library to latest, which deprecated ProjectTopicName in many APIs
 
 SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.9-8051635"`
 
 ## 0.8
-Changed: 
+Changed:
 - Renamed `ClusterName` to `DataprocClusterName`
 - `pollOperation` in `GoogleComputeService` now returns `Stream[F, Operation]`
 - bug fix in `deleteBucket`

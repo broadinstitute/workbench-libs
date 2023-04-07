@@ -4,7 +4,6 @@ package google2
 import java.nio.channels.Channels
 import java.nio.file.{Path, Paths}
 import java.time.Instant
-
 import fs2.io.file.Files
 import cats.data.NonEmptyList
 import cats.effect._
@@ -30,10 +29,11 @@ import io.circe.Decoder
 import io.circe.fs2._
 import org.broadinstitute.dsde.workbench.google2.util.RetryPredicates.standardGoogleRetryConfig
 import org.broadinstitute.dsde.workbench.model.{TraceId, WorkbenchException}
-import org.broadinstitute.dsde.workbench.model.google.{GcsBucketName, GcsObjectName, GoogleProject}
+import org.broadinstitute.dsde.workbench.model.google.{GcsBucketName, GcsObjectName, GoogleProject, IamPermission}
 import com.google.auth.Credentials
 import org.broadinstitute.dsde.workbench.util2.{withLogging, RemoveObjectResult}
 
+import java.{lang, util}
 import scala.jdk.CollectionConverters._
 
 private[google2] class GoogleStorageInterpreter[F[_]](
@@ -313,7 +313,8 @@ private[google2] class GoogleStorageInterpreter[F[_]](
                             logBucket: Option[GcsBucketName],
                             retryConfig: RetryConfig,
                             location: Option[String],
-                            bucketTargetOptions: List[BucketTargetOption]
+                            bucketTargetOptions: List[BucketTargetOption],
+                            autoclassEnabled: Boolean
   ): Stream[F, Unit] = {
 
     if (acl.isDefined && bucketPolicyOnlyEnabled) {
@@ -330,6 +331,7 @@ private[google2] class GoogleStorageInterpreter[F[_]](
       .toBuilder
       .setLabels(labels.asJava)
       .setIamConfiguration(iamConfig)
+      .setAutoclass(BucketInfo.Autoclass.newBuilder().setEnabled(autoclassEnabled).build())
 
     logBucket.map { logBucketName =>
       val logging = BucketInfo.Logging.newBuilder().setLogBucket(logBucketName.value).build()
@@ -540,6 +542,24 @@ private[google2] class GoogleStorageInterpreter[F[_]](
     )
   }
 
+  override def testIamPermissions(bucketName: GcsBucketName,
+                                  permissions: List[IamPermission],
+                                  traceId: Option[TraceId] = None,
+                                  retryConfig: RetryConfig = standardGoogleRetryConfig,
+                                  bucketSourceOptions: List[BucketSourceOption] = List.empty
+  ): Stream[F, List[IamPermission]] =
+    retryF(retryConfig)(
+      blockingF(
+        Async[F].delay(
+          db.testIamPermissions(bucketName.value, permissions.map(_.value).asJava, bucketSourceOptions: _*)
+        )
+      ),
+      traceId,
+      s"com.google.cloud.storage.Storage.testIamPermissions($bucketName, ${permissions.mkString(",")})"
+    ).map { results =>
+      GoogleStorageInterpreter.mapTestPermissionResultsToIamPermissions(results, permissions)
+    }
+
   override def setBucketLifecycle(bucketName: GcsBucketName,
                                   lifecycleRules: List[LifecycleRule],
                                   traceId: Option[TraceId],
@@ -632,6 +652,18 @@ object GoogleStorageInterpreter {
         )
       )
     } yield db
+
+  def mapTestPermissionResultsToIamPermissions(results: util.List[lang.Boolean],
+                                               permissions: List[IamPermission]
+  ): List[IamPermission] =
+    results.asScala
+      .map(_.booleanValue())
+      .zipWithIndex
+      .flatMap {
+        case (true, index) => permissions.get(index)
+        case (false, _)    => None
+      }
+      .toList
 
   implicit val googleProjectDecoder: Decoder[GoogleProject] = Decoder.forProduct1(
     "project_id"

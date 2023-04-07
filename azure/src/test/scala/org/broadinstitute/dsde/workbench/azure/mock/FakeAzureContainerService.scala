@@ -23,4 +23,8 @@ class FakeAzureContainerService extends AzureContainerService[IO] {
     ev: Ask[IO, TraceId]
   ): IO[KubernetesCluster] =
     IO.raiseError(new NotImplementedError())
+
+  override def listClusters(cloudContext: AzureCloudContext)(implicit
+    ev: Ask[IO, TraceId]
+  ): IO[List[KubernetesCluster]] = IO.raiseError(new NotImplementedError())
 }

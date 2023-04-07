@@ -4,6 +4,7 @@ import cats.effect.Async
 import cats.mtl.Ask
 import cats.syntax.all._
 import com.azure.core.management.AzureEnvironment
+import com.azure.core.management.exception.ManagementException
 import com.azure.core.management.profile.AzureProfile
 import com.azure.identity.ClientSecretCredential
 import com.azure.resourcemanager.containerservice.ContainerServiceManager
@@ -35,6 +36,29 @@ class AzureContainerServiceInterp[F[_]](clientSecretCredential: ClientSecretCred
         s"com.azure.resourcemanager.resources.fluentcore.arm.collection,getByResourceGroup(${cloudContext.managedResourceGroupName.value}, ${name.value})"
       )
     } yield resp
+
+  override def listClusters(cloudContext: AzureCloudContext)(implicit ev: Ask[F, TraceId]): F[List[KubernetesCluster]] =
+    for {
+      mgr <- buildContainerServiceManager(cloudContext)
+      fa =
+        F.delay(
+          mgr
+            .kubernetesClusters()
+            .listByResourceGroup(cloudContext.managedResourceGroupName.value)
+        ).map(_.asScala.toList)
+          .handleErrorWith {
+            case e: ManagementException
+                if e.getValue
+                  .getCode()
+                  .equals("ResourceNotFound") | e.getValue.getCode().equals("AuthorizationFailed") =>
+              F.pure(List.empty)
+            case e => F.raiseError(e)
+          }
+      res <- tracedLogging(
+        fa,
+        s"com.azure.resourcemanager.resources.fluentcore.arm.collection,listByResourceGroup(${cloudContext.managedResourceGroupName.value})"
+      )
+    } yield res
 
   override def getClusterCredentials(name: AKSClusterName, cloudContext: AzureCloudContext)(implicit
     ev: Ask[F, TraceId]
