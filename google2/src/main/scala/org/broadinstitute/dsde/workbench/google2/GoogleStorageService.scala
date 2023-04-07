@@ -269,7 +269,8 @@ trait GoogleStorageService[F[_]] {
                    logBucket: Option[GcsBucketName] = None,
                    retryConfig: RetryConfig = standardGoogleRetryConfig,
                    location: Option[String] = None,
-                   bucketTargetOptions: List[BucketTargetOption] = List.empty
+                   bucketTargetOptions: List[BucketTargetOption] = List.empty,
+                   autoclassEnabled: Boolean = false
   ): Stream[F, Unit]
 
   /**

@@ -5,6 +5,7 @@ import akka.http.scaladsl.model.HttpResponse
 import akka.http.scaladsl.model.headers.Cookie
 import cats.implicits.catsSyntaxOptionId
 import com.typesafe.scalalogging.LazyLogging
+import org.broadinstitute.dsde.rawls.model.AzureManagedAppCoordinates
 import org.broadinstitute.dsde.workbench.auth.AuthToken
 import org.broadinstitute.dsde.workbench.config.ServiceTestConfig
 import org.broadinstitute.dsde.workbench.fixture.MethodData.SimpleMethod
@@ -106,13 +107,20 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
 
   object billingV2 {
 
-    def createBillingProject(projectName: String, billingAccount: String, servicePerimeterOpt: Option[String] = None)(
-      implicit token: AuthToken
+    def createBillingProject(projectName: String,
+                             billingInformation: Either[String, AzureManagedAppCoordinates],
+                             servicePerimeterOpt: Option[String] = None
+    )(implicit
+      token: AuthToken
     ): String = {
-      logger.info(s"Creating billing project $projectName in billing account $billingAccount")
-      val request = Map("projectName" -> projectName, "billingAccount" -> billingAccount) ++ servicePerimeterOpt.map(
-        servicePerimeter => "servicePerimeter" -> servicePerimeter
-      )
+      logger.info(s"Creating billing project $projectName with billing information $billingInformation")
+      val billing = billingInformation match {
+        case Left(billingAccountId)            => Map("billingAccount" -> billingAccountId)
+        case Right(azureManagedAppCoordinates) => Map("managedAppCoordinates" -> azureManagedAppCoordinates)
+      }
+      val request = Map("projectName" -> projectName) ++ servicePerimeterOpt.map(servicePerimeter =>
+        "servicePerimeter" -> servicePerimeter
+      ) ++ billing
       postRequest(apiUrl("api/billing/v2"), request)
     }
 
@@ -324,7 +332,7 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
 
     /**
      * Sometimes access control takes a little while to propagate in google land, use this function to wait
-     * for anything where bucket access is required. Specifically the launch workflow button is disabled
+     * for anything where access is required to cloud resources. Specifically the launch workflow button is disabled
      * when checkBucketReadAccess returns false.
      *
      * @param workspaceNamespace
@@ -332,20 +340,38 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
      * @param token
      */
     def waitForBucketReadAccess(workspaceNamespace: String, workspaceName: String)(implicit token: AuthToken): Unit = {
-      logger.info(s"Bucket read access checking on workspace: $workspaceNamespace/$workspaceName")
-      val consecutiveSuccesses = 2
-      for (_ <- 1 to consecutiveSuccesses)
-        Retry.retry(30.seconds, 10.minutes, initialDelay = Option(30.seconds)) {
-          val response = getRequest(apiUrl(s"api/workspaces/$workspaceNamespace/$workspaceName/checkBucketReadAccess"))
-          if (response.status.isSuccess()) Some("done") else None
-        } match {
-          case None =>
-            throw new Exception(s"workspace $workspaceNamespace/$workspaceName bucket did not become readable")
-          case Some(_) =>
-            logger.info(
-              s"Bucket read access check passed: workspace $workspaceNamespace/$workspaceName bucket readable"
-            )
-        }
+      logger.info(s"Workspace access check on workspace: $workspaceNamespace/$workspaceName")
+      /*
+      At the beginning of 2023, google rolled out some changes to IAM propagation that make detecting IAM propagation
+      when google groups are involved tricky. At this time all access to google cloud resources involves a google group.
+      The problem seems to be that there are multiple eventually consistent caches. If we test for access and get a
+      denied answer, that information is cached for an unknown period of time. There is some chance that a future
+      request will fail even though others succeed. So simple polling is won't work and likely poisons the cache.
+
+      The new method is to wait for a fixed time then test access. Throw an error if IAM has not propagated because
+      the cache is now poisoned and we don't know how long it takes for that to clear.
+
+      The first thing we need to do before waiting is make sure the pet service account that the access check will
+      use exists. Otherwise access at the cloud level has not really been granted yet.
+       */
+
+      val workspaceDetails = Rawls.workspaces.getWorkspaceDetails(workspaceNamespace, workspaceName)
+      val googleProject = mapper.readTree(workspaceDetails).at("/workspace/googleProject").textValue()
+      val petEmail = Sam.user.petServiceAccountEmail(googleProject)
+      logger.info(s"Workspace access check will use pet $petEmail")
+
+      Thread.sleep(ServiceTestConfig.FireCloud.waitForAccessTime.toMillis)
+
+      val response = getRequest(apiUrl(s"api/workspaces/$workspaceNamespace/$workspaceName/checkBucketReadAccess"))
+      if (response.status.isSuccess()) {
+        logger.info(
+          s"Workspace access check passed: workspace $workspaceNamespace/$workspaceName accessible"
+        )
+      } else {
+        throw new Exception(
+          s"Workspace access check failed: workspace $workspaceNamespace/$workspaceName did not become accessible after ${ServiceTestConfig.FireCloud.waitForAccessTime}"
+        )
+      }
     }
   }
 

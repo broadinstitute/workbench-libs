@@ -3,9 +3,11 @@ package org.broadinstitute.dsde.workbench.google
 import ca.mrvisser.sealerate
 import com.google.api.services.cloudresourcemanager.model.{Policy => ProjectPolicy}
 import com.google.api.services.iam.v1.model.Role
-import org.broadinstitute.dsde.workbench.google.GoogleIamDAO.MemberType
+import org.broadinstitute.dsde.workbench.google.GoogleIamDAO.{MemberType => DeprecatedMemberType}
 import org.broadinstitute.dsde.workbench.model._
+import org.broadinstitute.dsde.workbench.model.google.iam.IamMemberTypes.IamMemberType
 import org.broadinstitute.dsde.workbench.model.google._
+import org.broadinstitute.dsde.workbench.model.google.iam.{Expr, IamMemberTypes}
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -104,7 +106,7 @@ trait GoogleIamDAO {
    */
   @deprecated(message = "Please use the generic method with {{{ memberType = MemberType.User }}}.", since = "0.21")
   def addIamRolesForUser(iamProject: GoogleProject, email: WorkbenchEmail, rolesToAdd: Set[String]): Future[Boolean] =
-    addIamRoles(iamProject: GoogleProject, email: WorkbenchEmail, MemberType.User, rolesToAdd: Set[String])
+    addIamRoles(iamProject: GoogleProject, email: WorkbenchEmail, DeprecatedMemberType.User, rolesToAdd: Set[String])
 
   /**
    * Removes project-level IAM roles for the given user.
@@ -121,7 +123,11 @@ trait GoogleIamDAO {
                             email: WorkbenchEmail,
                             rolesToRemove: Set[String]
   ): Future[Boolean] =
-    removeIamRoles(iamProject: GoogleProject, email: WorkbenchEmail, MemberType.User, rolesToRemove: Set[String])
+    removeIamRoles(iamProject: GoogleProject,
+                   email: WorkbenchEmail,
+                   DeprecatedMemberType.User,
+                   rolesToRemove: Set[String]
+    )
 
   /**
    * Adds project-level IAM roles for the given member type.
@@ -134,13 +140,25 @@ trait GoogleIamDAO {
    * @param rolesToAdd               Set of roles to add (example: roles/storage.admin)
    * @param retryIfGroupDoesNotExist optional parameter to rerun if the group does not exist (yet), since Google can
    *                                 take up to 1 hour to propagate some changes.
+   * @param condition                an optional Expr condition to set a condition on the IAM Policy Bindings
    * @return true if the policy was updated; false otherwise.
    */
+  @deprecated
   def addIamRoles(iamProject: GoogleProject,
                   email: WorkbenchEmail,
-                  memberType: MemberType,
+                  memberType: DeprecatedMemberType,
                   rolesToAdd: Set[String],
-                  retryIfGroupDoesNotExist: Boolean = false
+                  retryIfGroupDoesNotExist: Boolean = false,
+                  condition: Option[Expr] = None
+  ): Future[Boolean] =
+    addRoles(iamProject, email, memberType.toIamMemberType, rolesToAdd, retryIfGroupDoesNotExist, condition)
+
+  def addRoles(iamProject: GoogleProject,
+               email: WorkbenchEmail,
+               memberType: IamMemberType,
+               rolesToAdd: Set[String],
+               retryIfGroupDoesNotExist: Boolean = false,
+               condition: Option[Expr] = None
   ): Future[Boolean]
 
   /**
@@ -156,11 +174,20 @@ trait GoogleIamDAO {
    *                                 take up to 1 hour to propagate some changes.
    * @return true if the policy was updated; false otherwise.
    */
+  @deprecated
   def removeIamRoles(iamProject: GoogleProject,
                      email: WorkbenchEmail,
-                     memberType: MemberType,
+                     memberType: DeprecatedMemberType,
                      rolesToRemove: Set[String],
                      retryIfGroupDoesNotExist: Boolean = false
+  ): Future[Boolean] =
+    removeRoles(iamProject, email, memberType.toIamMemberType, rolesToRemove, retryIfGroupDoesNotExist)
+
+  def removeRoles(iamProject: GoogleProject,
+                  email: WorkbenchEmail,
+                  memberType: IamMemberType,
+                  rolesToRemove: Set[String],
+                  retryIfGroupDoesNotExist: Boolean = false
   ): Future[Boolean]
 
   /**
@@ -251,24 +278,38 @@ trait GoogleIamDAO {
   def getOrganizationCustomRole(roleName: String): Future[Option[Role]]
 }
 
+@deprecated
+// Deprecated in favor of org.broadinstitute.dsde.workbench.model.google.IamMemberTypes
 object GoogleIamDAO {
 
   /**
    * Typing for the Google IAM member types as described at https://cloud.google.com/iam/docs/overview
    */
-  sealed trait MemberType extends Serializable with Product
+  sealed trait MemberType extends Serializable with Product {
+    def toIamMemberType: IamMemberType
+  }
+
+  @deprecated
   object MemberType {
+    @deprecated
     final case object User extends MemberType {
       override def toString = "user"
+      override def toIamMemberType: IamMemberType = IamMemberTypes.User
     }
+    @deprecated
     final case object Group extends MemberType {
       override def toString = "group"
+      override def toIamMemberType: IamMemberType = IamMemberTypes.Group
     }
+    @deprecated
     final case object ServiceAccount extends MemberType {
       override def toString = "serviceAccount"
+      override def toIamMemberType: IamMemberType = IamMemberTypes.ServiceAccount
     }
+    @deprecated
     final case object Domain extends MemberType {
       override def toString = "domain"
+      override def toIamMemberType: IamMemberType = IamMemberTypes.Domain
     }
 
     val stringToMemberType: Map[String, MemberType] = sealerate.collect[MemberType].map(p => (p.toString, p)).toMap

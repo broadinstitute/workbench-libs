@@ -2,16 +2,80 @@
 
 This file documents changes to the `workbench-google` library, including notes on how to upgrade to new versions.
 
-## 0.22
+## 0.26
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.22-46d1df6"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.26-01a11c3"`
+
+### Dependency upgrades
+| Dependency   |      Old Version      |  New Version |
+|----------|:-------------:|------:|
+| azure-resourcemanager-compute |  2.17.0 | 2.25.0 |
+| azure-resourcemanager-containerservice |  2.19.0 | 2.25.0 |
+| azure-storage-blob |  12.19.1 | 12.21.1 |
+| cats-effect |  3.4.4 | 3.4.8 |
+| circe-core |  0.14.3 | 0.14.5 |
+| circe-fs2 |  0.14.0 | 0.14.1 |
+| client-java |  17.0.0 | 17.0.1 |
+| fs2-io |  3.4.0 | 3.6.1 |
+| google-api-services-container |  v1-rev20221110-2.0.0 | v1-rev20230304-2.0.0 |
+| google-cloud-bigquery |  2.20.0 | 2.20.2 |
+| google-cloud-container |  2.10.0 | 2.16.0 |
+| google-cloud-dataproc |  4.4.0 | 4.10.0 |
+| google-cloud-nio |  0.126.0 | 0.126.10 |
+| google-cloud-pubsub |  1.122.2 | 1.123.7 |
+| google-cloud-storage |  2.16.0 | 2.20.2 |
+| google-cloud-storage-transfer |  1.6.0 | 1.13.0 |
+| grpc-core |  1.51.1 | 1.51.3 |
+| http4s-circe |  1.0.0-M35 | 1.0.0-M38 |
+| jackson-module-scala |  2.14.1 | 2.14.2 |
+| logstash-logback-encoder |  7.2 | 7.3 |
+| sbt-scoverage |  2.0.6 | 2.0.7 |
+| scalatest |  3.2.14 | 3.2.15 |
+
+## 0.25
+
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.25-e20067a"`
 
 ### Changed
+- Deprecated `GoogleIamDAO.MemberType`, `GoogleIamDAO.addIamRoles`, and `GoogleIamDAO.removeIamRoles`
+- Implemented `GoogleIamDAO.addRoles` and `GoogleIamDAO.removeRoles`
+- Pulled Iam Policy models out of `HttpGoogleIamDAO` and into `IamOperations` for code-sharing purposes.
+
+## 0.24
+
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.24-b63a7db"`
+
+### Changed
+- Implemented `addIamRoles` and `removeIamRoles` in `HttpGoogleStorageDAO`.
+- Implemented `getBucketPolicy` in `HttpGoogleStorageDAO`.
+- In both `HttpGoogleStorageDAO` and `HttpGoogleIamDAO`, the `addIamRoles` method takes an optional `condition` arg. Defaults to `None`.
+- Pulled Iam Policy models out of `HttpGoogleIamDAO` and into `IamModel` for code-sharing purposes.
+- No code changes should be necessary when updating to this version.
+- Google Policy Version 3 for IAM requests to support conditions.
+
+## 0.23
+
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.23-df84a1e"`
+
+### Changed
+
+- Introduced `MessageRequest` case class in place of using `String` for messages
+- Changed `publishMessages` signature to use new `MessageRequest`
+- Added `ackDeadlineSeconds` as an optional parameter for `createSubscription`
+- Added `attributes` as an optional parameter to `PubSubMessage`
+
+## 0.22
+
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.22-abd44a6"`
+
+### Changed
+
 - Update `google-api-client` to `2.0.0`
-- Removed `google-api-services-plus`, because it is removed from in https://github.com/googleapis/google-api-java-client-services/pull/5947 back in 2020. 
+- Removed `google-api-services-plus`, because it is removed from in https://github.com/googleapis/google-api-java-client-services/pull/5947 back in 2020.
 The only usage of this library here and in `Rawls` are references to `PlusScopes.USERINFO_EMAIL`, and `PlusScopes.USERINFO_PROFILE`, which can easily
 be replaced with `https://www.googleapis.com/auth/userinfo.email`, `https://www.googleapis.com/auth/userinfo.profile` respectively
 - Added `GoogleIamDAO.getOrganizationCustomRole`
+- Added `GooglePubSubDAO.extendDeadline` and `GooglePubSubDAO.extendDeadlineById`
 
 ## 0.21
 
@@ -42,7 +106,7 @@ SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.
   - These methods now retry 409s, indicating concurrent modifications to the policy. We retry the entire
     read-modify-write operation as recommended by Google.
 - Made `RetryPredicates` handle `null`s more safely
-- Creating a group sometimes returns a 5xx error code and leaves behind a partially created group which caused problems 
+- Creating a group sometimes returns a 5xx error code and leaves behind a partially created group which caused problems
 when we retried creation. Changed to delete the partially created group before retrying
 - Cross build to scala 2.13
 - Fix potential NPE in `HttpGoogleProjectDAO.isBillingActive()`
@@ -111,11 +175,11 @@ SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.
    - `org.broadinstitute.dsde.workbench.google.GoogleBigQueryDAO#startParameterizedQuery(project: GoogleProject, querySql: String, queryParameters: java.util.List[QueryParameter], parameterMode: String)`
 - Added `GoogleProjectDAO`
 - Added `testIamPermission` method to `GoogleIamDAO`
-- Added optional group settings when creating google groups 
+- Added optional group settings when creating google groups
 - Added a way to set service account user when constructing credentials via json
 - Added `isProjectActive` and `isBillingActive` to `GoogleProjectDAO`
 - Added `getBucket` to `GoogleStorageDAO`
-   
+
 ### Changed
 - org.broadinstitute.dsde.workbench.google.mock.MockGoogleIamDAO supports multiple keys for a service account (like the real thing)
 
@@ -135,7 +199,7 @@ SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.
    - This allows for more flexibility in how Google DAOs can be used.
 - Updated methods in GoogleStorageDAO:
    - Added `copyObject`
- 
+
 ## 0.14
 
 SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.14-6800f3a"`
@@ -147,7 +211,7 @@ SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.
    - Added methods to create/remove bucket/object ACLs
    - Added `bucketExists(GcsBucketName): Future[Boolean]`
    - Added `storeObject` variants which take an `ByteArrayInputStream` or a `File`
-   
+
 ### Removed
 
 - `org.broadinstitute.dsde.workbench.google.gcs` package (functionality moved to workbench-model)
@@ -187,7 +251,7 @@ SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.
 ### Changed
 
 - Moved GoogleProject to model lib
-- Updated for 0.8 version of model 
+- Updated for 0.8 version of model
 
 ## 0.9
 
@@ -217,7 +281,7 @@ To depend on the `MockGoogle*` classes, additionally depend on:
 
 ### Fixed
 
-- Fixes finding, creating, and removing service accounts per corrections in `workbench-model v0.5`. 
+- Fixes finding, creating, and removing service accounts per corrections in `workbench-model v0.5`.
 
 ### Upgrade notes
 
@@ -235,7 +299,7 @@ To depend on the `MockGoogle*` classes, additionally depend on:
 
 ### Changed
 
-- Mocks moved to the `test` package. 
+- Mocks moved to the `test` package.
 
 ## 0.5
 
@@ -268,10 +332,10 @@ SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.
 ### Added
 
 - `gcs` package containing:
-   - rich model types for GCS full path, bucket, relative path 
+   - rich model types for GCS full path, bucket, relative path
    - ability to parse and validate a GCS path from a string
    - ability to generate a unique valid bucket name given a prefix
-- `Dataproc` instrumented service 
+- `Dataproc` instrumented service
 
 ## 0.2
 
