@@ -9,7 +9,7 @@ object Dependencies {
   val scalaTestV    = "3.2.15"
   val circeVersion = "0.14.5"
   val http4sVersion = "1.0.0-M38"
-  val bouncyCastleVersion = "1.70"
+  val bouncyCastleVersion = "1.73"
   val openCensusV = "0.31.1"
 
   // avoid expoit https://nvd.nist.gov/vuln/detail/CVE-2023-1370 (see [IA-4176])
@@ -36,9 +36,9 @@ object Dependencies {
 
   val jacksonModule: ModuleID =   "com.fasterxml.jackson.module" %% "jackson-module-scala"   % jacksonV % "test"
 
-  val bouncyCastle: ModuleID = "org.bouncycastle" % "bcpkix-jdk15on" % bouncyCastleVersion
-  val bouncyCastleProviderExt: ModuleID = "org.bouncycastle" % "bcprov-ext-jdk15on" % bouncyCastleVersion
-  val bouncyCastleProvider: ModuleID = "org.bouncycastle" % "bcprov-jdk15on" % bouncyCastleVersion
+  val bouncyCastle: ModuleID = "org.bouncycastle" % "bcpkix-jdk18on" % bouncyCastleVersion
+  val bouncyCastleProviderExt: ModuleID = "org.bouncycastle" % "bcprov-ext-jdk18on" % bouncyCastleVersion
+  val bouncyCastleProvider: ModuleID = "org.bouncycastle" % "bcprov-jdk18on" % bouncyCastleVersion
 
   val catsEffect: ModuleID = "org.typelevel" %% "cats-effect" % "3.4.8"
 
