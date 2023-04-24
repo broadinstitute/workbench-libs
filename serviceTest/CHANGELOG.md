@@ -4,7 +4,10 @@ This file documents changes to the `workbench-service-test` library, including n
 
 ## 2.1
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "2.1-01a11c3"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "2.1-TRAVIS-REPLACE-ME"`
+
+### Changed
+- updated `rawls-model` dependency to `0.1-dbe3ca9c`
 
 ### Dependency upgrades
 | Dependency   |      Old Version      |  New Version |
@@ -34,10 +37,9 @@ SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test"
 
 ## 2.0
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "2.0-TRAVIS-REPLACE-ME"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "2.0-87d7fa7"`
 
 ### Changed
-- updated `rawls-model` dependency to `0.1-dbe3ca9c`
 - add ability to create rawls billing projects using Azure managed app coordinates
 - ensure http response entities are read only once
 - add optional param for ignoreEmptyColumns in rawls submission API
