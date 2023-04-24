@@ -37,6 +37,7 @@ SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test"
 SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "2.0-87d7fa7"`
 
 ### Changed
+- updated `rawls-model` dependency to `0.1-dbe3ca9c`
 - add ability to create rawls billing projects using Azure managed app coordinates
 - ensure http response entities are read only once
 - add optional param for ignoreEmptyColumns in rawls submission API
