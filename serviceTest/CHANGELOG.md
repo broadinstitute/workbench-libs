@@ -34,7 +34,7 @@ SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test"
 
 ## 2.0
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "2.0-87d7fa7"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "2.0-TRAVIS-REPLACE-ME"`
 
 ### Changed
 - updated `rawls-model` dependency to `0.1-dbe3ca9c`
