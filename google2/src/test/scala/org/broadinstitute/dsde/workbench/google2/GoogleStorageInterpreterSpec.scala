@@ -5,7 +5,6 @@ import cats.effect.std.Semaphore
 import cats.effect.unsafe.implicits.global
 import cats.syntax.all._
 import com.google.auth.oauth2.ServiceAccountCredentials
-import com.google.cloud.Identity
 import com.google.cloud.storage.contrib.nio.testing.LocalStorageHelper
 import fs2.Stream
 import org.broadinstitute.dsde.workbench.google2.Generators._
@@ -16,7 +15,7 @@ import org.scalatest.flatspec.AsyncFlatSpec
 import org.scalatest.matchers.should.Matchers
 import org.typelevel.log4cats.slf4j.Slf4jLogger
 
-import java.security.{KeyPairGenerator, PrivateKey, SecureRandom}
+import java.security.KeyPairGenerator
 
 // AsyncFlatSpec currently doesn't work with scalacheck's forAll. It'll be supported in scalatest 3
 class GoogleStorageInterpreterSpec extends AsyncFlatSpec with Matchers with WorkbenchTestSuite {

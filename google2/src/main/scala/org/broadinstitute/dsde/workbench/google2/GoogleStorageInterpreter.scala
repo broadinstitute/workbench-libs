@@ -31,7 +31,7 @@ import io.circe.fs2._
 import org.broadinstitute.dsde.workbench.google2.util.RetryPredicates.standardGoogleRetryConfig
 import org.broadinstitute.dsde.workbench.model.{TraceId, WorkbenchException}
 import org.broadinstitute.dsde.workbench.model.google.{GcsBucketName, GcsObjectName, GoogleProject, IamPermission}
-import com.google.auth.{Credentials, ServiceAccountSigner}
+import com.google.auth.Credentials
 import org.broadinstitute.dsde.workbench.util2.{withLogging, RemoveObjectResult}
 
 import java.net.URL
