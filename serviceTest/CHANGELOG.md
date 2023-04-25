@@ -4,7 +4,7 @@ This file documents changes to the `workbench-service-test` library, including n
 
 ## 2.1
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "2.1-TRAVIS-REPLACE-ME"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "2.1-cd4a632"`
 
 ### Changed
 - updated `rawls-model` dependency to `0.1-dbe3ca9c`
