@@ -19,7 +19,8 @@ import com.google.cloud.storage.Storage.{
   BlobWriteOption,
   BucketGetOption,
   BucketSourceOption,
-  BucketTargetOption
+  BucketTargetOption,
+  SignUrlOption
 }
 import com.google.cloud.storage.{Acl, Blob, BlobId, BlobInfo, BucketInfo, Storage, StorageOptions}
 import com.google.cloud.{Identity, Policy, Role}
@@ -30,9 +31,11 @@ import io.circe.fs2._
 import org.broadinstitute.dsde.workbench.google2.util.RetryPredicates.standardGoogleRetryConfig
 import org.broadinstitute.dsde.workbench.model.{TraceId, WorkbenchException}
 import org.broadinstitute.dsde.workbench.model.google.{GcsBucketName, GcsObjectName, GoogleProject, IamPermission}
-import com.google.auth.Credentials
+import com.google.auth.{Credentials, ServiceAccountSigner}
 import org.broadinstitute.dsde.workbench.util2.{withLogging, RemoveObjectResult}
 
+import java.net.URL
+import java.util.concurrent.TimeUnit
 import java.{lang, util}
 import scala.jdk.CollectionConverters._
 
@@ -147,6 +150,36 @@ private[google2] class GoogleStorageInterpreter[F[_]](
       getBlobs,
       traceId,
       s"com.google.cloud.storage.Storage.get(${BlobId.of(bucketName.value, blobName.value)}, $blobGetOptions)"
+    ).unNone
+  }
+
+  override def getSignedBlobUrl(bucketName: GcsBucketName,
+                                blobName: GcsBlobName,
+                                signingCredentials: ServiceAccountCredentials,
+                                traceId: Option[TraceId],
+                                retryConfig: RetryConfig,
+                                expirationTime: Long,
+                                expirationTimeUnit: TimeUnit
+  ): Stream[F, URL] = {
+    val dbForCredential = db.getOptions.toBuilder.setCredentials(signingCredentials).build().getService
+    val blobInfo = BlobInfo.newBuilder(BlobId.of(bucketName.value, blobName.value)).build
+    val signBlob =
+      blockingF(
+        Async[F].delay(
+          dbForCredential.signUrl(blobInfo,
+                                  expirationTime,
+                                  expirationTimeUnit,
+                                  SignUrlOption.signWith(signingCredentials)
+          )
+        )
+      )
+        .map(Option(_))
+
+    retryF(retryConfig)(
+      signBlob,
+      traceId,
+      s"com.google.cloud.storage.Storage.signUrl(${BlobId.of(bucketName.value, blobName.value)}, ${expirationTime}, ${expirationTimeUnit
+          .name()}, SignUrlOption.signWith(${signingCredentials.getClientEmail}))"
     ).unNone
   }
 

@@ -4,6 +4,7 @@ package mock
 import java.nio.file.Path
 import cats.data.NonEmptyList
 import cats.effect.IO
+import com.google.auth.oauth2.ServiceAccountCredentials
 import com.google.auth.Credentials
 import com.google.cloud.storage.Storage.{
   BlobGetOption,
@@ -23,6 +24,9 @@ import org.broadinstitute.dsde.workbench.google2.util.RetryPredicates.standardGo
 import org.broadinstitute.dsde.workbench.model.TraceId
 import org.broadinstitute.dsde.workbench.model.google.{GcsBucketName, GcsObjectName, GoogleProject, IamPermission}
 import org.broadinstitute.dsde.workbench.util2.RemoveObjectResult
+
+import java.net.URL
+import scala.concurrent.duration.TimeUnit
 
 class BaseFakeGoogleStorage extends GoogleStorageService[IO] {
   override def listObjectsWithPrefix(bucketName: GcsBucketName,
@@ -76,6 +80,16 @@ class BaseFakeGoogleStorage extends GoogleStorageService[IO] {
                        blobGetOptions: List[BlobGetOption]
   ): Stream[IO, Blob] =
     localStorage.getBlob(bucketName, blobName, credentials, traceId)
+
+  override def getSignedBlobUrl(bucketName: GcsBucketName,
+                                blobName: GcsBlobName,
+                                signingCredentials: ServiceAccountCredentials,
+                                traceId: Option[TraceId] = None,
+                                retryConfig: RetryConfig,
+                                expirationTime: Long,
+                                expirationTimeUnit: TimeUnit
+  ): Stream[IO, URL] =
+    localStorage.getSignedBlobUrl(bucketName, blobName, signingCredentials, traceId)
 
   override def downloadObject(blobId: BlobId,
                               path: Path,
