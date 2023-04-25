@@ -27,7 +27,7 @@ SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-error-reporti
 | google-cloud-storage-transfer |  1.6.0 | 1.13.0 |
 | grpc-core |  1.51.1 | 1.51.3 |
 | http4s-circe |  1.0.0-M35 | 1.0.0-M38 |
-| jackson-module-scala |  2.14.1 | 2.14.2 |
+| jackson-module-scala |  2.14.1 | 2.15.0 |
 | logstash-logback-encoder |  7.2 | 7.3 |
 | sbt-scoverage |  2.0.6 | 2.0.7 |
 | scalatest |  3.2.14 | 3.2.15 |
