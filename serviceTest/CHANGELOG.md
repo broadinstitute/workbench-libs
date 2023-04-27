@@ -4,10 +4,11 @@ This file documents changes to the `workbench-service-test` library, including n
 
 ## 2.1
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "2.1-cd4a632"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "2.1-TRAVIS-REPLACE-ME"`
 
 ### Changed
 - updated `rawls-model` dependency to `0.1-dbe3ca9c`
+- added the ability to pass request attributes to workspace creation/cloning
 
 ### Dependency upgrades
 | Dependency   |      Old Version      |  New Version |

@@ -2,6 +2,7 @@ package org.broadinstitute.dsde.workbench.service
 
 import com.fasterxml.jackson.databind.JsonNode
 import com.typesafe.scalalogging.LazyLogging
+import org.broadinstitute.dsde.rawls.model.Attributable.AttributeMap
 import org.broadinstitute.dsde.rawls.model.AttributeUpdateOperations.{
   AttributeUpdateOperation,
   AttributeUpdateOperationFormat
@@ -255,7 +256,11 @@ trait Rawls extends RestClient with LazyLogging {
 
   object workspaces {
 
-    def create(namespace: String, name: String, authDomain: Set[String] = Set.empty)(implicit
+    def create(namespace: String,
+               name: String,
+               authDomain: Set[String] = Set.empty,
+               attributes: AttributeMap = Map.empty
+    )(implicit
       token: AuthToken
     ): Unit = {
       logger.info(s"Creating workspace: $namespace/$name authDomain: $authDomain")
@@ -264,7 +269,7 @@ trait Rawls extends RestClient with LazyLogging {
 
       val request = Map("namespace" -> namespace,
                         "name" -> name,
-                        "attributes" -> Map.empty,
+                        "attributes" -> attributes,
                         "authorizationDomain" -> authDomainGroups
       )
 
@@ -276,7 +281,8 @@ trait Rawls extends RestClient with LazyLogging {
               destNamespace: String,
               destName: String,
               authDomain: Set[String] = Set.empty,
-              copyFilesWithPrefix: Option[String] = None
+              copyFilesWithPrefix: Option[String] = None,
+              attributes: AttributeMap = Map.empty
     )(implicit token: AuthToken): Unit = {
       logger.info(
         s"Cloning workspace: $sourceNamespace/$sourceName into $destNamespace/$destName authDomain: $authDomain, copyFilesWithPrefix: $copyFilesWithPrefix"
@@ -287,7 +293,7 @@ trait Rawls extends RestClient with LazyLogging {
       val request = Map(
         "namespace" -> destNamespace,
         "name" -> destName,
-        "attributes" -> Map.empty,
+        "attributes" -> attributes,
         "authorizationDomain" -> authDomainGroups,
         "copyFilesWithPrefix" -> copyFilesWithPrefix
       )
