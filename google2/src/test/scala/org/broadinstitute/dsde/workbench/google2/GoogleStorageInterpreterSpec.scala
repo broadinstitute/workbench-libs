@@ -111,6 +111,30 @@ class GoogleStorageInterpreterSpec extends AsyncFlatSpec with Matchers with Work
     } yield url.getFile should startWith(s"/${bucketName.value}/${blobName.value}")
   }
 
+  it should "create a signed URL for a blob that doesn't exist" in ioAssertion {
+    val bucketName = genGcsBucketName.sample.get
+    val blobName = genGcsBlobName.sample.get
+    val person = genPerson.sample.get
+
+    val keyGen = KeyPairGenerator.getInstance("RSA")
+    keyGen.initialize(2048)
+    val pair = keyGen.genKeyPair()
+    val serviceAccountCredentials = ServiceAccountCredentials
+      .newBuilder()
+      .setServiceAccountUser(person.name)
+      .setClientEmail(person.email)
+      .setPrivateKey(pair.getPrivate)
+      .build()
+
+    for {
+      url <- localStorage.getSignedBlobUrl(bucketName, blobName, serviceAccountCredentials).compile.lastOrError
+      r <- localStorage.unsafeGetBlobBody(bucketName, blobName)
+    } yield {
+      url.getFile should startWith(s"/${bucketName.value}/${blobName.value}")
+      r should be(None)
+    }
+  }
+
   "ioStorage getObjectMetadata" should "return GetMetadataResponse.NotFound if object doesn't exist" in ioAssertion {
     val bucketName = genGcsBucketName.sample.get
     val blobName = genGcsBlobName.sample.get
