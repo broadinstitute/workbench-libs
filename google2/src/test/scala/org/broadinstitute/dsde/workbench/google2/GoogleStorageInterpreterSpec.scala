@@ -4,6 +4,7 @@ import cats.effect.IO
 import cats.effect.std.Semaphore
 import cats.effect.unsafe.implicits.global
 import cats.syntax.all._
+import com.google.auth.oauth2.ServiceAccountCredentials
 import com.google.cloud.storage.contrib.nio.testing.LocalStorageHelper
 import fs2.Stream
 import org.broadinstitute.dsde.workbench.google2.Generators._
@@ -13,6 +14,8 @@ import org.scalacheck.Gen
 import org.scalatest.flatspec.AsyncFlatSpec
 import org.scalatest.matchers.should.Matchers
 import org.typelevel.log4cats.slf4j.Slf4jLogger
+
+import java.security.KeyPairGenerator
 
 // AsyncFlatSpec currently doesn't work with scalacheck's forAll. It'll be supported in scalatest 3
 class GoogleStorageInterpreterSpec extends AsyncFlatSpec with Matchers with WorkbenchTestSuite {
@@ -84,6 +87,51 @@ class GoogleStorageInterpreterSpec extends AsyncFlatSpec with Matchers with Work
     } yield {
       r.getBucket shouldBe bucketName.value
       r.getBlobId.getName shouldBe (blobName.value)
+    }
+  }
+
+  "ioStorage getSignedBlobUrl" should "be able to get a signed blob URL" in ioAssertion {
+    val bucketName = genGcsBucketName.sample.get
+    val blobName = genGcsBlobName.sample.get
+    val person = genPerson.sample.get
+
+    val keyGen = KeyPairGenerator.getInstance("RSA")
+    keyGen.initialize(2048)
+    val pair = keyGen.genKeyPair()
+    val serviceAccountCredentials = ServiceAccountCredentials
+      .newBuilder()
+      .setServiceAccountUser(person.name)
+      .setClientEmail(person.email)
+      .setPrivateKey(pair.getPrivate)
+      .build()
+
+    for {
+      _ <- localStorage.createBlob(bucketName, blobName, "test".getBytes("UTF-8")).compile.drain
+      url <- localStorage.getSignedBlobUrl(bucketName, blobName, serviceAccountCredentials).compile.lastOrError
+    } yield url.getFile should startWith(s"/${bucketName.value}/${blobName.value}")
+  }
+
+  it should "create a signed URL for a blob that doesn't exist" in ioAssertion {
+    val bucketName = genGcsBucketName.sample.get
+    val blobName = genGcsBlobName.sample.get
+    val person = genPerson.sample.get
+
+    val keyGen = KeyPairGenerator.getInstance("RSA")
+    keyGen.initialize(2048)
+    val pair = keyGen.genKeyPair()
+    val serviceAccountCredentials = ServiceAccountCredentials
+      .newBuilder()
+      .setServiceAccountUser(person.name)
+      .setClientEmail(person.email)
+      .setPrivateKey(pair.getPrivate)
+      .build()
+
+    for {
+      url <- localStorage.getSignedBlobUrl(bucketName, blobName, serviceAccountCredentials).compile.lastOrError
+      r <- localStorage.unsafeGetBlobBody(bucketName, blobName)
+    } yield {
+      url.getFile should startWith(s"/${bucketName.value}/${blobName.value}")
+      r should be(None)
     }
   }
 

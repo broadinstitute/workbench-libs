@@ -7,7 +7,7 @@ import cats.effect._
 import cats.effect.std.Semaphore
 import cats.syntax.all._
 import com.google.auth.Credentials
-import com.google.auth.oauth2.{AccessToken, GoogleCredentials}
+import com.google.auth.oauth2.{AccessToken, GoogleCredentials, ServiceAccountCredentials}
 import com.google.cloud.storage.BucketInfo.LifecycleRule
 import com.google.cloud.storage.{Acl, Blob, BlobId, BucketInfo, StorageOptions}
 import com.google.cloud.{Identity, Policy, Role}
@@ -29,7 +29,9 @@ import org.broadinstitute.dsde.workbench.model.TraceId
 import org.broadinstitute.dsde.workbench.model.google.{GcsBucketName, GcsObjectName, GoogleProject, IamPermission}
 import org.broadinstitute.dsde.workbench.util2.RemoveObjectResult
 
+import java.net.URL
 import scala.collection.convert.ImplicitConversions._
+import scala.concurrent.duration.{HOURS, TimeUnit}
 import scala.language.higherKinds
 
 /**
@@ -185,6 +187,26 @@ trait GoogleStorageService[F[_]] {
               retryConfig: RetryConfig = standardGoogleRetryConfig,
               blobGetOptions: List[BlobGetOption] = List.empty
   ): Stream[F, Blob]
+
+  /**
+   * return URL, signed by the provided `signingCredentials`, allowing access to the blob
+   * @param bucketName Bucket the blob exists in
+   * @param blobName Name of the blob
+   * @param signingCredentials ServiceAccountSigner to sign the URL with
+   * @param traceId uuid for tracing a unique call flow in logging
+   * @param retryConfig a RetryConfig for the request sent to GCS
+   * @param expirationTime Number of `expirationTimeUnits`s for the signed URL to be active for. Defaults to 1 hour
+   * @param expirationTimeUnit The unit giving meaning to `expirationTime`. Defaults to 1 hour
+   * @return Signed URL
+   */
+  def getSignedBlobUrl(bucketName: GcsBucketName,
+                       blobName: GcsBlobName,
+                       signingCredentials: ServiceAccountCredentials,
+                       traceId: Option[TraceId] = None,
+                       retryConfig: RetryConfig = standardGoogleRetryConfig,
+                       expirationTime: Long = 1,
+                       expirationTimeUnit: TimeUnit = HOURS
+  ): Stream[F, URL]
 
   /**
    * @param traceId uuid for tracing a unique call flow in logging

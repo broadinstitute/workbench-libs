@@ -113,7 +113,7 @@ object Settings {
   val google2Settings = commonSettings ++ List(
     name := "workbench-google2",
     libraryDependencies ++= google2Dependencies,
-    version := createVersion("0.26")
+    version := createVersion("0.27")
   ) ++ publishSettings
 
   val azureSettings = commonSettings ++ List(
