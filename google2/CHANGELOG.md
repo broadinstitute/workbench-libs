@@ -6,7 +6,7 @@ This file documents changes to the `workbench-google2` library, including notes 
 Changed:
 - Added ability to create signed URLs for GCS Blobs
 
-SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.27-TRAVIS-REPLACE-ME"`
+SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.27-1bab754"`
 
 ## 0.26
 
