@@ -194,6 +194,9 @@ trait GoogleStorageService[F[_]] {
    * @param blobName Name of the blob
    * @param signingCredentials ServiceAccountSigner to sign the URL with
    * @param traceId uuid for tracing a unique call flow in logging
+   * @param retryConfig a RetryConfig for the request sent to GCS
+   * @param expirationTime Number of `expirationTimeUnits`s for the signed URL to be active for. Defaults to 1 hour
+   * @param expirationTimeUnit The unit giving meaning to `expirationTime`. Defaults to 1 hour
    * @return Signed URL
    */
   def getSignedBlobUrl(bucketName: GcsBucketName,
