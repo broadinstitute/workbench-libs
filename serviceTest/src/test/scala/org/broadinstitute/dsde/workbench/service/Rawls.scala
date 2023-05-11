@@ -259,7 +259,7 @@ trait Rawls extends RestClient with LazyLogging {
     def create(namespace: String,
                name: String,
                authDomain: Set[String] = Set.empty,
-               attributes: AttributeMap = Map.empty
+               attributes: Map[String, String] = Map.empty
     )(implicit
       token: AuthToken
     ): Unit = {
@@ -282,7 +282,7 @@ trait Rawls extends RestClient with LazyLogging {
               destName: String,
               authDomain: Set[String] = Set.empty,
               copyFilesWithPrefix: Option[String] = None,
-              attributes: AttributeMap = Map.empty
+              attributes: Map[String, String] = Map.empty
     )(implicit token: AuthToken): Unit = {
       logger.info(
         s"Cloning workspace: $sourceNamespace/$sourceName into $destNamespace/$destName authDomain: $authDomain, copyFilesWithPrefix: $copyFilesWithPrefix"
