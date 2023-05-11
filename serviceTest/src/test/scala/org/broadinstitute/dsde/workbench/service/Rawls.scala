@@ -259,7 +259,7 @@ trait Rawls extends RestClient with LazyLogging {
     def create(namespace: String,
                name: String,
                authDomain: Set[String] = Set.empty,
-               attributes: AttributeMap = Map.empty
+               attributes: Map[String, String] = Map.empty
     )(implicit
       token: AuthToken
     ): Unit = {
