@@ -6,7 +6,7 @@ This file documents changes to the `workbench-google2` library, including notes 
 Changed:
 - Upgraded `com.google.cloud:google-cloud-bigquery` to resolve [CVE-2022-45688](https://nvd.nist.gov/vuln/detail/cve-2022-45688)
 
-SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.28-TRAVIS-REPLACE-ME"`
+SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.28-6bc90eb"`
 
 
 ## 0.27
