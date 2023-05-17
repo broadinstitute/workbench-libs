@@ -2,6 +2,16 @@
 
 This file documents changes to the `workbench-service-test` library, including notes on how to upgrade to new versions.
 
+## 3.0
+
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "3.0-TRAVIS-REPLACE-ME"`
+
+### Changed
+
+
+Breaking changes:
+- Remove remaining `GPAlloc` trait 
+
 ## 2.1
 
 SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "2.1-42c499b"`
