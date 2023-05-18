@@ -111,6 +111,35 @@ class GoogleStorageInterpreterSpec extends AsyncFlatSpec with Matchers with Work
     } yield url.getFile should startWith(s"/${bucketName.value}/${blobName.value}")
   }
 
+  it should "attach provided query params to a signed URL for a blob" in ioAssertion {
+    val bucketName = genGcsBucketName.sample.get
+    val blobName = genGcsBlobName.sample.get
+    val person = genPerson.sample.get
+
+    val keyGen = KeyPairGenerator.getInstance("RSA")
+    keyGen.initialize(2048)
+    val pair = keyGen.genKeyPair()
+    val serviceAccountCredentials = ServiceAccountCredentials
+      .newBuilder()
+      .setServiceAccountUser(person.name)
+      .setClientEmail(person.email)
+      .setPrivateKey(pair.getPrivate)
+      .build()
+
+    val queryParams = Map("userProject" -> "my-google-project")
+
+    for {
+      _ <- localStorage.createBlob(bucketName, blobName, "test".getBytes("UTF-8")).compile.drain
+      url <- localStorage
+        .getSignedBlobUrl(bucketName, blobName, serviceAccountCredentials, queryParams = queryParams)
+        .compile
+        .lastOrError
+    } yield {
+      url.getFile should startWith(s"/${bucketName.value}/${blobName.value}")
+      url.toString should include("userProject=my-google-project")
+    }
+  }
+
   it should "create a signed URL for a blob that doesn't exist" in ioAssertion {
     val bucketName = genGcsBucketName.sample.get
     val blobName = genGcsBlobName.sample.get

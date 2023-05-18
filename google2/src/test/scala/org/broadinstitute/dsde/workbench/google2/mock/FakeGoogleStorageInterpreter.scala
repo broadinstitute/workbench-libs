@@ -87,9 +87,10 @@ class BaseFakeGoogleStorage extends GoogleStorageService[IO] {
                                 traceId: Option[TraceId] = None,
                                 retryConfig: RetryConfig,
                                 expirationTime: Long,
-                                expirationTimeUnit: TimeUnit
+                                expirationTimeUnit: TimeUnit,
+                                queryParams: Map[String, String]
   ): Stream[IO, URL] =
-    localStorage.getSignedBlobUrl(bucketName, blobName, signingCredentials, traceId)
+    localStorage.getSignedBlobUrl(bucketName, blobName, signingCredentials, traceId, queryParams = queryParams)
 
   override def downloadObject(blobId: BlobId,
                               path: Path,

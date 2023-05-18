@@ -159,17 +159,21 @@ private[google2] class GoogleStorageInterpreter[F[_]](
                                 traceId: Option[TraceId],
                                 retryConfig: RetryConfig,
                                 expirationTime: Long,
-                                expirationTimeUnit: TimeUnit
+                                expirationTimeUnit: TimeUnit,
+                                queryParams: Map[String, String]
   ): Stream[F, URL] = {
     val dbForCredential = db.getOptions.toBuilder.setCredentials(signingCredentials).build().getService
     val blobInfo = BlobInfo.newBuilder(BlobId.of(bucketName.value, blobName.value)).build
     val signBlob =
       blockingF(
         Async[F].delay(
-          dbForCredential.signUrl(blobInfo,
-                                  expirationTime,
-                                  expirationTimeUnit,
-                                  SignUrlOption.signWith(signingCredentials)
+          dbForCredential.signUrl(
+            blobInfo,
+            expirationTime,
+            expirationTimeUnit,
+            SignUrlOption.signWith(signingCredentials),
+            SignUrlOption.withQueryParams(queryParams.asJava),
+            SignUrlOption.withV4Signature()
           )
         )
       )

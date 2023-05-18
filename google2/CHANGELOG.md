@@ -2,6 +2,13 @@
 
 This file documents changes to the `workbench-google2` library, including notes on how to upgrade to new versions.
 
+## 0.29
+Changed:
+- Added ability to set query params in signed urls
+
+SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.29-TRAVIS-REPLACE-ME"`
+
+
 ## 0.28
 Changed:
 - Upgraded `com.google.cloud:google-cloud-bigquery` to resolve [CVE-2022-45688](https://nvd.nist.gov/vuln/detail/cve-2022-45688)
