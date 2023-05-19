@@ -6,7 +6,7 @@ This file documents changes to the `workbench-google2` library, including notes 
 Changed:
 - Added ability to set query params in signed urls
 
-SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.29-TRAVIS-REPLACE-ME"`
+SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.29-b52b498"`
 
 
 ## 0.28
