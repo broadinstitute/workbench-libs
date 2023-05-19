@@ -15,6 +15,8 @@ import org.scalatest.flatspec.AsyncFlatSpec
 import org.scalatest.matchers.should.Matchers
 import org.typelevel.log4cats.slf4j.Slf4jLogger
 
+import java.net.URLEncoder
+import java.nio.charset.StandardCharsets
 import java.security.KeyPairGenerator
 
 // AsyncFlatSpec currently doesn't work with scalacheck's forAll. It'll be supported in scalatest 3
@@ -126,7 +128,7 @@ class GoogleStorageInterpreterSpec extends AsyncFlatSpec with Matchers with Work
       .setPrivateKey(pair.getPrivate)
       .build()
 
-    val queryParams = Map("userProject" -> "my-google-project")
+    val queryParams = Map("aParam" -> "a-param-value-1", "anEmail" -> "an-email@email.com")
 
     for {
       _ <- localStorage.createBlob(bucketName, blobName, "test".getBytes("UTF-8")).compile.drain
@@ -136,7 +138,8 @@ class GoogleStorageInterpreterSpec extends AsyncFlatSpec with Matchers with Work
         .lastOrError
     } yield {
       url.getFile should startWith(s"/${bucketName.value}/${blobName.value}")
-      url.toString should include("userProject=my-google-project")
+      url.toString should include("aParam=a-param-value-1")
+      url.toString should include(s"anEmail=${URLEncoder.encode("an-email@email.com", StandardCharsets.UTF_8)}")
     }
   }
 
