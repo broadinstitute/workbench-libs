@@ -15,6 +15,8 @@ import org.scalatest.flatspec.AsyncFlatSpec
 import org.scalatest.matchers.should.Matchers
 import org.typelevel.log4cats.slf4j.Slf4jLogger
 
+import java.net.URLEncoder
+import java.nio.charset.StandardCharsets
 import java.security.KeyPairGenerator
 
 // AsyncFlatSpec currently doesn't work with scalacheck's forAll. It'll be supported in scalatest 3
@@ -109,6 +111,36 @@ class GoogleStorageInterpreterSpec extends AsyncFlatSpec with Matchers with Work
       _ <- localStorage.createBlob(bucketName, blobName, "test".getBytes("UTF-8")).compile.drain
       url <- localStorage.getSignedBlobUrl(bucketName, blobName, serviceAccountCredentials).compile.lastOrError
     } yield url.getFile should startWith(s"/${bucketName.value}/${blobName.value}")
+  }
+
+  it should "attach provided query params to a signed URL for a blob" in ioAssertion {
+    val bucketName = genGcsBucketName.sample.get
+    val blobName = genGcsBlobName.sample.get
+    val person = genPerson.sample.get
+
+    val keyGen = KeyPairGenerator.getInstance("RSA")
+    keyGen.initialize(2048)
+    val pair = keyGen.genKeyPair()
+    val serviceAccountCredentials = ServiceAccountCredentials
+      .newBuilder()
+      .setServiceAccountUser(person.name)
+      .setClientEmail(person.email)
+      .setPrivateKey(pair.getPrivate)
+      .build()
+
+    val queryParams = Map("aParam" -> "a-param-value-1", "anEmail" -> "an-email@email.com")
+
+    for {
+      _ <- localStorage.createBlob(bucketName, blobName, "test".getBytes("UTF-8")).compile.drain
+      url <- localStorage
+        .getSignedBlobUrl(bucketName, blobName, serviceAccountCredentials, queryParams = queryParams)
+        .compile
+        .lastOrError
+    } yield {
+      url.getFile should startWith(s"/${bucketName.value}/${blobName.value}")
+      url.toString should include("aParam=a-param-value-1")
+      url.toString should include(s"anEmail=${URLEncoder.encode("an-email@email.com", StandardCharsets.UTF_8)}")
+    }
   }
 
   it should "create a signed URL for a blob that doesn't exist" in ioAssertion {

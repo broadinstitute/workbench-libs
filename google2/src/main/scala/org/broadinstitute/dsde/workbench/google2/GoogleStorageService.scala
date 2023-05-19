@@ -197,6 +197,7 @@ trait GoogleStorageService[F[_]] {
    * @param retryConfig a RetryConfig for the request sent to GCS
    * @param expirationTime Number of `expirationTimeUnits`s for the signed URL to be active for. Defaults to 1 hour
    * @param expirationTimeUnit The unit giving meaning to `expirationTime`. Defaults to 1 hour
+   * @param queryParams A String->String map of query params to include in the signed url
    * @return Signed URL
    */
   def getSignedBlobUrl(bucketName: GcsBucketName,
@@ -205,7 +206,8 @@ trait GoogleStorageService[F[_]] {
                        traceId: Option[TraceId] = None,
                        retryConfig: RetryConfig = standardGoogleRetryConfig,
                        expirationTime: Long = 1,
-                       expirationTimeUnit: TimeUnit = HOURS
+                       expirationTimeUnit: TimeUnit = HOURS,
+                       queryParams: Map[String, String] = Map.empty
   ): Stream[F, URL]
 
   /**
