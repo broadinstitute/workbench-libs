@@ -149,7 +149,7 @@ trait WebBrowserUtil extends WebBrowser {
       }
 
     private def withWaitForCondition(timeOutInSeconds: Long)(f: => Boolean)(implicit webDriver: WebDriver): Boolean = {
-      val duration = Duration.ofSeconds(timeOutInSeconds)
+      val duration = timeOutInSeconds.seconds
       val wait = new WebDriverWait(webDriver, duration)
       wait until new java.util.function.Function[WebDriver, Boolean] {
         override def apply(d: WebDriver): Boolean =
@@ -161,7 +161,7 @@ trait WebBrowserUtil extends WebBrowser {
     }
 
     private def withWaitForElement(timeOutInSeconds: Long)(f: => Element)(implicit webDriver: WebDriver): Element = {
-      val duration = Duration.ofSeconds(timeOutInSeconds)
+      val duration = timeOutInSeconds.seconds
       val wait = new WebDriverWait(webDriver, duration)
       wait until new java.util.function.Function[WebDriver, Element] {
         override def apply(d: WebDriver): Element =
