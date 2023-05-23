@@ -4,7 +4,7 @@ This file documents changes to the `workbench-openTelemetry` library, including 
 
 ## 0.5
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-opentelemetry" % "0.5-TRAVIS-REPLACE-ME"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-opentelemetry" % "0.5-d764a9b"`
 
 ## 0.4
 
