@@ -4,7 +4,7 @@ This file documents changes to the `workbench-error-reporting` library, includin
 
 ## 0.4
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-error-reporting" % "0.4-TRAVIS-REPLACE-ME"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-error-reporting" % "0.4-d764a9b"`
 
 upgrade jose4j
 

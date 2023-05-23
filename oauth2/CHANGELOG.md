@@ -4,7 +4,7 @@ This file documents changes to the `workbench-oauth2` library, including notes o
 
 ## 0.4
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-oauth2" % "0.4-TRAVIS-REPLACE-ME"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-oauth2" % "0.4-d764a9b"`
 
 ## 0.3
 
