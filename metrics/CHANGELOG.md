@@ -2,6 +2,12 @@
 
 This file documents changes to the `workbench-metrics` library, including notes on how to upgrade to new versions.
 
+## 0.7
+
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util" % "0.7-TRAVIS-REPLACE-ME"`
+
+update jose4j
+
 ## 0.6
 
 SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util" % "0.6-01a11c3"`
