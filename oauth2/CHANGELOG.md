@@ -2,6 +2,10 @@
 
 This file documents changes to the `workbench-oauth2` library, including notes on how to upgrade to new versions.
 
+## 0.4
+
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-oauth2" % "0.4-TRAVIS-REPLACE-ME"`
+
 ## 0.3
 
 SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-oauth2" % "0.3-01a11c3"`

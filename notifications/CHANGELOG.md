@@ -2,6 +2,12 @@
 
 This file documents changes to the `workbench-notifications` library, including notes on how to upgrade to new versions.
 
+## 0.5
+
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-notifications" % "0.5-TRAVIS-REPLACE-ME"`
+
+upgrade jose4j
+
 ## 0.4
 
 SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-notifications" % "0.4-01a11c3"`
