@@ -5,7 +5,7 @@ import org.openqa.selenium.{StaleElementReferenceException, WebDriver}
 import org.scalatestplus.selenium.WebBrowser
 
 import scala.jdk.CollectionConverters._
-import scala.concurrent.duration._
+import java.time.Duration
 
 /**
  * Mix-in utilities for ScalaTest's WebBrowser.
@@ -149,7 +149,7 @@ trait WebBrowserUtil extends WebBrowser {
       }
 
     private def withWaitForCondition(timeOutInSeconds: Long)(f: => Boolean)(implicit webDriver: WebDriver): Boolean = {
-      val duration = timeOutInSeconds.seconds
+      val duration = Duration.ofSeconds(timeOutInSeconds)
       val wait = new WebDriverWait(webDriver, duration)
       wait until new java.util.function.Function[WebDriver, Boolean] {
         override def apply(d: WebDriver): Boolean =
@@ -161,7 +161,7 @@ trait WebBrowserUtil extends WebBrowser {
     }
 
     private def withWaitForElement(timeOutInSeconds: Long)(f: => Element)(implicit webDriver: WebDriver): Element = {
-      val duration = timeOutInSeconds.seconds
+      val duration = Duration.ofSeconds(timeOutInSeconds)
       val wait = new WebDriverWait(webDriver, duration)
       wait until new java.util.function.Function[WebDriver, Element] {
         override def apply(d: WebDriver): Element =
