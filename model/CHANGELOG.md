@@ -2,6 +2,10 @@
 
 This file documents changes to the `workbench-model` library, including notes on how to upgrade to new versions.
 
+## 0.18
+
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-model" % "0.18-TRAVIS-REPLACE-ME"`
+
 ## 0.17
 
 SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-model" % "0.17-01a11c3"`

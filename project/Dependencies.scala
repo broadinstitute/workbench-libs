@@ -3,13 +3,13 @@ import sbt._
 object Dependencies {
   val akkaV         = "2.6.20"
   val akkaHttpV     = "10.2.10"
-  val jacksonV      = "2.14.2"
+  val jacksonV      = "2.15.0"
   val googleV       = "2.0.0"
   val scalaLoggingV = "3.9.5"
   val scalaTestV    = "3.2.15"
   val circeVersion = "0.14.5"
   val http4sVersion = "1.0.0-M38"
-  val bouncyCastleVersion = "1.70"
+  val bouncyCastleVersion = "1.73"
   val openCensusV = "0.31.1"
 
   // avoid expoit https://nvd.nist.gov/vuln/detail/CVE-2023-1370 (see [IA-4176])
@@ -17,12 +17,13 @@ object Dependencies {
 
   def excludeGuavaJDK5(m: ModuleID): ModuleID = m.exclude("com.google.guava", "guava-jdk5")
 
+  val jose4j: ModuleID =  "org.bitbucket.b_c" % "jose4j" % "0.9.3"
   val logstashLogback: ModuleID = "net.logstash.logback"      % "logstash-logback-encoder" % "7.3" % "provided"
   val scalaLogging: ModuleID = "com.typesafe.scala-logging"    %% "scala-logging" % scalaLoggingV  % "provided"
   val scalatest: ModuleID =    "org.scalatest"                 %% "scalatest"     % scalaTestV  % "test"
-  val scalaTestScalaCheck = "org.scalatestplus" %% "scalacheck-1-15" % "3.2.11.0" % Test //Since scalatest 3.1.0, scalacheck support is moved to `scalatestplus`
+  val scalaTestScalaCheck = "org.scalatestplus" %% "scalacheck-1-16" % "3.2.14.0" % Test //Since scalatest 3.1.0, scalacheck support is moved to `scalatestplus`
   val scalaTestMockito = "org.scalatestplus" %% "mockito-3-4" % "3.2.10.0" % Test //Since scalatest 3.1.0, mockito support is moved to `scalatestplus`
-  val scalaTestSelenium =  "org.scalatestplus" %% "selenium-3-141" % "3.2.10.0" % Test //Since scalatest 3.1.0, selenium support is moved to `scalatestplus`
+  val scalaTestSelenium =  "org.scalatestplus" %% "selenium-4-1" % "3.2.12.1" % Test //Since scalatest 3.1.0, selenium support is moved to `scalatestplus`
 
   val akkaActor: ModuleID =         "com.typesafe.akka" %% "akka-actor"           % akkaV     % "provided"
   val akkaStream: ModuleID =         "com.typesafe.akka" %% "akka-stream"           % akkaV     % "provided"
@@ -36,11 +37,11 @@ object Dependencies {
 
   val jacksonModule: ModuleID =   "com.fasterxml.jackson.module" %% "jackson-module-scala"   % jacksonV % "test"
 
-  val bouncyCastle: ModuleID = "org.bouncycastle" % "bcpkix-jdk15on" % bouncyCastleVersion
-  val bouncyCastleProviderExt: ModuleID = "org.bouncycastle" % "bcprov-ext-jdk15on" % bouncyCastleVersion
-  val bouncyCastleProvider: ModuleID = "org.bouncycastle" % "bcprov-jdk15on" % bouncyCastleVersion
+  val bouncyCastle: ModuleID = "org.bouncycastle" % "bcpkix-jdk18on" % bouncyCastleVersion
+  val bouncyCastleProviderExt: ModuleID = "org.bouncycastle" % "bcprov-ext-jdk18on" % bouncyCastleVersion
+  val bouncyCastleProvider: ModuleID = "org.bouncycastle" % "bcprov-jdk18on" % bouncyCastleVersion
 
-  val catsEffect: ModuleID = "org.typelevel" %% "cats-effect" % "3.4.8"
+  val catsEffect: ModuleID = "org.typelevel" %% "cats-effect" % "3.4.10"
 
   // metrics-scala transitively pulls in io.dropwizard.metrics:metrics-core
   val metricsScala: ModuleID =      "nl.grons"              %% "metrics4-scala"    % "4.2.9"
@@ -58,30 +59,30 @@ object Dependencies {
   val googleIam: ModuleID =                  "com.google.apis"       % "google-api-services-iam"                  % s"v1-rev20220825-$googleV"
   val googleBigQuery: ModuleID =             "com.google.apis"       % "google-api-services-bigquery"             % s"v2-rev20220924-$googleV"
   val googleGuava: ModuleID = "com.google.guava"  % "guava" % "31.1-jre"
-  val googleRpc: ModuleID =               "io.grpc" % "grpc-core" % "1.52.1"
-  val googleRpc2: ModuleID =               "io.grpc" % "grpc-core" % "1.52.1"
+  val googleRpc: ModuleID =               "io.grpc" % "grpc-core" % "1.54.1"
+  val googleRpc2: ModuleID =               "io.grpc" % "grpc-core" % "1.54.1"
   val googleStorageNew: ModuleID = "com.google.cloud" % "google-cloud-storage" % "2.20.2"
-  val googleStorageLocal: ModuleID = "com.google.cloud" % "google-cloud-nio" % "0.126.10" % "test"
-  val googlePubsubNew: ModuleID = "com.google.cloud" % "google-cloud-pubsub" % "1.123.7"
-  val googleKms: ModuleID = "com.google.cloud" % "google-cloud-kms" % "2.6.4"
+  val googleStorageLocal: ModuleID = "com.google.cloud" % "google-cloud-nio" % "0.126.14" % "test"
+  val googlePubsubNew: ModuleID = "com.google.cloud" % "google-cloud-pubsub" % "1.123.11"
+  val googleKms: ModuleID = "com.google.cloud" % "google-cloud-kms" % "2.6.8"
   val googleComputeNew: ModuleID = "com.google.cloud" % "google-cloud-compute" % "1.12.0"
-  val googleDataproc: ModuleID =    "com.google.cloud" % "google-cloud-dataproc" % "4.10.0"
-  val googleContainer: ModuleID = "com.google.cloud" % "google-cloud-container" % "2.16.0"
-  val kubernetesClient: ModuleID = "io.kubernetes" % "client-java" % "17.0.1"
-  val googleBigQueryNew: ModuleID = "com.google.cloud" % "google-cloud-bigquery" % "2.23.2"
+  val googleDataproc: ModuleID =    "com.google.cloud" % "google-cloud-dataproc" % "4.13.0"
+  val googleContainer: ModuleID = "com.google.cloud" % "google-cloud-container" % "2.19.0"
+  val kubernetesClient: ModuleID = "io.kubernetes" % "client-java" % "18.0.0"
+  val googleBigQueryNew: ModuleID = "com.google.cloud" % "google-cloud-bigquery" % "2.25.0"
   val google2CloudBilling = "com.google.cloud" % "google-cloud-billing" % "2.3.0"
   val googleStorageTransferService: ModuleID = "com.google.cloud" % "google-cloud-storage-transfer" % "1.13.0"
-  val googleResourceManager =  "com.google.cloud" % "google-cloud-resourcemanager" % "1.5.4"
+  val googleResourceManager =  "com.google.cloud" % "google-cloud-resourcemanager" % "1.5.6"
   //the below v1 module is a dependency for v2 because it contains the OAuth scopes necessary to created scoped credentials
-  val googleContainerV1: ModuleID = "com.google.apis" % "google-api-services-container" % "v1-rev20230304-2.0.0"
+  val googleContainerV1: ModuleID = "com.google.apis" % "google-api-services-container" % "v1-rev20230420-2.0.0"
 
 
   val circeCore: ModuleID = "io.circe" %% "circe-core" % circeVersion
   val circeParser: ModuleID = "io.circe" %% "circe-parser" % circeVersion
   val circeGeneric: ModuleID = "io.circe" %% "circe-generic" % circeVersion % "test"
   val circeFs2: ModuleID = "io.circe" %% "circe-fs2" % "0.14.1"
-  val log4cats = "org.typelevel" %% "log4cats-slf4j"   % "2.5.0"
-  val catsMtl = "org.typelevel" %% "cats-mtl" % "1.3.0"
+  val log4cats = "org.typelevel" %% "log4cats-slf4j"   % "2.6.0"
+  val catsMtl = "org.typelevel" %% "cats-mtl" % "1.3.1"
 
   val http4sCirce = "org.http4s" %% "http4s-circe" % http4sVersion
   val http4sBlazeClient = "org.http4s" %% "http4s-blaze-client" % http4sVersion
@@ -104,17 +105,18 @@ object Dependencies {
   // has been made more upgrade-safe.
   val swaggerUi = "org.webjars" % "swagger-ui" % "4.11.1"
 
-  val azureResourceManagerCompute = "com.azure.resourcemanager" % "azure-resourcemanager-compute" % "2.25.0" exclude("net.minidev", "json-smart")
-  val azureIdentity =  "com.azure" % "azure-identity" % "1.7.1"
+  val azureResourceManagerCompute = "com.azure.resourcemanager" % "azure-resourcemanager-compute" % "2.26.0" exclude("net.minidev", "json-smart")
+  val azureIdentity =  "com.azure" % "azure-identity" % "1.7.3"
   val azureRelay =     "com.azure.resourcemanager" % "azure-resourcemanager-relay" % "1.0.0-beta.2"
-  val azureStorageBlob =  "com.azure" % "azure-storage-blob" % "12.21.1"
-  val azureResourceManagerContainerService = "com.azure.resourcemanager" % "azure-resourcemanager-containerservice" % "2.25.0"
+  val azureStorageBlob =  "com.azure" % "azure-storage-blob" % "12.22.0"
+  val azureResourceManagerContainerService = "com.azure.resourcemanager" % "azure-resourcemanager-containerservice" % "2.26.0"
   val azureResourceManagerApplicationInsights =
     "com.azure.resourcemanager" % "azure-resourcemanager-applicationinsights" % "1.0.0-beta.5"
   val azureResourceManagerBatchAccount =
     "com.azure.resourcemanager" % "azure-resourcemanager-batch" % "1.0.0"
 
   val commonDependencies = Seq(
+    jose4j,
     scalatest,
     scalaCheck,
     scalaTestScalaCheck

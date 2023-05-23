@@ -2,6 +2,12 @@
 
 This file documents changes to the `workbench-google2` library, including notes on how to upgrade to new versions.
 
+## 0.30
+
+SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.30-TRAVIS-REPLACE-ME"`
+
+upgraded jose4j
+
 ## 0.29
 Changed:
 - Added ability to set query params in signed urls
