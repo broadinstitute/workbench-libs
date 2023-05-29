@@ -36,7 +36,7 @@ SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util" % "0.6-
 | jackson-module-scala |  2.14.1 | 2.14.2 |
 | logstash-logback-encoder |  7.2 | 7.3 |
 | sbt-scoverage |  2.0.6 | 2.0.7 |
-| scalatest |  3.2.14 | 3.2.15 |
+| scalatest |  3.2.14 | 3.2.16 |
 
 ## 0.5
 
