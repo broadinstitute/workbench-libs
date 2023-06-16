@@ -9,7 +9,7 @@ object Dependencies {
   val scalaTestV    = "3.2.15"
   val circeVersion = "0.14.5"
   val http4sVersion = "1.0.0-M38"
-  val bouncyCastleVersion = "1.73"
+  val bouncyCastleVersion = "1.74"
   val openCensusV = "0.31.1"
 
   // avoid expoit https://nvd.nist.gov/vuln/detail/CVE-2023-1370 (see [IA-4176])
