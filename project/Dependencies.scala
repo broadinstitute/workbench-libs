@@ -108,7 +108,7 @@ object Dependencies {
   val azureResourceManagerCompute = "com.azure.resourcemanager" % "azure-resourcemanager-compute" % "2.26.0" exclude("net.minidev", "json-smart")
   val azureIdentity =  "com.azure" % "azure-identity" % "1.7.3"
   val azureRelay =     "com.azure.resourcemanager" % "azure-resourcemanager-relay" % "1.0.0-beta.2"
-  val azureStorageBlob =  "com.azure" % "azure-storage-blob" % "12.22.0"
+  val azureStorageBlob =  "com.azure" % "azure-storage-blob" % "12.22.3"
   val azureResourceManagerContainerService = "com.azure.resourcemanager" % "azure-resourcemanager-containerservice" % "2.26.0"
   val azureResourceManagerApplicationInsights =
     "com.azure.resourcemanager" % "azure-resourcemanager-applicationinsights" % "1.0.0-beta.5"
