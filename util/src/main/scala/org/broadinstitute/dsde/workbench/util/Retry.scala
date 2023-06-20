@@ -100,11 +100,15 @@ trait Retry {
   protected def createExponentialBackOffIntervals(startingValue: Int,
                                                   multiplyBy: Int,
                                                   elements: Int,
-                                                  withJitter: Boolean = true,
-                                                  jitterValue: Int = 1000
+                                                  jitterValue: Option[Int] = Some(1000)
   ): Seq[FiniteDuration] = {
     val intervals = Seq.iterate(startingValue, elements)(_ * multiplyBy).map(_ milliseconds)
-    if (withJitter) intervals.map(i => addJitter(i, jitterValue milliseconds)) else intervals
+    jitterValue match {
+      case Some(value) =>
+        intervals.map(i => addJitter(i, value milliseconds))
+      case None =>
+        intervals
+    }
   }
 
   // 1000, 2000, ...., 64000 milliseconds

@@ -36,7 +36,7 @@ class RetrySpec
   override def afterAll(): Unit =
     TestKit.shutdownActorSystem(system)
 
-  "Retry" should "retry 3 times by default" in {
+  "Retry" should "retry 4 times by default" in {
     implicit val patienceConfig = PatienceConfig(timeout = scaled(Span(1.5, Minutes)))
     val testable = new TestRetry(system, setUpMockLogger)
     import testable._
