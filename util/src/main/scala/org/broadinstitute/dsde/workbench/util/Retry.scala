@@ -104,7 +104,7 @@ trait Retry {
                                                   jitterValue: Int = 1000
   ): Seq[FiniteDuration] = {
     val intervals = Seq.iterate(startingValue, elements)(_ * multiplyBy).map(_ milliseconds)
-    if (withJitter) intervals else intervals.map(i => addJitter(i, jitterValue milliseconds))
+    if (withJitter) intervals.map(i => addJitter(i, jitterValue milliseconds)) else intervals
   }
 
   // 1000, 2000, ...., 64000 milliseconds
