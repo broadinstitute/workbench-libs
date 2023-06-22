@@ -6,7 +6,7 @@ This file documents changes to the `workbench-util` library, including notes on 
 - Added increased retry interval backoff
 - Added configurable interval backoff function
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util" % "0.9-TRAVIS-REPLACE-ME"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util" % "0.9-32f499b"`
 
 ## 0.7
 
