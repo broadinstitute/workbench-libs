@@ -25,7 +25,7 @@ Workbench utility libraries, built for 2.13. You can find the full list of packa
 
 Contains utility functions and classes.
 
-Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util" % "0.9-TRAVIS-REPLACE-ME"`
+Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util" % "0.9-32f499b"`
 
 [Changelog](util/CHANGELOG.md)
 
