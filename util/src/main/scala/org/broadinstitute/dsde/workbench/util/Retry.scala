@@ -94,18 +94,26 @@ trait Retry {
     loop(backoffIntervals, List.empty)
   }
 
-  private val allBackoffIntervals = Seq(100 milliseconds, 1 second, 3 seconds)
+  private val allBackoffIntervals = Seq(100 milliseconds, 1 second, 3 seconds, 60 seconds)
 
-  protected def exponentialBackOffIntervals: Seq[FiniteDuration] = {
-    val plainIntervals = Seq(1000 milliseconds,
-                             2000 milliseconds,
-                             4000 milliseconds,
-                             8000 milliseconds,
-                             16000 milliseconds,
-                             32000 milliseconds
-    )
-    plainIntervals.map(i => addJitter(i, 1000 milliseconds))
+  // starting value in milliseconds, multiply by multiples of this each step, how many steps/elements
+  protected def createExponentialBackOffIntervals(startingValue: Int,
+                                                  multiplyBy: Int,
+                                                  elements: Int,
+                                                  jitterValue: Option[Int] = Some(1000)
+  ): Seq[FiniteDuration] = {
+    val intervals = Seq.iterate(startingValue, elements)(_ * multiplyBy).map(_ milliseconds)
+    jitterValue match {
+      case Some(value) =>
+        intervals.map(i => addJitter(i, value milliseconds))
+      case None =>
+        intervals
+    }
   }
+
+  // 1000, 2000, ...., 64000 milliseconds
+  protected def exponentialBackOffIntervals: Seq[FiniteDuration] =
+    createExponentialBackOffIntervals(1000, 2, 7)
 
   /**
    * Converts an RetryableFuture[A] to a Future[A].
