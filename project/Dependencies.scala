@@ -88,7 +88,7 @@ object Dependencies {
   val http4sBlazeClient = "org.http4s" %% "http4s-blaze-client" % http4sVersion
   val http4sDsl = "org.http4s"      %% "http4s-dsl"          % http4sVersion
 
-  val fs2Io: ModuleID = "co.fs2" %% "fs2-io" % "3.7.0"
+  val fs2Io: ModuleID = "co.fs2" %% "fs2-io" % "3.6.1"
   val rawlsModel: ModuleID = "org.broadinstitute.dsde" %% "rawls-model" % "0.1-6ac29cea8" exclude("com.typesafe.scala-logging", "scala-logging_2.13") exclude("com.typesafe.akka", "akka-stream_2.13")
   val openCensusApi: ModuleID = "io.opencensus" % "opencensus-api" % openCensusV
   val openCensusImpl: ModuleID = "io.opencensus" % "opencensus-impl" % openCensusV
