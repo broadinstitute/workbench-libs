@@ -2,6 +2,12 @@
 
 This file documents changes to the `workbench-util` library, including notes on how to upgrade to new versions.
 
+## 0.9
+- Added increased retry interval backoff
+- Added configurable interval backoff function
+
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util" % "0.9-32f499b"`
+
 ## 0.7
 
 SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util" % "0.7-d764a9b"`

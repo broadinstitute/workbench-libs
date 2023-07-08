@@ -36,25 +36,26 @@ class RetrySpec
   override def afterAll(): Unit =
     TestKit.shutdownActorSystem(system)
 
-  "Retry" should "retry 3 times by default" in {
+  "Retry" should "retry 4 times by default" in {
+    implicit val patienceConfig = PatienceConfig(timeout = scaled(Span(1.5, Minutes)))
     val testable = new TestRetry(system, setUpMockLogger)
     import testable._
 
     val result: Future[Int] = testable.retry()(() => testable.failure)
 
     // result should be a failure
-    // invocationCount should be 4 (1 initial run plus 3 retries)
-    // log count should be 4 (3 retries plus 1 failure message)
+    // invocationCount should be 5 (1 initial run plus 4 retries)
+    // log count should be 5 (4 retries plus 1 failure message)
     whenReady(result.failed) { ex =>
       ex shouldBe an[Exception]
       ex should have message "test exception"
-      testable.invocationCount should equal(4)
+      testable.invocationCount should equal(5)
       // A note on Mockito: this is basically saying "verify that my mock
       // SLF4JLogger had info() called on it 4 times with any String and
       // any Throwable as arguments."
       // For more information and examples on Mockito, see:
       // http://static.javadoc.io/org.mockito/mockito-core/2.7.22/org/mockito/Mockito.html#verification
-      verify(testable.slf4jLogger, times(4)).info(anyString, any[Throwable])
+      verify(testable.slf4jLogger, times(5)).info(anyString, any[Throwable])
     }
   }
 
@@ -92,6 +93,7 @@ class RetrySpec
   }
 
   it should "log a custom error message" in {
+    implicit val patienceConfig = PatienceConfig(timeout = scaled(Span(1.5, Minutes)))
     val testable = new TestRetry(system, setUpMockLogger)
     import testable._
     val customLogMsg = "custom"
@@ -99,23 +101,23 @@ class RetrySpec
     val result: Future[Int] = testable.retry(failureLogMessage = customLogMsg)(() => testable.failure)
 
     // result should be a failure
-    // invocationCount should be 4 (1 initial run plus 3 retries)
-    // log count should be 4 (3 retries plus 1 failure message)
+    // invocationCount should be 5 (1 initial run plus 4 retries)
+    // log count should be 5 (4 retries plus 1 failure message)
     whenReady(result.failed) { ex =>
       ex shouldBe an[Exception]
       ex should have message "test exception"
-      testable.invocationCount should equal(4)
+      testable.invocationCount should equal(5)
       val argumentCaptor = captor[String]
-      verify(testable.slf4jLogger, times(4)).info(argumentCaptor.capture, any[Throwable])
+      verify(testable.slf4jLogger, times(5)).info(argumentCaptor.capture, any[Throwable])
       argumentCaptor.getAllValues.asScala.foreach { msg =>
         msg should startWith(customLogMsg)
       }
     }
   }
 
-  it should "retry exponentially 6 times" in {
+  it should "retry exponentially 7 times" in {
     // Need to increase the patience config because exponential retries take longer
-    implicit val patienceConfig = PatienceConfig(timeout = scaled(Span(2, Minutes)))
+    implicit val patienceConfig = PatienceConfig(timeout = scaled(Span(3, Minutes)))
 
     val testable = new TestRetry(system, setUpMockLogger)
     import testable._
@@ -123,13 +125,13 @@ class RetrySpec
     val result: Future[Int] = testable.retryExponentially()(() => testable.failure)
 
     // result should be a failure
-    // invocationCount should be 7 (1 initial run plus 6 retries)
-    // log count should be 7 (6 retries plus 1 failure message)
+    // invocationCount should be 8 (1 initial run plus 7 retries)
+    // log count should be 8 (7 retries plus 1 failure message)
     whenReady(result.failed) { ex =>
       ex shouldBe an[Exception]
       ex should have message "test exception"
-      testable.invocationCount should equal(7)
-      verify(testable.slf4jLogger, times(7)).info(anyString, any[Throwable])
+      testable.invocationCount should equal(8)
+      verify(testable.slf4jLogger, times(8)).info(anyString, any[Throwable])
     }
   }
 
