@@ -344,7 +344,8 @@ trait GoogleStorageService[F[_]] {
                         roles: Map[StorageRole, NonEmptyList[Identity]],
                         traceId: Option[TraceId] = None,
                         retryConfig: RetryConfig = standardGoogleRetryConfig,
-                        bucketSourceOptions: List[BucketSourceOption] = List.empty
+                        bucketSourceOptions: List[BucketSourceOption] = List.empty,
+                        version: Int = 1
   ): Stream[F, Policy]
 
   def getIamPolicy(bucketName: GcsBucketName,
