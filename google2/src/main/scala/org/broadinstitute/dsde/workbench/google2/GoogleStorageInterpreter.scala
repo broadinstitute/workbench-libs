@@ -542,7 +542,8 @@ private[google2] class GoogleStorageInterpreter[F[_]](
                                  roles: Map[StorageRole, NonEmptyList[Identity]],
                                  traceId: Option[TraceId],
                                  retryConfig: RetryConfig,
-                                 bucketSourceOptions: List[BucketSourceOption]
+                                 bucketSourceOptions: List[BucketSourceOption],
+                                 version: Int
   ): Stream[F, Policy] = {
 
     val policyBuilder = Policy.newBuilder()
@@ -550,6 +551,7 @@ private[google2] class GoogleStorageInterpreter[F[_]](
       .foldLeft(policyBuilder)((currentBuilder, item) =>
         currentBuilder.addIdentity(Role.of(item._1.name), item._2.head, item._2.tail: _*)
       )
+      .setVersion(version)
       .build()
 
     val overrideIam = blockingF(

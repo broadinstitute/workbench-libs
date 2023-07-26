@@ -4,9 +4,11 @@ This file documents changes to the `workbench-google2` library, including notes 
 
 ## 0.30
 
-SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.30-d764a9b"`
+SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.30-TRAVIS-REPLACE-ME"`
 
-upgraded jose4j
+Changed:
+- upgraded jose4j
+- Add optional IAM policy version parameter when overriding GCS bucket IAM policy
 
 ## 0.29
 Changed:
