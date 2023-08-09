@@ -15,6 +15,11 @@ class FakeAzureRelayService extends AzureRelayService[IO] {
                                            hybridConnectionName: RelayHybridConnectionName,
                                            cloudContext: AzureCloudContext
   )(implicit ev: Ask[IO, TraceId]): IO[Unit] = IO.unit
+
+  override def getRelayHybridConnectionKey(relayNamespace: RelayNamespace,
+                                           hybridConnectionName: RelayHybridConnectionName,
+                                           cloudContext: AzureCloudContext
+  )(implicit ev: Ask[IO, TraceId]): IO[PrimaryKey] = IO.pure(PrimaryKey("fakeKey"))
 }
 
 object FakeAzureRelayService extends FakeAzureRelayService
