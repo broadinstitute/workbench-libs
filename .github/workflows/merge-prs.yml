@@ -20,3 +20,4 @@ jobs:
         with:
           branch_prefix: update/
           ci_required: false
+          pr_title: Combined Dependabot PRs
