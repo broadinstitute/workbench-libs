@@ -1,3 +1,4 @@
+name: Combine PRs
 
 on:
   workflow_dispatch: # allows you to manually trigger the workflow
@@ -16,6 +17,3 @@ jobs:
       - name: combine-prs
         id: combine-prs
         uses: github/combine-prs@v3.1.1
-        with:
-          branch_prefix: update/
-          ci_required: false
