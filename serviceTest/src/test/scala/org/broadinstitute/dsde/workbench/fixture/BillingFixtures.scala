@@ -5,6 +5,7 @@ import cats.effect.kernel.Resource
 import cats.effect.unsafe.implicits.global
 import cats.effect.{IO, Sync}
 import cats.implicits.{catsSyntaxApply, toFoldableOps}
+import cats.syntax.all._
 import com.typesafe.scalalogging.LazyLogging
 import org.broadinstitute.dsde.rawls.model.AzureManagedAppCoordinates
 import org.broadinstitute.dsde.workbench.auth.AuthToken
@@ -100,7 +101,7 @@ object BillingFixtures extends LazyLogging {
       }
     }
 
-    def destroyBillingProject(projectName: String): F[Unit] = F.unit productL F.delay {
+    def destroyBillingProject(projectName: String): F[Unit] = F.unit <* F.delay {
       Orchestration.billingV2.deleteBillingProject(projectName)(creatorAuthToken)
       if (
         Retry.retryWithPredicate(1.seconds, 1.minutes) {
