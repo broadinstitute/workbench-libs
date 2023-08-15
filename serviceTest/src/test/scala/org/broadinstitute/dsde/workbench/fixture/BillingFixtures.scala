@@ -100,7 +100,7 @@ object BillingFixtures extends LazyLogging {
       }
     }
 
-    def destroyBillingProject(projectName: String): F[Unit] = F.unit <* F.delay {
+    def destroyBillingProject(projectName: String): F[Unit] = F.unit productL F.delay {
       Orchestration.billingV2.deleteBillingProject(projectName)(creatorAuthToken)
       if (
         Retry.retryWithPredicate(1.seconds, 1.minutes) {
