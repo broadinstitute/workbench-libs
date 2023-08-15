@@ -20,6 +20,13 @@ trait AzureRelayService[F[_]] {
   )(implicit
     ev: Ask[F, TraceId]
   ): F[Unit]
+
+  def getRelayHybridConnectionKey(relayNamespace: RelayNamespace,
+                                  hybridConnectionName: RelayHybridConnectionName,
+                                  cloudContext: AzureCloudContext
+  )(implicit
+    ev: Ask[F, TraceId]
+  ): F[PrimaryKey]
 }
 
 object AzureRelayService {

@@ -98,6 +98,30 @@ class AzureRelayInterp[F[_]](clientSecretCredential: ClientSecretCredential)(imp
     )
   } yield ()
 
+  override def getRelayHybridConnectionKey(relayNamespace: RelayNamespace,
+                                           hybridConnectionName: RelayHybridConnectionName,
+                                           cloudContext: AzureCloudContext
+  )(implicit
+    ev: Ask[F, TraceId]
+  ): F[PrimaryKey] =
+    for {
+      manager <- buildRelayManager(cloudContext)
+      fa = F.delay(
+        manager
+          .hybridConnections()
+          .listKeys(cloudContext.managedResourceGroupName.value,
+                    relayNamespace.value,
+                    hybridConnectionName.value,
+                    "listener"
+          )
+          .primaryKey()
+      )
+      key <- tracedLogging(
+        fa,
+        s"com.azure.resourcemanager.relay.models.HybridConnections.listKeys(${cloudContext.managedResourceGroupName.value}, ${relayNamespace.value}, ${hybridConnectionName.value})"
+      )
+    } yield PrimaryKey(key)
+
   private def buildRelayManager(azureCloudContext: AzureCloudContext): F[RelayManager] = {
     val azureProfile =
       new AzureProfile(azureCloudContext.tenantId.value, azureCloudContext.subscriptionId.value, AzureEnvironment.AZURE)
