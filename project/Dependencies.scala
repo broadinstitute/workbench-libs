@@ -59,19 +59,19 @@ object Dependencies {
   val googleIam: ModuleID =                  "com.google.apis"       % "google-api-services-iam"                  % s"v1-rev20220825-$googleV"
   val googleBigQuery: ModuleID =             "com.google.apis"       % "google-api-services-bigquery"             % s"v2-rev20220924-$googleV"
   val googleGuava: ModuleID = "com.google.guava"  % "guava" % "31.1-jre"
-  val googleRpc: ModuleID =               "io.grpc" % "grpc-core" % "1.54.1"
-  val googleRpc2: ModuleID =               "io.grpc" % "grpc-core" % "1.54.1"
-  val googleStorageNew: ModuleID = "com.google.cloud" % "google-cloud-storage" % "2.20.2"
+  val googleRpc: ModuleID =               "io.grpc" % "grpc-core" % "1.57.2"
+  val googleRpc2: ModuleID =               "io.grpc" % "grpc-core" % "1.57.2"
+  val googleStorageNew: ModuleID = "com.google.cloud" % "google-cloud-storage" % "2.24.0"
   val googleStorageLocal: ModuleID = "com.google.cloud" % "google-cloud-nio" % "0.126.14" % "test"
-  val googlePubsubNew: ModuleID = "com.google.cloud" % "google-cloud-pubsub" % "1.123.11"
-  val googleKms: ModuleID = "com.google.cloud" % "google-cloud-kms" % "2.6.8"
-  val googleComputeNew: ModuleID = "com.google.cloud" % "google-cloud-compute" % "1.12.0"
-  val googleDataproc: ModuleID =    "com.google.cloud" % "google-cloud-dataproc" % "4.13.0"
-  val googleContainer: ModuleID = "com.google.cloud" % "google-cloud-container" % "2.19.0"
+  val googlePubsubNew: ModuleID = "com.google.cloud" % "google-cloud-pubsub" % "1.124.1"
+  val googleKms: ModuleID = "com.google.cloud" % "google-cloud-kms" % "2.26.0"
+  val googleComputeNew: ModuleID = "com.google.cloud" % "google-cloud-compute" % "1.33.0"
+  val googleDataproc: ModuleID =    "com.google.cloud" % "google-cloud-dataproc" % "4.20.0"
+  val googleContainer: ModuleID = "com.google.cloud" % "google-cloud-container" % "2.26.0"
   val kubernetesClient: ModuleID = "io.kubernetes" % "client-java" % "18.0.0"
   val googleBigQueryNew: ModuleID = "com.google.cloud" % "google-cloud-bigquery" % "2.25.0"
-  val google2CloudBilling = "com.google.cloud" % "google-cloud-billing" % "2.3.0"
-  val googleStorageTransferService: ModuleID = "com.google.cloud" % "google-cloud-storage-transfer" % "1.13.0"
+  val google2CloudBilling = "com.google.cloud" % "google-cloud-billing" % "2.23.0"
+  val googleStorageTransferService: ModuleID = "com.google.cloud" % "google-cloud-storage-transfer" % "1.23.0"
   val googleResourceManager =  "com.google.cloud" % "google-cloud-resourcemanager" % "1.5.6"
   //the below v1 module is a dependency for v2 because it contains the OAuth scopes necessary to created scoped credentials
   val googleContainerV1: ModuleID = "com.google.apis" % "google-api-services-container" % "v1-rev20230420-2.0.0"
@@ -229,7 +229,7 @@ object Dependencies {
 
   val errorReportingDependencies = List(
     catsEffect,
-    "com.google.cloud" % "google-cloud-errorreporting" % "0.122.23-beta"
+    "com.google.cloud" % "google-cloud-errorreporting" % "0.144.0-beta"
   )
 
   val util2Dependencies = commonDependencies ++ List(
