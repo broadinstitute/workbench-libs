@@ -4,7 +4,7 @@ This file documents changes to the `workbench-google` library, including notes o
 
 ## 0.28
 
-SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.28-TRAVIS-REPLACE-ME"`
+SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.28-3ad3700"`
 
 Changed:
 - Upgraded underlying google libraries to remediate [CVE-2023-32731](https://nvd.nist.gov/vuln/detail/CVE-2023-32731)
