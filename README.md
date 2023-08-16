@@ -68,11 +68,11 @@ Workbench utility libraries, built for 2.13. You can find the full list of packa
 
 Contains utility functions for talking to Google APIs and DAOs for Google PubSub, Google Directory, Google IAM, and Google BigQuery.
 
-Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.27-d764a9b"`
+Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "TRAVIS-REPLACE-ME"`
 
 To depend on the `MockGoogle*` classes, additionally depend on:
 
-`"org.broadinstitute.dsde.workbench" %% "workbench-google"  % "0.27-c41881f" % "test" classifier "tests"`
+`"org.broadinstitute.dsde.workbench" %% "workbench-google"  % "TRAVIS-REPLACE-ME" % "test" classifier "tests"`
 
 [Changelog](google/CHANGELOG.md)
 
@@ -82,7 +82,7 @@ Workbench utility libraries, built for 2.13. You can find the full list of packa
 
 Contains utility functions for talking to Google APIs via com.google.cloud client library (more recent) via gRPC.
 
-Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.30-15f1721"`
+Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "TRAVIS-REPLACE-ME"`
 
 To start the Google PubSub emulator for unit testing:
 
@@ -106,7 +106,7 @@ Workbench utility libraries, built for 2.13. You can find the full list of packa
 
 Contains utility functions for publishing custom metrics using openTelemetry (openCensus and openTracing).
 
-Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-error-reporting" % "0.4-d764a9b"`
+Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-error-reporting" % "TRAVIS-REPLACE-ME"`
 
 [Changelog](errorReporting/CHANGELOG.md)
 
