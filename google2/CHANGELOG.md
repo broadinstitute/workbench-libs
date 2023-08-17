@@ -2,6 +2,13 @@
 
 This file documents changes to the `workbench-google2` library, including notes on how to upgrade to new versions.
 
+## 0.31
+
+SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.31-3ad3700"`
+
+Changed:
+- Upgraded underlying google libraries to remediate [CVE-2023-32731](https://nvd.nist.gov/vuln/detail/CVE-2023-32731)
+
 ## 0.30
 
 SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.30-15f1721"`

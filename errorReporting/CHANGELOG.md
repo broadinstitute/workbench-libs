@@ -2,6 +2,13 @@
 
 This file documents changes to the `workbench-error-reporting` library, including notes on how to upgrade to new versions.
 
+## 0.5
+
+SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-error-reporting" % "0.5-3ad3700"`
+
+Changed:
+- Upgraded underlying google libraries to remediate [CVE-2023-32731](https://nvd.nist.gov/vuln/detail/CVE-2023-32731)
+
 ## 0.4
 
 SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-error-reporting" % "0.4-d764a9b"`
