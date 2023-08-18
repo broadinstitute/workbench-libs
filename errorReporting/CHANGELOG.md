@@ -4,7 +4,7 @@ This file documents changes to the `workbench-error-reporting` library, includin
 
 ## 0.6
 
-SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-error-reporting" % "0.6-TRAVIS-REPLACE-ME"`
+SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-error-reporting" % "0.6-026bc90"`
 
 ### Dependency upgrades
 | Dependency   |     Old Version      |          New Version |

@@ -4,7 +4,7 @@ This file documents changes to the `workbench-util2` library, including notes on
 
 ## 0.5
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util2" % "0.5-TRAVIS-REPLACE-ME"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util2" % "0.5-026bc90"`
 
 ### Dependency upgrades
 | Dependency   |     Old Version      |          New Version |
