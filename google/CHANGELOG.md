@@ -2,6 +2,25 @@
 
 This file documents changes to the `workbench-google` library, including notes on how to upgrade to new versions.
 
+## 0.29
+
+SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.29-TRAVIS-REPLACE-ME"`
+
+### Dependency upgrades
+| Dependency   |     Old Version      |          New Version |
+|----------|:--------------------:|---------------------:|
+| cats-effect |        3.4.10        |               3.4.11 |
+| fs2-io |        3.6.1         |                3.8.0 |
+| google-api-services-container | v1-rev20230420-2.0.0 | v1-rev20230724-2.0.0 |
+| google-cloud-bigquery |        2.25.0        |               2.31.1 |
+| google-cloud-nio |       0.126.14       |             0.126.19 |
+| google-cloud-resourcemanager |        1.5.6         |               1.25.0 |
+| guava |       31.1-jre       |           32.1.2-jre |
+| jackson-module-scala |        2.15.0        |               2.15.2 |
+| logstash-logback-encoder |         7.3          |                  7.4 |
+| sbt-scoverage |        2.0.7         |                2.0.8 |
+| scalatest |        3.2.15        |               3.2.16 |
+
 ## 0.28
 
 SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.28-3ad3700"`
@@ -18,30 +37,30 @@ SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.
 SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.26-01a11c3"`
 
 ### Dependency upgrades
-| Dependency   |      Old Version      |  New Version |
-|----------|:-------------:|------:|
-| azure-resourcemanager-compute |  2.17.0 | 2.25.0 |
-| azure-resourcemanager-containerservice |  2.19.0 | 2.25.0 |
-| azure-storage-blob |  12.19.1 | 12.21.1 |
-| cats-effect |  3.4.4 | 3.4.8 |
-| circe-core |  0.14.3 | 0.14.5 |
-| circe-fs2 |  0.14.0 | 0.14.1 |
-| client-java |  17.0.0 | 17.0.1 |
-| fs2-io |  3.4.0 | 3.6.1 |
+| Dependency   |      Old Version      |          New Version |
+|----------|:-------------:|---------------------:|
+| azure-resourcemanager-compute |  2.17.0 |               2.25.0 |
+| azure-resourcemanager-containerservice |  2.19.0 |               2.25.0 |
+| azure-storage-blob |  12.19.1 |              12.21.1 |
+| cats-effect |  3.4.4 |                3.4.8 |
+| circe-core |  0.14.3 |               0.14.5 |
+| circe-fs2 |  0.14.0 |               0.14.1 |
+| client-java |  17.0.0 |               17.0.1 |
+| fs2-io |  3.4.0 |                3.6.1 |
 | google-api-services-container |  v1-rev20221110-2.0.0 | v1-rev20230304-2.0.0 |
-| google-cloud-bigquery |  2.20.0 | 2.20.2 |
-| google-cloud-container |  2.10.0 | 2.16.0 |
-| google-cloud-dataproc |  4.4.0 | 4.10.0 |
-| google-cloud-nio |  0.126.0 | 0.126.10 |
-| google-cloud-pubsub |  1.122.2 | 1.123.7 |
-| google-cloud-storage |  2.16.0 | 2.20.2 |
-| google-cloud-storage-transfer |  1.6.0 | 1.13.0 |
-| grpc-core |  1.51.1 | 1.51.3 |
-| http4s-circe |  1.0.0-M35 | 1.0.0-M38 |
-| jackson-module-scala |  2.14.1 | 2.15.0 |
-| logstash-logback-encoder |  7.2 | 7.3 |
-| sbt-scoverage |  2.0.6 | 2.0.7 |
-| scalatest |  3.2.14 | 3.2.16 |
+| google-cloud-bigquery |  2.20.0 |               2.20.2 |
+| google-cloud-container |  2.10.0 |               2.16.0 |
+| google-cloud-dataproc |  4.4.0 |               4.10.0 |
+| google-cloud-nio |  0.126.0 |             0.126.10 |
+| google-cloud-pubsub |  1.122.2 |              1.123.7 |
+| google-cloud-storage |  2.16.0 |               2.20.2 |
+| google-cloud-storage-transfer |  1.6.0 |               1.13.0 |
+| grpc-core |  1.51.1 |               1.51.3 |
+| http4s-circe |  1.0.0-M35 |            1.0.0-M38 |
+| jackson-module-scala |  2.14.1 |               2.15.0 |
+| logstash-logback-encoder |  7.2 |                  7.3 |
+| sbt-scoverage |  2.0.6 |                2.0.7 |
+| scalatest |  3.2.14 |               3.2.15 |
 
 ## 0.25
 

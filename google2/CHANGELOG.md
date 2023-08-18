@@ -2,6 +2,19 @@
 
 This file documents changes to the `workbench-google2` library, including notes on how to upgrade to new versions.
 
+## 0.32
+
+SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.32-TRAVIS-REPLACE-ME"`
+
+### Dependency upgrades
+| Dependency   |     Old Version      |          New Version |
+|----------|:--------------------:|---------------------:|
+| bcpkix-jdk18on |         1.73         |                 1.76 |
+| client-java |        18.0.0        |               18.0.1 |
+| google-api-services-container | v1-rev20230420-2.0.0 | v1-rev20230724-2.0.0 |
+| sbt-scoverage |        2.0.7         |                2.0.8 |
+| scalatest |        3.2.15        |               3.2.16 |
+
 ## 0.31
 
 SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.31-3ad3700"`

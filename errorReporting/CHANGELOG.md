@@ -2,6 +2,17 @@
 
 This file documents changes to the `workbench-error-reporting` library, including notes on how to upgrade to new versions.
 
+## 0.6
+
+SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-error-reporting" % "0.6-TRAVIS-REPLACE-ME"`
+
+### Dependency upgrades
+| Dependency   |     Old Version      |          New Version |
+|----------|:--------------------:|---------------------:|
+| cats-effect |        3.4.10        |               3.4.11 |
+| sbt-scoverage                          |    2.0.7    |       2.0.8 |
+| scalatest                              |   3.2.15    |      3.2.16 |
+
 ## 0.5
 
 SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-error-reporting" % "0.5-3ad3700"`

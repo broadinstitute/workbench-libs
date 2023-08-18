@@ -2,6 +2,16 @@
 
 This file documents changes to the `workbench-metrics` library, including notes on how to upgrade to new versions.
 
+## 0.8
+
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util" % "0.8-TRAVIS-REPLACE-ME"`
+
+### Dependency upgrades
+| Dependency   |     Old Version      |          New Version |
+|----------|:--------------------:|---------------------:|
+| sbt-scoverage |        2.0.7         |                2.0.8 |
+| scalatest |        3.2.15        |               3.2.16 |
+
 ## 0.7
 
 SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util" % "0.7-d764a9b"`

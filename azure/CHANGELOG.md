@@ -2,6 +2,22 @@
 
 This file documents changes to the `workbench-azure` library, including notes on how to upgrade to new versions.
 
+## 0.5
+
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-azure" % "0.5-TRAVIS-REPLACE-ME"`
+
+### Dependency upgrades
+| Dependency                             | Old Version | New Version |
+|----------------------------------------|:-----------:|------------:|
+| azure-resourcemanager-compute          |   2.26.0    |      2.29.0 |
+| azure-resourcemanager-containerservice |   2.26.0    |      2.29.0 |
+| azure-storage-blob                     |   12.22.0   |     12.22.3 |
+| azure-identity                         |    1.7.3    |      1.10.0 |
+| client-java                            |   18.0.0    |      18.0.1 |
+| json-smart                             |   2.4.10    |      2.4.11 |
+| sbt-scoverage                          |    2.0.7    |       2.0.8 |
+| scalatest                              |   3.2.15    |      3.2.16 |
+
 ## 0.4
 
 SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-azure" % "0.4-63d2d78"`
