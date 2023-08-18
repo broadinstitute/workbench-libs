@@ -5,6 +5,7 @@ import cats.effect.kernel.Resource
 import cats.effect.unsafe.implicits.global
 import cats.effect.{IO, Sync}
 import cats.implicits.{catsSyntaxApply, toFoldableOps}
+import cats.syntax.all._
 import com.typesafe.scalalogging.LazyLogging
 import org.broadinstitute.dsde.rawls.model.AzureManagedAppCoordinates
 import org.broadinstitute.dsde.workbench.auth.AuthToken
