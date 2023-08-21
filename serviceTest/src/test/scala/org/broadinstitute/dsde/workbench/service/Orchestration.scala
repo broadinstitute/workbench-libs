@@ -107,6 +107,9 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
 
   object billingV2 {
 
+    def listUserBillingProjects()(implicit token: AuthToken): List[Map[String, String]] =
+      parseResponseAs[List[Map[String, String]]](getRequest(apiUrl(s"api/billing/v2")))
+
     def createBillingProject(projectName: String,
                              billingInformation: Either[String, AzureManagedAppCoordinates],
                              servicePerimeterOpt: Option[String] = None
