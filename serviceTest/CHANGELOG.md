@@ -2,6 +2,14 @@
 
 This file documents changes to the `workbench-service-test` library, including notes on how to upgrade to new versions.
 
+## 4.0
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "4.0.XX"`
+
+### Changed
+
+Breaking changes:
+- Remove formerly deprecated v1 billing endpoints from rawls and firecloud-orchestration test objects
+
 ## 3.2
 
 SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "3.2-026bc90"`

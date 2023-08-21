@@ -667,7 +667,7 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
 
     def getUser()(implicit token: AuthToken): Map[String, String] =
       parseResponseAs[Map[String, String]](getRequest(apiUrl(s"register/profile")))
-    
+
   }
 
   def importMetaData(ns: String, wsName: String, fileName: String, fileContent: String)(implicit
