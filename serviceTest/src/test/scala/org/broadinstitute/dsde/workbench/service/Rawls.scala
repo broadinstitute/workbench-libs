@@ -23,12 +23,11 @@ trait Rawls extends RestClient with LazyLogging {
   def responseAsList[T](response: String): List[Map[String, T]] =
     mapper.readValue(response, classOf[List[Map[String, T]]])
 
-
   // noinspection RedundantBlock
   object billingV2 {
 
     def listUserBillingProjects()(implicit token: AuthToken): List[Map[String, String]] =
-      parseResponseAs[List[Map[String, String]]](getRequest((s"${url}api/billing/v2")))
+      parseResponseAs[List[Map[String, String]]](getRequest(s"${url}api/billing/v2"))
 
     def createBillingProject(projectName: String, billingAccount: String, servicePerimeterOpt: Option[String] = None)(
       implicit token: AuthToken
