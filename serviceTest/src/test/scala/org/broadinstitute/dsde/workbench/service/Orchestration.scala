@@ -3,7 +3,6 @@ package org.broadinstitute.dsde.workbench.service
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
 import akka.http.scaladsl.model.HttpResponse
 import akka.http.scaladsl.model.headers.Cookie
-import cats.implicits.catsSyntaxOptionId
 import com.typesafe.scalalogging.LazyLogging
 import org.broadinstitute.dsde.rawls.model.AzureManagedAppCoordinates
 import org.broadinstitute.dsde.workbench.auth.AuthToken
@@ -11,8 +10,6 @@ import org.broadinstitute.dsde.workbench.config.ServiceTestConfig
 import org.broadinstitute.dsde.workbench.fixture.MethodData.SimpleMethod
 import org.broadinstitute.dsde.workbench.fixture.{DockstoreMethod, Method}
 import org.broadinstitute.dsde.workbench.service.BillingProject.BillingProjectRole._
-import org.broadinstitute.dsde.workbench.service.BillingProject.BillingProjectStatus
-import org.broadinstitute.dsde.workbench.service.BillingProject.BillingProjectStatus.BillingProjectStatus
 import org.broadinstitute.dsde.workbench.service.OrchestrationModel._
 import org.broadinstitute.dsde.workbench.service.Sam.user.UserStatusDetails
 import org.broadinstitute.dsde.workbench.service.WorkspaceAccessLevel.WorkspaceAccessLevel
@@ -21,7 +18,6 @@ import org.broadinstitute.dsde.workbench.service.util.Retry
 import spray.json._
 
 import scala.concurrent.duration._
-import scala.util.{Failure, Success, Try}
 
 //noinspection TypeAnnotation,ScalaDocMissingParameterDescription
 trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport with DefaultJsonProtocol with RandomUtil {
@@ -32,80 +28,10 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
   private def apiUrl(s: String) =
     ServiceTestConfig.FireCloud.orchApiUrl + s
 
-  object billing {
-
-    def addUserToBillingProject(projectName: String, email: String, billingProjectRole: BillingProjectRole)(implicit
-      token: AuthToken
-    ): Unit = {
-      logger.info(s"Adding user to billing project: $projectName $email ${billingProjectRole.toString}")
-      putRequest(apiUrl(s"api/billing/$projectName/${billingProjectRole.toString}/$email"))
-    }
-
-    def removeUserFromBillingProject(projectName: String, email: String, billingProjectRole: BillingProjectRole)(
-      implicit token: AuthToken
-    ): Unit = {
-      logger.info(s"Removing user from billing project: $projectName $email ${billingProjectRole.toString}")
-      deleteRequest(apiUrl(s"api/billing/$projectName/${billingProjectRole.toString}/$email"))
-    }
-
-    def addGoogleRoleToBillingProjectUser(projectName: String, email: String, googleRole: String)(implicit
-      token: AuthToken
-    ): Unit = {
-      logger.info(s"Adding google role $googleRole to user $email in billing project $projectName")
-      putRequest(apiUrl(s"api/billing/$projectName/googleRole/$googleRole/$email"))
-    }
-
-    def removeGoogleRoleFromBillingProjectUser(projectName: String, email: String, googleRole: String)(implicit
-      token: AuthToken
-    ): Unit = {
-      logger.info(s"Removing google role $googleRole from user $email in billing project $projectName")
-      deleteRequest(apiUrl(s"api/billing/$projectName/googleRole/$googleRole/$email"))
-    }
-
-    def createBillingProject(projectName: String, billingAccount: String)(implicit token: AuthToken): Unit = {
-      logger.info(
-        s"Creating billing project: $projectName $billingAccount, with start time of ${System.currentTimeMillis}"
-      )
-      postRequest(apiUrl("api/billing"), Map("projectName" -> projectName, "billingAccount" -> billingAccount))
-
-      // QA-1759: Not going to update org.broadinstitute.dsde.workbench.service.BillingProject
-      // because I don't want to update every use of that record just so I can log the project
-      // creation error message here. Please use `RawlsBillingProject` from Rawls instead.
-      case class YetAnotherBillingProject(projectName: String, status: BillingProjectStatus, message: Option[String])
-
-      Retry.retry(10.seconds, 20.minutes) {
-        Try(parseResponse(getRequest(apiUrl(s"api/billing/v2/$projectName")))) match {
-          case Success(response) =>
-            val project = mapper.readValue(response, classOf[Map[String, String]])
-            YetAnotherBillingProject(
-              projectName = project("projectName"),
-              status = BillingProjectStatus.withName(project("status")),
-              // `message` is defined when billing project creation failed
-              message = project.get("message")
-            ).some
-              .filter(p => BillingProjectStatus.isTerminal(p.status))
-
-          case Failure(t) =>
-            logger.info(s"Billing project creation encountered an error: ${t.getStackTrace}")
-            None
-        }
-      } match {
-        case Some(YetAnotherBillingProject(name, BillingProjectStatus.Ready, _)) =>
-          logger.info(
-            s"Finished creating billing project: $name $billingAccount, with completion time of ${System.currentTimeMillis}"
-          )
-        case Some(YetAnotherBillingProject(name, BillingProjectStatus.Error, errorMessageOpt)) =>
-          logger.info(
-            s"Encountered an error creating billing project: $name $billingAccount, with final attempt at ${System.currentTimeMillis}. " +
-              s"Error is: $errorMessageOpt"
-          )
-          throw new Exception(s"Billing project creation encountered an error: '$errorMessageOpt'")
-        case None => throw new Exception("Billing project creation did not complete")
-      }
-    }
-  }
-
   object billingV2 {
+
+    def listUserBillingProjects()(implicit token: AuthToken): List[Map[String, String]] =
+      parseResponseAs[List[Map[String, String]]](getRequest(apiUrl(s"api/billing/v2")))
 
     def createBillingProject(projectName: String,
                              billingInformation: Either[String, AzureManagedAppCoordinates],
@@ -742,11 +668,6 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
     def getUser()(implicit token: AuthToken): Map[String, String] =
       parseResponseAs[Map[String, String]](getRequest(apiUrl(s"register/profile")))
 
-    def getUserBillingProjects()(implicit token: AuthToken): List[Map[String, String]] =
-      parseResponseAs[List[Map[String, String]]](getRequest(apiUrl(s"api/profile/billing")))
-
-    def getUserBillingProjectStatus(projectName: String)(implicit token: AuthToken): Map[String, String] =
-      parseResponseAs[Map[String, String]](getRequest(apiUrl(s"api/profile/billing/$projectName")))
   }
 
   def importMetaData(ns: String, wsName: String, fileName: String, fileContent: String)(implicit
