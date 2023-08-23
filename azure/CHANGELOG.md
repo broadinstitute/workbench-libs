@@ -2,17 +2,9 @@
 
 This file documents changes to the `workbench-azure` library, including notes on how to upgrade to new versions.
 
-## 0.6
-
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-azure" % "0.6-TRAVIS-REPLACE-ME"`
-
-### Changed
-
-- AzureContainerServiceInterp getClusterCredentials now gets admin credentials rather than user credentials.
-
 ## 0.5
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-azure" % "0.5-026bc90"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-azure" % "0.5-TRAVIS-REPLACE-ME"`
 
 ### Dependency upgrades
 | Dependency                             | Old Version | New Version |
@@ -25,6 +17,10 @@ SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-azure" % "0.5
 | json-smart                             |   2.4.10    |      2.4.11 |
 | sbt-scoverage                          |    2.0.7    |       2.0.8 |
 | scalatest                              |   3.2.15    |      3.2.16 |
+
+### Changed
+
+- AzureContainerServiceInterp getClusterCredentials now gets admin credentials rather than user credentials.
 
 ## 0.4
 
