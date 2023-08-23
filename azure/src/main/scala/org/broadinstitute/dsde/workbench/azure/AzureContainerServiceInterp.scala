@@ -72,7 +72,7 @@ class AzureContainerServiceInterp[F[_]](clientSecretCredential: ClientSecretCred
             .manager()
             .serviceClient()
             .getManagedClusters()
-            .listClusterUserCredentials(cloudContext.managedResourceGroupName.value, name.value)
+            .listClusterAdminCredentials(cloudContext.managedResourceGroupName.value, name.value)
         ),
         s"com.azure.resourcemanager.containerservice.fluent.ManagedClustersClient.listClusterUserCredentials(${cloudContext.managedResourceGroupName.value}, ${name.value})"
       )
