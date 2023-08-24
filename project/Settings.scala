@@ -88,7 +88,7 @@ object Settings {
   val util2Settings = commonSettings ++ List(
     name := "workbench-util2",
     libraryDependencies ++= util2Dependencies,
-    version := createVersion("0.5")
+    version := createVersion("0.6")
   ) ++ publishSettings
 
   val modelSettings = commonSettings ++ List(
@@ -113,25 +113,25 @@ object Settings {
   val google2Settings = commonSettings ++ List(
     name := "workbench-google2",
     libraryDependencies ++= google2Dependencies,
-    version := createVersion("0.32")
+    version := createVersion("0.33")
   ) ++ publishSettings
 
   val azureSettings = commonSettings ++ List(
     name := "workbench-azure",
     libraryDependencies ++= azureDependencies,
-    version := createVersion("0.5")
+    version := createVersion("0.6")
   ) ++ publishSettings
 
   val openTelemetrySettings = commonSettings ++ List(
     name := "workbench-openTelemetry",
     libraryDependencies ++= openTelemetryDependencies,
-    version := createVersion("0.6")
+    version := createVersion("0.7")
   ) ++ publishSettings
 
   val errorReportingSettings = commonSettings ++ List(
     name := "workbench-error-reporting",
     libraryDependencies ++= errorReportingDependencies,
-    version := createVersion("0.6")
+    version := createVersion("0.7")
   ) ++ publishSettings
 
   val serviceTestSettings = commonSettings ++ List(
