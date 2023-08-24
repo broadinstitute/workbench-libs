@@ -13,7 +13,7 @@ object Dependencies {
   val openCensusV = "0.31.1"
 
   // avoid expoit https://nvd.nist.gov/vuln/detail/CVE-2023-1370 (see [IA-4176])
-  val jsonSmartV = "2.4.11"
+  val jsonSmartV = "2.5.0"
 
   def excludeGuavaJDK5(m: ModuleID): ModuleID = m.exclude("com.google.guava", "guava-jdk5")
 
@@ -41,7 +41,7 @@ object Dependencies {
   val bouncyCastleProviderExt: ModuleID = "org.bouncycastle" % "bcprov-ext-jdk18on" % bouncyCastleVersion
   val bouncyCastleProvider: ModuleID = "org.bouncycastle" % "bcprov-jdk18on" % bouncyCastleVersion
 
-  val catsEffect: ModuleID = "org.typelevel" %% "cats-effect" % "3.4.11"
+  val catsEffect: ModuleID = "org.typelevel" %% "cats-effect" % "3.5.1"
 
   // metrics-scala transitively pulls in io.dropwizard.metrics:metrics-core
   val metricsScala: ModuleID =      "nl.grons"              %% "metrics4-scala"    % "4.2.9"
@@ -62,7 +62,7 @@ object Dependencies {
   val googleRpc: ModuleID =               "io.grpc" % "grpc-core" % "1.57.2"
   val googleRpc2: ModuleID =               "io.grpc" % "grpc-core" % "1.57.2"
   val googleStorageNew: ModuleID = "com.google.cloud" % "google-cloud-storage" % "2.24.0"
-  val googleStorageLocal: ModuleID = "com.google.cloud" % "google-cloud-nio" % "0.126.19" % "test"
+  val googleStorageLocal: ModuleID = "com.google.cloud" % "google-cloud-nio" % "0.127.2" % "test"
   val googlePubsubNew: ModuleID = "com.google.cloud" % "google-cloud-pubsub" % "1.124.1"
   val googleKms: ModuleID = "com.google.cloud" % "google-cloud-kms" % "2.26.0"
   val googleComputeNew: ModuleID = "com.google.cloud" % "google-cloud-compute" % "1.33.0"
@@ -108,7 +108,7 @@ object Dependencies {
   val azureResourceManagerCompute = "com.azure.resourcemanager" % "azure-resourcemanager-compute" % "2.29.0" exclude("net.minidev", "json-smart")
   val azureIdentity =  "com.azure" % "azure-identity" % "1.10.0"
   val azureRelay =     "com.azure.resourcemanager" % "azure-resourcemanager-relay" % "1.0.0-beta.2"
-  val azureStorageBlob =  "com.azure" % "azure-storage-blob" % "12.22.3"
+  val azureStorageBlob =  "com.azure" % "azure-storage-blob" % "12.23.1"
   val azureResourceManagerContainerService = "com.azure.resourcemanager" % "azure-resourcemanager-containerservice" % "2.29.0"
   val azureResourceManagerApplicationInsights =
     "com.azure.resourcemanager" % "azure-resourcemanager-applicationinsights" % "1.0.0-beta.5"
