@@ -2,6 +2,14 @@
 
 This file documents changes to the `workbench-azure` library, including notes on how to upgrade to new versions.
 
+## 0.6
+
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-azure" % "0.6-TRAVIS-REPLACE-ME"`
+
+Changed:
+- Updated json-smart from 2.4.11 to 2.5.0 
+- Updated azure-storage-blob from 12.22.3 to 12.23.1
+
 ## 0.5
 
 SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-azure" % "0.5-128901e"`
