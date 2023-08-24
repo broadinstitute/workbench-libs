@@ -4,7 +4,7 @@ This file documents changes to the `workbench-google2` library, including notes 
 
 ## 0.33
 
-SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.33-TRAVIS-REPLACE-ME"`
+SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.33-f87cad5"`
 
 Changed:
 - Updated google-cloud-nio from 0.126.19 to 0.127.2
