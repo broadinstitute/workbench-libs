@@ -2,6 +2,13 @@
 
 This file documents changes to the `workbench-openTelemetry` library, including notes on how to upgrade to new versions.
 
+## 0.7
+
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-opentelemetry" % "0.7-TRAVIS-REPLACE-ME"`
+
+Changed:
+- Updated cats-effect from 3.4.11 to 3.5.1
+
 ## 0.6
 
 SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-opentelemetry" % "0.6-026bc90"`

@@ -20,3 +20,4 @@ test-output/
 *.pid
 .DS_Store
 .metals
+.vscode/
