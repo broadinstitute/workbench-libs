@@ -55,10 +55,11 @@ object BillingFixtures extends LazyLogging {
   def withTemporaryAzureBillingProject[A](azureManagedAppCoordinates: AzureManagedAppCoordinates,
                                           prefix: Option[String] = None,
                                           owners: Option[List[String]] = None,
-                                          users: Option[List[String]] = None
+                                          users: Option[List[String]] = None,
+                                          shouldCleanup: Boolean = true
   )(testCode: String => A)(implicit creatorAuthToken: AuthToken): A =
     BillingFixtures
-      .temporaryBillingProject[IO](Right(azureManagedAppCoordinates), creatorAuthToken, prefix, owners, users)
+      .temporaryBillingProject[IO](Right(azureManagedAppCoordinates), creatorAuthToken, prefix, owners, users, shouldCleanup)
       .use(projectName => IO.delay(testCode(projectName)))
       .unsafeRunSync
 
@@ -79,7 +80,8 @@ object BillingFixtures extends LazyLogging {
                                     creatorAuthToken: AuthToken,
                                     prefix: Option[String] = None,
                                     owners: Option[List[String]] = None,
-                                    users: Option[List[String]] = None
+                                    users: Option[List[String]] = None,
+                                    shouldCleanup: Boolean = true
   )(implicit F: Sync[F]): Resource[F, String] = {
     def createBillingProject: F[String] = F.delay {
       val projectName = prefix
@@ -143,7 +145,7 @@ object BillingFixtures extends LazyLogging {
     }
 
     for {
-      billingProject <- Resource.make(createBillingProject)(destroyBillingProject)
+      billingProject <- if (shouldCleanup) Resource.make(createBillingProject)(destroyBillingProject) else Resource.make(createBillingProject)(_ => F.unit)
       _ <- addMembers(billingProject, owners.getOrElse(List.empty), BillingProjectRole.Owner)
       _ <- addMembers(billingProject, users.getOrElse(List.empty), BillingProjectRole.User)
     } yield billingProject
