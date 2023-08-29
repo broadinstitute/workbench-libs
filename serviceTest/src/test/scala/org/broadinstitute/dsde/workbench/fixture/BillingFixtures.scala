@@ -59,7 +59,13 @@ object BillingFixtures extends LazyLogging {
                                           shouldCleanup: Boolean = true
   )(testCode: String => A)(implicit creatorAuthToken: AuthToken): A =
     BillingFixtures
-      .temporaryBillingProject[IO](Right(azureManagedAppCoordinates), creatorAuthToken, prefix, owners, users, shouldCleanup)
+      .temporaryBillingProject[IO](Right(azureManagedAppCoordinates),
+                                   creatorAuthToken,
+                                   prefix,
+                                   owners,
+                                   users,
+                                   shouldCleanup
+      )
       .use(projectName => IO.delay(testCode(projectName)))
       .unsafeRunSync
 
@@ -145,7 +151,9 @@ object BillingFixtures extends LazyLogging {
     }
 
     for {
-      billingProject <- if (shouldCleanup) Resource.make(createBillingProject)(destroyBillingProject) else Resource.make(createBillingProject)(_ => F.unit)
+      billingProject <-
+        if (shouldCleanup) Resource.make(createBillingProject)(destroyBillingProject)
+        else Resource.make(createBillingProject)(_ => F.unit)
       _ <- addMembers(billingProject, owners.getOrElse(List.empty), BillingProjectRole.Owner)
       _ <- addMembers(billingProject, users.getOrElse(List.empty), BillingProjectRole.User)
     } yield billingProject
