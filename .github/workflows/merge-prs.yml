@@ -133,7 +133,7 @@ jobs:
                 console.log('Merged branch ' + branch);
                 combinedPRs.push(prString);
               } catch (error) {
-                console.log('Failed to merge branch ' + branch);
+                console.log('Failed to merge branch ' + branch, error);
                 mergeFailedPRs.push(prString);
               }
             }
