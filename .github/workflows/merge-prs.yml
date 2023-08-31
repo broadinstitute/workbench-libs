@@ -122,7 +122,7 @@ jobs:
             let combinedPRs = [];
             let mergeFailedPRs = [];
             for(const { branch, prString, owner } of branchesAndPrsAndOwners) {
-              const namespacedBranch = owner === context.repo.owner ? branch : owner + ':' + branch,
+              const namespacedBranch = owner === context.repo.owner ? branch : owner + ':' + branch;
               try {
                 await github.rest.repos.merge({
                   owner: context.repo.owner,
