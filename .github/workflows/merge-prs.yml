@@ -132,7 +132,7 @@ jobs:
                   title: 'TEMP merge ' + branch + ' into ' + combineBranchName,
                   head: namespacedBranch,
                   base: combineBranchName,
-                  body: body
+                  body: 'This PR was automatically generated and merged by the Combine PRs workflow.'
                 });
                 const tempPullNumber = tempPull['number'];
                 await delay(1000);
