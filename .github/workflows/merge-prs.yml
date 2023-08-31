@@ -121,14 +121,25 @@ jobs:
 
             let combinedPRs = [];
             let mergeFailedPRs = [];
+            const delay = ms => new Promise(res => setTimeout(res, ms));
             for(const { branch, prString, owner } of branchesAndPrsAndOwners) {
               const namespacedBranch = owner === context.repo.owner ? branch : owner + ':' + branch;
+              const combineBranchName = '${{ github.event.inputs.combineBranchName }}';
               try {
-                await github.rest.repos.merge({
+                const tempPull = await github.rest.pulls.create({
                   owner: context.repo.owner,
                   repo: context.repo.repo,
-                  base: '${{ github.event.inputs.combineBranchName }}',
+                  title: 'TEMP merge ' + branch + ' into ' + combineBranchName,
                   head: namespacedBranch,
+                  base: combineBranchName,
+                  body: body
+                });
+                const tempPullNumber = tempPull['number'];
+                await delay(1000);
+                await github.rest.pulls.merge({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  pull_number: tempPullNumber,
                 });
                 console.log('Merged branch ' + branch);
                 combinedPRs.push(prString);
@@ -137,7 +148,7 @@ jobs:
                 mergeFailedPRs.push(prString);
               }
             }
-
+            await delay(1000);
             console.log('Creating combined PR');
             const combinedPRsString = combinedPRs.join('\n');
             let body = '✅ This PR was created by the Combine PRs action by combining the following PRs:\n' + combinedPRsString;
