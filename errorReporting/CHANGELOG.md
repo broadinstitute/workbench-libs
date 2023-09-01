@@ -4,9 +4,9 @@ This file documents changes to the `workbench-error-reporting` library, includin
 
 ## 0.7
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-error-reporting" % "0.7-f87cad5"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-error-reporting" % "0.7-TRAVIS-REPLACE-ME"`
 
-Changed:
+### Dependency upgrades
 - Updated cats-effect from 3.4.11 to 3.5.1
 
 ## 0.6
