@@ -42,12 +42,11 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo
             });
-            let branchesAndPrsAndOwners = [];
+            let branchesAndPRStrings = [];
             let baseBranch = null;
             let baseBranchSHA = null;
             for (const pull of pulls) {
               const branch = pull['head']['ref'];
-              const owner = pull['head']['repo']['owner']['login'];
               console.log('Pull for branch: ' + branch);
               if (branch.startsWith('${{ github.event.inputs.branchPrefix }}')) {
                 console.log('Branch matched prefix: ' + branch);
@@ -96,13 +95,13 @@ jobs:
                 if (statusOK) {
                   console.log('Adding branch to array: ' + branch);
                   const prString = '#' + pull['number'] + ' ' + pull['title'];
-                  branchesAndPrsAndOwners.push({ branch, prString, owner });
+                  branchesAndPRStrings.push({ branch, prString });
                   baseBranch = pull['base']['ref'];
                   baseBranchSHA = pull['base']['sha'];
                 }
               }
             }
-            if (branchesAndPrsAndOwners.length == 0) {
+            if (branchesAndPRStrings.length == 0) {
               core.setFailed('No PRs/branches matched criteria');
               return;
             }
@@ -118,37 +117,25 @@ jobs:
               core.setFailed('Failed to create combined branch - maybe a branch by that name already exists?');
               return;
             }
-
+            
             let combinedPRs = [];
             let mergeFailedPRs = [];
-            const delay = ms => new Promise(res => setTimeout(res, ms));
-            for(const { branch, prString, owner } of branchesAndPrsAndOwners) {
-              const namespacedBranch = owner === context.repo.owner ? branch : owner + ':' + branch;
-              const combineBranchName = '${{ github.event.inputs.combineBranchName }}';
+            for(const { branch, prString } of branchesAndPRStrings) {
               try {
-                const tempPull = await github.rest.pulls.create({
+                await github.rest.repos.merge({
                   owner: context.repo.owner,
                   repo: context.repo.repo,
-                  title: 'TEMP merge ' + branch + ' into ' + combineBranchName,
-                  head: namespacedBranch,
-                  base: combineBranchName,
-                  body: 'This PR was automatically generated and merged by the Combine PRs workflow.'
-                });
-                const tempPullNumber = tempPull['number'];
-                await delay(1000);
-                await github.rest.pulls.merge({
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  pull_number: tempPullNumber,
+                  base: '${{ github.event.inputs.combineBranchName }}',
+                  head: branch,
                 });
                 console.log('Merged branch ' + branch);
                 combinedPRs.push(prString);
               } catch (error) {
-                console.log('Failed to merge branch ' + branch, error);
+                console.log('Failed to merge branch ' + branch);
                 mergeFailedPRs.push(prString);
               }
             }
-            await delay(1000);
+            
             console.log('Creating combined PR');
             const combinedPRsString = combinedPRs.join('\n');
             let body = '✅ This PR was created by the Combine PRs action by combining the following PRs:\n' + combinedPRsString;
