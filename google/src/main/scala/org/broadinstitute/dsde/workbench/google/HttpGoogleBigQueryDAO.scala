@@ -22,7 +22,7 @@ class HttpGoogleBigQueryDAO(
 
   override val scopes = Seq(BigqueryScopes.BIGQUERY)
 
-  implicit override val service = GoogleInstrumentedService.BigQuery
+  implicit override val service: GoogleInstrumentedService.Value = GoogleInstrumentedService.BigQuery
 
   private lazy val bigquery: Bigquery =
     new Bigquery.Builder(httpTransport, jsonFactory, googleCredential).setApplicationName(appName).build()

@@ -21,7 +21,7 @@ object Notifications {
     s"$baseKey/${workspaceName.namespace}/${workspaceName.name}"
 
   case class WorkspaceName(namespace: String, name: String)
-  implicit val WorkspaceNameFormat = jsonFormat2(WorkspaceName)
+  implicit val WorkspaceNameFormat: RootJsonFormat[WorkspaceName] = jsonFormat2(WorkspaceName)
 
   sealed abstract class NotificationType[T <: Notification: TypeTag] {
     def baseKey = Notifications.baseKey[T]
@@ -76,14 +76,14 @@ object Notifications {
 
   case class ActivationNotification(recipientUserId: WorkbenchUserId) extends UserNotification
   val ActivationNotificationType = register(new NotificationType[ActivationNotification] {
-    override val format = jsonFormat1(ActivationNotification.apply)
+    override val format: RootJsonFormat[ActivationNotification] = jsonFormat1(ActivationNotification.apply)
     override val description = "Account Activation"
     override val alwaysOn = true
   })
 
   case class AzurePreviewActivationNotification(recipientUserId: WorkbenchUserId) extends UserNotification
   val AzurePreviewActivationNotificationType = register(new NotificationType[AzurePreviewActivationNotification] {
-    override val format = jsonFormat1(AzurePreviewActivationNotification.apply)
+    override val format: RootJsonFormat[AzurePreviewActivationNotification] = jsonFormat1(AzurePreviewActivationNotification.apply)
     override val description = "Azure Preview Account Activation"
     override val alwaysOn = true
   })
@@ -94,7 +94,7 @@ object Notifications {
                                         workspaceOwnerId: WorkbenchUserId
   ) extends UserNotification
   val WorkspaceAddedNotificationType = register(new NotificationType[WorkspaceAddedNotification] {
-    override val format = jsonFormat4(WorkspaceAddedNotification.apply)
+    override val format: RootJsonFormat[WorkspaceAddedNotification] = jsonFormat4(WorkspaceAddedNotification.apply)
     override val description = "Workspace Access Added or Changed"
   })
 
@@ -104,7 +104,7 @@ object Notifications {
                                           workspaceOwnerId: WorkbenchUserId
   ) extends UserNotification
   val WorkspaceRemovedNotificationType = register(new NotificationType[WorkspaceRemovedNotification] {
-    override val format = jsonFormat4(WorkspaceRemovedNotification.apply)
+    override val format: RootJsonFormat[WorkspaceRemovedNotification] = jsonFormat4(WorkspaceRemovedNotification.apply)
     override val description = "Workspace Access Removed"
   })
 
@@ -114,7 +114,7 @@ object Notifications {
                                           bucketName: String
   ) extends Notification
   val WorkspaceInvitedNotificationType = register(new NotificationType[WorkspaceInvitedNotification] {
-    override val format = jsonFormat4(WorkspaceInvitedNotification.apply)
+    override val format: RootJsonFormat[WorkspaceInvitedNotification] = jsonFormat4(WorkspaceInvitedNotification.apply)
     override val description = "Invitation"
     override val alwaysOn = true
   })
@@ -125,7 +125,7 @@ object Notifications {
   ) extends Notification
 
   val BillingProjectInvitedNotificationType = register(new NotificationType[BillingProjectInvitedNotification] {
-    override val format = jsonFormat3(BillingProjectInvitedNotification.apply)
+    override val format: RootJsonFormat[BillingProjectInvitedNotification] = jsonFormat3(BillingProjectInvitedNotification.apply)
     override val description = "Billing Project Invitation"
     override val alwaysOn = true
   })
@@ -133,7 +133,7 @@ object Notifications {
   case class WorkspaceChangedNotification(recipientUserId: WorkbenchUserId, workspaceName: WorkspaceName)
       extends WorkspaceNotification
   val WorkspaceChangedNotificationType = register(new WorkspaceNotificationType[WorkspaceChangedNotification] {
-    override val format = jsonFormat2(WorkspaceChangedNotification.apply)
+    override val format: RootJsonFormat[WorkspaceChangedNotification] = jsonFormat2(WorkspaceChangedNotification.apply)
     override val description = "Workspace changed"
   })
 
@@ -147,7 +147,7 @@ object Notifications {
                                                     comment: String
   ) extends WorkspaceNotification
   val SuccessfulSubmissionNotificationType = register(new WorkspaceNotificationType[SuccessfulSubmissionNotification] {
-    override val format = jsonFormat8(SuccessfulSubmissionNotification.apply)
+    override val format: RootJsonFormat[SuccessfulSubmissionNotification] = jsonFormat8(SuccessfulSubmissionNotification.apply)
     override val description = "Successful submission"
   })
 
@@ -161,7 +161,7 @@ object Notifications {
                                                 comment: String
   ) extends WorkspaceNotification
   val FailedSubmissionNotificationType = register(new WorkspaceNotificationType[FailedSubmissionNotification] {
-    override val format = jsonFormat8(FailedSubmissionNotification.apply)
+    override val format: RootJsonFormat[FailedSubmissionNotification] = jsonFormat8(FailedSubmissionNotification.apply)
     override val description = "Failed submission"
   })
 
@@ -175,7 +175,7 @@ object Notifications {
                                                  comment: String
   ) extends WorkspaceNotification
   val AbortedSubmissionNotificationType = register(new WorkspaceNotificationType[AbortedSubmissionNotification] {
-    override val format = jsonFormat8(AbortedSubmissionNotification.apply)
+    override val format: RootJsonFormat[AbortedSubmissionNotification] = jsonFormat8(AbortedSubmissionNotification.apply)
     override val description = "Aborted submission"
   })
 
@@ -185,7 +185,7 @@ object Notifications {
                                             requesterId: WorkbenchUserId
   ) extends Notification
   val GroupAccessRequestNotificationType = register(new NotificationType[GroupAccessRequestNotification] {
-    override val format = jsonFormat4(GroupAccessRequestNotification)
+    override val format: RootJsonFormat[GroupAccessRequestNotification] = jsonFormat4(GroupAccessRequestNotification)
     override val description = "Group Access Requested"
   })
 

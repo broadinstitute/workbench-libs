@@ -9,7 +9,7 @@ import org.scalatest.flatspec.AnyFlatSpecLike
 import ErrorReportJsonSupport._
 
 class ErrorReportSpec extends AnyFlatSpecLike with BeforeAndAfterAll with Matchers {
-  implicit val errorReportSource = ErrorReportSource("test")
+  implicit val errorReportSource: ErrorReportSource = ErrorReportSource("test")
 
   "json serialization" should "roundtrip" in {
     val internalEr = ErrorReport("internalERMessage")

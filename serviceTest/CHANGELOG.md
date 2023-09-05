@@ -4,9 +4,9 @@ This file documents changes to the `workbench-service-test` library, including n
 
 ## 4.1
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "4.1-ce68967"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "4.1-TRAVIS-REPLACE-ME"`
 
-### Changed
+### Dependency upgrades
 - updated withTemporaryBillingProject to optionally not cleanup the billing project
 
 ## 4.0
@@ -43,7 +43,7 @@ SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test"
 
 
 Breaking changes:
-- Remove remaining `GPAlloc` trait 
+- Remove remaining `GPAlloc` trait
 
 ## 2.1
 

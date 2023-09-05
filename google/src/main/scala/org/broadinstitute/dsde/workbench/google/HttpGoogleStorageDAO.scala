@@ -66,7 +66,7 @@ class HttpGoogleStorageDAO(appName: String,
     "https://www.googleapis.com/auth/userinfo.profile"
   )
 
-  implicit override val service = GoogleInstrumentedService.Storage
+  implicit override val service: GoogleInstrumentedService.Value = GoogleInstrumentedService.Storage
 
   private lazy val storage =
     new Storage.Builder(httpTransport, jsonFactory, googleCredential).setApplicationName(appName).build()

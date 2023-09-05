@@ -9,6 +9,7 @@ import cats.mtl.Ask
 import org.broadinstitute.dsde.workbench.model.TraceId
 import org.broadinstitute.dsde.workbench.util2.RemoveObjectResult
 import org.typelevel.log4cats.slf4j.Slf4jLogger
+import org.typelevel.log4cats.SelfAwareStructuredLogger
 
 import scala.concurrent.duration._
 
@@ -18,9 +19,9 @@ final class AzureStorageManualTest(
   container: String = "testconn"
 ) {
 
-  implicit val traceId = Ask.const[IO, TraceId](TraceId(UUID.randomUUID()))
+  implicit val traceId: Ask[IO,TraceId] = Ask.const[IO, TraceId](TraceId(UUID.randomUUID()))
 
-  implicit def logger = Slf4jLogger.getLogger[IO]
+  implicit def logger: SelfAwareStructuredLogger[IO] = Slf4jLogger.getLogger[IO]
 
   val containerName = ContainerName(container)
 

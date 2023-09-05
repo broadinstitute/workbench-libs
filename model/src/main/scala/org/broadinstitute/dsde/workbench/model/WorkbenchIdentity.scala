@@ -7,14 +7,14 @@ import org.broadinstitute.dsde.workbench.model.google.{GoogleProject, ServiceAcc
  */
 object WorkbenchIdentityJsonSupport {
   import spray.json.DefaultJsonProtocol._
+  import spray.json.RootJsonFormat
 
-  implicit val WorkbenchEmailFormat = ValueObjectFormat(WorkbenchEmail)
-  implicit val WorkbenchUserIdFormat = ValueObjectFormat(WorkbenchUserId)
-  implicit val googleSubjectIdFormat = ValueObjectFormat(GoogleSubjectId)
-  implicit val azureB2CIdFormat = ValueObjectFormat(AzureB2CId.apply)
-  implicit val WorkbenchUserFormat = jsonFormat4(WorkbenchUser)
-
-  implicit val WorkbenchGroupNameFormat = ValueObjectFormat(WorkbenchGroupName)
+  implicit val WorkbenchEmailFormat: ValueObjectFormat[WorkbenchEmail] = ValueObjectFormat(WorkbenchEmail)
+  implicit val WorkbenchUserIdFormat: ValueObjectFormat[WorkbenchUserId] = ValueObjectFormat(WorkbenchUserId)
+  implicit val googleSubjectIdFormat: ValueObjectFormat[GoogleSubjectId] = ValueObjectFormat(GoogleSubjectId)
+  implicit val azureB2CIdFormat: ValueObjectFormat[AzureB2CId] = ValueObjectFormat(AzureB2CId.apply)
+  implicit val WorkbenchUserFormat: RootJsonFormat[WorkbenchUser] = jsonFormat4(WorkbenchUser)
+  implicit val WorkbenchGroupNameFormat: ValueObjectFormat[WorkbenchGroupName] = ValueObjectFormat(WorkbenchGroupName)
 }
 
 sealed trait WorkbenchSubject

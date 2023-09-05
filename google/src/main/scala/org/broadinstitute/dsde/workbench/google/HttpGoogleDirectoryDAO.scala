@@ -38,7 +38,7 @@ class HttpGoogleDirectoryDAO(appName: String,
    */
   private class GroupSettingsDAO()
       extends AbstractHttpGoogleDAO(appName, googleCredentialMode, workbenchMetricBaseName) {
-    implicit override val service = GoogleInstrumentedService.Groups
+    implicit override val service: GoogleInstrumentedService.Value = GoogleInstrumentedService.Groups
     override val scopes = Seq(GroupssettingsScopes.APPS_GROUPS_SETTINGS)
     private lazy val settingsClient =
       new Groupssettings.Builder(httpTransport, jsonFactory, googleCredential).setApplicationName(appName).build()
@@ -96,7 +96,7 @@ class HttpGoogleDirectoryDAO(appName: String,
   val groupMemberRole =
     "MEMBER" // the Google Group role corresponding to a member (note that this is distinct from the GCS roles defined in WorkspaceAccessLevel)
 
-  implicit override val service = GoogleInstrumentedService.Groups
+  implicit override val service: GoogleInstrumentedService.Value = GoogleInstrumentedService.Groups
 
   private lazy val directory =
     new Directory.Builder(httpTransport, jsonFactory, googleCredential).setApplicationName(appName).build()
@@ -261,7 +261,7 @@ class HttpGoogleDirectoryDAO(appName: String,
     fetcher: Directory#Members#List,
     accumulated: Option[List[Members]] = Some(Nil)
   ): Future[Option[List[Members]]] = {
-    implicit val service = GoogleInstrumentedService.Groups
+    implicit val service: GoogleInstrumentedService.Value = GoogleInstrumentedService.Groups
     accumulated match {
       // when accumulated has a Nil list then this must be the first request
       case Some(Nil) =>

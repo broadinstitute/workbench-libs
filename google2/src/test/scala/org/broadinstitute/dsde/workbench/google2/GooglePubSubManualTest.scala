@@ -6,6 +6,7 @@ import com.google.pubsub.v1.ProjectTopicName
 import cats.effect.std.Queue
 import fs2.{Pipe, Stream}
 import org.typelevel.log4cats.slf4j.Slf4jLogger
+import org.typelevel.log4cats.SelfAwareStructuredLogger
 import io.circe.Decoder
 import cats.syntax.all._
 
@@ -13,7 +14,7 @@ import scala.concurrent.ExecutionContext.global
 import scala.concurrent.duration._
 
 object GooglePubSubManualTest {
-  implicit def logger = Slf4jLogger.getLogger[IO]
+  implicit def logger: SelfAwareStructuredLogger[IO] = Slf4jLogger.getLogger[IO]
 
   // NOTE: Update the next 2 lines to your own data
 

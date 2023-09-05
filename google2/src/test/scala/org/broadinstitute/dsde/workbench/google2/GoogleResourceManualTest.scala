@@ -14,9 +14,9 @@ import java.util.UUID
 
 class GoogleResourceManualTest(pathToCredential: String) {
 
-  implicit val traceId = Ask.const[IO, TraceId](TraceId(UUID.randomUUID()))
+  implicit val traceId: Ask[IO, TraceId] = Ask.const[IO, TraceId](TraceId(UUID.randomUUID()))
 
-  implicit def logger = new ConsoleLogger("resource-manual-test", LogLevel(true, true, true, true))
+  implicit def logger: ConsoleLogger = new ConsoleLogger("resource-manual-test", LogLevel(true, true, true, true))
 
   val blockerBound = Semaphore[IO](10).unsafeRunSync
 

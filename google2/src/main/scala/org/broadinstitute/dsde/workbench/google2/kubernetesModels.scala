@@ -168,56 +168,56 @@ object JavaSerializableInstances {
     new V1ObjectMeta().name(name.value)
 
   /** Serializable name objects */
-  implicit val kubernetesNamespaceNameSerializable = new JavaSerializable[NamespaceName, V1ObjectMeta] {
+  implicit val kubernetesNamespaceNameSerializable: JavaSerializable[NamespaceName, V1ObjectMeta] = new JavaSerializable[NamespaceName, V1ObjectMeta] {
     def getJavaSerialization(name: NamespaceName): V1ObjectMeta = getNameSerialization(name)
   }
 
-  implicit val kubernetesServiceAccountNameSerializable = new JavaSerializable[ServiceAccountName, V1ObjectMeta] {
+  implicit val kubernetesServiceAccountNameSerializable: JavaSerializable[ServiceAccountName, V1ObjectMeta] = new JavaSerializable[ServiceAccountName, V1ObjectMeta] {
     def getJavaSerialization(name: ServiceAccountName): V1ObjectMeta = getNameSerialization(name)
   }
 
-  implicit val kubernetesPodNameSerializable = new JavaSerializable[PodName, V1ObjectMeta] {
+  implicit val kubernetesPodNameSerializable: JavaSerializable[PodName, V1ObjectMeta] = new JavaSerializable[PodName, V1ObjectMeta] {
     def getJavaSerialization(name: PodName): V1ObjectMeta = getNameSerialization(name)
   }
 
-  implicit val kubernetesSecretNameSerializable = new JavaSerializable[SecretName, V1ObjectMeta] {
+  implicit val kubernetesSecretNameSerializable: JavaSerializable[SecretName, V1ObjectMeta] = new JavaSerializable[SecretName, V1ObjectMeta] {
     def getJavaSerialization(name: SecretName): V1ObjectMeta = getNameSerialization(name)
   }
 
-  implicit val kubernetesContainerNameSerializable = new JavaSerializable[ContainerName, V1ObjectMeta] {
+  implicit val kubernetesContainerNameSerializable: JavaSerializable[ContainerName, V1ObjectMeta] = new JavaSerializable[ContainerName, V1ObjectMeta] {
     def getJavaSerialization(name: ContainerName): V1ObjectMeta = getNameSerialization(name)
   }
 
-  implicit val kubernetesServiceNameSerializable = new JavaSerializable[ServiceName, V1ObjectMeta] {
+  implicit val kubernetesServiceNameSerializable: JavaSerializable[ServiceName, V1ObjectMeta] = new JavaSerializable[ServiceName, V1ObjectMeta] {
     def getJavaSerialization(name: ServiceName): V1ObjectMeta = getNameSerialization(name)
   }
 
-  implicit val kubernetesApiGroupNameSerializable = new JavaSerializable[ApiGroupName, V1ObjectMeta] {
+  implicit val kubernetesApiGroupNameSerializable: JavaSerializable[ApiGroupName, V1ObjectMeta] = new JavaSerializable[ApiGroupName, V1ObjectMeta] {
     def getJavaSerialization(name: ApiGroupName): V1ObjectMeta = getNameSerialization(name)
   }
 
-  implicit val kubernetesResourceNameSerializable = new JavaSerializable[ResourceName, V1ObjectMeta] {
+  implicit val kubernetesResourceNameSerializable: JavaSerializable[ResourceName, V1ObjectMeta] = new JavaSerializable[ResourceName, V1ObjectMeta] {
     def getJavaSerialization(name: ResourceName): V1ObjectMeta = getNameSerialization(name)
   }
 
-  implicit val kubernetesVerbNameSerializable = new JavaSerializable[VerbName, V1ObjectMeta] {
+  implicit val kubernetesVerbNameSerializable: JavaSerializable[VerbName, V1ObjectMeta] = new JavaSerializable[VerbName, V1ObjectMeta] {
     def getJavaSerialization(name: VerbName): V1ObjectMeta = getNameSerialization(name)
   }
 
-  implicit val kubernetesRoleNameSerializable = new JavaSerializable[RoleName, V1ObjectMeta] {
+  implicit val kubernetesRoleNameSerializable: JavaSerializable[RoleName, V1ObjectMeta] = new JavaSerializable[RoleName, V1ObjectMeta] {
     def getJavaSerialization(name: RoleName): V1ObjectMeta = getNameSerialization(name)
   }
 
-  implicit val kubernetesSubjectKindNameSerializable = new JavaSerializable[SubjectKindName, V1ObjectMeta] {
+  implicit val kubernetesSubjectKindNameSerializable: JavaSerializable[SubjectKindName, V1ObjectMeta] = new JavaSerializable[SubjectKindName, V1ObjectMeta] {
     def getJavaSerialization(name: SubjectKindName): V1ObjectMeta = getNameSerialization(name)
   }
 
-  implicit val kubernetesRoleBindingNameSerializable = new JavaSerializable[RoleBindingName, V1ObjectMeta] {
+  implicit val kubernetesRoleBindingNameSerializable: JavaSerializable[RoleBindingName, V1ObjectMeta] = new JavaSerializable[RoleBindingName, V1ObjectMeta] {
     def getJavaSerialization(name: RoleBindingName): V1ObjectMeta = getNameSerialization(name)
   }
 
   /** Serializable container objects corresponding to the names above */
-  implicit val kubernetesNamespaceSerializable = new JavaSerializable[KubernetesNamespace, V1Namespace] {
+  implicit val kubernetesNamespaceSerializable: JavaSerializable[KubernetesNamespace, V1Namespace] = new JavaSerializable[KubernetesNamespace, V1Namespace] {
     def getJavaSerialization(kubernetesName: KubernetesNamespace): V1Namespace = {
       val v1Namespace = new V1Namespace()
       v1Namespace.setMetadata(kubernetesName.name.getJavaSerialization)
@@ -225,7 +225,7 @@ object JavaSerializableInstances {
     }
   }
 
-  implicit val kuberrnetesSecretSerializable = new JavaSerializable[KubernetesSecret, V1Secret] {
+  implicit val kuberrnetesSecretSerializable: JavaSerializable[KubernetesSecret, V1Secret] = new JavaSerializable[KubernetesSecret, V1Secret] {
     def getJavaSerialization(a: KubernetesSecret): V1Secret = {
       val v1Secret = new V1Secret()
       v1Secret.setMetadata(a.name.getJavaSerialization)
@@ -236,7 +236,7 @@ object JavaSerializableInstances {
     }
   }
 
-  implicit val kubernetesServiceAccountSerializable = new JavaSerializable[KubernetesServiceAccount, V1ServiceAccount] {
+  implicit val kubernetesServiceAccountSerializable: JavaSerializable[KubernetesServiceAccount, V1ServiceAccount] = new JavaSerializable[KubernetesServiceAccount, V1ServiceAccount] {
     def getJavaSerialization(sa: KubernetesServiceAccount): V1ServiceAccount = {
       val metadata = sa.name.getJavaSerialization
       metadata.annotations(sa.annotations.asJava)
@@ -245,14 +245,14 @@ object JavaSerializableInstances {
     }
   }
 
-  implicit val containerPortSerializable = new JavaSerializable[ContainerPort, V1ContainerPort] {
+  implicit val containerPortSerializable: JavaSerializable[ContainerPort, V1ContainerPort] = new JavaSerializable[ContainerPort, V1ContainerPort] {
     def getJavaSerialization(containerPort: ContainerPort): V1ContainerPort = {
       val v1Port = new V1ContainerPort()
       v1Port.containerPort(containerPort.value)
     }
   }
 
-  implicit val kubernetesContainerSerializable = new JavaSerializable[KubernetesContainer, V1Container] {
+  implicit val kubernetesContainerSerializable: JavaSerializable[KubernetesContainer, V1Container] = new JavaSerializable[KubernetesContainer, V1Container] {
     def getJavaSerialization(container: KubernetesContainer): V1Container = {
       val v1Container = new V1Container()
       v1Container.setName(container.name.value)
@@ -269,7 +269,7 @@ object JavaSerializableInstances {
     }
   }
 
-  implicit val kubernetesPodSerializable = new JavaSerializable[KubernetesPod, V1Pod] {
+  implicit val kubernetesPodSerializable: JavaSerializable[KubernetesPod, V1Pod] = new JavaSerializable[KubernetesPod, V1Pod] {
     def getJavaSerialization(pod: KubernetesPod): V1Pod = {
       val v1Pod = new V1Pod()
       val podMetadata = pod.name.getJavaSerialization
@@ -292,7 +292,7 @@ object JavaSerializableInstances {
     }
   }
 
-  implicit val servicePortSerializable = new JavaSerializable[ServicePort, V1ServicePort] {
+  implicit val servicePortSerializable: JavaSerializable[ServicePort, V1ServicePort] = new JavaSerializable[ServicePort, V1ServicePort] {
     def getJavaSerialization(servicePort: ServicePort): V1ServicePort = {
 
       val v1Port = new V1ServicePort()
@@ -307,7 +307,7 @@ object JavaSerializableInstances {
     }
   }
 
-  implicit val kubernetesServiceKindSerializable = new JavaSerializable[KubernetesServiceKind, V1Service] {
+  implicit val kubernetesServiceKindSerializable: JavaSerializable[KubernetesServiceKind, V1Service] = new JavaSerializable[KubernetesServiceKind, V1Service] {
     def getJavaSerialization(serviceKind: KubernetesServiceKind): V1Service = {
       val v1Service = new V1Service()
       v1Service.setKind(SERVICE_KIND) // may not be necessary
@@ -325,7 +325,7 @@ object JavaSerializableInstances {
     }
   }
 
-  implicit val kubernetesPolicyRuleSerializable = new JavaSerializable[KubernetesPolicyRule, V1PolicyRule] {
+  implicit val kubernetesPolicyRuleSerializable: JavaSerializable[KubernetesPolicyRule, V1PolicyRule] = new JavaSerializable[KubernetesPolicyRule, V1PolicyRule] {
     def getJavaSerialization(policyRule: KubernetesPolicyRule): V1PolicyRule =
       new V1PolicyRule()
         .apiGroups(policyRule.apiGroups.toList.map(_.name).map(_.value).asJava)
@@ -333,14 +333,14 @@ object JavaSerializableInstances {
         .verbs(policyRule.verbs.toList.map(_.name).map(_.value).asJava)
   }
 
-  implicit val kubernetesRoleSerializable = new JavaSerializable[KubernetesRole, V1Role] {
+  implicit val kubernetesRoleSerializable: JavaSerializable[KubernetesRole, V1Role] = new JavaSerializable[KubernetesRole, V1Role] {
     def getJavaSerialization(role: KubernetesRole): V1Role =
       new V1Role()
         .metadata(role.name.getJavaSerialization)
         .rules(role.rules.map(_.getJavaSerialization).asJava)
   }
 
-  implicit val kubernetesSubjectSerializable = new JavaSerializable[KubernetesSubject, V1Subject] {
+  implicit val kubernetesSubjectSerializable: JavaSerializable[KubernetesSubject, V1Subject] = new JavaSerializable[KubernetesSubject, V1Subject] {
     def getJavaSerialization(subject: KubernetesSubject): V1Subject =
       new V1Subject()
         .kind(subject.kind.toString)
@@ -348,7 +348,7 @@ object JavaSerializableInstances {
         .namespace(subject.namespaceName.value)
   }
 
-  implicit val kubernetesRoleRefSerializable = new JavaSerializable[KubernetesRoleRef, V1RoleRef] {
+  implicit val kubernetesRoleRefSerializable: JavaSerializable[KubernetesRoleRef, V1RoleRef] = new JavaSerializable[KubernetesRoleRef, V1RoleRef] {
     def getJavaSerialization(roleRef: KubernetesRoleRef): V1RoleRef =
       new V1RoleRef()
         .apiGroup(roleRef.apiGroupName.value)
@@ -356,7 +356,7 @@ object JavaSerializableInstances {
         .name(roleRef.roleName.value)
   }
 
-  implicit val kubernetesRoleBindingSerializable = new JavaSerializable[KubernetesRoleBinding, V1RoleBinding] {
+  implicit val kubernetesRoleBindingSerializable: JavaSerializable[KubernetesRoleBinding, V1RoleBinding] = new JavaSerializable[KubernetesRoleBinding, V1RoleBinding] {
     def getJavaSerialization(roleBinding: KubernetesRoleBinding): V1RoleBinding =
       new V1RoleBinding()
         .metadata(roleBinding.name.getJavaSerialization)

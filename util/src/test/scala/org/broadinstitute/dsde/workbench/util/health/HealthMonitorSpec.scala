@@ -22,7 +22,7 @@ class HealthMonitorSpec
     TestKit.shutdownActorSystem(system)
 
   import system.dispatcher
-  implicit val askTimeout = Timeout(5 seconds)
+  implicit val askTimeout: Timeout = Timeout(5 seconds)
 
   "HealthMonitor" should "monitor health" in {
     // simulate a failed and a successful subsystem check

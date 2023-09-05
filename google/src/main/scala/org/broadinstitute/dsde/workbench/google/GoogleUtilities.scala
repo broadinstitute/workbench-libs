@@ -304,5 +304,5 @@ protected[google] object GoogleRequestJsonSupport {
   import spray.json.DefaultJsonProtocol._
   import org.broadinstitute.dsde.workbench.model.ErrorReportJsonSupport._
 
-  implicit val GoogleRequestFormat = jsonFormat6(GoogleRequest)
+  implicit val GoogleRequestFormat: RootJsonFormat[GoogleRequest] = jsonFormat6(GoogleRequest)
 }

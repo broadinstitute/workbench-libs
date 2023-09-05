@@ -14,6 +14,7 @@ import org.broadinstitute.dsde.workbench.google2.KubernetesSerializableName._
 import org.broadinstitute.dsde.workbench.model.TraceId
 import org.broadinstitute.dsde.workbench.model.google.GoogleProject
 import org.typelevel.log4cats.slf4j.Slf4jLogger
+import org.typelevel.log4cats.SelfAwareStructuredLogger
 import scalacache.caffeine.CaffeineCache
 
 import java.nio.file.Paths
@@ -32,9 +33,9 @@ final class Test(credPathStr: String,
                  networkNameStr: String = "kube-test"
 ) {
 
-  implicit val traceId = Ask.const[IO, TraceId](TraceId(UUID.randomUUID()))
+  implicit val traceId: Ask[IO, TraceId] = Ask.const[IO, TraceId](TraceId(UUID.randomUUID()))
 
-  implicit def logger = Slf4jLogger.getLogger[IO]
+  implicit def logger: SelfAwareStructuredLogger[IO] = Slf4jLogger.getLogger[IO]
 
   val semaphore = Semaphore[IO](10).unsafeRunSync
 
