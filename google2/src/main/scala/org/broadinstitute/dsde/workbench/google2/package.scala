@@ -24,7 +24,7 @@ import scala.concurrent.duration._
 package object google2 {
   val CLOUD_PLATFORM_SCOPE = "https://www.googleapis.com/auth/cloud-platform"
 
-  implicit val errorReportSource = ErrorReportSource("google2")
+  implicit val errorReportSource: ErrorReportSource = ErrorReportSource("google2")
 
   implicit val finiteDurationEncoder: Encoder[FiniteDuration] = Encoder.encodeString.contramap(_.toString())
 
@@ -152,11 +152,11 @@ trait DoneCheckable[A] {
 }
 
 object DoneCheckableInstances {
-  implicit val containerDoneCheckable = new DoneCheckable[com.google.container.v1.Operation] {
+  implicit val containerDoneCheckable: DoneCheckable[com.google.container.v1.Operation] = new DoneCheckable[com.google.container.v1.Operation] {
     def isDone(op: com.google.container.v1.Operation): Boolean =
       op.getStatus == com.google.container.v1.Operation.Status.DONE
   }
-  implicit val computeDoneCheckable = new DoneCheckable[com.google.cloud.compute.v1.Operation] {
+  implicit val computeDoneCheckable: DoneCheckable[com.google.cloud.compute.v1.Operation] = new DoneCheckable[com.google.cloud.compute.v1.Operation] {
     def isDone(op: com.google.cloud.compute.v1.Operation): Boolean =
       op.getStatus == com.google.cloud.compute.v1.Operation.Status.DONE
   }
