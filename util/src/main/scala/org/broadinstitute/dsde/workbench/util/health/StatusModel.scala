@@ -2,6 +2,7 @@ package org.broadinstitute.dsde.workbench.util.health
 
 import org.broadinstitute.dsde.workbench.util.health.Subsystems.Subsystem
 import org.broadinstitute.dsde.workbench.model.{ValueObject, ValueObjectFormat}
+import spray.json.RootJsonFormat
 
 case class SubsystemStatus(
   ok: Boolean,
@@ -70,9 +71,9 @@ object Subsystems {
 object StatusJsonSupport {
   import spray.json.DefaultJsonProtocol._
 
-  implicit val SubsystemFormat = ValueObjectFormat(Subsystems.withName)
+  implicit val SubsystemFormat: ValueObjectFormat[Subsystem] = ValueObjectFormat(Subsystems.withName)
 
-  implicit val SubsystemStatusFormat = jsonFormat2(SubsystemStatus)
+  implicit val SubsystemStatusFormat: RootJsonFormat[SubsystemStatus] = jsonFormat2(SubsystemStatus)
 
-  implicit val StatusCheckResponseFormat = jsonFormat2(StatusCheckResponse)
+  implicit val StatusCheckResponseFormat: RootJsonFormat[StatusCheckResponse] = jsonFormat2(StatusCheckResponse)
 }

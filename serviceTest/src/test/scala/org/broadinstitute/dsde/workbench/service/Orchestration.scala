@@ -573,8 +573,8 @@ trait Orchestration extends RestClient with LazyLogging with SprayJsonSupport wi
 
     case class NihDatasetPermission(name: String, authorized: Boolean)
 
-    implicit val impNihDatasetPermission = jsonFormat2(NihDatasetPermission)
-    implicit val impNihStatus = jsonFormat3(NihStatus.apply)
+    implicit val impNihDatasetPermission: RootJsonFormat[NihDatasetPermission] = jsonFormat2(NihDatasetPermission)
+    implicit val impNihStatus: RootJsonFormat[NihStatus] = jsonFormat3(NihStatus.apply)
 
     def addUserInNIH(jwt: String)(implicit token: AuthToken): Unit = {
       logger.info(s"Adding user to NIH whitelist: $jwt")
@@ -872,7 +872,7 @@ object OrchestrationModel {
 
   final case class StorageCostEstimate(estimate: String)
 
-  implicit val ManagedGroupWithMembersFormat = jsonFormat3(ManagedGroupWithMembers)
+  implicit val ManagedGroupWithMembersFormat: RootJsonFormat[ManagedGroupWithMembers] = jsonFormat3(ManagedGroupWithMembers)
 
-  implicit val StorageCostEstimateFormat = jsonFormat1(StorageCostEstimate)
+  implicit val StorageCostEstimateFormat: RootJsonFormat[StorageCostEstimate] = jsonFormat1(StorageCostEstimate)
 }

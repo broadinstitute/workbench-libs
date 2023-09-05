@@ -14,6 +14,7 @@ import org.scalacheck.Gen
 import org.scalatest.flatspec.AsyncFlatSpec
 import org.scalatest.matchers.should.Matchers
 import org.typelevel.log4cats.slf4j.Slf4jLogger
+import org.typelevel.log4cats.SelfAwareStructuredLogger
 
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
@@ -252,7 +253,7 @@ class GoogleStorageInterpreterSpec extends AsyncFlatSpec with Matchers with Work
 }
 
 object GoogleStorageInterpreterSpec {
-  implicit val logger = Slf4jLogger.getLogger[IO]
+  implicit val logger: SelfAwareStructuredLogger[IO] = Slf4jLogger.getLogger[IO]
 
   val db = LocalStorageHelper.getOptions().getService()
   val semaphore = Semaphore[IO](1).unsafeRunSync
