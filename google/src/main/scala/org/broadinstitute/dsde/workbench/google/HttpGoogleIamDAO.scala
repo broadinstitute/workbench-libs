@@ -89,7 +89,7 @@ class HttpGoogleIamDAO(appName: String, googleCredentialMode: GoogleCredentialMo
   lazy val cloudResourceManager =
     new CloudResourceManager.Builder(httpTransport, jsonFactory, googleCredential).setApplicationName(appName).build()
 
-  implicit override val service = GoogleInstrumentedService.Iam
+  implicit override val service: GoogleInstrumentedService.Value = GoogleInstrumentedService.Iam
 
   private lazy val iam =
     new Iam.Builder(httpTransport, jsonFactory, googleCredential).setApplicationName(appName).build()

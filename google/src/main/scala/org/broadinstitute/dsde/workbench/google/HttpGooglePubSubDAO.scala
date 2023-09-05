@@ -43,7 +43,7 @@ class HttpGooglePubSubDAO(appName: String,
 
   override val scopes = Seq(PubsubScopes.PUBSUB)
 
-  implicit override val service = GoogleInstrumentedService.PubSub
+  implicit override val service: GoogleInstrumentedService.Value = GoogleInstrumentedService.PubSub
 
   private val characterEncoding = "UTF-8"
 

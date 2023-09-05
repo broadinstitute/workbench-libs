@@ -17,7 +17,7 @@ import org.scalatest.concurrent.{Eventually, ScalaFutures}
 import spray.json._
 
 import scala.jdk.CollectionConverters._
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, ExecutionContextExecutor}
 import scala.concurrent.duration._
 
 //FIXME: Remove commented out tests once we remove retryWhen500orGoogleError.
@@ -31,7 +31,7 @@ class GoogleUtilitiesSpec
     with Eventually
     with MockitoTestUtils
     with StatsDTestUtils {
-  implicit val executionContext = ExecutionContext.global
+  implicit val executionContext: ExecutionContextExecutor = ExecutionContext.global
   implicit def histo: Histogram = ExpandedMetricBuilder.empty.asHistogram("histo")
 
   override def afterAll(): Unit =

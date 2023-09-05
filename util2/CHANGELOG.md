@@ -2,6 +2,23 @@
 
 This file documents changes to the `workbench-util2` library, including notes on how to upgrade to new versions.
 
+## 0.7
+
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util2" % "0.7-TRAVIS-REPLACE-ME"``
+
+### Changes
+Upgrade circe-yaml (circe-core, circe-generic, circe-parser) from 0.14.5 to 0.15.0-RC1
+* Note that 0.14.2 is tagged as the latest stable release here, but 15.0-RC1 has a security patch to snakeyaml (https://github.com/circe/circe-yaml/issues/356)
+
+Upgrade fs2-io from 3.8.0 to 3.9.1
+* Release notes https://github.com/typelevel/fs2/releases/tag/v3.9.1 and https://github.com/typelevel/fs2/releases/tag/v3.9.0
+* Changelog https://github.com/typelevel/fs2/compare/v3.8.0...v3.9.1
+
+
+### Dependency upgrades
+- fs2-io from 3.8.0 to 3.9.1
+- circe-yaml from 0.14.5 to 0.15.0-M1
+
 ## 0.6
 
 SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util2" % "0.6-f87cad5"`

@@ -28,7 +28,7 @@ class HttpGoogleProjectDAO(appName: String,
 
   override val scopes = Seq("https://www.googleapis.com/auth/cloud-platform")
 
-  implicit override val service = GoogleInstrumentedService.Projects
+  implicit override val service: GoogleInstrumentedService.Value = GoogleInstrumentedService.Projects
 
   private def cloudResManager =
     new CloudResourceManager.Builder(httpTransport, jsonFactory, googleCredential).setApplicationName(appName).build()
