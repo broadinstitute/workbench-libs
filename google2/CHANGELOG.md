@@ -4,14 +4,14 @@ This file documents changes to the `workbench-google2` library, including notes 
 
 ## 0.33
 
-SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.33-TRAVIS-REPLACE-ME"`
+SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.33-aa2afae"`
 
 ### Changes
 Upgrade google-cloud-pubsub from 1.124.1 to 1.124.2
 * Release notes https://github.com/googleapis/java-pubsub/releases/tag/v1.124.2
 
 ### Dependency upgrades
-- `TRAVIS-REPLACE-ME`
+- `aa2afae`
   - google-cloud-pubsub from 1.124.1 to 1.124.2
 - `f87cad5`
   - Updated google-cloud-nio from 0.126.19 to 0.127.2

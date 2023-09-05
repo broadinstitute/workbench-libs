@@ -4,7 +4,7 @@ This file documents changes to the `workbench-azure` library, including notes on
 
 ## 0.6
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-azure" % "0.6-TRAVIS-REPLACE-ME"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-azure" % "0.6-aa2afae"`
 
 ### Changes
 Upgrade azure-resourcemanager-compute from 2.29.0 to 2.30.0
@@ -14,7 +14,7 @@ Upgrade azure-resourcemanager-containerservice from 2.29.0 to 2.30.0
 * Changelog https://github.com/Azure/azure-sdk-for-java/blob/main/sdk/resourcemanager/azure-resourcemanager-containerservice/CHANGELOG.md#2300-2023-08-25
 
 ### Dependency upgrades
-- `TRAVIS-REPLACE-ME`
+- `aa2afae`
   - azure-resourcemanager-compute from 2.29.0 to 2.30.0
   - azure-resourcemanager-containerservice from 2.29.0 to 2.30.0
 - `f87cad5`
