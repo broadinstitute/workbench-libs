@@ -17,7 +17,7 @@ Upgrade fs2-io from 3.8.0 to 3.9.1
 
 ### Dependency upgrades
 - fs2-io from 3.8.0 to 3.9.1
-- circe-yaml from 0.14.5 to 0.15.0-RC1
+- circe-yaml from 0.14.5 to 0.15.0-M1
 
 ## 0.6
 
