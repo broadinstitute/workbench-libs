@@ -19,7 +19,7 @@ final class AzureStorageManualTest(
   container: String = "testconn"
 ) {
 
-  implicit val traceId: Ask[IO,TraceId] = Ask.const[IO, TraceId](TraceId(UUID.randomUUID()))
+  implicit val traceId: Ask[IO, TraceId] = Ask.const[IO, TraceId](TraceId(UUID.randomUUID()))
 
   implicit def logger: SelfAwareStructuredLogger[IO] = Slf4jLogger.getLogger[IO]
 

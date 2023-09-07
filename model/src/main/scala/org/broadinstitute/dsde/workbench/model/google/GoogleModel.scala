@@ -142,23 +142,37 @@ object GoogleModelJsonSupport {
   }
 
   implicit val GoogleProjectFormat: ValueObjectFormat[GoogleProject] = ValueObjectFormat(GoogleProject)
-  implicit val BigQueryDatasetNameFormat: ValueObjectFormat[BigQueryDatasetName] = ValueObjectFormat(BigQueryDatasetName)
+  implicit val BigQueryDatasetNameFormat: ValueObjectFormat[BigQueryDatasetName] = ValueObjectFormat(
+    BigQueryDatasetName
+  )
   implicit val BigQueryTableNameFormat: ValueObjectFormat[BigQueryTableName] = ValueObjectFormat(BigQueryTableName)
 
-  implicit val ServiceAccountUniqueIdFormat: ValueObjectFormat[ServiceAccountSubjectId] = ValueObjectFormat(ServiceAccountSubjectId)
+  implicit val ServiceAccountUniqueIdFormat: ValueObjectFormat[ServiceAccountSubjectId] = ValueObjectFormat(
+    ServiceAccountSubjectId
+  )
   implicit val ServiceAccountNameFormat: ValueObjectFormat[ServiceAccountName] = ValueObjectFormat(ServiceAccountName)
-  implicit val ServiceAccountDisplayNameFormat: ValueObjectFormat[ServiceAccountDisplayName] = ValueObjectFormat(ServiceAccountDisplayName)
+  implicit val ServiceAccountDisplayNameFormat: ValueObjectFormat[ServiceAccountDisplayName] = ValueObjectFormat(
+    ServiceAccountDisplayName
+  )
   implicit val ServiceAccountFormat: RootJsonFormat[ServiceAccount] = jsonFormat3(ServiceAccount)
 
-  implicit val ServiceAccountKeyIdFormat: ValueObjectFormat[ServiceAccountKeyId] = ValueObjectFormat(ServiceAccountKeyId)
-  implicit val ServiceAccountPrivateKeyDataFormat: ValueObjectFormat[ServiceAccountPrivateKeyData] = ValueObjectFormat(ServiceAccountPrivateKeyData)
+  implicit val ServiceAccountKeyIdFormat: ValueObjectFormat[ServiceAccountKeyId] = ValueObjectFormat(
+    ServiceAccountKeyId
+  )
+  implicit val ServiceAccountPrivateKeyDataFormat: ValueObjectFormat[ServiceAccountPrivateKeyData] = ValueObjectFormat(
+    ServiceAccountPrivateKeyData
+  )
   implicit val ServiceAccountKeyFormat: RootJsonFormat[ServiceAccountKey] = jsonFormat4(ServiceAccountKey)
 
   implicit val GcsBucketNameFormat: ValueObjectFormat[GcsBucketName] = ValueObjectFormat(GcsBucketName)
   implicit val GcsObjectNameFormat: RootJsonFormat[GcsObjectName] = jsonFormat2(GcsObjectName)
   implicit val GcsPathFormat: RootJsonFormat[GcsPath] = jsonFormat2(GcsPath)
   implicit val GcsParseErrorFormat: ValueObjectFormat[GcsParseError] = ValueObjectFormat(GcsParseError)
-  implicit val GcsLifecycleTypeFormat: ValueObjectFormat[GcsLifecycleTypes.GcsLifecycleType] = ValueObjectFormat(GcsLifecycleTypes.withName)
+  implicit val GcsLifecycleTypeFormat: ValueObjectFormat[GcsLifecycleTypes.GcsLifecycleType] = ValueObjectFormat(
+    GcsLifecycleTypes.withName
+  )
   implicit val GcsRoleFormat: ValueObjectFormat[GcsRoles.GcsRole] = ValueObjectFormat(GcsRoles.withName)
-  implicit val GcsEntityTypeFormat: ValueObjectFormat[GcsEntityTypes.GcsEntityType] = ValueObjectFormat(GcsEntityTypes.withName)
+  implicit val GcsEntityTypeFormat: ValueObjectFormat[GcsEntityTypes.GcsEntityType] = ValueObjectFormat(
+    GcsEntityTypes.withName
+  )
 }

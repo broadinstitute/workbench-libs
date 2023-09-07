@@ -872,7 +872,9 @@ object OrchestrationModel {
 
   final case class StorageCostEstimate(estimate: String)
 
-  implicit val ManagedGroupWithMembersFormat: RootJsonFormat[ManagedGroupWithMembers] = jsonFormat3(ManagedGroupWithMembers)
+  implicit val ManagedGroupWithMembersFormat: RootJsonFormat[ManagedGroupWithMembers] = jsonFormat3(
+    ManagedGroupWithMembers
+  )
 
   implicit val StorageCostEstimateFormat: RootJsonFormat[StorageCostEstimate] = jsonFormat1(StorageCostEstimate)
 }
