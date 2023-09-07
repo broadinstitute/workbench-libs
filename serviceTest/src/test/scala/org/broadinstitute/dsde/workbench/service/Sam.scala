@@ -214,11 +214,17 @@ object SamModel {
     import DefaultJsonProtocol._
     import org.broadinstitute.dsde.workbench.model.WorkbenchIdentityJsonSupport._
 
-    implicit val AccessPolicyMembershipFormat: RootJsonFormat[AccessPolicyMembership] = jsonFormat3(AccessPolicyMembership.apply)
+    implicit val AccessPolicyMembershipFormat: RootJsonFormat[AccessPolicyMembership] = jsonFormat3(
+      AccessPolicyMembership.apply
+    )
 
-    implicit val AccessPolicyResponseEntryFormat: RootJsonFormat[AccessPolicyResponseEntry] = jsonFormat3(AccessPolicyResponseEntry.apply)
+    implicit val AccessPolicyResponseEntryFormat: RootJsonFormat[AccessPolicyResponseEntry] = jsonFormat3(
+      AccessPolicyResponseEntry.apply
+    )
 
-    implicit val CreateResourceRequestFormat: RootJsonFormat[CreateResourceRequest] = jsonFormat3(CreateResourceRequest.apply)
+    implicit val CreateResourceRequestFormat: RootJsonFormat[CreateResourceRequest] = jsonFormat3(
+      CreateResourceRequest.apply
+    )
   }
 
   final case class AccessPolicyMembership(memberEmails: Set[String], actions: Set[String], roles: Set[String])
