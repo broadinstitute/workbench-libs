@@ -18,7 +18,7 @@ final class GoogleDataprocManualTest(pathToCredential: String,
                                      regionStr: String = "us-central1"
 ) {
 
-  implicit val traceId: Ask[IO,TraceId] = Ask.const[IO, TraceId](TraceId(UUID.randomUUID()))
+  implicit val traceId: Ask[IO, TraceId] = Ask.const[IO, TraceId](TraceId(UUID.randomUUID()))
 
   implicit def logger: ConsoleLogger = new ConsoleLogger("dataproc-manual-test", LogLevel(true, true, true, true))
 
