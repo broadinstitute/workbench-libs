@@ -83,7 +83,8 @@ object Notifications {
 
   case class AzurePreviewActivationNotification(recipientUserId: WorkbenchUserId) extends UserNotification
   val AzurePreviewActivationNotificationType = register(new NotificationType[AzurePreviewActivationNotification] {
-    override val format: RootJsonFormat[AzurePreviewActivationNotification] = jsonFormat1(AzurePreviewActivationNotification.apply)
+    override val format: RootJsonFormat[AzurePreviewActivationNotification] =
+      jsonFormat1(AzurePreviewActivationNotification.apply)
     override val description = "Azure Preview Account Activation"
     override val alwaysOn = true
   })
@@ -125,7 +126,8 @@ object Notifications {
   ) extends Notification
 
   val BillingProjectInvitedNotificationType = register(new NotificationType[BillingProjectInvitedNotification] {
-    override val format: RootJsonFormat[BillingProjectInvitedNotification] = jsonFormat3(BillingProjectInvitedNotification.apply)
+    override val format: RootJsonFormat[BillingProjectInvitedNotification] =
+      jsonFormat3(BillingProjectInvitedNotification.apply)
     override val description = "Billing Project Invitation"
     override val alwaysOn = true
   })
@@ -147,7 +149,8 @@ object Notifications {
                                                     comment: String
   ) extends WorkspaceNotification
   val SuccessfulSubmissionNotificationType = register(new WorkspaceNotificationType[SuccessfulSubmissionNotification] {
-    override val format: RootJsonFormat[SuccessfulSubmissionNotification] = jsonFormat8(SuccessfulSubmissionNotification.apply)
+    override val format: RootJsonFormat[SuccessfulSubmissionNotification] =
+      jsonFormat8(SuccessfulSubmissionNotification.apply)
     override val description = "Successful submission"
   })
 
@@ -175,7 +178,8 @@ object Notifications {
                                                  comment: String
   ) extends WorkspaceNotification
   val AbortedSubmissionNotificationType = register(new WorkspaceNotificationType[AbortedSubmissionNotification] {
-    override val format: RootJsonFormat[AbortedSubmissionNotification] = jsonFormat8(AbortedSubmissionNotification.apply)
+    override val format: RootJsonFormat[AbortedSubmissionNotification] =
+      jsonFormat8(AbortedSubmissionNotification.apply)
     override val description = "Aborted submission"
   })
 

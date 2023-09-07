@@ -4,10 +4,11 @@ This file documents changes to the `workbench-service-test` library, including n
 
 ## 4.1
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "4.1-aa2afae"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "4.1-TRAVIS-REPLACE-ME"`
 
 ### Dependency upgrades
 - updated withTemporaryBillingProject to optionally not cleanup the billing project
+- updated `rawls-model` dependency to `0.1-fb0c9691b`
 
 ## 4.0
 SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "4.0-e42c23c"`

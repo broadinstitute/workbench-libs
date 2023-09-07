@@ -152,14 +152,16 @@ trait DoneCheckable[A] {
 }
 
 object DoneCheckableInstances {
-  implicit val containerDoneCheckable: DoneCheckable[com.google.container.v1.Operation] = new DoneCheckable[com.google.container.v1.Operation] {
-    def isDone(op: com.google.container.v1.Operation): Boolean =
-      op.getStatus == com.google.container.v1.Operation.Status.DONE
-  }
-  implicit val computeDoneCheckable: DoneCheckable[com.google.cloud.compute.v1.Operation] = new DoneCheckable[com.google.cloud.compute.v1.Operation] {
-    def isDone(op: com.google.cloud.compute.v1.Operation): Boolean =
-      op.getStatus == com.google.cloud.compute.v1.Operation.Status.DONE
-  }
+  implicit val containerDoneCheckable: DoneCheckable[com.google.container.v1.Operation] =
+    new DoneCheckable[com.google.container.v1.Operation] {
+      def isDone(op: com.google.container.v1.Operation): Boolean =
+        op.getStatus == com.google.container.v1.Operation.Status.DONE
+    }
+  implicit val computeDoneCheckable: DoneCheckable[com.google.cloud.compute.v1.Operation] =
+    new DoneCheckable[com.google.cloud.compute.v1.Operation] {
+      def isDone(op: com.google.cloud.compute.v1.Operation): Boolean =
+        op.getStatus == com.google.cloud.compute.v1.Operation.Status.DONE
+    }
 }
 
 final case class DoneCheckableOps[A](a: A)(implicit ev: DoneCheckable[A]) {
