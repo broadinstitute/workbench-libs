@@ -19,7 +19,7 @@ SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.
 | jackson-module-scala |        2.15.0        |               2.15.2 |
 | logstash-logback-encoder |         7.3          |                  7.4 |
 | sbt-scoverage |        2.0.7         |                2.0.8 |
-| scalatest |        3.2.15        |               3.2.16 |
+| scalatest |        3.2.15        |               3.2.17 |
 
 ## 0.28
 

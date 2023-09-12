@@ -18,7 +18,7 @@ SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-opentelemetry
 |----------|:--------------------:|---------------------:|
 | cats-effect |        3.4.10        |               3.4.11 |
 | sbt-scoverage                          |    2.0.7    |       2.0.8 |
-| scalatest                              |   3.2.15    |      3.2.16 |
+| scalatest                              |   3.2.15    |      3.2.17 |
 
 ## 0.5
 
@@ -52,7 +52,7 @@ SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-opentelemetry
 | jackson-module-scala |  2.14.1 | 2.15.0 |
 | logstash-logback-encoder |  7.2 | 7.3 |
 | sbt-scoverage |  2.0.6 | 2.0.7 |
-| scalatest |  3.2.14 | 3.2.16 |
+| scalatest |  3.2.14 | 3.2.17 |
 
 ## 0.3
 Breaking Changes

@@ -10,7 +10,7 @@ SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-notifications
 | Dependency   |     Old Version      |          New Version |
 |----------|:--------------------:|---------------------:|
 | sbt-scoverage |        2.0.7         |                2.0.8 |
-| scalatest |        3.2.15        |               3.2.16 |
+| scalatest |        3.2.15        |               3.2.17 |
 
 ## 0.5
 

@@ -18,7 +18,7 @@ SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-error-reporti
 |----------|:--------------------:|---------------------:|
 | cats-effect |        3.4.10        |               3.4.11 |
 | sbt-scoverage                          |    2.0.7    |       2.0.8 |
-| scalatest                              |   3.2.15    |      3.2.16 |
+| scalatest                              |   3.2.15    |      3.2.17 |
 
 ## 0.5
 

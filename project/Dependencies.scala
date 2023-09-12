@@ -6,7 +6,7 @@ object Dependencies {
   val jacksonV      = "2.15.2"
   val googleV       = "2.0.0"
   val scalaLoggingV = "3.9.5"
-  val scalaTestV    = "3.2.16"
+  val scalaTestV    = "3.2.17"
 
   // TODO upgrade to stable 14.x or 15.0 once that includes a fix to https://github.com/circe/circe-yaml/issues/356
   val circeVersion = "0.15.0-M1"
