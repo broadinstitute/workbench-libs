@@ -22,6 +22,7 @@ Upgrade azure-resourcemanager-containerservice from 2.29.0 to 2.30.0
 | json-smart                             |   2.4.11    |       2.5.0 |
 | sbt-scoverage |        2.0.7         |                2.0.8 |
 | scalatest                              |   3.2.16    |      3.2.17 |
+| scala       |   2.13.11   |     2.13.12 |
 
 ## 0.5
 

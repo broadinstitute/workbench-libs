@@ -12,6 +12,7 @@ SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-model" % "0.1
 | guava |  31.1-jre   |  32.1.2-jre |
 | sbt-scoverage |    2.0.8    |       2.0.9 |
 | scalatest |   3.2.16    |      3.2.17 |
+| scala       |   2.13.11   |     2.13.12 |
 
 ## 0.18
 

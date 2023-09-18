@@ -20,6 +20,7 @@ SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.
 | logstash-logback-encoder |         7.3          |                  7.4 |
 | sbt-scoverage |        2.0.8         |                2.0.9 |
 | scalatest |        3.2.16        |               3.2.17 |
+| scala       |   2.13.11   |     2.13.12 |
 
 ## 0.28
 

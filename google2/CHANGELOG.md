@@ -17,6 +17,7 @@ Upgrade google-cloud-pubsub from 1.124.1 to 1.124.2
 | google-cloud-nio |        0.126.19        |               0.127.2 |
 | sbt-scoverage |        2.0.8         |                2.0.9 |
 | scalatest |        3.2.16        |               3.2.17 |
+| scala       |   2.13.11   |     2.13.12 |
 
 
 ## 0.32

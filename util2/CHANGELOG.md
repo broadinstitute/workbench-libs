@@ -15,13 +15,14 @@ Upgrade fs2-io from 3.8.0 to 3.9.1
 * Changelog https://github.com/typelevel/fs2/compare/v3.8.0...v3.9.1
 
 ### Dependency upgrades
-| Dependency   | Old Version | New Version |
-|----------|:-----------:|------------:|
+| Dependency  | Old Version | New Version |
+|-------------|:-----------:|------------:|
 | cats-effect |   3.4.11    |       3.5.1 |
-| circe-yaml |   0.14.5    |   0.15.0-M1 |
-| fs2-io |    3.8.0    |       3.9.1 |
+| circe-yaml  |   0.14.5    |   0.15.0-M1 |
+| fs2-io      |    3.8.0    |       3.9.1 |
 | sbt-scoverage |    2.0.8    |       2.0.9 |
-| scalatest |   3.2.16    |      3.2.17 |
+| scalatest   |   3.2.16    |      3.2.17 |
+| scala       |   2.13.11   |     2.13.12 |
 
 ## 0.6
 
