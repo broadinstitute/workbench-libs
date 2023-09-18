@@ -4,14 +4,14 @@ This file documents changes to the `workbench-util` library, including notes on 
 
 ## 0.10
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util" % "0.10-aa2afae"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util" % "0.10-TRAVIS-REPLACE-ME"`
 
 ### Dependency upgrades
 | Dependency    | Old Version | New Version |
 |---------------|:-----------:|------------:|
 | cats-core     |    2.9.0    |      2.10.0 |
-| sbt-scoverage |    2.0.7    |       2.0.8 |
-| scalatest     |   3.2.15    |      3.2.16 |
+| sbt-scoverage |    2.0.8    |       2.0.9 |
+| scalatest     |   3.2.16    |      3.2.17 |
 
 ## 0.9
 - Added increased retry interval backoff

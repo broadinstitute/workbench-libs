@@ -4,14 +4,14 @@ This file documents changes to the `workbench-model` library, including notes on
 
 ## 0.19
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-model" % "0.19-aa2afae"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-model" % "0.19-TRAVIS-REPLACE-ME"`
 
 ### Dependency upgrades
-| Dependency   |     Old Version      |          New Version |
-|----------|:--------------------:|---------------------:|
-| guava |         31.1-jre          |                  32.1.2-jre |
-| sbt-scoverage |        2.0.7         |                2.0.8 |
-| scalatest |        3.2.15        |               3.2.16 |
+| Dependency   | Old Version | New Version |
+|----------|:-----------:|------------:|
+| guava |  31.1-jre   |  32.1.2-jre |
+| sbt-scoverage |    2.0.8    |       2.0.9 |
+| scalatest |   3.2.16    |      3.2.17 |
 
 ## 0.18
 
