@@ -11,7 +11,7 @@ SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-opentelemetry
 
 ## 0.6
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-opentelemetry" % "0.6-TRAVIS-REPLACE-ME"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-opentelemetry" % "0.6-7362eef"`
 
 ### Dependency upgrades
 | Dependency   | Old Version | New Version |
