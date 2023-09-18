@@ -23,6 +23,7 @@ Upgrade fs2-io from 3.8.0 to 3.9.1
 | sbt-scoverage |    2.0.8    |       2.0.9 |
 | scalatest   |   3.2.16    |      3.2.17 |
 | scala       |   2.13.11   |     2.13.12 |
+| sbt-scalafix       |   0.11.0    |      0.11.1 |
 
 ## 0.6
 

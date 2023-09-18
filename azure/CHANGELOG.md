@@ -24,6 +24,7 @@ Upgrade azure-resourcemanager-containerservice from 2.29.0 to 2.30.0
 | sbt-scoverage |    2.0.7    |       2.0.8 |
 | scalatest                              |   3.2.16    |      3.2.17 |
 | scala       |   2.13.11   |     2.13.12 |
+| sbt-scalafix       |   0.11.0    |      0.11.1 |
 
 ## 0.5
 
