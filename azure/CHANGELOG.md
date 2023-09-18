@@ -19,8 +19,9 @@ Upgrade azure-resourcemanager-containerservice from 2.29.0 to 2.30.0
 | azure-resourcemanager-compute          |   2.29.0    |      2.30.0 |
 | azure-resourcemanager-containerservice |   2.29.0    |      2.30.0 |
 | azure-storage-blob                     |   12.22.3   |     12.23.1 |
+| azure-identity                    |   1.10.0    |      1.10.1 |
 | json-smart                             |   2.4.11    |       2.5.0 |
-| sbt-scoverage |        2.0.7         |                2.0.8 |
+| sbt-scoverage |    2.0.7    |       2.0.8 |
 | scalatest                              |   3.2.16    |      3.2.17 |
 | scala       |   2.13.11   |     2.13.12 |
 
