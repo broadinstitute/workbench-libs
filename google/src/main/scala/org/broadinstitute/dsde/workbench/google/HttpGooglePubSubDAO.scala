@@ -115,6 +115,13 @@ class HttpGooglePubSubDAO(appName: String,
       case e: HttpResponseException if e.getStatusCode == StatusCodes.NotFound.intValue => false
     }
 
+
+  // logging side effects can be ignored for testing
+  // batching sequence of messages -> extract logic
+  // form retries
+  // constructs pubsub message objects (
+  // create publish request
+  // call execute google on the publish request
   override def publishMessages(topicName: String, messages: scala.collection.Seq[MessageRequest]) = {
     logger.debug(s"publishing to google pubsub topic $topicName, messages [${messages.mkString(", ")}]")
     Future
@@ -127,7 +134,8 @@ class HttpGooglePubSubDAO(appName: String,
                 .setAttributes(messageRequest.attributes.asJava)
             )
           val pubsubRequest = new PublishRequest().setMessages(pubsubMessages.asJava)
-          executeGoogleRequest(pubSub.projects().topics().publish(topicToFullPath(topicName), pubsubRequest))
+          val publish: Pubsub#Projects#Topics#Publish = pubSub.projects().topics().publish(topicToFullPath(topicName), pubsubRequest)
+          executeGoogleRequest(publish)
         }
       }
       .map(_ => ())

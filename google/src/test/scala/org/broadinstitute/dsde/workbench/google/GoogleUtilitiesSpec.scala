@@ -1,16 +1,19 @@
 package org.broadinstitute.dsde.workbench.google
 
 import java.io.IOException
-
 import akka.actor.ActorSystem
 import akka.testkit.TestKit
+import com.google.api.client.googleapis.auth.oauth2.GoogleCredential
 import com.google.api.client.googleapis.json.GoogleJsonError.ErrorInfo
 import com.google.api.client.googleapis.json.{GoogleJsonError, GoogleJsonResponseException}
 import com.google.api.client.http._
+import com.google.api.services.pubsub.Pubsub
+import com.google.api.services.pubsub.model.PublishRequest
+import org.broadinstitute.dsde.workbench.google.GoogleCredentialModes.{httpTransport, jsonFactory}
 import org.broadinstitute.dsde.workbench.google.GoogleUtilities.RetryPredicates._
 import org.broadinstitute.dsde.workbench.metrics.{Histogram, StatsDTestUtils}
 import org.broadinstitute.dsde.workbench.util.MockitoTestUtils
-import org.scalatest.BeforeAndAfterAll
+import org.scalatest.{BeforeAndAfterAll, Tag}
 import org.scalatest.flatspec.AnyFlatSpecLike
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.concurrent.{Eventually, ScalaFutures}
@@ -288,6 +291,31 @@ class GoogleUtilitiesSpec
       capturedMetrics should contain("test.histo.samples" -> "1")
       capturedMetrics should contain("test.histo.max" -> "4") // 4 exceptions
     }
+  }
+}
+
+object RedRing extends Tag("red ring test")
+
+class GoogleClientRequestSpec extends AnyFlatSpecLike with Matchers {
+  val googleCredential: GoogleCredential = ???
+  val appName: String = "testLibs"
+  val googleProject: String = "testServiceProject"
+  val pubsubTopicName: String = "testTopicName"
+  private lazy val pubSub =
+    new Pubsub.Builder(httpTransport, jsonFactory, googleCredential).setApplicationName(appName).build()
+  "Workbench libs" should "be able to publish to a real pubsub topic on google" taggedAs RedRing in {
+    // Arrange
+    val pubsubMessages = Seq(???)
+    val pubsubRequest = new PublishRequest().setMessages(pubsubMessages.asJava)
+    val topicPath = s"projects/$googleProject/topics/$pubsubTopicName"
+    val pubsubPublishRequest: Pubsub#Projects#Topics#Publish =
+      pubSub.projects().topics().publish(topicPath, pubsubRequest)
+
+    // Act
+    val httpResponse = pubsubPublishRequest.executeUnparsed()
+
+    // Assert
+    httpResponse.getStatusCode shouldEqual 200
   }
 }
 
