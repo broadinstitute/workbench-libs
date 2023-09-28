@@ -7,8 +7,8 @@ import com.google.api.client.googleapis.auth.oauth2.GoogleCredential
 import com.google.api.client.googleapis.json.GoogleJsonError.ErrorInfo
 import com.google.api.client.googleapis.json.{GoogleJsonError, GoogleJsonResponseException}
 import com.google.api.client.http._
-import com.google.api.services.pubsub.Pubsub
-import com.google.api.services.pubsub.model.PublishRequest
+import com.google.api.services.pubsub.{Pubsub, PubsubScopes}
+import com.google.api.services.pubsub.model.{PublishRequest, PubsubMessage}
 import org.broadinstitute.dsde.workbench.google.GoogleCredentialModes.{httpTransport, jsonFactory}
 import org.broadinstitute.dsde.workbench.google.GoogleUtilities.RetryPredicates._
 import org.broadinstitute.dsde.workbench.metrics.{Histogram, StatsDTestUtils}
@@ -19,6 +19,7 @@ import org.scalatest.matchers.should.Matchers
 import org.scalatest.concurrent.{Eventually, ScalaFutures}
 import spray.json._
 
+import java.nio.file.{Files, Paths}
 import scala.jdk.CollectionConverters._
 import scala.concurrent.{ExecutionContext, ExecutionContextExecutor}
 import scala.concurrent.duration._
@@ -297,16 +298,34 @@ class GoogleUtilitiesSpec
 object RedRing extends Tag("red ring test")
 
 class GoogleClientRequestSpec extends AnyFlatSpecLike with Matchers {
-  val googleCredential: GoogleCredential = ???
+  val adminServiceAccountJsonPath = "/Users/kobori/workbench-libs/google/src/test/scala/org/broadinstitute/dsde/workbench/google/admin-service-account-0.json"
+  val scopes = PubsubScopes.all().asScala.toSeq
+  val googleCredential: GoogleCredential = GoogleCredentialModes.Json(Files.readAllLines(Paths.get(adminServiceAccountJsonPath)).asScala.mkString).toGoogleCredential(scopes)
   val appName: String = "testLibs"
-  val googleProject: String = "testServiceProject"
-  val pubsubTopicName: String = "testTopicName"
+  val googleProject: String = "broad-dsde-dev"
+  // Need to have a topic that exists
+  val pubsubTopicName: String = "sam-group-sync-fiab-matt-busy-dragon-fiab"//"sam-group-sync-potato"
   private lazy val pubSub =
     new Pubsub.Builder(httpTransport, jsonFactory, googleCredential).setApplicationName(appName).build()
   "Workbench libs" should "be able to publish to a real pubsub topic on google" taggedAs RedRing in {
     // Arrange
-    val pubsubMessages = Seq(???)
-    val pubsubRequest = new PublishRequest().setMessages(pubsubMessages.asJava)
+    /*
+    val pubsubMessages =
+      messageBatch.map(messageRequest =>
+        new PubsubMessage()
+          .encodeData(messageRequest.text.getBytes(characterEncoding))
+          .setAttributes(messageRequest.attributes.asJava)
+      )
+     */
+    val workbenchGroupNameJson = "{ \"foo\": \"bar\" }"
+    val pubsubMessageRequests = Seq(workbenchGroupNameJson)
+    val pubsubMessages =
+      pubsubMessageRequests.map(messageRequest =>
+        new PubsubMessage()
+          .encodeData(messageRequest.getBytes("UTF-8"))
+          .setAttributes(Map[String,String]().empty.asJava)
+      )
+    val pubsubRequest = new PublishRequest().setMessages(pubsubMessages.toList.asJava)
     val topicPath = s"projects/$googleProject/topics/$pubsubTopicName"
     val pubsubPublishRequest: Pubsub#Projects#Topics#Publish =
       pubSub.projects().topics().publish(topicPath, pubsubRequest)
