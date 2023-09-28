@@ -103,9 +103,9 @@ object Dependencies {
   val scalaCache = "com.github.cb372" %% "scalacache-caffeine" % "1.0.0-M6"
 
   // [TOAZ-205] Rawls checks-in a customised version of swagger-ui's index.html supporting Terra
-  // on Azure and upgrading subsequently caused failures. Pin swagger-ui version until this
+  // on Azure and upgrading subsequently caused failures. Pin swagger-ui version at 4.11.1 until this
   // has been made more upgrade-safe.
-  val swaggerUi = "org.webjars" % "swagger-ui" % "4.19.1"
+  val swaggerUi = "org.webjars" % "swagger-ui" % "4.11.1"
 
   val azureResourceManagerCompute = "com.azure.resourcemanager" % "azure-resourcemanager-compute" % "2.30.0" exclude("net.minidev", "json-smart")
   val azureIdentity =  "com.azure" % "azure-identity" % "1.10.1"
