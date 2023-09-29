@@ -4,7 +4,7 @@ This file documents changes to the `workbench-azure` library, including notes on
 
 ## 0.6
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-azure" % "0.6-aa2afae"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-azure" % "0.6-7362eef"`
 
 ### Changes
 Upgrade azure-resourcemanager-compute from 2.29.0 to 2.30.0
@@ -14,12 +14,17 @@ Upgrade azure-resourcemanager-containerservice from 2.29.0 to 2.30.0
 * Changelog https://github.com/Azure/azure-sdk-for-java/blob/main/sdk/resourcemanager/azure-resourcemanager-containerservice/CHANGELOG.md#2300-2023-08-25
 
 ### Dependency upgrades
-- `aa2afae`
-  - azure-resourcemanager-compute from 2.29.0 to 2.30.0
-  - azure-resourcemanager-containerservice from 2.29.0 to 2.30.0
-- `f87cad5`
-  - Updated json-smart from 2.4.11 to 2.5.0
-  - Updated azure-storage-blob from 12.22.3 to 12.23.1
+| Dependency                             | Old Version | New Version |
+|----------------------------------------|:-----------:|------------:|
+| azure-resourcemanager-compute          |   2.29.0    |      2.30.0 |
+| azure-resourcemanager-containerservice |   2.29.0    |      2.30.0 |
+| azure-storage-blob                     |   12.22.3   |     12.23.1 |
+| azure-identity                    |   1.10.0    |      1.10.1 |
+| json-smart                             |   2.4.11    |       2.5.0 |
+| sbt-scoverage |    2.0.7    |       2.0.8 |
+| scalatest                              |   3.2.16    |      3.2.17 |
+| scala       |   2.13.11   |     2.13.12 |
+| sbt-scalafix       |   0.11.0    |      0.11.1 |
 
 ## 0.5
 

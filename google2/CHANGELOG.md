@@ -11,17 +11,25 @@ Added ability for getBucket to log at WARN level instead of ERROR
 
 ## 0.33
 
-SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.33-aa2afae"`
+SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.33-7362eef"`
 
 ### Changes
 Upgrade google-cloud-pubsub from 1.124.1 to 1.124.2
 * Release notes https://github.com/googleapis/java-pubsub/releases/tag/v1.124.2
 
 ### Dependency upgrades
-- `aa2afae`
-  - google-cloud-pubsub from 1.124.1 to 1.124.2
-- `f87cad5`
-  - Updated google-cloud-nio from 0.126.19 to 0.127.2
+| Dependency   | Old Version | New Version |
+|----------|:-----------:|------------:|
+| google-cloud-pubsub |   1.124.1   |     1.124.2 |
+| google-cloud-nio |  0.126.19   |     0.127.2 |
+| grpc-core |   1.57.2    |      1.58.0 |
+| google-cloud-bigquery |   2.31.1    |      2.31.2 |
+| google-api-services-container |   v1-rev20230724-2.0.0    |      v1-rev20230809-2.0.0 |
+| sbt-scoverage |    2.0.8    |       2.0.9 |
+| scalatest |   3.2.16    |      3.2.17 |
+| scala       |   2.13.11   |     2.13.12 |
+| sbt-scalafix       |   0.11.0    |      0.11.1 |
+
 
 ## 0.32
 
