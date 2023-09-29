@@ -4,6 +4,13 @@ This file documents changes to the `workbench-google` library, including notes o
 
 ## 0.29
 
+SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.30-TRAVIS-REPLACE-ME"`
+
+Changed: 
+- Made `GoogleBucketDAO` and `GoogleIamDAO` retry on 412 responses
+
+## 0.29
+
 SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.29-aa2afae"`
 
 ### Dependency upgrades

@@ -2,6 +2,13 @@
 
 This file documents changes to the `workbench-google2` library, including notes on how to upgrade to new versions.
 
+## 0.34
+
+SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.34-TRAVIS-REPLACE-ME"`
+
+### Changes
+Added ability for getBucket to log at WARN level instead of ERROR
+
 ## 0.33
 
 SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.33-aa2afae"`
