@@ -91,6 +91,11 @@ object GoogleUtilities {
       case _                              => false
     }
 
+    def when412(throwable: Throwable): Boolean = throwable match {
+      case t: GoogleJsonResponseException => t.getStatusCode == 412
+      case _                              => false
+    }
+
     /**
      * Groups may take some time to sync to Google and propogate. This will retry if the group does not exist (yet).
      */
