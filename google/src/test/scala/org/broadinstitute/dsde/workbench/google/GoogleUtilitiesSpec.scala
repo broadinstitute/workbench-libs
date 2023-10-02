@@ -105,6 +105,7 @@ class GoogleUtilitiesSpec
     whenGroupDoesNotExist(buildGoogleJsonResponseException(400, Some("does not exist"), None, None)) shouldBe true
 
     when412(buildGoogleJsonResponseException(412, None, Some("conditionNotMet"), Some("global"))) shouldBe true
+    when412(buildGoogleJsonResponseException(409)) shouldBe false
   }
 
   it should "return false in negative cases" in {
