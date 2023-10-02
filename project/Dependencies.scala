@@ -6,7 +6,7 @@ object Dependencies {
   val jacksonV      = "2.15.2"
   val googleV       = "2.0.0"
   val scalaLoggingV = "3.9.5"
-  val scalaTestV    = "3.2.16"
+  val scalaTestV    = "3.2.17"
 
   // TODO upgrade to stable 14.x or 15.0 once that includes a fix to https://github.com/circe/circe-yaml/issues/356
   val circeVersion = "0.15.0-M1"
@@ -61,8 +61,8 @@ object Dependencies {
   val googleIam: ModuleID =                  "com.google.apis"       % "google-api-services-iam"                  % s"v1-rev20220825-$googleV"
   val googleBigQuery: ModuleID =             "com.google.apis"       % "google-api-services-bigquery"             % s"v2-rev20220924-$googleV"
   val googleGuava: ModuleID = "com.google.guava"  % "guava" % "32.1.2-jre"
-  val googleRpc: ModuleID =               "io.grpc" % "grpc-core" % "1.57.2"
-  val googleRpc2: ModuleID =               "io.grpc" % "grpc-core" % "1.57.2"
+  val googleRpc: ModuleID =               "io.grpc" % "grpc-core" % "1.58.0"
+  val googleRpc2: ModuleID =               "io.grpc" % "grpc-core" % "1.58.0"
   val googleStorageNew: ModuleID = "com.google.cloud" % "google-cloud-storage" % "2.24.0"
   val googleStorageLocal: ModuleID = "com.google.cloud" % "google-cloud-nio" % "0.127.2" % "test"
   val googlePubsubNew: ModuleID = "com.google.cloud" % "google-cloud-pubsub" % "1.124.2"
@@ -71,12 +71,12 @@ object Dependencies {
   val googleDataproc: ModuleID =    "com.google.cloud" % "google-cloud-dataproc" % "4.20.0"
   val googleContainer: ModuleID = "com.google.cloud" % "google-cloud-container" % "2.26.0"
   val kubernetesClient: ModuleID = "io.kubernetes" % "client-java" % "18.0.1"
-  val googleBigQueryNew: ModuleID = "com.google.cloud" % "google-cloud-bigquery" % "2.31.1"
+  val googleBigQueryNew: ModuleID = "com.google.cloud" % "google-cloud-bigquery" % "2.31.2"
   val google2CloudBilling = "com.google.cloud" % "google-cloud-billing" % "2.23.0"
   val googleStorageTransferService: ModuleID = "com.google.cloud" % "google-cloud-storage-transfer" % "1.23.0"
   val googleResourceManager =  "com.google.cloud" % "google-cloud-resourcemanager" % "1.25.0"
   //the below v1 module is a dependency for v2 because it contains the OAuth scopes necessary to created scoped credentials
-  val googleContainerV1: ModuleID = "com.google.apis" % "google-api-services-container" % "v1-rev20230724-2.0.0"
+  val googleContainerV1: ModuleID = "com.google.apis" % "google-api-services-container" % "v1-rev20230809-2.0.0"
 
 
   val circeCore: ModuleID = "io.circe" %% "circe-core" % circeVersion
@@ -108,7 +108,7 @@ object Dependencies {
   val swaggerUi = "org.webjars" % "swagger-ui" % "4.11.1"
 
   val azureResourceManagerCompute = "com.azure.resourcemanager" % "azure-resourcemanager-compute" % "2.30.0" exclude("net.minidev", "json-smart")
-  val azureIdentity =  "com.azure" % "azure-identity" % "1.10.0"
+  val azureIdentity =  "com.azure" % "azure-identity" % "1.10.1"
   val azureRelay =     "com.azure.resourcemanager" % "azure-resourcemanager-relay" % "1.0.0-beta.2"
   val azureStorageBlob =  "com.azure" % "azure-storage-blob" % "12.23.1"
   val azureResourceManagerContainerService = "com.azure.resourcemanager" % "azure-resourcemanager-containerservice" % "2.30.0"
