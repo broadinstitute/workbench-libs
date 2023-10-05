@@ -4,7 +4,7 @@ This file documents changes to the `workbench-azure` library, including notes on
 
 ## 0.6
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-azure" % "0.6-7362eef"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-azure" % "0.6-TRAVIS-REPLACE-ME"`
 
 ### Changes
 Upgrade azure-resourcemanager-compute from 2.29.0 to 2.30.0
@@ -18,7 +18,7 @@ Upgrade azure-resourcemanager-containerservice from 2.29.0 to 2.30.0
 |----------------------------------------|:-----------:|------------:|
 | azure-resourcemanager-compute          |   2.29.0    |      2.30.0 |
 | azure-resourcemanager-containerservice |   2.29.0    |      2.30.0 |
-| azure-storage-blob                     |   12.22.3   |     12.23.1 |
+| azure-storage-blob                     |   12.22.3   |     12.24.0 |
 | azure-identity                    |   1.10.0    |      1.10.1 |
 | json-smart                             |   2.4.11    |       2.5.0 |
 | sbt-scoverage |    2.0.7    |       2.0.8 |
