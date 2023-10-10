@@ -4,7 +4,7 @@ This file documents changes to the `workbench-google2` library, including notes 
 
 ## 0.33
 
-SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.33-7362eef"`
+SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.33-e761452"`
 
 ### Changes
 Upgrade google-cloud-pubsub from 1.124.1 to 1.124.2
@@ -13,16 +13,23 @@ Upgrade google-cloud-pubsub from 1.124.1 to 1.124.2
 ### Dependency upgrades
 | Dependency   | Old Version | New Version |
 |----------|:-----------:|------------:|
-| google-cloud-pubsub |   1.124.1   |     1.124.2 |
-| google-cloud-nio |  0.126.19   |     0.127.2 |
+| google-cloud-pubsub |   1.124.1   |     1.125.2 |
+| google-cloud-nio |  0.126.19   |     1.127.3 |
 | grpc-core |   1.57.2    |      1.58.0 |
-| google-cloud-bigquery |   2.31.1    |      2.31.2 |
+| google-cloud-bigquery |   2.31.1    |      2.32.0 |
 | google-api-services-container |   v1-rev20230724-2.0.0    |      v1-rev20230809-2.0.0 |
 | sbt-scoverage |    2.0.8    |       2.0.9 |
 | scalatest |   3.2.16    |      3.2.17 |
 | scala       |   2.13.11   |     2.13.12 |
 | sbt-scalafix       |   0.11.0    |      0.11.1 |
-
+| google-cloud-storage         |  2.24.0     |      2.27.0 |
+| google-cloud-kms          |  2.26.0     |      2.27.0 |
+| google-cloud-dataproc          |  4.20.0    |      4.21.0 |
+| google-cloud-compute          |  1.33.0    |      1.34.0 |
+| google-cloud-container          |  2.26.0     |      2.27.0 |
+| google-cloud-billing          |  2.23.0     |      2.24.0 |
+| google-cloud-storage-transfer          |  1.23.0    |      1.24.0 |
+| google-cloud-resourcemanager          |  1.25.0    |      1.26.0 |
 
 ## 0.32
 
