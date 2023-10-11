@@ -23,7 +23,7 @@ class AzureBatchServiceInterp[F[_]](clientSecretCredential: ClientSecretCredenti
     for {
       mgr <- buildBatchManager(cloudContext)
       resp <- tracedLogging(
-        F.delay(
+        F.blocking(
           mgr.batchAccounts().getByResourceGroup(cloudContext.managedResourceGroupName.value, name.value)
         ),
         s"com.azure.resourcemanager.batch,getByResourceGroup(${cloudContext.managedResourceGroupName.value}, ${name.value})"
@@ -33,6 +33,6 @@ class AzureBatchServiceInterp[F[_]](clientSecretCredential: ClientSecretCredenti
   private def buildBatchManager(cloudContext: AzureCloudContext): F[BatchManager] = {
     val azureProfile =
       new AzureProfile(cloudContext.tenantId.value, cloudContext.subscriptionId.value, AzureEnvironment.AZURE)
-    F.delay(BatchManager.authenticate(clientSecretCredential, azureProfile))
+    F.blocking(BatchManager.authenticate(clientSecretCredential, azureProfile))
   }
 }
