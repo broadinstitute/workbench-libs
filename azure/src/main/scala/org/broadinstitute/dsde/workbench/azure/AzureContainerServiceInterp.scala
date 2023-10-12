@@ -28,7 +28,7 @@ class AzureContainerServiceInterp[F[_]](clientSecretCredential: ClientSecretCred
     for {
       mgr <- buildContainerServiceManager(cloudContext)
       resp <- tracedLogging(
-        F.delay(
+        F.blocking(
           mgr
             .kubernetesClusters()
             .getByResourceGroup(cloudContext.managedResourceGroupName.value, name.value)
@@ -41,7 +41,7 @@ class AzureContainerServiceInterp[F[_]](clientSecretCredential: ClientSecretCred
     for {
       mgr <- buildContainerServiceManager(cloudContext)
       fa =
-        F.delay(
+        F.blocking(
           mgr
             .kubernetesClusters()
             .listByResourceGroup(cloudContext.managedResourceGroupName.value)
@@ -66,7 +66,7 @@ class AzureContainerServiceInterp[F[_]](clientSecretCredential: ClientSecretCred
     for {
       mgr <- buildContainerServiceManager(cloudContext)
       resp <- tracedLogging(
-        F.delay(
+        F.blocking(
           mgr
             .kubernetesClusters()
             .manager()
@@ -95,6 +95,6 @@ class AzureContainerServiceInterp[F[_]](clientSecretCredential: ClientSecretCred
   private def buildContainerServiceManager(cloudContext: AzureCloudContext): F[ContainerServiceManager] = {
     val azureProfile =
       new AzureProfile(cloudContext.tenantId.value, cloudContext.subscriptionId.value, AzureEnvironment.AZURE)
-    F.delay(ContainerServiceManager.authenticate(clientSecretCredential, azureProfile))
+    F.blocking(ContainerServiceManager.authenticate(clientSecretCredential, azureProfile))
   }
 }
