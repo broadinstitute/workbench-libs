@@ -487,7 +487,8 @@ class HttpGoogleStorageDAO(appName: String,
                                                            when404,
                                                            whenInvalidValueOnBucketCreation,
                                                            whenNonHttpIOException,
-                                                           when409
+                                                           when409,
+                                                           when412
     )
     val finalPredicateList: Seq[Throwable => Boolean] =
       basePredicateList ++ (if (retryIfGroupDoesNotExist) Seq(whenGroupDoesNotExist: Throwable => Boolean)

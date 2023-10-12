@@ -1,10 +1,24 @@
 package org.broadinstitute.dsde.workbench.google
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.google.api.services.storage.Storage
+import com.google.gson.Gson
 import org.broadinstitute.dsde.workbench.model.WorkbenchEmail
 import org.broadinstitute.dsde.workbench.model.google.iam.IamMemberTypes
 import org.broadinstitute.dsde.workbench.model.google.iam.{Binding, Expr, Policy}
 import org.scalatest.flatspec.AnyFlatSpecLike
 import org.scalatest.matchers.should.Matchers
+import com.google.api.services.storage.model.{
+  Bucket,
+  BucketAccessControl,
+  BucketAccessControls,
+  Expr => BucketExpr,
+  ObjectAccessControl,
+  ObjectAccessControls,
+  Objects,
+  Policy => BucketPolicy,
+  StorageObject
+}
 
 class IamOperationsSpec extends AnyFlatSpecLike with Matchers {
 
@@ -224,6 +238,54 @@ class IamOperationsSpec extends AnyFlatSpecLike with Matchers {
     val expectedBindings =
       Set(oldBinding2, Binding("role3", Set(s"${IamMemberTypes.User}:adams@firecloud.org"), conditionExpr))
     updatedPolicy.bindings should be(expectedBindings)
+  }
+
+  it should "remove a user with multiple role binding for the same role but different conditions" in {
+    val conditionExpr1 = Expr("condition", "1 > 2", null, "condition title")
+    val conditionExpr2 = Expr("condition", "2 > 3", null, "condition title")
+    val conditionExpr3 = Expr("condition", "3 > 4", null, "condition title")
+
+    val oldBinding1 =
+      Binding("role1", Set(s"${IamMemberTypes.User}:lincoln@firecloud.org"), conditionExpr1)
+    val oldBinding2 = Binding("role2", Set(s"${IamMemberTypes.User}:lincoln@firecloud.org"), conditionExpr2)
+    val oldBinding3 = Binding("role2", Set(s"${IamMemberTypes.User}:lincoln@firecloud.org"), conditionExpr3)
+    val oldBindings = Set(oldBinding1, oldBinding2, oldBinding3)
+    val oldPolicy = Policy(oldBindings, etag = "abcd")
+
+    val updatedPolicy = IamOperations.updatePolicy(oldPolicy,
+                                                   WorkbenchEmail("lincoln@firecloud.org"),
+                                                   IamMemberTypes.User,
+                                                   Set.empty,
+                                                   Set("role2"),
+                                                   None
+    )
+
+    val expectedBindings =
+      Set(oldBinding1)
+    updatedPolicy.bindings should be(expectedBindings)
+  }
+
+  it should "remove a user even when email case doesn't match" in {
+    val conditionExpr1 = Expr("condition", "1 > 2", null, "condition title")
+    val conditionExpr2 = Expr("condition", "2 > 3", null, "condition title")
+    val conditionExpr3 = Expr("condition", "3 > 4", null, "condition title")
+
+    val oldBinding1 =
+      Binding("role", Set(s"${IamMemberTypes.User}:Lincoln@firecloud.org"), conditionExpr1)
+    val oldBinding2 = Binding("role", Set(s"${IamMemberTypes.User}:Lincoln@Firecloud.org"), conditionExpr2)
+    val oldBinding3 = Binding("role", Set(s"${IamMemberTypes.User}:LINCOLN@firecloud.ORG"), conditionExpr3)
+    val oldBindings = Set(oldBinding1, oldBinding2, oldBinding3)
+    val oldPolicy = Policy(oldBindings, etag = "abcd")
+
+    val updatedPolicy = IamOperations.updatePolicy(oldPolicy,
+                                                   WorkbenchEmail("lincoln@firecloud.org"),
+                                                   IamMemberTypes.User,
+                                                   Set.empty,
+                                                   Set("role"),
+                                                   None
+    )
+
+    updatedPolicy.bindings should be(Set.empty)
   }
 
 }
