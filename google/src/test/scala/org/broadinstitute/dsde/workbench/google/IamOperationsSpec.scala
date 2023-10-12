@@ -8,7 +8,17 @@ import org.broadinstitute.dsde.workbench.model.google.iam.IamMemberTypes
 import org.broadinstitute.dsde.workbench.model.google.iam.{Binding, Expr, Policy}
 import org.scalatest.flatspec.AnyFlatSpecLike
 import org.scalatest.matchers.should.Matchers
-import com.google.api.services.storage.model.{Bucket, BucketAccessControl, BucketAccessControls, ObjectAccessControl, ObjectAccessControls, Objects, StorageObject, Expr => BucketExpr, Policy => BucketPolicy}
+import com.google.api.services.storage.model.{
+  Bucket,
+  BucketAccessControl,
+  BucketAccessControls,
+  Expr => BucketExpr,
+  ObjectAccessControl,
+  ObjectAccessControls,
+  Objects,
+  Policy => BucketPolicy,
+  StorageObject
+}
 
 class IamOperationsSpec extends AnyFlatSpecLike with Matchers {
 
@@ -243,11 +253,11 @@ class IamOperationsSpec extends AnyFlatSpecLike with Matchers {
     val oldPolicy = Policy(oldBindings, etag = "abcd")
 
     val updatedPolicy = IamOperations.updatePolicy(oldPolicy,
-      WorkbenchEmail("lincoln@firecloud.org"),
-      IamMemberTypes.User,
-      Set.empty,
-      Set("role2"),
-      None
+                                                   WorkbenchEmail("lincoln@firecloud.org"),
+                                                   IamMemberTypes.User,
+                                                   Set.empty,
+                                                   Set("role2"),
+                                                   None
     )
 
     val expectedBindings =
@@ -268,11 +278,11 @@ class IamOperationsSpec extends AnyFlatSpecLike with Matchers {
     val oldPolicy = Policy(oldBindings, etag = "abcd")
 
     val updatedPolicy = IamOperations.updatePolicy(oldPolicy,
-      WorkbenchEmail("lincoln@firecloud.org"),
-      IamMemberTypes.User,
-      Set.empty,
-      Set("role"),
-      None
+                                                   WorkbenchEmail("lincoln@firecloud.org"),
+                                                   IamMemberTypes.User,
+                                                   Set.empty,
+                                                   Set("role"),
+                                                   None
     )
 
     updatedPolicy.bindings should be(Set.empty)
