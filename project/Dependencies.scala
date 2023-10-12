@@ -1,7 +1,7 @@
 import sbt._
 
 object Dependencies {
-  val akkaV         = "2.6.20"
+  val akkaV         = "2.6.20" 
   val akkaHttpV     = "10.2.10"
   val jacksonV      = "2.15.2"
   val googleV       = "2.0.0"
@@ -78,6 +78,7 @@ object Dependencies {
   //the below v1 module is a dependency for v2 because it contains the OAuth scopes necessary to created scoped credentials
   val googleContainerV1: ModuleID = "com.google.apis" % "google-api-services-container" % "v1-rev20230809-2.0.0"
 
+  
 
   val circeCore: ModuleID = "io.circe" %% "circe-core" % circeVersion
   val circeParser: ModuleID = "io.circe" %% "circe-parser" % circeVersion
