@@ -443,12 +443,17 @@ private[google2] class GoogleStorageInterpreter[F[_]](
   override def getBucket(googleProject: GoogleProject,
                          bucketName: GcsBucketName,
                          bucketGetOptions: List[BucketGetOption],
-                         traceId: Option[TraceId]
+                         traceId: Option[TraceId],
+                         warnOnError: Boolean = false
   ): F[Option[BucketInfo]] = {
     val dbForProject = db.getOptions.toBuilder.setProjectId(googleProject.value).build().getService
     val fa: F[Option[BucketInfo]] =
       Async[F].delay(dbForProject.get(bucketName.value, bucketGetOptions: _*)).map(Option(_))
-    withLogging(fa, traceId, s"com.google.cloud.storage.Storage.get(${bucketName.value}, $bucketGetOptions)")
+    withLogging(fa,
+                traceId,
+                s"com.google.cloud.storage.Storage.get(${bucketName.value}, $bucketGetOptions)",
+                warnOnError = warnOnError
+    )
   }
 
   override def setRequesterPays(bucketName: GcsBucketName,

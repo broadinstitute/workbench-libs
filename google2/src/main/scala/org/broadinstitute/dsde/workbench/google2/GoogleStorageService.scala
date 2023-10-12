@@ -268,7 +268,8 @@ trait GoogleStorageService[F[_]] {
   def getBucket(googleProject: GoogleProject,
                 bucketName: GcsBucketName,
                 bucketGetOptions: List[BucketGetOption] = List.empty,
-                traceId: Option[TraceId] = None
+                traceId: Option[TraceId] = None,
+                warnOnError: Boolean = false
   ): F[Option[BucketInfo]]
 
   def setRequesterPays(bucketName: GcsBucketName,

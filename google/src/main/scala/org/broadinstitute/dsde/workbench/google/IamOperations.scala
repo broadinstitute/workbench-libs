@@ -45,7 +45,7 @@ object IamOperations {
     val newMembersByRole: Map[(String, Expr), Set[String]] = if (rolesToRemove.nonEmpty) {
       withAdditions.toList.foldMap { case (role, members) =>
         if (rolesToRemove.contains(role._1)) {
-          val filtered = members.filterNot(_ == memberTypeAndEmail)
+          val filtered = members.filterNot(_.equalsIgnoreCase(memberTypeAndEmail))
           if (filtered.isEmpty) Map.empty[(String, Expr), Set[String]]
           else Map(role -> filtered)
         } else {
