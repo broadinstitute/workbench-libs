@@ -23,7 +23,7 @@ class AzureApplicationInsightsServiceInterp[F[_]](clientSecretCredential: Client
     for {
       mgr <- buildApplicationInsightsManager(cloudContext)
       resp <- tracedLogging(
-        F.delay(
+        F.blocking(
           mgr.components().getByResourceGroup(cloudContext.managedResourceGroupName.value, name.value)
         ),
         s"com.azure.resourcemanager.applicationinsights,getByResourceGroup(${cloudContext.managedResourceGroupName.value}, ${name.value})"
@@ -33,6 +33,6 @@ class AzureApplicationInsightsServiceInterp[F[_]](clientSecretCredential: Client
   private def buildApplicationInsightsManager(cloudContext: AzureCloudContext): F[ApplicationInsightsManager] = {
     val azureProfile =
       new AzureProfile(cloudContext.tenantId.value, cloudContext.subscriptionId.value, AzureEnvironment.AZURE)
-    F.delay(ApplicationInsightsManager.authenticate(clientSecretCredential, azureProfile))
+    F.blocking(ApplicationInsightsManager.authenticate(clientSecretCredential, azureProfile))
   }
 }

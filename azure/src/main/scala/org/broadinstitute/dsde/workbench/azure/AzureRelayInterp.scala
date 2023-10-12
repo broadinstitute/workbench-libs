@@ -28,7 +28,7 @@ class AzureRelayInterp[F[_]](clientSecretCredential: ClientSecretCredential)(imp
   ): F[PrimaryKey] = for {
     manager <- buildRelayManager(cloudContext)
     fa1 = F
-      .delay(
+      .blocking(
         manager
           .hybridConnections()
           .define(hybridConnectionName.value)
@@ -47,7 +47,7 @@ class AzureRelayInterp[F[_]](clientSecretCredential: ClientSecretCredential)(imp
       s"com.azure.resourcemanager.relay.models.HybridConnection.DefinitionStages.WithCreate.create(${cloudContext.managedResourceGroupName.value}, ${relayNamespace.value}, ${hybridConnectionName.value})"
     )
     fa2 = F
-      .delay(
+      .blocking(
         manager
           .hybridConnections()
           .createOrUpdateAuthorizationRule(
@@ -63,7 +63,7 @@ class AzureRelayInterp[F[_]](clientSecretCredential: ClientSecretCredential)(imp
       s"com.azure.resourcemanager.relay.models.HybridConnections.createOrUpdateAuthorizationRule(${cloudContext.managedResourceGroupName.value}, ${relayNamespace.value}, ${hybridConnectionName.value})"
     )
     fa3 = F
-      .delay(
+      .blocking(
         manager
           .hybridConnections()
           .listKeys(cloudContext.managedResourceGroupName.value,
@@ -87,7 +87,7 @@ class AzureRelayInterp[F[_]](clientSecretCredential: ClientSecretCredential)(imp
   ): F[Unit] = for {
     manager <- buildRelayManager(cloudContext)
     fa = F
-      .delay(
+      .blocking(
         manager
           .hybridConnections()
           .delete(cloudContext.managedResourceGroupName.value, relayNamespace.value, hybridConnectionName.value)
@@ -106,7 +106,7 @@ class AzureRelayInterp[F[_]](clientSecretCredential: ClientSecretCredential)(imp
   ): F[PrimaryKey] =
     for {
       manager <- buildRelayManager(cloudContext)
-      fa = F.delay(
+      fa = F.blocking(
         manager
           .hybridConnections()
           .listKeys(cloudContext.managedResourceGroupName.value,
@@ -126,6 +126,6 @@ class AzureRelayInterp[F[_]](clientSecretCredential: ClientSecretCredential)(imp
     val azureProfile =
       new AzureProfile(azureCloudContext.tenantId.value, azureCloudContext.subscriptionId.value, AzureEnvironment.AZURE)
 
-    F.delay(RelayManager.authenticate(clientSecretCredential, azureProfile))
+    F.blocking(RelayManager.authenticate(clientSecretCredential, azureProfile))
   }
 }

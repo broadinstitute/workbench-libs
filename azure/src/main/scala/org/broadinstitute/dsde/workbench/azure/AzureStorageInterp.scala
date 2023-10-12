@@ -1,29 +1,20 @@
 package org.broadinstitute.dsde.workbench.azure
 
-import java.io.{InputStream, OutputStream}
-
 import cats.effect.Async
-import com.azure.storage.blob.models.{BlobItem, BlobRequestConditions, ListBlobsOptions}
-import com.azure.storage.blob.{
-  BlobClient,
-  BlobContainerClient,
-  BlobContainerClientBuilder,
-  BlobServiceClient,
-  BlobServiceClientBuilder
-}
 import cats.implicits._
-import java.time.Duration
-
-import org.broadinstitute.dsde.workbench.util2.{tracedLogging, RemoveObjectResult}
-import fs2.{Pipe, Stream}
-import java.nio.file.Path
-
 import cats.mtl.Ask
 import com.azure.core.util.Context
+import com.azure.storage.blob.models.{BlobItem, ListBlobsOptions}
+import com.azure.storage.blob.{BlobClient, BlobContainerClient}
+import fs2.{Pipe, Stream}
 import org.broadinstitute.dsde.workbench.model.TraceId
-
-import scala.jdk.CollectionConverters._
+import org.broadinstitute.dsde.workbench.util2.{tracedLogging, RemoveObjectResult}
 import org.typelevel.log4cats.StructuredLogger
+
+import java.io.{InputStream, OutputStream}
+import java.nio.file.Path
+import java.time.Duration
+import scala.jdk.CollectionConverters._
 
 class AzureStorageInterp[F[_]](config: AzureStorageConfig, containerClients: Map[ContainerName, BlobContainerClient])(
   implicit
@@ -37,10 +28,12 @@ class AzureStorageInterp[F[_]](config: AzureStorageConfig, containerClients: Map
     for {
       containerClient <- Stream.eval(getContainerClient(containerName))
       pages <- Stream.eval(opts.fold {
-        tracedLogging(F.delay(containerClient.listBlobs()), s"com.azure.storage.blob.BlobContainerClient.listBlobs()")
+        tracedLogging(F.blocking(containerClient.listBlobs()),
+                      s"com.azure.storage.blob.BlobContainerClient.listBlobs()"
+        )
       } { opts =>
         tracedLogging(
-          F.delay(containerClient.listBlobs(opts, Duration.ofMillis(config.listTimeout.toMillis))),
+          F.blocking(containerClient.listBlobs(opts, Duration.ofMillis(config.listTimeout.toMillis))),
           s"com.azure.storage.blob.BlobContainerClient($containerName).listBlobs($opts,${config.listTimeout}"
         )
       })
@@ -54,7 +47,7 @@ class AzureStorageInterp[F[_]](config: AzureStorageConfig, containerClients: Map
   ): Pipe[F, Byte, Unit] = {
     val outputStream = for {
       blobClient <- buildBlobClient(containerName, blobName)
-      outputStream <- F.delay(blobClient.getBlockBlobClient.getBlobOutputStream(overwrite))
+      outputStream <- F.blocking(blobClient.getBlockBlobClient.getBlobOutputStream(overwrite))
       // This is a subclass of OutputStream, but the scala code is not happy without the explicit conversion since its a java subclass
     } yield outputStream: OutputStream
     fs2.io.writeOutputStream(outputStream, closeAfterUse = true)
@@ -68,7 +61,7 @@ class AzureStorageInterp[F[_]](config: AzureStorageConfig, containerClients: Map
     for {
       blobClient <- buildBlobClient(containerName, blobName)
       _ <- tracedLogging(
-        F.delay(blobClient.downloadToFile(path.toAbsolutePath.toString, overwrite)),
+        F.blocking(blobClient.downloadToFile(path.toAbsolutePath.toString, overwrite)),
         s"com.azure.storage.blob.BlobClient($containerName, $blobName).downloadToFile(${path.toAbsolutePath.toString}, overwrite=$overwrite)"
       )
 
@@ -83,7 +76,7 @@ class AzureStorageInterp[F[_]](config: AzureStorageConfig, containerClients: Map
       )
       is <- fs2.io
         .readInputStream(
-          F.delay(client.openInputStream(): InputStream),
+          F.blocking(client.openInputStream(): InputStream),
           1024,
           closeAfterUse = true
         )
@@ -100,7 +93,7 @@ class AzureStorageInterp[F[_]](config: AzureStorageConfig, containerClients: Map
       traceId <- ev.ask
       client <- buildBlobClient(containerName, blobName)
       resp <- tracedLogging(
-        F.delay(
+        F.blocking(
           client
             .deleteWithResponse(
               null,
@@ -126,7 +119,7 @@ class AzureStorageInterp[F[_]](config: AzureStorageConfig, containerClients: Map
   private def buildBlobClient(containerName: ContainerName, blobName: BlobName): F[BlobClient] =
     for {
       containerClient <- getContainerClient(containerName)
-      blobClient <- F.delay(containerClient.getBlobClient(blobName.value))
+      blobClient <- F.blocking(containerClient.getBlobClient(blobName.value))
     } yield blobClient
 
 }

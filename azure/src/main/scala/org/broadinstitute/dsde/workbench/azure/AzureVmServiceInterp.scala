@@ -27,7 +27,7 @@ class AzureVmServiceInterp[F[_]](clientSecretCredential: ClientSecretCredential)
       azureComputeManager <- buildComputeManager(cloudContext)
 
       fa = F
-        .delay(
+        .blocking(
           azureComputeManager
             .virtualMachines()
             .getByResourceGroup(cloudContext.managedResourceGroupName.value, name.value)
@@ -51,7 +51,7 @@ class AzureVmServiceInterp[F[_]](clientSecretCredential: ClientSecretCredential)
     for {
       azureComputeManager <- buildComputeManager(cloudContext)
       fa = F
-        .delay(
+        .blocking(
           azureComputeManager
             .virtualMachines()
             .beginDeleteByResourceGroup(cloudContext.managedResourceGroupName.value,
@@ -77,7 +77,7 @@ class AzureVmServiceInterp[F[_]](clientSecretCredential: ClientSecretCredential)
   ): F[Option[Mono[Void]]] = for {
     azureComputeManager <- buildComputeManager(cloudContext)
     fa = F
-      .delay(
+      .blocking(
         azureComputeManager
           .virtualMachines()
           .startAsync(cloudContext.managedResourceGroupName.value, name.value)
@@ -98,7 +98,7 @@ class AzureVmServiceInterp[F[_]](clientSecretCredential: ClientSecretCredential)
   private def buildComputeManager(azureCloudContext: AzureCloudContext): F[ComputeManager] = {
     val azureProfile =
       new AzureProfile(azureCloudContext.tenantId.value, azureCloudContext.subscriptionId.value, AzureEnvironment.AZURE)
-    F.delay(ComputeManager.authenticate(clientSecretCredential, azureProfile))
+    F.blocking(ComputeManager.authenticate(clientSecretCredential, azureProfile))
   }
 
   def stopAzureVm(name: InstanceName, cloudContext: AzureCloudContext)(implicit
@@ -106,7 +106,7 @@ class AzureVmServiceInterp[F[_]](clientSecretCredential: ClientSecretCredential)
   ): F[Option[Mono[Void]]] = for {
     azureComputeManager <- buildComputeManager(cloudContext)
     fa = F
-      .delay(
+      .blocking(
         azureComputeManager
           .virtualMachines()
           .deallocateAsync(cloudContext.managedResourceGroupName.value, name.value)
