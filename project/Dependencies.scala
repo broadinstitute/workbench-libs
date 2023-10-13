@@ -71,7 +71,7 @@ object Dependencies {
   val googleDataproc: ModuleID =    "com.google.cloud" % "google-cloud-dataproc" % "4.24.0"
   val googleContainer: ModuleID = "com.google.cloud" % "google-cloud-container" % "2.30.0"
   val kubernetesClient: ModuleID = "io.kubernetes" % "client-java" % "18.0.1"
-  val googleBigQueryNew: ModuleID = "com.google.cloud" % "google-cloud-bigquery" % "2.32.0"
+  val googleBigQueryNew: ModuleID = "com.google.cloud" % "google-cloud-bigquery" % "2.33.1"
   val google2CloudBilling = "com.google.cloud" % "google-cloud-billing" % "2.27.0"
   val googleStorageTransferService: ModuleID = "com.google.cloud" % "google-cloud-storage-transfer" % "1.24.0"
   val googleResourceManager =  "com.google.cloud" % "google-cloud-resourcemanager" % "1.26.0"
