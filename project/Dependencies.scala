@@ -1,7 +1,7 @@
 import sbt._
 
 object Dependencies {
-  val akkaV         = "2.6.20"
+  val akkaV         = "2.6.20" 
   val akkaHttpV     = "10.2.10"
   val jacksonV      = "2.15.2"
   val googleV       = "2.0.0"
@@ -10,7 +10,7 @@ object Dependencies {
 
   // TODO upgrade to stable 14.x or 15.0 once that includes a fix to https://github.com/circe/circe-yaml/issues/356
   val circeVersion = "0.15.0-M1"
-  val http4sVersion = "1.0.0-M38"
+  val http4sVersion = "1.0.0-M39"
   val bouncyCastleVersion = "1.76"
   val openCensusV = "0.31.1"
 
@@ -43,7 +43,7 @@ object Dependencies {
   val bouncyCastleProviderExt: ModuleID = "org.bouncycastle" % "bcprov-ext-jdk18on" % bouncyCastleVersion
   val bouncyCastleProvider: ModuleID = "org.bouncycastle" % "bcprov-jdk18on" % bouncyCastleVersion
 
-  val catsEffect: ModuleID = "org.typelevel" %% "cats-effect" % "3.5.1"
+  val catsEffect: ModuleID = "org.typelevel" %% "cats-effect" % "3.5.2"
 
   // metrics-scala transitively pulls in io.dropwizard.metrics:metrics-core
   val metricsScala: ModuleID =      "nl.grons"              %% "metrics4-scala"    % "4.2.9"
@@ -63,9 +63,9 @@ object Dependencies {
   val googleGuava: ModuleID = "com.google.guava"  % "guava" % "32.1.2-jre"
   val googleRpc: ModuleID =               "io.grpc" % "grpc-core" % "1.58.0"
   val googleRpc2: ModuleID =               "io.grpc" % "grpc-core" % "1.58.0"
-  val googleStorageNew: ModuleID = "com.google.cloud" % "google-cloud-storage" % "2.27.0"
+  val googleStorageNew: ModuleID = "com.google.cloud" % "google-cloud-storage" % "2.27.1"
   val googleStorageLocal: ModuleID = "com.google.cloud" % "google-cloud-nio" % "0.127.4" % "test"
-  val googlePubsubNew: ModuleID = "com.google.cloud" % "google-cloud-pubsub" % "1.125.2"
+  val googlePubsubNew: ModuleID = "com.google.cloud" % "google-cloud-pubsub" % "1.125.5"
   val googleKms: ModuleID = "com.google.cloud" % "google-cloud-kms" % "2.27.0"
   val googleComputeNew: ModuleID = "com.google.cloud" % "google-cloud-compute" % "1.34.0"
   val googleDataproc: ModuleID =    "com.google.cloud" % "google-cloud-dataproc" % "4.21.0"
@@ -76,8 +76,9 @@ object Dependencies {
   val googleStorageTransferService: ModuleID = "com.google.cloud" % "google-cloud-storage-transfer" % "1.24.0"
   val googleResourceManager =  "com.google.cloud" % "google-cloud-resourcemanager" % "1.26.0"
   //the below v1 module is a dependency for v2 because it contains the OAuth scopes necessary to created scoped credentials
-  val googleContainerV1: ModuleID = "com.google.apis" % "google-api-services-container" % "v1-rev20230809-2.0.0"
+  val googleContainerV1: ModuleID = "com.google.apis" % "google-api-services-container" % "v1-rev20230919-2.0.0"
 
+  
 
   val circeCore: ModuleID = "io.circe" %% "circe-core" % circeVersion
   val circeParser: ModuleID = "io.circe" %% "circe-parser" % circeVersion
@@ -108,7 +109,7 @@ object Dependencies {
   val swaggerUi = "org.webjars" % "swagger-ui" % "4.11.1"
 
   val azureResourceManagerCompute = "com.azure.resourcemanager" % "azure-resourcemanager-compute" % "2.30.0" exclude("net.minidev", "json-smart")
-  val azureIdentity =  "com.azure" % "azure-identity" % "1.10.1"
+  val azureIdentity =  "com.azure" % "azure-identity" % "1.10.2"
   val azureRelay =     "com.azure.resourcemanager" % "azure-resourcemanager-relay" % "1.0.0-beta.2"
   val azureStorageBlob =  "com.azure" % "azure-storage-blob" % "12.24.0"
   val azureResourceManagerContainerService = "com.azure.resourcemanager" % "azure-resourcemanager-containerservice" % "2.30.0"
