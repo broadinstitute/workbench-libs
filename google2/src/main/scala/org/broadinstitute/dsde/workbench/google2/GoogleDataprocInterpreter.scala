@@ -67,7 +67,7 @@ private[google2] class GoogleDataprocInterpreter[F[_]: Parallel](
 
     val createCluster = for {
       client <- F.fromOption(clusterControllerClients.get(region), new Exception(s"Unsupported region ${region.value}"))
-      operationOpt <- recoverF(Async[F].delay(client.createClusterAsync(request)), whenStatusCode(409))
+      operationOpt <- recoverF(Async[F].blocking(client.createClusterAsync(request)), whenStatusCode(409))
       opAndMetadata <- operationOpt.traverse { op =>
         F.async[ClusterOperationMetadata] { cb =>
           F.delay(
@@ -173,7 +173,7 @@ private[google2] class GoogleDataprocInterpreter[F[_]: Parallel](
                       .setRegion(region.value)
                       .setClusterName(clusterName.value)
                       .build()
-                  fa = F.delay(client.stopClusterAsync(request))
+                  fa = F.blocking(client.stopClusterAsync(request))
                   opertationFuture <- withLogging(
                     fa,
                     Some(traceId),
@@ -244,7 +244,7 @@ private[google2] class GoogleDataprocInterpreter[F[_]: Parallel](
                 .build()
 
             op <- withLogging(
-              F.delay(client.startClusterAsync(request)),
+              F.blocking(client.startClusterAsync(request)),
               Some(traceId),
               s"com.google.cloud.dataproc.v1.ClusterControllerClient.startClusterAsync($request)"
             )
@@ -355,7 +355,7 @@ private[google2] class GoogleDataprocInterpreter[F[_]: Parallel](
                                  new Exception(s"Unsupported region ${region.value}")
           )
 
-          op <- F.delay(client.updateClusterAsync(request))
+          op <- F.blocking(client.updateClusterAsync(request))
         } yield op
       }
       .handleErrorWith {
@@ -381,7 +381,7 @@ private[google2] class GoogleDataprocInterpreter[F[_]: Parallel](
 
     val deleteCluster = (for {
       client <- F.fromOption(clusterControllerClients.get(region), new Exception(s"Unsupported region ${region.value}"))
-      op <- F.delay(client.deleteClusterAsync(request))
+      op <- F.blocking(client.deleteClusterAsync(request))
     } yield op)
       .map(Option(_))
       .handleErrorWith {
