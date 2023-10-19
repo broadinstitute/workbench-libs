@@ -4,12 +4,12 @@ This file documents changes to the `workbench-error-reporting` library, includin
 
 ## 0.7
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-error-reporting" % "0.7-7362eef"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-error-reporting" % "0.7-TRAVIS-REPLACE-ME"`
 
 ### Dependency upgrades
 | Dependency   | Old Version | New Version |
 |----------|:-----------:|------------:|
-| cats-effect |   3.4.11    |       3.5.1 |
+| cats-effect |   3.4.11    |       3.5.2 |
 | sbt-scoverage                          |    2.0.8    |       2.0.9 |
 | scalatest                              |   3.2.16    |      3.2.17 |
 
