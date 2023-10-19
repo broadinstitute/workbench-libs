@@ -10,7 +10,7 @@ object Dependencies {
 
   // TODO upgrade to stable 14.x or 15.0 once that includes a fix to https://github.com/circe/circe-yaml/issues/356
   val circeVersion = "0.15.0-M1"
-  val http4sVersion = "1.0.0-M40"
+  val http4sVersion = "1.0.0-M38"
   val bouncyCastleVersion = "1.76"
   val openCensusV = "0.31.1"
 
