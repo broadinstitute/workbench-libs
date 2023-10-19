@@ -211,7 +211,7 @@ class KubernetesInterpreter[F[_]](
       traceId <- ev.ask
       client <- getClient(clusterId, new CoreV1Api(_))
       call =
-        F.delay(
+        F.blocking(
           client.deletePersistentVolume(pv.asString, "true", null, null, null, null, null)
         ).map(Option(_))
           .handleErrorWith {
@@ -426,7 +426,7 @@ class KubernetesInterpreter[F[_]](
   // See this for details https://github.com/kubernetes-client/java/issues/290
   private def getToken(): F[AccessToken] =
     for {
-      _ <- F.delay(credentials.refreshIfExpired())
+      _ <- F.blocking(credentials.refreshIfExpired())
     } yield credentials.getAccessToken
 
   // The underlying http client for ApiClient claims that it releases idle threads and that shutdown is not necessary
