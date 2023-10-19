@@ -2,9 +2,16 @@
 
 This file documents changes to the `workbench-google` library, including notes on how to upgrade to new versions.
 
+## 0.30
+
+SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.30-3d9bda9"`
+
+Changed: 
+- Made `GoogleBucketDAO` and `GoogleIamDAO` retry on 412 responses
+
 ## 0.29
 
-SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.e761452"`
+SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.29-82d1288"`
 
 ### Dependency upgrades
 | Dependency   |     Old Version      |          New Version |

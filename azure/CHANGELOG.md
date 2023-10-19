@@ -13,6 +13,8 @@ Upgrade azure-resourcemanager-compute from 2.29.0 to 2.30.0
 Upgrade azure-resourcemanager-containerservice from 2.29.0 to 2.30.0
 * Changelog https://github.com/Azure/azure-sdk-for-java/blob/main/sdk/resourcemanager/azure-resourcemanager-containerservice/CHANGELOG.md#2300-2023-08-25
 
+Use `blocking` combinator for blocking API calls through the Azure SDK.
+
 ### Dependency upgrades
 | Dependency                             | Old Version | New Version |
 |----------------------------------------|:-----------:|------------:|
