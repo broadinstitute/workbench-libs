@@ -4,7 +4,7 @@ This file documents changes to the `workbench-util2` library, including notes on
 
 ## 0.7
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util2" % "0.7-e761452"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util2" % "0.7-TRAVIS-REPLACE-ME"`
 
 ### Changes
 Upgrade circe-yaml (circe-core, circe-generic, circe-parser) from 0.14.5 to 0.15.0-RC1
@@ -17,7 +17,7 @@ Upgrade fs2-io from 3.8.0 to 3.9.1
 ### Dependency upgrades
 | Dependency  | Old Version | New Version |
 |-------------|:-----------:|------------:|
-| cats-effect |   3.4.11    |       3.5.1 |
+| cats-effect |   3.4.11    |       3.5.2 |
 | circe-yaml  |   0.14.5    |   0.15.0-M1 |
 | fs2-io      |    3.8.0    |       3.9.2 |
 | sbt-scoverage |    2.0.8    |       2.0.9 |
