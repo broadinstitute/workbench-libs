@@ -3,10 +3,12 @@ package org.broadinstitute.dsde.workbench.service
 import akka.http.scaladsl.model.StatusCodes
 import com.fasterxml.jackson.databind.JsonNode
 import com.typesafe.scalalogging.LazyLogging
-import org.broadinstitute.dsde.rawls.model.AttributeUpdateOperations.{AttributeUpdateOperation, AttributeUpdateOperationFormat}
+import org.broadinstitute.dsde.rawls.model.AttributeUpdateOperations.{
+  AttributeUpdateOperation,
+  AttributeUpdateOperationFormat
+}
 import org.broadinstitute.dsde.workbench.auth.AuthToken
 import org.broadinstitute.dsde.workbench.config.ServiceTestConfig
-import org.broadinstitute.dsde.workbench.fixture.BillingFixtures.logger
 import org.broadinstitute.dsde.workbench.fixture.Method
 import org.broadinstitute.dsde.workbench.model.UserInfo
 import org.broadinstitute.dsde.workbench.service.BillingProject.BillingProjectRole._
@@ -265,7 +267,7 @@ trait Rawls extends RestClient with LazyLogging {
       }
     }
 
-    def isWorkspaceDeleted(namespace: String, name: String, authToken: AuthToken): Boolean = {
+    def isWorkspaceDeleted(namespace: String, name: String, authToken: AuthToken): Boolean =
       try {
         logger.info(s"Checking workspace details status ${namespace}/${name}...")
         getWorkspaceDetails(namespace, name)(authToken)
@@ -279,8 +281,6 @@ trait Rawls extends RestClient with LazyLogging {
             throw new Exception(s"Error deleting workspace ${namespace}/${name}")
           }
       }
-    }
-  }
 
     def getBucketName(namespace: String, name: String)(implicit token: AuthToken): String = {
       val response = parseResponse(getRequest(url + s"api/workspaces/$namespace/$name"))
