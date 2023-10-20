@@ -1,17 +1,17 @@
 package org.broadinstitute.dsde.workbench.service
 
+import akka.http.scaladsl.model.StatusCodes
 import com.fasterxml.jackson.databind.JsonNode
 import com.typesafe.scalalogging.LazyLogging
-import org.broadinstitute.dsde.rawls.model.Attributable.AttributeMap
-import org.broadinstitute.dsde.rawls.model.AttributeUpdateOperations.{
-  AttributeUpdateOperation,
-  AttributeUpdateOperationFormat
-}
+import org.broadinstitute.dsde.rawls.model.AttributeUpdateOperations.{AttributeUpdateOperation, AttributeUpdateOperationFormat}
 import org.broadinstitute.dsde.workbench.auth.AuthToken
 import org.broadinstitute.dsde.workbench.config.ServiceTestConfig
+import org.broadinstitute.dsde.workbench.fixture.BillingFixtures.logger
 import org.broadinstitute.dsde.workbench.fixture.Method
 import org.broadinstitute.dsde.workbench.model.UserInfo
 import org.broadinstitute.dsde.workbench.service.BillingProject.BillingProjectRole._
+import org.broadinstitute.dsde.workbench.service.util.Retry
+import org.scalatest.time.SpanSugar.convertIntToGrainOfTime
 import spray.json.JsString
 
 import scala.util.Try
@@ -255,8 +255,32 @@ trait Rawls extends RestClient with LazyLogging {
 
     def delete(namespace: String, name: String)(implicit token: AuthToken): Unit = {
       logger.info(s"Deleting workspace: $namespace/$name")
-      deleteRequest(url + s"api/workspaces/$namespace/$name")
+      deleteRequest(url + s"api/workspaces/v2/$namespace/$name")
+      if (
+        !Retry.retryWithPredicate(1.seconds, 20.seconds) {
+          isWorkspaceDeleted(name, namespace, token)
+        }
+      ) {
+        throw new Exception("Error deleting workspace")
+      }
     }
+
+    def isWorkspaceDeleted(namespace: String, name: String, authToken: AuthToken): Boolean = {
+      try {
+        logger.info(s"Checking workspace details status ${namespace}/${name}...")
+        getWorkspaceDetails(namespace, name)(authToken)
+        false
+      } catch {
+        case e: RestException =>
+          if (e.statusCode == StatusCodes.NotFound) {
+            logger.info(s"Workspace ${namespace}/${name} deleted.")
+            true
+          } else {
+            throw new Exception(s"Error deleting workspace ${namespace}/${name}")
+          }
+      }
+    }
+  }
 
     def getBucketName(namespace: String, name: String)(implicit token: AuthToken): String = {
       val response = parseResponse(getRequest(url + s"api/workspaces/$namespace/$name"))
