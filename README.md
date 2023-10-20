@@ -25,7 +25,7 @@ Workbench utility libraries, built for 2.13. You can find the full list of packa
 
 Contains utility functions and classes.
 
-Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util" % "0.10-e761452"`
+Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util" % "0.10-TRAVIS-REPLACE-ME"`
 
 [Changelog](util/CHANGELOG.md)
 
@@ -46,7 +46,7 @@ Workbench utility libraries, built for 2.13. You can find the full list of packa
 
 Contains generic, externally-facing model classes used across Workbench.
 
-Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-model" % "0.19-e761452"`
+Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-model" % "0.19-TRAVIS-REPLACE-ME"`
 
 [Changelog](model/CHANGELOG.md)
 
@@ -58,7 +58,7 @@ Workbench utility libraries, built for 2.13. You can find the full list of packa
 
 Contains utilities for instrumenting Scala code and reporting to StatsD using [metrics-scala](https://github.com/erikvanoosten/metrics-scala) and [metrics-statsd](https://github.com/ReadyTalk/metrics-statsd).
 
-Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-metrics" % "0.8-e761452"`
+Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-metrics" % "0.8-TRAVIS-REPLACE-ME"`
 
 [Changelog](metrics/CHANGELOG.md)
 
@@ -68,7 +68,7 @@ Workbench utility libraries, built for 2.13. You can find the full list of packa
 
 Contains utility functions for talking to Google APIs and DAOs for Google PubSub, Google Directory, Google IAM, and Google BigQuery.
 
-Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.30-3d9bda9"`
+Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.30-TRAVIS-REPLACE-ME"`
 
 To depend on the `MockGoogle*` classes, additionally depend on:
 
@@ -116,7 +116,7 @@ Workbench utility libraries, built for 2.13. You can find the full list of packa
 
 Contains common classes and utilities for writing tests against Workbench REST web services.
 
-Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "4.1-e761452" % "test" classifier "tests"`
+Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "4.1-TRAVIS-REPLACE-ME" % "test" classifier "tests"`
 
 [Changelog](serviceTest/CHANGELOG.md)
 
@@ -126,7 +126,7 @@ Workbench utility libraries, built for 2.13. You can find the full list of packa
 
 Contains utilities for publishing email notifications to PubSub for delivery via SendGrid.
 
-Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-notifications" % "0.6-e761452"`
+Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-notifications" % "0.6-TRAVIS-REPLACE-ME"`
 
 [Changelog](notifications/CHANGELOG.md)
 
@@ -134,6 +134,6 @@ Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-notifi
 
 Contains utilities for integrating with Google and B2C oauth.
 
-Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-oauth2" % "0.5-e761452"`
+Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-oauth2" % "0.5-TRAVIS-REPLACE-ME"`
 
 [Changelog](oauth2/CHANGELOG.md)
