@@ -4,12 +4,25 @@ This file documents changes to the `workbench-google2` library, including notes 
 
 ## 0.34
 
-SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.34-efc3402"`
+SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.34-TRAVIS-REPLACE-ME"`
 
 ### Changes
 * Added ability for getBucket to log at WARN level instead of ERROR
 * Updated GCE, Dataproc, and GKE interpreters to use `IO.blocking` combinator for blocking API calls through 
 the Google SDK.
+
+### Dependency upgrades
+| Dependency   |     Old Version      |          New Version |
+|----------|:--------------------:|---------------------:|
+| google-cloud-pubsub |       1.125.2        |              1.125.5 |
+| google-cloud-nio |       1.127.3        |              1.127.4 |
+| google-cloud-bigquery |        2.32.1        |               2.33.1 |
+| google-api-services-container | v1-rev20230809-2.0.0 | v1-rev20230919-2.0.0 |
+| google-cloud-storage         |        2.27.0        |               2.27.1 |
+| google-cloud-dataproc          |        4.21.0        |               4.24.0 |
+| google-cloud-compute          |        1.34.0        |               1.37.0 |
+| google-cloud-container          |        2.27.0        |               2.30.0 |
+| google-cloud-billing          |        2.24.0        |               2.27.0 |
 
 ## 0.33
 
