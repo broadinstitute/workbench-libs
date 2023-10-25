@@ -14,6 +14,7 @@ import org.broadinstitute.dsde.workbench.model.UserInfo
 import org.broadinstitute.dsde.workbench.service.BillingProject.BillingProjectRole._
 import org.broadinstitute.dsde.workbench.service.util.Retry
 import org.scalatest.time.SpanSugar.convertIntToGrainOfTime
+import org.scalatest.time.{Seconds, Span}
 import spray.json.JsString
 
 import scala.util.Try
@@ -255,15 +256,19 @@ trait Rawls extends RestClient with LazyLogging {
       postRequest(url + s"api/workspaces/$sourceNamespace/$sourceName/clone", request)
     }
 
-    def delete(namespace: String, name: String)(implicit token: AuthToken): Unit = {
+    /** Delete the workspace, using the asynchronous v2 workspaces API. This method will poll
+     * for the workspace to be deleted, and throw an Exception if it does not delete within the
+     * specified second timeout interval (which has a default of 300 seconds = 5 minutes).
+     * */
+    def delete(namespace: String, name: String, timeout: Long = 300)(implicit token: AuthToken): Unit = {
       logger.info(s"Deleting workspace: $namespace/$name")
       deleteRequest(url + s"api/workspaces/v2/$namespace/$name")
       if (
-        !Retry.retryWithPredicate(10.seconds, 240.seconds) {
+        !Retry.retryWithPredicate(10.seconds, Span(timeout, Seconds)) {
           isWorkspaceDeleted(namespace, name, token)
         }
       ) {
-        throw new Exception("Error deleting workspace")
+        throw new Exception(s"Workspace ${namespace}/${name} did not delete during the timeout interval of ${timeout} seconds.")
       }
     }
 
