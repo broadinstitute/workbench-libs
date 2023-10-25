@@ -259,7 +259,7 @@ trait Rawls extends RestClient with LazyLogging {
       logger.info(s"Deleting workspace: $namespace/$name")
       deleteRequest(url + s"api/workspaces/v2/$namespace/$name")
       if (
-        !Retry.retryWithPredicate(1.seconds, 20.seconds) {
+        !Retry.retryWithPredicate(5.seconds, 60.seconds) {
           isWorkspaceDeleted(namespace, name, token)
         }
       ) {
@@ -270,7 +270,9 @@ trait Rawls extends RestClient with LazyLogging {
     def isWorkspaceDeleted(namespace: String, name: String, authToken: AuthToken): Boolean =
       try {
         logger.info(s"Checking workspace details status ${namespace}/${name}...")
-        getWorkspaceDetails(namespace, name)(authToken)
+        val response = getWorkspaceDetails(namespace, name)(authToken)
+        val workspaceState = mapper.readTree(response).at("/workspace/state").asText()
+        logger.info(s"Workspace ${namespace}/${name} is in state ${workspaceState}")
         false
       } catch {
         case e: RestException =>
