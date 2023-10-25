@@ -283,7 +283,13 @@ trait Rawls extends RestClient with LazyLogging {
         false
       } catch {
         case e: RestException =>
-          if (e.statusCode == StatusCodes.NotFound) {
+          if (e.statusCode == StatusCodes.Forbidden) {
+            // Sometimes we get "User X is not authorized to perform action read on workspace Y".
+            logger.info(
+              s"Encountered ${e.statusCode} while deleting workspace ${namespace}/${name}, continuing polling."
+            )
+            false
+          } else if (e.statusCode == StatusCodes.NotFound) {
             logger.info(s"Workspace ${namespace}/${name} deleted.")
             true
           } else {
