@@ -268,7 +268,9 @@ trait Rawls extends RestClient with LazyLogging {
           isWorkspaceDeleted(namespace, name, token)
         }
       ) {
-        throw new Exception(s"Workspace ${namespace}/${name} did not delete during the timeout interval of ${timeout} seconds.")
+        throw new Exception(
+          s"Workspace ${namespace}/${name} did not delete during the timeout interval of ${timeout} seconds."
+        )
       }
     }
 
