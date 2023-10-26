@@ -65,7 +65,7 @@ object Dependencies {
   val googleRpc2: ModuleID =               "io.grpc" % "grpc-core" % "1.59.0"
   val googleStorageNew: ModuleID = "com.google.cloud" % "google-cloud-storage" % "2.29.0"
   val googleStorageLocal: ModuleID = "com.google.cloud" % "google-cloud-nio" % "0.127.4" % "test"
-  val googlePubsubNew: ModuleID = "com.google.cloud" % "google-cloud-pubsub" % "1.125.5"
+  val googlePubsubNew: ModuleID = "com.google.cloud" % "google-cloud-pubsub" % "1.125.8"
   val googleKms: ModuleID = "com.google.cloud" % "google-cloud-kms" % "2.27.0"
   val googleComputeNew: ModuleID = "com.google.cloud" % "google-cloud-compute" % "1.37.0"
   val googleDataproc: ModuleID =    "com.google.cloud" % "google-cloud-dataproc" % "4.24.0"
