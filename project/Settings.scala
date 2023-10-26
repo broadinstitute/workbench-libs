@@ -137,7 +137,7 @@ object Settings {
   val serviceTestSettings = commonSettings ++ List(
     name := "workbench-service-test",
     libraryDependencies ++= serviceTestDependencies,
-    version := createVersion("4.1")
+    version := createVersion("4.2")
   ) ++ publishSettings
 
   val notificationsSettings = commonSettings ++ List(

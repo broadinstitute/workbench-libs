@@ -2,6 +2,13 @@
 
 This file documents changes to the `workbench-service-test` library, including notes on how to upgrade to new versions.
 
+## 4.2
+
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "4.2-TRAVIS-REPLACE-ME"`
+
+### Changed
+- changed Rawls workspace deletion to v2 API (async plus polling)
+
 ## 4.1
 
 SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "4.1-7362eef"`
