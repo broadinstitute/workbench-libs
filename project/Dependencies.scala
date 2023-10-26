@@ -10,7 +10,7 @@ object Dependencies {
 
   // TODO upgrade to stable 14.x or 15.0 once that includes a fix to https://github.com/circe/circe-yaml/issues/356
   val circeVersion = "0.15.0-M1"
-  val http4sVersion = "1.0.0-M38"
+  val http4sVersion = "1.0.0-M39"
   val bouncyCastleVersion = "1.76"
   val openCensusV = "0.31.1"
 
@@ -61,20 +61,20 @@ object Dependencies {
   val googleIam: ModuleID =                  "com.google.apis"       % "google-api-services-iam"                  % s"v1-rev20220825-$googleV"
   val googleBigQuery: ModuleID =             "com.google.apis"       % "google-api-services-bigquery"             % s"v2-rev20220924-$googleV"
   val googleGuava: ModuleID = "com.google.guava"  % "guava" % "32.1.2-jre"
-  val googleRpc: ModuleID =               "io.grpc" % "grpc-core" % "1.58.0"
-  val googleRpc2: ModuleID =               "io.grpc" % "grpc-core" % "1.58.0"
-  val googleStorageNew: ModuleID = "com.google.cloud" % "google-cloud-storage" % "2.27.1"
-  val googleStorageLocal: ModuleID = "com.google.cloud" % "google-cloud-nio" % "0.127.4" % "test"
-  val googlePubsubNew: ModuleID = "com.google.cloud" % "google-cloud-pubsub" % "1.125.5"
-  val googleKms: ModuleID = "com.google.cloud" % "google-cloud-kms" % "2.27.0"
+  val googleRpc: ModuleID =               "io.grpc" % "grpc-core" % "1.59.0"
+  val googleRpc2: ModuleID =               "io.grpc" % "grpc-core" % "1.59.0"
+  val googleStorageNew: ModuleID = "com.google.cloud" % "google-cloud-storage" % "2.29.0"
+  val googleStorageLocal: ModuleID = "com.google.cloud" % "google-cloud-nio" % "0.127.6" % "test"
+  val googlePubsubNew: ModuleID = "com.google.cloud" % "google-cloud-pubsub" % "1.125.8"
+  val googleKms: ModuleID = "com.google.cloud" % "google-cloud-kms" % "2.31.0"
   val googleComputeNew: ModuleID = "com.google.cloud" % "google-cloud-compute" % "1.38.0"
-  val googleDataproc: ModuleID =    "com.google.cloud" % "google-cloud-dataproc" % "4.24.0"
-  val googleContainer: ModuleID = "com.google.cloud" % "google-cloud-container" % "2.30.0"
-  val kubernetesClient: ModuleID = "io.kubernetes" % "client-java" % "18.0.1"
+  val googleDataproc: ModuleID =    "com.google.cloud" % "google-cloud-dataproc" % "4.25.0"
+  val googleContainer: ModuleID = "com.google.cloud" % "google-cloud-container" % "2.31.0"
+  val kubernetesClient: ModuleID = "io.kubernetes" % "client-java" % "19.0.0"
   val googleBigQueryNew: ModuleID = "com.google.cloud" % "google-cloud-bigquery" % "2.33.1"
-  val google2CloudBilling = "com.google.cloud" % "google-cloud-billing" % "2.27.0"
-  val googleStorageTransferService: ModuleID = "com.google.cloud" % "google-cloud-storage-transfer" % "1.24.0"
-  val googleResourceManager =  "com.google.cloud" % "google-cloud-resourcemanager" % "1.26.0"
+  val google2CloudBilling = "com.google.cloud" % "google-cloud-billing" % "2.28.0"
+  val googleStorageTransferService: ModuleID = "com.google.cloud" % "google-cloud-storage-transfer" % "1.28.0"
+  val googleResourceManager =  "com.google.cloud" % "google-cloud-resourcemanager" % "1.30.0"
   //the below v1 module is a dependency for v2 because it contains the OAuth scopes necessary to created scoped credentials
   val googleContainerV1: ModuleID = "com.google.apis" % "google-api-services-container" % "v1-rev20230919-2.0.0"
 
@@ -85,7 +85,7 @@ object Dependencies {
   val circeGeneric: ModuleID = "io.circe" %% "circe-generic" % circeVersion % "test"
   val circeFs2: ModuleID = "io.circe" %% "circe-fs2" % "0.14.1"
   val log4cats = "org.typelevel" %% "log4cats-slf4j"   % "2.6.0"
-  val catsMtl = "org.typelevel" %% "cats-mtl" % "1.3.1"
+  val catsMtl = "org.typelevel" %% "cats-mtl" % "1.4.0"
 
   val http4sCirce = "org.http4s" %% "http4s-circe" % http4sVersion
   val http4sBlazeClient = "org.http4s" %% "http4s-blaze-client" % http4sVersion
@@ -109,7 +109,7 @@ object Dependencies {
   val swaggerUi = "org.webjars" % "swagger-ui" % "4.11.1"
 
   val azureResourceManagerCompute = "com.azure.resourcemanager" % "azure-resourcemanager-compute" % "2.31.0" exclude("net.minidev", "json-smart")
-  val azureIdentity =  "com.azure" % "azure-identity" % "1.10.2"
+  val azureIdentity =  "com.azure" % "azure-identity" % "1.10.4"
   val azureRelay =     "com.azure.resourcemanager" % "azure-resourcemanager-relay" % "1.0.0-beta.2"
   val azureStorageBlob =  "com.azure" % "azure-storage-blob" % "12.24.0"
   val azureResourceManagerContainerService = "com.azure.resourcemanager" % "azure-resourcemanager-containerservice" % "2.31.0"
