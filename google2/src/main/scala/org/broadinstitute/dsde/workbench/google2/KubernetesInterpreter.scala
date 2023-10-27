@@ -91,7 +91,7 @@ class KubernetesInterpreter[F[_]](
       traceId <- ev.ask
       client <- getClient(clusterId, new CoreV1Api(_))
       api = new AppsV1Api(client.getApiClient)
-      jsonStr = s"""[{"op":"replace","path":"/spec/replicas","value":${replicaCount}"""
+      jsonStr = s"[{\"op\":\"replace\",\"path\":\"/spec/replicas\",\"value\":${replicaCount}]"
       call = recoverF(
         F.blocking(
           api.patchNamespacedDeployment(deployment.value,
