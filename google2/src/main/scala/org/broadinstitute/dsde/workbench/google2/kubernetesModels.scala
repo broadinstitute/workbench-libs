@@ -401,7 +401,8 @@ object JavaSerializableSyntax {
 
 // Models for the kubernetes client not related to GKE
 object KubernetesModels {
-  final case class KubernetesNamespace(name: NamespaceName)
+  final case class KubernetesNamespace(name: NamespaceName) extends AnyVal
+  final case class KubernetesDeployment(value: String) extends AnyVal
   final case class KubernetesServiceAccount(name: ServiceAccountName, annotations: Map[String, String])
 
   // consider using a replica set if you would like multiple autoscaling pods https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.12/#replicaset-v1-apps
