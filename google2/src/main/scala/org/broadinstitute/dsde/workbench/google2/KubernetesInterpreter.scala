@@ -9,10 +9,12 @@ import com.google.container.v1.Cluster
 import io.kubernetes.client.custom.V1Patch
 import io.kubernetes.client.openapi.ApiClient
 import io.kubernetes.client.openapi.apis.{AppsV1Api, CoreV1Api, RbacAuthorizationV1Api}
-import io.kubernetes.client.openapi.models.{V1NamespaceList, V1PersistentVolumeClaim}
+import io.kubernetes.client.openapi.models.{V1Deployment, V1NamespaceList, V1PersistentVolumeClaim}
 import io.kubernetes.client.proto.Meta.ObjectMeta
 import io.kubernetes.client.proto.V1Apps.Deployment
-import io.kubernetes.client.util.Config
+import io.kubernetes.client.util.PatchUtils.PatchCallFunc
+import io.kubernetes.client.util.{Config, PatchUtils}
+import okhttp3.Call
 import org.broadinstitute.dsde.workbench.google2.GKEModels.KubernetesClusterId
 import org.broadinstitute.dsde.workbench.google2.JavaSerializableInstances._
 import org.broadinstitute.dsde.workbench.google2.JavaSerializableSyntax._
@@ -92,16 +94,34 @@ class KubernetesInterpreter[F[_]](
       client <- getClient(clusterId, new CoreV1Api(_))
       api = new AppsV1Api(client.getApiClient)
       jsonStr = s"[{\"op\":\"replace\",\"path\":\"/spec/replicas\",\"value\":${replicaCount}]"
+      patchCall = new PatchCallFunc {
+        override def getCall: Call = api.patchNamespacedDeploymentCall(deployment.value,
+                                                                       namespace.name.value,
+                                                                       new V1Patch(jsonStr),
+                                                                       null,
+                                                                       null,
+                                                                       null,
+                                                                       null, // field-manager is optional
+                                                                       null,
+                                                                       null
+        )
+      }
       call = recoverF(
         F.blocking(
-          api.patchNamespacedDeployment(deployment.value,
-                                        namespace.name.value,
-                                        new V1Patch(jsonStr),
-                                        "true",
-                                        null,
-                                        null,
-                                        null,
-                                        false
+          PatchUtils.patch(
+            classOf[V1Deployment],
+            patchCall,
+            V1Patch.PATCH_FORMAT_JSON_PATCH,
+            client.getApiClient
+//          api.patchNamespacedDeployment(deployment.value,
+//                                        namespace.name.value,
+//                                        new V1Patch(jsonStr),
+//                                        "true",
+//                                        null,
+//                                        null,
+//                                        null,
+//                                        false
+//          )
           )
         ),
         whenStatusCode(409)
