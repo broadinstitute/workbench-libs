@@ -91,17 +91,25 @@ class KubernetesInterpreter[F[_]](
       traceId <- ev.ask
       client <- getClient(clusterId, new CoreV1Api(_))
       api = new AppsV1Api(client.getApiClient)
-      body = new V1Patch(s"""[{"spec":{"replicas":${replicaCount}}]""")
+      jsonStr = s"""[{"op":"replace","path":"/spec/replicas","value":${replicaCount}"""
       call = recoverF(
         F.blocking(
-          api.patchNamespacedDeployment(deployment.value, namespace.name.value, body, "true", null, null, null, false)
+          api.patchNamespacedDeployment(deployment.value,
+                                        namespace.name.value,
+                                        new V1Patch(jsonStr),
+                                        "true",
+                                        null,
+                                        null,
+                                        null,
+                                        false
+          )
         ),
         whenStatusCode(409)
       )
       _ <- withLogging(
         call,
         Some(traceId),
-        s"io.kubernetes.client.apis.CoreV1Api.patchNamespacedDeployment(${deployment.value}, ${namespace.name.value}, ${body}, true...)"
+        s"io.kubernetes.client.apis.CoreV1Api.patchNamespacedDeployment(${deployment.value}, ${namespace.name.value}, ${jsonStr}, true...)"
       )
     } yield ()
 
