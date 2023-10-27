@@ -4,7 +4,7 @@ This file documents changes to the `workbench-azure` library, including notes on
 
 ## 0.6
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-azure" % "0.6-2eac218"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-azure" % "0.6-TRAVIS-REPLACE-ME"`
 
 ### Changes
 Upgrade azure-resourcemanager-compute from 2.29.0 to 2.30.0
@@ -21,12 +21,13 @@ Use `blocking` combinator for blocking API calls through the Azure SDK.
 | azure-resourcemanager-compute          |   2.29.0    |      2.31.0 |
 | azure-resourcemanager-containerservice |   2.29.0    |      2.30.0 |
 | azure-storage-blob                     |   12.22.3   |     12.24.0 |
-| azure-identity                    |   1.10.0    |      1.10.2 |
+| azure-identity                    |   1.10.0    |      1.10.4 |
 | json-smart                             |   2.4.11    |       2.5.0 |
 | sbt-scoverage |    2.0.7    |       2.0.8 |
 | scalatest                              |   3.2.16    |      3.2.17 |
 | scala       |   2.13.11   |     2.13.12 |
 | sbt-scalafix       |   0.11.0    |      0.11.1 |
+| client-java |  18.0.0 | 19.0.0 |
 
 ## 0.5
 

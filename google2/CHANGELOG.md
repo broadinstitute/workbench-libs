@@ -4,7 +4,7 @@ This file documents changes to the `workbench-google2` library, including notes 
 
 ## 0.34
 
-SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.34-2eac218"`
+SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.34-TRAVIS-REPLACE-ME"`
 
 ### Changes
 * Added ability for getBucket to log at WARN level instead of ERROR
@@ -12,17 +12,23 @@ SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0
 the Google SDK.
 
 ### Dependency upgrades
-| Dependency   |     Old Version      |          New Version |
-|----------|:--------------------:|---------------------:|
-| google-cloud-pubsub |       1.125.2        |              1.125.5 |
-| google-cloud-nio |       1.127.3        |              1.127.4 |
-| google-cloud-bigquery |        2.32.1        |               2.33.1 |
+| Dependency                    |     Old Version      |          New Version |
+|-------------------------------|:--------------------:|---------------------:|
+| google-cloud-pubsub           |       1.125.2        |              1.125.8 |
+| google-cloud-nio              |       1.127.3        |              1.127.6 |
+| google-cloud-bigquery         |        2.32.1        |               2.33.2 |
 | google-api-services-container | v1-rev20230809-2.0.0 | v1-rev20230919-2.0.0 |
-| google-cloud-storage         |        2.27.0        |               2.27.1 |
-| google-cloud-dataproc          |        4.21.0        |               4.24.0 |
-| google-cloud-compute          |        1.34.0        |               1.37.0 |
-| google-cloud-container          |        2.27.0        |               2.30.0 |
-| google-cloud-billing          |        2.24.0        |               2.27.0 |
+| google-cloud-storage          |        2.27.0        |               2.29.0 |
+| google-cloud-dataproc         |        4.21.0        |               4.25.0 |
+| google-cloud-compute          |        1.34.0        |               1.38.0 |
+| google-cloud-container        |        2.27.0        |               2.31.0 |
+| google-cloud-billing          |        2.24.0        |               2.28.0 |
+| cats-mtl                      |        1.3.1         |                1.4.0 |
+| http4s-blaze-client | 1.0.0-M38 |            1.0.0-M39 |
+| grpc-core | 1.58.0 |               1.59.0 |
+| google-cloud-storage-transfer | 1.24.0 |               1.28.0 |
+| google-cloud-resourcemanager | 1.26.0 |               1.30.0 |
+
 
 ## 0.33
 
