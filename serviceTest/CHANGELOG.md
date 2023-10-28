@@ -39,7 +39,7 @@ SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test"
 ### Dependency upgrades
 | Dependency   |     Old Version      |          New Version |
 |----------|:--------------------:|---------------------:|
-| jackson-module-scala |        2.15.0        |               2.15.2 |
+| jackson-module-scala |        2.15.0        |               2.15.3 |
 | sbt-scoverage |        2.0.7         |                2.0.8 |
 | scalatest |        3.2.15        |               3.2.16 |
 
