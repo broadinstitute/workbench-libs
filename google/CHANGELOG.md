@@ -23,7 +23,7 @@ SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.
 | google-cloud-resourcemanager |        1.5.6         |               1.25.0 |
 | grpc-core |        1.57.2        |               1.58.0 |
 | guava |       31.1-jre       |           32.1.2-jre |
-| jackson-module-scala |        2.15.0        |               2.15.3 |
+| jackson-module-scala |        2.15.0        |               2.15.2 |
 | logstash-logback-encoder |         7.3          |                  7.4 |
 | sbt-scoverage |        2.0.8         |                2.0.9 |
 | scalatest |        3.2.16        |               3.2.17 |
