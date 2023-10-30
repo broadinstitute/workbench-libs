@@ -93,12 +93,12 @@ class KubernetesInterpreter[F[_]](
       traceId <- ev.ask
       client <- getClient(clusterId, new CoreV1Api(_))
       api = new AppsV1Api(client.getApiClient)
-      jsonStr = s"[{\"op\":\"replace\",\"path\":\"/spec/replicas\",\"value\":${replicaCount}]"
+      jsonStr = s"[{\"op\":\"replace\",\"path\":\"/spec/replicas\",\"value\":${replicaCount}}]"
       patchCall = new PatchCallFunc {
         override def getCall: Call = api.patchNamespacedDeploymentCall(deployment.value,
                                                                        namespace.name.value,
                                                                        new V1Patch(jsonStr),
-                                                                       null,
+                                                                       "true",
                                                                        null,
                                                                        null,
                                                                        null, // field-manager is optional
@@ -106,30 +106,20 @@ class KubernetesInterpreter[F[_]](
                                                                        null
         )
       }
-      call = recoverF(
+
+      call =
         F.blocking(
           PatchUtils.patch(
             classOf[V1Deployment],
             patchCall,
             V1Patch.PATCH_FORMAT_JSON_PATCH,
             client.getApiClient
-//          api.patchNamespacedDeployment(deployment.value,
-//                                        namespace.name.value,
-//                                        new V1Patch(jsonStr),
-//                                        "true",
-//                                        null,
-//                                        null,
-//                                        null,
-//                                        false
-//          )
           )
-        ),
-        whenStatusCode(409)
-      )
+        )
       _ <- withLogging(
         call,
         Some(traceId),
-        s"io.kubernetes.client.apis.CoreV1Api.patchNamespacedDeployment(${deployment.value}, ${namespace.name.value}, ${jsonStr}, true...)"
+        s"io.kubernetes.client.openapi.apis.AppsV1Api.patchNamespacedDeploymentCall(${deployment.value}, ${namespace.name.value}, ${jsonStr}, true...)"
       )
     } yield ()
 

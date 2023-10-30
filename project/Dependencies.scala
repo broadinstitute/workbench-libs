@@ -243,7 +243,8 @@ object Dependencies {
     circeCore,
     circeParser,
     circeGeneric,
-    catsMtl
+    catsMtl,
+    kubernetesClient
   )
 
   val serviceTestDependencies = commonDependencies ++ Seq(
