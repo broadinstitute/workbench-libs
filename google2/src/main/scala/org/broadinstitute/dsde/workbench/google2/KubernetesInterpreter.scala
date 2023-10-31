@@ -85,7 +85,19 @@ class KubernetesInterpreter[F[_]](
       client <- getClient(clusterId, new CoreV1Api(_))
       call =
         F.blocking(
-          client.listNamespacedPod(namespace.name.value, "true", null, null, null, null, null, null, null, null, null)
+          client.listNamespacedPod(namespace.name.value,
+                                   "true",
+                                   null,
+                                   null,
+                                   null,
+                                   null,
+                                   null,
+                                   null,
+                                   null,
+                                   null,
+                                   null,
+                                   null
+          )
         )
 
       response <- withLogging(
@@ -145,7 +157,7 @@ class KubernetesInterpreter[F[_]](
       call =
         F.blocking(
           client
-            .listNamespacedService(namespace.name.value, "true", null, null, null, null, null, null, null, null, null)
+            .listNamespacedService(namespace.name.value, "true", null, null, null, null, null, null, null, null, null, null)
         ).map(Option(_))
           .handleErrorWith {
             case e: io.kubernetes.client.openapi.ApiException if e.getCode == 404 => F.pure(None)
@@ -154,7 +166,7 @@ class KubernetesInterpreter[F[_]](
       responseOpt <- withLogging(
         call,
         Some(traceId),
-        s"io.kubernetes.client.apis.CoreV1Api.listNamespacedService(${namespace.name.value}, true, null, null, null, null, null, null, null, null)"
+        s"io.kubernetes.client.apis.CoreV1Api.listNamespacedService(${namespace.name.value}, true, null, null, null, null, null, null, null, null, null)"
       )
 
       // Many of these fields can be null, so null-check everything
@@ -182,6 +194,7 @@ class KubernetesInterpreter[F[_]](
         F.blocking(
           client.listNamespacedPersistentVolumeClaim(namespace.name.value,
                                                      "true",
+                                                     null,
                                                      null,
                                                      null,
                                                      null,
@@ -254,7 +267,7 @@ class KubernetesInterpreter[F[_]](
       call =
         recoverF(
           F.blocking(
-            client.listNamespace("true", false, null, null, null, null, null, null, null, false)
+            client.listNamespace("true", false, null, null, null, null, null, null, null,null, false)
           ),
           whenStatusCode(409)
         )
