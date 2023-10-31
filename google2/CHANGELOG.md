@@ -4,12 +4,13 @@ This file documents changes to the `workbench-google2` library, including notes 
 
 ## 0.34
 
-SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.34-2eac218"`
+SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.34-TRAVIS-REPLACE-ME"`
 
 ### Changes
 * Added ability for getBucket to log at WARN level instead of ERROR
 * Updated GCE, Dataproc, and GKE interpreters to use `IO.blocking` combinator for blocking API calls through 
 the Google SDK.
+* Add `patchReplicas` to `KubernetesService`
 
 ### Dependency upgrades
 | Dependency   |     Old Version      |          New Version |
