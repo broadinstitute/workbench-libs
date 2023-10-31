@@ -13,6 +13,8 @@ Changed:
 |----------|:--------------------:|---------------------:|
 | google-cloud-kms | 2.27.0 | 2.31.0 |
 | grpc-core | 1.58.0 | 1.59.0 |
+| jackson-module-scala |        2.15.0        |               2.15.3 |
+| guava |       32.1.2        |               32.1.3 |
 
 ## 0.29
 
@@ -28,13 +30,13 @@ SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.
 | google-cloud-resourcemanager |        1.5.6         |               1.25.0 |
 | grpc-core |        1.57.2        |               1.58.0 |
 | guava |       31.1-jre       |           32.1.2-jre |
-| jackson-module-scala |        2.15.0        |               2.15.3 |
+| jackson-module-scala |        2.15.0        |               2.15.2 |
 | logstash-logback-encoder |         7.3          |                  7.4 |
 | sbt-scoverage |        2.0.8         |                2.0.9 |
 | scalatest |        3.2.16        |               3.2.17 |
 | scala       |       2.13.11        |              2.13.12 |
-| sbt-scalafix       |   0.11.0    |      0.11.1 |
-| google-cloud-kms          |  2.26.0     |      2.27.0 |
+| sbt-scalafix       |   0.11.0    |               0.11.1 |
+| google-cloud-kms          |  2.26.0     |               2.27.0 |
 
 ## 0.28
 
