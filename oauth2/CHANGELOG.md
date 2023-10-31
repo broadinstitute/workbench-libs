@@ -4,15 +4,16 @@ This file documents changes to the `workbench-oauth2` library, including notes o
 
 ## 0.5
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-oauth2" % "0.5-7362eef"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-oauth2" % "0.5-TRAVIS-REPLACE-ME"`
 
 ### Dependency upgrades
-| Dependency   | Old Version | New Version |
-|----------|:-----------:|------------:|
+| Dependency | Old Version | New Version |
+|--------|:-----------:|------------:|
 | sbt-scoverage |    2.0.8    |       2.0.9 |
 | scalatest |   3.2.16    |      3.2.17 |
-| scala       |   2.13.11   |     2.13.12 |
-| sbt-scalafix       |   0.11.0    |      0.11.1 |
+| scala   |   2.13.11   |     2.13.12 |
+| sbt-scalafix   |   0.11.0    |      0.11.1 |
+| http4s-blaze-client | 1.0.0-M38 | 1.0.0-M39 | 
 
 ## 0.4
 
