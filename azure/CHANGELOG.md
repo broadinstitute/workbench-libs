@@ -27,7 +27,6 @@ Use `blocking` combinator for blocking API calls through the Azure SDK.
 | scalatest                              |   3.2.16    |      3.2.17 |
 | scala       |   2.13.11   |     2.13.12 |
 | sbt-scalafix       |   0.11.0    |      0.11.1 |
-| client-java |  18.0.0 | 19.0.0 |
 
 ## 0.5
 
