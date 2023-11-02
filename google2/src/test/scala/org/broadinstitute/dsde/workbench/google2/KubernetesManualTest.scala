@@ -41,7 +41,7 @@ final class Test(credPathStr: String,
 
   val project = GoogleProject(projectStr)
   val region = Location(regionStr)
-  val zoneStr = s"$region-a"
+  val zoneStr = s"$regionStr-a"
   val subnetworkNameStr = networkNameStr
   val clusterName = KubernetesName.withValidation[KubernetesClusterName](clusterNameStr, KubernetesClusterName.apply)
   val nodepoolName = KubernetesName.withValidation[NodepoolName](nodepoolNameStr, NodepoolName.apply)
@@ -49,7 +49,7 @@ final class Test(credPathStr: String,
   val defaultNamespaceName =
     KubernetesName.withValidation[NamespaceName](defaultNamespaceNameStr, NamespaceName.apply)
 
-  val clusterId = KubernetesClusterId(project, region, clusterName.right.get)
+  val clusterId = KubernetesClusterId(project, Location(zoneStr), clusterName.right.get)
 
   val credPath = Paths.get(credPathStr)
   val serviceResource = GKEService.resource(credPath, semaphore)
@@ -226,6 +226,15 @@ final class Test(credPathStr: String,
   def callCreatePod(clusterId: KubernetesClusterId = clusterId): IO[Unit] =
     kubeService.use { k =>
       k.createPod(clusterId, pod, KubernetesNamespace(defaultNamespaceName.right.get))
+    }
+
+  def patchReplicas(clusterId: KubernetesClusterId = clusterId): IO[Unit] =
+    kubeService.use { k =>
+      k.patchReplicas(clusterId,
+                      KubernetesNamespace(defaultNamespaceName.right.get),
+                      KubernetesDeployment("qi-sas-1027-7"),
+                      1
+      )
     }
 
   def testPolling(operation: Operation): IO[Unit] = {

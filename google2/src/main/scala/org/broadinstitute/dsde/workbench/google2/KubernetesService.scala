@@ -51,6 +51,14 @@ trait KubernetesService[F[_]] {
     ev: Ask[F, TraceId]
   ): F[Unit]
 
+  def patchReplicas(clusterId: KubernetesClusterId,
+                    namespace: KubernetesNamespace,
+                    deployment: KubernetesDeployment,
+                    replicaCount: Int
+  )(implicit
+    ev: Ask[F, TraceId]
+  ): F[Unit]
+
   def listPodStatus(clusterId: KubernetesClusterId, namespace: KubernetesNamespace)(implicit
     ev: Ask[F, TraceId]
   ): F[List[KubernetesPodStatus]]
