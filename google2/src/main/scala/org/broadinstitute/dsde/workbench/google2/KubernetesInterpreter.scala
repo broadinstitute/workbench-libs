@@ -6,10 +6,15 @@ import cats.mtl.Ask
 import cats.syntax.all._
 import com.google.auth.oauth2.{AccessToken, GoogleCredentials}
 import com.google.container.v1.Cluster
+import io.kubernetes.client.custom.V1Patch
 import io.kubernetes.client.openapi.ApiClient
-import io.kubernetes.client.openapi.apis.{CoreV1Api, RbacAuthorizationV1Api}
-import io.kubernetes.client.openapi.models.{V1NamespaceList, V1PersistentVolumeClaim}
-import io.kubernetes.client.util.Config
+import io.kubernetes.client.openapi.apis.{AppsV1Api, CoreV1Api, RbacAuthorizationV1Api}
+import io.kubernetes.client.openapi.models.{V1Deployment, V1NamespaceList, V1PersistentVolumeClaim}
+import io.kubernetes.client.proto.Meta.ObjectMeta
+import io.kubernetes.client.proto.V1Apps.Deployment
+import io.kubernetes.client.util.PatchUtils.PatchCallFunc
+import io.kubernetes.client.util.{Config, PatchUtils}
+import okhttp3.Call
 import org.broadinstitute.dsde.workbench.google2.GKEModels.KubernetesClusterId
 import org.broadinstitute.dsde.workbench.google2.JavaSerializableInstances._
 import org.broadinstitute.dsde.workbench.google2.JavaSerializableSyntax._
@@ -77,6 +82,47 @@ class KubernetesInterpreter[F[_]](
       )
     } yield ()
 
+  override def patchReplicas(clusterId: KubernetesClusterId,
+                             namespace: KubernetesNamespace,
+                             deployment: KubernetesDeployment,
+                             replicaCount: Int
+  )(implicit
+    ev: Ask[F, TraceId]
+  ): F[Unit] =
+    for {
+      traceId <- ev.ask
+      client <- getClient(clusterId, new CoreV1Api(_))
+      api = new AppsV1Api(client.getApiClient)
+      jsonStr = s"[{\"op\":\"replace\",\"path\":\"/spec/replicas\",\"value\":${replicaCount}}]"
+      patchCall = new PatchCallFunc {
+        override def getCall: Call = api.patchNamespacedDeploymentCall(deployment.value,
+                                                                       namespace.name.value,
+                                                                       new V1Patch(jsonStr),
+                                                                       "true",
+                                                                       null,
+                                                                       null,
+                                                                       null, // field-manager is optional
+                                                                       null,
+                                                                       null
+        )
+      }
+
+      call =
+        F.blocking(
+          PatchUtils.patch(
+            classOf[V1Deployment],
+            patchCall,
+            V1Patch.PATCH_FORMAT_JSON_PATCH,
+            client.getApiClient
+          )
+        )
+      _ <- withLogging(
+        call,
+        Some(traceId),
+        s"io.kubernetes.client.openapi.apis.AppsV1Api.patchNamespacedDeploymentCall(${deployment.value}, ${namespace.name.value}, ${jsonStr}, true...)"
+      )
+    } yield ()
+
   override def listPodStatus(clusterId: KubernetesClusterId, namespace: KubernetesNamespace)(implicit
     ev: Ask[F, TraceId]
   ): F[List[KubernetesPodStatus]] =
@@ -85,7 +131,19 @@ class KubernetesInterpreter[F[_]](
       client <- getClient(clusterId, new CoreV1Api(_))
       call =
         F.blocking(
-          client.listNamespacedPod(namespace.name.value, "true", null, null, null, null, null, null, null, null, null)
+          client.listNamespacedPod(namespace.name.value,
+                                   "true",
+                                   null,
+                                   null,
+                                   null,
+                                   null,
+                                   null,
+                                   null,
+                                   null,
+                                   null,
+                                   null,
+                                   null
+          )
         )
 
       response <- withLogging(
@@ -145,7 +203,19 @@ class KubernetesInterpreter[F[_]](
       call =
         F.blocking(
           client
-            .listNamespacedService(namespace.name.value, "true", null, null, null, null, null, null, null, null, null)
+            .listNamespacedService(namespace.name.value,
+                                   "true",
+                                   null,
+                                   null,
+                                   null,
+                                   null,
+                                   null,
+                                   null,
+                                   null,
+                                   null,
+                                   null,
+                                   null
+            )
         ).map(Option(_))
           .handleErrorWith {
             case e: io.kubernetes.client.openapi.ApiException if e.getCode == 404 => F.pure(None)
@@ -182,6 +252,7 @@ class KubernetesInterpreter[F[_]](
         F.blocking(
           client.listNamespacedPersistentVolumeClaim(namespace.name.value,
                                                      "true",
+                                                     null,
                                                      null,
                                                      null,
                                                      null,
@@ -254,7 +325,7 @@ class KubernetesInterpreter[F[_]](
       call =
         recoverF(
           F.blocking(
-            client.listNamespace("true", false, null, null, null, null, null, null, null, false)
+            client.listNamespace("true", false, null, null, null, null, null, null, null, null, false)
           ),
           whenStatusCode(409)
         )
