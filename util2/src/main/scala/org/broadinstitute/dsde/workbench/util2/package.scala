@@ -69,8 +69,16 @@ package object util2 {
         "duration" -> res._1.toMillis.toString
       )
       _ <- res._2 match {
+        case Left(e: io.kubernetes.client.openapi.ApiException) =>
+          val loggableCloudCall = LoggableCloudCall(Some(e.getResponseBody), "Failed")
+          val ctx = loggingCtx ++ Map("result" -> "Failed")
+          if (warnOnError) {
+            logger.warn(ctx, e)(loggableCloudCall.asJson.noSpaces)
+          } else {
+            logger.error(ctx, e)(loggableCloudCall.asJson.noSpaces)
+          }
         case Left(e) =>
-          val loggableCloudCall = LoggableCloudCall(None, "Failed")
+          val loggableCloudCall = LoggableCloudCall(Some(e.getMessage), "Failed")
           val ctx = loggingCtx ++ Map("result" -> "Failed")
           if (warnOnError) {
             logger.warn(ctx, e)(loggableCloudCall.asJson.noSpaces)
