@@ -12,7 +12,6 @@ Changed:
 | Dependency   |     Old Version      |          New Version |
 |----------|:--------------------:|---------------------:|
 | google-cloud-kms | 2.27.0 | 2.31.0 |
-| grpc-core | 1.58.0 | 1.59.0 |
 | jackson-module-scala |        2.15.0        |               2.15.3 |
 | guava |       32.1.2        |               32.1.3 |
 

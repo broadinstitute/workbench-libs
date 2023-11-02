@@ -25,7 +25,6 @@ the Google SDK.
 | google-cloud-container        |        2.27.0        |               2.31.0 |
 | google-cloud-billing          |        2.24.0        |               2.28.0 |
 | cats-mtl                      |        1.3.1         |                1.4.0 |
-| grpc-core | 1.58.0 |               1.59.0 |
 | google-cloud-storage-transfer | 1.24.0 |               1.28.0 |
 | google-cloud-resourcemanager | 1.26.0 |               1.30.0 |
 
