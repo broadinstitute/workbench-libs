@@ -4,7 +4,7 @@ This file documents changes to the `workbench-util2` library, including notes on
 
 ## 0.7
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util2" % "0.7-2eac218"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util2" % "0.7-59e30fb"`
 
 ### Changes
 Upgrade circe-yaml (circe-core, circe-generic, circe-parser) from 0.14.5 to 0.15.0-RC1
@@ -24,6 +24,7 @@ Upgrade fs2-io from 3.8.0 to 3.9.1
 | scalatest   |   3.2.16    |      3.2.17 |
 | scala       |   2.13.11   |     2.13.12 |
 | sbt-scalafix       |   0.11.0    |      0.11.1 |
+| cats-mtl                      |        1.3.1         |                1.4.0 |
 
 ## 0.6
 

@@ -4,10 +4,16 @@ This file documents changes to the `workbench-google` library, including notes o
 
 ## 0.30
 
-SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.30-3d9bda9"`
+SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.30-59e30fb"`
 
 Changed: 
 - Made `GoogleBucketDAO` and `GoogleIamDAO` retry on 412 responses
+
+| Dependency   |     Old Version      |          New Version |
+|----------|:--------------------:|---------------------:|
+| google-cloud-kms | 2.27.0 | 2.31.0 |
+| jackson-module-scala |        2.15.0        |               2.15.3 |
+| guava |       32.1.2        |               32.1.3 |
 
 ## 0.29
 
@@ -28,8 +34,8 @@ SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.
 | sbt-scoverage |        2.0.8         |                2.0.9 |
 | scalatest |        3.2.16        |               3.2.17 |
 | scala       |       2.13.11        |              2.13.12 |
-| sbt-scalafix       |   0.11.0    |      0.11.1 |
-| google-cloud-kms          |  2.26.0     |      2.27.0 |
+| sbt-scalafix       |   0.11.0    |               0.11.1 |
+| google-cloud-kms          |  2.26.0     |               2.27.0 |
 
 ## 0.28
 
