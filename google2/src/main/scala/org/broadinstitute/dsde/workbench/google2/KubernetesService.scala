@@ -5,7 +5,7 @@ import cats.effect.{Async, Resource}
 import cats.mtl.Ask
 import com.google.api.services.container.ContainerScopes
 import io.kubernetes.client.openapi.ApiClient
-import io.kubernetes.client.openapi.models.V1PersistentVolumeClaim
+import io.kubernetes.client.openapi.models.{V1Deployment, V1PersistentVolumeClaim}
 import org.broadinstitute.dsde.workbench.google2.GKEModels.KubernetesClusterId
 import org.broadinstitute.dsde.workbench.google2.KubernetesModels._
 import org.broadinstitute.dsde.workbench.google2.KubernetesSerializableName.ServiceName
@@ -58,6 +58,10 @@ trait KubernetesService[F[_]] {
   )(implicit
     ev: Ask[F, TraceId]
   ): F[Unit]
+
+  def listDeployments(clusterId: KubernetesClusterId, namespace: KubernetesNamespace)(implicit
+    ev: Ask[F, TraceId]
+  ): F[List[V1Deployment]]
 
   def listPodStatus(clusterId: KubernetesClusterId, namespace: KubernetesNamespace)(implicit
     ev: Ask[F, TraceId]
