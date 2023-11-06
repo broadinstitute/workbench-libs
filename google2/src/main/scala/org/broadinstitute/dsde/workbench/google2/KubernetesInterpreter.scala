@@ -224,7 +224,7 @@ class KubernetesInterpreter[F[_]](
       responseOpt <- withLogging(
         call,
         Some(traceId),
-        s"io.kubernetes.client.apis.CoreV1Api.listNamespacedService(${namespace.name.value}, true, null, null, null, null, null, null, null, null)"
+        s"io.kubernetes.client.apis.CoreV1Api.listNamespacedService(${namespace.name.value}, true, null, null, null, null, null, null, null, null, null)"
       )
 
       // Many of these fields can be null, so null-check everything
