@@ -115,7 +115,7 @@ object Dependencies {
   val azureStorageBlob =  "com.azure" % "azure-storage-blob" % "12.24.0"
   val azureResourceManagerContainerService = "com.azure.resourcemanager" % "azure-resourcemanager-containerservice" % "2.31.0"
   val azureResourceManagerApplicationInsights =
-    "com.azure.resourcemanager" % "azure-resourcemanager-applicationinsights" % "1.0.0-beta.5"
+    "com.azure.resourcemanager" % "azure-resourcemanager-applicationinsights" % "1.0.0"
   val azureResourceManagerBatchAccount =
     "com.azure.resourcemanager" % "azure-resourcemanager-batch" % "1.0.0"
 
