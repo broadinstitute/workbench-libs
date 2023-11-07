@@ -4,7 +4,7 @@ This file documents changes to the `workbench-google2` library, including notes 
 
 ## 0.34
 
-SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.34-a0519cb"`
+SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.34-TRAVIS-REPLACE-ME"`
 
 
 ### Changes
@@ -12,6 +12,7 @@ SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0
 * Updated GCE, Dataproc, and GKE interpreters to use `IO.blocking` combinator for blocking API calls through 
 the Google SDK.
 * Add `patchReplicas` to `KubernetesService`
+* Add `listDeployments` to `KubernetesService`
 
 ### Dependency upgrades
 | Dependency                    |     Old Version      |          New Version |

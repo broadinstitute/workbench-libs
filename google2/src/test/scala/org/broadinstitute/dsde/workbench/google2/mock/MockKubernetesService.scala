@@ -3,7 +3,7 @@ package mock
 
 import cats.effect.IO
 import cats.mtl.Ask
-import io.kubernetes.client.openapi.models.V1PersistentVolumeClaim
+import io.kubernetes.client.openapi.models.{V1Deployment, V1PersistentVolumeClaim}
 import org.broadinstitute.dsde.workbench.google2.GKEModels.KubernetesClusterId
 import org.broadinstitute.dsde.workbench.google2.KubernetesModels.{
   KubernetesDeployment,
@@ -91,6 +91,10 @@ class MockKubernetesService extends org.broadinstitute.dsde.workbench.google2.Ku
     namespace: KubernetesModels.KubernetesNamespace,
     secret: KubernetesModels.KubernetesSecret
   )(implicit ev: Ask[IO, TraceId]): IO[Unit] = IO.unit
+
+  override def listDeployments(clusterId: KubernetesClusterId, namespace: KubernetesNamespace)(implicit
+    ev: Ask[IO, TraceId]
+  ): IO[List[KubernetesDeployment]] = IO.pure(List.empty)
 }
 
 object MockKubernetesService extends MockKubernetesService

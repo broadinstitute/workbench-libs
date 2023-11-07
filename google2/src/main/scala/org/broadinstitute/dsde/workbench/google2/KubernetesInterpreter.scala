@@ -123,6 +123,36 @@ class KubernetesInterpreter[F[_]](
       )
     } yield ()
 
+  def listDeployments(clusterId: KubernetesClusterId, namespace: KubernetesNamespace)(implicit
+    ev: Ask[F, TraceId]
+  ): F[List[KubernetesDeployment]] = for {
+    traceId <- ev.ask
+    client <- getClient(clusterId, new CoreV1Api(_))
+    api = new AppsV1Api(client.getApiClient)
+
+    call =
+      F.blocking(
+        api.listNamespacedDeployment(namespace.name.value,
+                                     "true",
+                                     null,
+                                     null,
+                                     null,
+                                     null,
+                                     null,
+                                     null,
+                                     null,
+                                     null,
+                                     null,
+                                     null
+        )
+      )
+    deployments <- withLogging(
+      call,
+      Some(traceId),
+      s"io.kubernetes.client.openapi.apis.AppsV1Api.listNamespacedDeployment(${clusterId.toString}, ${namespace.name.value}, true...)"
+    )
+  } yield deployments.getItems.asScala.toList.map(x => KubernetesDeployment(x.getMetadata.getName))
+
   override def listPodStatus(clusterId: KubernetesClusterId, namespace: KubernetesNamespace)(implicit
     ev: Ask[F, TraceId]
   ): F[List[KubernetesPodStatus]] =
