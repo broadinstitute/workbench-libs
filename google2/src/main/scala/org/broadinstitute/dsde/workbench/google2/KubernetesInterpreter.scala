@@ -125,7 +125,7 @@ class KubernetesInterpreter[F[_]](
 
   def listDeployments(clusterId: KubernetesClusterId, namespace: KubernetesNamespace)(implicit
     ev: Ask[F, TraceId]
-  ): F[List[V1Deployment]] = for {
+  ): F[List[KubernetesDeployment]] = for {
     traceId <- ev.ask
     client <- getClient(clusterId, new CoreV1Api(_))
     api = new AppsV1Api(client.getApiClient)
@@ -151,7 +151,7 @@ class KubernetesInterpreter[F[_]](
       Some(traceId),
       s"io.kubernetes.client.openapi.apis.AppsV1Api.listNamespacedDeployment(${clusterId.toString}, ${namespace.name.value}, true...)"
     )
-  } yield deployments.getItems.asScala.toList
+  } yield deployments.getItems.asScala.toList.map(x => KubernetesDeployment(x.getMetadata.getName))
 
   override def listPodStatus(clusterId: KubernetesClusterId, namespace: KubernetesNamespace)(implicit
     ev: Ask[F, TraceId]

@@ -61,7 +61,7 @@ trait KubernetesService[F[_]] {
 
   def listDeployments(clusterId: KubernetesClusterId, namespace: KubernetesNamespace)(implicit
     ev: Ask[F, TraceId]
-  ): F[List[V1Deployment]]
+  ): F[List[KubernetesDeployment]]
 
   def listPodStatus(clusterId: KubernetesClusterId, namespace: KubernetesNamespace)(implicit
     ev: Ask[F, TraceId]
