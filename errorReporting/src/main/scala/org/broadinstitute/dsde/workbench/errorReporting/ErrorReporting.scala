@@ -42,6 +42,8 @@ object ErrorReporting {
   ): Resource[F, ErrorReporting[F]] = {
     val settings = ReportErrorsServiceSettings
       .newBuilder()
+      // setBackgroundExecutorProvider?
+      // setTransportChannelProvider?
       .setCredentialsProvider(FixedCredentialsProvider.create(credentials))
       .build()
     Resource

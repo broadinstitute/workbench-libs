@@ -106,6 +106,8 @@ object GoogleStorageTransferService {
   ): Resource[F, GoogleStorageTransferService[F]] = {
     val settings = StorageTransferServiceSettings.newBuilder
       .setCredentialsProvider(FixedCredentialsProvider.create(credential))
+      // setBackgroundExecutorProvider?
+      // setExecutorProvider?
       .build
 
     Resource

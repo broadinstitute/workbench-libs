@@ -129,6 +129,7 @@ object GooglePublisherInterpreter {
         Publisher
           .newBuilder(topicName)
           .setExecutorProvider(fixedExecutorProvider)
+          // setChannelProvider? // https://cloud.google.com/java/docs/reference/google-cloud-pubsub/latest/com.google.cloud.pubsub.v1.Publisher.Builder#com_google_cloud_pubsub_v1_Publisher_Builder_setChannelProvider_com_google_api_gax_rpc_TransportChannelProvider_
           .setCredentialsProvider(FixedCredentialsProvider.create(credential))
           .build()
       )

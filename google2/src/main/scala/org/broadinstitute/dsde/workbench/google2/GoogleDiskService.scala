@@ -70,6 +70,7 @@ object GoogleDiskService {
       .newBuilder()
       .setCredentialsProvider(credentialsProvider)
       .setBackgroundExecutorProvider(fixedExecutorProvider)
+      // setTransportChannelProvider?
       .build()
 
     for {

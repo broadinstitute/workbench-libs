@@ -41,6 +41,8 @@ object GoogleBillingService {
 
     val billingSettings = CloudBillingSettings
       .newBuilder()
+      // setBackgroundExecutorProvider?
+      // setTransportChannelProvider?
       .setCredentialsProvider(credentialsProvider)
       .build()
 

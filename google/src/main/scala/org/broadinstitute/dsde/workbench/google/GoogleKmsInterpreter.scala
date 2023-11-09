@@ -167,6 +167,8 @@ object GoogleKmsInterpreter {
           KeyManagementServiceClient.create(
             KeyManagementServiceSettings
               .newBuilder()
+              // setBackgroundExecutorProvider?
+              // setTransportChannelProvider?
               .setCredentialsProvider(
                 FixedCredentialsProvider.create(ServiceAccountCredentials.fromStream(credentials))
               )

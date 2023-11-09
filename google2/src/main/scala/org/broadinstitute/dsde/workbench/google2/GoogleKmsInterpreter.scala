@@ -172,6 +172,8 @@ object GoogleKmsInterpreter {
               .setCredentialsProvider(
                 FixedCredentialsProvider.create(ServiceAccountCredentials.fromStream(credentials))
               )
+              // setBackgroundExecutorProvider?
+              // setTransportChannelProvider?
               .build()
           )
         )

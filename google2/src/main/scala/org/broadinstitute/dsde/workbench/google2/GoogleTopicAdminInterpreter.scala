@@ -98,6 +98,8 @@ object GoogleTopicAdminInterpreter {
         TopicAdminClient.create(
           TopicAdminSettings
             .newBuilder()
+            // setTransportChannelProvider ???
+            // setExecutorProvider ???
             .setCredentialsProvider(FixedCredentialsProvider.create(credential))
             .build()
         )

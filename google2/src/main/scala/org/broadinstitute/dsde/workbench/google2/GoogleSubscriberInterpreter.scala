@@ -266,6 +266,8 @@ object GoogleSubscriberInterpreter {
           SubscriptionAdminSettings
             .newBuilder()
             .setCredentialsProvider(FixedCredentialsProvider.create(credential))
+            // setBackgroundExecutorProvider?
+            // setTransportChannelProvider?
             .build()
         )
       )

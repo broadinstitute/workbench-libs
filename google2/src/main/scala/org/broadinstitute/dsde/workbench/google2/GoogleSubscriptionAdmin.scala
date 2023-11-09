@@ -37,6 +37,8 @@ object GoogleSubscriptionAdmin {
             SubscriptionAdminSettings
               .newBuilder()
               .setCredentialsProvider(FixedCredentialsProvider.create(serviceAccountCredentials))
+              // setBackgroundExecutorProvider?
+              // setTransportChannelProvider?
               .build()
           )
         )
