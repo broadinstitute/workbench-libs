@@ -4,7 +4,7 @@ This file documents changes to the `workbench-azure` library, including notes on
 
 ## 0.6
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-azure" % "0.6-TRAVIS-REPLACE-ME"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-azure" % "0.6-9e8bb8d"`
 
 ### Changes
 Use `blocking` combinator for blocking API calls through the Azure SDK.
