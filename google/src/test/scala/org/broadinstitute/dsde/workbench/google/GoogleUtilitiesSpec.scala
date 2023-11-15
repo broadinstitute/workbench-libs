@@ -295,11 +295,12 @@ class GoogleUtilitiesSpec
   }
 }
 
-object RedRing extends Tag("red ring test")
+object RedRing extends Tag("RedRingTest")
 
 class GoogleClientRequestSpec extends AnyFlatSpecLike with Matchers {
   val adminServiceAccountJsonPath = "/Users/kobori/workbench-libs/google/src/test/scala/org/broadinstitute/dsde/workbench/google/admin-service-account-0.json"
   val scopes = PubsubScopes.all().asScala.toSeq
+  val googleCredentialFromAccessToken = GoogleCredentialModes.Token()
   val googleCredential: GoogleCredential = GoogleCredentialModes.Json(Files.readAllLines(Paths.get(adminServiceAccountJsonPath)).asScala.mkString).toGoogleCredential(scopes)
   val appName: String = "testLibs"
   val googleProject: String = "broad-dsde-dev"
@@ -309,14 +310,6 @@ class GoogleClientRequestSpec extends AnyFlatSpecLike with Matchers {
     new Pubsub.Builder(httpTransport, jsonFactory, googleCredential).setApplicationName(appName).build()
   "Workbench libs" should "be able to publish to a real pubsub topic on google" taggedAs RedRing in {
     // Arrange
-    /*
-    val pubsubMessages =
-      messageBatch.map(messageRequest =>
-        new PubsubMessage()
-          .encodeData(messageRequest.text.getBytes(characterEncoding))
-          .setAttributes(messageRequest.attributes.asJava)
-      )
-     */
     val workbenchGroupNameJson = "{ \"foo\": \"bar\" }"
     val pubsubMessageRequests = Seq(workbenchGroupNameJson)
     val pubsubMessages =
