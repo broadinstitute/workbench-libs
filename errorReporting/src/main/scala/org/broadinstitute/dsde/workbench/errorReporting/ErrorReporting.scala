@@ -2,8 +2,9 @@ package org.broadinstitute.dsde.workbench.errorReporting
 
 import java.nio.file.Path
 import cats.effect.{Resource, Sync}
-import com.google.api.gax.core.FixedCredentialsProvider
+import com.google.api.gax.core.{FixedCredentialsProvider, FixedExecutorProvider}
 import com.google.auth.oauth2.{GoogleCredentials, ServiceAccountCredentials}
+import com.google.common.util.concurrent.ThreadFactoryBuilder
 import com.google.devtools.clouderrorreporting.v1beta1.{
   ProjectName,
   ReportErrorsServiceClient,
@@ -11,6 +12,7 @@ import com.google.devtools.clouderrorreporting.v1beta1.{
   SourceLocation
 }
 
+import java.util.concurrent.ScheduledThreadPoolExecutor
 import scala.jdk.CollectionConverters._
 
 trait ErrorReporting[F[_]] {
@@ -37,14 +39,21 @@ object ErrorReporting {
       client <- fromCredential(credential, appName, projectName)
     } yield client
 
-  def fromCredential[F[_]](credentials: GoogleCredentials, appName: String, projectName: ProjectName)(implicit
+  def fromCredential[F[_]](credentials: GoogleCredentials,
+                           appName: String,
+                           projectName: ProjectName,
+                           numOfThreads: Int = 20
+  )(implicit
     F: Sync[F]
   ): Resource[F, ErrorReporting[F]] = {
+    val threadFactory = new ThreadFactoryBuilder().setNameFormat("goog-error-%d").setDaemon(true).build()
+    val fixedExecutorProvider =
+      FixedExecutorProvider.create(new ScheduledThreadPoolExecutor(numOfThreads, threadFactory))
+
     val settings = ReportErrorsServiceSettings
       .newBuilder()
-      // setBackgroundExecutorProvider?
-      // setTransportChannelProvider?
       .setCredentialsProvider(FixedCredentialsProvider.create(credentials))
+      .setBackgroundExecutorProvider(fixedExecutorProvider)
       .build()
     Resource
       .make[F, ReportErrorsServiceClient](F.delay(ReportErrorsServiceClient.create(settings)))(c => F.delay(c.close()))

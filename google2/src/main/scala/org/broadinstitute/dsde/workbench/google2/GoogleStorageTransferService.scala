@@ -2,8 +2,9 @@ package org.broadinstitute.dsde.workbench
 package google2
 
 import cats.effect.{Resource, Sync, Temporal}
-import com.google.api.gax.core.FixedCredentialsProvider
+import com.google.api.gax.core.{FixedCredentialsProvider, FixedExecutorProvider}
 import com.google.auth.Credentials
+import com.google.common.util.concurrent.ThreadFactoryBuilder
 import com.google.storagetransfer.v1.proto.TransferTypes.{TransferJob, TransferOperation}
 import com.google.storagetransfer.v1.proto.{StorageTransferServiceClient, StorageTransferServiceSettings}
 import org.broadinstitute.dsde.workbench.google2.GoogleStorageTransferService.ObjectDeletionOption.NeverDeleteSourceObjects
@@ -12,6 +13,8 @@ import org.broadinstitute.dsde.workbench.google2.GoogleStorageTransferService._
 import org.broadinstitute.dsde.workbench.model.ValueObject
 import org.broadinstitute.dsde.workbench.model.google.{GcsBucketName, GoogleProject, ServiceAccount}
 import org.typelevel.log4cats.StructuredLogger
+
+import java.util.concurrent.ScheduledThreadPoolExecutor
 
 trait GoogleStorageTransferService[F[_]] {
 
@@ -100,14 +103,17 @@ object GoogleStorageTransferService {
       .fromAutoCloseable(F.delay(StorageTransferServiceClient.create))
       .map(new GoogleStorageTransferInterpreter[F](_))
 
-  def resource[F[_]](credential: Credentials)(implicit
+  def resource[F[_]](credential: Credentials, numOfThreads: Int = 20)(implicit
     F: Sync[F] with Temporal[F],
     logger: StructuredLogger[F]
   ): Resource[F, GoogleStorageTransferService[F]] = {
+    val threadFactory = new ThreadFactoryBuilder().setNameFormat("goog-storage-transfer-%d").setDaemon(true).build()
+    val fixedExecutorProvider =
+      FixedExecutorProvider.create(new ScheduledThreadPoolExecutor(numOfThreads, threadFactory))
+
     val settings = StorageTransferServiceSettings.newBuilder
       .setCredentialsProvider(FixedCredentialsProvider.create(credential))
-      // setBackgroundExecutorProvider?
-      // setExecutorProvider?
+      .setBackgroundExecutorProvider(fixedExecutorProvider)
       .build
 
     Resource

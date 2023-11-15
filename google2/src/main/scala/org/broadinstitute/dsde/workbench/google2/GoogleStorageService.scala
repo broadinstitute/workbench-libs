@@ -6,6 +6,7 @@ import cats.data.NonEmptyList
 import cats.effect._
 import cats.effect.std.Semaphore
 import cats.syntax.all._
+import com.google.api.gax.core.{FixedCredentialsProvider, FixedExecutorProvider}
 import com.google.auth.Credentials
 import com.google.auth.oauth2.{AccessToken, GoogleCredentials, ServiceAccountCredentials}
 import com.google.cloud.storage.BucketInfo.LifecycleRule
@@ -22,6 +23,8 @@ import com.google.cloud.storage.Storage.{
   BucketSourceOption,
   BucketTargetOption
 }
+import com.google.common.util.concurrent.ThreadFactoryBuilder
+import com.google.storagetransfer.v1.proto.StorageTransferServiceSettings
 import org.broadinstitute.dsde.workbench.google2.Implicits.PolicyToStorageRoles
 import org.typelevel.log4cats.StructuredLogger
 import org.broadinstitute.dsde.workbench.google2.util.RetryPredicates.standardGoogleRetryConfig
@@ -30,6 +33,7 @@ import org.broadinstitute.dsde.workbench.model.google.{GcsBucketName, GcsObjectN
 import org.broadinstitute.dsde.workbench.util2.RemoveObjectResult
 
 import java.net.URL
+import java.util.concurrent.ScheduledThreadPoolExecutor
 import scala.collection.convert.ImplicitConversions._
 import scala.concurrent.duration.{HOURS, TimeUnit}
 import scala.language.higherKinds
@@ -393,20 +397,27 @@ object GoogleStorageService {
       db <- GoogleStorageInterpreter.storage[F](pathToCredentialJson, project)
     } yield GoogleStorageInterpreter[F](db, blockerBound)
 
-  def fromCredentials[F[_]: Async: StructuredLogger](credentials: GoogleCredentials,
-                                                     blockerBound: Option[Semaphore[F]] = None
-  ): Resource[F, GoogleStorageService[F]] =
+  def fromCredentials[F[_]: StructuredLogger: Async](credentials: GoogleCredentials,
+                                                     blockerBound: Option[Semaphore[F]] = None,
+                                                     numOfThreads: Int = 20
+  ): Resource[F, GoogleStorageService[F]] = {
+    val threadFactory = new ThreadFactoryBuilder().setNameFormat("goog-storage-%d").setDaemon(true).build()
+    val fixedExecutorProvider =
+      FixedExecutorProvider.create(new ScheduledThreadPoolExecutor(numOfThreads, threadFactory))
+
     for {
       db <- Resource.eval(
         Sync[F].delay(
           StorageOptions
             .newBuilder()
             .setCredentials(credentials)
+            // .setBackgroundExecutorProvider(fixedExecutorProvider)
             .build()
             .getService
         )
       )
     } yield GoogleStorageInterpreter[F](db, blockerBound)
+  }
 
   def fromApplicationDefault[F[_]: Async: StructuredLogger](
     blockerBound: Option[Semaphore[F]] = None

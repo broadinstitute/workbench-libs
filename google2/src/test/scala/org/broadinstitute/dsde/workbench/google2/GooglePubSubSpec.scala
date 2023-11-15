@@ -104,8 +104,6 @@ object GooglePubSubSpec {
               .newBuilder()
               .setTransportChannelProvider(channelProvider)
               .setCredentialsProvider(credentialsProvider)
-              // setBackgroundExecutorProvider?
-              // setTransportChannelProvider?
               .build()
           )
         )
@@ -117,7 +115,6 @@ object GooglePubSubSpec {
               .newBuilder()
               .setTransportChannelProvider(channelProvider)
               .setCredentialsProvider(credentialsProvider)
-              // setBackgroundExecutorProvider?
               .build()
           )
         )

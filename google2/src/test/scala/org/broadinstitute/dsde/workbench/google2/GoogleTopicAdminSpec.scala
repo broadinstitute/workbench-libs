@@ -63,7 +63,6 @@ object GoogleTopicAdminSpec {
         TopicAdminClient.create(
           TopicAdminSettings
             .newBuilder()
-            // setBackgroundExecutorProvider?
             .setTransportChannelProvider(channelProvider)
             .setCredentialsProvider(credentialsProvider)
             .build()

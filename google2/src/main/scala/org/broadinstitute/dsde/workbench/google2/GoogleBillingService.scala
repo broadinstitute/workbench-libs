@@ -3,14 +3,16 @@ package org.broadinstitute.dsde.workbench.google2
 import cats.effect.std.Semaphore
 import cats.effect.{Async, Resource}
 import cats.mtl.Ask
-import com.google.api.gax.core.FixedCredentialsProvider
+import com.google.api.gax.core.{FixedCredentialsProvider, FixedExecutorProvider}
 import com.google.auth.oauth2.GoogleCredentials
 import com.google.cloud.billing.v1.{CloudBillingClient, CloudBillingSettings, ProjectBillingInfo}
+import com.google.common.util.concurrent.ThreadFactoryBuilder
 import org.broadinstitute.dsde.workbench.model.TraceId
 import org.broadinstitute.dsde.workbench.model.google.GoogleProject
 import org.typelevel.log4cats.StructuredLogger
 
 import java.nio.file.Path
+import java.util.concurrent.ScheduledThreadPoolExecutor
 
 trait GoogleBillingService[F[_]] {
   def getBillingInfo(project: GoogleProject)(implicit
@@ -35,15 +37,19 @@ object GoogleBillingService {
 
   def fromCredential[F[_]: StructuredLogger: Async](
     googleCredentials: GoogleCredentials,
-    blockerBound: Semaphore[F]
+    blockerBound: Semaphore[F],
+    numOfThreads: Int = 20
   ): Resource[F, GoogleBillingService[F]] = {
     val credentialsProvider = FixedCredentialsProvider.create(googleCredentials)
+    val threadFactory = new ThreadFactoryBuilder().setNameFormat("goog-billing-%d").setDaemon(true).build()
+    val fixedExecutorProvider =
+      FixedExecutorProvider.create(new ScheduledThreadPoolExecutor(numOfThreads, threadFactory))
+
 
     val billingSettings = CloudBillingSettings
       .newBuilder()
-      // setBackgroundExecutorProvider?
-      // setTransportChannelProvider?
       .setCredentialsProvider(credentialsProvider)
+      .setBackgroundExecutorProvider(fixedExecutorProvider)
       .build()
 
     for {

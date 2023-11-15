@@ -10,8 +10,10 @@ import com.google.api.gax.grpc.GrpcTransportChannel
 import com.google.api.gax.rpc.FixedTransportChannelProvider
 import com.google.api.services.container.Container
 import com.google.cloud.container.v1.{ClusterManagerClient, ClusterManagerSettings}
+import com.google.common.util.concurrent.ThreadFactoryBuilder
 import com.google.container.v1.{Cluster, NodePool, NodePoolAutoscaling, Operation}
 import fs2.Stream
+
 import java.nio.file.Path
 import java.util.concurrent.ScheduledThreadPoolExecutor
 import org.broadinstitute.dsde.workbench.google2.GKEModels._
@@ -68,20 +70,19 @@ object GKEService {
     pathToCredential: Path,
     blockerBound: Semaphore[F],
     retryConfig: RetryConfig =
-      retryConfigWithPredicates(whenStatusCode(404), standardGoogleRetryPredicate, gkeRetryPredicate)
+      retryConfigWithPredicates(whenStatusCode(404), standardGoogleRetryPredicate, gkeRetryPredicate),
+    numOfThreads: Int = 20
   ): Resource[F, GKEService[F]] =
     for {
       credential <- credentialResource(pathToCredential.toString)
       credentialsProvider = FixedCredentialsProvider.create(credential)
       threadFactory = new ThreadFactoryBuilder().setNameFormat("goog-kube-%d").setDaemon(true).build()
       fixedExecutorProvider = FixedExecutorProvider.create(new ScheduledThreadPoolExecutor(numOfThreads, threadFactory))
-      channelProvider = FixedTransportChannelProvider.create(GrpcTransportChannel.create(channel))
 
       clusterManagerSettings = ClusterManagerSettings
         .newBuilder()
         .setCredentialsProvider(credentialsProvider)
         .setBackgroundExecutorProvider(fixedExecutorProvider)
-        .setTransportChannelProvider(transportChannelProvider)
         .build()
       clusterManager <- backgroundResourceF(ClusterManagerClient.create(clusterManagerSettings))
       legacyClient <- legacyClient(pathToCredential)

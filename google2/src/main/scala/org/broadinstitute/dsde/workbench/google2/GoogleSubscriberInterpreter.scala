@@ -182,7 +182,7 @@ object GoogleSubscriberInterpreter {
     flowControlSettings: Option[FlowControlSettings],
     numOfThreads: Int
   ): Resource[F, Subscriber] = Dispatcher[F].flatMap { d =>
-    val threadFactory = new ThreadFactoryBuilder().setNameFormat("goog-subscriber-%d").setDaemon(true).build()
+    val threadFactory = new ThreadFactoryBuilder().setNameFormat("goog-sub-%d").setDaemon(true).build()
     val fixedExecutorProvider =
       FixedExecutorProvider.create(new ScheduledThreadPoolExecutor(numOfThreads, threadFactory))
 
@@ -259,19 +259,27 @@ object GoogleSubscriberInterpreter {
     )
   }
 
-  private def subscriptionAdminClientResource[F[_]: Async](credential: ServiceAccountCredentials) =
-    Resource.make[F, SubscriptionAdminClient](
-      Async[F].delay(
-        SubscriptionAdminClient.create(
-          SubscriptionAdminSettings
-            .newBuilder()
-            .setCredentialsProvider(FixedCredentialsProvider.create(credential))
-            // setBackgroundExecutorProvider?
-            // setTransportChannelProvider?
-            .build()
+  private def subscriptionAdminClientResource[F[_]: Async](credential: ServiceAccountCredentials,
+                                                           numOfThreads: Int = 20
+  ) = {
+    val threadFactory = new ThreadFactoryBuilder().setNameFormat("goog-sub-admin-client-%d").setDaemon(true).build()
+    val fixedExecutorProvider =
+      FixedExecutorProvider.create(new ScheduledThreadPoolExecutor(numOfThreads, threadFactory))
+
+    for {
+      client <- Resource.make[F, SubscriptionAdminClient](
+        Async[F].delay(
+          SubscriptionAdminClient.create(
+            SubscriptionAdminSettings
+              .newBuilder()
+              .setCredentialsProvider(FixedCredentialsProvider.create(credential))
+              .setBackgroundExecutorProvider(fixedExecutorProvider)
+              .build()
+          )
         )
-      )
-    )(client => Async[F].delay(client.shutdown()))
+      )(client => Async[F].delay(client.shutdown()))
+    } yield client
+  }
 }
 
 final case class FlowControlSettingsConfig(maxOutstandingElementCount: Long, maxOutstandingRequestBytes: Long)
