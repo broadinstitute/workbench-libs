@@ -55,23 +55,23 @@ trait OpenIDConnectConfiguration {
 object OpenIDConnectConfiguration {
   private val oidcMetadataUrlSuffix = ".well-known/openid-configuration"
 
-  def apply[F[_] : Async](authorityEndpoint: String,
-                          oidcClientId: ClientId,
-                          oidcClientSecret: Option[ClientSecret] = None,
-                          extraAuthParams: Option[String] = None,
-                          extraGoogleClientId: Option[ClientId] = None
-                         ): F[OpenIDConnectConfiguration] = for {
+  def apply[F[_]: Async](authorityEndpoint: String,
+                         oidcClientId: ClientId,
+                         oidcClientSecret: Option[ClientSecret] = None,
+                         extraAuthParams: Option[String] = None,
+                         extraGoogleClientId: Option[ClientId] = None
+  ): F[OpenIDConnectConfiguration] = for {
     metadata <- getProviderMetadata(authorityEndpoint)
   } yield new OpenIDConnectInterpreter(oidcClientId,
-    authorityEndpoint,
-    metadata,
-    oidcClientSecret,
-    extraAuthParams,
-    extraGoogleClientId
+                                       authorityEndpoint,
+                                       metadata,
+                                       oidcClientSecret,
+                                       extraAuthParams,
+                                       extraGoogleClientId
   )
 
   // Grabs the authorize and token endpoints from the authority metadata JSON
-  private[oauth2] def getProviderMetadata[F[_] : Async](authorityEndpoint: String): F[OpenIDProviderMetadata] =
+  private[oauth2] def getProviderMetadata[F[_]: Async](authorityEndpoint: String): F[OpenIDProviderMetadata] =
     for {
       uri <- Async[F].fromEither(Uri.fromString(authorityEndpoint))
       req = uri.addPath(oidcMetadataUrlSuffix)

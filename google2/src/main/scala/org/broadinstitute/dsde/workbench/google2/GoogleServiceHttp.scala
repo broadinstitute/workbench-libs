@@ -8,7 +8,7 @@ import org.broadinstitute.dsde.workbench.google2.GoogleServiceHttpInterpreter.cr
 import org.broadinstitute.dsde.workbench.model.TraceId
 import org.broadinstitute.dsde.workbench.model.google.{GcsBucketName, GoogleProject}
 import org.http4s.client.Client
-import org.http4s.client.middleware.{Retry, RetryPolicy, Logger => Http4sLogger}
+import org.http4s.client.middleware.{Logger => Http4sLogger, Retry, RetryPolicy}
 import org.typelevel.log4cats.Logger
 import org.typelevel.log4cats.slf4j.loggerFactoryforSync
 
@@ -20,16 +20,16 @@ trait GoogleServiceHttp[F[_]] {
                          bucketName: GcsBucketName,
                          filters: Filters,
                          traceId: Option[TraceId]
-                        ): F[Unit]
+  ): F[Unit]
 
   def getProjectServiceAccount(project: GoogleProject, traceId: Option[TraceId]): F[Identity]
 }
 
 object GoogleServiceHttp {
-  def withRetryAndLogging[F[_] : Async : Logger](
-                                                  httpClient: Client[F],
-                                                  config: NotificationCreaterConfig
-                                                ): Resource[F, GoogleServiceHttp[F]] = {
+  def withRetryAndLogging[F[_]: Async: Logger](
+    httpClient: Client[F],
+    config: NotificationCreaterConfig
+  ): Resource[F, GoogleServiceHttp[F]] = {
     val retryPolicy = RetryPolicy[F](RetryPolicy.exponentialBackoff(30 seconds, 5))
     val clientWithRetry = Retry(retryPolicy)(httpClient)
     val clientWithRetryAndLogging = Http4sLogger(logHeaders = true, logBody = true)(clientWithRetry)
@@ -38,10 +38,10 @@ object GoogleServiceHttp {
     } yield new GoogleServiceHttpInterpreter[F](clientWithRetryAndLogging, config, credentials)
   }
 
-  def withoutRetryAndLogging[F[_] : Async : Logger](
-                                                     httpClient: Client[F],
-                                                     config: NotificationCreaterConfig
-                                                   ): Resource[F, GoogleServiceHttp[F]] =
+  def withoutRetryAndLogging[F[_]: Async: Logger](
+    httpClient: Client[F],
+    config: NotificationCreaterConfig
+  ): Resource[F, GoogleServiceHttp[F]] =
     for {
       credentials <- credentialResourceWithScope(config.pathToCredentialJson)
     } yield new GoogleServiceHttpInterpreter[F](httpClient, config, credentials)
