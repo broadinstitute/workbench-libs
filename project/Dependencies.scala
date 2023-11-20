@@ -89,7 +89,7 @@ object Dependencies {
   val catsMtl = "org.typelevel" %% "cats-mtl" % "1.4.0"
 
   val http4sCirce = "org.http4s" %% "http4s-circe" % http4sVersion
-  val http4sBlazeClient = "org.http4s" %% "http4s-blaze-client" % "v1.0.0-M39" // this version is compatible with http4s-core-1.0.0-M40
+  val http4sBlazeClient = "org.http4s" %% "http4s-blaze-client" % "1.0.0-M39" // this version is compatible with http4s-core-1.0.0-M40
   val http4sDsl = "org.http4s"      %% "http4s-dsl"          % http4sVersion
 
   val fs2Io: ModuleID = "co.fs2" %% "fs2-io" % "3.9.3"
