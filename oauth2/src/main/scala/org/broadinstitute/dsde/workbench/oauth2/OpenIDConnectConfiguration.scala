@@ -6,6 +6,7 @@ import io.circe.Decoder
 import org.http4s.Uri
 import org.http4s.blaze.client._
 import org.http4s.circe.CirceEntityDecoder._
+import org.typelevel.log4cats.slf4j.loggerFactoryforSync
 
 /**
  * Allows services to configure their mode of OAuth by providing 2 backend routes:

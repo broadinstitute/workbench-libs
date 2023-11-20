@@ -1,15 +1,16 @@
 package org.broadinstitute.dsde.workbench
 package google2
 
-import cats.effect.{Async, Resource, Temporal}
+import cats.effect.{Async, Resource}
 import com.google.cloud.Identity
 import com.google.pubsub.v1.TopicName
 import org.broadinstitute.dsde.workbench.google2.GoogleServiceHttpInterpreter.credentialResourceWithScope
 import org.broadinstitute.dsde.workbench.model.TraceId
 import org.broadinstitute.dsde.workbench.model.google.{GcsBucketName, GoogleProject}
 import org.http4s.client.Client
-import org.http4s.client.middleware.{Logger => Http4sLogger, Retry, RetryPolicy}
+import org.http4s.client.middleware.{Retry, RetryPolicy, Logger => Http4sLogger}
 import org.typelevel.log4cats.Logger
+import org.typelevel.log4cats.slf4j.loggerFactoryforSync
 
 import scala.concurrent.duration._
 
