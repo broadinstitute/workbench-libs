@@ -20,15 +20,16 @@ trait GoogleServiceHttp[F[_]] {
                          bucketName: GcsBucketName,
                          filters: Filters,
                          traceId: Option[TraceId]
-  ): F[Unit]
+                        ): F[Unit]
+
   def getProjectServiceAccount(project: GoogleProject, traceId: Option[TraceId]): F[Identity]
 }
 
 object GoogleServiceHttp {
-  def withRetryAndLogging[F[_]: Async: Logger](
-    httpClient: Client[F],
-    config: NotificationCreaterConfig
-  ): Resource[F, GoogleServiceHttp[F]] = {
+  def withRetryAndLogging[F[_] : Async : Logger](
+                                                  httpClient: Client[F],
+                                                  config: NotificationCreaterConfig
+                                                ): Resource[F, GoogleServiceHttp[F]] = {
     val retryPolicy = RetryPolicy[F](RetryPolicy.exponentialBackoff(30 seconds, 5))
     val clientWithRetry = Retry(retryPolicy)(httpClient)
     val clientWithRetryAndLogging = Http4sLogger(logHeaders = true, logBody = true)(clientWithRetry)
@@ -37,10 +38,10 @@ object GoogleServiceHttp {
     } yield new GoogleServiceHttpInterpreter[F](clientWithRetryAndLogging, config, credentials)
   }
 
-  def withoutRetryAndLogging[F[_]: Async: Logger](
-    httpClient: Client[F],
-    config: NotificationCreaterConfig
-  ): Resource[F, GoogleServiceHttp[F]] =
+  def withoutRetryAndLogging[F[_] : Async : Logger](
+                                                     httpClient: Client[F],
+                                                     config: NotificationCreaterConfig
+                                                   ): Resource[F, GoogleServiceHttp[F]] =
     for {
       credentials <- credentialResourceWithScope(config.pathToCredentialJson)
     } yield new GoogleServiceHttpInterpreter[F](httpClient, config, credentials)
