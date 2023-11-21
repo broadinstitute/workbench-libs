@@ -1,7 +1,7 @@
 package org.broadinstitute.dsde.workbench
 package google2
 
-import cats.effect.{Async, Resource}
+import cats.effect.{Async, Resource, Temporal}
 import com.google.cloud.Identity
 import com.google.pubsub.v1.TopicName
 import org.broadinstitute.dsde.workbench.google2.GoogleServiceHttpInterpreter.credentialResourceWithScope
@@ -10,7 +10,6 @@ import org.broadinstitute.dsde.workbench.model.google.{GcsBucketName, GoogleProj
 import org.http4s.client.Client
 import org.http4s.client.middleware.{Logger => Http4sLogger, Retry, RetryPolicy}
 import org.typelevel.log4cats.Logger
-import org.typelevel.log4cats.slf4j.loggerFactoryforSync
 
 import scala.concurrent.duration._
 
@@ -21,7 +20,6 @@ trait GoogleServiceHttp[F[_]] {
                          filters: Filters,
                          traceId: Option[TraceId]
   ): F[Unit]
-
   def getProjectServiceAccount(project: GoogleProject, traceId: Option[TraceId]): F[Identity]
 }
 
