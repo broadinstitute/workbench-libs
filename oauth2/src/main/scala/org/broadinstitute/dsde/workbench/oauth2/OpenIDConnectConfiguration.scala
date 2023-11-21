@@ -6,7 +6,6 @@ import io.circe.Decoder
 import org.http4s.Uri
 import org.http4s.blaze.client._
 import org.http4s.circe.CirceEntityDecoder._
-import org.typelevel.log4cats.slf4j.loggerFactoryforSync
 
 /**
  * Allows services to configure their mode of OAuth by providing 2 backend routes:
@@ -18,9 +17,9 @@ import org.typelevel.log4cats.slf4j.loggerFactoryforSync
  *   - oidcClientId (required): the OAuth2 client id
  *   - oidcClientSecret (optional): the OAuth2 client secret. Only needed for Google, not B2C.
  *   - extraAuthParams (optional): if present appends extra params to the query string of the
- *     authorization request. This is needed for B2C for some clients, including Swagger UI.
+ *       authorization request. This is needed for B2C for some clients, including Swagger UI.
  *   - extraGoogleClientId (optional): if present adds a Google-specific client to Swagger UI
- *     with implicit flow. Used for backwards compatiblity.
+ *       with implicit flow. Used for backwards compatiblity.
  *
  * There are 2 choices for using this class:
  *
@@ -29,26 +28,22 @@ import org.typelevel.log4cats.slf4j.loggerFactoryforSync
  *      Note: ensure the service is using a compatible akka-http version with the version
  *      workbench-libs is compiled against.
  *
- * 2. Otherwise, the service should add 2 backend routes as follows:
+ *   2. Otherwise, the service should add 2 backend routes as follows:
  *     - GET /oauth2/authorize:
- *       This route should call `processAuthorizeQueryParams` on the incoming querystring params
- *       and redirect to the authorize endpoint defined in `providerMetadata`.
+ *         This route should call `processAuthorizeQueryParams` on the incoming querystring params
+ *         and redirect to the authorize endpoint defined in `providerMetadata`.
  *     - POST /oauth2/token:
- *       This route should only accept Content-Type: application/x-www-form-urlencoded.
- *       It should call `processTokenFormFields` on the incoming form fields and _proxy_ the request
- *       to the token endpoint defined in `providerMetadata`.
+ *         This route should only accept Content-Type: application/x-www-form-urlencoded.
+ *         It should call `processTokenFormFields` on the incoming form fields and _proxy_ the request
+ *         to the token endpoint defined in `providerMetadata`.
  */
 trait OpenIDConnectConfiguration {
   def clientId: ClientId
-
   def authorityEndpoint: String
-
   def providerMetadata: OpenIDProviderMetadata
 
   def processAuthorizeQueryParams(params: Seq[(String, String)]): Seq[(String, String)]
-
   def processTokenFormFields(fields: Seq[(String, String)]): Seq[(String, String)]
-
   def processSwaggerUiIndex(contents: String, openApiFileName: String): String
 }
 
@@ -91,15 +86,12 @@ object OpenIDConnectConfiguration {
       tokenEndpoint <- x.downField("token_endpoint").as[String]
     } yield OpenIDProviderMetadata(issuer, authorizationEndpoint, tokenEndpoint)
   }
-
   implicit def openIDConnectConfigurationOps(config: OpenIDConnectConfiguration): OpenIDConnectAkkaHttpOps =
     new OpenIDConnectAkkaHttpOps(config)
 }
 
 case class ClientId(value: String) extends AnyVal
-
 case class ClientSecret(value: String) extends AnyVal
-
 case class OpenIDProviderMetadata(issuer: String, authorizeEndpoint: String, tokenEndpoint: String) {
   def isGoogle: Boolean = issuer == "https://accounts.google.com"
 }
