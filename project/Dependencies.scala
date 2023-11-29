@@ -178,6 +178,7 @@ object Dependencies {
   ).map(excludeGuavaJDK5)
 
   val google2Dependencies = commonDependencies ++ Seq(
+    catsEffect,
     bouncyCastle,
     bouncyCastleProviderExt,
     bouncyCastleProvider,
