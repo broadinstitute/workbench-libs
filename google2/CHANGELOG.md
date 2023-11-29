@@ -2,6 +2,21 @@
 
 This file documents changes to the `workbench-google2` library, including notes on how to upgrade to new versions.
 
+## 0.35
+
+SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.35-TRAVIS-REPLACE-ME"`
+
+
+### Changes
+* downgraded cats_effect, and corresponding fs2
+
+### Dependency upgrades
+| Dependency                    |     Old Version      |          New Version |
+|-------------------------------|:--------------------:|---------------------:|
+| cats-effect                   |         3.5.2        |               3.4.11 |
+| fs2-io                        |         3.9.3        |                3.8.0 |
+
+
 ## 0.34
 
 SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.34-2147824"`
