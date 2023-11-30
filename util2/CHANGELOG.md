@@ -4,7 +4,7 @@ This file documents changes to the `workbench-util2` library, including notes on
 
 ## 0.8
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util2" % "0.8-TRAVIS-REPLACE-ME"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util2" % "0.8-519d894"`
 
 ### Changes
 * downgraded cats_effect, and corresponding fs2
