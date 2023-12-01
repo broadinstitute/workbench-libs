@@ -22,7 +22,7 @@ import com.google.cloud.storage.Storage.{
   BucketTargetOption,
   SignUrlOption
 }
-import com.google.cloud.storage.{Acl, Blob, BlobId, BlobInfo, BucketInfo, Storage, StorageOptions}
+import com.google.cloud.storage.{Acl, Blob, BlobId, BlobInfo, BucketInfo, Storage, StorageClass, StorageOptions}
 import com.google.cloud.{Identity, Policy, Role}
 import fs2.{text, Pipe, Stream}
 import org.typelevel.log4cats.StructuredLogger
@@ -351,7 +351,8 @@ private[google2] class GoogleStorageInterpreter[F[_]](
                             retryConfig: RetryConfig,
                             location: Option[String],
                             bucketTargetOptions: List[BucketTargetOption],
-                            autoclassEnabled: Boolean
+                            autoclassEnabled: Boolean,
+                            autoclassTerminalStorageClass: Option[StorageClass]
   ): Stream[F, Unit] = {
 
     if (acl.isDefined && bucketPolicyOnlyEnabled) {
@@ -368,7 +369,13 @@ private[google2] class GoogleStorageInterpreter[F[_]](
       .toBuilder
       .setLabels(labels.asJava)
       .setIamConfiguration(iamConfig)
-      .setAutoclass(BucketInfo.Autoclass.newBuilder().setEnabled(autoclassEnabled).build())
+      .setAutoclass(
+        BucketInfo.Autoclass
+          .newBuilder()
+          .setEnabled(autoclassEnabled)
+          .setTerminalStorageClass(autoclassTerminalStorageClass.getOrElse(StorageClass.ARCHIVE))
+          .build()
+      )
 
     logBucket.map { logBucketName =>
       val logging = BucketInfo.Logging.newBuilder().setLogBucket(logBucketName.value).build()
