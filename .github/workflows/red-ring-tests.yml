@@ -1,0 +1,38 @@
+name: Red Ring Tests
+
+on:
+    pull_request:
+        branches:
+          - develop
+    schedule:
+        # run twice a day at 10:00 and 22:00 UTC every day of the week
+        - cron: "0 10/12 * * *"
+env:
+  STATIC_PUBSUB_TOPIC_1: red-ring-static-01-sub
+  GOOGLE_PROJECT: broad-dsde-qa
+
+jobs:
+  test:
+    runs-on: Ubuntu-20.04
+    permissions:
+        contents: 'read'
+        id-token: 'write'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Auth to GCP
+        id: 'auth'
+        uses: google-github-actions/auth@v1
+        with:
+          token_format: 'access_token'
+          workload_identity_provider: 'projects/1038484894585/locations/global/workloadIdentityPools/github-wi-pool/providers/github-wi-provider'
+          service_account: 'workbench-libs@broad-dsde-qa.iam.gserviceaccount.com'
+       
+      - name: Set SA token env
+        run: |
+          echo "SA_TOKEN=${{ steps.auth.outputs.access_token }}" >> "$GITHUB_ENV"
+
+      - name: Run red ring test
+        id: run-red-ring-test
+        run: | 
+          sbt coverage "testOnly -- -n RedRingTest" coverageReport
