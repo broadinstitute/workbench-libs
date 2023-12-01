@@ -300,7 +300,7 @@ object RedRing extends Tag("RedRingTest")
 class GoogleClientRequestSpec extends AnyFlatSpecLike with Matchers {
   val saToken: String = sys.env("SA_TOKEN");
   val googleProject: String = sys.env("GOOGLE_PROJECT");
-  val pubsubTopicName: String = sys.env("PUBSUB_TOPIC_NAME");
+  val pubsubTopicName: String = sys.env("STATIC_PUBSUB_TOPIC_1");
   val appName: String = "testLibs"
 
   val scopes: Seq[String] = PubsubScopes.all().asScala.toSeq
