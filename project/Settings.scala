@@ -106,14 +106,14 @@ object Settings {
   val googleSettings = commonSettings ++ List(
     name := "workbench-google",
     libraryDependencies ++= googleDependencies,
-    version := createVersion("0.29"),
+    version := createVersion("0.30"),
     coverageExcludedPackages := ".*HttpGoogle.*DAO.*"
   ) ++ publishSettings
 
   val google2Settings = commonSettings ++ List(
     name := "workbench-google2",
     libraryDependencies ++= google2Dependencies,
-    version := createVersion("0.33")
+    version := createVersion("0.34")
   ) ++ publishSettings
 
   val azureSettings = commonSettings ++ List(
@@ -137,7 +137,7 @@ object Settings {
   val serviceTestSettings = commonSettings ++ List(
     name := "workbench-service-test",
     libraryDependencies ++= serviceTestDependencies,
-    version := createVersion("4.1")
+    version := createVersion("4.2")
   ) ++ publishSettings
 
   val notificationsSettings = commonSettings ++ List(

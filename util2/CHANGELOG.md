@@ -4,26 +4,27 @@ This file documents changes to the `workbench-util2` library, including notes on
 
 ## 0.7
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util2" % "0.7-7362eef"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util2" % "0.7-2147824"`
 
 ### Changes
 Upgrade circe-yaml (circe-core, circe-generic, circe-parser) from 0.14.5 to 0.15.0-RC1
 * Note that 0.14.2 is tagged as the latest stable release here, but 15.0-RC1 has a security patch to snakeyaml (https://github.com/circe/circe-yaml/issues/356)
 
-Upgrade fs2-io from 3.8.0 to 3.9.1
+Upgrade fs2-io from 3.8.0 to 3.9.3
 * Release notes https://github.com/typelevel/fs2/releases/tag/v3.9.1 and https://github.com/typelevel/fs2/releases/tag/v3.9.0
 * Changelog https://github.com/typelevel/fs2/compare/v3.8.0...v3.9.1
 
 ### Dependency upgrades
 | Dependency  | Old Version | New Version |
 |-------------|:-----------:|------------:|
-| cats-effect |   3.4.11    |       3.5.1 |
+| cats-effect |   3.4.11    |       3.5.2 |
 | circe-yaml  |   0.14.5    |   0.15.0-M1 |
-| fs2-io      |    3.8.0    |       3.9.1 |
+| fs2-io      |    3.8.0    |       3.9.3 |
 | sbt-scoverage |    2.0.8    |       2.0.9 |
 | scalatest   |   3.2.16    |      3.2.17 |
 | scala       |   2.13.11   |     2.13.12 |
 | sbt-scalafix       |   0.11.0    |      0.11.1 |
+| cats-mtl                      |        1.3.1         |       1.4.0 |
 
 ## 0.6
 

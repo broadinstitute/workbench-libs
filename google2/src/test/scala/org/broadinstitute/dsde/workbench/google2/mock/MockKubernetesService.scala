@@ -3,9 +3,13 @@ package mock
 
 import cats.effect.IO
 import cats.mtl.Ask
-import io.kubernetes.client.openapi.models.V1PersistentVolumeClaim
+import io.kubernetes.client.openapi.models.{V1Deployment, V1PersistentVolumeClaim}
 import org.broadinstitute.dsde.workbench.google2.GKEModels.KubernetesClusterId
-import org.broadinstitute.dsde.workbench.google2.KubernetesModels.{KubernetesNamespace, KubernetesPodStatus}
+import org.broadinstitute.dsde.workbench.google2.KubernetesModels.{
+  KubernetesDeployment,
+  KubernetesNamespace,
+  KubernetesPodStatus
+}
 import org.broadinstitute.dsde.workbench.google2.KubernetesSerializableName.{NamespaceName, PodName, ServiceName}
 import org.broadinstitute.dsde.workbench.model.{IP, TraceId}
 
@@ -39,6 +43,14 @@ class MockKubernetesService extends org.broadinstitute.dsde.workbench.google2.Ku
     pod: KubernetesModels.KubernetesPod,
     namespace: KubernetesModels.KubernetesNamespace
   )(implicit ev: Ask[IO, TraceId]): IO[Unit] = IO.unit
+
+  def patchReplicas(clusterId: KubernetesClusterId,
+                    namespace: KubernetesNamespace,
+                    deployment: KubernetesDeployment,
+                    replicaCount: Int
+  )(implicit
+    ev: Ask[IO, TraceId]
+  ): IO[Unit] = IO.unit
 
   override def listPodStatus(clusterId: GKEModels.KubernetesClusterId, namespace: KubernetesModels.KubernetesNamespace)(
     implicit ev: Ask[IO, TraceId]
@@ -79,6 +91,10 @@ class MockKubernetesService extends org.broadinstitute.dsde.workbench.google2.Ku
     namespace: KubernetesModels.KubernetesNamespace,
     secret: KubernetesModels.KubernetesSecret
   )(implicit ev: Ask[IO, TraceId]): IO[Unit] = IO.unit
+
+  override def listDeployments(clusterId: KubernetesClusterId, namespace: KubernetesNamespace)(implicit
+    ev: Ask[IO, TraceId]
+  ): IO[List[KubernetesDeployment]] = IO.pure(List.empty)
 }
 
 object MockKubernetesService extends MockKubernetesService

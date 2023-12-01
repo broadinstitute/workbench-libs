@@ -32,7 +32,7 @@ private[google2] class GoogleComputeInterpreter[F[_]: Parallel: StructuredLogger
     ev: Ask[F, TraceId]
   ): F[Option[OperationFuture[Operation, Operation]]] =
     retryF(
-      recoverF(F.delay(instanceClient.insertAsync(project.value, zone.value, instance)), whenStatusCode(409)),
+      recoverF(F.blocking(instanceClient.insertAsync(project.value, zone.value, instance)), whenStatusCode(409)),
       s"com.google.cloud.compute.v1.InstancesClient.insertInstance(${project.value}, ${zone.value}, ${instance.getName})"
     )
 
@@ -48,7 +48,7 @@ private[google2] class GoogleComputeInterpreter[F[_]: Parallel: StructuredLogger
       _ <- autoDeleteDisks.toList.parTraverse { deviceName =>
         for {
           opFuture <- withLogging(
-            F.delay(
+            F.blocking(
               instanceClient
                 .setDiskAutoDeleteAsync(project.value, zone.value, instanceName.value, true, deviceName.asString)
             ),
@@ -66,7 +66,7 @@ private[google2] class GoogleComputeInterpreter[F[_]: Parallel: StructuredLogger
     ev: Ask[F, TraceId]
   ): F[Option[OperationFuture[Operation, Operation]]] = {
     val fa = F
-      .delay(instanceClient.deleteAsync(project.value, zone.value, instanceName.value))
+      .blocking(instanceClient.deleteAsync(project.value, zone.value, instanceName.value))
       .map(Option(_))
       .handleErrorWith {
         case _: com.google.api.gax.rpc.NotFoundException => F.pure(none[OperationFuture[Operation, Operation]])
@@ -87,7 +87,7 @@ private[google2] class GoogleComputeInterpreter[F[_]: Parallel: StructuredLogger
     implicit ev: Ask[F, TraceId]
   ): F[Option[OperationFuture[Operation, Operation]]] = {
     val fa = F
-      .delay(
+      .blocking(
         instanceClient
           .detachDiskAsync(project.value, zone.value, instanceName.value, deviceName.asString)
       )
@@ -113,7 +113,7 @@ private[google2] class GoogleComputeInterpreter[F[_]: Parallel: StructuredLogger
     ev.ask
       .flatMap { traceId =>
         withLogging(
-          F.delay(instanceClient.get(project.value, zone.value, instanceName.value))
+          F.blocking(instanceClient.get(project.value, zone.value, instanceName.value))
             .map(Option(_))
             .handleErrorWith {
               case e: ApiException if e.getStatusCode.getCode.getHttpStatusCode == 404 => F.pure(none[Instance])
@@ -132,7 +132,7 @@ private[google2] class GoogleComputeInterpreter[F[_]: Parallel: StructuredLogger
     ev: Ask[F, TraceId]
   ): F[OperationFuture[Operation, Operation]] =
     retryF(
-      F.delay(instanceClient.stopAsync(project.value, zone.value, instanceName.value)),
+      F.blocking(instanceClient.stopAsync(project.value, zone.value, instanceName.value)),
       s"com.google.cloud.compute.v1.InstancesClient.stopInstance(${project.value}, ${zone.value}, ${instanceName.value})"
     )
 
@@ -140,7 +140,7 @@ private[google2] class GoogleComputeInterpreter[F[_]: Parallel: StructuredLogger
     ev: Ask[F, TraceId]
   ): F[OperationFuture[Operation, Operation]] =
     retryF(
-      F.delay(instanceClient.startAsync(project.value, zone.value, instanceName.value)),
+      F.blocking(instanceClient.startAsync(project.value, zone.value, instanceName.value)),
       s"com.google.cloud.compute.v1.InstancesClient.startInstance(${project.value}, ${zone.value}, ${instanceName.value})"
     )
 
@@ -152,7 +152,7 @@ private[google2] class GoogleComputeInterpreter[F[_]: Parallel: StructuredLogger
     metadataToRemove: Set[String]
   )(implicit ev: Ask[F, TraceId]): F[Option[OperationFuture[Operation, Operation]]] = {
     val readAndUpdate = for {
-      instanceOpt <- recoverF(F.delay(instanceClient.get(project.value, zone.value, instanceName.value)),
+      instanceOpt <- recoverF(F.blocking(instanceClient.get(project.value, zone.value, instanceName.value)),
                               whenStatusCode(404)
       )
       instance <- F.fromEither(
@@ -173,7 +173,7 @@ private[google2] class GoogleComputeInterpreter[F[_]: Parallel: StructuredLogger
       // Only make google call if there is a change
       op <-
         if (!newItems.equals(curItems)) {
-          F.delay(
+          F.blocking(
             instanceClient.setMetadataAsync(project.value,
                                             zone.value,
                                             instanceName.value,
@@ -198,7 +198,7 @@ private[google2] class GoogleComputeInterpreter[F[_]: Parallel: StructuredLogger
     ev: Ask[F, TraceId]
   ): F[OperationFuture[Operation, Operation]] =
     retryF(
-      F.delay(firewallClient.insertAsync(project.value, firewall)),
+      F.blocking(firewallClient.insertAsync(project.value, firewall)),
       s"com.google.cloud.compute.v1.FirewallsClient.insertFirewall(${project.value}, ${firewall.getName})"
     )
 
@@ -208,7 +208,7 @@ private[google2] class GoogleComputeInterpreter[F[_]: Parallel: StructuredLogger
     val request = GetFirewallRequest.newBuilder().setFirewall(firewallRuleName.value).setProject(project.value).build()
     retryF(
       recoverF(
-        F.delay(firewallClient.get(request)),
+        F.blocking(firewallClient.get(request)),
         whenStatusCode(404)
       ),
       s"com.google.cloud.compute.v1.FirewallsClient.get(${project.value}, ${firewallRuleName.value})"
@@ -221,7 +221,7 @@ private[google2] class GoogleComputeInterpreter[F[_]: Parallel: StructuredLogger
     val request =
       DeleteFirewallRequest.newBuilder().setProject(project.value).setFirewall(firewallRuleName.value).build
     retryF(
-      recoverF(F.delay(firewallClient.deleteAsync(request)), whenStatusCode(404)),
+      recoverF(F.blocking(firewallClient.deleteAsync(request)), whenStatusCode(404)),
       s"com.google.cloud.compute.v1.FirewallsClient.deleteFirewall(${project.value}, ${firewallRuleName.value})"
     )
   }
@@ -234,7 +234,7 @@ private[google2] class GoogleComputeInterpreter[F[_]: Parallel: StructuredLogger
     val request =
       InstancesSetMachineTypeRequest.newBuilder().setMachineType(buildMachineTypeUri(zone, machineTypeName)).build()
     retryF(
-      F.delay(
+      F.blocking(
         instanceClient.setMachineTypeAsync(project.value, zone.value, instanceName.value, request)
       ),
       s"com.google.cloud.compute.v1.InstancesClient.setMachineTypeInstance(${project.value}, ${zone.value}, ${instanceName.value}, ${machineTypeName.value})"
@@ -249,7 +249,7 @@ private[google2] class GoogleComputeInterpreter[F[_]: Parallel: StructuredLogger
       .build()
 
     retryF(
-      F.delay(zoneClient.list(request)),
+      F.blocking(zoneClient.list(request)),
       s"com.google.cloud.compute.v1.ZonesClient.listZones(${project.value}, ${regionName.value})"
     ).map(_.iterateAll.asScala.toList)
   }
@@ -258,7 +258,9 @@ private[google2] class GoogleComputeInterpreter[F[_]: Parallel: StructuredLogger
     ev: Ask[F, TraceId]
   ): F[Option[MachineType]] =
     retryF(
-      recoverF(F.delay(machineTypeClient.get(project.value, zone.value, machineTypeName.value)), whenStatusCode(404)),
+      recoverF(F.blocking(machineTypeClient.get(project.value, zone.value, machineTypeName.value)),
+               whenStatusCode(404)
+      ),
       s"com.google.cloud.compute.v1.MachineTypesClient.getMachineType(${project.value}, ${zone.value}, ${machineTypeName.value})"
     )
 
@@ -266,7 +268,7 @@ private[google2] class GoogleComputeInterpreter[F[_]: Parallel: StructuredLogger
     ev: Ask[F, TraceId]
   ): F[Option[Network]] =
     retryF(
-      recoverF(F.delay(networkClient.get(project.value, networkName.value)), whenStatusCode(404)),
+      recoverF(F.blocking(networkClient.get(project.value, networkName.value)), whenStatusCode(404)),
       s"com.google.cloud.compute.v1.NetworksClient.getNetwork(${project.value}, ${networkName.value})"
     )
 
@@ -274,7 +276,7 @@ private[google2] class GoogleComputeInterpreter[F[_]: Parallel: StructuredLogger
     ev: Ask[F, TraceId]
   ): F[OperationFuture[Operation, Operation]] =
     retryF(
-      F.delay(networkClient.insertAsync(project.value, network)),
+      F.blocking(networkClient.insertAsync(project.value, network)),
       s"com.google.cloud.compute.v1.NetworksClient.insertNetwork(${project.toString}, ${network.getName})"
     )
 
@@ -282,7 +284,7 @@ private[google2] class GoogleComputeInterpreter[F[_]: Parallel: StructuredLogger
     ev: Ask[F, TraceId]
   ): F[Option[Subnetwork]] =
     retryF(
-      recoverF(F.delay(subnetworkClient.get(project.value, region.value, subnetwork.value)), whenStatusCode(404)),
+      recoverF(F.blocking(subnetworkClient.get(project.value, region.value, subnetwork.value)), whenStatusCode(404)),
       s"com.google.cloud.compute.v1.SubnetworksClient.getSubnetwork(${project.toString}, ${region.value}, ${subnetwork.value})"
     )
 
@@ -290,7 +292,7 @@ private[google2] class GoogleComputeInterpreter[F[_]: Parallel: StructuredLogger
     ev: Ask[F, TraceId]
   ): F[OperationFuture[Operation, Operation]] =
     retryF(
-      F.delay(subnetworkClient.insertAsync(project.value, region.value, subnetwork)),
+      F.blocking(subnetworkClient.insertAsync(project.value, region.value, subnetwork)),
       s"com.google.cloud.compute.v1.SubnetworksClient.insertSubnetwork(${project.value}, ${region.value}, ${subnetwork.getName})"
     )
 
@@ -299,7 +301,7 @@ private[google2] class GoogleComputeInterpreter[F[_]: Parallel: StructuredLogger
     ev: Ask[F, TraceId]
   ): F[OperationFuture[Operation, Operation]] =
     retryF(
-      F.delay(instanceClient.setTagsAsync(project.value, zone.value, instanceName.value, tags)),
+      F.blocking(instanceClient.setTagsAsync(project.value, zone.value, instanceName.value, tags)),
       s"com.google.compute.v1.InstancesClient.setTags(${project.value}, ${zone.value}, ${instanceName.value}, [${tags.getItemsList.asScala
           .mkString(", ")}]"
     )

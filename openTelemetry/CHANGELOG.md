@@ -4,10 +4,10 @@ This file documents changes to the `workbench-openTelemetry` library, including 
 
 ## 0.7
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-opentelemetry" % "0.7-aa2afae"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-opentelemetry" % "0.7-2eac218"`
 
 ### Dependency upgrades
-- Updated cats-effect from 3.4.11 to 3.5.1
+- Updated cats-effect from 3.4.11 to 3.5.2
 
 ## 0.6
 
@@ -16,7 +16,7 @@ SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-opentelemetry
 ### Dependency upgrades
 | Dependency   | Old Version | New Version |
 |----------|:-----------:|------------:|
-| cats-effect |   3.4.11    |       3.5.1 |
+| cats-effect |   3.4.11    |       3.5.2 |
 | sbt-scoverage                          |    2.0.8    |       2.0.9 |
 | scalatest                              |   3.2.16    |      3.2.17 |
 | scala       |   2.13.11   |     2.13.12 |

@@ -43,7 +43,7 @@ object Dependencies {
   val bouncyCastleProviderExt: ModuleID = "org.bouncycastle" % "bcprov-ext-jdk18on" % bouncyCastleVersion
   val bouncyCastleProvider: ModuleID = "org.bouncycastle" % "bcprov-jdk18on" % bouncyCastleVersion
 
-  val catsEffect: ModuleID = "org.typelevel" %% "cats-effect" % "3.5.1"
+  val catsEffect: ModuleID = "org.typelevel" %% "cats-effect" % "3.5.2"
 
   // metrics-scala transitively pulls in io.dropwizard.metrics:metrics-core
   val metricsScala: ModuleID =      "nl.grons"              %% "metrics4-scala"    % "4.2.9"
@@ -60,23 +60,25 @@ object Dependencies {
   val googleServicemanagement: ModuleID =    "com.google.apis"       % "google-api-services-serviceusage"    % s"v1-rev20220907-$googleV"
   val googleIam: ModuleID =                  "com.google.apis"       % "google-api-services-iam"                  % s"v1-rev20220825-$googleV"
   val googleBigQuery: ModuleID =             "com.google.apis"       % "google-api-services-bigquery"             % s"v2-rev20220924-$googleV"
-  val googleGuava: ModuleID = "com.google.guava"  % "guava" % "32.1.2-jre"
+  val googleGuava: ModuleID = "com.google.guava"  % "guava" % "32.1.3-jre"
   val googleRpc: ModuleID =               "io.grpc" % "grpc-core" % "1.58.0"
   val googleRpc2: ModuleID =               "io.grpc" % "grpc-core" % "1.58.0"
-  val googleStorageNew: ModuleID = "com.google.cloud" % "google-cloud-storage" % "2.24.0"
-  val googleStorageLocal: ModuleID = "com.google.cloud" % "google-cloud-nio" % "0.127.2" % "test"
-  val googlePubsubNew: ModuleID = "com.google.cloud" % "google-cloud-pubsub" % "1.124.2"
-  val googleKms: ModuleID = "com.google.cloud" % "google-cloud-kms" % "2.26.0"
-  val googleComputeNew: ModuleID = "com.google.cloud" % "google-cloud-compute" % "1.33.0"
-  val googleDataproc: ModuleID =    "com.google.cloud" % "google-cloud-dataproc" % "4.20.0"
-  val googleContainer: ModuleID = "com.google.cloud" % "google-cloud-container" % "2.26.0"
-  val kubernetesClient: ModuleID = "io.kubernetes" % "client-java" % "18.0.1"
-  val googleBigQueryNew: ModuleID = "com.google.cloud" % "google-cloud-bigquery" % "2.31.2"
-  val google2CloudBilling = "com.google.cloud" % "google-cloud-billing" % "2.23.0"
-  val googleStorageTransferService: ModuleID = "com.google.cloud" % "google-cloud-storage-transfer" % "1.23.0"
-  val googleResourceManager =  "com.google.cloud" % "google-cloud-resourcemanager" % "1.25.0"
+  val googleStorageNew: ModuleID = "com.google.cloud" % "google-cloud-storage" % "2.29.1"
+  val googleStorageLocal: ModuleID = "com.google.cloud" % "google-cloud-nio" % "0.127.7" % "test"
+  val googlePubsubNew: ModuleID = "com.google.cloud" % "google-cloud-pubsub" % "1.125.11"
+  val googleKms: ModuleID = "com.google.cloud" % "google-cloud-kms" % "2.33.0"
+  val googleComputeNew: ModuleID = "com.google.cloud" % "google-cloud-compute" % "1.40.0"
+  val googleDataproc: ModuleID =    "com.google.cloud" % "google-cloud-dataproc" % "4.27.0"
+  val googleContainer: ModuleID = "com.google.cloud" % "google-cloud-container" % "2.31.0"
+  val kubernetesClient: ModuleID = "io.kubernetes" % "client-java" % "19.0.0"
+  val googleBigQueryNew: ModuleID = "com.google.cloud" % "google-cloud-bigquery" % "2.34.1"
+  val google2CloudBilling = "com.google.cloud" % "google-cloud-billing" % "2.30.0"
+  val googleStorageTransferService: ModuleID = "com.google.cloud" % "google-cloud-storage-transfer" % "1.30.0"
+  val googleResourceManager =  "com.google.cloud" % "google-cloud-resourcemanager" % "1.32.0"
+
   //the below v1 module is a dependency for v2 because it contains the OAuth scopes necessary to created scoped credentials
-  val googleContainerV1: ModuleID = "com.google.apis" % "google-api-services-container" % "v1-rev20230809-2.0.0"
+  val googleContainerV1: ModuleID = "com.google.apis" % "google-api-services-container" % "v1-rev20231024-2.0.0"
+
 
 
   val circeCore: ModuleID = "io.circe" %% "circe-core" % circeVersion
@@ -84,14 +86,14 @@ object Dependencies {
   val circeGeneric: ModuleID = "io.circe" %% "circe-generic" % circeVersion % "test"
   val circeFs2: ModuleID = "io.circe" %% "circe-fs2" % "0.14.1"
   val log4cats = "org.typelevel" %% "log4cats-slf4j"   % "2.6.0"
-  val catsMtl = "org.typelevel" %% "cats-mtl" % "1.3.1"
+  val catsMtl = "org.typelevel" %% "cats-mtl" % "1.4.0"
 
   val http4sCirce = "org.http4s" %% "http4s-circe" % http4sVersion
   val http4sBlazeClient = "org.http4s" %% "http4s-blaze-client" % http4sVersion
   val http4sDsl = "org.http4s"      %% "http4s-dsl"          % http4sVersion
 
-  val fs2Io: ModuleID = "co.fs2" %% "fs2-io" % "3.9.1"
-  val rawlsModel: ModuleID = "org.broadinstitute.dsde" %% "rawls-model" % "0.1-fb0c9691b" exclude("com.typesafe.scala-logging", "scala-logging_2.13") exclude("com.typesafe.akka", "akka-stream_2.13")
+  val fs2Io: ModuleID = "co.fs2" %% "fs2-io" % "3.9.3"
+  val rawlsModel: ModuleID = "org.broadinstitute.dsde" %% "rawls-model" % "0.1-9de70db23" exclude("com.typesafe.scala-logging", "scala-logging_2.13") exclude("com.typesafe.akka", "akka-stream_2.13")
   val openCensusApi: ModuleID = "io.opencensus" % "opencensus-api" % openCensusV
   val openCensusImpl: ModuleID = "io.opencensus" % "opencensus-impl" % openCensusV
   val openCensusStatsPrometheus: ModuleID = "io.opencensus" % "opencensus-exporter-stats-prometheus" % openCensusV
@@ -103,17 +105,17 @@ object Dependencies {
   val scalaCache = "com.github.cb372" %% "scalacache-caffeine" % "1.0.0-M6"
 
   // [TOAZ-205] Rawls checks-in a customised version of swagger-ui's index.html supporting Terra
-  // on Azure and upgrading subsequently caused failures. Pin swagger-ui version until this
+  // on Azure and upgrading subsequently caused failures. Pin swagger-ui version at 4.11.1 until this
   // has been made more upgrade-safe.
   val swaggerUi = "org.webjars" % "swagger-ui" % "4.11.1"
 
-  val azureResourceManagerCompute = "com.azure.resourcemanager" % "azure-resourcemanager-compute" % "2.30.0" exclude("net.minidev", "json-smart")
-  val azureIdentity =  "com.azure" % "azure-identity" % "1.10.1"
+  val azureResourceManagerCompute = "com.azure.resourcemanager" % "azure-resourcemanager-compute" % "2.32.0" exclude("net.minidev", "json-smart")
+  val azureIdentity =  "com.azure" % "azure-identity" % "1.10.4"
   val azureRelay =     "com.azure.resourcemanager" % "azure-resourcemanager-relay" % "1.0.0-beta.2"
-  val azureStorageBlob =  "com.azure" % "azure-storage-blob" % "12.23.1"
-  val azureResourceManagerContainerService = "com.azure.resourcemanager" % "azure-resourcemanager-containerservice" % "2.30.0"
+  val azureStorageBlob =  "com.azure" % "azure-storage-blob" % "12.24.1"
+  val azureResourceManagerContainerService = "com.azure.resourcemanager" % "azure-resourcemanager-containerservice" % "2.32.0"
   val azureResourceManagerApplicationInsights =
-    "com.azure.resourcemanager" % "azure-resourcemanager-applicationinsights" % "1.0.0-beta.5"
+    "com.azure.resourcemanager" % "azure-resourcemanager-applicationinsights" % "1.0.0"
   val azureResourceManagerBatchAccount =
     "com.azure.resourcemanager" % "azure-resourcemanager-batch" % "1.0.0"
 
@@ -242,7 +244,8 @@ object Dependencies {
     circeCore,
     circeParser,
     circeGeneric,
-    catsMtl
+    catsMtl,
+    kubernetesClient
   )
 
   val serviceTestDependencies = commonDependencies ++ Seq(

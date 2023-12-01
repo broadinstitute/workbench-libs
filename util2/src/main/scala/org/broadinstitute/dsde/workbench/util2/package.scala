@@ -56,7 +56,8 @@ package object util2 {
                                      traceId: Option[TraceId],
                                      action: String,
                                      resultFormatter: Show[A] =
-                                       Show.show[A](a => if (a == null) "null" else a.toString.take(1024))
+                                       Show.show[A](a => if (a == null) "null" else a.toString.take(1024)),
+                                     warnOnError: Boolean = false
   )(implicit
     logger: StructuredLogger[F]
   ): F[A] =
@@ -68,10 +69,22 @@ package object util2 {
         "duration" -> res._1.toMillis.toString
       )
       _ <- res._2 match {
-        case Left(e) =>
-          val loggableCloudCall = LoggableCloudCall(None, "Failed")
+        case Left(e: io.kubernetes.client.openapi.ApiException) =>
+          val loggableCloudCall = LoggableCloudCall(Some(e.getResponseBody), "Failed")
           val ctx = loggingCtx ++ Map("result" -> "Failed")
-          logger.error(ctx, e)(loggableCloudCall.asJson.noSpaces)
+          if (warnOnError) {
+            logger.warn(ctx, e)(loggableCloudCall.asJson.noSpaces)
+          } else {
+            logger.error(ctx, e)(loggableCloudCall.asJson.noSpaces)
+          }
+        case Left(e) =>
+          val loggableCloudCall = LoggableCloudCall(Some(e.getMessage), "Failed")
+          val ctx = loggingCtx ++ Map("result" -> "Failed")
+          if (warnOnError) {
+            logger.warn(ctx, e)(loggableCloudCall.asJson.noSpaces)
+          } else {
+            logger.error(ctx, e)(loggableCloudCall.asJson.noSpaces)
+          }
         case Right(r) =>
           val response = Option(resultFormatter.show(r))
           val loggableCloudCall = LoggableCloudCall(response, "Succeeded")

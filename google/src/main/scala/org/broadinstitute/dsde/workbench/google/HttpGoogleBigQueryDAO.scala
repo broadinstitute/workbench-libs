@@ -86,7 +86,7 @@ class HttpGoogleBigQueryDAO(
     val resultRequest = bigquery.jobs
       .getQueryResults(job.getJobReference.getProjectId, job.getJobReference.getJobId)
       .setLocation(job.getJobReference.getLocation)
-    retry(when5xx, whenUsageLimited, when404, whenInvalidValueOnBucketCreation, whenNonHttpIOException) { () =>
+    retry(when5xx, whenUsageLimited, whenInvalidValueOnBucketCreation, whenNonHttpIOException) { () =>
       executeGoogleRequest(resultRequest)
     }
   }

@@ -2,15 +2,27 @@
 
 This file documents changes to the `workbench-google` library, including notes on how to upgrade to new versions.
 
+## 0.30
+
+SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.30-59e30fb"`
+
+Changed: 
+- Made `GoogleBucketDAO` and `GoogleIamDAO` retry on 412 responses
+
+| Dependency   |     Old Version      |          New Version |
+|----------|:--------------------:|---------------------:|
+| google-cloud-kms | 2.27.0 | 2.31.0 |
+| jackson-module-scala |        2.15.0        |               2.15.3 |
+| guava |       32.1.2        |               32.1.3 |
+
 ## 0.29
 
-SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.29-7362eef"`
+SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.29-82d1288"`
 
 ### Dependency upgrades
 | Dependency   |     Old Version      |          New Version |
 |----------|:--------------------:|---------------------:|
 | cats-effect |        3.4.11        |                3.5.1 |
-| fs2-io |        3.6.1         |                3.8.0 |
 | google-api-services-container | v1-rev20230420-2.0.0 | v1-rev20230724-2.0.0 |
 | google-cloud-bigquery |        2.25.0        |               2.31.1 |
 | google-cloud-nio |       0.126.14       |             0.126.19 |
@@ -22,7 +34,8 @@ SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.
 | sbt-scoverage |        2.0.8         |                2.0.9 |
 | scalatest |        3.2.16        |               3.2.17 |
 | scala       |       2.13.11        |              2.13.12 |
-| sbt-scalafix       |   0.11.0    |      0.11.1 |
+| sbt-scalafix       |   0.11.0    |               0.11.1 |
+| google-cloud-kms          |  2.26.0     |               2.27.0 |
 
 ## 0.28
 
