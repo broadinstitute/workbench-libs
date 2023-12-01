@@ -310,7 +310,6 @@ class GoogleClientRequestSpec extends AnyFlatSpecLike with Matchers {
   val scopes: Seq[String] = PubsubScopes.all().asScala.toSeq
   val googleCredential: GoogleCredential = GoogleCredentialModes.Token(() => saToken).toGoogleCredential(scopes)
 
-
   private lazy val pubSub =
     new Pubsub.Builder(httpTransport, jsonFactory, googleCredential).setApplicationName(appName).build()
   "Workbench libs" should "be able to publish to a real pubsub topic on google" taggedAs RedRing in {
@@ -321,7 +320,7 @@ class GoogleClientRequestSpec extends AnyFlatSpecLike with Matchers {
       pubsubMessageRequests.map(messageRequest =>
         new PubsubMessage()
           .encodeData(messageRequest.getBytes("UTF-8"))
-          .setAttributes(Map[String,String]().empty.asJava)
+          .setAttributes(Map[String, String]().empty.asJava)
       )
     val pubsubRequest = new PublishRequest().setMessages(pubsubMessages.toList.asJava)
     val topicPath = s"projects/$googleProject/topics/$pubsubTopicName"

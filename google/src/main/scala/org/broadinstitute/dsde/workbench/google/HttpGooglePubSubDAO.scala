@@ -115,7 +115,6 @@ class HttpGooglePubSubDAO(appName: String,
       case e: HttpResponseException if e.getStatusCode == StatusCodes.NotFound.intValue => false
     }
 
-
   // logging side effects can be ignored for testing
   // batching sequence of messages -> extract logic
   // form retries
@@ -134,7 +133,8 @@ class HttpGooglePubSubDAO(appName: String,
                 .setAttributes(messageRequest.attributes.asJava)
             )
           val pubsubRequest = new PublishRequest().setMessages(pubsubMessages.asJava)
-          val publish: Pubsub#Projects#Topics#Publish = pubSub.projects().topics().publish(topicToFullPath(topicName), pubsubRequest)
+          val publish: Pubsub#Projects#Topics#Publish =
+            pubSub.projects().topics().publish(topicToFullPath(topicName), pubsubRequest)
           executeGoogleRequest(publish)
         }
       }
