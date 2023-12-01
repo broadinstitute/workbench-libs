@@ -298,14 +298,15 @@ class GoogleUtilitiesSpec
 object RedRing extends Tag("RedRingTest")
 
 class GoogleClientRequestSpec extends AnyFlatSpecLike with Matchers {
-  val adminServiceAccountJsonPath = "/Users/kobori/workbench-libs/google/src/test/scala/org/broadinstitute/dsde/workbench/google/admin-service-account-0.json"
-  val scopes = PubsubScopes.all().asScala.toSeq
-  val googleCredentialFromAccessToken = GoogleCredentialModes.Token()
-  val googleCredential: GoogleCredential = GoogleCredentialModes.Json(Files.readAllLines(Paths.get(adminServiceAccountJsonPath)).asScala.mkString).toGoogleCredential(scopes)
+  val saToken: String = sys.env("SA_TOKEN");
+  val googleProject: String = sys.env("GOOGLE_PROJECT");
+  val pubsubTopicName: String = sys.env("PUBSUB_TOPIC_NAME");
   val appName: String = "testLibs"
-  val googleProject: String = "broad-dsde-dev"
-  // Need to have a topic that exists
-  val pubsubTopicName: String = "sam-group-sync-fiab-matt-busy-dragon-fiab"//"sam-group-sync-potato"
+
+  val scopes: Seq[String] = PubsubScopes.all().asScala.toSeq
+  val googleCredential: GoogleCredential = GoogleCredentialModes.Token(() => saToken).toGoogleCredential(scopes)
+
+
   private lazy val pubSub =
     new Pubsub.Builder(httpTransport, jsonFactory, googleCredential).setApplicationName(appName).build()
   "Workbench libs" should "be able to publish to a real pubsub topic on google" taggedAs RedRing in {
