@@ -43,7 +43,7 @@ object Dependencies {
   val bouncyCastleProviderExt: ModuleID = "org.bouncycastle" % "bcprov-ext-jdk18on" % bouncyCastleVersion
   val bouncyCastleProvider: ModuleID = "org.bouncycastle" % "bcprov-jdk18on" % bouncyCastleVersion
 
-  val catsEffect: ModuleID = "org.typelevel" %% "cats-effect" % "3.4.11"
+  val catsEffect: ModuleID = "org.typelevel" %% "cats-effect" % "3.4.10"
 
   // metrics-scala transitively pulls in io.dropwizard.metrics:metrics-core
   val metricsScala: ModuleID =      "nl.grons"              %% "metrics4-scala"    % "4.2.9"
@@ -92,7 +92,7 @@ object Dependencies {
   val http4sBlazeClient = "org.http4s" %% "http4s-blaze-client" % http4sVersion
   val http4sDsl = "org.http4s"      %% "http4s-dsl"          % http4sVersion
 
-  val fs2Io: ModuleID = "co.fs2" %% "fs2-io" % "3.8.0"
+  val fs2Io: ModuleID = "co.fs2" %% "fs2-io" % "3.6.1"
   val rawlsModel: ModuleID = "org.broadinstitute.dsde" %% "rawls-model" % "0.1-9de70db23" exclude("com.typesafe.scala-logging", "scala-logging_2.13") exclude("com.typesafe.akka", "akka-stream_2.13")
   val openCensusApi: ModuleID = "io.opencensus" % "opencensus-api" % openCensusV
   val openCensusImpl: ModuleID = "io.opencensus" % "opencensus-impl" % openCensusV
@@ -132,7 +132,7 @@ object Dependencies {
     akkaHttpSprayJson,
     akkaTestkit,
     scalaTestMockito,
-    "org.typelevel" %% "cats-core" % "2.10.0"
+    "org.typelevel" %% "cats-core" % "2.9.0"
   )
 
   val modelDependencies = commonDependencies ++ Seq(
