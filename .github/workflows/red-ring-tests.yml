@@ -35,4 +35,4 @@ jobs:
       - name: Run red ring test
         id: run-red-ring-test
         run: | 
-          sbt "project workbench-google" coverage "testOnly -- -n RedRingTest" coverageReport
+          sbt "project workbenchGoogle" coverage "testOnly -- -n RedRingTest" coverageReport
