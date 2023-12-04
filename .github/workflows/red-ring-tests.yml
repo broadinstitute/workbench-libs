@@ -27,7 +27,7 @@ jobs:
           token_format: 'access_token'
           workload_identity_provider: 'projects/1038484894585/locations/global/workloadIdentityPools/github-wi-pool/providers/github-wi-provider'
           service_account: 'workbench-libs@broad-dsde-qa.iam.gserviceaccount.com'
-       
+
       - name: Set SA token env
         run: |
           echo "SA_TOKEN=${{ steps.auth.outputs.access_token }}" >> "$GITHUB_ENV"
@@ -35,4 +35,4 @@ jobs:
       - name: Run red ring test
         id: run-red-ring-test
         run: | 
-          sbt coverage "testOnly -- -n RedRingTest" coverageReport
+          sbt coverage "testOnly *GoogleUtilitiesSpec" coverageReport
