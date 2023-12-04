@@ -18,8 +18,9 @@ import org.scalatest.flatspec.AnyFlatSpecLike
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.concurrent.{Eventually, ScalaFutures}
 import spray.json._
+import java.lang.annotation._
+import org.scalatest.TagAnnotation
 
-import java.nio.file.{Files, Paths}
 import scala.jdk.CollectionConverters._
 import scala.concurrent.{ExecutionContext, ExecutionContextExecutor}
 import scala.concurrent.duration._
@@ -299,8 +300,13 @@ class GoogleUtilitiesSpec
   }
 }
 
+@TagAnnotation
+@Retention(RetentionPolicy.RUNTIME)
+@Target(Array(ElementType.METHOD, ElementType.TYPE)) trait RedRing {}
+
 object RedRing extends Tag("RedRingTest")
 
+@RedRing
 class GoogleClientRequestSpec extends AnyFlatSpecLike with Matchers {
   val saToken: String = sys.env("SA_TOKEN");
   val googleProject: String = sys.env("GOOGLE_PROJECT");

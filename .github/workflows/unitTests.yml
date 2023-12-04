@@ -39,7 +39,9 @@ jobs:
 
       - name: Build and test
         run: |
-          sbt -Dfile.encoding=UTF-8 clean coverage +test -l RedRingTest coverageReport
+          sbt -Dfile.encoding=UTF-8 clean coverage +test -l org.broadinstitute.dsde.workbench.google.tags.RedRing coverageReport
+          
+          
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v1
