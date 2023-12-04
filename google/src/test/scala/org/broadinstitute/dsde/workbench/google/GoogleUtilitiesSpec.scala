@@ -300,26 +300,22 @@ class GoogleUtilitiesSpec
   }
 }
 
-@TagAnnotation
-@Retention(RetentionPolicy.RUNTIME)
-@Target(Array(ElementType.METHOD, ElementType.TYPE)) trait RedRing {}
-
 object RedRing extends Tag("RedRingTest")
 
-@RedRing
 class GoogleClientRequestSpec extends AnyFlatSpecLike with Matchers {
-  val saToken: String = sys.env("SA_TOKEN");
-  val googleProject: String = sys.env("GOOGLE_PROJECT");
-  val pubsubTopicName: String = sys.env("STATIC_PUBSUB_TOPIC_1");
-  val appName: String = "testLibs"
-
-  val scopes: Seq[String] = PubsubScopes.all().asScala.toSeq
-  val googleCredential: GoogleCredential = GoogleCredentialModes.Token(() => saToken).toGoogleCredential(scopes)
-
-  private lazy val pubSub =
-    new Pubsub.Builder(httpTransport, jsonFactory, googleCredential).setApplicationName(appName).build()
   "Workbench libs" should "be able to publish to a real pubsub topic on google" taggedAs RedRing in {
     // Arrange
+    val saToken: String = sys.env("SA_TOKEN");
+    val googleProject: String = sys.env("GOOGLE_PROJECT");
+    val pubsubTopicName: String = sys.env("STATIC_PUBSUB_TOPIC_1");
+    val appName: String = "testLibs"
+
+    val scopes: Seq[String] = PubsubScopes.all().asScala.toSeq
+    val googleCredential: GoogleCredential = GoogleCredentialModes.Token(() => saToken).toGoogleCredential(scopes)
+
+    lazy val pubSub =
+      new Pubsub.Builder(httpTransport, jsonFactory, googleCredential).setApplicationName(appName).build()
+
     val workbenchGroupNameJson = "{ \"foo\": \"bar\" }"
     val pubsubMessageRequests = Seq(workbenchGroupNameJson)
     val pubsubMessages =
