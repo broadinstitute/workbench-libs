@@ -4,7 +4,7 @@ This file documents changes to the `workbench-error-reporting` library, includin
 
 ## 0.8
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-error-reporting" % "0.8-519d894"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-error-reporting" % "0.8-TRAVIS-REPLACE-ME"`
 
 ### Changes
 * downgraded cats_effect, and corresponding fs2
@@ -13,7 +13,7 @@ SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-error-reporti
 | Dependency                    |     Old Version      |          New Version |
 |-------------------------------|:--------------------:|---------------------:|
 | cats-effect                   |         3.5.2        |               3.4.11 |
-| fs2-io                        |         3.9.3        |                3.8.0 |
+| fs2-io                        |         3.9.3        |                3.6.1 |
 
 
 ## 0.7

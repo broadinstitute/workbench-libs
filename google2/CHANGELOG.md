@@ -4,7 +4,7 @@ This file documents changes to the `workbench-google2` library, including notes 
 
 ## 0.35
 
-SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.35-8ccaa6d"`
+SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.35-TRAVIS-REPLACE-ME"`
 
 
 ### Changes
@@ -15,7 +15,7 @@ SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0
 | Dependency                    |     Old Version      |          New Version |
 |-------------------------------|:--------------------:|---------------------:|
 | cats-effect                   |         3.5.2        |               3.4.11 |
-| fs2-io                        |         3.9.3        |                3.8.0 |
+| fs2-io                        |         3.9.3        |                3.6.1 |
 
 
 ## 0.34
