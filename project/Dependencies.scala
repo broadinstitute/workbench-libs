@@ -109,11 +109,11 @@ object Dependencies {
   // has been made more upgrade-safe.
   val swaggerUi = "org.webjars" % "swagger-ui" % "4.11.1"
 
-  val azureResourceManagerCompute = "com.azure.resourcemanager" % "azure-resourcemanager-compute" % "2.32.0" exclude("net.minidev", "json-smart")
+  val azureResourceManagerCompute = "com.azure.resourcemanager" % "azure-resourcemanager-compute" % "2.33.0" exclude("net.minidev", "json-smart")
   val azureIdentity =  "com.azure" % "azure-identity" % "1.10.4"
   val azureRelay =     "com.azure.resourcemanager" % "azure-resourcemanager-relay" % "1.0.0-beta.2"
   val azureStorageBlob =  "com.azure" % "azure-storage-blob" % "12.24.1"
-  val azureResourceManagerContainerService = "com.azure.resourcemanager" % "azure-resourcemanager-containerservice" % "2.32.0"
+  val azureResourceManagerContainerService = "com.azure.resourcemanager" % "azure-resourcemanager-containerservice" % "2.33.0"
   val azureResourceManagerApplicationInsights =
     "com.azure.resourcemanager" % "azure-resourcemanager-applicationinsights" % "1.0.0"
   val azureResourceManagerBatchAccount =
