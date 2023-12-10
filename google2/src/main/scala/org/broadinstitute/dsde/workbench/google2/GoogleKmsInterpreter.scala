@@ -12,7 +12,6 @@ import com.google.iam.v1.{Binding, Policy}
 import com.google.protobuf.{Duration, Timestamp}
 import org.broadinstitute.dsde.workbench.model.google.GoogleProject
 
-import java.util.concurrent.ScheduledThreadPoolExecutor
 import scala.jdk.CollectionConverters._
 import scala.language.higherKinds
 
@@ -163,10 +162,13 @@ object GoogleKmsInterpreter {
   def apply[F[_]: Sync](client: KeyManagementServiceClient): GoogleKmsInterpreter[F] =
     new GoogleKmsInterpreter[F](client)
 
-  def client[F[_]: Sync](pathToJson: String, numOfThreads: Int = 20): Resource[F, KeyManagementServiceClient] = {
-    val threadFactory = new ThreadFactoryBuilder().setNameFormat("goog2-kms-%d").setDaemon(true).build()
-    val fixedExecutorProvider =
-      FixedExecutorProvider.create(new ScheduledThreadPoolExecutor(numOfThreads, threadFactory))
+  def client[F[_]: Sync](pathToJson: String): Resource[F, KeyManagementServiceClient] = {
+    val executorProviderBuilder = KeyManagementServiceSettings.defaultExecutorProviderBuilder()
+    val threadFactory = new ThreadFactoryBuilder()
+      .setThreadFactory(executorProviderBuilder.getThreadFactory)
+      .setNameFormat("goog2-kms-client-%d")
+      .build()
+    val executorProvider = executorProviderBuilder.setThreadFactory(threadFactory).build()
 
     for {
       credentials <- org.broadinstitute.dsde.workbench.util2.readFile(pathToJson)
@@ -178,7 +180,7 @@ object GoogleKmsInterpreter {
               .setCredentialsProvider(
                 FixedCredentialsProvider.create(ServiceAccountCredentials.fromStream(credentials))
               )
-              .setBackgroundExecutorProvider(fixedExecutorProvider)
+              .setBackgroundExecutorProvider(executorProvider)
               .build()
           )
         )

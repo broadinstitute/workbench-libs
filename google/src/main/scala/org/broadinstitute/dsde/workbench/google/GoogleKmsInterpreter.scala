@@ -10,8 +10,6 @@ import com.google.common.util.concurrent.ThreadFactoryBuilder
 import com.google.iam.v1.{Binding, Policy}
 import com.google.protobuf.{Duration, Timestamp}
 import org.broadinstitute.dsde.workbench.model.google.GoogleProject
-
-import java.util.concurrent.ScheduledThreadPoolExecutor
 import scala.jdk.CollectionConverters._
 import scala.language.higherKinds
 

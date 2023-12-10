@@ -13,7 +13,6 @@ import org.broadinstitute.dsde.workbench.model.google.GoogleProject
 import org.typelevel.log4cats.StructuredLogger
 
 import java.nio.file.Path
-import java.util.concurrent.ScheduledThreadPoolExecutor
 
 trait GoogleSubscriptionAdmin[F[_]] {
   def list(project: GoogleProject)(implicit ev: Ask[F, TraceId]): Stream[F, Subscription]
@@ -30,7 +29,8 @@ object GoogleSubscriptionAdmin {
     } yield topicAdmin
 
   def fromServiceAccountCredential[F[_]: StructuredLogger: Async](
-    serviceAccountCredentials: ServiceAccountCredentials): Resource[F, GoogleSubscriptionAdmin[F]] = {
+    serviceAccountCredentials: ServiceAccountCredentials
+  ): Resource[F, GoogleSubscriptionAdmin[F]] = {
     val executorProviderBuilder = SubscriptionAdminSettings.defaultExecutorProviderBuilder()
     val threadFactory = new ThreadFactoryBuilder()
       .setThreadFactory(executorProviderBuilder.getThreadFactory)

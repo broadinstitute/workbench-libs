@@ -12,7 +12,6 @@ import com.google.devtools.clouderrorreporting.v1beta1.{
   SourceLocation
 }
 
-import java.util.concurrent.ScheduledThreadPoolExecutor
 import scala.jdk.CollectionConverters._
 
 trait ErrorReporting[F[_]] {

@@ -14,8 +14,6 @@ import org.broadinstitute.dsde.workbench.model.ValueObject
 import org.broadinstitute.dsde.workbench.model.google.{GcsBucketName, GoogleProject, ServiceAccount}
 import org.typelevel.log4cats.StructuredLogger
 
-import java.util.concurrent.ScheduledThreadPoolExecutor
-
 trait GoogleStorageTransferService[F[_]] {
 
   def getStsServiceAccount(project: GoogleProject): F[ServiceAccount]

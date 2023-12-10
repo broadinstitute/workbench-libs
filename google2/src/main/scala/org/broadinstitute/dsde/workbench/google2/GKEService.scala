@@ -15,7 +15,6 @@ import com.google.container.v1.{Cluster, NodePool, NodePoolAutoscaling, Operatio
 import fs2.Stream
 
 import java.nio.file.Path
-import java.util.concurrent.ScheduledThreadPoolExecutor
 import org.broadinstitute.dsde.workbench.google2.GKEModels._
 import org.broadinstitute.dsde.workbench.google2.util.RetryPredicates._
 import org.broadinstitute.dsde.workbench.model.TraceId

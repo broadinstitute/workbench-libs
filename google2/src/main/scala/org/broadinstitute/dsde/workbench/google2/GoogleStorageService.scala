@@ -33,7 +33,6 @@ import org.broadinstitute.dsde.workbench.model.google.{GcsBucketName, GcsObjectN
 import org.broadinstitute.dsde.workbench.util2.RemoveObjectResult
 
 import java.net.URL
-import java.util.concurrent.ScheduledThreadPoolExecutor
 import scala.collection.convert.ImplicitConversions._
 import scala.concurrent.duration.{HOURS, TimeUnit}
 import scala.language.higherKinds

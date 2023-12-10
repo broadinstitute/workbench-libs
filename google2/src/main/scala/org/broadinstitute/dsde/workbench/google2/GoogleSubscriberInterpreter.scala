@@ -18,7 +18,7 @@ import io.circe.Decoder
 import io.circe.parser._
 import org.broadinstitute.dsde.workbench.model.TraceId
 
-import java.util.concurrent.{ScheduledThreadPoolExecutor, ThreadPoolExecutor}
+import java.util.concurrent.ScheduledThreadPoolExecutor
 import scala.concurrent.duration.FiniteDuration
 
 private[google2] class GoogleSubscriberInterpreter[F[_], MessageType](
@@ -182,16 +182,19 @@ object GoogleSubscriberInterpreter {
     flowControlSettings: Option[FlowControlSettings],
     numOfThreads: Int
   ): Resource[F, Subscriber] = Dispatcher[F].flatMap { d =>
-    val threadFactory = new ThreadFactoryBuilder().setNameFormat("goog-sub-%d").setDaemon(true).build()
-    val fixedExecutorProvider =
-      FixedExecutorProvider.create(new ScheduledThreadPoolExecutor(numOfThreads, threadFactory))
+    val executorProviderBuilder = SubscriptionAdminSettings.defaultExecutorProviderBuilder()
+    val threadFactory = new ThreadFactoryBuilder()
+      .setThreadFactory(executorProviderBuilder.getThreadFactory)
+      .setNameFormat("goog-sub-admin-client-%d")
+      .build()
+    val executorProvider = executorProviderBuilder.setThreadFactory(threadFactory).build()
 
     val subscriber = for {
       builder <- Async[F].blocking(
         Subscriber
           .newBuilder(subscription, receiver(queue, d))
           .setCredentialsProvider(FixedCredentialsProvider.create(credential))
-          .setExecutorProvider(fixedExecutorProvider)
+          .setExecutorProvider(executorProvider)
       )
       builderWithFlowControlSetting <- flowControlSettings.traverse { fcs =>
         Async[F].blocking(builder.setFlowControlSettings(fcs))

@@ -12,7 +12,6 @@ import org.broadinstitute.dsde.workbench.model.google.GoogleProject
 import org.typelevel.log4cats.StructuredLogger
 
 import java.nio.file.Path
-import java.util.concurrent.ScheduledThreadPoolExecutor
 
 trait GoogleBillingService[F[_]] {
   def getBillingInfo(project: GoogleProject)(implicit
