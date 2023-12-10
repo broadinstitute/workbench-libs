@@ -7,6 +7,7 @@ import com.google.api.gax.core.FixedCredentialsProvider
 import com.google.auth.oauth2.ServiceAccountCredentials
 import com.google.cloud.Identity
 import com.google.cloud.pubsub.v1.{TopicAdminClient, TopicAdminSettings}
+import com.google.common.util.concurrent.ThreadFactoryBuilder
 import com.google.iam.v1.{Binding, GetIamPolicyRequest, Policy, SetIamPolicyRequest}
 import com.google.pubsub.v1.{ProjectName, Topic, TopicName}
 import fs2.Stream
@@ -92,17 +93,24 @@ class GoogleTopicAdminInterpreter[F[_]: StructuredLogger](topicAdminClient: Topi
 object GoogleTopicAdminInterpreter {
   private[google2] def topicAdminClientResource[F[_]: Async](
     credential: ServiceAccountCredentials
-  ): Resource[F, TopicAdminClient] =
+  ): Resource[F, TopicAdminClient] = {
+    val executorProviderBuilder = TopicAdminSettings.defaultExecutorProviderBuilder()
+    val threadFactory = new ThreadFactoryBuilder()
+      .setThreadFactory(executorProviderBuilder.getThreadFactory)
+      .setNameFormat("goog-topic-admin-client-%d")
+      .build()
+    val executorProvider = executorProviderBuilder.setThreadFactory(threadFactory).build()
+
     Resource.make(
       Async[F].delay(
         TopicAdminClient.create(
           TopicAdminSettings
             .newBuilder()
-            // setTransportChannelProvider ???
-            // setExecutorProvider ???
             .setCredentialsProvider(FixedCredentialsProvider.create(credential))
+            .setBackgroundExecutorProvider(executorProvider)
             .build()
         )
       )
     )(client => Async[F].delay(client.shutdown()))
+  }
 }

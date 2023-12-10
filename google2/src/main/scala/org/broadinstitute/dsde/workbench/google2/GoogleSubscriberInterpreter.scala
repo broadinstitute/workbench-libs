@@ -5,8 +5,8 @@ import cats.effect.std.{Dispatcher, Queue}
 import cats.syntax.all._
 import com.google.api.core.ApiService
 import com.google.api.gax.batching.FlowControlSettings
-import com.google.api.gax.core.{FixedCredentialsProvider, FixedExecutorProvider, InstantiatingExecutorProvider}
-import com.google.api.gax.rpc.{AlreadyExistsException, FixedTransportChannelProvider, TransportChannelProvider}
+import com.google.api.gax.core.FixedCredentialsProvider
+import com.google.api.gax.rpc.AlreadyExistsException
 import com.google.auth.oauth2.ServiceAccountCredentials
 import com.google.cloud.pubsub.v1._
 import com.google.common.util.concurrent.{MoreExecutors, ThreadFactoryBuilder}
@@ -17,8 +17,6 @@ import org.typelevel.log4cats.{Logger, StructuredLogger}
 import io.circe.Decoder
 import io.circe.parser._
 import org.broadinstitute.dsde.workbench.model.TraceId
-
-import java.util.concurrent.ScheduledThreadPoolExecutor
 import scala.concurrent.duration.FiniteDuration
 
 private[google2] class GoogleSubscriberInterpreter[F[_], MessageType](

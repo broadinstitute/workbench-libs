@@ -159,7 +159,7 @@ object GoogleKmsInterpreter {
   def apply[F[_]: Sync](client: KeyManagementServiceClient): GoogleKmsInterpreter[F] =
     new GoogleKmsInterpreter[F](client)
 
-  def client[F[_]: Sync](pathToJson: String, numOfThreads: Int = 20): Resource[F, KeyManagementServiceClient] = {
+  def client[F[_]: Sync](pathToJson: String): Resource[F, KeyManagementServiceClient] = {
     val executorProviderBuilder = KeyManagementServiceSettings.defaultExecutorProviderBuilder()
     val threadFactory = new ThreadFactoryBuilder()
       .setThreadFactory(executorProviderBuilder.getThreadFactory)

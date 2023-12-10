@@ -6,7 +6,6 @@ import cats.data.NonEmptyList
 import cats.effect._
 import cats.effect.std.Semaphore
 import cats.syntax.all._
-import com.google.api.gax.core.{FixedCredentialsProvider, FixedExecutorProvider}
 import com.google.auth.Credentials
 import com.google.auth.oauth2.{AccessToken, GoogleCredentials, ServiceAccountCredentials}
 import com.google.cloud.storage.BucketInfo.LifecycleRule
@@ -23,8 +22,6 @@ import com.google.cloud.storage.Storage.{
   BucketSourceOption,
   BucketTargetOption
 }
-import com.google.common.util.concurrent.ThreadFactoryBuilder
-import com.google.storagetransfer.v1.proto.StorageTransferServiceSettings
 import org.broadinstitute.dsde.workbench.google2.Implicits.PolicyToStorageRoles
 import org.typelevel.log4cats.StructuredLogger
 import org.broadinstitute.dsde.workbench.google2.util.RetryPredicates.standardGoogleRetryConfig
@@ -396,30 +393,20 @@ object GoogleStorageService {
       db <- GoogleStorageInterpreter.storage[F](pathToCredentialJson, project)
     } yield GoogleStorageInterpreter[F](db, blockerBound)
 
-  def fromCredentials[F[_]: StructuredLogger: Async](credentials: GoogleCredentials,
+  def fromCredentials[F[_]: Async: StructuredLogger](credentials: GoogleCredentials,
                                                      blockerBound: Option[Semaphore[F]] = None
-  ): Resource[F, GoogleStorageService[F]] = {
-    val executorProviderBuilder = StorageTransferServiceSettings.defaultExecutorProviderBuilder()
-    val threadFactory = new ThreadFactoryBuilder()
-      .setThreadFactory(executorProviderBuilder.getThreadFactory)
-      .setNameFormat("goog-storage-service-%d")
-      .build()
-    val executorProvider = executorProviderBuilder.setThreadFactory(threadFactory).build()
+  ): Resource[F, GoogleStorageService[F]] =
     for {
       db <- Resource.eval(
         Sync[F].delay(
           StorageOptions
             .newBuilder()
             .setCredentials(credentials)
-//            .setBackgroundExecutorProvider(
-//              executorProvider
-//            )
             .build()
             .getService
         )
       )
     } yield GoogleStorageInterpreter[F](db, blockerBound)
-  }
 
   def fromApplicationDefault[F[_]: Async: StructuredLogger](
     blockerBound: Option[Semaphore[F]] = None

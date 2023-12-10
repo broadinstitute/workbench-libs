@@ -18,6 +18,8 @@ import org.broadinstitute.dsde.workbench.model.TraceId
 import org.broadinstitute.dsde.workbench.model.google.{GcsBucketName, GoogleProject}
 import org.broadinstitute.dsde.workbench.util2.InstanceName
 import org.typelevel.log4cats.StructuredLogger
+
+import java.util.concurrent.ScheduledThreadPoolExecutor
 import scala.jdk.CollectionConverters._
 
 /**
@@ -109,20 +111,18 @@ object GoogleDataprocService {
     googleCredentials: GoogleCredentials,
     supportedRegions: Set[RegionName],
     blockerBound: Semaphore[F],
-    retryConfig: RetryConfig = RetryPredicates.standardGoogleRetryConfig
+    retryConfig: RetryConfig = RetryPredicates.standardGoogleRetryConfig,
+    numOfThreads: Int = 20
   ): Resource[F, GoogleDataprocService[F]] = {
-    val executorProviderBuilder = ClusterControllerSettings.defaultExecutorProviderBuilder()
-    val threadFactory = new ThreadFactoryBuilder()
-      .setThreadFactory(executorProviderBuilder.getThreadFactory)
-      .setNameFormat("goog-dataproc-%d")
-      .build()
-    val executorProvider = executorProviderBuilder.setThreadFactory(threadFactory).build()
+    val threadFactory = new ThreadFactoryBuilder().setNameFormat("goog-dataproc-%d").setDaemon(true).build()
+    val fixedExecutorProvider =
+      FixedExecutorProvider.create(new ScheduledThreadPoolExecutor(numOfThreads, threadFactory))
 
     val regionalSettings = supportedRegions.toList.traverse { region =>
       val settings = ClusterControllerSettings
         .newBuilder()
         .setEndpoint(s"${region.value}-dataproc.googleapis.com:443")
-        .setBackgroundExecutorProvider(executorProvider)
+        .setBackgroundExecutorProvider(fixedExecutorProvider)
         .setCredentialsProvider(FixedCredentialsProvider.create(googleCredentials))
         .build()
       backgroundResourceF(ClusterControllerClient.create(settings)).map(client => region -> client)
