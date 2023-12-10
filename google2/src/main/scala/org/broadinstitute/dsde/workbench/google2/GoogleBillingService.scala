@@ -37,19 +37,20 @@ object GoogleBillingService {
 
   def fromCredential[F[_]: StructuredLogger: Async](
     googleCredentials: GoogleCredentials,
-    blockerBound: Semaphore[F],
-    numOfThreads: Int = 20
+    blockerBound: Semaphore[F]
   ): Resource[F, GoogleBillingService[F]] = {
     val credentialsProvider = FixedCredentialsProvider.create(googleCredentials)
-    val threadFactory = new ThreadFactoryBuilder().setNameFormat("goog-billing-%d").setDaemon(true).build()
-    val fixedExecutorProvider =
-      FixedExecutorProvider.create(new ScheduledThreadPoolExecutor(numOfThreads, threadFactory))
-
+    val executorProviderBuilder = CloudBillingSettings.defaultExecutorProviderBuilder()
+    val threadFactory = new ThreadFactoryBuilder()
+      .setThreadFactory(executorProviderBuilder.getThreadFactory)
+      .setNameFormat("goog-billing-%d")
+      .build()
+    val executorProvider = executorProviderBuilder.setThreadFactory(threadFactory).build()
 
     val billingSettings = CloudBillingSettings
       .newBuilder()
       .setCredentialsProvider(credentialsProvider)
-      .setBackgroundExecutorProvider(fixedExecutorProvider)
+      .setBackgroundExecutorProvider(executorProvider)
       .build()
 
     for {

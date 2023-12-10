@@ -162,9 +162,12 @@ object GoogleKmsInterpreter {
     new GoogleKmsInterpreter[F](client)
 
   def client[F[_]: Sync](pathToJson: String, numOfThreads: Int = 20): Resource[F, KeyManagementServiceClient] = {
-    val threadFactory = new ThreadFactoryBuilder().setNameFormat("goog-kms-%d").setDaemon(true).build()
-    val fixedExecutorProvider =
-      FixedExecutorProvider.create(new ScheduledThreadPoolExecutor(numOfThreads, threadFactory))
+    val executorProviderBuilder = KeyManagementServiceSettings.defaultExecutorProviderBuilder()
+    val threadFactory = new ThreadFactoryBuilder()
+      .setThreadFactory(executorProviderBuilder.getThreadFactory)
+      .setNameFormat("goog-kms-%d")
+      .build()
+    val executorProvider = executorProviderBuilder.setThreadFactory(threadFactory).build()
 
     for {
       credentials <- org.broadinstitute.dsde.workbench.util2.readFile(pathToJson)
@@ -173,7 +176,7 @@ object GoogleKmsInterpreter {
           KeyManagementServiceClient.create(
             KeyManagementServiceSettings
               .newBuilder()
-              .setBackgroundExecutorProvider(fixedExecutorProvider)
+              .setBackgroundExecutorProvider(executorProvider)
               .setCredentialsProvider(
                 FixedCredentialsProvider.create(ServiceAccountCredentials.fromStream(credentials))
               )

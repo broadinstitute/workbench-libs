@@ -103,17 +103,20 @@ object GoogleStorageTransferService {
       .fromAutoCloseable(F.delay(StorageTransferServiceClient.create))
       .map(new GoogleStorageTransferInterpreter[F](_))
 
-  def resource[F[_]](credential: Credentials, numOfThreads: Int = 20)(implicit
+  def resource[F[_]](credential: Credentials)(implicit
     F: Sync[F] with Temporal[F],
     logger: StructuredLogger[F]
   ): Resource[F, GoogleStorageTransferService[F]] = {
-    val threadFactory = new ThreadFactoryBuilder().setNameFormat("goog-storage-transfer-%d").setDaemon(true).build()
-    val fixedExecutorProvider =
-      FixedExecutorProvider.create(new ScheduledThreadPoolExecutor(numOfThreads, threadFactory))
+    val executorProviderBuilder = StorageTransferServiceSettings.defaultExecutorProviderBuilder()
+    val threadFactory = new ThreadFactoryBuilder()
+      .setThreadFactory(executorProviderBuilder.getThreadFactory)
+      .setNameFormat("goog-storage-transfer-%d")
+      .build()
+    val executorProvider = executorProviderBuilder.setThreadFactory(threadFactory).build()
 
     val settings = StorageTransferServiceSettings.newBuilder
       .setCredentialsProvider(FixedCredentialsProvider.create(credential))
-      .setBackgroundExecutorProvider(fixedExecutorProvider)
+      .setBackgroundExecutorProvider(executorProvider)
       .build
 
     Resource

@@ -39,21 +39,20 @@ object ErrorReporting {
       client <- fromCredential(credential, appName, projectName)
     } yield client
 
-  def fromCredential[F[_]](credentials: GoogleCredentials,
-                           appName: String,
-                           projectName: ProjectName,
-                           numOfThreads: Int = 20
-  )(implicit
+  def fromCredential[F[_]](credentials: GoogleCredentials, appName: String, projectName: ProjectName)(implicit
     F: Sync[F]
   ): Resource[F, ErrorReporting[F]] = {
-    val threadFactory = new ThreadFactoryBuilder().setNameFormat("goog-error-%d").setDaemon(true).build()
-    val fixedExecutorProvider =
-      FixedExecutorProvider.create(new ScheduledThreadPoolExecutor(numOfThreads, threadFactory))
+    val executorProviderBuilder = ReportErrorsServiceSettings.defaultExecutorProviderBuilder()
+    val threadFactory = new ThreadFactoryBuilder()
+      .setThreadFactory(executorProviderBuilder.getThreadFactory)
+      .setNameFormat("goog-error-reporting-%d")
+      .build()
+    val executorProvider = executorProviderBuilder.setThreadFactory(threadFactory).build()
 
     val settings = ReportErrorsServiceSettings
       .newBuilder()
       .setCredentialsProvider(FixedCredentialsProvider.create(credentials))
-      .setBackgroundExecutorProvider(fixedExecutorProvider)
+      .setBackgroundExecutorProvider(executorProvider)
       .build()
     Resource
       .make[F, ReportErrorsServiceClient](F.delay(ReportErrorsServiceClient.create(settings)))(c => F.delay(c.close()))

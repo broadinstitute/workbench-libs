@@ -398,20 +398,23 @@ object GoogleStorageService {
     } yield GoogleStorageInterpreter[F](db, blockerBound)
 
   def fromCredentials[F[_]: StructuredLogger: Async](credentials: GoogleCredentials,
-                                                     blockerBound: Option[Semaphore[F]] = None,
-                                                     numOfThreads: Int = 20
+                                                     blockerBound: Option[Semaphore[F]] = None
   ): Resource[F, GoogleStorageService[F]] = {
-    val threadFactory = new ThreadFactoryBuilder().setNameFormat("goog-storage-%d").setDaemon(true).build()
-    val fixedExecutorProvider =
-      FixedExecutorProvider.create(new ScheduledThreadPoolExecutor(numOfThreads, threadFactory))
-
+    val executorProviderBuilder = StorageTransferServiceSettings.defaultExecutorProviderBuilder()
+    val threadFactory = new ThreadFactoryBuilder()
+      .setThreadFactory(executorProviderBuilder.getThreadFactory)
+      .setNameFormat("goog-storage-service-%d")
+      .build()
+    val executorProvider = executorProviderBuilder.setThreadFactory(threadFactory).build()
     for {
       db <- Resource.eval(
         Sync[F].delay(
           StorageOptions
             .newBuilder()
             .setCredentials(credentials)
-            // .setBackgroundExecutorProvider(fixedExecutorProvider)
+//            .setBackgroundExecutorProvider(
+//              executorProvider
+//            )
             .build()
             .getService
         )

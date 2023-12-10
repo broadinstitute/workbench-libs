@@ -111,18 +111,20 @@ object GoogleDataprocService {
     googleCredentials: GoogleCredentials,
     supportedRegions: Set[RegionName],
     blockerBound: Semaphore[F],
-    retryConfig: RetryConfig = RetryPredicates.standardGoogleRetryConfig,
-    numOfThreads: Int = 20
+    retryConfig: RetryConfig = RetryPredicates.standardGoogleRetryConfig
   ): Resource[F, GoogleDataprocService[F]] = {
-    val threadFactory = new ThreadFactoryBuilder().setNameFormat("goog-dataproc-%d").setDaemon(true).build()
-    val fixedExecutorProvider =
-      FixedExecutorProvider.create(new ScheduledThreadPoolExecutor(numOfThreads, threadFactory))
+    val executorProviderBuilder = ClusterControllerSettings.defaultExecutorProviderBuilder()
+    val threadFactory = new ThreadFactoryBuilder()
+      .setThreadFactory(executorProviderBuilder.getThreadFactory)
+      .setNameFormat("goog-dataproc-%d")
+      .build()
+    val executorProvider = executorProviderBuilder.setThreadFactory(threadFactory).build()
 
     val regionalSettings = supportedRegions.toList.traverse { region =>
       val settings = ClusterControllerSettings
         .newBuilder()
         .setEndpoint(s"${region.value}-dataproc.googleapis.com:443")
-        .setBackgroundExecutorProvider(fixedExecutorProvider)
+        .setBackgroundExecutorProvider(executorProvider)
         .setCredentialsProvider(FixedCredentialsProvider.create(googleCredentials))
         .build()
       backgroundResourceF(ClusterControllerClient.create(settings)).map(client => region -> client)

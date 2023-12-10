@@ -30,12 +30,13 @@ object GoogleSubscriptionAdmin {
     } yield topicAdmin
 
   def fromServiceAccountCredential[F[_]: StructuredLogger: Async](
-    serviceAccountCredentials: ServiceAccountCredentials,
-    numOfThreads: Int = 20
-  ): Resource[F, GoogleSubscriptionAdmin[F]] = {
-    val threadFactory = new ThreadFactoryBuilder().setNameFormat("goog-sub-admin-%d").setDaemon(true).build()
-    val fixedExecutorProvider =
-      FixedExecutorProvider.create(new ScheduledThreadPoolExecutor(numOfThreads, threadFactory))
+    serviceAccountCredentials: ServiceAccountCredentials): Resource[F, GoogleSubscriptionAdmin[F]] = {
+    val executorProviderBuilder = SubscriptionAdminSettings.defaultExecutorProviderBuilder()
+    val threadFactory = new ThreadFactoryBuilder()
+      .setThreadFactory(executorProviderBuilder.getThreadFactory)
+      .setNameFormat("goog-sub-admin-client-%d")
+      .build()
+    val executorProvider = executorProviderBuilder.setThreadFactory(threadFactory).build()
 
     for {
       client <- Resource.make(
@@ -44,7 +45,7 @@ object GoogleSubscriptionAdmin {
             SubscriptionAdminSettings
               .newBuilder()
               .setCredentialsProvider(FixedCredentialsProvider.create(serviceAccountCredentials))
-              .setBackgroundExecutorProvider(fixedExecutorProvider)
+              .setBackgroundExecutorProvider(executorProvider)
               .build()
           )
         )

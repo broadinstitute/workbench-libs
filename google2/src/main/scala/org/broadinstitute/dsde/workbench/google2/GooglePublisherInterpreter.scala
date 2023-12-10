@@ -5,8 +5,9 @@ import cats.mtl.Ask
 import cats.syntax.all._
 import com.google.api.core.ApiFutures
 import com.google.api.gax.core.{FixedCredentialsProvider, FixedExecutorProvider}
-import com.google.api.gax.rpc.AlreadyExistsException
+import com.google.api.gax.rpc.{AlreadyExistsException, TransportChannelProvider}
 import com.google.auth.oauth2.ServiceAccountCredentials
+import com.google.cloud.pubsub.v1.stub.PublisherStubSettings
 import com.google.cloud.pubsub.v1.{Publisher, TopicAdminClient}
 import com.google.common.util.concurrent.{MoreExecutors, ThreadFactoryBuilder}
 import com.google.protobuf.ByteString
@@ -17,8 +18,6 @@ import io.circe.syntax._
 import org.broadinstitute.dsde.workbench.model.TraceId
 import org.broadinstitute.dsde.workbench.util2.{tracedLogging, withLogging}
 import org.typelevel.log4cats.StructuredLogger
-
-import java.util.concurrent.ScheduledThreadPoolExecutor
 
 private[google2] class GooglePublisherInterpreter[F[_]: Async: StructuredLogger](
   publisher: Publisher
@@ -120,17 +119,19 @@ object GooglePublisherInterpreter {
                                             credential: ServiceAccountCredentials,
                                             numOfThreads: Int
   ): Resource[F, Publisher] = {
-    val threadFactory = new ThreadFactoryBuilder().setNameFormat("goog-publisher-%d").setDaemon(true).build()
-    val fixedExecutorProvider =
-      FixedExecutorProvider.create(new ScheduledThreadPoolExecutor(numOfThreads, threadFactory))
+    val executorProviderBuilder = PublisherStubSettings.defaultExecutorProviderBuilder()
+    val threadFactory = new ThreadFactoryBuilder()
+      .setThreadFactory(executorProviderBuilder.getThreadFactory)
+      .setNameFormat("goog-pubsub-%d")
+      .build()
+    val executorProvider = executorProviderBuilder.setThreadFactory(threadFactory).build()
 
+    val builder = Publisher.newBuilder(topicName)
     Resource.make(
       Sync[F].delay(
-        Publisher
-          .newBuilder(topicName)
-          .setExecutorProvider(fixedExecutorProvider)
-          // setChannelProvider? // https://cloud.google.com/java/docs/reference/google-cloud-pubsub/latest/com.google.cloud.pubsub.v1.Publisher.Builder#com_google_cloud_pubsub_v1_Publisher_Builder_setChannelProvider_com_google_api_gax_rpc_TransportChannelProvider_
+        builder
           .setCredentialsProvider(FixedCredentialsProvider.create(credential))
+          .setExecutorProvider(executorProvider)
           .build()
       )
     )(p => Sync[F].delay(p.shutdown()))

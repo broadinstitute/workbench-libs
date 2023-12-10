@@ -76,13 +76,17 @@ object GKEService {
     for {
       credential <- credentialResource(pathToCredential.toString)
       credentialsProvider = FixedCredentialsProvider.create(credential)
-      threadFactory = new ThreadFactoryBuilder().setNameFormat("goog-kube-%d").setDaemon(true).build()
-      fixedExecutorProvider = FixedExecutorProvider.create(new ScheduledThreadPoolExecutor(numOfThreads, threadFactory))
+      executorProviderBuilder = ClusterManagerSettings.defaultExecutorProviderBuilder()
+      threadFactory = new ThreadFactoryBuilder()
+        .setThreadFactory(executorProviderBuilder.getThreadFactory)
+        .setNameFormat("gke-cluster-manager-%d")
+        .build()
+      executorProvider = executorProviderBuilder.setThreadFactory(threadFactory).build()
 
       clusterManagerSettings = ClusterManagerSettings
         .newBuilder()
         .setCredentialsProvider(credentialsProvider)
-        .setBackgroundExecutorProvider(fixedExecutorProvider)
+        .setBackgroundExecutorProvider(executorProvider)
         .build()
       clusterManager <- backgroundResourceF(ClusterManagerClient.create(clusterManagerSettings))
       legacyClient <- legacyClient(pathToCredential)
