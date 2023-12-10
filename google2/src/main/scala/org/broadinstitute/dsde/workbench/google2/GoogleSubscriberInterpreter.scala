@@ -179,8 +179,7 @@ object GoogleSubscriberInterpreter {
     queue: Queue[F, Event[MessageType]],
     subscription: ProjectSubscriptionName,
     credential: ServiceAccountCredentials,
-    flowControlSettings: Option[FlowControlSettings],
-    numOfThreads: Int
+    flowControlSettings: Option[FlowControlSettings]
   ): Resource[F, Subscriber] = Dispatcher[F].flatMap { d =>
     val executorProviderBuilder = SubscriptionAdminSettings.defaultExecutorProviderBuilder()
     val threadFactory = new ThreadFactoryBuilder()
