@@ -4,6 +4,7 @@ import cats.effect.std.Semaphore
 import cats.effect.{Async, Resource, Sync}
 import cats.mtl.Ask
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport
+import com.google.api.client.json.jackson2.JacksonFactory
 import com.google.api.gax.core.FixedCredentialsProvider
 import com.google.api.services.container.Container
 import com.google.cloud.container.v1.{ClusterManagerClient, ClusterManagerSettings}
