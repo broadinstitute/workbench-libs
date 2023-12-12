@@ -6,6 +6,8 @@ This file documents changes to the `workbench-google2` library, including notes 
 
 SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.34-TRAVIS-REPLACE-ME"`
 
+* Named threads
+
 
 ### Changes
 * Added ability for getBucket to log at WARN level instead of ERROR

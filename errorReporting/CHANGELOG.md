@@ -13,6 +13,9 @@ SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-error-reporti
 | sbt-scoverage                          |    2.0.8    |       2.0.9 |
 | scalatest                              |   3.2.16    |      3.2.17 |
 
+* Named threads
+
+
 ## 0.6
 
 SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-error-reporting" % "0.6-026bc90"`
