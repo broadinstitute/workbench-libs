@@ -15,7 +15,7 @@ Workbench utility libraries, built for 2.13. You can find the full list of packa
 
 Contains utility functions for talking to Azure APIs.
 
-Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-azure" % "0.6-TRAVIS_REPLACE_ME"`
+Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-azure" % "0.6-TRAVIS-REPLACE-ME"`
 
 [Changelog](azure/CHANGELOG.md)
 
@@ -82,7 +82,7 @@ Workbench utility libraries, built for 2.13. You can find the full list of packa
 
 Contains utility functions for talking to Google APIs via com.google.cloud client library (more recent) via gRPC.
 
-Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.34-2147824"`
+Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.34-TRAVIS-REPLACE-ME"`
 
 To start the Google PubSub emulator for unit testing:
 
@@ -96,7 +96,7 @@ Workbench utility libraries, built for 2.13. You can find the full list of packa
 
 Contains utility functions for publishing custom metrics using openTelemetry (openCensus and openTracing).
 
-Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-opentelemetry" % "0.7-2eac218"`
+Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-opentelemetry" % "0.7-TRAVIS-REPLACE-ME"`
 
 [Changelog](openTelemetry/CHANGELOG.md)
 
@@ -116,7 +116,7 @@ Workbench utility libraries, built for 2.13. You can find the full list of packa
 
 Contains common classes and utilities for writing tests against Workbench REST web services.
 
-Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "4.1-59e30fb" % "test" classifier "tests"`
+Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "4.1-TRAVIS-REPLACE-ME" % "test" classifier "tests"`
 
 [Changelog](serviceTest/CHANGELOG.md)
 
