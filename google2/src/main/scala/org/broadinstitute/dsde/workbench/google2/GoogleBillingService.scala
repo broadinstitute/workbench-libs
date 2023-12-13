@@ -42,7 +42,7 @@ object GoogleBillingService {
     val executorProviderBuilder = CloudBillingSettings.defaultExecutorProviderBuilder()
     val threadFactory = new ThreadFactoryBuilder()
       .setThreadFactory(executorProviderBuilder.getThreadFactory)
-      .setNameFormat("goog-billing-%d")
+      .setNameFormat("goog2-billing-%d")
       .build()
     val executorProvider = executorProviderBuilder.setThreadFactory(threadFactory).build()
 

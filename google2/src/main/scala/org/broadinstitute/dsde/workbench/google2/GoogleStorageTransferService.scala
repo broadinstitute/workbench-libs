@@ -108,7 +108,7 @@ object GoogleStorageTransferService {
     val executorProviderBuilder = StorageTransferServiceSettings.defaultExecutorProviderBuilder()
     val threadFactory = new ThreadFactoryBuilder()
       .setThreadFactory(executorProviderBuilder.getThreadFactory)
-      .setNameFormat("goog-storage-transfer-%d")
+      .setNameFormat("goog2-storage-transfer-%d")
       .build()
     val executorProvider = executorProviderBuilder.setThreadFactory(threadFactory).build()
 

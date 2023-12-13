@@ -166,7 +166,7 @@ object GoogleKmsInterpreter {
     val executorProviderBuilder = KeyManagementServiceSettings.defaultExecutorProviderBuilder()
     val threadFactory = new ThreadFactoryBuilder()
       .setThreadFactory(executorProviderBuilder.getThreadFactory)
-      .setNameFormat("goog2-kms-client-%d")
+      .setNameFormat("goog2-kms-%d")
       .build()
     val executorProvider = executorProviderBuilder.setThreadFactory(threadFactory).build()
 

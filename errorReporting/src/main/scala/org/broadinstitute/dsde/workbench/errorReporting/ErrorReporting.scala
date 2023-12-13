@@ -44,7 +44,7 @@ object ErrorReporting {
     val executorProviderBuilder = ReportErrorsServiceSettings.defaultExecutorProviderBuilder()
     val threadFactory = new ThreadFactoryBuilder()
       .setThreadFactory(executorProviderBuilder.getThreadFactory)
-      .setNameFormat("goog-error-reporting-%d")
+      .setNameFormat("error-reporting-%d")
       .build()
     val executorProvider = executorProviderBuilder.setThreadFactory(threadFactory).build()
 

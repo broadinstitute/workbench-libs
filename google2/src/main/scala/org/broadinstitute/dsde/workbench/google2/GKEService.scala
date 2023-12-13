@@ -75,7 +75,7 @@ object GKEService {
       executorProviderBuilder = ClusterManagerSettings.defaultExecutorProviderBuilder()
       threadFactory = new ThreadFactoryBuilder()
         .setThreadFactory(executorProviderBuilder.getThreadFactory)
-        .setNameFormat("gke-cluster-manager-%d")
+        .setNameFormat("goog2-cluster-manager-%d")
         .build()
       executorProvider = executorProviderBuilder.setThreadFactory(threadFactory).build()
 

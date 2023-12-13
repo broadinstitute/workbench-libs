@@ -97,7 +97,7 @@ object GoogleTopicAdminInterpreter {
     val executorProviderBuilder = TopicAdminSettings.defaultExecutorProviderBuilder()
     val threadFactory = new ThreadFactoryBuilder()
       .setThreadFactory(executorProviderBuilder.getThreadFactory)
-      .setNameFormat("goog-topic-admin-client-%d")
+      .setNameFormat("goog2-topic-admin-client-%d")
       .build()
     val executorProvider = executorProviderBuilder.setThreadFactory(threadFactory).build()
 

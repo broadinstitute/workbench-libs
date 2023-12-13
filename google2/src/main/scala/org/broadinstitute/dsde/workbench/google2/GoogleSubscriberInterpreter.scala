@@ -5,7 +5,7 @@ import cats.effect.std.{Dispatcher, Queue}
 import cats.syntax.all._
 import com.google.api.core.ApiService
 import com.google.api.gax.batching.FlowControlSettings
-import com.google.api.gax.core.FixedCredentialsProvider
+import com.google.api.gax.core.{FixedCredentialsProvider, FixedExecutorProvider}
 import com.google.api.gax.rpc.AlreadyExistsException
 import com.google.auth.oauth2.ServiceAccountCredentials
 import com.google.cloud.pubsub.v1._
@@ -17,6 +17,8 @@ import org.typelevel.log4cats.{Logger, StructuredLogger}
 import io.circe.Decoder
 import io.circe.parser._
 import org.broadinstitute.dsde.workbench.model.TraceId
+
+import java.util.concurrent.ScheduledThreadPoolExecutor
 import scala.concurrent.duration.FiniteDuration
 
 private[google2] class GoogleSubscriberInterpreter[F[_], MessageType](
@@ -129,7 +131,8 @@ object GoogleSubscriberInterpreter {
     }
 
   def subscriber[F[_]: Async: StructuredLogger, MessageType: Decoder](subscriberConfig: SubscriberConfig,
-                                                                      queue: Queue[F, Event[MessageType]]
+                                                                      queue: Queue[F, Event[MessageType]],
+                                                                      numOfThreads: Int = 20
   ): Resource[F, Subscriber] = {
     val subscription = subscriberConfig.subscriptionName.getOrElse(
       ProjectSubscriptionName.of(subscriberConfig.topicName.getProject, subscriberConfig.topicName.getTopic)
@@ -145,7 +148,7 @@ object GoogleSubscriberInterpreter {
           .setMaxOutstandingRequestBytes(config.maxOutstandingRequestBytes)
           .build
       )
-      sub <- subscriberResource(queue, subscription, credential, flowControlSettings)
+      sub <- subscriberResource(queue, subscription, credential, flowControlSettings, numOfThreads)
     } yield sub
   }
 
@@ -176,21 +179,19 @@ object GoogleSubscriberInterpreter {
     queue: Queue[F, Event[MessageType]],
     subscription: ProjectSubscriptionName,
     credential: ServiceAccountCredentials,
-    flowControlSettings: Option[FlowControlSettings]
+    flowControlSettings: Option[FlowControlSettings],
+    numOfThreads: Int
   ): Resource[F, Subscriber] = Dispatcher[F].flatMap { d =>
-    val executorProviderBuilder = SubscriptionAdminSettings.defaultExecutorProviderBuilder()
-    val threadFactory = new ThreadFactoryBuilder()
-      .setThreadFactory(executorProviderBuilder.getThreadFactory)
-      .setNameFormat("goog-sub-admin-client-%d")
-      .build()
-    val executorProvider = executorProviderBuilder.setThreadFactory(threadFactory).build()
+    val threadFactory = new ThreadFactoryBuilder().setNameFormat("goog-subscriber-%d").setDaemon(true).build()
+    val fixedExecutorProvider =
+      FixedExecutorProvider.create(new ScheduledThreadPoolExecutor(numOfThreads, threadFactory))
 
     val subscriber = for {
       builder <- Async[F].blocking(
         Subscriber
           .newBuilder(subscription, receiver(queue, d))
           .setCredentialsProvider(FixedCredentialsProvider.create(credential))
-          .setExecutorProvider(executorProvider)
+          .setExecutorProvider(fixedExecutorProvider)
       )
       builderWithFlowControlSetting <- flowControlSettings.traverse { fcs =>
         Async[F].blocking(builder.setFlowControlSettings(fcs))
@@ -262,7 +263,7 @@ object GoogleSubscriberInterpreter {
     val executorProviderBuilder = SubscriptionAdminSettings.defaultExecutorProviderBuilder()
     val threadFactory = new ThreadFactoryBuilder()
       .setThreadFactory(executorProviderBuilder.getThreadFactory)
-      .setNameFormat("goog-sub-admin-client-%d")
+      .setNameFormat("goog2-sub-admin-%d")
       .build()
     val executorProvider = executorProviderBuilder.setThreadFactory(threadFactory).build()
 
