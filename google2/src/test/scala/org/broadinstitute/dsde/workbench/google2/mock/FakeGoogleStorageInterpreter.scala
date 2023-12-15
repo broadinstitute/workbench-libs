@@ -15,7 +15,7 @@ import com.google.cloud.storage.Storage.{
   BucketSourceOption,
   BucketTargetOption
 }
-import com.google.cloud.storage.{Acl, Blob, BlobId, BucketInfo, Storage}
+import com.google.cloud.storage.{Acl, Blob, BlobId, BucketInfo, Storage, StorageClass}
 import com.google.cloud.{Identity, Policy}
 import fs2.{Pipe, Stream}
 import org.broadinstitute.dsde.workbench.RetryConfig
@@ -141,7 +141,8 @@ class BaseFakeGoogleStorage extends GoogleStorageService[IO] {
                             retryConfig: RetryConfig,
                             location: Option[String] = None,
                             bucketTargetOptions: List[BucketTargetOption],
-                            autoclassEnabled: Boolean = false
+                            autoclassEnabled: Boolean = false,
+                            autoclassTerminalStorageClass: Option[StorageClass] = None
   ): Stream[IO, Unit] = Stream.empty
 
   override def deleteBucket(googleProject: GoogleProject,

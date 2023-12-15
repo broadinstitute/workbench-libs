@@ -2,6 +2,22 @@
 
 This file documents changes to the `workbench-google2` library, including notes on how to upgrade to new versions.
 
+## 0.35
+
+SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.35-5781917"`
+
+
+### Changes
+* downgraded cats_effect, and corresponding fs2
+* Add support for setting terminal storage class for autoclass buckets to `insertBucket` in `StorageService`
+
+### Dependency upgrades
+| Dependency                    |     Old Version      |          New Version |
+|-------------------------------|:--------------------:|---------------------:|
+| cats-effect                   |         3.5.2        |               3.4.11 |
+| fs2-io                        |         3.9.3        |                3.6.1 |
+
+
 ## 0.34
 
 SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.34-TRAVIS-REPLACE-ME"`

@@ -2,6 +2,20 @@
 
 This file documents changes to the `workbench-openTelemetry` library, including notes on how to upgrade to new versions.
 
+## 0.8
+
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-opentelemetry" % "0.8-5781917"`
+
+### Changes
+* downgraded cats_effect, and corresponding fs2
+
+### Dependency upgrades
+| Dependency                    |     Old Version      |          New Version |
+|-------------------------------|:--------------------:|---------------------:|
+| cats-effect                   |         3.5.2        |               3.4.11 |
+| fs2-io                        |         3.9.3        |                3.6.1 |
+
+
 ## 0.7
 
 SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-opentelemetry" % "0.7-2eac218"`
