@@ -161,34 +161,59 @@ object GoogleComputeService {
     numOfThreads: Int = 20
   ): Resource[F, GoogleComputeService[F]] = {
     val credentialsProvider = FixedCredentialsProvider.create(googleCredentials)
-    val threadFactory = new ThreadFactoryBuilder().setNameFormat("goog2-compute-%d").setDaemon(true).build()
-    val fixedExecutorProvider =
-      FixedExecutorProvider.create(new ScheduledThreadPoolExecutor(numOfThreads, threadFactory))
 
+    val threadFactoryInstance = new ThreadFactoryBuilder().setNameFormat("goog2-compute-instance-%d").setDaemon(true).build()
+    val fixedExecutorProviderInstance =
+      FixedExecutorProvider.create(new ScheduledThreadPoolExecutor(numOfThreads, threadFactoryInstance))
     val instanceSettings = InstancesSettings
       .newBuilder()
       .setCredentialsProvider(credentialsProvider)
-      .setBackgroundExecutorProvider(fixedExecutorProvider)
+      .setBackgroundExecutorProvider(fixedExecutorProviderInstance)
       .build()
+
+    val threadFactoryFirewall = new ThreadFactoryBuilder().setNameFormat("goog2-compute-firewall-%d").setDaemon(true).build()
+    val fixedExecutorProviderFirewall =
+      FixedExecutorProvider.create(new ScheduledThreadPoolExecutor(numOfThreads, threadFactoryFirewall))
     val firewallSettings = FirewallsSettings
       .newBuilder()
       .setCredentialsProvider(credentialsProvider)
+      .setBackgroundExecutorProvider(fixedExecutorProviderFirewall)
       .build()
+
+    val threadFactoryZone= new ThreadFactoryBuilder().setNameFormat("goog2-compute-zone-%d").setDaemon(true).build()
+    val fixedExecutorProviderZone =
+      FixedExecutorProvider.create(new ScheduledThreadPoolExecutor(numOfThreads, threadFactoryZone))
     val zoneSettings = ZonesSettings
       .newBuilder()
       .setCredentialsProvider(credentialsProvider)
+      .setBackgroundExecutorProvider(fixedExecutorProviderZone)
       .build()
+
+    val threadFactoryMachine = new ThreadFactoryBuilder().setNameFormat("goog2-compute-machine-%d").setDaemon(true).build()
+    val fixedExecutorProviderMachine =
+      FixedExecutorProvider.create(new ScheduledThreadPoolExecutor(numOfThreads, threadFactoryMachine))
     val machineTypeSettings = MachineTypesSettings
       .newBuilder()
       .setCredentialsProvider(credentialsProvider)
+      .setBackgroundExecutorProvider(fixedExecutorProviderMachine)
       .build()
+
+    val threadFactoryNetworks = new ThreadFactoryBuilder().setNameFormat("goog2-compute-networks-%d").setDaemon(true).build()
+    val fixedExecutorProviderNetworks =
+      FixedExecutorProvider.create(new ScheduledThreadPoolExecutor(numOfThreads, threadFactoryNetworks))
     val networkSettings = NetworksSettings
       .newBuilder()
       .setCredentialsProvider(credentialsProvider)
+      .setBackgroundExecutorProvider(fixedExecutorProviderNetworks)
       .build()
+
+    val threadFactorySubnetworks = new ThreadFactoryBuilder().setNameFormat("goog2-compute-subnetworks-%d").setDaemon(true).build()
+    val fixedExecutorProviderSubnetworks =
+      FixedExecutorProvider.create(new ScheduledThreadPoolExecutor(numOfThreads, threadFactorySubnetworks))
     val subnetworkSettings = SubnetworksSettings
       .newBuilder()
       .setCredentialsProvider(credentialsProvider)
+      .setBackgroundExecutorProvider(fixedExecutorProviderSubnetworks)
       .build()
 
     for {
