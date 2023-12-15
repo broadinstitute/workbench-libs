@@ -263,7 +263,7 @@ object GoogleSubscriberInterpreter {
     val executorProviderBuilder = SubscriptionAdminSettings.defaultExecutorProviderBuilder()
     val threadFactory = new ThreadFactoryBuilder()
       .setThreadFactory(executorProviderBuilder.getThreadFactory)
-      .setNameFormat("goog2-sub-admin-%d")
+      .setNameFormat("goog2-sub-%d")
       .build()
     val executorProvider = executorProviderBuilder.setThreadFactory(threadFactory).build()
 

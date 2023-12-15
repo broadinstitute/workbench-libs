@@ -2,7 +2,7 @@ package org.broadinstitute.dsde.workbench.google
 
 import cats.effect.{Resource, Sync}
 import cats.syntax.all._
-import com.google.api.gax.core.{FixedCredentialsProvider, FixedExecutorProvider}
+import com.google.api.gax.core.FixedCredentialsProvider
 import com.google.auth.oauth2.ServiceAccountCredentials
 import com.google.cloud.kms.v1.CryptoKey.CryptoKeyPurpose
 import com.google.cloud.kms.v1._

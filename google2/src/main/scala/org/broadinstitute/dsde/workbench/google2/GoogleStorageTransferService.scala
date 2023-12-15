@@ -2,7 +2,7 @@ package org.broadinstitute.dsde.workbench
 package google2
 
 import cats.effect.{Resource, Sync, Temporal}
-import com.google.api.gax.core.{FixedCredentialsProvider, FixedExecutorProvider}
+import com.google.api.gax.core.FixedCredentialsProvider
 import com.google.auth.Credentials
 import com.google.common.util.concurrent.ThreadFactoryBuilder
 import com.google.storagetransfer.v1.proto.TransferTypes.{TransferJob, TransferOperation}
