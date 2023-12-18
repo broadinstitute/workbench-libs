@@ -225,7 +225,8 @@ object GoogleComputeService {
       .setThreadFactory(subnetworksExecutorProviderBuilder.getThreadFactory)
       .setNameFormat("goog2-compute-subnetworks-%d")
       .build()
-    val subnetworksExecutorProvider = subnetworksExecutorProviderBuilder.setThreadFactory(subnetworksThreadFactory).build()
+    val subnetworksExecutorProvider =
+      subnetworksExecutorProviderBuilder.setThreadFactory(subnetworksThreadFactory).build()
     val subnetworkSettings = SubnetworksSettings
       .newBuilder()
       .setCredentialsProvider(credentialsProvider)
