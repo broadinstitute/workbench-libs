@@ -162,14 +162,14 @@ object GoogleComputeService {
   ): Resource[F, GoogleComputeService[F]] = {
     val credentialsProvider = FixedCredentialsProvider.create(googleCredentials)
 
-    val instanceThreadFactory =
-      new ThreadFactoryBuilder().setNameFormat("goog2-compute-instance-%d").setDaemon(true).build()
-    val fixedExecutorProviderInstance =
-      FixedExecutorProvider.create(new ScheduledThreadPoolExecutor(numOfThreads, instanceThreadFactory))
-    val instanceSettings = InstancesSettings
+    val instancesThreadFactory =
+      new ThreadFactoryBuilder().setNameFormat("goog2-compute-instances-%d").setDaemon(true).build()
+    val instancesFixedExecutorProvider =
+      FixedExecutorProvider.create(new ScheduledThreadPoolExecutor(numOfThreads, instancesThreadFactory))
+    val instancesSettings = InstancesSettings
       .newBuilder()
       .setCredentialsProvider(credentialsProvider)
-      .setBackgroundExecutorProvider(fixedExecutorProviderInstance)
+      .setBackgroundExecutorProvider(instancesFixedExecutorProvider)
       .build()
 
     val firewallExecutorProviderBuilder = FirewallsSettings.defaultExecutorProviderBuilder()
@@ -234,7 +234,7 @@ object GoogleComputeService {
       .build()
 
     for {
-      instanceClient <- backgroundResourceF(InstancesClient.create(instanceSettings))
+      instanceClient <- backgroundResourceF(InstancesClient.create(instancesSettings))
       firewallClient <- backgroundResourceF(FirewallsClient.create(firewallSettings))
       zoneClient <- backgroundResourceF(ZonesClient.create(zonesSettings))
       machineTypeClient <- backgroundResourceF(MachineTypesClient.create(machineTypeSettings))
