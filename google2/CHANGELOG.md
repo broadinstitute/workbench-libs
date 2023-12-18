@@ -4,7 +4,9 @@ This file documents changes to the `workbench-google2` library, including notes 
 
 ## 0.35
 
-SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.35-5781917"`
+SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.35-TRAVIS-REPLACE-ME"`
+
+* Named threads
 
 
 ### Changes
@@ -20,10 +22,7 @@ SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0
 
 ## 0.34
 
-SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.34-TRAVIS-REPLACE-ME"`
-
-* Named threads
-
+SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.34-2147824""`
 
 ### Changes
 * Added ability for getBucket to log at WARN level instead of ERROR
