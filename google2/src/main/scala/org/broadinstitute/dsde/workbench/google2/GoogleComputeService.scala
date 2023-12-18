@@ -184,16 +184,16 @@ object GoogleComputeService {
       .setBackgroundExecutorProvider(firewallExecutorProvider)
       .build()
 
-    val zoneExecutorProviderBuilder = ZonesSettings.defaultExecutorProviderBuilder()
-    val zoneThreadFactory = new ThreadFactoryBuilder()
-      .setThreadFactory(zoneExecutorProviderBuilder.getThreadFactory)
-      .setNameFormat("goog2-compute-zone-%d")
+    val zonesExecutorProviderBuilder = ZonesSettings.defaultExecutorProviderBuilder()
+    val zonesThreadFactory = new ThreadFactoryBuilder()
+      .setThreadFactory(zonesExecutorProviderBuilder.getThreadFactory)
+      .setNameFormat("goog2-compute-zones-%d")
       .build()
-    val zoneExecutorProvider = zoneExecutorProviderBuilder.setThreadFactory(zoneThreadFactory).build()
-    val zoneSettings = ZonesSettings
+    val zonesExecutorProvider = zonesExecutorProviderBuilder.setThreadFactory(zonesThreadFactory).build()
+    val zonesSettings = ZonesSettings
       .newBuilder()
       .setCredentialsProvider(credentialsProvider)
-      .setBackgroundExecutorProvider(zoneExecutorProvider)
+      .setBackgroundExecutorProvider(zonesExecutorProvider)
       .build()
 
     val machineExecutorProviderBuilder = MachineTypesSettings.defaultExecutorProviderBuilder()
@@ -235,7 +235,7 @@ object GoogleComputeService {
     for {
       instanceClient <- backgroundResourceF(InstancesClient.create(instanceSettings))
       firewallClient <- backgroundResourceF(FirewallsClient.create(firewallSettings))
-      zoneClient <- backgroundResourceF(ZonesClient.create(zoneSettings))
+      zoneClient <- backgroundResourceF(ZonesClient.create(zonesSettings))
       machineTypeClient <- backgroundResourceF(MachineTypesClient.create(machineTypeSettings))
       networkClient <- backgroundResourceF(NetworksClient.create(networkSettings))
       subnetworkClient <- backgroundResourceF(SubnetworksClient.create(subnetworkSettings))
