@@ -208,11 +208,16 @@ object GoogleSubscriberInterpreter {
     credential: ServiceAccountCredentials,
     flowControlSettings: Option[FlowControlSettings]
   ): Resource[F, Subscriber] = {
+    val threadFactory = new ThreadFactoryBuilder().setNameFormat("goog-subscriber-%d").setDaemon(true).build()
+    val fixedExecutorProvider =
+      FixedExecutorProvider.create(new ScheduledThreadPoolExecutor(20, threadFactory))
+
     val subscriber = for {
       builder <- Sync[F].delay(
         Subscriber
           .newBuilder(subscription, stringReceiver(queue, dispatcher))
           .setCredentialsProvider(FixedCredentialsProvider.create(credential))
+          .setExecutorProvider(fixedExecutorProvider)
       )
       builderWithFlowControlSetting <- flowControlSettings.traverse { fcs =>
         Sync[F].delay(builder.setFlowControlSettings(fcs))
