@@ -259,17 +259,28 @@ object GoogleSubscriberInterpreter {
     )
   }
 
-  private def subscriptionAdminClientResource[F[_]: Async](credential: ServiceAccountCredentials) =
-    Resource.make[F, SubscriptionAdminClient](
-      Async[F].delay(
-        SubscriptionAdminClient.create(
-          SubscriptionAdminSettings
-            .newBuilder()
-            .setCredentialsProvider(FixedCredentialsProvider.create(credential))
-            .build()
+  private def subscriptionAdminClientResource[F[_]: Async](credential: ServiceAccountCredentials) = {
+    val executorProviderBuilder = SubscriptionAdminSettings.defaultExecutorProviderBuilder()
+    val threadFactory = new ThreadFactoryBuilder()
+      .setThreadFactory(executorProviderBuilder.getThreadFactory)
+      .setNameFormat("goog2-sub-%d")
+      .build()
+    val executorProvider = executorProviderBuilder.setThreadFactory(threadFactory).build()
+
+    for {
+      client <- Resource.make[F, SubscriptionAdminClient](
+        Async[F].delay(
+          SubscriptionAdminClient.create(
+            SubscriptionAdminSettings
+              .newBuilder()
+              .setCredentialsProvider(FixedCredentialsProvider.create(credential))
+              .setBackgroundExecutorProvider(executorProvider)
+              .build()
+          )
         )
-      )
-    )(client => Async[F].delay(client.shutdown()))
+      )(client => Async[F].delay(client.shutdown()))
+    } yield client
+  }
 }
 
 final case class FlowControlSettingsConfig(maxOutstandingElementCount: Long, maxOutstandingRequestBytes: Long)

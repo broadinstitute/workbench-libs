@@ -5,6 +5,7 @@ import cats.mtl.Ask
 import com.google.api.gax.core.FixedCredentialsProvider
 import com.google.auth.oauth2.ServiceAccountCredentials
 import com.google.cloud.pubsub.v1.{SubscriptionAdminClient, SubscriptionAdminSettings}
+import com.google.common.util.concurrent.ThreadFactoryBuilder
 import com.google.pubsub.v1.{ProjectSubscriptionName, Subscription}
 import fs2.Stream
 import org.broadinstitute.dsde.workbench.model.TraceId
@@ -29,7 +30,14 @@ object GoogleSubscriptionAdmin {
 
   def fromServiceAccountCredential[F[_]: StructuredLogger: Async](
     serviceAccountCredentials: ServiceAccountCredentials
-  ): Resource[F, GoogleSubscriptionAdmin[F]] =
+  ): Resource[F, GoogleSubscriptionAdmin[F]] = {
+    val executorProviderBuilder = SubscriptionAdminSettings.defaultExecutorProviderBuilder()
+    val threadFactory = new ThreadFactoryBuilder()
+      .setThreadFactory(executorProviderBuilder.getThreadFactory)
+      .setNameFormat("goog2-sub-admin-%d")
+      .build()
+    val executorProvider = executorProviderBuilder.setThreadFactory(threadFactory).build()
+
     for {
       client <- Resource.make(
         Async[F].delay(
@@ -37,9 +45,11 @@ object GoogleSubscriptionAdmin {
             SubscriptionAdminSettings
               .newBuilder()
               .setCredentialsProvider(FixedCredentialsProvider.create(serviceAccountCredentials))
+              .setBackgroundExecutorProvider(executorProvider)
               .build()
           )
         )
       )(client => Async[F].delay(client.shutdown()))
     } yield new GoogleSubscriptionAdminInterpreter[F](client)
+  }
 }

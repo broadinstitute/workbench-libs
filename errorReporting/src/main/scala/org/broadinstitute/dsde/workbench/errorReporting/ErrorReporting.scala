@@ -4,6 +4,7 @@ import java.nio.file.Path
 import cats.effect.{Resource, Sync}
 import com.google.api.gax.core.FixedCredentialsProvider
 import com.google.auth.oauth2.{GoogleCredentials, ServiceAccountCredentials}
+import com.google.common.util.concurrent.ThreadFactoryBuilder
 import com.google.devtools.clouderrorreporting.v1beta1.{
   ProjectName,
   ReportErrorsServiceClient,
@@ -40,9 +41,17 @@ object ErrorReporting {
   def fromCredential[F[_]](credentials: GoogleCredentials, appName: String, projectName: ProjectName)(implicit
     F: Sync[F]
   ): Resource[F, ErrorReporting[F]] = {
+    val executorProviderBuilder = ReportErrorsServiceSettings.defaultExecutorProviderBuilder()
+    val threadFactory = new ThreadFactoryBuilder()
+      .setThreadFactory(executorProviderBuilder.getThreadFactory)
+      .setNameFormat("error-reporting-%d")
+      .build()
+    val executorProvider = executorProviderBuilder.setThreadFactory(threadFactory).build()
+
     val settings = ReportErrorsServiceSettings
       .newBuilder()
       .setCredentialsProvider(FixedCredentialsProvider.create(credentials))
+      .setBackgroundExecutorProvider(executorProvider)
       .build()
     Resource
       .make[F, ReportErrorsServiceClient](F.delay(ReportErrorsServiceClient.create(settings)))(c => F.delay(c.close()))
