@@ -4,6 +4,7 @@ package google2
 import cats.effect.{Resource, Sync, Temporal}
 import com.google.api.gax.core.FixedCredentialsProvider
 import com.google.auth.Credentials
+import com.google.common.util.concurrent.ThreadFactoryBuilder
 import com.google.storagetransfer.v1.proto.TransferTypes.{TransferJob, TransferOperation}
 import com.google.storagetransfer.v1.proto.{StorageTransferServiceClient, StorageTransferServiceSettings}
 import org.broadinstitute.dsde.workbench.google2.GoogleStorageTransferService.ObjectDeletionOption.NeverDeleteSourceObjects
@@ -105,14 +106,15 @@ object GoogleStorageTransferService {
     logger: StructuredLogger[F]
   ): Resource[F, GoogleStorageTransferService[F]] = {
     val executorProviderBuilder = StorageTransferServiceSettings.defaultExecutorProviderBuilder()
-    val executorProvider = getExecutorProvider(executorProviderBuilder, "goog2-storage-transfer-%d")
-    val transportProvider =
-      StorageTransferServiceSettings.defaultTransportChannelProvider().withExecutor(executorProvider.getExecutor)
+    val threadFactory = new ThreadFactoryBuilder()
+      .setThreadFactory(executorProviderBuilder.getThreadFactory)
+      .setNameFormat("goog2-storage-transfer-%d")
+      .build()
+    val executorProvider = executorProviderBuilder.setThreadFactory(threadFactory).build()
 
     val settings = StorageTransferServiceSettings.newBuilder
       .setCredentialsProvider(FixedCredentialsProvider.create(credential))
       .setBackgroundExecutorProvider(executorProvider)
-      .setTransportChannelProvider(transportProvider)
       .build
 
     Resource

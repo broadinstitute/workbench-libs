@@ -6,13 +6,10 @@ import cats.effect._
 import cats.effect.std.Semaphore
 import cats.mtl.Ask
 import com.google.api.gax.core.{FixedCredentialsProvider, FixedExecutorProvider}
-import com.google.api.gax.grpc.GrpcTransportChannel
 import com.google.api.gax.longrunning.OperationFuture
-import com.google.api.gax.rpc.{FixedTransportChannelProvider, TransportChannel}
 import com.google.auth.oauth2.GoogleCredentials
 import com.google.cloud.compute.v1._
 import com.google.common.util.concurrent.ThreadFactoryBuilder
-import io.grpc.ManagedChannelBuilder
 import org.broadinstitute.dsde.workbench.RetryConfig
 import org.broadinstitute.dsde.workbench.google2.util.RetryPredicates
 import org.broadinstitute.dsde.workbench.model.google.GoogleProject
@@ -169,70 +166,71 @@ object GoogleComputeService {
       new ThreadFactoryBuilder().setNameFormat("goog2-compute-instances-%d").setDaemon(true).build()
     val instancesFixedExecutorProvider =
       FixedExecutorProvider.create(new ScheduledThreadPoolExecutor(numOfThreads, instancesThreadFactory))
-    val instancesTransportProvider =
-      InstancesSettings.defaultTransportChannelProvider.withExecutor(instancesFixedExecutorProvider.getExecutor)
     val instancesSettings = InstancesSettings
       .newBuilder()
       .setCredentialsProvider(credentialsProvider)
       .setBackgroundExecutorProvider(instancesFixedExecutorProvider)
-      .setTransportChannelProvider(instancesTransportProvider)
       .build()
 
-    val firewallsExecutorProviderBuilder = FirewallsSettings.defaultExecutorProviderBuilder()
-    val firewallsExecutorProvider = getExecutorProvider(firewallsExecutorProviderBuilder, "goog2-compute-firewall-%d")
-    val firewallsTransportProvider =
-      FirewallsSettings.defaultTransportChannelProvider().withExecutor(firewallsExecutorProvider.getExecutor)
+    val firewallExecutorProviderBuilder = FirewallsSettings.defaultExecutorProviderBuilder()
+    val firewallThreadFactory = new ThreadFactoryBuilder()
+      .setThreadFactory(firewallExecutorProviderBuilder.getThreadFactory)
+      .setNameFormat("goog2-compute-firewall-%d")
+      .build()
+    val firewallExecutorProvider = firewallExecutorProviderBuilder.setThreadFactory(firewallThreadFactory).build()
     val firewallSettings = FirewallsSettings
       .newBuilder()
       .setCredentialsProvider(credentialsProvider)
-      .setBackgroundExecutorProvider(firewallsExecutorProvider)
-      .setTransportChannelProvider(firewallsTransportProvider)
+      .setBackgroundExecutorProvider(firewallExecutorProvider)
       .build()
 
     val zonesExecutorProviderBuilder = ZonesSettings.defaultExecutorProviderBuilder()
-    val zonesExecutorProvider = getExecutorProvider(zonesExecutorProviderBuilder, "goog2-compute-zones-%d")
-    val zonesTransportProvider =
-      ZonesSettings.defaultTransportChannelProvider().withExecutor(zonesExecutorProvider.getExecutor)
-
+    val zonesThreadFactory = new ThreadFactoryBuilder()
+      .setThreadFactory(zonesExecutorProviderBuilder.getThreadFactory)
+      .setNameFormat("goog2-compute-zones-%d")
+      .build()
+    val zonesExecutorProvider = zonesExecutorProviderBuilder.setThreadFactory(zonesThreadFactory).build()
     val zonesSettings = ZonesSettings
       .newBuilder()
       .setCredentialsProvider(credentialsProvider)
       .setBackgroundExecutorProvider(zonesExecutorProvider)
-      .setTransportChannelProvider(zonesTransportProvider)
       .build()
 
     val machineExecutorProviderBuilder = MachineTypesSettings.defaultExecutorProviderBuilder()
-    val machineExecutorProvider = getExecutorProvider(machineExecutorProviderBuilder, "goog2-compute-machine-%d")
-    val machineTransportProvider =
-      MachineTypesSettings.defaultTransportChannelProvider().withExecutor(machineExecutorProvider.getExecutor)
+    val machineThreadFactory = new ThreadFactoryBuilder()
+      .setThreadFactory(machineExecutorProviderBuilder.getThreadFactory)
+      .setNameFormat("goog2-compute-machine-%d")
+      .build()
+    val machineExecutorProvider = machineExecutorProviderBuilder.setThreadFactory(machineThreadFactory).build()
     val machineTypeSettings = MachineTypesSettings
       .newBuilder()
       .setCredentialsProvider(credentialsProvider)
       .setBackgroundExecutorProvider(machineExecutorProvider)
-      .setTransportChannelProvider(machineTransportProvider)
       .build()
 
     val networksExecutorProviderBuilder = NetworksSettings.defaultExecutorProviderBuilder()
-    val networksExecutorProvider = getExecutorProvider(networksExecutorProviderBuilder, "goog2-compute-networks-%d")
-    val networksTransportProvider =
-      NetworksSettings.defaultTransportChannelProvider().withExecutor(networksExecutorProvider.getExecutor)
+    val networksThreadFactory = new ThreadFactoryBuilder()
+      .setThreadFactory(networksExecutorProviderBuilder.getThreadFactory)
+      .setNameFormat("goog2-compute-networks-%d")
+      .build()
+    val networksExecutorProvider = networksExecutorProviderBuilder.setThreadFactory(networksThreadFactory).build()
     val networkSettings = NetworksSettings
       .newBuilder()
       .setCredentialsProvider(credentialsProvider)
       .setBackgroundExecutorProvider(networksExecutorProvider)
-      .setTransportChannelProvider(networksTransportProvider)
       .build()
 
     val subnetworksExecutorProviderBuilder = SubnetworksSettings.defaultExecutorProviderBuilder()
+    val subnetworksThreadFactory = new ThreadFactoryBuilder()
+      .setThreadFactory(subnetworksExecutorProviderBuilder.getThreadFactory)
+      .setNameFormat("goog2-compute-subnetworks-%d")
+      .build()
     val subnetworksExecutorProvider =
-      getExecutorProvider(subnetworksExecutorProviderBuilder, "goog2-compute-subnetworks-%d")
-    val subnetworksTransportProvider =
-      SubnetworksSettings.defaultTransportChannelProvider().withExecutor(subnetworksExecutorProvider.getExecutor)
+      subnetworksExecutorProviderBuilder.setThreadFactory(subnetworksThreadFactory).build()
     val subnetworkSettings = SubnetworksSettings
       .newBuilder()
       .setCredentialsProvider(credentialsProvider)
       .setBackgroundExecutorProvider(subnetworksExecutorProvider)
-      .setTransportChannelProvider(subnetworksTransportProvider)
       .build()
 
     for {

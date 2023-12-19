@@ -6,7 +6,7 @@ import cats.syntax.all._
 import com.google.api.core.ApiService
 import com.google.api.gax.batching.FlowControlSettings
 import com.google.api.gax.core.{FixedCredentialsProvider, FixedExecutorProvider}
-import com.google.api.gax.rpc.{AlreadyExistsException, FixedTransportChannelProvider}
+import com.google.api.gax.rpc.AlreadyExistsException
 import com.google.auth.oauth2.ServiceAccountCredentials
 import com.google.cloud.pubsub.v1._
 import com.google.common.util.concurrent.{MoreExecutors, ThreadFactoryBuilder}
@@ -208,18 +208,11 @@ object GoogleSubscriberInterpreter {
     credential: ServiceAccountCredentials,
     flowControlSettings: Option[FlowControlSettings]
   ): Resource[F, Subscriber] = {
-    val executorProviderBuilder = SubscriptionAdminSettings.defaultExecutorProviderBuilder()
-    val threadFactory = new ThreadFactoryBuilder()
-      .setThreadFactory(executorProviderBuilder.getThreadFactory)
-      .setNameFormat("goog2-sub-%d")
-      .build()
-    val executorProvider = executorProviderBuilder.setThreadFactory(threadFactory).build()
     val subscriber = for {
       builder <- Sync[F].delay(
         Subscriber
           .newBuilder(subscription, stringReceiver(queue, dispatcher))
           .setCredentialsProvider(FixedCredentialsProvider.create(credential))
-          .setExecutorProvider(executorProvider)
       )
       builderWithFlowControlSetting <- flowControlSettings.traverse { fcs =>
         Sync[F].delay(builder.setFlowControlSettings(fcs))
@@ -268,9 +261,12 @@ object GoogleSubscriberInterpreter {
 
   private def subscriptionAdminClientResource[F[_]: Async](credential: ServiceAccountCredentials) = {
     val executorProviderBuilder = SubscriptionAdminSettings.defaultExecutorProviderBuilder()
-    val executorProvider = getExecutorProvider(executorProviderBuilder, "goog2-sub-%d")
-    val transportProvider =
-      SubscriptionAdminSettings.defaultTransportChannelProvider().withExecutor(executorProvider.getExecutor)
+    val threadFactory = new ThreadFactoryBuilder()
+      .setThreadFactory(executorProviderBuilder.getThreadFactory)
+      .setNameFormat("goog2-sub-%d")
+      .build()
+    val executorProvider = executorProviderBuilder.setThreadFactory(threadFactory).build()
+
     for {
       client <- Resource.make[F, SubscriptionAdminClient](
         Async[F].delay(
@@ -279,7 +275,6 @@ object GoogleSubscriberInterpreter {
               .newBuilder()
               .setCredentialsProvider(FixedCredentialsProvider.create(credential))
               .setBackgroundExecutorProvider(executorProvider)
-              .setTransportChannelProvider(transportProvider)
               .build()
           )
         )

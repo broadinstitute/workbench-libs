@@ -4,10 +4,11 @@ This file documents changes to the `workbench-error-reporting` library, includin
 
 ## 0.8
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-error-reporting" % "0.8-5781917"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-error-reporting" % "0.8-TRAVIS-REPLACE-ME"`
 
 ### Changes
 * downgraded cats_effect, and corresponding fs2
+* Named threads
 
 ### Dependency upgrades
 | Dependency                    |     Old Version      |          New Version |

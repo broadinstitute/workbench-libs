@@ -3,7 +3,6 @@ package org.broadinstitute.dsde.workbench.errorReporting
 import java.nio.file.Path
 import cats.effect.{Resource, Sync}
 import com.google.api.gax.core.FixedCredentialsProvider
-import com.google.api.gax.rpc.FixedTransportChannelProvider
 import com.google.auth.oauth2.{GoogleCredentials, ServiceAccountCredentials}
 import com.google.common.util.concurrent.ThreadFactoryBuilder
 import com.google.devtools.clouderrorreporting.v1beta1.{
@@ -48,14 +47,11 @@ object ErrorReporting {
       .setNameFormat("error-reporting-%d")
       .build()
     val executorProvider = executorProviderBuilder.setThreadFactory(threadFactory).build()
-    val transportProvider =
-      ReportErrorsServiceSettings.defaultTransportChannelProvider().withExecutor(executorProvider.getExecutor)
 
     val settings = ReportErrorsServiceSettings
       .newBuilder()
       .setCredentialsProvider(FixedCredentialsProvider.create(credentials))
       .setBackgroundExecutorProvider(executorProvider)
-      .setTransportChannelProvider(transportProvider)
       .build()
     Resource
       .make[F, ReportErrorsServiceClient](F.delay(ReportErrorsServiceClient.create(settings)))(c => F.delay(c.close()))
