@@ -8,15 +8,17 @@ import com.google.api.client.json.jackson2.JacksonFactory
 import com.google.api.gax.core.FixedCredentialsProvider
 import com.google.api.services.container.Container
 import com.google.cloud.container.v1.{ClusterManagerClient, ClusterManagerSettings}
+import com.google.common.util.concurrent.ThreadFactoryBuilder
 import com.google.container.v1.{Cluster, NodePool, NodePoolAutoscaling, Operation}
 import fs2.Stream
+
+import java.nio.file.Path
 import org.broadinstitute.dsde.workbench.google2.GKEModels._
 import org.broadinstitute.dsde.workbench.google2.util.RetryPredicates._
 import org.broadinstitute.dsde.workbench.model.TraceId
 import org.broadinstitute.dsde.workbench.{DoneCheckable, RetryConfig}
 import org.typelevel.log4cats.StructuredLogger
 
-import java.nio.file.Path
 import scala.concurrent.duration.FiniteDuration
 
 trait GKEService[F[_]] {
@@ -70,9 +72,17 @@ object GKEService {
     for {
       credential <- credentialResource(pathToCredential.toString)
       credentialsProvider = FixedCredentialsProvider.create(credential)
+      executorProviderBuilder = ClusterManagerSettings.defaultExecutorProviderBuilder()
+      threadFactory = new ThreadFactoryBuilder()
+        .setThreadFactory(executorProviderBuilder.getThreadFactory)
+        .setNameFormat("goog2-cluster-manager-%d")
+        .build()
+      executorProvider = executorProviderBuilder.setThreadFactory(threadFactory).build()
+
       clusterManagerSettings = ClusterManagerSettings
         .newBuilder()
         .setCredentialsProvider(credentialsProvider)
+        .setBackgroundExecutorProvider(executorProvider)
         .build()
       clusterManager <- backgroundResourceF(ClusterManagerClient.create(clusterManagerSettings))
       legacyClient <- legacyClient(pathToCredential)
