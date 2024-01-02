@@ -161,40 +161,82 @@ object GoogleComputeService {
     numOfThreads: Int = 20
   ): Resource[F, GoogleComputeService[F]] = {
     val credentialsProvider = FixedCredentialsProvider.create(googleCredentials)
-    val threadFactory = new ThreadFactoryBuilder().setNameFormat("goog-compute-%d").setDaemon(true).build()
-    val fixedExecutorProvider =
-      FixedExecutorProvider.create(new ScheduledThreadPoolExecutor(numOfThreads, threadFactory))
 
-    val instanceSettings = InstancesSettings
+    val instancesThreadFactory =
+      new ThreadFactoryBuilder().setNameFormat("goog2-compute-instances-%d").setDaemon(true).build()
+    val instancesFixedExecutorProvider =
+      FixedExecutorProvider.create(new ScheduledThreadPoolExecutor(numOfThreads, instancesThreadFactory))
+    val instancesSettings = InstancesSettings
       .newBuilder()
       .setCredentialsProvider(credentialsProvider)
-      .setBackgroundExecutorProvider(fixedExecutorProvider)
+      .setBackgroundExecutorProvider(instancesFixedExecutorProvider)
       .build()
+
+    val firewallExecutorProviderBuilder = FirewallsSettings.defaultExecutorProviderBuilder()
+    val firewallThreadFactory = new ThreadFactoryBuilder()
+      .setThreadFactory(firewallExecutorProviderBuilder.getThreadFactory)
+      .setNameFormat("goog2-compute-firewall-%d")
+      .build()
+    val firewallExecutorProvider = firewallExecutorProviderBuilder.setThreadFactory(firewallThreadFactory).build()
     val firewallSettings = FirewallsSettings
       .newBuilder()
       .setCredentialsProvider(credentialsProvider)
+      .setBackgroundExecutorProvider(firewallExecutorProvider)
       .build()
-    val zoneSettings = ZonesSettings
+
+    val zonesExecutorProviderBuilder = ZonesSettings.defaultExecutorProviderBuilder()
+    val zonesThreadFactory = new ThreadFactoryBuilder()
+      .setThreadFactory(zonesExecutorProviderBuilder.getThreadFactory)
+      .setNameFormat("goog2-compute-zones-%d")
+      .build()
+    val zonesExecutorProvider = zonesExecutorProviderBuilder.setThreadFactory(zonesThreadFactory).build()
+    val zonesSettings = ZonesSettings
       .newBuilder()
       .setCredentialsProvider(credentialsProvider)
+      .setBackgroundExecutorProvider(zonesExecutorProvider)
       .build()
+
+    val machineExecutorProviderBuilder = MachineTypesSettings.defaultExecutorProviderBuilder()
+    val machineThreadFactory = new ThreadFactoryBuilder()
+      .setThreadFactory(machineExecutorProviderBuilder.getThreadFactory)
+      .setNameFormat("goog2-compute-machine-%d")
+      .build()
+    val machineExecutorProvider = machineExecutorProviderBuilder.setThreadFactory(machineThreadFactory).build()
     val machineTypeSettings = MachineTypesSettings
       .newBuilder()
       .setCredentialsProvider(credentialsProvider)
+      .setBackgroundExecutorProvider(machineExecutorProvider)
       .build()
+
+    val networksExecutorProviderBuilder = NetworksSettings.defaultExecutorProviderBuilder()
+    val networksThreadFactory = new ThreadFactoryBuilder()
+      .setThreadFactory(networksExecutorProviderBuilder.getThreadFactory)
+      .setNameFormat("goog2-compute-networks-%d")
+      .build()
+    val networksExecutorProvider = networksExecutorProviderBuilder.setThreadFactory(networksThreadFactory).build()
     val networkSettings = NetworksSettings
       .newBuilder()
       .setCredentialsProvider(credentialsProvider)
+      .setBackgroundExecutorProvider(networksExecutorProvider)
       .build()
+
+    val subnetworksExecutorProviderBuilder = SubnetworksSettings.defaultExecutorProviderBuilder()
+    val subnetworksThreadFactory = new ThreadFactoryBuilder()
+      .setThreadFactory(subnetworksExecutorProviderBuilder.getThreadFactory)
+      .setNameFormat("goog2-compute-subnetworks-%d")
+      .build()
+    val subnetworksExecutorProvider =
+      subnetworksExecutorProviderBuilder.setThreadFactory(subnetworksThreadFactory).build()
     val subnetworkSettings = SubnetworksSettings
       .newBuilder()
       .setCredentialsProvider(credentialsProvider)
+      .setBackgroundExecutorProvider(subnetworksExecutorProvider)
       .build()
 
     for {
-      instanceClient <- backgroundResourceF(InstancesClient.create(instanceSettings))
+      instanceClient <- backgroundResourceF(InstancesClient.create(instancesSettings))
       firewallClient <- backgroundResourceF(FirewallsClient.create(firewallSettings))
-      zoneClient <- backgroundResourceF(ZonesClient.create(zoneSettings))
+      zoneClient <- backgroundResourceF(ZonesClient.create(zonesSettings))
       machineTypeClient <- backgroundResourceF(MachineTypesClient.create(machineTypeSettings))
       networkClient <- backgroundResourceF(NetworksClient.create(networkSettings))
       subnetworkClient <- backgroundResourceF(SubnetworksClient.create(subnetworkSettings))

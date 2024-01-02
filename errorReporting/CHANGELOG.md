@@ -2,6 +2,21 @@
 
 This file documents changes to the `workbench-error-reporting` library, including notes on how to upgrade to new versions.
 
+## 0.8
+
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-error-reporting" % "0.8-9bfed2d"`
+
+### Changes
+* downgraded cats_effect, and corresponding fs2
+* Named threads
+
+### Dependency upgrades
+| Dependency                    |     Old Version      |          New Version |
+|-------------------------------|:--------------------:|---------------------:|
+| cats-effect                   |         3.5.2        |               3.4.11 |
+| fs2-io                        |         3.9.3        |                3.6.1 |
+
+
 ## 0.7
 
 SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-error-reporting" % "0.7-2eac218"`
