@@ -212,7 +212,7 @@ trait GoogleUtilities extends LazyLogging with InstrumentedRetry with GoogleInst
   )(processResponse: (GoogleHttpResponse) => B)(implicit counters: GoogleCounters): B = {
     val start = System.currentTimeMillis()
     Try {
-      request.executeUnparsed()
+      request.executeUnparsed() // this is going to be under ACT in the test
     } match {
       case Success(response) =>
         logGoogleRequest(request, start, response)

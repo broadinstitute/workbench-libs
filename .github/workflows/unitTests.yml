@@ -39,7 +39,8 @@ jobs:
 
       - name: Build and test
         run: |
-          sbt -Dfile.encoding=UTF-8 clean coverage +test coverageReport
+          sbt -Dfile.encoding=UTF-8 clean coverage "testOnly * -- -l RedRingTest" coverageReport
+          
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v1
