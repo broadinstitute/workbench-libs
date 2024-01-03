@@ -1,20 +1,25 @@
 package org.broadinstitute.dsde.workbench.google
 
 import java.io.IOException
-
 import akka.actor.ActorSystem
 import akka.testkit.TestKit
+import com.google.api.client.googleapis.auth.oauth2.GoogleCredential
 import com.google.api.client.googleapis.json.GoogleJsonError.ErrorInfo
 import com.google.api.client.googleapis.json.{GoogleJsonError, GoogleJsonResponseException}
 import com.google.api.client.http._
+import com.google.api.services.pubsub.{Pubsub, PubsubScopes}
+import com.google.api.services.pubsub.model.{PublishRequest, PubsubMessage}
+import org.broadinstitute.dsde.workbench.google.GoogleCredentialModes.{httpTransport, jsonFactory}
 import org.broadinstitute.dsde.workbench.google.GoogleUtilities.RetryPredicates._
 import org.broadinstitute.dsde.workbench.metrics.{Histogram, StatsDTestUtils}
 import org.broadinstitute.dsde.workbench.util.MockitoTestUtils
-import org.scalatest.BeforeAndAfterAll
+import org.scalatest.{BeforeAndAfterAll, Tag}
 import org.scalatest.flatspec.AnyFlatSpecLike
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.concurrent.{Eventually, ScalaFutures}
 import spray.json._
+import java.lang.annotation._
+import org.scalatest.TagAnnotation
 
 import scala.jdk.CollectionConverters._
 import scala.concurrent.{ExecutionContext, ExecutionContextExecutor}
@@ -292,6 +297,43 @@ class GoogleUtilitiesSpec
       capturedMetrics should contain("test.histo.samples" -> "1")
       capturedMetrics should contain("test.histo.max" -> "4") // 4 exceptions
     }
+  }
+}
+
+object RedRing extends Tag("RedRingTest")
+
+class GoogleClientRequestSpec extends AnyFlatSpecLike with Matchers {
+  "Workbench libs" should "be able to publish to a real pubsub topic on google" taggedAs RedRing in {
+    // Arrange
+    val saToken: String = sys.env("SA_TOKEN");
+    val googleProject: String = sys.env("GOOGLE_PROJECT");
+    val pubsubTopicName: String = sys.env("STATIC_PUBSUB_TOPIC_1");
+    val appName: String = "testLibs"
+
+    val scopes: Seq[String] = PubsubScopes.all().asScala.toSeq
+    val googleCredential: GoogleCredential = GoogleCredentialModes.Token(() => saToken).toGoogleCredential(scopes)
+
+    lazy val pubSub =
+      new Pubsub.Builder(httpTransport, jsonFactory, googleCredential).setApplicationName(appName).build()
+
+    val workbenchGroupNameJson = "{ \"foo\": \"bar\" }"
+    val pubsubMessageRequests = Seq(workbenchGroupNameJson)
+    val pubsubMessages =
+      pubsubMessageRequests.map(messageRequest =>
+        new PubsubMessage()
+          .encodeData(messageRequest.getBytes("UTF-8"))
+          .setAttributes(Map[String, String]().empty.asJava)
+      )
+    val pubsubRequest = new PublishRequest().setMessages(pubsubMessages.toList.asJava)
+    val topicPath = s"projects/$googleProject/topics/$pubsubTopicName"
+    val pubsubPublishRequest: Pubsub#Projects#Topics#Publish =
+      pubSub.projects().topics().publish(topicPath, pubsubRequest)
+
+    // Act
+    val httpResponse = pubsubPublishRequest.executeUnparsed()
+
+    // Assert
+    httpResponse.getStatusCode shouldEqual 200
   }
 }
 
