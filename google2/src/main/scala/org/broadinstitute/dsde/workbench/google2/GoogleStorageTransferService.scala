@@ -3,6 +3,7 @@ package google2
 
 import cats.effect.{Resource, Sync, Temporal}
 import com.google.api.gax.core.FixedCredentialsProvider
+import com.google.api.gax.rpc.FixedTransportChannelProvider
 import com.google.auth.Credentials
 import com.google.common.util.concurrent.ThreadFactoryBuilder
 import com.google.storagetransfer.v1.proto.TransferTypes.{TransferJob, TransferOperation}
@@ -111,10 +112,13 @@ object GoogleStorageTransferService {
       .setNameFormat("goog2-storage-transfer-%d")
       .build()
     val executorProvider = executorProviderBuilder.setThreadFactory(threadFactory).build()
+    val channel = StorageTransferServiceSettings.defaultTransportChannelProvider().getTransportChannel
+    val transportChannelProvider = FixedTransportChannelProvider.create(channel)
 
     val settings = StorageTransferServiceSettings.newBuilder
       .setCredentialsProvider(FixedCredentialsProvider.create(credential))
       .setBackgroundExecutorProvider(executorProvider)
+      .setTransportChannelProvider(transportChannelProvider)
       .build
 
     Resource
