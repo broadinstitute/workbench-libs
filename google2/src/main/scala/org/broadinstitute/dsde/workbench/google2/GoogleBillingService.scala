@@ -4,6 +4,7 @@ import cats.effect.std.Semaphore
 import cats.effect.{Async, Resource}
 import cats.mtl.Ask
 import com.google.api.gax.core.FixedCredentialsProvider
+import com.google.api.gax.rpc.FixedTransportChannelProvider
 import com.google.auth.oauth2.GoogleCredentials
 import com.google.cloud.billing.v1.{CloudBillingClient, CloudBillingSettings, ProjectBillingInfo}
 import com.google.common.util.concurrent.ThreadFactoryBuilder
@@ -46,10 +47,14 @@ object GoogleBillingService {
       .build()
     val executorProvider = executorProviderBuilder.setThreadFactory(threadFactory).build()
 
+    val channel = CloudBillingSettings.defaultTransportChannelProvider().getTransportChannel
+    val transportChannelProvider = FixedTransportChannelProvider.create(channel)
+
     val billingSettings = CloudBillingSettings
       .newBuilder()
       .setCredentialsProvider(credentialsProvider)
       .setBackgroundExecutorProvider(executorProvider)
+      .setTransportChannelProvider(transportChannelProvider)
       .build()
 
     for {

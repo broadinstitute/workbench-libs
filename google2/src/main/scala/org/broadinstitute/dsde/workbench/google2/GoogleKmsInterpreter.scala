@@ -4,6 +4,7 @@ package google2
 import cats.effect.{Resource, Sync}
 import cats.syntax.all._
 import com.google.api.gax.core.FixedCredentialsProvider
+import com.google.api.gax.rpc.FixedTransportChannelProvider
 import com.google.auth.oauth2.ServiceAccountCredentials
 import com.google.cloud.kms.v1.CryptoKey.CryptoKeyPurpose
 import com.google.cloud.kms.v1._
@@ -169,6 +170,8 @@ object GoogleKmsInterpreter {
       .setNameFormat("goog2-kms-%d")
       .build()
     val executorProvider = executorProviderBuilder.setThreadFactory(threadFactory).build()
+    val channel = KeyManagementServiceSettings.defaultTransportChannelProvider().getTransportChannel
+    val transportChannelProvider = FixedTransportChannelProvider.create(channel)
 
     for {
       credentials <- org.broadinstitute.dsde.workbench.util2.readFile(pathToJson)
@@ -181,6 +184,7 @@ object GoogleKmsInterpreter {
                 FixedCredentialsProvider.create(ServiceAccountCredentials.fromStream(credentials))
               )
               .setBackgroundExecutorProvider(executorProvider)
+              .setTransportChannelProvider(transportChannelProvider)
               .build()
           )
         )

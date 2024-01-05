@@ -8,6 +8,7 @@ import cats.mtl.Ask
 import cats.syntax.all._
 import com.google.api.gax.core.{FixedCredentialsProvider, FixedExecutorProvider}
 import com.google.api.gax.longrunning.OperationFuture
+import com.google.api.gax.rpc.FixedTransportChannelProvider
 import com.google.auth.oauth2.GoogleCredentials
 import com.google.cloud.dataproc.v1.{RegionName => _, _}
 import com.google.common.util.concurrent.ThreadFactoryBuilder
@@ -118,12 +119,16 @@ object GoogleDataprocService {
     val fixedExecutorProvider =
       FixedExecutorProvider.create(new ScheduledThreadPoolExecutor(numOfThreads, threadFactory))
 
+    val channel = ClusterControllerSettings.defaultTransportChannelProvider().getTransportChannel
+    val transportChannelProvider = FixedTransportChannelProvider.create(channel)
+
     val regionalSettings = supportedRegions.toList.traverse { region =>
       val settings = ClusterControllerSettings
         .newBuilder()
         .setEndpoint(s"${region.value}-dataproc.googleapis.com:443")
         .setBackgroundExecutorProvider(fixedExecutorProvider)
         .setCredentialsProvider(FixedCredentialsProvider.create(googleCredentials))
+        .setTransportChannelProvider(transportChannelProvider)
         .build()
       backgroundResourceF(ClusterControllerClient.create(settings)).map(client => region -> client)
     }

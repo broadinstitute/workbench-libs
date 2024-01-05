@@ -4,6 +4,7 @@ import cats.effect.{Async, Resource}
 import cats.mtl.Ask
 import cats.syntax.all._
 import com.google.api.gax.core.FixedCredentialsProvider
+import com.google.api.gax.rpc.FixedTransportChannelProvider
 import com.google.auth.oauth2.ServiceAccountCredentials
 import com.google.cloud.Identity
 import com.google.cloud.pubsub.v1.{TopicAdminClient, TopicAdminSettings}
@@ -100,6 +101,8 @@ object GoogleTopicAdminInterpreter {
       .setNameFormat("goog2-topic-admin-%d")
       .build()
     val executorProvider = executorProviderBuilder.setThreadFactory(threadFactory).build()
+    val channel = TopicAdminSettings.defaultTransportChannelProvider().getTransportChannel
+    val transportChannelProvider = FixedTransportChannelProvider.create(channel)
 
     Resource.make(
       Async[F].delay(
@@ -108,6 +111,7 @@ object GoogleTopicAdminInterpreter {
             .newBuilder()
             .setCredentialsProvider(FixedCredentialsProvider.create(credential))
             .setBackgroundExecutorProvider(executorProvider)
+            .setTransportChannelProvider(transportChannelProvider)
             .build()
         )
       )

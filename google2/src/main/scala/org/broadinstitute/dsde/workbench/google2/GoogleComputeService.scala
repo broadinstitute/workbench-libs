@@ -6,10 +6,13 @@ import cats.effect._
 import cats.effect.std.Semaphore
 import cats.mtl.Ask
 import com.google.api.gax.core.{FixedCredentialsProvider, FixedExecutorProvider}
+import com.google.api.gax.grpc.GrpcTransportChannel
 import com.google.api.gax.longrunning.OperationFuture
+import com.google.api.gax.rpc.{FixedTransportChannelProvider, TransportChannel}
 import com.google.auth.oauth2.GoogleCredentials
 import com.google.cloud.compute.v1._
 import com.google.common.util.concurrent.ThreadFactoryBuilder
+import io.grpc.ManagedChannelBuilder
 import org.broadinstitute.dsde.workbench.RetryConfig
 import org.broadinstitute.dsde.workbench.google2.util.RetryPredicates
 import org.broadinstitute.dsde.workbench.model.google.GoogleProject
@@ -161,6 +164,8 @@ object GoogleComputeService {
     numOfThreads: Int = 20
   ): Resource[F, GoogleComputeService[F]] = {
     val credentialsProvider = FixedCredentialsProvider.create(googleCredentials)
+    val instancesChannel = InstancesSettings.defaultTransportChannelProvider().getTransportChannel
+    val instancesTransportChannelProvider = FixedTransportChannelProvider.create(instancesChannel)
 
     val instancesThreadFactory =
       new ThreadFactoryBuilder().setNameFormat("goog2-compute-instances-%d").setDaemon(true).build()
@@ -170,8 +175,11 @@ object GoogleComputeService {
       .newBuilder()
       .setCredentialsProvider(credentialsProvider)
       .setBackgroundExecutorProvider(instancesFixedExecutorProvider)
+      .setTransportChannelProvider(instancesTransportChannelProvider)
       .build()
 
+    val firewallChannel = FirewallsSettings.defaultTransportChannelProvider().getTransportChannel
+    val firewallTransportChannelProvider = FixedTransportChannelProvider.create(firewallChannel)
     val firewallExecutorProviderBuilder = FirewallsSettings.defaultExecutorProviderBuilder()
     val firewallThreadFactory = new ThreadFactoryBuilder()
       .setThreadFactory(firewallExecutorProviderBuilder.getThreadFactory)
@@ -182,8 +190,11 @@ object GoogleComputeService {
       .newBuilder()
       .setCredentialsProvider(credentialsProvider)
       .setBackgroundExecutorProvider(firewallExecutorProvider)
+      .setTransportChannelProvider(firewallTransportChannelProvider)
       .build()
 
+    val zonesChannel = ZonesSettings.defaultTransportChannelProvider().getTransportChannel
+    val zonesTransportChannelProvider = FixedTransportChannelProvider.create(zonesChannel)
     val zonesExecutorProviderBuilder = ZonesSettings.defaultExecutorProviderBuilder()
     val zonesThreadFactory = new ThreadFactoryBuilder()
       .setThreadFactory(zonesExecutorProviderBuilder.getThreadFactory)
@@ -194,8 +205,11 @@ object GoogleComputeService {
       .newBuilder()
       .setCredentialsProvider(credentialsProvider)
       .setBackgroundExecutorProvider(zonesExecutorProvider)
+      .setTransportChannelProvider(zonesTransportChannelProvider)
       .build()
 
+    val machineChannel = MachineTypesSettings.defaultTransportChannelProvider().getTransportChannel
+    val machineTransportChannelProvider = FixedTransportChannelProvider.create(machineChannel)
     val machineExecutorProviderBuilder = MachineTypesSettings.defaultExecutorProviderBuilder()
     val machineThreadFactory = new ThreadFactoryBuilder()
       .setThreadFactory(machineExecutorProviderBuilder.getThreadFactory)
@@ -206,8 +220,11 @@ object GoogleComputeService {
       .newBuilder()
       .setCredentialsProvider(credentialsProvider)
       .setBackgroundExecutorProvider(machineExecutorProvider)
+      .setTransportChannelProvider(machineTransportChannelProvider)
       .build()
 
+    val networksChannel = NetworksSettings.defaultTransportChannelProvider().getTransportChannel
+    val networksTransportChannelProvider = FixedTransportChannelProvider.create(networksChannel)
     val networksExecutorProviderBuilder = NetworksSettings.defaultExecutorProviderBuilder()
     val networksThreadFactory = new ThreadFactoryBuilder()
       .setThreadFactory(networksExecutorProviderBuilder.getThreadFactory)
@@ -218,8 +235,11 @@ object GoogleComputeService {
       .newBuilder()
       .setCredentialsProvider(credentialsProvider)
       .setBackgroundExecutorProvider(networksExecutorProvider)
+      .setTransportChannelProvider(networksTransportChannelProvider)
       .build()
 
+    val subnetworksChannel = SubnetworksSettings.defaultTransportChannelProvider().getTransportChannel
+    val subnetworksTransportChannelProvider = FixedTransportChannelProvider.create(subnetworksChannel)
     val subnetworksExecutorProviderBuilder = SubnetworksSettings.defaultExecutorProviderBuilder()
     val subnetworksThreadFactory = new ThreadFactoryBuilder()
       .setThreadFactory(subnetworksExecutorProviderBuilder.getThreadFactory)
@@ -231,6 +251,7 @@ object GoogleComputeService {
       .newBuilder()
       .setCredentialsProvider(credentialsProvider)
       .setBackgroundExecutorProvider(subnetworksExecutorProvider)
+      .setTransportChannelProvider(subnetworksTransportChannelProvider)
       .build()
 
     for {

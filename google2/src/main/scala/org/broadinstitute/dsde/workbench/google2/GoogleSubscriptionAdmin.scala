@@ -3,6 +3,7 @@ package org.broadinstitute.dsde.workbench.google2
 import cats.effect.{Async, Resource}
 import cats.mtl.Ask
 import com.google.api.gax.core.FixedCredentialsProvider
+import com.google.api.gax.rpc.FixedTransportChannelProvider
 import com.google.auth.oauth2.ServiceAccountCredentials
 import com.google.cloud.pubsub.v1.{SubscriptionAdminClient, SubscriptionAdminSettings}
 import com.google.common.util.concurrent.ThreadFactoryBuilder
@@ -37,6 +38,8 @@ object GoogleSubscriptionAdmin {
       .setNameFormat("goog2-sub-admin-%d")
       .build()
     val executorProvider = executorProviderBuilder.setThreadFactory(threadFactory).build()
+    val channel = SubscriptionAdminSettings.defaultTransportChannelProvider().getTransportChannel
+    val transportChannelProvider = FixedTransportChannelProvider.create(channel)
 
     for {
       client <- Resource.make(
@@ -46,6 +49,7 @@ object GoogleSubscriptionAdmin {
               .newBuilder()
               .setCredentialsProvider(FixedCredentialsProvider.create(serviceAccountCredentials))
               .setBackgroundExecutorProvider(executorProvider)
+              .setTransportChannelProvider(transportChannelProvider)
               .build()
           )
         )
