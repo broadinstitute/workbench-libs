@@ -33,7 +33,7 @@ object GoogleSubscriptionAdmin {
     serviceAccountCredentials: ServiceAccountCredentials
   ): Resource[F, GoogleSubscriptionAdmin[F]] = {
     val executorProviderBuilder = SubscriptionAdminSettings.defaultExecutorProviderBuilder()
-    val channel = SubscriptionAdminSettings.defaultTransportChannelProvider().getTransportChannel
+    val channel = SubscriptionAdminSettings.defaultTransportChannelProvider()
     val headers = SubscriptionAdminSettings.defaultApiClientHeaderProviderBuilder().build.getHeaders
 
     for {

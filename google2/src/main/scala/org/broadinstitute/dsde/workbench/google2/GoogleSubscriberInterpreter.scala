@@ -268,7 +268,7 @@ object GoogleSubscriberInterpreter {
 
   private def subscriptionAdminClientResource[F[_]: Async](credential: ServiceAccountCredentials) = {
     val executorProviderBuilder = SubscriptionAdminSettings.defaultExecutorProviderBuilder()
-    val channel = SubscriptionAdminSettings.defaultTransportChannelProvider().getTransportChannel
+    val channel = SubscriptionAdminSettings.defaultTransportChannelProvider()
     val headers = SubscriptionAdminSettings.defaultApiClientHeaderProviderBuilder().build.getHeaders
 
     for {

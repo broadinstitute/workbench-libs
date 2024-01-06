@@ -164,7 +164,7 @@ object GoogleComputeService {
     numOfThreads: Int = 20
   ): Resource[F, GoogleComputeService[F]] = {
     val credentialsProvider = FixedCredentialsProvider.create(googleCredentials)
-    val instancesChannel = InstancesSettings.defaultTransportChannelProvider().getTransportChannel
+    val instancesChannel = InstancesSettings.defaultTransportChannelProvider()
     val instancesHeaders = InstancesSettings.defaultApiClientHeaderProviderBuilder().build.getHeaders
 
     val instancesThreadFactory =
@@ -178,7 +178,7 @@ object GoogleComputeService {
       .setTransportChannelProvider(getTransportProvider(instancesChannel, instancesHeaders))
       .build()
 
-    val firewallChannel = FirewallsSettings.defaultTransportChannelProvider().getTransportChannel
+    val firewallChannel = FirewallsSettings.defaultTransportChannelProvider()
     val firewallHeaders = FirewallsSettings.defaultApiClientHeaderProviderBuilder().build.getHeaders
     val firewallExecutorProviderBuilder = FirewallsSettings.defaultExecutorProviderBuilder()
     val firewallSettings = FirewallsSettings
@@ -188,7 +188,7 @@ object GoogleComputeService {
       .setTransportChannelProvider(getTransportProvider(firewallChannel, firewallHeaders))
       .build()
 
-    val zonesChannel = ZonesSettings.defaultTransportChannelProvider().getTransportChannel
+    val zonesChannel = ZonesSettings.defaultTransportChannelProvider()
     val zonesHeaders = ZonesSettings.defaultApiClientHeaderProviderBuilder().build.getHeaders
     val zonesExecutorProviderBuilder = ZonesSettings.defaultExecutorProviderBuilder()
     val zonesSettings = ZonesSettings
@@ -198,7 +198,7 @@ object GoogleComputeService {
       .setTransportChannelProvider(getTransportProvider(zonesChannel, zonesHeaders))
       .build()
 
-    val machineChannel = MachineTypesSettings.defaultTransportChannelProvider().getTransportChannel
+    val machineChannel = MachineTypesSettings.defaultTransportChannelProvider()
     val machineHeaders = InstancesSettings.defaultApiClientHeaderProviderBuilder().build.getHeaders
     val machineExecutorProviderBuilder = MachineTypesSettings.defaultExecutorProviderBuilder()
     val machineTypeSettings = MachineTypesSettings
@@ -208,7 +208,7 @@ object GoogleComputeService {
       .setTransportChannelProvider(getTransportProvider(machineChannel, machineHeaders))
       .build()
 
-    val networksChannel = NetworksSettings.defaultTransportChannelProvider().getTransportChannel
+    val networksChannel = NetworksSettings.defaultTransportChannelProvider()
     val networksHeaders = NetworksSettings.defaultApiClientHeaderProviderBuilder().build.getHeaders
     val networksExecutorProviderBuilder = NetworksSettings.defaultExecutorProviderBuilder()
     val networkSettings = NetworksSettings
@@ -218,7 +218,7 @@ object GoogleComputeService {
       .setTransportChannelProvider(getTransportProvider(networksChannel, networksHeaders))
       .build()
 
-    val subnetworksChannel = SubnetworksSettings.defaultTransportChannelProvider().getTransportChannel
+    val subnetworksChannel = SubnetworksSettings.defaultTransportChannelProvider()
     val subnetworksHeaders = SubnetworksSettings.defaultApiClientHeaderProviderBuilder().build.getHeaders
     val subnetworksExecutorProviderBuilder = SubnetworksSettings.defaultExecutorProviderBuilder()
     val subnetworkSettings = SubnetworksSettings

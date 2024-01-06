@@ -165,7 +165,7 @@ object GoogleKmsInterpreter {
 
   def client[F[_]: Sync](pathToJson: String): Resource[F, KeyManagementServiceClient] = {
     val executorProviderBuilder = KeyManagementServiceSettings.defaultExecutorProviderBuilder()
-    val channel = KeyManagementServiceSettings.defaultTransportChannelProvider().getTransportChannel
+    val channel = KeyManagementServiceSettings.defaultTransportChannelProvider()
     val headers = KeyManagementServiceSettings.defaultApiClientHeaderProviderBuilder().build.getHeaders
 
     for {
