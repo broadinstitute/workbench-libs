@@ -41,7 +41,7 @@ object GoogleBillingService {
   ): Resource[F, GoogleBillingService[F]] = {
     val credentialsProvider = FixedCredentialsProvider.create(googleCredentials)
     val executorProviderBuilder = CloudBillingSettings.defaultExecutorProviderBuilder()
-    val channel = CloudBillingSettings.defaultTransportChannelProvider().getTransportChannel
+    val channel = CloudBillingSettings.defaultTransportChannelProvider()
     val headers = CloudBillingSettings.defaultApiClientHeaderProviderBuilder().build.getHeaders
 
     val billingSettings = CloudBillingSettings

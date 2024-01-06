@@ -74,7 +74,7 @@ object GKEService {
       credential <- credentialResource(pathToCredential.toString)
       credentialsProvider = FixedCredentialsProvider.create(credential)
       executorProviderBuilder = ClusterManagerSettings.defaultExecutorProviderBuilder()
-      channel = ClusterManagerSettings.defaultTransportChannelProvider().getTransportChannel
+      channel = ClusterManagerSettings.defaultTransportChannelProvider()
       headers = ClusterManagerSettings.defaultApiClientHeaderProviderBuilder().build.getHeaders
 
       clusterManagerSettings = ClusterManagerSettings

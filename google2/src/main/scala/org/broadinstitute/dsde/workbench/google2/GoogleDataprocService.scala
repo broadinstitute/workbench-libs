@@ -119,7 +119,7 @@ object GoogleDataprocService {
     val fixedExecutorProvider =
       FixedExecutorProvider.create(new ScheduledThreadPoolExecutor(numOfThreads, threadFactory))
 
-    val channel = ClusterControllerSettings.defaultTransportChannelProvider().getTransportChannel
+    val channel = ClusterControllerSettings.defaultTransportChannelProvider()
     val headers = ClusterControllerSettings.defaultApiClientHeaderProviderBuilder().build.getHeaders
 
     val regionalSettings = supportedRegions.toList.traverse { region =>
