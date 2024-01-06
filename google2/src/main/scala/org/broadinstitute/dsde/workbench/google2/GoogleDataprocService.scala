@@ -120,7 +120,7 @@ object GoogleDataprocService {
       FixedExecutorProvider.create(new ScheduledThreadPoolExecutor(numOfThreads, threadFactory))
 
     val channel = ClusterControllerSettings.defaultTransportChannelProvider().getTransportChannel
-    val transportChannelProvider = FixedTransportChannelProvider.create(channel)
+    val headers = ClusterControllerSettings.defaultApiClientHeaderProviderBuilder().build.getHeaders
 
     val regionalSettings = supportedRegions.toList.traverse { region =>
       val settings = ClusterControllerSettings
@@ -128,7 +128,7 @@ object GoogleDataprocService {
         .setEndpoint(s"${region.value}-dataproc.googleapis.com:443")
         .setBackgroundExecutorProvider(fixedExecutorProvider)
         .setCredentialsProvider(FixedCredentialsProvider.create(googleCredentials))
-        .setTransportChannelProvider(transportChannelProvider)
+        .setTransportChannelProvider(getTransportProvider(channel, headers))
         .build()
       backgroundResourceF(ClusterControllerClient.create(settings)).map(client => region -> client)
     }

@@ -33,13 +33,8 @@ object GoogleSubscriptionAdmin {
     serviceAccountCredentials: ServiceAccountCredentials
   ): Resource[F, GoogleSubscriptionAdmin[F]] = {
     val executorProviderBuilder = SubscriptionAdminSettings.defaultExecutorProviderBuilder()
-    val threadFactory = new ThreadFactoryBuilder()
-      .setThreadFactory(executorProviderBuilder.getThreadFactory)
-      .setNameFormat("goog2-sub-admin-%d")
-      .build()
-    val executorProvider = executorProviderBuilder.setThreadFactory(threadFactory).build()
     val channel = SubscriptionAdminSettings.defaultTransportChannelProvider().getTransportChannel
-    val transportChannelProvider = FixedTransportChannelProvider.create(channel)
+    val headers = SubscriptionAdminSettings.defaultApiClientHeaderProviderBuilder().build.getHeaders
 
     for {
       client <- Resource.make(
@@ -48,8 +43,8 @@ object GoogleSubscriptionAdmin {
             SubscriptionAdminSettings
               .newBuilder()
               .setCredentialsProvider(FixedCredentialsProvider.create(serviceAccountCredentials))
-              .setBackgroundExecutorProvider(executorProvider)
-              .setTransportChannelProvider(transportChannelProvider)
+              .setBackgroundExecutorProvider(getExecutorProvider(executorProviderBuilder, "goog2-sub-admin-%d"))
+              .setTransportChannelProvider(getTransportProvider(channel, headers))
               .build()
           )
         )
