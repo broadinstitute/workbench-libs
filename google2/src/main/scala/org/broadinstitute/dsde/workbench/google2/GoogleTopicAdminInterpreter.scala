@@ -96,13 +96,9 @@ object GoogleTopicAdminInterpreter {
     credential: ServiceAccountCredentials
   ): Resource[F, TopicAdminClient] = {
     val executorProviderBuilder = TopicAdminSettings.defaultExecutorProviderBuilder()
-    val threadFactory = new ThreadFactoryBuilder()
-      .setThreadFactory(executorProviderBuilder.getThreadFactory)
-      .setNameFormat("goog2-topic-admin-%d")
-      .build()
-    val executorProvider = executorProviderBuilder.setThreadFactory(threadFactory).build()
     val channel = TopicAdminSettings.defaultTransportChannelProvider().getTransportChannel
-    val transportChannelProvider = FixedTransportChannelProvider.create(channel)
+    val headers = TopicAdminSettings.defaultApiClientHeaderProviderBuilder().build().getHeaders
+    val transportChannelProvider = FixedTransportChannelProvider.create(channel).withHeaders(headers)
 
     Resource.make(
       Async[F].delay(
@@ -110,7 +106,7 @@ object GoogleTopicAdminInterpreter {
           TopicAdminSettings
             .newBuilder()
             .setCredentialsProvider(FixedCredentialsProvider.create(credential))
-            .setBackgroundExecutorProvider(executorProvider)
+            .setBackgroundExecutorProvider(getExecutorProvider(executorProviderBuilder, "goog2-topic-admin-%d"))
             .setTransportChannelProvider(transportChannelProvider)
             .build()
         )
