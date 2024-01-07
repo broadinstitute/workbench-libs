@@ -168,8 +168,8 @@ object GoogleKmsInterpreter {
       .setNameFormat("goog-kms-%d")
       .build()
     val executorProvider = executorProviderBuilder.setThreadFactory(threadFactory).build()
-    val channel = KeyManagementServiceSettings.defaultTransportChannelProvider().getTransportChannel
-    val transportChannelProvider = FixedTransportChannelProvider.create(channel)
+    val transportProvider =
+      KeyManagementServiceSettings.defaultTransportChannelProvider().withExecutor(executorProvider.getExecutor)
 
     for {
       credentials <- org.broadinstitute.dsde.workbench.util2.readFile(pathToJson)
@@ -182,7 +182,7 @@ object GoogleKmsInterpreter {
               .setCredentialsProvider(
                 FixedCredentialsProvider.create(ServiceAccountCredentials.fromStream(credentials))
               )
-              .setTransportChannelProvider(transportChannelProvider)
+              .setTransportChannelProvider(transportProvider)
               .build()
           )
         )

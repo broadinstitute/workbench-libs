@@ -268,9 +268,9 @@ object GoogleSubscriberInterpreter {
 
   private def subscriptionAdminClientResource[F[_]: Async](credential: ServiceAccountCredentials) = {
     val executorProviderBuilder = SubscriptionAdminSettings.defaultExecutorProviderBuilder()
-    val channel = SubscriptionAdminSettings.defaultTransportChannelProvider()
-    val headers = SubscriptionAdminSettings.defaultApiClientHeaderProviderBuilder().build.getHeaders
-
+    val executorProvider = getExecutorProvider(executorProviderBuilder, "goog2-sub-%d")
+    val transportProvider =
+      SubscriptionAdminSettings.defaultTransportChannelProvider().withExecutor(executorProvider.getExecutor)
     for {
       client <- Resource.make[F, SubscriptionAdminClient](
         Async[F].delay(
@@ -278,8 +278,8 @@ object GoogleSubscriberInterpreter {
             SubscriptionAdminSettings
               .newBuilder()
               .setCredentialsProvider(FixedCredentialsProvider.create(credential))
-              .setBackgroundExecutorProvider(getExecutorProvider(executorProviderBuilder, "goog2-sub-%d"))
-              .setTransportChannelProvider(getTransportProvider(channel, headers))
+              .setBackgroundExecutorProvider(executorProvider)
+              .setTransportChannelProvider(transportProvider)
               .build()
           )
         )

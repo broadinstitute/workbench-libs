@@ -74,14 +74,15 @@ object GKEService {
       credential <- credentialResource(pathToCredential.toString)
       credentialsProvider = FixedCredentialsProvider.create(credential)
       executorProviderBuilder = ClusterManagerSettings.defaultExecutorProviderBuilder()
-      channel = ClusterManagerSettings.defaultTransportChannelProvider()
-      headers = ClusterManagerSettings.defaultApiClientHeaderProviderBuilder().build.getHeaders
+      executorProvider = getExecutorProvider(executorProviderBuilder, "goog2-cluster-manager-%d")
+      transportProvider =
+        ClusterManagerSettings.defaultTransportChannelProvider().withExecutor(executorProvider.getExecutor)
 
       clusterManagerSettings = ClusterManagerSettings
         .newBuilder()
         .setCredentialsProvider(credentialsProvider)
-        .setBackgroundExecutorProvider(getExecutorProvider(executorProviderBuilder, "goog2-cluster-manager-%d"))
-        .setTransportChannelProvider(getTransportProvider(channel, headers))
+        .setBackgroundExecutorProvider(executorProvider)
+        .setTransportChannelProvider(transportProvider)
         .build()
       clusterManager <- backgroundResourceF(ClusterManagerClient.create(clusterManagerSettings))
       legacyClient <- legacyClient(pathToCredential)

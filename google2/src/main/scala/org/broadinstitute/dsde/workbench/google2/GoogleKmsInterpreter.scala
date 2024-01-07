@@ -165,8 +165,9 @@ object GoogleKmsInterpreter {
 
   def client[F[_]: Sync](pathToJson: String): Resource[F, KeyManagementServiceClient] = {
     val executorProviderBuilder = KeyManagementServiceSettings.defaultExecutorProviderBuilder()
-    val channel = KeyManagementServiceSettings.defaultTransportChannelProvider()
-    val headers = KeyManagementServiceSettings.defaultApiClientHeaderProviderBuilder().build.getHeaders
+    val executorProvider = getExecutorProvider(executorProviderBuilder, "goog2-kms-%d")
+    val transportProvider =
+      KeyManagementServiceSettings.defaultTransportChannelProvider().withExecutor(executorProvider.getExecutor)
 
     for {
       credentials <- org.broadinstitute.dsde.workbench.util2.readFile(pathToJson)
@@ -179,7 +180,7 @@ object GoogleKmsInterpreter {
                 FixedCredentialsProvider.create(ServiceAccountCredentials.fromStream(credentials))
               )
               .setBackgroundExecutorProvider(getExecutorProvider(executorProviderBuilder, "goog2-kms-%d"))
-              .setTransportChannelProvider(getTransportProvider(channel, headers))
+              .setTransportChannelProvider(transportProvider)
               .build()
           )
         )
