@@ -104,8 +104,15 @@ object GoogleStorageTransferService {
     F: Sync[F] with Temporal[F],
     logger: StructuredLogger[F]
   ): Resource[F, GoogleStorageTransferService[F]] = {
+    val executorProviderBuilder = StorageTransferServiceSettings.defaultExecutorProviderBuilder()
+    val executorProvider = getExecutorProvider(executorProviderBuilder, "goog2-storage-transfer-%d")
+    val transportProvider =
+      StorageTransferServiceSettings.defaultTransportChannelProvider().withExecutor(executorProvider.getExecutor)
+
     val settings = StorageTransferServiceSettings.newBuilder
       .setCredentialsProvider(FixedCredentialsProvider.create(credential))
+      .setBackgroundExecutorProvider(executorProvider)
+      .setTransportChannelProvider(transportProvider)
       .build
 
     Resource

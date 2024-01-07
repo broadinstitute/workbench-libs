@@ -3,9 +3,11 @@ package org.broadinstitute.dsde.workbench.google
 import cats.effect.{Resource, Sync}
 import cats.syntax.all._
 import com.google.api.gax.core.FixedCredentialsProvider
+import com.google.api.gax.rpc.FixedTransportChannelProvider
 import com.google.auth.oauth2.ServiceAccountCredentials
 import com.google.cloud.kms.v1.CryptoKey.CryptoKeyPurpose
 import com.google.cloud.kms.v1._
+import com.google.common.util.concurrent.ThreadFactoryBuilder
 import com.google.iam.v1.{Binding, Policy}
 import com.google.protobuf.{Duration, Timestamp}
 import org.broadinstitute.dsde.workbench.model.google.GoogleProject
@@ -159,7 +161,16 @@ object GoogleKmsInterpreter {
   def apply[F[_]: Sync](client: KeyManagementServiceClient): GoogleKmsInterpreter[F] =
     new GoogleKmsInterpreter[F](client)
 
-  def client[F[_]: Sync](pathToJson: String): Resource[F, KeyManagementServiceClient] =
+  def client[F[_]: Sync](pathToJson: String): Resource[F, KeyManagementServiceClient] = {
+    val executorProviderBuilder = KeyManagementServiceSettings.defaultExecutorProviderBuilder()
+    val threadFactory = new ThreadFactoryBuilder()
+      .setThreadFactory(executorProviderBuilder.getThreadFactory)
+      .setNameFormat("goog-kms-%d")
+      .build()
+    val executorProvider = executorProviderBuilder.setThreadFactory(threadFactory).build()
+    val transportProvider =
+      KeyManagementServiceSettings.defaultTransportChannelProvider().withExecutor(executorProvider.getExecutor)
+
     for {
       credentials <- org.broadinstitute.dsde.workbench.util2.readFile(pathToJson)
       client <- Resource.make[F, KeyManagementServiceClient](
@@ -167,12 +178,15 @@ object GoogleKmsInterpreter {
           KeyManagementServiceClient.create(
             KeyManagementServiceSettings
               .newBuilder()
+              .setBackgroundExecutorProvider(executorProvider)
               .setCredentialsProvider(
                 FixedCredentialsProvider.create(ServiceAccountCredentials.fromStream(credentials))
               )
+              .setTransportChannelProvider(transportProvider)
               .build()
           )
         )
       )(client => Sync[F].delay(client.close()))
     } yield client
+  }
 }

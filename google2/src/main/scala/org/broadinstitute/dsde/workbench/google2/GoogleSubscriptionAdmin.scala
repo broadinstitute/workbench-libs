@@ -3,8 +3,10 @@ package org.broadinstitute.dsde.workbench.google2
 import cats.effect.{Async, Resource}
 import cats.mtl.Ask
 import com.google.api.gax.core.FixedCredentialsProvider
+import com.google.api.gax.rpc.FixedTransportChannelProvider
 import com.google.auth.oauth2.ServiceAccountCredentials
 import com.google.cloud.pubsub.v1.{SubscriptionAdminClient, SubscriptionAdminSettings}
+import com.google.common.util.concurrent.ThreadFactoryBuilder
 import com.google.pubsub.v1.{ProjectSubscriptionName, Subscription}
 import fs2.Stream
 import org.broadinstitute.dsde.workbench.model.TraceId
@@ -29,7 +31,11 @@ object GoogleSubscriptionAdmin {
 
   def fromServiceAccountCredential[F[_]: StructuredLogger: Async](
     serviceAccountCredentials: ServiceAccountCredentials
-  ): Resource[F, GoogleSubscriptionAdmin[F]] =
+  ): Resource[F, GoogleSubscriptionAdmin[F]] = {
+    val executorProviderBuilder = SubscriptionAdminSettings.defaultExecutorProviderBuilder()
+    val executorProvider = getExecutorProvider(executorProviderBuilder, "goog2-sub-admin-%d")
+    val transportProvider =
+      SubscriptionAdminSettings.defaultTransportChannelProvider().withExecutor(executorProvider.getExecutor)
     for {
       client <- Resource.make(
         Async[F].delay(
@@ -37,9 +43,12 @@ object GoogleSubscriptionAdmin {
             SubscriptionAdminSettings
               .newBuilder()
               .setCredentialsProvider(FixedCredentialsProvider.create(serviceAccountCredentials))
+              .setBackgroundExecutorProvider(executorProvider)
+              .setTransportChannelProvider(transportProvider)
               .build()
           )
         )
       )(client => Async[F].delay(client.shutdown()))
     } yield new GoogleSubscriptionAdminInterpreter[F](client)
+  }
 }
