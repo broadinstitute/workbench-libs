@@ -48,14 +48,14 @@ object ErrorReporting {
       .setNameFormat("error-reporting-%d")
       .build()
     val executorProvider = executorProviderBuilder.setThreadFactory(threadFactory).build()
+    val transportProvider =
+      ReportErrorsServiceSettings.defaultTransportChannelProvider().withExecutor(executorProvider.getExecutor)
 
-    val channel = ReportErrorsServiceSettings.defaultTransportChannelProvider().getTransportChannel
-    val transportChannelProvider = FixedTransportChannelProvider.create(channel)
     val settings = ReportErrorsServiceSettings
       .newBuilder()
       .setCredentialsProvider(FixedCredentialsProvider.create(credentials))
       .setBackgroundExecutorProvider(executorProvider)
-      .setTransportChannelProvider(transportChannelProvider)
+      .setTransportChannelProvider(transportProvider)
       .build()
     Resource
       .make[F, ReportErrorsServiceClient](F.delay(ReportErrorsServiceClient.create(settings)))(c => F.delay(c.close()))

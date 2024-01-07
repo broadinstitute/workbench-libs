@@ -41,14 +41,15 @@ object GoogleBillingService {
   ): Resource[F, GoogleBillingService[F]] = {
     val credentialsProvider = FixedCredentialsProvider.create(googleCredentials)
     val executorProviderBuilder = CloudBillingSettings.defaultExecutorProviderBuilder()
-    val channel = CloudBillingSettings.defaultTransportChannelProvider()
-    val headers = CloudBillingSettings.defaultApiClientHeaderProviderBuilder().build.getHeaders
+    val executorProvider = getExecutorProvider(executorProviderBuilder, "goog2-billing-%d")
+    val transportProvider =
+      CloudBillingSettings.defaultTransportChannelProvider().withExecutor(executorProvider.getExecutor)
 
     val billingSettings = CloudBillingSettings
       .newBuilder()
       .setCredentialsProvider(credentialsProvider)
-      .setBackgroundExecutorProvider(getExecutorProvider(executorProviderBuilder, "goog2-billing-%d"))
-      .setTransportChannelProvider(getTransportProvider(channel, headers))
+      .setBackgroundExecutorProvider(executorProvider)
+      .setTransportChannelProvider(transportProvider)
       .build()
 
     for {
