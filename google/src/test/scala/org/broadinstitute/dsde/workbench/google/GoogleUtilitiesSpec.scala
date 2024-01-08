@@ -308,6 +308,7 @@ class GoogleClientRequestSpec extends AnyFlatSpecLike with Matchers {
     val saToken: String = sys.env("SA_TOKEN");
     val googleProject: String = sys.env("GOOGLE_PROJECT");
     val pubsubTopicName: String = sys.env("STATIC_PUBSUB_TOPIC_1");
+    val pubsubSubscriptionName: String = sys.env("STATIC_PUBSUB_SUBSCRIPTION_1");
     val appName: String = "testLibs"
 
     val scopes: Seq[String] = PubsubScopes.all().asScala.toSeq
@@ -328,12 +329,21 @@ class GoogleClientRequestSpec extends AnyFlatSpecLike with Matchers {
     val topicPath = s"projects/$googleProject/topics/$pubsubTopicName"
     val pubsubPublishRequest: Pubsub#Projects#Topics#Publish =
       pubSub.projects().topics().publish(topicPath, pubsubRequest)
+    
+    // Read Subscription Setup
+      val pullRequest = new PullRequest()
+        .setReturnImmediately(true)
+        .setMaxMessages(1)
+      val SubscriptionPath = s"projects/$googleProject/subscriptions/$pubsubSubscriptionName"
+      val pubsubReadRequest = pubSub.projects().subscriptions().pull(subscriptionPath, pullRequest)
 
     // Act
-    val httpResponse = pubsubPublishRequest.executeUnparsed()
+    val httpPublishResponse = pubsubPublishRequest.executeUnparsed()
+    val httpReadResponse = pubsubReadRequest.executeUnparsed()
 
     // Assert
-    httpResponse.getStatusCode shouldEqual 200
+    httpPublishResponse.getStatusCode shouldEqual 200
+    httpReadResponse.getStatusCode shouldEqual 200
   }
 }
 
