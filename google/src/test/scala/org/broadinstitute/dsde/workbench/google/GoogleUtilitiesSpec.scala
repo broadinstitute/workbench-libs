@@ -8,7 +8,7 @@ import com.google.api.client.googleapis.json.GoogleJsonError.ErrorInfo
 import com.google.api.client.googleapis.json.{GoogleJsonError, GoogleJsonResponseException}
 import com.google.api.client.http._
 import com.google.api.services.pubsub.{Pubsub, PubsubScopes}
-import com.google.api.services.pubsub.model.{PublishRequest, PubsubMessage}
+import com.google.api.services.pubsub.model.{PublishRequest, PullRequest, PubsubMessage}
 import org.broadinstitute.dsde.workbench.google.GoogleCredentialModes.{httpTransport, jsonFactory}
 import org.broadinstitute.dsde.workbench.google.GoogleUtilities.RetryPredicates._
 import org.broadinstitute.dsde.workbench.metrics.{Histogram, StatsDTestUtils}
@@ -334,7 +334,7 @@ class GoogleClientRequestSpec extends AnyFlatSpecLike with Matchers {
       val pullRequest = new PullRequest()
         .setReturnImmediately(true)
         .setMaxMessages(1)
-      val SubscriptionPath = s"projects/$googleProject/subscriptions/$pubsubSubscriptionName"
+      val subscriptionPath = s"projects/$googleProject/subscriptions/$pubsubSubscriptionName"
       val pubsubReadRequest = pubSub.projects().subscriptions().pull(subscriptionPath, pullRequest)
 
     // Act
