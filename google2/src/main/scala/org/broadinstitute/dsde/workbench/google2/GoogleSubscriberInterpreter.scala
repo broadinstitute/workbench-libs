@@ -185,7 +185,8 @@ object GoogleSubscriberInterpreter {
     val threadFactory = new ThreadFactoryBuilder().setNameFormat("goog-subscriber-%d").setDaemon(true).build()
     val fixedExecutorProvider =
       FixedExecutorProvider.create(new ScheduledThreadPoolExecutor(numOfThreads, threadFactory))
-    val transportChannelProvider = SubscriptionAdminSettings.defaultTransportChannelProvider().withExecutor(fixedExecutorProvider.getExecutor)
+    val transportChannelProvider =
+      SubscriptionAdminSettings.defaultTransportChannelProvider().withExecutor(fixedExecutorProvider.getExecutor)
 
     val subscriber = for {
       builder <- Async[F].blocking(

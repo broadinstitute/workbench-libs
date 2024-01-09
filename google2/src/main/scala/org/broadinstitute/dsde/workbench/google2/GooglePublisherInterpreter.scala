@@ -123,7 +123,8 @@ object GooglePublisherInterpreter {
     val threadFactory = new ThreadFactoryBuilder().setNameFormat("goog-publisher-%d").setDaemon(true).build()
     val fixedExecutorProvider =
       FixedExecutorProvider.create(new ScheduledThreadPoolExecutor(numOfThreads, threadFactory))
-    val transportChannelProvider = TopicAdminSettings.defaultTransportChannelProvider().withExecutor(fixedExecutorProvider.getExecutor)
+    val transportChannelProvider =
+      TopicAdminSettings.defaultTransportChannelProvider().withExecutor(fixedExecutorProvider.getExecutor)
 
     Resource.make(
       Sync[F].delay(
