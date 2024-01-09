@@ -8,7 +8,6 @@ import com.google.api.client.json.jackson2.JacksonFactory
 import com.google.api.gax.core.FixedCredentialsProvider
 import com.google.api.services.container.Container
 import com.google.cloud.container.v1.{ClusterManagerClient, ClusterManagerSettings}
-import com.google.common.util.concurrent.ThreadFactoryBuilder
 import com.google.container.v1.{Cluster, NodePool, NodePoolAutoscaling, Operation}
 import fs2.Stream
 
