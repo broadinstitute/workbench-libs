@@ -7,8 +7,6 @@ import cats.syntax.all._
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential
 import com.google.api.core.ApiFutureCallback
 import com.google.api.gax.core.{BackgroundResource, InstantiatingExecutorProvider}
-import com.google.api.gax.grpc.GrpcTransportChannel
-import com.google.api.gax.rpc.{FixedTransportChannelProvider, TransportChannel, TransportChannelProvider}
 import com.google.api.services.container.ContainerScopes
 import com.google.auth.oauth2.{ServiceAccountCredentials, UserCredentials}
 import com.google.cloud.billing.v1.ProjectBillingInfo

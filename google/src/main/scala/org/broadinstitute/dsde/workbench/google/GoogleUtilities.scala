@@ -7,9 +7,6 @@ import com.google.api.client.googleapis.services.AbstractGoogleClientRequest
 import com.google.api.client.http.{HttpResponseException => GoogleHttpResponseException}
 import com.google.api.client.http.{HttpResponse => GoogleHttpResponse}
 import com.google.api.client.http.json.JsonHttpContent
-import com.google.api.gax.core.InstantiatingExecutorProvider
-import com.google.api.gax.rpc.{FixedTransportChannelProvider, TransportChannel}
-import com.google.common.util.concurrent.ThreadFactoryBuilder
 import com.typesafe.scalalogging.LazyLogging
 import net.logstash.logback.argument.StructuredArguments
 import org.broadinstitute.dsde.workbench.metrics.GoogleInstrumented.GoogleCounters
@@ -17,7 +14,6 @@ import org.broadinstitute.dsde.workbench.metrics.{GoogleInstrumented, Histogram,
 import org.broadinstitute.dsde.workbench.model.ErrorReport
 import spray.json.{JsValue, RootJsonFormat}
 
-import java.util.Map
 import scala.jdk.CollectionConverters._
 import scala.concurrent._
 import scala.util.{Failure, Success, Try}

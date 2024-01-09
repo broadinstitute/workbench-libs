@@ -3,7 +3,6 @@ package org.broadinstitute.dsde.workbench.errorReporting
 import java.nio.file.Path
 import cats.effect.{Resource, Sync}
 import com.google.api.gax.core.FixedCredentialsProvider
-import com.google.api.gax.rpc.FixedTransportChannelProvider
 import com.google.auth.oauth2.{GoogleCredentials, ServiceAccountCredentials}
 import com.google.common.util.concurrent.ThreadFactoryBuilder
 import com.google.devtools.clouderrorreporting.v1beta1.{

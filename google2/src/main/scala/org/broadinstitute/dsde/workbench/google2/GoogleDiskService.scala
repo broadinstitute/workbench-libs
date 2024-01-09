@@ -5,7 +5,6 @@ import cats.effect.{Async, Resource}
 import cats.mtl.Ask
 import com.google.api.gax.core.{FixedCredentialsProvider, FixedExecutorProvider}
 import com.google.api.gax.longrunning.OperationFuture
-import com.google.api.gax.rpc.FixedTransportChannelProvider
 import com.google.auth.oauth2.GoogleCredentials
 import com.google.cloud.compute.v1._
 import com.google.common.util.concurrent.ThreadFactoryBuilder

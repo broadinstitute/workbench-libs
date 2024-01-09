@@ -4,11 +4,9 @@ package google2
 import cats.effect.{Resource, Sync}
 import cats.syntax.all._
 import com.google.api.gax.core.FixedCredentialsProvider
-import com.google.api.gax.rpc.FixedTransportChannelProvider
 import com.google.auth.oauth2.ServiceAccountCredentials
 import com.google.cloud.kms.v1.CryptoKey.CryptoKeyPurpose
 import com.google.cloud.kms.v1._
-import com.google.common.util.concurrent.ThreadFactoryBuilder
 import com.google.iam.v1.{Binding, Policy}
 import com.google.protobuf.{Duration, Timestamp}
 import org.broadinstitute.dsde.workbench.model.google.GoogleProject
@@ -179,7 +177,7 @@ object GoogleKmsInterpreter {
               .setCredentialsProvider(
                 FixedCredentialsProvider.create(ServiceAccountCredentials.fromStream(credentials))
               )
-              .setBackgroundExecutorProvider(getExecutorProvider(executorProviderBuilder, "goog2-kms-%d"))
+              .setBackgroundExecutorProvider(executorProvider)
               .setTransportChannelProvider(transportProvider)
               .build()
           )

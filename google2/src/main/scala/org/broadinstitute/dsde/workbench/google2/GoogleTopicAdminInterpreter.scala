@@ -4,11 +4,9 @@ import cats.effect.{Async, Resource}
 import cats.mtl.Ask
 import cats.syntax.all._
 import com.google.api.gax.core.FixedCredentialsProvider
-import com.google.api.gax.rpc.FixedTransportChannelProvider
 import com.google.auth.oauth2.ServiceAccountCredentials
 import com.google.cloud.Identity
 import com.google.cloud.pubsub.v1.{TopicAdminClient, TopicAdminSettings}
-import com.google.common.util.concurrent.ThreadFactoryBuilder
 import com.google.iam.v1.{Binding, GetIamPolicyRequest, Policy, SetIamPolicyRequest}
 import com.google.pubsub.v1.{ProjectName, Topic, TopicName}
 import fs2.Stream
