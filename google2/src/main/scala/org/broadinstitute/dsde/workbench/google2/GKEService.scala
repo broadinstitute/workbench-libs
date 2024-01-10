@@ -8,7 +8,6 @@ import com.google.api.client.json.jackson2.JacksonFactory
 import com.google.api.gax.core.FixedCredentialsProvider
 import com.google.api.services.container.Container
 import com.google.cloud.container.v1.{ClusterManagerClient, ClusterManagerSettings}
-import com.google.common.util.concurrent.ThreadFactoryBuilder
 import com.google.container.v1.{Cluster, NodePool, NodePoolAutoscaling, Operation}
 import fs2.Stream
 
@@ -73,16 +72,15 @@ object GKEService {
       credential <- credentialResource(pathToCredential.toString)
       credentialsProvider = FixedCredentialsProvider.create(credential)
       executorProviderBuilder = ClusterManagerSettings.defaultExecutorProviderBuilder()
-      threadFactory = new ThreadFactoryBuilder()
-        .setThreadFactory(executorProviderBuilder.getThreadFactory)
-        .setNameFormat("goog2-cluster-manager-%d")
-        .build()
-      executorProvider = executorProviderBuilder.setThreadFactory(threadFactory).build()
+      executorProvider = getExecutorProvider(executorProviderBuilder, "goog2-cluster-manager-%d")
+      transportProvider =
+        ClusterManagerSettings.defaultTransportChannelProvider().withExecutor(executorProvider.getExecutor)
 
       clusterManagerSettings = ClusterManagerSettings
         .newBuilder()
         .setCredentialsProvider(credentialsProvider)
         .setBackgroundExecutorProvider(executorProvider)
+        .setTransportChannelProvider(transportProvider)
         .build()
       clusterManager <- backgroundResourceF(ClusterManagerClient.create(clusterManagerSettings))
       legacyClient <- legacyClient(pathToCredential)

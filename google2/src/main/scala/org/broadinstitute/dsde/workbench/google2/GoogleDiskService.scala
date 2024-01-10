@@ -66,10 +66,14 @@ object GoogleDiskService {
     val fixedExecutorProvider =
       FixedExecutorProvider.create(new ScheduledThreadPoolExecutor(numOfThreads, threadFactory))
 
+    val transportProvider =
+      DisksSettings.defaultTransportChannelProvider().withExecutor(fixedExecutorProvider.getExecutor)
+
     val diskSettings = DisksSettings
       .newBuilder()
       .setCredentialsProvider(credentialsProvider)
       .setBackgroundExecutorProvider(fixedExecutorProvider)
+      .setTransportChannelProvider(transportProvider)
       .build()
 
     for {

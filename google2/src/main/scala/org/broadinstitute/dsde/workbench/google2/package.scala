@@ -6,12 +6,13 @@ import cats.mtl.Ask
 import cats.syntax.all._
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential
 import com.google.api.core.ApiFutureCallback
-import com.google.api.gax.core.BackgroundResource
+import com.google.api.gax.core.{BackgroundResource, InstantiatingExecutorProvider}
 import com.google.api.services.container.ContainerScopes
 import com.google.auth.oauth2.{ServiceAccountCredentials, UserCredentials}
 import com.google.cloud.billing.v1.ProjectBillingInfo
 import com.google.cloud.compute.v1.Operation
 import com.google.cloud.resourcemanager.Project
+import com.google.common.util.concurrent.ThreadFactoryBuilder
 import fs2.{RaiseThrowable, Stream}
 import io.circe.Encoder
 import org.broadinstitute.dsde.workbench.DoneCheckableSyntax._
@@ -19,6 +20,7 @@ import org.broadinstitute.dsde.workbench.model.{ErrorReportSource, TraceId, Work
 import org.broadinstitute.dsde.workbench.util2.withLogging
 import org.typelevel.log4cats.StructuredLogger
 
+import java.util.Map
 import scala.concurrent.duration._
 
 package object google2 {
@@ -136,6 +138,19 @@ package object google2 {
 
   implicit val showProject: Show[Option[Project]] =
     Show.show[Option[Project]](project => s"project name: ${project.map(_.getName)}")
+
+  def getExecutorProvider[F[_]](builder: InstantiatingExecutorProvider.Builder,
+                                name: String
+  ): InstantiatingExecutorProvider = {
+    val threadFactory = new ThreadFactoryBuilder()
+      .setThreadFactory(builder.getThreadFactory)
+      .setNameFormat(name)
+      .build()
+
+    builder.setThreadFactory(threadFactory).build()
+
+  }
+
 }
 
 final case class StreamTimeoutError(override val getMessage: String) extends WorkbenchException

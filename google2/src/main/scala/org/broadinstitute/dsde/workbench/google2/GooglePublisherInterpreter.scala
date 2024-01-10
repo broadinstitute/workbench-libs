@@ -7,7 +7,7 @@ import com.google.api.core.ApiFutures
 import com.google.api.gax.core.{FixedCredentialsProvider, FixedExecutorProvider}
 import com.google.api.gax.rpc.AlreadyExistsException
 import com.google.auth.oauth2.ServiceAccountCredentials
-import com.google.cloud.pubsub.v1.{Publisher, TopicAdminClient}
+import com.google.cloud.pubsub.v1.{Publisher, TopicAdminClient, TopicAdminSettings}
 import com.google.common.util.concurrent.{MoreExecutors, ThreadFactoryBuilder}
 import com.google.protobuf.ByteString
 import com.google.pubsub.v1.{ProjectTopicName, PubsubMessage, TopicName}
@@ -123,6 +123,9 @@ object GooglePublisherInterpreter {
     val threadFactory = new ThreadFactoryBuilder().setNameFormat("goog-publisher-%d").setDaemon(true).build()
     val fixedExecutorProvider =
       FixedExecutorProvider.create(new ScheduledThreadPoolExecutor(numOfThreads, threadFactory))
+    // Using TopicAdminSettings here since there aren't equivalent publisher settings and its being used with the topicAdmin
+    val transportChannelProvider =
+      TopicAdminSettings.defaultTransportChannelProvider().withExecutor(fixedExecutorProvider.getExecutor)
 
     Resource.make(
       Sync[F].delay(
@@ -130,6 +133,7 @@ object GooglePublisherInterpreter {
           .newBuilder(topicName)
           .setExecutorProvider(fixedExecutorProvider)
           .setCredentialsProvider(FixedCredentialsProvider.create(credential))
+          .setChannelProvider(transportChannelProvider)
           .build()
       )
     )(p => Sync[F].delay(p.shutdown()))
