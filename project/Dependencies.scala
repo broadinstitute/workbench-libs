@@ -118,6 +118,7 @@ object Dependencies {
     "com.azure.resourcemanager" % "azure-resourcemanager-applicationinsights" % "1.0.0"
   val azureResourceManagerBatchAccount =
     "com.azure.resourcemanager" % "azure-resourcemanager-batch" % "1.0.0"
+  val azureServiceBus = "com.azure" % "azure-messaging-servicebus" % "7.14.7"
 
   val commonDependencies = Seq(
     jose4j,
@@ -216,7 +217,11 @@ object Dependencies {
     azureResourceManagerContainerService,
     kubernetesClient,
     azureResourceManagerApplicationInsights,
-    azureResourceManagerBatchAccount
+    azureResourceManagerBatchAccount,
+    azureServiceBus,
+    scalaTestMockito,
+    scalatest,
+    circeGeneric
   ) ++ Seq(
     "net.minidev" % "json-smart" % jsonSmartV
   )

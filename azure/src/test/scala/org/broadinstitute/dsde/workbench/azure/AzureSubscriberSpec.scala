@@ -1,0 +1,66 @@
+package org.broadinstitute.dsde.workbench.azure
+
+import cats.effect.std.Queue
+import cats.effect.unsafe.implicits.global
+import cats.effect.{IO, Resource}
+import cats.mtl.Ask
+import com.azure.core.util.BinaryData
+import com.azure.messaging.servicebus.ServiceBusReceivedMessage
+import org.broadinstitute.dsde.workbench.model.TraceId
+import org.broadinstitute.dsde.workbench.util2.{ConsoleLogger, LogLevel}
+import org.mockito.Mockito._
+import org.scalatest.BeforeAndAfterEach
+import org.scalatest.flatspec.AnyFlatSpecLike
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.time.SpanSugar.convertIntToGrainOfTime
+import org.scalatestplus.mockito.MockitoSugar
+import reactor.core.publisher.Flux
+
+import scala.util.Try
+
+class AzureSubscriberSpec extends AnyFlatSpecLike with MockitoSugar with Matchers with BeforeAndAfterEach  {
+  var mockReceiverClient : AzureServiceBusReceiverClientWrapper = _
+  implicit val logger: ConsoleLogger = new ConsoleLogger("unit_test", LogLevel(enableDebug = false, enableTrace = false, enableInfo = true, enableWarn = true))
+  implicit val traceIdAsk: Ask[IO, TraceId] = Ask.const[IO, TraceId](TraceId("TRACE-ID"))
+  override def beforeEach(): Unit = {
+    super.beforeEach()
+    mockReceiverClient = mock[AzureServiceBusReceiverClientWrapper]
+  }
+
+  // Okay, using the last resort approach to create a received message: reflection
+  // This is because ServiceBusReceivedMessage is a final class and cannot be mocked, even when mockito is configured to mock final classes
+  // and the SDK does not provide a factory to create a received message
+  def createServiceBusReceivedMessageUsingReflection(body: String) : ServiceBusReceivedMessage = {
+    val clazz = classOf[ServiceBusReceivedMessage]
+    val constructor = clazz.getDeclaredConstructor(classOf[BinaryData])
+    constructor.setAccessible(true)
+    constructor.newInstance(BinaryData.fromString(body))
+  }
+
+  "AzureSubscriber" should "receive a string message successfully" in {
+    //val queue = Queue.unbounded[IO, AzureEvent[String]].unsafeRunSync()
+    val receivedMessage = createServiceBusReceivedMessageUsingReflection("test")
+
+    // Mock the messages received from the service bus
+    val messagesFlux = Flux.just(receivedMessage)
+    when(mockReceiverClient.receiveMessagesAsync()).thenReturn(messagesFlux)
+
+    // Create and use the subscriber
+    val res = for {
+      queue <- Queue.unbounded[IO, AzureEvent[String]]
+      _ <- AzureSubscriberInterpreter.stringSubscriber[IO](mockReceiverClient, queue).use { sub =>
+        sub.start
+      }
+      messageOrTimeout <- IO.race(queue.take, IO.sleep(3.seconds))
+    } yield messageOrTimeout
+
+    // Run the test and verify the results
+    val testResult = Try {
+      res.unsafeRunSync() match {
+        case Left(message) => println(s"Received message: $message")
+        case Right(_)      => println("Timeout reached without receiving a message")
+      }
+    }
+    testResult should be a Symbol("success")
+  }
+}
