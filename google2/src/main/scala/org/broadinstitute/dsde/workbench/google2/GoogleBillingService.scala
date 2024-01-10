@@ -6,7 +6,6 @@ import cats.mtl.Ask
 import com.google.api.gax.core.FixedCredentialsProvider
 import com.google.auth.oauth2.GoogleCredentials
 import com.google.cloud.billing.v1.{CloudBillingClient, CloudBillingSettings, ProjectBillingInfo}
-import com.google.common.util.concurrent.ThreadFactoryBuilder
 import org.broadinstitute.dsde.workbench.model.TraceId
 import org.broadinstitute.dsde.workbench.model.google.GoogleProject
 import org.typelevel.log4cats.StructuredLogger
@@ -40,16 +39,15 @@ object GoogleBillingService {
   ): Resource[F, GoogleBillingService[F]] = {
     val credentialsProvider = FixedCredentialsProvider.create(googleCredentials)
     val executorProviderBuilder = CloudBillingSettings.defaultExecutorProviderBuilder()
-    val threadFactory = new ThreadFactoryBuilder()
-      .setThreadFactory(executorProviderBuilder.getThreadFactory)
-      .setNameFormat("goog2-billing-%d")
-      .build()
-    val executorProvider = executorProviderBuilder.setThreadFactory(threadFactory).build()
+    val executorProvider = getExecutorProvider(executorProviderBuilder, "goog2-billing-%d")
+    val transportProvider =
+      CloudBillingSettings.defaultTransportChannelProvider().withExecutor(executorProvider.getExecutor)
 
     val billingSettings = CloudBillingSettings
       .newBuilder()
       .setCredentialsProvider(credentialsProvider)
       .setBackgroundExecutorProvider(executorProvider)
+      .setTransportChannelProvider(transportProvider)
       .build()
 
     for {
