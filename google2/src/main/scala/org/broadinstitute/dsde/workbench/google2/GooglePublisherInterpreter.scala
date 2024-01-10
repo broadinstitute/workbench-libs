@@ -123,6 +123,7 @@ object GooglePublisherInterpreter {
     val threadFactory = new ThreadFactoryBuilder().setNameFormat("goog-publisher-%d").setDaemon(true).build()
     val fixedExecutorProvider =
       FixedExecutorProvider.create(new ScheduledThreadPoolExecutor(numOfThreads, threadFactory))
+    // Using TopicAdminSettings here since there aren't equivalent publisher settings and its being used with the topicAdmin
     val transportChannelProvider =
       TopicAdminSettings.defaultTransportChannelProvider().withExecutor(fixedExecutorProvider.getExecutor)
 
