@@ -48,13 +48,12 @@ class AzureSubscriberSpec extends AnyFlatSpecLike with MockitoSugar with Matcher
     val messagesFlux = Flux.just(receivedMessage)
     when(mockReceiverClient.receiveMessagesAsync()).thenReturn(messagesFlux)
 
-
     val res = for {
       queue <- Queue.unbounded[IO, AzureEvent[String]]
-      _ <- AzureSubscriberInterpreter.stringSubscriber[IO](mockReceiverClient, queue).use (sub =>
-        sub.start)
-      _  <- queue.take
-  } yield ()//IO.race(queue.take, IO.sleep(3.seconds))
+      _ <- AzureSubscriberInterpreter.stringSubscriber(mockReceiverClient, queue).use(sub => sub.start)
+      a <- queue.take
+      _ = println(a)
+    } yield () // IO.race(queue.take, IO.sleep(3.seconds))
 
     res.unsafeRunSync()
 
