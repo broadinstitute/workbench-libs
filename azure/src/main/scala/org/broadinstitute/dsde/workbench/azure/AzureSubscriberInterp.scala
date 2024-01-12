@@ -134,7 +134,7 @@ class JsonDecoderMessageHandler[MessageType: Decoder] extends MessageHandler[Mes
       case Right(json) =>
         Decoder[MessageType].decodeJson(json) match {
           case Right(decodedData) =>
-            val timestamp: Timestamp = ServiceBusMessageUtils.getEnqueuedTimeOrDefault(message)
+            val timestamp = ServiceBusMessageUtils.getEnqueuedTimeOrDefault(message)
             val traceId = ServiceBusMessageUtils.getTraceIdFromCorrelationId(message)
             Right(AzureEvent(decodedData, traceId, timestamp))
           case Left(err) =>
