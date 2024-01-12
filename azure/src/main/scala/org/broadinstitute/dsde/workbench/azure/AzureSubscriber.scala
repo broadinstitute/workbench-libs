@@ -1,12 +1,13 @@
 package org.broadinstitute.dsde.workbench.azure
 
-import cats.effect.{Async, Resource}
 import cats.effect.std.Queue
+import cats.effect.{Async, Resource}
 import fs2.Stream
 import io.circe.Decoder
 import org.broadinstitute.dsde.workbench.model.TraceId
 import org.typelevel.log4cats.StructuredLogger
-import com.google.protobuf.Timestamp
+
+import java.time.Instant
 
 trait AzureSubscriber[F[_], A] {
   def messages: Stream[F, AzureEvent[A]]
@@ -30,7 +31,7 @@ object AzureSubscriber {
 }
 
 //using google protobuf Timestamp for consistency
-final case class AzureEvent[A](msg: A, traceId: Option[TraceId], publishedTime: Timestamp)
+final case class AzureEvent[A](msg: A, traceId: Option[TraceId], publishedTime: Option[Instant])
 final case class AzureServiceBusSubscriberConfig(
                                                   topicName: String,
                                                   subscriptionName: String,
