@@ -1,7 +1,7 @@
 package org.broadinstitute.dsde.workbench.azure
 
 import cats.effect._
-import cats.effect.unsafe.implicits.global
+import cats.effect.std.Dispatcher
 import cats.implicits._
 import com.azure.messaging.servicebus.ServiceBusReceivedMessage
 import com.google.protobuf.Timestamp
@@ -13,7 +13,8 @@ import reactor.core.Disposable
 private[azure] class AzureSubscriberInterpreter[F[_], MessageType](
   clientWrapper: AzureServiceBusReceiverClientWrapper,
   queue: cats.effect.std.Queue[F, AzureEvent[MessageType]],
-  messageHandler: MessageHandler[MessageType]
+  messageHandler: MessageHandler[MessageType],
+  dispatcher: Dispatcher[F]
 )(implicit F: Async[F], logger: StructuredLogger[F])
     extends AzureSubscriber[F, MessageType] {
   private var subscription: Option[Disposable] = None
@@ -21,41 +22,22 @@ private[azure] class AzureSubscriberInterpreter[F[_], MessageType](
   override def messages: fs2.Stream[F, AzureEvent[MessageType]] = fs2.Stream.fromQueueUnterminated(queue)
 
   override def start: F[Unit] = F.async[Unit] { callback =>
-    F.delay {
-       clientWrapper
+    F.delay(
+      clientWrapper
         .receiveMessagesAsync()
         .subscribe(
-            (message: ServiceBusReceivedMessage) => {
+          (message: ServiceBusReceivedMessage) => {
             val loggingContext = Map("traceId" -> Option(message.getCorrelationId).getOrElse("None"))
 
             messageHandler.handleMessage(message) match {
               case Right(value) =>
-                 for {
+                val enqueue = for {
                   _ <- logger.info(loggingContext)(s"Subscriber Successfully received $message.")
                   _ <- queue.offer(value)
                   _ <- F.delay(clientWrapper.complete(message))
                   _ <- F.delay(callback(Right(())))
                 } yield ()
-
-//                logger.info(loggingContext)(s"Subscriber Successfully received $message.")
-//                IO(queue.offer(value)).unsafeRunAsync(_ => ())
-
-//                try
-//                  for {
-//                    r <- IO(queue.offer(value))
-//                    _ <- r match {
-//                      case Left(e) =>
-//                        logger.info(loggingContext)(s"Subscriber fail to enqueue $message due to $e")
-//                      case Right(_) =>
-//                        clientWrapper.complete(message)
-//                        callback(Right(()))
-//                        logger.info(loggingContext)(s"Subscriber Successfully received $message.")
-//                    }
-//                  } yield ()
-//                catch {
-//                  case e: Exception =>
-//                    logger.error(loggingContext)(s"Subscriber failed to complete $message due to ${e.getMessage}")
-//                }
+                dispatcher.unsafeRunSync(enqueue)
               case Left(exception) =>
                 logger.error(loggingContext)(s"Subscriber failed to process $message due to ${exception.getMessage}")
                 clientWrapper.abandon(message)
@@ -67,8 +49,7 @@ private[azure] class AzureSubscriberInterpreter[F[_], MessageType](
             callback(Left(failure))
           }
         )
-     // subscription = Some(disposable)
-    }.as(None)
+    ).as(None)
   }
 
   override def stop: F[Unit] = F.delay {
@@ -86,30 +67,35 @@ object AzureSubscriberInterpreter {
   def subscriber[F[_], MessageType: io.circe.Decoder](
     clientWrapper: AzureServiceBusReceiverClientWrapper,
     queue: cats.effect.std.Queue[F, AzureEvent[MessageType]]
-  )(implicit F: Async[F], logger: StructuredLogger[F]): cats.effect.Resource[F, AzureSubscriber[F, MessageType]] = {
+  )(implicit F: Async[F], logger: StructuredLogger[F]): cats.effect.Resource[F, AzureSubscriber[F, MessageType]] =
+    for {
+      dispatcher <- Dispatcher.sequential[F]
+      messageHandler = new JsonDecoderMessageHandler[MessageType]
 
-    val messageHandler = new JsonDecoderMessageHandler[MessageType]
+      subscriberInterp = new AzureSubscriberInterpreter(clientWrapper, queue, messageHandler, dispatcher)
 
-    val subscriber = new AzureSubscriberInterpreter(clientWrapper, queue, messageHandler)
+      sub <- Resource.make(F.pure(subscriberInterp))(_ => subscriberInterp.stop)
+    } yield sub
 
-    Resource.pure(subscriber)
-  }
   def subscriber[F[_], MessageType: io.circe.Decoder](
     config: AzureServiceBusSubscriberConfig,
     queue: cats.effect.std.Queue[F, AzureEvent[MessageType]]
   )(implicit F: Async[F], logger: StructuredLogger[F]): cats.effect.Resource[F, AzureSubscriber[F, MessageType]] =
     subscriber(AzureServiceBusReceiverClientWrapper.createReceiverClientWrapper(config), queue)
-  def stringSubscriber[F[_]: Async](
+
+  def stringSubscriber[F[_]](
     clientWrapper: AzureServiceBusReceiverClientWrapper,
     queue: cats.effect.std.Queue[F, AzureEvent[String]]
-  )(implicit logger: StructuredLogger[F]): cats.effect.Resource[F, AzureSubscriber[F, String]] = {
+  )(implicit F: Async[F], logger: StructuredLogger[F]): cats.effect.Resource[F, AzureSubscriber[F, String]] =
+    for {
+      dispatcher <- Dispatcher.sequential[F]
+      messageHandler = new StringMessageHandler()
 
-    val messageHandler = new StringMessageHandler()
+      subscriber = new AzureSubscriberInterpreter[F, String](clientWrapper, queue, messageHandler, dispatcher)
 
-    val subscriber = new AzureSubscriberInterpreter(clientWrapper, queue, messageHandler)
+      sub <- Resource.make(F.pure(subscriber))(_ => subscriber.stop)
+    } yield sub
 
-    Resource.pure(subscriber)
-  }
   def stringSubscriber[F[_]](
     config: AzureServiceBusSubscriberConfig,
     queue: cats.effect.std.Queue[F, AzureEvent[String]]
