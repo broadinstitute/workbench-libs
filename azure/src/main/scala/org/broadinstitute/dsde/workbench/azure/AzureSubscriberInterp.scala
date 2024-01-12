@@ -4,7 +4,6 @@ import cats.effect._
 import cats.effect.std.Dispatcher
 import cats.implicits._
 import com.azure.messaging.servicebus.ServiceBusReceivedMessage
-import com.google.protobuf.Timestamp
 import io.circe.Decoder
 import io.circe.parser.parse
 import org.typelevel.log4cats.StructuredLogger
@@ -17,38 +16,65 @@ private[azure] class AzureSubscriberInterpreter[F[_], MessageType](
   dispatcher: Dispatcher[F]
 )(implicit F: Async[F], logger: StructuredLogger[F])
     extends AzureSubscriber[F, MessageType] {
-  private var subscription: Option[Disposable] = None
+//  private var subscription: Option[Disposable] = ???
 
   override def messages: fs2.Stream[F, AzureEvent[MessageType]] = fs2.Stream.fromQueueUnterminated(queue)
 
-  private def setSubscription(disposable: Disposable): Unit =
-    subscription = Option(disposable)
+//  private def setSubscription(disposable: Disposable): Unit =
+//    subscription = Option(disposable)
 
-  override def start: F[Unit] = F.async[Unit] { callback =>
+//  override def initSubscriber: Resource[F, Disposable] = Resource.make(F.async[Disposable] { callback =>
+//    F.delay(
+//        // The client returns a Flux<ServiceBusReceivedMessage>, a subscription
+//        // to the flux is functionally equivalent to starting a background message pump.
+//        // The subscription returns a Disposable, which can be used to stop the processing.
+//        clientWrapper
+//          .receiveMessagesAsync()
+//          .subscribe(
+//            (message: ServiceBusReceivedMessage) => handleMessage(callback, message),
+//            (failure: Throwable) => handleReceiveError(callback, failure)
+//          )
+//    ).as(None)
+//  })(_ => F.unit)
+
+  override def start: F[Unit] = F.unit // TODO: remove
+
+  def initSubscription: Resource[F, Disposable] = Resource.make(
     F.delay(
-      setSubscription(
-        // The client returns a Flux<ServiceBusReceivedMessage>, a subscription
-        // to the flux is functionally equivalent to starting a background message pump.
-        // The subscription returns a Disposable, which can be used to stop the processing.
-        clientWrapper
-          .receiveMessagesAsync()
-          .subscribe(
-            (message: ServiceBusReceivedMessage) => handleMessage(callback, message),
-            (failure: Throwable) => handleReceiveError(callback, failure)
-          )
-      )
-    ).as(None)
-  }
+      clientWrapper
+        .receiveMessagesAsync()
+        .subscribe(
+          (message: ServiceBusReceivedMessage) => handleMessage(message),
+          (failure: Throwable) => handleReceiveError(failure)
+        )
+    )
+  )(d => F.delay(d.dispose()))
 
-  private def handleReceiveError(callback: Either[Throwable, Unit] => Unit, failure: Throwable): Unit = {
+//    F.async[Unit] { callback =>
+//    F.delay(
+//      setSubscription(
+//        // The client returns a Flux<ServiceBusReceivedMessage>, a subscription
+//        // to the flux is functionally equivalent to starting a background message pump.
+//        // The subscription returns a Disposable, which can be used to stop the processing.
+//        clientWrapper
+//          .receiveMessagesAsync()
+//          .subscribe(
+//            (message: ServiceBusReceivedMessage) => handleMessage(callback, message),
+//            (failure: Throwable) => handleReceiveError(callback, failure)
+//          )
+//      )
+//    ).as(None)
+//  }
+
+  private def handleReceiveError(failure: Throwable): Unit = {
     val handleError = for {
       _ <- logger.error(s"Error in message subscription: ${failure.getMessage}")
-      _ <- F.delay(callback(Left(failure)))
+//      _ <- F.delay(callback(Left(failure)))
     } yield ()
     dispatcher.unsafeRunSync(handleError)
   }
 
-  private def handleMessage(callback: Either[Throwable, Unit] => Unit, message: ServiceBusReceivedMessage): Unit = {
+  private def handleMessage(message: ServiceBusReceivedMessage): Unit = {
     val loggingContext = Map("traceId" -> Option(message.getCorrelationId).getOrElse("None"))
 
     messageHandler.handleMessage(message) match {
@@ -57,14 +83,14 @@ private[azure] class AzureSubscriberInterpreter[F[_], MessageType](
           _ <- logger.info(loggingContext)(s"Subscriber Successfully received $message.")
           _ <- queue.offer(value)
           _ <- F.delay(clientWrapper.complete(message))
-          _ <- F.delay(callback(Right(())))
+//          _ <- F.delay(callback(Right(())))
         } yield ()
         dispatcher.unsafeRunSync(enqueue)
       case Left(exception) =>
         val handleError = for {
           _ <- logger.error(loggingContext)(s"Subscriber failed to process $message due to ${exception.getMessage}")
           _ <- F.delay(clientWrapper.abandon(message))
-          _ <- F.delay(callback(Left(exception)))
+//          _ <- F.delay(callback(Left(exception)))
         } yield ()
         dispatcher.unsafeRunSync(handleError)
     }
@@ -73,10 +99,6 @@ private[azure] class AzureSubscriberInterpreter[F[_], MessageType](
   override def stop: F[Unit] = F.delay {
     // Stop processor and dispose when done processing messages.
     clientWrapper.close()
-
-    if (subscription.isDefined) {
-      subscription.get.dispose()
-    }
   }
 }
 
@@ -93,6 +115,7 @@ object AzureSubscriberInterpreter {
       subscriberInterp = new AzureSubscriberInterpreter(clientWrapper, queue, messageHandler, dispatcher)
 
       sub <- Resource.make(F.pure(subscriberInterp))(_ => subscriberInterp.stop)
+      _ <- subscriberInterp.initSubscription
     } yield sub
 
   def subscriber[F[_], MessageType: io.circe.Decoder](
