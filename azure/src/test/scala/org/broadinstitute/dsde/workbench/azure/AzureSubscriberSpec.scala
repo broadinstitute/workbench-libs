@@ -32,7 +32,6 @@ class AzureSubscriberSpec extends AnyFlatSpecLike with MockitoSugar with Matcher
     mockReceiverClient = mock[AzureServiceBusReceiverClientWrapper]
   }
 
-
   "AzureSubscriberInterpreter" should "receive a string message successfully" in {
     val receivedMessage = createServiceBusReceivedMessageUsingReflection("test")
 
@@ -51,8 +50,8 @@ class AzureSubscriberSpec extends AnyFlatSpecLike with MockitoSugar with Matcher
     testResult match {
       case Success(Left(message)) =>
         message shouldEqual AzureEvent("test", None, ServiceBusMessageUtils.getEnqueuedTimeOrDefault(receivedMessage))
-      case Success(Right(_))      => fail("Timeout reached without receiving a message")
-      case Failure(exception)     => fail(exception)
+      case Success(Right(_))  => fail("Timeout reached without receiving a message")
+      case Failure(exception) => fail(exception)
     }
   }
 
@@ -66,8 +65,14 @@ class AzureSubscriberSpec extends AnyFlatSpecLike with MockitoSugar with Matcher
       queue <- Resource.eval(Queue.unbounded[IO, AzureEvent[String]])
       subs <- AzureSubscriberInterpreter.stringSubscriber[IO](mockReceiverClient, queue)
       _ <- Resource.eval(subs.start)
-      resultList <- Resource.eval(subs.messages
-        .take(1).compile.toList.timeout(3.seconds).attempt)
+      resultList <- Resource.eval(
+        subs.messages
+          .take(1)
+          .compile
+          .toList
+          .timeout(3.seconds)
+          .attempt
+      )
     } yield resultList
 
     val result = res.use(_.pure[IO]).unsafeRunSync()
@@ -93,8 +98,14 @@ class AzureSubscriberSpec extends AnyFlatSpecLike with MockitoSugar with Matcher
       queue <- Resource.eval(Queue.unbounded[IO, AzureEvent[String]])
       subs <- AzureSubscriberInterpreter.stringSubscriber[IO](mockReceiverClient, queue)
       _ <- Resource.eval(subs.start)
-      resultList <- Resource.eval(subs.messages
-        .take(3).compile.toList.timeout(3.seconds).attempt)
+      resultList <- Resource.eval(
+        subs.messages
+          .take(3)
+          .compile
+          .toList
+          .timeout(3.seconds)
+          .attempt
+      )
     } yield resultList
 
     val result = res.use(_.pure[IO]).unsafeRunSync()
@@ -116,10 +127,16 @@ class AzureSubscriberSpec extends AnyFlatSpecLike with MockitoSugar with Matcher
 
     val res = for {
       queue <- Resource.eval(Queue.unbounded[IO, AzureEvent[TestMessage]])
-      subs <- AzureSubscriberInterpreter.subscriber[IO,TestMessage](mockReceiverClient, queue)
+      subs <- AzureSubscriberInterpreter.subscriber[IO, TestMessage](mockReceiverClient, queue)
       _ <- Resource.eval(subs.start)
-      resultList <- Resource.eval(subs.messages
-        .take(1).compile.toList.timeout(3.seconds).attempt)
+      resultList <- Resource.eval(
+        subs.messages
+          .take(1)
+          .compile
+          .toList
+          .timeout(3.seconds)
+          .attempt
+      )
     } yield resultList
 
     val result = res.use(_.pure[IO]).unsafeRunSync()

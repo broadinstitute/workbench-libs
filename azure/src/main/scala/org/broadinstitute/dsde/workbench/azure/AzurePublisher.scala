@@ -11,22 +11,22 @@ import org.typelevel.log4cats.StructuredLogger
 
 trait AzurePublisher[F[_]] {
 
-    def publish[MessageType: Encoder]: Pipe[F, MessageType, Unit]
+  def publish[MessageType: Encoder]: Pipe[F, MessageType, Unit]
 
-    def publishNative: Pipe[F, ServiceBusMessage, Unit]
+  def publishNative: Pipe[F, ServiceBusMessage, Unit]
 
-    def publishNativeOne(message: ServiceBusMessage): F[Unit]
+  def publishNativeOne(message: ServiceBusMessage): F[Unit]
 
-    def publishOne[MessageType: Encoder](message: MessageType)(implicit ev: Ask[F, TraceId]): F[Unit]
+  def publishOne[MessageType: Encoder](message: MessageType)(implicit ev: Ask[F, TraceId]): F[Unit]
 
-    def publishString: Pipe[F, String, Unit]
+  def publishString: Pipe[F, String, Unit]
 
 }
 
 object AzurePublisher {
   def resource[F[_]: Async: StructuredLogger](
-                                               clientWrapper: AzureServiceBusSenderClientWrapper
-                                             ): Resource[F, AzurePublisher[F]] =
+    clientWrapper: AzureServiceBusSenderClientWrapper
+  ): Resource[F, AzurePublisher[F]] =
     AzurePublisherInterpreter.publisher(clientWrapper)
 }
 

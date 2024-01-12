@@ -21,22 +21,22 @@ private[azure] class AzureSubscriberInterpreter[F[_], MessageType](
 
   override def messages: fs2.Stream[F, AzureEvent[MessageType]] = fs2.Stream.fromQueueUnterminated(queue)
 
-  private def setSubscription(disposable: Disposable): Unit = {
-      subscription = Option(disposable)
-  }
+  private def setSubscription(disposable: Disposable): Unit =
+    subscription = Option(disposable)
 
   override def start: F[Unit] = F.async[Unit] { callback =>
     F.delay(
-      setSubscription(clientWrapper
-        .receiveMessagesAsync()
-        .subscribe(
-          (message: ServiceBusReceivedMessage) => {
-            handleMessage(callback, message)
-          },
-          (failure: Throwable) => {
-            handleReceiveError(callback, failure)
-          }
-        ))
+      setSubscription(
+        // The client returns a Flux<ServiceBusReceivedMessage>, a subscription
+        // to the flux is functionally equivalent to starting a background message pump.
+        // The subscription returns a Disposable, which can be used to stop the processing.
+        clientWrapper
+          .receiveMessagesAsync()
+          .subscribe(
+            (message: ServiceBusReceivedMessage) => handleMessage(callback, message),
+            (failure: Throwable) => handleReceiveError(callback, failure)
+          )
+      )
     ).as(None)
   }
 
