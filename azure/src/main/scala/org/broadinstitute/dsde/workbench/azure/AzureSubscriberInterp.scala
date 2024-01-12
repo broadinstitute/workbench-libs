@@ -21,35 +21,53 @@ private[azure] class AzureSubscriberInterpreter[F[_], MessageType](
 
   override def messages: fs2.Stream[F, AzureEvent[MessageType]] = fs2.Stream.fromQueueUnterminated(queue)
 
+  private def setSubscription(disposable: Disposable): Unit = {
+      subscription = Option(disposable)
+  }
+
   override def start: F[Unit] = F.async[Unit] { callback =>
     F.delay(
-      clientWrapper
+      setSubscription(clientWrapper
         .receiveMessagesAsync()
         .subscribe(
           (message: ServiceBusReceivedMessage) => {
-            val loggingContext = Map("traceId" -> Option(message.getCorrelationId).getOrElse("None"))
-
-            messageHandler.handleMessage(message) match {
-              case Right(value) =>
-                val enqueue = for {
-                  _ <- logger.info(loggingContext)(s"Subscriber Successfully received $message.")
-                  _ <- queue.offer(value)
-                  _ <- F.delay(clientWrapper.complete(message))
-                  _ <- F.delay(callback(Right(())))
-                } yield ()
-                dispatcher.unsafeRunSync(enqueue)
-              case Left(exception) =>
-                logger.error(loggingContext)(s"Subscriber failed to process $message due to ${exception.getMessage}")
-                clientWrapper.abandon(message)
-                callback(Left(exception))
-            }
+            handleMessage(callback, message)
           },
           (failure: Throwable) => {
-            logger.error(s"Error in message subscription: ${failure.getMessage}")
-            callback(Left(failure))
+            handleReceiveError(callback, failure)
           }
-        )
+        ))
     ).as(None)
+  }
+
+  private def handleReceiveError(callback: Either[Throwable, Unit] => Unit, failure: Throwable): Unit = {
+    val handleError = for {
+      _ <- logger.error(s"Error in message subscription: ${failure.getMessage}")
+      _ <- F.delay(callback(Left(failure)))
+    } yield ()
+    dispatcher.unsafeRunSync(handleError)
+  }
+
+  private def handleMessage(callback: Either[Throwable, Unit] => Unit, message: ServiceBusReceivedMessage): Unit = {
+    val loggingContext = Map("traceId" -> Option(message.getCorrelationId).getOrElse("None"))
+
+    messageHandler.handleMessage(message) match {
+      case Right(value) =>
+        val enqueue = for {
+          _ <- logger.info(loggingContext)(s"Subscriber Successfully received $message.")
+          _ <- queue.offer(value)
+          _ <- F.delay(clientWrapper.complete(message))
+          _ <- F.delay(callback(Right(())))
+        } yield ()
+        dispatcher.unsafeRunSync(enqueue)
+      case Left(exception) =>
+        val handleError = for {
+          _ <- logger.error(loggingContext)(s"Subscriber failed to process $message due to ${exception.getMessage}")
+          _ <- F.delay(clientWrapper.abandon(message))
+          _ <- F.delay(callback(Left(exception)))
+        } yield ()
+        dispatcher.unsafeRunSync(handleError)
+    }
   }
 
   override def stop: F[Unit] = F.delay {

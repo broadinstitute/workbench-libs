@@ -1,12 +1,12 @@
 package org.broadinstitute.dsde.workbench.azure
 
+import cats.effect.{IO, Resource}
 import cats.effect.std.Queue
 import cats.effect.unsafe.implicits.global
-import cats.effect.{IO, Resource}
+import cats.implicits.catsSyntaxApplicativeId
 import cats.mtl.Ask
 import com.azure.core.util.BinaryData
 import com.azure.messaging.servicebus.ServiceBusReceivedMessage
-import com.google.protobuf.Timestamp
 import org.broadinstitute.dsde.workbench.model.TraceId
 import org.broadinstitute.dsde.workbench.util2.{ConsoleLogger, LogLevel}
 import org.mockito.Mockito._
@@ -16,8 +16,9 @@ import org.scalatest.matchers.should.Matchers
 import org.scalatest.time.SpanSugar.convertIntToGrainOfTime
 import org.scalatestplus.mockito.MockitoSugar
 import reactor.core.publisher.Flux
+import io.circe.generic.auto._
 
-import scala.util.Try
+import scala.util.{Failure, Success, Try}
 
 class AzureSubscriberSpec extends AnyFlatSpecLike with MockitoSugar with Matchers with BeforeAndAfterEach {
   var mockReceiverClient: AzureServiceBusReceiverClientWrapper = _
@@ -31,6 +32,106 @@ class AzureSubscriberSpec extends AnyFlatSpecLike with MockitoSugar with Matcher
     mockReceiverClient = mock[AzureServiceBusReceiverClientWrapper]
   }
 
+
+  "AzureSubscriberInterpreter" should "receive a string message successfully" in {
+    val receivedMessage = createServiceBusReceivedMessageUsingReflection("test")
+
+    val messagesFlux = Flux.just(receivedMessage)
+    when(mockReceiverClient.receiveMessagesAsync()).thenReturn(messagesFlux)
+
+    val res = for {
+      queue <- Queue.unbounded[IO, AzureEvent[String]]
+      _ <- AzureSubscriberInterpreter.stringSubscriber[IO](mockReceiverClient, queue).use(sub => sub.start)
+      // Wait for a message or timeout after 3 seconds
+      messageOrTimeout <- IO.race(queue.take, IO.sleep(3.seconds))
+    } yield messageOrTimeout
+
+    val testResult = Try(res.unsafeRunSync())
+
+    testResult match {
+      case Success(Left(message)) =>
+        message shouldEqual AzureEvent("test", None, ServiceBusMessageUtils.getEnqueuedTimeOrDefault(receivedMessage))
+      case Success(Right(_))      => fail("Timeout reached without receiving a message")
+      case Failure(exception)     => fail(exception)
+    }
+  }
+
+  "AzureSubscriberInterpreter" should "receive a string message and publish it to stream successfully" in {
+    val receivedMessage = createServiceBusReceivedMessageUsingReflection("test")
+
+    val messagesFlux = Flux.just(receivedMessage)
+    when(mockReceiverClient.receiveMessagesAsync()).thenReturn(messagesFlux)
+
+    val res = for {
+      queue <- Resource.eval(Queue.unbounded[IO, AzureEvent[String]])
+      subs <- AzureSubscriberInterpreter.stringSubscriber[IO](mockReceiverClient, queue)
+      _ <- Resource.eval(subs.start)
+      resultList <- Resource.eval(subs.messages
+        .take(1).compile.toList.timeout(3.seconds).attempt)
+    } yield resultList
+
+    val result = res.use(_.pure[IO]).unsafeRunSync()
+
+    result match {
+      case Right(list) =>
+        list should have size 1
+      case Left(ex) =>
+        fail(s"An exception occurred: ${ex.getMessage}")
+    }
+  }
+
+  "AzureSubscriberInterpreter" should "receive multiple string messages and publish them to stream successfully" in {
+    val msg1 = createServiceBusReceivedMessageUsingReflection("msg1")
+    val msg2 = createServiceBusReceivedMessageUsingReflection("msg2")
+    val msg3 = createServiceBusReceivedMessageUsingReflection("msg3")
+
+    val messagesFlux = Flux.just(msg1, msg2, msg3)
+    when(mockReceiverClient.receiveMessagesAsync()).thenReturn(messagesFlux)
+    when(mockReceiverClient.receiveMessagesAsync()).thenReturn(messagesFlux)
+
+    val res = for {
+      queue <- Resource.eval(Queue.unbounded[IO, AzureEvent[String]])
+      subs <- AzureSubscriberInterpreter.stringSubscriber[IO](mockReceiverClient, queue)
+      _ <- Resource.eval(subs.start)
+      resultList <- Resource.eval(subs.messages
+        .take(3).compile.toList.timeout(3.seconds).attempt)
+    } yield resultList
+
+    val result = res.use(_.pure[IO]).unsafeRunSync()
+
+    result match {
+      case Right(list) =>
+        list should have size 3
+      case Left(ex) =>
+        fail(s"An exception occurred: ${ex.getMessage}")
+    }
+  }
+
+  "AzureSubscriberInterpreter" should "receive a json message and publish them to stream successfully" in {
+    val msg1 = createServiceBusReceivedMessageUsingReflection("""{"name":"Foo","description":"Bar"}""")
+
+    val messagesFlux = Flux.just(msg1)
+    when(mockReceiverClient.receiveMessagesAsync()).thenReturn(messagesFlux)
+    when(mockReceiverClient.receiveMessagesAsync()).thenReturn(messagesFlux)
+
+    val res = for {
+      queue <- Resource.eval(Queue.unbounded[IO, AzureEvent[TestMessage]])
+      subs <- AzureSubscriberInterpreter.subscriber[IO,TestMessage](mockReceiverClient, queue)
+      _ <- Resource.eval(subs.start)
+      resultList <- Resource.eval(subs.messages
+        .take(1).compile.toList.timeout(3.seconds).attempt)
+    } yield resultList
+
+    val result = res.use(_.pure[IO]).unsafeRunSync()
+
+    result match {
+      case Right(list) =>
+        list should have size 1
+      case Left(ex) =>
+        fail(s"An exception occurred: ${ex.getMessage}")
+    }
+  }
+
   // Okay, using the last resort approach to create a received message: reflection
   // This is because ServiceBusReceivedMessage is a final class and cannot be mocked, even when mockito is configured to mock final classes
   // and the SDK does not provide a factory to create a received message
@@ -39,67 +140,5 @@ class AzureSubscriberSpec extends AnyFlatSpecLike with MockitoSugar with Matcher
     val constructor = clazz.getDeclaredConstructor(classOf[BinaryData])
     constructor.setAccessible(true)
     constructor.newInstance(BinaryData.fromString(body))
-  }
-
-  "AzureSubscriber" should "receive a string message successfully" in {
-    val receivedMessage = createServiceBusReceivedMessageUsingReflection("test")
-
-    // Mock the messages received from the service bus
-    val messagesFlux = Flux.just(receivedMessage)
-    when(mockReceiverClient.receiveMessagesAsync()).thenReturn(messagesFlux)
-
-    val res = for {
-      queue <- Queue.unbounded[IO, AzureEvent[String]]
-      _ <- AzureSubscriberInterpreter.stringSubscriber(mockReceiverClient, queue).use(sub => sub.start)
-      a <- queue.take
-      _ = println(a)
-    } yield () // IO.race(queue.take, IO.sleep(3.seconds))
-
-    res.unsafeRunSync()
-
-    // queue.offer(AzureEvent("test",None,Timestamp.getDefaultInstance)).unsafeRunSync()
-
-    // val x = queue.take.unsafeRunSync()
-
-    // val res1 =  IO.race(queue.take, IO.sleep(3.seconds)).unsafeRunSync()
-
-//    res match {
-//      case Left(message) => println(s"Received message: $message")
-//      case Right(_)      => println("Timeout reached without receiving a message")
-//    }
-
-    // Run the test and verify the results
-//    val testResult = Try {
-//      res.unsafeRunSync() match {
-//        case Left(message) => println(s"Received message: $message")
-//        case Right(_)      => println("Timeout reached without receiving a message")
-//      }
-//    }
-    // testResult should be a Symbol("success")
-    // res.unsafeRunSync() should be a Symbol("success")
-  }
-
-  "AzureSubscriber" should "simple dequeue" in {
-
-    val items = Flux.just("hello", "world", "!")
-
-    val queue: Queue[IO, String] = Queue.unbounded[IO, String].unsafeRunSync()
-
-    items.subscribe((item: String) => queue.offer(item).unsafeRunAsync(c => println(s"Completed: $c")),
-                    (error: Throwable) => println(s"Error: $error")
-    )
-
-    val program: IO[Unit] = for {
-
-      // Read the event from the queue
-      dequeuedEvent <- queue.take
-
-      // Do something with the dequeued event
-      _ = println(dequeuedEvent)
-
-    } yield ()
-
-    // Run the program
-    program.unsafeRunSync()
   }
 }
