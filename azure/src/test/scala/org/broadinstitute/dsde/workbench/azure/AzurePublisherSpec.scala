@@ -1,6 +1,5 @@
 package org.broadinstitute.dsde.workbench.azure
 
-
 import cats.effect.IO
 import cats.effect.unsafe.implicits.global
 import cats.mtl.Ask
@@ -21,10 +20,13 @@ import reactor.core.publisher.Mono
 import scala.jdk.CollectionConverters._
 import scala.util.Try
 
-class AzurePublisherSpec extends AnyFlatSpecLike with MockitoSugar with Matchers with BeforeAndAfterEach  {
+class AzurePublisherSpec extends AnyFlatSpecLike with MockitoSugar with Matchers with BeforeAndAfterEach {
 
-  var mockSenderClient : AzureServiceBusSenderClientWrapper = _
-  implicit val logger: ConsoleLogger = new ConsoleLogger("unit_test", LogLevel(enableDebug = false, enableTrace = false, enableInfo = true, enableWarn = true))
+  var mockSenderClient: AzureServiceBusSenderClientWrapper = _
+  implicit val logger: ConsoleLogger = new ConsoleLogger(
+    "unit_test",
+    LogLevel(enableDebug = false, enableTrace = false, enableInfo = true, enableWarn = true)
+  )
   implicit val traceIdAsk: Ask[IO, TraceId] = Ask.const[IO, TraceId](TraceId("TRACE-ID"))
   override def beforeEach(): Unit = {
     super.beforeEach()
@@ -47,9 +49,9 @@ class AzurePublisherSpec extends AnyFlatSpecLike with MockitoSugar with Matchers
     verify(mockSenderClient, times(1)).sendMessageAsync(any[ServiceBusMessage])
   }
 
-
   "AzurePublisherInterpreter" should "fail when publish message fails" in {
-    when(mockSenderClient.sendMessageAsync(any[ServiceBusMessage])).thenReturn(Mono.error(new RuntimeException("Send failed")))
+    when(mockSenderClient.sendMessageAsync(any[ServiceBusMessage]))
+      .thenReturn(Mono.error(new RuntimeException("Send failed")))
 
     val res = for {
       _ <- AzurePublisherInterpreter.publisher[IO](mockSenderClient).use { pub =>
@@ -72,7 +74,7 @@ class AzurePublisherSpec extends AnyFlatSpecLike with MockitoSugar with Matchers
       _ <- AzurePublisherInterpreter.publisher[IO](mockSenderClient).use { pub =>
         pub.publishOne(message)
       }
-    } yield()
+    } yield ()
 
     val testResult = Try(res.unsafeRunSync())
 
@@ -96,7 +98,7 @@ class AzurePublisherSpec extends AnyFlatSpecLike with MockitoSugar with Matchers
       _ <- AzurePublisherInterpreter.publisher[IO](mockSenderClient).use { pub =>
         pub.publishOne(message)
       }
-    } yield()
+    } yield ()
 
     val testResult = Try(res.unsafeRunSync())
 
@@ -110,7 +112,7 @@ class AzurePublisherSpec extends AnyFlatSpecLike with MockitoSugar with Matchers
   }
 
   "AzurePublisherInterpreter" should "send multiple messages via the client using publish" in {
-    val messages = List(TestMessage("Foo","Bar"), TestMessage("Bar","Foo"))
+    val messages = List(TestMessage("Foo", "Bar"), TestMessage("Bar", "Foo"))
     when(mockSenderClient.sendMessageAsync(any[ServiceBusMessage])).thenReturn(Mono.empty())
 
     val stream = Stream.emits[IO, TestMessage](messages)
@@ -129,7 +131,7 @@ class AzurePublisherSpec extends AnyFlatSpecLike with MockitoSugar with Matchers
   }
 
   "AzurePublisherInterpreter" should "send a list of string messages using publishString" in {
-    val messages = List("Foo","Bar")
+    val messages = List("Foo", "Bar")
     val messageCaptor: ArgumentCaptor[ServiceBusMessage] = ArgumentCaptor.forClass(classOf[ServiceBusMessage])
 
     when(mockSenderClient.sendMessageAsync(messageCaptor.capture())).thenReturn(Mono.empty())
@@ -157,4 +159,4 @@ class AzurePublisherSpec extends AnyFlatSpecLike with MockitoSugar with Matchers
 
 }
 
-case class TestMessage(name: String, description:  String)
+case class TestMessage(name: String, description: String)

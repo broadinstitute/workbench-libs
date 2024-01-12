@@ -16,14 +16,16 @@ trait AzureSubscriber[F[_], A] {
 }
 
 object AzureSubscriber {
- def resource[F[_]: Async: StructuredLogger, MessageType: Decoder](
+  def resource[F[_]: Async: StructuredLogger, MessageType: Decoder](
     subscriberConfig: AzureServiceBusSubscriberConfig,
     queue: Queue[F, AzureEvent[MessageType]]
   ): Resource[F, AzureSubscriber[F, MessageType]] =
-    AzureSubscriberInterpreter.subscriber(AzureServiceBusReceiverClientWrapper.createReceiverClientWrapper(subscriberConfig), queue)
+    AzureSubscriberInterpreter.subscriber(
+      AzureServiceBusReceiverClientWrapper.createReceiverClientWrapper(subscriberConfig),
+      queue
+    )
 
-
- def stringResource[F[_]: Async: StructuredLogger](
+  def stringResource[F[_]: Async: StructuredLogger](
     subscriberConfig: AzureServiceBusSubscriberConfig,
     queue: Queue[F, AzureEvent[String]]
   ): Resource[F, AzureSubscriber[F, String]] =
@@ -33,8 +35,8 @@ object AzureSubscriber {
 //using google protobuf Timestamp for consistency
 final case class AzureEvent[A](msg: A, traceId: Option[TraceId], publishedTime: Option[Instant])
 final case class AzureServiceBusSubscriberConfig(
-                                                  topicName: String,
-                                                  subscriptionName: String,
-                                                  namespace: Option[String],
-                                                  connectionString: Option[String]
-                                                )
+  topicName: String,
+  subscriptionName: String,
+  namespace: Option[String],
+  connectionString: Option[String]
+)

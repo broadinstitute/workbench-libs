@@ -11,7 +11,6 @@ trait AzureServiceBusSenderClientWrapper {
 }
 
 object AzureServiceBusSenderClientWrapper {
-    def createSenderClientWrapper(publisherConfig: AzureServiceBusPublisherConfig): AzureServiceBusSenderClientWrapper = {
-        new AzureServiceBusSenderClientWrapperInterp(publisherConfig)
-    }
+  def createSenderClientWrapper(publisherConfig: AzureServiceBusPublisherConfig): AzureServiceBusSenderClientWrapper =
+    new AzureServiceBusSenderClientWrapperInterp(publisherConfig)
 }
