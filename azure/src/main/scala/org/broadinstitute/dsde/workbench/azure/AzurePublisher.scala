@@ -1,13 +1,14 @@
 package org.broadinstitute.dsde.workbench.azure
 
 import cats.effect.{Async, Resource}
-
 import cats.mtl.Ask
 import com.azure.messaging.servicebus.ServiceBusMessage
 import fs2.Pipe
 import io.circe.Encoder
 import org.broadinstitute.dsde.workbench.model.TraceId
 import org.typelevel.log4cats.StructuredLogger
+
+import java.time.Duration
 
 trait AzurePublisher[F[_]] {
 
@@ -31,3 +32,7 @@ object AzurePublisher {
 }
 
 final case class AzureServiceBusPublisherConfig(topicName: String, connectionString: Option[String])
+
+object AzureServiceBusPublisherConfig {
+  val defaultTimeout: Duration = Duration.ofMinutes(1)
+}
