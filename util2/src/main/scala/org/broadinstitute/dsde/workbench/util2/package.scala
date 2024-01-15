@@ -56,7 +56,7 @@ package object util2 {
                                      traceId: Option[TraceId],
                                      action: String,
                                      resultFormatter: Show[A] =
-                                       Show.show[A](a => if (a == null) "null" else a.toString.take(1024)),
+                                     Show.show[A](a => if (a == null) "null" else a.toString.take(1024)),
                                      warnOnError: Boolean = false,
                                      actionName: String = "googleCall"
   )(implicit
