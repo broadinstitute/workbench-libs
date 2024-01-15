@@ -18,7 +18,7 @@ trait AzureSubscriber[F[_], A] {
 object AzureSubscriber {
   def resource[F[_]: Async: StructuredLogger, MessageType: Decoder](
     subscriberConfig: AzureServiceBusSubscriberConfig,
-    queue: Queue[F, AzureEvent[MessageType]],
+    queue: Queue[F, AzureEvent[MessageType]]
   ): Resource[F, AzureSubscriber[F, MessageType]] =
     AzureSubscriberInterpreter.subscriber(
       subscriberConfig,
