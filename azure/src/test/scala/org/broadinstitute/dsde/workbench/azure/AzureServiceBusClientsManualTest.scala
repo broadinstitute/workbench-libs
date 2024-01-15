@@ -6,16 +6,16 @@ import org.awaitility.Awaitility._
 import scala.concurrent.duration._
 import scala.util.Try
 /*
-    * This is a manual test for AzureServiceBusSenderClientWrapper and AzureServiceBusReceiverClientWrapper.
-    * The goal of this test is to makes sure that the AzureServiceBusSenderClientWrapper and AzureServiceBusReceiverClientWrapper
-    * can be instantiated and used to send and receive messages to/from Azure Service Bus.
-    * This test is no intended to validate the message conversion logic, which is tested in unit tests and should be converted to
-    * integration/automated test in the future.
-    *
-    * To launch this follow these steps:
-    * 1. sbt "project workbenchAzure" test:console
-    * 2. :paste
-    * Copy/Paste the following lines:
+ * This is a manual test for AzureServiceBusSenderClientWrapper and AzureServiceBusReceiverClientWrapper.
+ * The goal of this test is to makes sure that the AzureServiceBusSenderClientWrapper and AzureServiceBusReceiverClientWrapper
+ * can be instantiated and used to send and receive messages to/from Azure Service Bus.
+ * This test is no intended to validate the message conversion logic, which is tested in unit tests and should be converted to
+ * integration/automated test in the future.
+ *
+ * To launch this follow these steps:
+ * 1. sbt "project workbenchAzure" test:console
+ * 2. :paste
+ * Copy/Paste the following lines:
       import org.broadinstitute.dsde.workbench.azure._
       val topic = "YOUR_TOPIC_NAME
       val connStr = "YOUR_CONNECTION_STRING"
@@ -24,21 +24,22 @@ import scala.util.Try
       val subConfig = AzureServiceBusSubscriberConfig(topic,subs,None,Some(connStr))
       val test = new AzureServiceBusClientsManualTest(pubConfig, subConfig)
 
-    * 3. Execute test methods:
+ * 3. Execute test methods:
       test.sendMessage()
       test.receiveMessage()
       test.sendReceiveMultipleMessages(10) //sends 10 messages
  */
-final class AzureServiceBusClientsManualTest (
-    azureServiceBusPublisherConfig: AzureServiceBusPublisherConfig,
-    azureServiceBusSubscriberConfig: AzureServiceBusSubscriberConfig
-                                             ) {
+final class AzureServiceBusClientsManualTest(
+  azureServiceBusPublisherConfig: AzureServiceBusPublisherConfig,
+  azureServiceBusSubscriberConfig: AzureServiceBusSubscriberConfig
+) {
   def sendMessage(): Unit = {
     val message = new ServiceBusMessage("test message")
 
     val sender = AzureServiceBusSenderClientWrapper.createSenderClientWrapper(azureServiceBusPublisherConfig)
 
-    sender.sendMessageAsync(message)
+    sender
+      .sendMessageAsync(message)
       .doOnSuccess(_ => println("Message sent"))
       .doOnError(e => println(s"Error sending message: ${e.getMessage}"))
       .block(AzureServiceBusPublisherConfig.defaultTimeout)
@@ -48,7 +49,7 @@ final class AzureServiceBusClientsManualTest (
     println(s"Starting to receive messages from ${azureServiceBusSubscriberConfig.subscriptionName}")
 
     var msgCount = 0
-    //for testing we are using a simple handler that counts the messages received.
+    // for testing we are using a simple handler that counts the messages received.
     // the logic that converts the service bus message to an AzureEvent is tested in AzureSubscriberSpec
     val handler = new AzureEventMessageHandler {
       def handleMessage(message: ServiceBusReceivedMessage): Try[Unit] = Try {
@@ -58,7 +59,8 @@ final class AzureServiceBusClientsManualTest (
       }
     }
 
-    val receiver = AzureServiceBusReceiverClientWrapper.createReceiverClientWrapper(azureServiceBusSubscriberConfig, handler)
+    val receiver =
+      AzureServiceBusReceiverClientWrapper.createReceiverClientWrapper(azureServiceBusSubscriberConfig, handler)
 
     receiver.startProcessor()
 
@@ -73,10 +75,10 @@ final class AzureServiceBusClientsManualTest (
     }
   }
 
-  def sendReceiveMultipleMessages(numOfMessages:Int=5): Unit = {
+  def sendReceiveMultipleMessages(numOfMessages: Int = 5): Unit = {
     var msgCount = 0
 
-    //for testing we are using a simple handler that counts the messages received.
+    // for testing we are using a simple handler that counts the messages received.
     // the logic that converts the service bus message to an AzureEvent is tested in AzureSubscriberSpec
     val handler = new AzureEventMessageHandler {
       def handleMessage(message: ServiceBusReceivedMessage): Try[Unit] = Try {
@@ -86,7 +88,8 @@ final class AzureServiceBusClientsManualTest (
       }
     }
 
-    val receiver = AzureServiceBusReceiverClientWrapper.createReceiverClientWrapper(azureServiceBusSubscriberConfig, handler)
+    val receiver =
+      AzureServiceBusReceiverClientWrapper.createReceiverClientWrapper(azureServiceBusSubscriberConfig, handler)
 
     receiver.startProcessor()
 
@@ -94,7 +97,8 @@ final class AzureServiceBusClientsManualTest (
 
     for (i <- 1 to numOfMessages) {
       val message = new ServiceBusMessage(s"test message $i")
-      sender.sendMessageAsync(message)
+      sender
+        .sendMessageAsync(message)
         .doOnSuccess(_ => println(s"Message $i sent"))
         .doOnError(e => println(s"Error sending message $i: ${e.getMessage}"))
         .block(AzureServiceBusPublisherConfig.defaultTimeout)
