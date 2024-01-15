@@ -1,7 +1,7 @@
 package org.broadinstitute.dsde.workbench.azure
 
-import cats.effect.std.Queue
-import cats.effect.{Async, Resource}
+import cats.effect.std.{Dispatcher, Queue}
+import cats.effect.{Async, Resource, Sync}
 import fs2.Stream
 import io.circe.Decoder
 import org.broadinstitute.dsde.workbench.model.TraceId
@@ -18,10 +18,10 @@ trait AzureSubscriber[F[_], A] {
 object AzureSubscriber {
   def resource[F[_]: Async: StructuredLogger, MessageType: Decoder](
     subscriberConfig: AzureServiceBusSubscriberConfig,
-    queue: Queue[F, AzureEvent[MessageType]]
+    queue: Queue[F, AzureEvent[MessageType]],
   ): Resource[F, AzureSubscriber[F, MessageType]] =
     AzureSubscriberInterpreter.subscriber(
-      AzureServiceBusReceiverClientWrapper.createReceiverClientWrapper(subscriberConfig),
+      subscriberConfig,
       queue
     )
 
@@ -32,7 +32,6 @@ object AzureSubscriber {
     AzureSubscriberInterpreter.stringSubscriber(subscriberConfig, queue)
 }
 
-//using google protobuf Timestamp for consistency
 final case class AzureEvent[A](msg: A, traceId: Option[TraceId], publishedTime: Option[Instant])
 final case class AzureServiceBusSubscriberConfig(
   topicName: String,

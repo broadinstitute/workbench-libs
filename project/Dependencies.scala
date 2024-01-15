@@ -26,6 +26,7 @@ object Dependencies {
   val scalaTestScalaCheck = "org.scalatestplus" %% "scalacheck-1-16" % "3.2.14.0" % Test //Since scalatest 3.1.0, scalacheck support is moved to `scalatestplus`
   val scalaTestMockito = "org.scalatestplus" %% "mockito-3-4" % "3.2.10.0" % Test //Since scalatest 3.1.0, mockito support is moved to `scalatestplus`
   val scalaTestSelenium =  "org.scalatestplus" %% "selenium-4-1" % "3.2.12.1" % Test //Since scalatest 3.1.0, selenium support is moved to `scalatestplus`
+  val awaitility = "org.awaitility" % "awaitility-scala" % "4.2.0" % Test
 
   val akkaActor: ModuleID =         "com.typesafe.akka" %% "akka-actor"           % akkaV     % "provided"
   val akkaStream: ModuleID =         "com.typesafe.akka" %% "akka-stream"           % akkaV     % "provided"
@@ -221,7 +222,8 @@ object Dependencies {
     azureServiceBus,
     scalaTestMockito,
     scalatest,
-    circeGeneric
+    circeGeneric,
+    awaitility
   ) ++ Seq(
     "net.minidev" % "json-smart" % jsonSmartV
   )

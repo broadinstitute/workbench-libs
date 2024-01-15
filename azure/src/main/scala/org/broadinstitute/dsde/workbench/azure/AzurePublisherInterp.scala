@@ -46,13 +46,17 @@ private[azure] class AzurePublisherInterpreter[F[_]: Async: StructuredLogger](
   }
   private def publishServiceBusMessage(message: ServiceBusMessage): F[Unit] =
     withLogging(
-      Async[F].async_[Unit] { cb =>
-        clientWrapper
-          .sendMessageAsync(message)
-          .doOnSuccess(_ => cb(Right(())))
-          .doOnError(e => cb(Left(e)))
-          .subscribe()
-      },
+      Async[F].async[Unit] { cb =>
+        Async[F]
+          .delay(
+            clientWrapper
+              .sendMessageAsync(message)
+              .doOnSuccess(_ => cb(Right(())))
+              .doOnError(e => cb(Left(e)))
+              .block(AzureServiceBusPublisherConfig.defaultTimeout)
+          )
+          .as(None)
+      }.void,
       Option(message.getCorrelationId).map(s => TraceId(s)),
       s"Publishing message to Service Bus",
       actionName = "azureServiceBusCall"
