@@ -41,18 +41,29 @@ class AzureSubscriberSpec extends AnyFlatSpecLike with MockitoSugar with Matcher
     val res = for {
       queue <- Queue.unbounded[IO, AzureEvent[String]]
       _ <- AzureSubscriberInterpreter.stringSubscriber[IO](mockReceiverClient, queue).use(sub => sub.start)
-      // Wait for a message or timeout after 3 seconds
-      messageOrTimeout <- IO.race(queue.take, IO.sleep(3.seconds))
-    } yield messageOrTimeout
+      messageOpt <- queue.tryTake
+    } yield messageOpt
 
-    val testResult = Try(res.unsafeRunSync())
+    val testResult = res.unsafeRunSync()
 
-    testResult match {
-      case Success(Left(message)) =>
-        message shouldEqual AzureEvent("test", None, ServiceBusMessageUtils.getEnqueuedTimeOrDefault(receivedMessage))
-      case Success(Right(_))  => fail("Timeout reached without receiving a message")
-      case Failure(exception) => fail(exception)
-    }
+    testResult shouldEqual Some(
+      AzureEvent("test", None, ServiceBusMessageUtils.getEnqueuedTimeOrDefault(receivedMessage))
+    )
+  }
+
+  it should "raise error properly" in {
+    val messagesFlux = Flux.error[ServiceBusReceivedMessage](new RuntimeException("shit"))
+    when(mockReceiverClient.receiveMessagesAsync()).thenReturn(messagesFlux)
+
+    val res = for {
+      queue <- Queue.unbounded[IO, AzureEvent[String]]
+      _ <- AzureSubscriberInterpreter.stringSubscriber[IO](mockReceiverClient, queue).use(sub => sub.start)
+      messageOpt <- queue.tryTake
+    } yield messageOpt
+
+    val testResult = res.unsafeRunSync()
+
+    testResult shouldEqual None
   }
 
   "AzureSubscriberInterpreter" should "receive a string message and publish it to stream successfully" in {
