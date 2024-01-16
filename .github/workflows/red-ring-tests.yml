@@ -5,6 +5,7 @@ on:
     # only run on pr when touching files known to have red-ring tests
     paths:
       - google/src/test/scala/org/broadinstitute/dsde/workbench/google/GoogleUtilitiesSpec.scala
+      - .github/workflows/red-ring-tests.yml
   schedule:
       # run twice a day at 10:00 and 22:00 UTC every day of the week
       - cron: "0 10/12 * * *"
