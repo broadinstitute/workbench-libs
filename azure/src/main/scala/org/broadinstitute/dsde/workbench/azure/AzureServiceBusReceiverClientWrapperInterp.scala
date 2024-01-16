@@ -2,8 +2,6 @@ package org.broadinstitute.dsde.workbench.azure
 
 import com.azure.messaging.servicebus._
 
-import scala.util.{Failure, Success, Try}
-
 class AzureServiceBusReceiverClientWrapperInterp(subscriberConfig: AzureServiceBusSubscriberConfig,
                                                  messageHandler: AzureEventMessageHandler
 ) extends AzureServiceBusReceiverClientWrapper {
@@ -11,7 +9,7 @@ class AzureServiceBusReceiverClientWrapperInterp(subscriberConfig: AzureServiceB
   private val processor: ServiceBusProcessorClient = createNewProcessor()
 
   private def handleError(context: ServiceBusErrorContext): Unit =
-    println(s"Error when receiving message: ${context.getException}.")
+    messageHandler.handleError(context)
 
   override def stopProcessor(): Unit =
     processor.stop()
@@ -22,7 +20,7 @@ class AzureServiceBusReceiverClientWrapperInterp(subscriberConfig: AzureServiceB
     )
     .processor()
     .topicName(subscriberConfig.topicName)
-    .processMessage(msg => processMessageWithHandler(messageHandler.handleMessage)(msg))
+    .processMessage(context => processMessageWithHandler(context))
     .processError(handleError)
     .subscriptionName(subscriberConfig.subscriptionName)
     .buildProcessorClient()
@@ -32,14 +30,6 @@ class AzureServiceBusReceiverClientWrapperInterp(subscriberConfig: AzureServiceB
     processor.start()
 
   private def processMessageWithHandler(
-    handler: ServiceBusReceivedMessage => Try[Unit]
-  ): ServiceBusReceivedMessageContext => Unit = { context: ServiceBusReceivedMessageContext =>
-    handler(context.getMessage) match {
-      case Success(_) =>
-        context.complete()
-      case Failure(_) =>
-        // no need to handle the error as the handler logged it
-        context.abandon()
-    }
-  }
+    context: ServiceBusReceivedMessageContext
+  ): Unit = messageHandler.handleMessage(context)
 }

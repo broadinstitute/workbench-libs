@@ -3,7 +3,11 @@ package org.broadinstitute.dsde.workbench.azure
 import cats.effect._
 import cats.effect.std.{Dispatcher, Queue}
 import cats.implicits._
-import com.azure.messaging.servicebus.ServiceBusReceivedMessage
+import com.azure.messaging.servicebus.{
+  ServiceBusErrorContext,
+  ServiceBusReceivedMessage,
+  ServiceBusReceivedMessageContext
+}
 import io.circe.Decoder
 import io.circe.parser.parse
 import org.typelevel.log4cats.StructuredLogger
@@ -123,19 +127,18 @@ final class JsonMessageDecoder[MessageType: Decoder] extends AzureEventMessageDe
 
 final class StringMessageDecoder extends AzureEventMessageDecoder[String] {
   override def decodeMessage(message: ServiceBusReceivedMessage): Either[Error, AzureEvent[String]] =
-    try
-      Right {
+    Either
+      .catchNonFatal {
         val timestamp = ServiceBusMessageUtils.getEnqueuedTimeOrDefault(message)
         val traceId = ServiceBusMessageUtils.getTraceIdFromCorrelationId(message)
 
         AzureEvent(message.getBody.toString, traceId, timestamp)
       }
-    catch {
-      case e: Exception => Left(new Error(e.getMessage))
-    }
+      .leftMap(t => new Error(t.getMessage))
 }
 trait AzureEventMessageHandler {
-  def handleMessage(message: ServiceBusReceivedMessage): Try[Unit]
+  def handleMessage(message: ServiceBusReceivedMessageContext): Unit
+  def handleError(context: ServiceBusErrorContext): Unit
 }
 
 final private class AzureEventMessageHandlerInterpreter[F[_], MessageType: Decoder](
@@ -145,23 +148,33 @@ final private class AzureEventMessageHandlerInterpreter[F[_], MessageType: Decod
 )(implicit F: Async[F], logger: StructuredLogger[F])
     extends AzureEventMessageHandler {
 
-  override def handleMessage(message: ServiceBusReceivedMessage): Try[Unit] = {
+  override def handleMessage(context: ServiceBusReceivedMessageContext): Unit = {
+    val message = context.getMessage
     val loggingContext = Map("traceId" -> Option(message.getCorrelationId).getOrElse("None"))
     decoder.decodeMessage(message) match {
       case Right(value) =>
         val enqueue = for {
           _ <- logger.info(loggingContext)(s"Subscriber Successfully decoded the $message.")
           _ <- queue.offer(value)
+          _ <- F.delay(context.complete())
         } yield ()
         dispatcher.unsafeRunSync(enqueue)
-        Success()
       case Left(exception) =>
         val handleError = for {
-          _ <- logger.error(loggingContext)(s"Subscriber failed to process $message due to ${exception.getMessage}")
+          _ <- logger.error(loggingContext, exception)(
+            s"Subscriber failed to decode $message due to ${exception.getMessage}"
+          )
+          _ <- F.delay(context.abandon())
         } yield ()
         dispatcher.unsafeRunSync(handleError)
-        Failure(exception)
     }
+  }
+
+  override def handleError(context: ServiceBusErrorContext): Unit = {
+    val res = logger.error(context.getException)(
+      s"Subscriber ran into error receiving messages due to ${context.getException.getMessage}"
+    )
+    dispatcher.unsafeRunSync(res)
   }
 }
 
