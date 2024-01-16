@@ -19,7 +19,7 @@ object Dependencies {
 
   def excludeGuavaJDK5(m: ModuleID): ModuleID = m.exclude("com.google.guava", "guava-jdk5")
 
-  val jose4j: ModuleID =  "org.bitbucket.b_c" % "jose4j" % "0.9.3"
+  val jose4j: ModuleID =  "org.bitbucket.b_c" % "jose4j" % "0.9.4"
   val logstashLogback: ModuleID = "net.logstash.logback"      % "logstash-logback-encoder" % "7.4" % "provided"
   val scalaLogging: ModuleID = "com.typesafe.scala-logging"    %% "scala-logging" % scalaLoggingV  % "provided"
   val scalatest: ModuleID =    "org.scalatest"                 %% "scalatest"     % scalaTestV  % "test"
