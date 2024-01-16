@@ -303,7 +303,7 @@ class GoogleUtilitiesSpec
 object RedRing extends Tag("RedRingTest")
 
 class GoogleClientRequestSpec extends AnyFlatSpecLike with Matchers {
-  "Workbench libs" should "be able to publish to a real pubsub topic on google" taggedAs RedRing in {
+  "Workbench libs" should "be able for pubsub publish to a topic and read from a subscription on google" taggedAs RedRing in {
     // Arrange
     val saToken: String = sys.env("SA_TOKEN");
     val googleProject: String = sys.env("GOOGLE_PROJECT");
