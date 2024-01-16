@@ -2,6 +2,20 @@
 
 This file documents changes to the `workbench-azure` library, including notes on how to upgrade to new versions.
 
+## 0.7
+
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-azure" % "0.7-TRAVIS-REPLACE-ME"`
+
+### Changes
+Messaging Publisher and Subscriber implementations for Azure Service Bus.
+
+### Dependency upgrades
+| Dependency                             | Old Version | New Version |
+|----------------------------------------|:-----------:|------------:|
+| awaitility-scala          |      -      |       4.2.0 |
+| azure-messaging-servicebus |      -      |      7.14.7 |
+
+
 ## 0.6
 
 SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-azure" % "0.6-9e8bb8d"`
