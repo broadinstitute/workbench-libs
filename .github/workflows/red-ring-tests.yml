@@ -38,13 +38,14 @@ jobs:
       - name: Run red ring test
         id: run-red-ring-test
         run: | 
+          ls -ltraR
           sbt "project workbenchGoogle" coverage "testOnly -- -n RedRingTest" coverageReport
 
       - uses: actions/upload-artifact@v3
         if: always()
         with:
           name: test-reports
-          path: 'workbench-libs/google/target/test-reports/'
+          path: 'google/target/test-reports/'
 
   upload-test-results:
     needs: [red-ring-test]
