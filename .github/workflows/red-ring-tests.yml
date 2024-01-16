@@ -1,11 +1,16 @@
 name: Red Ring Tests
 
 on:
-    schedule:
-        # run twice a day at 10:00 and 22:00 UTC every day of the week
-        - cron: "0 10/12 * * *"
+  pull_request:
+    # only run on pr when touching files known to have red-ring tests
+    paths:
+      - google/src/test/scala/org/broadinstitute/dsde/workbench/google/GoogleUtilitiesSpec.scala
+  schedule:
+      # run twice a day at 10:00 and 22:00 UTC every day of the week
+      - cron: "0 10/12 * * *"
 env:
   STATIC_PUBSUB_TOPIC_1: red-ring-static-01
+  STATIC_PUBSUB_SUBSCRIPTION_1: red-ring-static-01-sub
   GOOGLE_PROJECT: broad-dsde-qa
 
 jobs:
