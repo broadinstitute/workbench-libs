@@ -134,6 +134,7 @@ object AzureSubscriberInterpreter {
 
       subscriber = new AzureSubscriberInterpreter[F, String](clientWrapper, queue, messageHandler, dispatcher)
 
+      _ <- subscriber.initSubscription
       sub <- Resource.make(F.pure(subscriber))(_ => subscriber.stop)
     } yield sub
 
