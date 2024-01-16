@@ -14,7 +14,7 @@ env:
   GOOGLE_PROJECT: broad-dsde-qa
 
 jobs:
-  test:
+  red-ring-test:
     runs-on: Ubuntu-20.04
     permissions:
         contents: 'read'
@@ -38,3 +38,26 @@ jobs:
         id: run-red-ring-test
         run: | 
           sbt "project workbenchGoogle" coverage "testOnly -- -n RedRingTest" coverageReport
+
+      - uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: test-reports
+          path: 'workbench-libs/google/target/test-reports/'
+
+  upload-test-results:
+    needs: [red-ring-test]
+    if: always()
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+    uses: broadinstitute/dsp-reusable-workflows/.github/workflows/upload_test_results_to_biquery.yaml@main
+      # Always attempt to run if pull_request, as we want to report the appVersion even if the tests fail.
+      # never run on cron or other runs as we don't want extranaeous build reporting.
+    with:
+      service-name: 'workbench-libs'
+      test-uuid:  ${{ github.run_id }} # run id of this gha
+      environment: 'red-ring'
+      artifact: 'test-reports'
+      big-query-table: 'broad-dsde-qa.automated_testing.test_results'
+      subuuid: ${{ github.run_id }} # run id of this gha
