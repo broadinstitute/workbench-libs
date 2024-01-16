@@ -110,8 +110,8 @@ class AzureSubscriberSpec extends AnyFlatSpecLike with MockitoSugar with Matcher
   }
 
   private def assertMessageIsQueued[MessageType](receivedMessage: ServiceBusReceivedMessage,
-                                      queue: Queue[IO, AzureEvent[MessageType]],
-                                      expectedMessage: MessageType
+                                                 queue: Queue[IO, AzureEvent[MessageType]],
+                                                 expectedMessage: MessageType
   ) = {
     val testResult = for {
       msgOrTimeout <- IO.race(queue.take, IO.sleep(3.seconds))
