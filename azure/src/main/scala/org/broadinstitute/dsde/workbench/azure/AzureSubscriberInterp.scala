@@ -6,17 +6,18 @@ import cats.implicits._
 import com.azure.messaging.servicebus.ServiceBusReceivedMessage
 import io.circe.Decoder
 import io.circe.parser.parse
+import org.broadinstitute.dsde.workbench.util2.messaging.{ReceivedMessage, Subscriber}
 import org.typelevel.log4cats.StructuredLogger
 
 import scala.util.{Failure, Success, Try}
 
 private[azure] class AzureSubscriberInterpreter[F[_], MessageType](
   clientWrapper: AzureServiceBusReceiverClientWrapper,
-  queue: cats.effect.std.Queue[F, AzureEvent[MessageType]]
-)(implicit F: Async[F], logger: StructuredLogger[F])
-    extends AzureSubscriber[F, MessageType] {
+  queue: cats.effect.std.Queue[F, ReceivedMessage[MessageType]]
+)(implicit F: Async[F])
+    extends Subscriber[F, MessageType] {
 
-  override def messages: fs2.Stream[F, AzureEvent[MessageType]] = fs2.Stream.fromQueueUnterminated(queue)
+  override def messages: fs2.Stream[F, ReceivedMessage[MessageType]] = fs2.Stream.fromQueueUnterminated(queue)
 
   override def start: F[Unit] =
     F.delay(clientWrapper.startProcessor())
@@ -29,8 +30,8 @@ object AzureSubscriberInterpreter {
 
   def subscriber[F[_], MessageType: Decoder](
     clientWrapper: AzureServiceBusReceiverClientWrapper,
-    queue: cats.effect.std.Queue[F, AzureEvent[MessageType]]
-  )(implicit F: Async[F], logger: StructuredLogger[F]): cats.effect.Resource[F, AzureSubscriber[F, MessageType]] = {
+    queue: cats.effect.std.Queue[F, ReceivedMessage[MessageType]]
+  )(implicit F: Async[F]): cats.effect.Resource[F, Subscriber[F, MessageType]] = {
 
     val subscriber = new AzureSubscriberInterpreter[F, MessageType](clientWrapper, queue)
 
@@ -39,15 +40,15 @@ object AzureSubscriberInterpreter {
 
   def subscriber[F[_], MessageType: io.circe.Decoder](
     config: AzureServiceBusSubscriberConfig,
-    queue: cats.effect.std.Queue[F, AzureEvent[MessageType]]
-  )(implicit F: Async[F], logger: StructuredLogger[F]): cats.effect.Resource[F, AzureSubscriber[F, MessageType]] =
+    queue: cats.effect.std.Queue[F, ReceivedMessage[MessageType]]
+  )(implicit F: Async[F], logger: StructuredLogger[F]): cats.effect.Resource[F, Subscriber[F, MessageType]] =
     for {
       dispatcher <- Dispatcher.sequential[F]
 
       messageHandler =
-        AzureEventMessageHandlerInterpreter[F, MessageType](AzureEventMessageDecoder.jsonDecoder[MessageType],
-                                                            queue,
-                                                            dispatcher
+        AzureReceivedMessageHandlerInterpreter[F, MessageType](AzureReceivedMessageDecoder.jsonDecoder[MessageType],
+                                                               queue,
+                                                               dispatcher
         )
 
       clientWrapper = AzureServiceBusReceiverClientWrapper.createReceiverClientWrapper[F, MessageType](config,
@@ -61,8 +62,8 @@ object AzureSubscriberInterpreter {
 
   def stringSubscriber[F[_]](
     clientWrapper: AzureServiceBusReceiverClientWrapper,
-    queue: cats.effect.std.Queue[F, AzureEvent[String]]
-  )(implicit F: Async[F], logger: StructuredLogger[F]): cats.effect.Resource[F, AzureSubscriber[F, String]] = {
+    queue: cats.effect.std.Queue[F, ReceivedMessage[String]]
+  )(implicit F: Async[F]): cats.effect.Resource[F, Subscriber[F, String]] = {
 
     val subscriber = new AzureSubscriberInterpreter[F, String](clientWrapper, queue)
 
@@ -71,13 +72,13 @@ object AzureSubscriberInterpreter {
 
   def stringSubscriber[F[_]](
     config: AzureServiceBusSubscriberConfig,
-    queue: cats.effect.std.Queue[F, AzureEvent[String]]
-  )(implicit F: Async[F], logger: StructuredLogger[F]): cats.effect.Resource[F, AzureSubscriber[F, String]] =
+    queue: cats.effect.std.Queue[F, ReceivedMessage[String]]
+  )(implicit F: Async[F], logger: StructuredLogger[F]): cats.effect.Resource[F, Subscriber[F, String]] =
     for {
       dispatcher <- Dispatcher.sequential[F]
 
       messageHandler =
-        AzureEventMessageHandlerInterpreter[F, String](AzureEventMessageDecoder.stringDecoder, queue, dispatcher)
+        AzureReceivedMessageHandlerInterpreter[F, String](AzureReceivedMessageDecoder.stringDecoder, queue, dispatcher)
 
       clientWrapper = AzureServiceBusReceiverClientWrapper.createReceiverClientWrapper[F, String](config,
                                                                                                   messageHandler
@@ -89,19 +90,19 @@ object AzureSubscriberInterpreter {
     } yield sub
 }
 
-trait AzureEventMessageDecoder[MessageType] {
-  def decodeMessage(message: ServiceBusReceivedMessage): Either[Error, AzureEvent[MessageType]]
+trait AzureReceivedMessageDecoder[MessageType] {
+  def decodeMessage(message: ServiceBusReceivedMessage): Either[Error, ReceivedMessage[MessageType]]
 }
 
-object AzureEventMessageDecoder {
-  def jsonDecoder[MessageType: Decoder]: AzureEventMessageDecoder[MessageType] = new JsonMessageDecoder[MessageType]
+object AzureReceivedMessageDecoder {
+  def jsonDecoder[MessageType: Decoder]: AzureReceivedMessageDecoder[MessageType] = new JsonMessageDecoder[MessageType]
 
-  def stringDecoder: AzureEventMessageDecoder[String] = new StringMessageDecoder
+  def stringDecoder: AzureReceivedMessageDecoder[String] = new StringMessageDecoder
 }
 
-final class JsonMessageDecoder[MessageType: Decoder] extends AzureEventMessageDecoder[MessageType] {
+final class JsonMessageDecoder[MessageType: Decoder] extends AzureReceivedMessageDecoder[MessageType] {
 
-  override def decodeMessage(message: ServiceBusReceivedMessage): Either[Error, AzureEvent[MessageType]] = {
+  override def decodeMessage(message: ServiceBusReceivedMessage): Either[Error, ReceivedMessage[MessageType]] = {
 
     val jsonResult = parse(message.getBody.toString)
 
@@ -111,7 +112,7 @@ final class JsonMessageDecoder[MessageType: Decoder] extends AzureEventMessageDe
           case Right(decodedData) =>
             val timestamp = ServiceBusMessageUtils.getEnqueuedTimeOrDefault(message)
             val traceId = ServiceBusMessageUtils.getTraceIdFromCorrelationId(message)
-            Right(AzureEvent(decodedData, traceId, timestamp))
+            Right(ReceivedMessage(decodedData, traceId, timestamp))
           case Left(err) =>
             Left(new Error(err.message))
         }
@@ -121,29 +122,29 @@ final class JsonMessageDecoder[MessageType: Decoder] extends AzureEventMessageDe
   }
 }
 
-final class StringMessageDecoder extends AzureEventMessageDecoder[String] {
-  override def decodeMessage(message: ServiceBusReceivedMessage): Either[Error, AzureEvent[String]] =
+final class StringMessageDecoder extends AzureReceivedMessageDecoder[String] {
+  override def decodeMessage(message: ServiceBusReceivedMessage): Either[Error, ReceivedMessage[String]] =
     try
       Right {
         val timestamp = ServiceBusMessageUtils.getEnqueuedTimeOrDefault(message)
         val traceId = ServiceBusMessageUtils.getTraceIdFromCorrelationId(message)
 
-        AzureEvent(message.getBody.toString, traceId, timestamp)
+        ReceivedMessage(message.getBody.toString, traceId, timestamp)
       }
     catch {
       case e: Exception => Left(new Error(e.getMessage))
     }
 }
-trait AzureEventMessageHandler {
+trait AzureReceivedMessageHandler {
   def handleMessage(message: ServiceBusReceivedMessage): Try[Unit]
 }
 
-final private class AzureEventMessageHandlerInterpreter[F[_], MessageType: Decoder](
-  decoder: AzureEventMessageDecoder[MessageType],
-  queue: Queue[F, AzureEvent[MessageType]],
+final private class AzureReceivedMessageHandlerInterpreter[F[_], MessageType: Decoder](
+  decoder: AzureReceivedMessageDecoder[MessageType],
+  queue: Queue[F, ReceivedMessage[MessageType]],
   dispatcher: Dispatcher[F]
 )(implicit F: Async[F], logger: StructuredLogger[F])
-    extends AzureEventMessageHandler {
+    extends AzureReceivedMessageHandler {
 
   override def handleMessage(message: ServiceBusReceivedMessage): Try[Unit] = {
     val loggingContext = Map("traceId" -> Option(message.getCorrelationId).getOrElse("None"))
@@ -165,11 +166,18 @@ final private class AzureEventMessageHandlerInterpreter[F[_], MessageType: Decod
   }
 }
 
-object AzureEventMessageHandlerInterpreter {
+object AzureReceivedMessageHandlerInterpreter {
   def apply[F[_]: Async, MessageType: Decoder](
-    decoder: AzureEventMessageDecoder[MessageType],
-    queue: Queue[F, AzureEvent[MessageType]],
+    decoder: AzureReceivedMessageDecoder[MessageType],
+    queue: Queue[F, ReceivedMessage[MessageType]],
     dispatcher: Dispatcher[F]
-  )(implicit logger: StructuredLogger[F]): AzureEventMessageHandler =
-    new AzureEventMessageHandlerInterpreter[F, MessageType](decoder, queue, dispatcher)
+  )(implicit logger: StructuredLogger[F]): AzureReceivedMessageHandler =
+    new AzureReceivedMessageHandlerInterpreter[F, MessageType](decoder, queue, dispatcher)
 }
+
+final case class AzureServiceBusSubscriberConfig(
+                                                  topicName: String,
+                                                  subscriptionName: String,
+                                                  namespace: Option[String],
+                                                  connectionString: Option[String]
+                                                )

@@ -51,7 +51,7 @@ final class AzureServiceBusClientsManualTest(
     var msgCount = 0
     // for testing we are using a simple handler that counts the messages received.
     // the logic that converts the service bus message to an AzureEvent is tested in AzureSubscriberSpec
-    val handler = new AzureEventMessageHandler {
+    val handler = new AzureReceivedMessageHandler {
       def handleMessage(message: ServiceBusReceivedMessage): Try[Unit] = Try {
         println(s"Handling message: ${message.getBody}")
         msgCount += 1
@@ -80,7 +80,7 @@ final class AzureServiceBusClientsManualTest(
 
     // for testing we are using a simple handler that counts the messages received.
     // the logic that converts the service bus message to an AzureEvent is tested in AzureSubscriberSpec
-    val handler = new AzureEventMessageHandler {
+    val handler = new AzureReceivedMessageHandler {
       def handleMessage(message: ServiceBusReceivedMessage): Try[Unit] = Try {
         println(s"Handling message: ${message.getBody}")
         msgCount += 1

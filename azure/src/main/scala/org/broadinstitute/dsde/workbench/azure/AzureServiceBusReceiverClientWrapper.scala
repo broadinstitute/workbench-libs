@@ -10,7 +10,7 @@ trait AzureServiceBusReceiverClientWrapper {
 object AzureServiceBusReceiverClientWrapper {
   def createReceiverClientWrapper[F[_], MessageType](
     subscriberConfig: AzureServiceBusSubscriberConfig,
-    messageHandler: AzureEventMessageHandler
+    messageHandler: AzureReceivedMessageHandler
   ): AzureServiceBusReceiverClientWrapper =
     new AzureServiceBusReceiverClientWrapperInterp(subscriberConfig, messageHandler)
 }

@@ -5,7 +5,7 @@ import com.azure.messaging.servicebus._
 import scala.util.{Failure, Success, Try}
 
 class AzureServiceBusReceiverClientWrapperInterp(subscriberConfig: AzureServiceBusSubscriberConfig,
-                                                 messageHandler: AzureEventMessageHandler
+                                                 messageHandler: AzureReceivedMessageHandler
 ) extends AzureServiceBusReceiverClientWrapper {
 
   private val processor: ServiceBusProcessorClient = createNewProcessor()

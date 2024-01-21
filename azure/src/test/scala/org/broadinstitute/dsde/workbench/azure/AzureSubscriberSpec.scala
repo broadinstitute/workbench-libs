@@ -8,6 +8,7 @@ import com.azure.core.util.BinaryData
 import com.azure.messaging.servicebus.{ServiceBusReceivedMessage, ServiceBusReceivedMessageContext}
 import io.circe.generic.auto._
 import org.broadinstitute.dsde.workbench.model.TraceId
+import org.broadinstitute.dsde.workbench.util2.messaging.ReceivedMessage
 import org.broadinstitute.dsde.workbench.util2.{ConsoleLogger, LogLevel}
 import org.mockito.Mockito.{times, verify}
 import org.scalatest.BeforeAndAfterEach
@@ -43,14 +44,14 @@ class AzureSubscriberSpec extends AnyFlatSpecLike with MockitoSugar with Matcher
     verify(mockReceiverClient, times(1)).stopProcessor()
   }
 
-  "AzureEventMessageHandlerInterpreter" should " decode string message and send it to the queue" in {
+  "AzureReceivedMessageHandlerInterpreter" should " decode string message and send it to the queue" in {
     val receivedMessage = createServiceBusReceivedMessageUsingReflection("test")
 
-    val queue = Queue.unbounded[IO, AzureEvent[String]].unsafeRunSync()
+    val queue = Queue.unbounded[IO, ReceivedMessage[String]].unsafeRunSync()
 
     val runHandler = for {
       dispatcher <- cats.effect.std.Dispatcher.sequential[IO]
-      handler = AzureEventMessageHandlerInterpreter(AzureEventMessageDecoder.stringDecoder, queue, dispatcher)
+      handler = AzureReceivedMessageHandlerInterpreter(AzureReceivedMessageDecoder.stringDecoder, queue, dispatcher)
     } yield handler
 
     runHandler
@@ -62,16 +63,16 @@ class AzureSubscriberSpec extends AnyFlatSpecLike with MockitoSugar with Matcher
     assertMessageIsQueued[String](receivedMessage, queue, "test")
   }
 
-  "AzureEventMessageHandlerInterpreter" should " decode json message and send it to the queue" in {
+  "AzureReceivedMessageHandlerInterpreter" should " decode json message and send it to the queue" in {
     val receivedMessage = createServiceBusReceivedMessageUsingReflection("""{"name":"Foo","description":"Bar"}""")
 
-    val queue = Queue.unbounded[IO, AzureEvent[TestMessage]].unsafeRunSync()
+    val queue = Queue.unbounded[IO, ReceivedMessage[TestMessage]].unsafeRunSync()
 
     val runHandler = for {
       dispatcher <- cats.effect.std.Dispatcher.sequential[IO]
-      handler = AzureEventMessageHandlerInterpreter(AzureEventMessageDecoder.jsonDecoder[TestMessage],
-                                                    queue,
-                                                    dispatcher
+      handler = AzureReceivedMessageHandlerInterpreter(AzureReceivedMessageDecoder.jsonDecoder[TestMessage],
+                                                       queue,
+                                                       dispatcher
       )
     } yield handler
 
@@ -84,17 +85,17 @@ class AzureSubscriberSpec extends AnyFlatSpecLike with MockitoSugar with Matcher
     assertMessageIsQueued(receivedMessage, queue, TestMessage("Foo", "Bar"))
   }
 
-  "AzureEventMessageHandlerInterpreter" should " decode json multiple messages and send them to the queue" in {
+  "AzureReceivedMessageHandlerInterpreter" should " decode json multiple messages and send them to the queue" in {
     val receivedMessage1 = createServiceBusReceivedMessageUsingReflection("""{"name":"Foo1","description":"Bar1"}""")
     val receivedMessage2 = createServiceBusReceivedMessageUsingReflection("""{"name":"Foo2","description":"Bar2"}""")
 
-    val queue = Queue.unbounded[IO, AzureEvent[TestMessage]].unsafeRunSync()
+    val queue = Queue.unbounded[IO, ReceivedMessage[TestMessage]].unsafeRunSync()
 
     val runHandler = for {
       dispatcher <- cats.effect.std.Dispatcher.sequential[IO]
-      handler = AzureEventMessageHandlerInterpreter(AzureEventMessageDecoder.jsonDecoder[TestMessage],
-                                                    queue,
-                                                    dispatcher
+      handler = AzureReceivedMessageHandlerInterpreter(AzureReceivedMessageDecoder.jsonDecoder[TestMessage],
+                                                       queue,
+                                                       dispatcher
       )
     } yield handler
 
@@ -110,7 +111,7 @@ class AzureSubscriberSpec extends AnyFlatSpecLike with MockitoSugar with Matcher
   }
 
   private def assertMessageIsQueued[MessageType](receivedMessage: ServiceBusReceivedMessage,
-                                                 queue: Queue[IO, AzureEvent[MessageType]],
+                                                 queue: Queue[IO, ReceivedMessage[MessageType]],
                                                  expectedMessage: MessageType
   ) = {
     val testResult = for {
@@ -119,9 +120,9 @@ class AzureSubscriberSpec extends AnyFlatSpecLike with MockitoSugar with Matcher
 
     Try(testResult.unsafeRunSync()) match {
       case Success(Left(message)) =>
-        message shouldEqual AzureEvent(expectedMessage,
-                                       None,
-                                       ServiceBusMessageUtils.getEnqueuedTimeOrDefault(receivedMessage)
+        message shouldEqual ReceivedMessage(expectedMessage,
+                                            None,
+                                            ServiceBusMessageUtils.getEnqueuedTimeOrDefault(receivedMessage)
         )
       case Success(Right(_))  => fail("Timeout reached without receiving a message")
       case Failure(exception) => fail(exception)

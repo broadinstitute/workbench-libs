@@ -11,21 +11,19 @@ import io.circe.syntax._
 import org.broadinstitute.dsde.workbench.model.TraceId
 import org.broadinstitute.dsde.workbench.util2.withLogging
 import org.typelevel.log4cats.StructuredLogger
+import org.broadinstitute.dsde.workbench.util2.messaging.Publisher
+
+import java.time.Duration
 
 private[azure] class AzurePublisherInterpreter[F[_]: Async: StructuredLogger](
   clientWrapper: AzureServiceBusSenderClientWrapper
-) extends AzurePublisher[F] {
+) extends Publisher[F] {
 
   override def publish[MessageType: Encoder]: Pipe[F, MessageType, Unit] = in =>
     in.flatMap { message =>
       Stream
         .eval(publishMessage(message.asJson.noSpaces, None))
     }
-
-  override def publishNative: Pipe[F, ServiceBusMessage, Unit] = in =>
-    in.flatMap(s => Stream.eval(publishServiceBusMessage(s)))
-
-  override def publishNativeOne(message: ServiceBusMessage): F[Unit] = publishServiceBusMessage(message)
 
   override def publishOne[MessageType: Encoder](message: MessageType)(implicit ev: Ask[F, TraceId]): F[Unit] =
     for {
@@ -49,7 +47,7 @@ private[azure] class AzurePublisherInterpreter[F[_]: Async: StructuredLogger](
       Async[F]
         .async[Unit] { cb =>
           Async[F]
-            .delay(
+            .blocking(
               clientWrapper
                 .sendMessageAsync(message)
                 .doOnSuccess(_ => cb(Right(())))
@@ -63,12 +61,13 @@ private[azure] class AzurePublisherInterpreter[F[_]: Async: StructuredLogger](
       s"Publishing message to Service Bus",
       actionName = "azureServiceBusCall"
     )
+
 }
 
 object AzurePublisherInterpreter {
   def publisher[F[_]: Async: StructuredLogger](
     clientWrapper: AzureServiceBusSenderClientWrapper
-  ): Resource[F, AzurePublisher[F]] =
+  ): Resource[F, Publisher[F]] =
     for {
       resourceSenderClient <- Resource.make(
         Async[F].delay {
@@ -77,6 +76,12 @@ object AzurePublisherInterpreter {
       )(c => Async[F].delay(c.close()))
     } yield new AzurePublisherInterpreter[F](resourceSenderClient)
 
-  def publisher[F[_]: Async: StructuredLogger](config: AzureServiceBusPublisherConfig): Resource[F, AzurePublisher[F]] =
+  def publisher[F[_]: Async: StructuredLogger](config: AzureServiceBusPublisherConfig): Resource[F, Publisher[F]] =
     publisher(AzureServiceBusSenderClientWrapper.createSenderClientWrapper(config))
+}
+
+final case class AzureServiceBusPublisherConfig(topicName: String, connectionString: Option[String])
+
+object AzureServiceBusPublisherConfig {
+  val defaultTimeout: Duration = Duration.ofMinutes(1)
 }

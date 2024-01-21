@@ -33,37 +33,6 @@ class AzurePublisherSpec extends AnyFlatSpecLike with MockitoSugar with Matchers
     mockSenderClient = mock[AzureServiceBusSenderClientWrapper]
   }
 
-  "AzurePublisherInterpreter" should "send a native message successfully" in {
-    when(mockSenderClient.sendMessageAsync(any[ServiceBusMessage])).thenReturn(Mono.empty())
-
-    val res = for {
-      _ <- AzurePublisherInterpreter.publisher[IO](mockSenderClient).use { pub =>
-        pub.publishNativeOne(new ServiceBusMessage("test"))
-      }
-    } yield ()
-
-    val testResult = Try(res.unsafeRunSync())
-
-    testResult should be a Symbol("success")
-
-    verify(mockSenderClient, times(1)).sendMessageAsync(any[ServiceBusMessage])
-  }
-
-  "AzurePublisherInterpreter" should "fail when publish message fails" in {
-    when(mockSenderClient.sendMessageAsync(any[ServiceBusMessage]))
-      .thenReturn(Mono.error(new RuntimeException("Send failed")))
-
-    val res = for {
-      _ <- AzurePublisherInterpreter.publisher[IO](mockSenderClient).use { pub =>
-        pub.publishNativeOne(new ServiceBusMessage("test"))
-      }
-    } yield ()
-
-    an[Exception] should be thrownBy res.unsafeRunSync()
-
-    verify(mockSenderClient, times(1)).sendMessageAsync(any[ServiceBusMessage])
-  }
-
   "AzurePublisherInterpreter" should "send a message of a custom type serialized as json using publishOne" in {
     val message = TestMessage("Foo", "Bar")
     val messageCaptor: ArgumentCaptor[ServiceBusMessage] = ArgumentCaptor.forClass(classOf[ServiceBusMessage])
