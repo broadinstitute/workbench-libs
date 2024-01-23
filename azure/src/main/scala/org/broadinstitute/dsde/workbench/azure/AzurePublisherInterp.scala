@@ -11,13 +11,13 @@ import io.circe.syntax._
 import org.broadinstitute.dsde.workbench.model.TraceId
 import org.broadinstitute.dsde.workbench.util2.withLogging
 import org.typelevel.log4cats.StructuredLogger
-import org.broadinstitute.dsde.workbench.util2.messaging.Publisher
+import org.broadinstitute.dsde.workbench.util2.messaging.CloudPublisher
 
 import java.time.Duration
 
 private[azure] class AzurePublisherInterpreter[F[_]: Async: StructuredLogger](
   clientWrapper: AzureServiceBusSenderClientWrapper
-) extends Publisher[F] {
+) extends CloudPublisher[F] {
 
   override def publish[MessageType: Encoder]: Pipe[F, MessageType, Unit] = in =>
     in.flatMap { message =>
@@ -67,7 +67,7 @@ private[azure] class AzurePublisherInterpreter[F[_]: Async: StructuredLogger](
 object AzurePublisherInterpreter {
   def publisher[F[_]: Async: StructuredLogger](
     clientWrapper: AzureServiceBusSenderClientWrapper
-  ): Resource[F, Publisher[F]] =
+  ): Resource[F, CloudPublisher[F]] =
     for {
       resourceSenderClient <- Resource.make(
         Async[F].delay {
@@ -76,7 +76,7 @@ object AzurePublisherInterpreter {
       )(c => Async[F].delay(c.close()))
     } yield new AzurePublisherInterpreter[F](resourceSenderClient)
 
-  def publisher[F[_]: Async: StructuredLogger](config: AzureServiceBusPublisherConfig): Resource[F, Publisher[F]] =
+  def publisher[F[_]: Async: StructuredLogger](config: AzureServiceBusPublisherConfig): Resource[F, CloudPublisher[F]] =
     publisher(AzureServiceBusSenderClientWrapper.createSenderClientWrapper(config))
 }
 

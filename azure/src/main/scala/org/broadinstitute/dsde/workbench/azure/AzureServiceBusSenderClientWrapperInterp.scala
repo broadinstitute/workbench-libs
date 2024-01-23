@@ -1,4 +1,5 @@
 package org.broadinstitute.dsde.workbench.azure
+import com.azure.core.util.ConfigurationBuilder
 import com.azure.messaging.servicebus.{ServiceBusClientBuilder, ServiceBusMessage, ServiceBusSenderAsyncClient}
 import reactor.core.publisher.Mono
 

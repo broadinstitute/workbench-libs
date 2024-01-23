@@ -1,6 +1,6 @@
 package org.broadinstitute.dsde.workbench.azure
 
-import com.azure.messaging.servicebus.{ServiceBusMessage, ServiceBusReceivedMessage}
+import com.azure.messaging.servicebus.{ServiceBusMessage, ServiceBusReceivedMessage, ServiceBusReceivedMessageContext}
 import org.awaitility.Awaitility._
 
 import scala.concurrent.duration._
@@ -52,8 +52,11 @@ final class AzureServiceBusClientsManualTest(
     // for testing we are using a simple handler that counts the messages received.
     // the logic that converts the service bus message to an AzureEvent is tested in AzureSubscriberSpec
     val handler = new AzureReceivedMessageHandler {
-      def handleMessage(message: ServiceBusReceivedMessage): Try[Unit] = Try {
+      def handleMessage(messageContext: ServiceBusReceivedMessageContext): Try[Unit] = Try {
+        val message = messageContext.getMessage
         println(s"Handling message: ${message.getBody}")
+        messageContext.complete()
+        println(s"Handled message: ${message.getBody}")
         msgCount += 1
         ()
       }
@@ -81,8 +84,11 @@ final class AzureServiceBusClientsManualTest(
     // for testing we are using a simple handler that counts the messages received.
     // the logic that converts the service bus message to an AzureEvent is tested in AzureSubscriberSpec
     val handler = new AzureReceivedMessageHandler {
-      def handleMessage(message: ServiceBusReceivedMessage): Try[Unit] = Try {
+      def handleMessage(msgContext: ServiceBusReceivedMessageContext): Try[Unit] = Try {
+        val message = msgContext.getMessage
         println(s"Handling message: ${message.getBody}")
+        msgContext.complete()
+        println(s"Handled message: ${message.getBody}")
         msgCount += 1
         ()
       }
@@ -96,7 +102,7 @@ final class AzureServiceBusClientsManualTest(
     val sender = AzureServiceBusSenderClientWrapper.createSenderClientWrapper(azureServiceBusPublisherConfig)
 
     for (i <- 1 to numOfMessages) {
-      val message = new ServiceBusMessage(s"test message $i")
+      val message = new ServiceBusMessage(s"Message: $i")
       sender
         .sendMessageAsync(message)
         .doOnSuccess(_ => println(s"Message $i sent"))

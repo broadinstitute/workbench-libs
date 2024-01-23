@@ -8,9 +8,9 @@ import com.azure.core.util.BinaryData
 import com.azure.messaging.servicebus.{ServiceBusReceivedMessage, ServiceBusReceivedMessageContext}
 import io.circe.generic.auto._
 import org.broadinstitute.dsde.workbench.model.TraceId
-import org.broadinstitute.dsde.workbench.util2.messaging.ReceivedMessage
+import org.broadinstitute.dsde.workbench.util2.messaging.{AckHandler, ReceivedMessage}
 import org.broadinstitute.dsde.workbench.util2.{ConsoleLogger, LogLevel}
-import org.mockito.Mockito.{times, verify}
+import org.mockito.Mockito.{times, verify, when}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.flatspec.AnyFlatSpecLike
 import org.scalatest.matchers.should.Matchers
@@ -21,9 +21,11 @@ import scala.util.{Failure, Success, Try}
 
 class AzureSubscriberSpec extends AnyFlatSpecLike with MockitoSugar with Matchers with BeforeAndAfterEach {
   var mockReceiverClient: AzureServiceBusReceiverClientWrapper = _
+  var mockAckHandler: AckHandler = _
   override def beforeEach(): Unit = {
     super.beforeEach()
     mockReceiverClient = mock[AzureServiceBusReceiverClientWrapper]
+    mockAckHandler = mock[AckHandler]
   }
 
   implicit val logger: ConsoleLogger = new ConsoleLogger(
@@ -45,30 +47,31 @@ class AzureSubscriberSpec extends AnyFlatSpecLike with MockitoSugar with Matcher
   }
 
   "AzureReceivedMessageHandlerInterpreter" should " decode string message and send it to the queue" in {
-    val receivedMessage = createServiceBusReceivedMessageUsingReflection("test")
+    val receivedMessage = createMockServiceBusReceivedMessage("test")
+    val messageContext = createMessageContextMock(receivedMessage)
 
     val queue = Queue.unbounded[IO, ReceivedMessage[String]].unsafeRunSync()
 
-    val runHandler = for {
+    val handlerResource = for {
       dispatcher <- cats.effect.std.Dispatcher.sequential[IO]
       handler = AzureReceivedMessageHandlerInterpreter(AzureReceivedMessageDecoder.stringDecoder, queue, dispatcher)
     } yield handler
 
-    runHandler
+    handlerResource
       .use { handler =>
-        IO(handler.handleMessage(receivedMessage))
+        IO(handler.handleMessage(messageContext))
       }
       .unsafeRunSync()
 
-    assertMessageIsQueued[String](receivedMessage, queue, "test")
+    assertMessageIsQueued[String](queue, "test")
   }
 
   "AzureReceivedMessageHandlerInterpreter" should " decode json message and send it to the queue" in {
-    val receivedMessage = createServiceBusReceivedMessageUsingReflection("""{"name":"Foo","description":"Bar"}""")
-
+    val receivedMessage = createMockServiceBusReceivedMessage("""{"name":"Foo","description":"Bar"}""")
+    val messageContext = createMessageContextMock(receivedMessage)
     val queue = Queue.unbounded[IO, ReceivedMessage[TestMessage]].unsafeRunSync()
 
-    val runHandler = for {
+    val handlerResource = for {
       dispatcher <- cats.effect.std.Dispatcher.sequential[IO]
       handler = AzureReceivedMessageHandlerInterpreter(AzureReceivedMessageDecoder.jsonDecoder[TestMessage],
                                                        queue,
@@ -76,22 +79,53 @@ class AzureSubscriberSpec extends AnyFlatSpecLike with MockitoSugar with Matcher
       )
     } yield handler
 
-    runHandler
+    handlerResource
       .use { handler =>
-        IO(handler.handleMessage(receivedMessage))
+        IO(handler.handleMessage(messageContext))
       }
       .unsafeRunSync()
 
-    assertMessageIsQueued(receivedMessage, queue, TestMessage("Foo", "Bar"))
+    assertMessageIsQueued(queue, TestMessage("Foo", "Bar"))
+  }
+
+  "AzureReceivedMessageHandlerInterpreter" should " abandon message when handler fails " in {
+
+    val messageContext = mock[ServiceBusReceivedMessageContext]
+    when(messageContext.getMessage).thenThrow(new RuntimeException("test exception"))
+
+    val queue = Queue.unbounded[IO, ReceivedMessage[TestMessage]].unsafeRunSync()
+
+    val handlerResource = for {
+      dispatcher <- cats.effect.std.Dispatcher.sequential[IO]
+      handler = AzureReceivedMessageHandlerInterpreter(AzureReceivedMessageDecoder.jsonDecoder[TestMessage],
+                                                       queue,
+                                                       dispatcher
+      )
+    } yield handler
+
+    val runHandler = handlerResource.use { handler =>
+      IO(handler.handleMessage(messageContext))
+    }
+
+    val testResult = runHandler.unsafeRunSync()
+
+    testResult match {
+      case Success(_) => fail("Expected exception")
+      case Failure(e) => e.getMessage shouldEqual "test exception"
+    }
+
+    verify(messageContext, times(1)).abandon()
   }
 
   "AzureReceivedMessageHandlerInterpreter" should " decode json multiple messages and send them to the queue" in {
-    val receivedMessage1 = createServiceBusReceivedMessageUsingReflection("""{"name":"Foo1","description":"Bar1"}""")
-    val receivedMessage2 = createServiceBusReceivedMessageUsingReflection("""{"name":"Foo2","description":"Bar2"}""")
+    val receivedMessage1 = createMockServiceBusReceivedMessage("""{"name":"Foo1","description":"Bar1"}""")
+    val receivedMessage2 = createMockServiceBusReceivedMessage("""{"name":"Foo2","description":"Bar2"}""")
+    val msgContext1 = createMessageContextMock(receivedMessage1)
+    val msgContext2 = createMessageContextMock(receivedMessage2)
 
     val queue = Queue.unbounded[IO, ReceivedMessage[TestMessage]].unsafeRunSync()
 
-    val runHandler = for {
+    val handlerResource = for {
       dispatcher <- cats.effect.std.Dispatcher.sequential[IO]
       handler = AzureReceivedMessageHandlerInterpreter(AzureReceivedMessageDecoder.jsonDecoder[TestMessage],
                                                        queue,
@@ -99,19 +133,18 @@ class AzureSubscriberSpec extends AnyFlatSpecLike with MockitoSugar with Matcher
       )
     } yield handler
 
-    runHandler
+    handlerResource
       .use { handler =>
-        IO(handler.handleMessage(receivedMessage1)) *>
-          IO(handler.handleMessage(receivedMessage2))
+        IO(handler.handleMessage(msgContext1)) *>
+          IO(handler.handleMessage(msgContext2))
       }
       .unsafeRunSync()
 
-    assertMessageIsQueued(receivedMessage1, queue, TestMessage("Foo1", "Bar1"))
-    assertMessageIsQueued(receivedMessage2, queue, TestMessage("Foo2", "Bar2"))
+    assertMessageIsQueued(queue, TestMessage("Foo1", "Bar1"))
+    assertMessageIsQueued(queue, TestMessage("Foo2", "Bar2"))
   }
 
-  private def assertMessageIsQueued[MessageType](receivedMessage: ServiceBusReceivedMessage,
-                                                 queue: Queue[IO, ReceivedMessage[MessageType]],
+  private def assertMessageIsQueued[MessageType](queue: Queue[IO, ReceivedMessage[MessageType]],
                                                  expectedMessage: MessageType
   ) = {
     val testResult = for {
@@ -120,31 +153,23 @@ class AzureSubscriberSpec extends AnyFlatSpecLike with MockitoSugar with Matcher
 
     Try(testResult.unsafeRunSync()) match {
       case Success(Left(message)) =>
-        message shouldEqual ReceivedMessage(expectedMessage,
-                                            None,
-                                            ServiceBusMessageUtils.getEnqueuedTimeOrDefault(receivedMessage)
-        )
+        message.msg shouldEqual expectedMessage
       case Success(Right(_))  => fail("Timeout reached without receiving a message")
       case Failure(exception) => fail(exception)
     }
   }
 
-  // Okay, using the last resort approach to create a received message: reflection
-  // This is because ServiceBusReceivedMessage is a final class and cannot be mocked, even when mockito is configured to mock final classes
-  // and the SDK does not provide a factory to create a received message
-  def createServiceBusReceivedMessageUsingReflection(body: String): ServiceBusReceivedMessage = {
-    val clazz = classOf[ServiceBusReceivedMessage]
-    val constructor = clazz.getDeclaredConstructor(classOf[BinaryData])
-    constructor.setAccessible(true)
-    constructor.newInstance(BinaryData.fromString(body))
+  def createMockServiceBusReceivedMessage(body: String): ServiceBusReceivedMessage = {
+    val mockMsg = mock[ServiceBusReceivedMessage]
+    when(mockMsg.getBody).thenReturn(BinaryData.fromString(body))
+    mockMsg
   }
 
-  def createServiceBusReceivedMessageContextUsingReflection(
+  def createMessageContextMock(
     receivedMessage: ServiceBusReceivedMessage
   ): ServiceBusReceivedMessageContext = {
-    val clazz = classOf[ServiceBusReceivedMessageContext]
-    val constructor = clazz.getDeclaredConstructor(classOf[ServiceBusReceivedMessage])
-    constructor.setAccessible(true)
-    constructor.newInstance(receivedMessage)
+    val mockCtx = mock[ServiceBusReceivedMessageContext]
+    when(mockCtx.getMessage).thenReturn(receivedMessage)
+    mockCtx
   }
 }

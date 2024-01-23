@@ -6,9 +6,10 @@ import com.google.pubsub.v1.PubsubMessage
 import fs2.Pipe
 import io.circe.Encoder
 import org.broadinstitute.dsde.workbench.model.TraceId
+import org.broadinstitute.dsde.workbench.util2.messaging.CloudPublisher
 import org.typelevel.log4cats.StructuredLogger
 
-trait GooglePublisher[F[_]] {
+trait GooglePublisher[F[_]] extends CloudPublisher[F]{
 
   /**
    * Watch out message size quota and limitations https://cloud.google.com/pubsub/quotas
@@ -39,9 +40,17 @@ trait GooglePublisher[F[_]] {
 }
 
 object GooglePublisher {
+  @deprecated("Use cloudPublisherResource instead", "0.6")
   def resource[F[_]: Async: StructuredLogger](
     config: PublisherConfig
   ): Resource[F, GooglePublisher[F]] =
+    for {
+      publisher <- GooglePublisherInterpreter.publisher(config)
+    } yield GooglePublisherInterpreter(publisher)
+
+  def cloudPublisherResource[F[_]: Async: StructuredLogger](
+    config: PublisherConfig
+  ): Resource[F, CloudPublisher] =
     for {
       publisher <- GooglePublisherInterpreter.publisher(config)
     } yield GooglePublisherInterpreter(publisher)

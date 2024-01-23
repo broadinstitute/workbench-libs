@@ -4,6 +4,7 @@ import cats.effect._
 import cats.effect.std.Queue
 import fs2.Stream
 import io.circe.Decoder
+import org.broadinstitute.dsde.workbench.util2.messaging.CloudSubscriber
 import org.typelevel.log4cats.StructuredLogger
 
 trait GoogleSubscriber[F[_], A] {

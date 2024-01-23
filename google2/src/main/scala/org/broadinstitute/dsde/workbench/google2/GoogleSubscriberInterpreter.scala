@@ -17,6 +17,7 @@ import org.typelevel.log4cats.{Logger, StructuredLogger}
 import io.circe.Decoder
 import io.circe.parser._
 import org.broadinstitute.dsde.workbench.model.TraceId
+import org.broadinstitute.dsde.workbench.util2.messaging.CloudSubscriber
 
 import java.util.concurrent.ScheduledThreadPoolExecutor
 import scala.concurrent.duration.FiniteDuration
@@ -25,7 +26,7 @@ private[google2] class GoogleSubscriberInterpreter[F[_], MessageType](
   subscriber: Subscriber,
   queue: cats.effect.std.Queue[F, Event[MessageType]]
 )(implicit F: Async[F])
-    extends GoogleSubscriber[F, MessageType] {
+    extends GoogleSubscriber[F, MessageType]  {
   val messages: Stream[F, Event[MessageType]] = Stream.fromQueueUnterminated(queue)
 
   def start: F[Unit] = F.async[Unit] { callback =>
