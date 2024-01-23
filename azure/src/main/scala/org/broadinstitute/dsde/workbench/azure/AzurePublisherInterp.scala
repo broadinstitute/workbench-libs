@@ -80,7 +80,10 @@ object AzurePublisherInterpreter {
     publisher(AzureServiceBusSenderClientWrapper.createSenderClientWrapper(config))
 }
 
-final case class AzureServiceBusPublisherConfig(topicName: String, connectionString: Option[String])
+final case class AzureServiceBusPublisherConfig(topicName: String,
+                                                connectionString: Option[String],
+                                                namespace: Option[String]
+)
 
 object AzureServiceBusPublisherConfig {
   val defaultTimeout: Duration = Duration.ofMinutes(1)
