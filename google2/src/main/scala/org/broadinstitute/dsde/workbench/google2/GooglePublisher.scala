@@ -40,7 +40,7 @@ trait GooglePublisher[F[_]] extends CloudPublisher[F] {
 }
 
 object GooglePublisher {
-  @deprecated("Use cloudPublisherResource instead", "0.6")
+  @deprecated("Use cloudPublisherResource instead", "0.36")
   def resource[F[_]: Async: StructuredLogger](
     config: PublisherConfig
   ): Resource[F, GooglePublisher[F]] =
