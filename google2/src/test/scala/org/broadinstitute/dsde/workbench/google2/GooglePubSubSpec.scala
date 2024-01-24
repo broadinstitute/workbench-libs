@@ -17,6 +17,7 @@ import io.grpc.ManagedChannelBuilder
 import io.grpc.Status.Code
 import org.broadinstitute.dsde.workbench.google2.GooglePubSubSpec._
 import org.broadinstitute.dsde.workbench.util2.WorkbenchTestSuite
+import org.broadinstitute.dsde.workbench.util2.messaging.ReceivedMessage
 import org.scalatest.flatspec.AnyFlatSpecLike
 import org.scalatest.matchers.should.Matchers
 import org.typelevel.log4cats.StructuredLogger
@@ -30,7 +31,7 @@ class GooglePubSubSpec extends AnyFlatSpecLike with Matchers with WorkbenchTestS
     val topicName = Generators.genTopicName.sample.get
 
     val res = for {
-      queue <- cats.effect.std.Queue.bounded[IO, Event[Person]](10000)
+      queue <- cats.effect.std.Queue.bounded[IO, ReceivedMessage[Person]](10000)
       _ <- localPubsub[Person](topicName, queue).use { case (pub, _) =>
         val res = Stream.emits(people) through pub.publish
 
@@ -47,7 +48,7 @@ class GooglePubSubSpec extends AnyFlatSpecLike with Matchers with WorkbenchTestS
 
     var expectedPeople = people
     val res = for {
-      queue <- Queue.bounded[IO, Event[Person]](10000)
+      queue <- Queue.bounded[IO, ReceivedMessage[Person]](10000)
       terminateSubscriber <- SignallingRef[IO, Boolean](false) // signal for terminating subscriber
       terminateStopStream <- SignallingRef[IO, Boolean](false) // signal for terminating stopStream
       _ <- localPubsub(projectTopicName, queue).use { case (pub, sub) =>
@@ -58,9 +59,9 @@ class GooglePubSubSpec extends AnyFlatSpecLike with Matchers with WorkbenchTestS
             if (expectedPeople.contains(event.msg)) {
               expectedPeople = expectedPeople.filterNot(_ == event.msg)
               if (index.toInt == people.length - 1)
-                IO(event.consumer.ack()).void >> terminateSubscriber.set(true)
+                IO(event.ackHandler.ack()).void >> terminateSubscriber.set(true)
               else
-                IO(event.consumer.ack()).void
+                IO(event.ackHandler.ack()).void
             } else
               IO.raiseError(new Exception(s"$event doesn't equal ${people(index.toInt)}")) >> terminateSubscriber
                 .set(true)
@@ -88,7 +89,7 @@ class GooglePubSubSpec extends AnyFlatSpecLike with Matchers with WorkbenchTestS
 }
 
 object GooglePubSubSpec {
-  def localPubsub[A: Decoder](projectTopicName: TopicName, queue: Queue[IO, Event[A]])(implicit
+  def localPubsub[A: Decoder](projectTopicName: TopicName, queue: Queue[IO, ReceivedMessage[A]])(implicit
     logger: StructuredLogger[IO]
   ): Resource[IO, (GooglePublisherInterpreter[IO], GoogleSubscriberInterpreter[IO, A])] =
     for {
