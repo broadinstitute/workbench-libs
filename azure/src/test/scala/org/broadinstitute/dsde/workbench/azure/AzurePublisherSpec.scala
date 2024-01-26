@@ -57,6 +57,27 @@ class AzurePublisherSpec extends AnyFlatSpecLike with MockitoSugar with Matchers
 
   }
 
+  "AzurePublisherInterpreter" should "send message with attributes if they are set" in {
+    val message = TestMessage("Foo", "Bar")
+    val messageCaptor: ArgumentCaptor[ServiceBusMessage] = ArgumentCaptor.forClass(classOf[ServiceBusMessage])
+    val attributes = Map("foo" -> "bar")
+    when(mockSenderClient.sendMessageAsync(messageCaptor.capture())).thenReturn(Mono.empty())
+
+    val res = for {
+      _ <- AzurePublisherInterpreter.publisher[IO](mockSenderClient).use { pub =>
+        pub.publishOne(message, Some(attributes))
+      }
+    } yield ()
+
+    val testResult = Try(res.unsafeRunSync())
+
+    testResult should be a Symbol("success")
+
+    verify(mockSenderClient, times(1)).sendMessageAsync(any[ServiceBusMessage])
+
+    val capturedMessage: ServiceBusMessage = messageCaptor.getValue
+    capturedMessage.getApplicationProperties.get("foo") shouldEqual "bar"
+  }
   "AzurePublisherInterpreter" should "send message correlation id with the trace id when provided using publishOne" in {
     val message = TestMessage("Foo", "Bar")
     val messageCaptor: ArgumentCaptor[ServiceBusMessage] = ArgumentCaptor.forClass(classOf[ServiceBusMessage])

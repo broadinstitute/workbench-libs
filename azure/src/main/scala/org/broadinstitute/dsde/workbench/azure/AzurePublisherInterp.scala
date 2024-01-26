@@ -25,20 +25,30 @@ private[azure] class AzurePublisherInterpreter[F[_]: Async: StructuredLogger](
         .eval(publishMessage(message.asJson.noSpaces, None))
     }
 
-  override def publishOne[MessageType: Encoder](message: MessageType)(implicit ev: Ask[F, TraceId]): F[Unit] =
+  override def publishOne[MessageType: Encoder](message: MessageType,
+                                                messageAttributes: Option[Map[String, String]] = None
+  )(implicit ev: Ask[F, TraceId]): F[Unit] =
     for {
       traceId <- ev.ask
-      _ <- publishMessage(message.asJson.noSpaces, Some(traceId))
+      _ <- publishMessage(message.asJson.noSpaces, Some(traceId), messageAttributes)
     } yield ()
 
   override def publishString: Pipe[F, String, Unit] = in => in.flatMap(s => Stream.eval(publishMessage(s, None)))
 
-  private def publishMessage(message: String, traceId: Option[TraceId]): F[Unit] =
-    publishServiceBusMessage(message, traceId)
+  private def publishMessage(message: String,
+                             traceId: Option[TraceId],
+                             messageAttributes: Option[Map[String, String]] = None
+  ): F[Unit] =
+    publishServiceBusMessage(message, traceId, messageAttributes)
 
-  private def publishServiceBusMessage(messageBody: String, traceId: Option[TraceId]): F[Unit] = {
+  private def publishServiceBusMessage(messageBody: String,
+                                       traceId: Option[TraceId],
+                                       messageAttributes: Option[Map[String, String]] = None
+  ): F[Unit] = {
     val message = new ServiceBusMessage(messageBody)
     traceId.foreach(id => message.setCorrelationId(id.asString))
+
+    messageAttributes.foreach(_.foreach { case (k, v) => message.getApplicationProperties.put(k, v) })
 
     publishServiceBusMessage(message)
   }

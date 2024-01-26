@@ -9,7 +9,7 @@ import org.broadinstitute.dsde.workbench.model.TraceId
 import org.broadinstitute.dsde.workbench.util2.messaging.CloudPublisher
 import org.typelevel.log4cats.StructuredLogger
 
-trait GooglePublisher[F[_]] extends CloudPublisher[F] {
+trait GooglePublisher[F[_]] {
 
   /**
    * Watch out message size quota and limitations https://cloud.google.com/pubsub/quotas

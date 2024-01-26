@@ -15,14 +15,17 @@ import fs2.{Pipe, Stream}
 import io.circe.Encoder
 import io.circe.syntax._
 import org.broadinstitute.dsde.workbench.model.TraceId
+import org.broadinstitute.dsde.workbench.util2.messaging.CloudPublisher
 import org.broadinstitute.dsde.workbench.util2.{tracedLogging, withLogging}
 import org.typelevel.log4cats.StructuredLogger
 
 import java.util.concurrent.ScheduledThreadPoolExecutor
+import scala.jdk.CollectionConverters.MapHasAsJava
 
 private[google2] class GooglePublisherInterpreter[F[_]: Async: StructuredLogger](
   publisher: Publisher
-) extends GooglePublisher[F] {
+) extends GooglePublisher[F]
+    with CloudPublisher[F] {
   def publish[MessageType: Encoder]: Pipe[F, MessageType, Unit] = in =>
     in.flatMap { message =>
       Stream
@@ -63,18 +66,27 @@ private[google2] class GooglePublisherInterpreter[F[_]: Async: StructuredLogger]
     val byteString = ByteString.copyFromUtf8(message.asJson.noSpaces)
     tracedLogging(asyncPublishMessage(byteString), s"com.google.cloud.pubsub.v1.Publisher.publish($byteString)")
   }
+  override def publishOne[MessageType: Encoder](message: MessageType,
+                                                messageAttributes: Option[Map[String, String]] = None
+  )(implicit ev: Ask[F, TraceId]): F[Unit] = {
+    val byteString = ByteString.copyFromUtf8(message.asJson.noSpaces)
+    tracedLogging(asyncPublishMessage(byteString, messageAttributes),
+                  s"com.google.cloud.pubsub.v1.Publisher.publish($byteString)"
+    )
+  }
 
   private def publishMessage(message: String, traceId: Option[TraceId]): F[Unit] = {
     val byteString = ByteString.copyFromUtf8(message)
     withLogging(asyncPublishMessage(byteString), traceId, s"Publishing $message")
   }
 
-  private def asyncPublishMessage(byteString: ByteString): F[Unit] =
+  private def asyncPublishMessage(byteString: ByteString, attributes: Option[Map[String, String]] = None): F[Unit] =
     Async[F]
       .async[String] { callback =>
         val message = PubsubMessage
           .newBuilder()
           .setData(byteString)
+          .putAllAttributes(attributes.getOrElse(Map.empty).asJava)
           .build()
         Async[F]
           .delay(
