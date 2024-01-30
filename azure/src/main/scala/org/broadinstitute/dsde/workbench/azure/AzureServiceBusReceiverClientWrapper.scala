@@ -8,7 +8,7 @@ trait AzureServiceBusReceiverClientWrapper {
 }
 
 object AzureServiceBusReceiverClientWrapper {
-  def createReceiverClientWrapper[F[_], MessageType](
+  def createReceiverClientWrapper(
     subscriberConfig: AzureServiceBusSubscriberConfig,
     messageHandler: AzureReceivedMessageHandler
   ): AzureServiceBusReceiverClientWrapper =

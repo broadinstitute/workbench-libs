@@ -51,9 +51,7 @@ object AzureSubscriberInterpreter {
                                                                dispatcher
         )
 
-      clientWrapper = AzureServiceBusReceiverClientWrapper.createReceiverClientWrapper[F, MessageType](config,
-                                                                                                       messageHandler
-      )
+      clientWrapper = AzureServiceBusReceiverClientWrapper.createReceiverClientWrapper(config, messageHandler)
 
       subscriberInterp = new AzureSubscriberInterpreter(clientWrapper, queue)
 
@@ -80,9 +78,7 @@ object AzureSubscriberInterpreter {
       messageHandler =
         AzureReceivedMessageHandlerInterpreter[F, String](AzureReceivedMessageDecoder.stringDecoder, queue, dispatcher)
 
-      clientWrapper = AzureServiceBusReceiverClientWrapper.createReceiverClientWrapper[F, String](config,
-                                                                                                  messageHandler
-      )
+      clientWrapper = AzureServiceBusReceiverClientWrapper.createReceiverClientWrapper(config, messageHandler)
 
       subscriberInterp = new AzureSubscriberInterpreter(clientWrapper, queue)
 

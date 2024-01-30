@@ -3,6 +3,7 @@ package org.broadinstitute.dsde.workbench.azure
 import com.azure.identity.DefaultAzureCredentialBuilder
 import com.azure.messaging.servicebus._
 import com.azure.messaging.servicebus.models.ServiceBusReceiveMode
+import org.slf4j.LoggerFactory
 
 import scala.util.{Failure, Success, Try}
 
@@ -10,10 +11,11 @@ class AzureServiceBusReceiverClientWrapperInterp(subscriberConfig: AzureServiceB
                                                  messageHandler: AzureReceivedMessageHandler
 ) extends AzureServiceBusReceiverClientWrapper {
 
+  private val logger = LoggerFactory.getLogger(classOf[AzureServiceBusReceiverClientWrapperInterp])
   private val processor: ServiceBusProcessorClient = createNewProcessor()
 
   private def handleError(context: ServiceBusErrorContext): Unit =
-    println(s"Error when receiving message: ${context.getException}.")
+    logger.error(s"Error when receiving message: ${context.getException}.")
 
   override def stopProcessor(): Unit = {
     processor.stop()
@@ -58,9 +60,8 @@ class AzureServiceBusReceiverClientWrapperInterp(subscriberConfig: AzureServiceB
     handler(context) match {
       case Success(_) =>
       // the message is acked by the consumer
-      case Failure(exception) =>
-        // no need to handle the error as the handler logged it
-        println(s"Message failed. ${exception.getMessage}")
+      case Failure(_) =>
+        // no need to handle the error as the handler should log it
         context.abandon()
     }
   }
