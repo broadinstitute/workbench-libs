@@ -65,7 +65,7 @@ class AzurePublisherSpec extends AnyFlatSpecLike with MockitoSugar with Matchers
 
     val res = for {
       _ <- AzurePublisherInterpreter.publisher[IO](mockSenderClient).use { pub =>
-        pub.publishOne(message, Some(attributes))
+        pub.publishOne(message, attributes)
       }
     } yield ()
 

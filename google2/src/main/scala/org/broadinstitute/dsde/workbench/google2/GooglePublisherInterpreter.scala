@@ -67,7 +67,7 @@ private[google2] class GooglePublisherInterpreter[F[_]: Async: StructuredLogger]
     tracedLogging(asyncPublishMessage(byteString), s"com.google.cloud.pubsub.v1.Publisher.publish($byteString)")
   }
   override def publishOne[MessageType: Encoder](message: MessageType,
-                                                messageAttributes: Option[Map[String, String]] = None
+                                                messageAttributes: Map[String, String] = Map.empty
   )(implicit ev: Ask[F, TraceId]): F[Unit] = {
     val byteString = ByteString.copyFromUtf8(message.asJson.noSpaces)
     tracedLogging(asyncPublishMessage(byteString, messageAttributes),
@@ -80,13 +80,13 @@ private[google2] class GooglePublisherInterpreter[F[_]: Async: StructuredLogger]
     withLogging(asyncPublishMessage(byteString), traceId, s"Publishing $message")
   }
 
-  private def asyncPublishMessage(byteString: ByteString, attributes: Option[Map[String, String]] = None): F[Unit] =
+  private def asyncPublishMessage(byteString: ByteString, attributes: Map[String, String] = Map.empty): F[Unit] =
     Async[F]
       .async[String] { callback =>
         val message = PubsubMessage
           .newBuilder()
           .setData(byteString)
-          .putAllAttributes(attributes.getOrElse(Map.empty).asJava)
+          .putAllAttributes(attributes.asJava)
           .build()
         Async[F]
           .delay(

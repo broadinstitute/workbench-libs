@@ -7,8 +7,8 @@ import org.slf4j.LoggerFactory
 
 import scala.util.{Failure, Success, Try}
 
-class AzureServiceBusReceiverClientWrapperInterp(subscriberConfig: AzureServiceBusSubscriberConfig,
-                                                 messageHandler: AzureReceivedMessageHandler
+private class AzureServiceBusReceiverClientWrapperInterp(subscriberConfig: AzureServiceBusSubscriberConfig,
+                                                         messageHandler: AzureReceivedMessageHandler
 ) extends AzureServiceBusReceiverClientWrapper {
 
   private val logger = LoggerFactory.getLogger(classOf[AzureServiceBusReceiverClientWrapperInterp])

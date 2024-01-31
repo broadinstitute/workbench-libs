@@ -26,7 +26,7 @@ private[azure] class AzurePublisherInterpreter[F[_]: Async: StructuredLogger](
     }
 
   override def publishOne[MessageType: Encoder](message: MessageType,
-                                                messageAttributes: Option[Map[String, String]] = None
+                                                messageAttributes: Map[String, String] = Map.empty
   )(implicit ev: Ask[F, TraceId]): F[Unit] =
     for {
       traceId <- ev.ask
@@ -37,18 +37,18 @@ private[azure] class AzurePublisherInterpreter[F[_]: Async: StructuredLogger](
 
   private def publishMessage(message: String,
                              traceId: Option[TraceId],
-                             messageAttributes: Option[Map[String, String]] = None
+                             messageAttributes: Map[String, String] = Map.empty
   ): F[Unit] =
     publishServiceBusMessage(message, traceId, messageAttributes)
 
   private def publishServiceBusMessage(messageBody: String,
                                        traceId: Option[TraceId],
-                                       messageAttributes: Option[Map[String, String]] = None
+                                       messageAttributes: Map[String, String] = Map.empty
   ): F[Unit] = {
     val message = new ServiceBusMessage(messageBody)
     traceId.foreach(id => message.setCorrelationId(id.asString))
 
-    messageAttributes.foreach(_.foreach { case (k, v) => message.getApplicationProperties.put(k, v) })
+    messageAttributes.foreach { case (k, v) => message.getApplicationProperties.put(k, v) }
 
     publishServiceBusMessage(message)
   }

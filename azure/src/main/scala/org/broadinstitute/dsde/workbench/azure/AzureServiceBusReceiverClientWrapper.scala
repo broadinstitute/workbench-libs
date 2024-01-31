@@ -1,13 +1,12 @@
 package org.broadinstitute.dsde.workbench.azure
 
-// A simple wrapper around the Azure ServiceBusReceiverAsyncClient to facilitate testing
-// given that the client is final and serializable, which prevents mockito from mocking it
-trait AzureServiceBusReceiverClientWrapper {
+// A simple wrapper around the Azure ServiceBusSenderAsyncClient to facilitate testing and reduce coupling with the Azure SDK.
+private[azure] trait AzureServiceBusReceiverClientWrapper {
   def startProcessor(): Unit
   def stopProcessor(): Unit
 }
 
-object AzureServiceBusReceiverClientWrapper {
+private object AzureServiceBusReceiverClientWrapper {
   def createReceiverClientWrapper(
     subscriberConfig: AzureServiceBusSubscriberConfig,
     messageHandler: AzureReceivedMessageHandler
