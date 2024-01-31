@@ -30,8 +30,4 @@ trait CloudSubscriber[F[_], MessageType] {
  * A message received from a cloud messaging service.
  * Contains the message itself, along with metadata about the message, and the ability to ack/nack the message via the ackHandler.
  */
-final case class ReceivedMessage[A](msg: A,
-                                    traceId: Option[TraceId],
-                                    publishedTime: Option[Instant],
-                                    ackHandler: AckHandler
-)
+final case class ReceivedMessage[A](msg: A, traceId: Option[TraceId], publishedTime: Instant, ackHandler: AckHandler)

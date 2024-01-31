@@ -109,7 +109,7 @@ final class JsonMessageDecoder[MessageType: Decoder] extends AzureReceivedMessag
       case Right(json) =>
         Decoder[MessageType].decodeJson(json) match {
           case Right(decodedData) =>
-            val timestamp = ServiceBusMessageUtils.getEnqueuedTimeOrDefault(message)
+            val timestamp = message.getEnqueuedTime.toInstant
             val traceId = ServiceBusMessageUtils.getTraceIdFromCorrelationId(message)
             val ackHandler = AzureAckHandlerInterpreter.createAckHandler(messageContext)
             Right(ReceivedMessage(decodedData, traceId, timestamp, ackHandler))
@@ -127,7 +127,7 @@ final class StringMessageDecoder extends AzureReceivedMessageDecoder[String] {
     try {
       val message = messageContext.getMessage
       Right {
-        val timestamp = ServiceBusMessageUtils.getEnqueuedTimeOrDefault(message)
+        val timestamp = message.getEnqueuedTime.toInstant
         val traceId = ServiceBusMessageUtils.getTraceIdFromCorrelationId(message)
         val ackHandler = AzureAckHandlerInterpreter.createAckHandler(messageContext)
 

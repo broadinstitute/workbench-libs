@@ -88,7 +88,7 @@ object GoogleSubscriberInterpreter {
       } yield ReceivedMessage(
         msg,
         traceId,
-        Some(Instant.ofEpochSecond(message.getPublishTime.getSeconds, message.getPublishTime.getNanos.toLong)),
+        Instant.ofEpochSecond(message.getPublishTime.getSeconds, message.getPublishTime.getNanos.toLong),
         AckGoogleHandler.createAckHandler(consumer)
       )
 
@@ -130,7 +130,7 @@ object GoogleSubscriberInterpreter {
           ReceivedMessage(
             message.getData.toStringUtf8,
             Option(message.getAttributesMap.get("traceId")).map(s => TraceId(s)),
-            Some(Instant.ofEpochSecond(message.getPublishTime.getSeconds, message.getPublishTime.getNanos.toLong)),
+            Instant.ofEpochSecond(message.getPublishTime.getSeconds, message.getPublishTime.getNanos.toLong),
             AckGoogleHandler.createAckHandler(consumer)
           )
         )

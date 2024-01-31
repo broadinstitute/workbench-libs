@@ -17,6 +17,7 @@ import org.scalatest.matchers.should.Matchers
 import org.scalatest.time.SpanSugar.convertIntToGrainOfTime
 import org.scalatestplus.mockito.MockitoSugar
 
+import java.time.OffsetDateTime
 import scala.util.{Failure, Success, Try}
 
 class AzureSubscriberSpec extends AnyFlatSpecLike with MockitoSugar with Matchers with BeforeAndAfterEach {
@@ -162,6 +163,8 @@ class AzureSubscriberSpec extends AnyFlatSpecLike with MockitoSugar with Matcher
   def createMockServiceBusReceivedMessage(body: String): ServiceBusReceivedMessage = {
     val mockMsg = mock[ServiceBusReceivedMessage]
     when(mockMsg.getBody).thenReturn(BinaryData.fromString(body))
+    when(mockMsg.getEnqueuedTime).thenReturn(OffsetDateTime.now())
+    when(mockMsg.getCorrelationId).thenReturn("test")
     mockMsg
   }
 
