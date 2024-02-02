@@ -2,6 +2,24 @@
 
 This file documents changes to the `workbench-google2` library, including notes on how to upgrade to new versions.
 
+## 0.36
+
+SBT Dependency: "org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.36-TRAVIS-REPLACE-ME"
+
+### Changes
+
+- GoogleSubscriberInterpreter (**Breaking**):
+
+  - The `GoogleSubscriberInterpreter` is now implemented as a `CloudSubscriber`, replacing its previous implementation as a `GoogleSubscriber`.
+  - Although the method signatures remain functionally identical, new types have been introduced to remove GCP specific types:
+    - The message queue and message stream types are now `ReceivedMessage[MessageType]` instead of `Event[MessageType]`.
+    - To acknowledge a message, the method `msg.ackHandler.ack()` should be used, instead of `msg.consumer.ack()`.
+    
+- GooglePublisherInterpreter:
+
+  - The `GooglePublisherInterpreter` implements `CloudPublisher`.
+
+
 ## 0.35
 
 SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.35-437e7c3"`

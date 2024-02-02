@@ -57,7 +57,8 @@ package object util2 {
                                      action: String,
                                      resultFormatter: Show[A] =
                                        Show.show[A](a => if (a == null) "null" else a.toString.take(1024)),
-                                     warnOnError: Boolean = false
+                                     warnOnError: Boolean = false,
+                                     actionName: String = "googleCall"
   )(implicit
     logger: StructuredLogger[F]
   ): F[A] =
@@ -65,7 +66,7 @@ package object util2 {
       res <- Temporal[F].timed(fa.attempt)
       loggingCtx = Map(
         "traceId" -> traceId.map(_.asString).getOrElse(""),
-        "googleCall" -> action,
+        actionName -> action,
         "duration" -> res._1.toMillis.toString
       )
       _ <- res._2 match {

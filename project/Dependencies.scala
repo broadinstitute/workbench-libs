@@ -26,6 +26,8 @@ object Dependencies {
   val scalaTestScalaCheck = "org.scalatestplus" %% "scalacheck-1-16" % "3.2.14.0" % Test //Since scalatest 3.1.0, scalacheck support is moved to `scalatestplus`
   val scalaTestMockito = "org.scalatestplus" %% "mockito-3-4" % "3.2.10.0" % Test //Since scalatest 3.1.0, mockito support is moved to `scalatestplus`
   val scalaTestSelenium =  "org.scalatestplus" %% "selenium-4-1" % "3.2.12.1" % Test //Since scalatest 3.1.0, selenium support is moved to `scalatestplus`
+  val awaitility = "org.awaitility" % "awaitility-scala" % "4.2.0" % Test
+  val byteBuddy = "net.bytebuddy" % "byte-buddy" % "1.14.2" % Test
 
   val akkaActor: ModuleID =         "com.typesafe.akka" %% "akka-actor"           % akkaV     % "provided"
   val akkaStream: ModuleID =         "com.typesafe.akka" %% "akka-stream"           % akkaV     % "provided"
@@ -118,6 +120,7 @@ object Dependencies {
     "com.azure.resourcemanager" % "azure-resourcemanager-applicationinsights" % "1.0.0"
   val azureResourceManagerBatchAccount =
     "com.azure.resourcemanager" % "azure-resourcemanager-batch" % "1.0.0"
+  val azureServiceBus = "com.azure" % "azure-messaging-servicebus" % "7.14.7"
 
   val commonDependencies = Seq(
     jose4j,
@@ -216,7 +219,13 @@ object Dependencies {
     azureResourceManagerContainerService,
     kubernetesClient,
     azureResourceManagerApplicationInsights,
-    azureResourceManagerBatchAccount
+    azureResourceManagerBatchAccount,
+    azureServiceBus,
+    scalaTestMockito,
+    scalatest,
+    circeGeneric,
+    awaitility,
+    byteBuddy
   ) ++ Seq(
     "net.minidev" % "json-smart" % jsonSmartV
   )

@@ -9,6 +9,7 @@ import org.typelevel.log4cats.slf4j.Slf4jLogger
 import org.typelevel.log4cats.SelfAwareStructuredLogger
 import io.circe.Decoder
 import cats.syntax.all._
+import org.broadinstitute.dsde.workbench.util2.messaging.ReceivedMessage
 
 import scala.concurrent.ExecutionContext.global
 import scala.concurrent.duration._
@@ -21,8 +22,8 @@ object GooglePubSubManualTest {
   val projectTopicName = ProjectTopicName.of("your google project", "your topic name")
   val path = "your service account path"
 
-  val printPipe: Pipe[IO, Event[Message], Unit] = in =>
-    in.evalMap(s => IO(println("processed " + s)) >> IO(s.consumer.ack()))
+  val printPipe: Pipe[IO, ReceivedMessage[Message], Unit] = in =>
+    in.evalMap(s => IO(println("processed " + s)) >> IO(s.ackHandler.ack()))
 
   /**
    * How to use this:
@@ -54,7 +55,7 @@ object GooglePubSubManualTest {
   def subscriber() = {
     val config = SubscriberConfig(path, projectTopicName, None, 1 minute, None, None, None)
     for {
-      queue <- Queue.bounded[IO, Event[Message]](100)
+      queue <- Queue.bounded[IO, ReceivedMessage[Message]](100)
       sub = GoogleSubscriber.resource[IO, Message](config, queue)
       _ <- sub.use { s =>
         val stream = Stream(

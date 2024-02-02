@@ -17,16 +17,18 @@ import org.typelevel.log4cats.{Logger, StructuredLogger}
 import io.circe.Decoder
 import io.circe.parser._
 import org.broadinstitute.dsde.workbench.model.TraceId
+import org.broadinstitute.dsde.workbench.util2.messaging.{AckHandler, CloudSubscriber, ReceivedMessage}
 
+import java.time.Instant
 import java.util.concurrent.ScheduledThreadPoolExecutor
 import scala.concurrent.duration.FiniteDuration
 
 private[google2] class GoogleSubscriberInterpreter[F[_], MessageType](
   subscriber: Subscriber,
-  queue: cats.effect.std.Queue[F, Event[MessageType]]
+  queue: cats.effect.std.Queue[F, ReceivedMessage[MessageType]]
 )(implicit F: Async[F])
-    extends GoogleSubscriber[F, MessageType] {
-  val messages: Stream[F, Event[MessageType]] = Stream.fromQueueUnterminated(queue)
+    extends CloudSubscriber[F, MessageType] {
+  val messages: Stream[F, ReceivedMessage[MessageType]] = Stream.fromQueueUnterminated(queue)
 
   def start: F[Unit] = F.async[Unit] { callback =>
     F.delay {
@@ -65,12 +67,12 @@ private[google2] class GoogleSubscriberInterpreter[F[_], MessageType](
 object GoogleSubscriberInterpreter {
   def apply[F[_], MessageType](
     subscriber: Subscriber,
-    queue: cats.effect.std.Queue[F, Event[MessageType]]
+    queue: cats.effect.std.Queue[F, ReceivedMessage[MessageType]]
   )(implicit F: Async[F]): GoogleSubscriberInterpreter[F, MessageType] =
     new GoogleSubscriberInterpreter[F, MessageType](subscriber, queue)
 
   private[google2] def receiver[F[_], MessageType: Decoder](
-    queue: cats.effect.std.Queue[F, Event[MessageType]],
+    queue: cats.effect.std.Queue[F, ReceivedMessage[MessageType]],
     dispatcher: Dispatcher[F]
   )(implicit logger: StructuredLogger[F], F: Async[F]): MessageReceiver = new MessageReceiver() {
     override def receiveMessage(message: PubsubMessage, consumer: AckReplyConsumer): Unit = {
@@ -83,7 +85,12 @@ object GoogleSubscriberInterpreter {
             F.fromEither(json.as[MessageType])
         }
         traceId = Option(message.getAttributesMap.get("traceId")).map(s => TraceId(s))
-      } yield Event(msg, traceId, message.getPublishTime, consumer)
+      } yield ReceivedMessage(
+        msg,
+        traceId,
+        Instant.ofEpochSecond(message.getPublishTime.getSeconds, message.getPublishTime.getNanos.toLong),
+        AckGoogleHandler.createAckHandler(consumer)
+      )
 
       val result = for {
         res <- parseEvent.attempt
@@ -114,16 +121,17 @@ object GoogleSubscriberInterpreter {
     }
   }
 
-  private[google2] def stringReceiver[F[_]](queue: cats.effect.std.Queue[F, Event[String]],
+  private[google2] def stringReceiver[F[_]](queue: cats.effect.std.Queue[F, ReceivedMessage[String]],
                                             dispatcher: Dispatcher[F]
   ): MessageReceiver =
     new MessageReceiver() {
       override def receiveMessage(message: PubsubMessage, consumer: AckReplyConsumer): Unit = {
         val enqueueAction = queue.offer(
-          Event(message.getData.toStringUtf8,
-                Option(message.getAttributesMap.get("traceId")).map(s => TraceId(s)),
-                message.getPublishTime,
-                consumer
+          ReceivedMessage(
+            message.getData.toStringUtf8,
+            Option(message.getAttributesMap.get("traceId")).map(s => TraceId(s)),
+            Instant.ofEpochSecond(message.getPublishTime.getSeconds, message.getPublishTime.getNanos.toLong),
+            AckGoogleHandler.createAckHandler(consumer)
           )
         )
         dispatcher.unsafeRunSync(enqueueAction)
@@ -131,7 +139,7 @@ object GoogleSubscriberInterpreter {
     }
 
   def subscriber[F[_]: Async: StructuredLogger, MessageType: Decoder](subscriberConfig: SubscriberConfig,
-                                                                      queue: Queue[F, Event[MessageType]],
+                                                                      queue: Queue[F, ReceivedMessage[MessageType]],
                                                                       numOfThreads: Int = 20
   ): Resource[F, Subscriber] = {
     val subscription = subscriberConfig.subscriptionName.getOrElse(
@@ -154,7 +162,7 @@ object GoogleSubscriberInterpreter {
 
   def stringSubscriber[F[_]: Async: StructuredLogger](
     subscriberConfig: SubscriberConfig,
-    queue: Queue[F, Event[String]]
+    queue: Queue[F, ReceivedMessage[String]]
   ): Resource[F, Subscriber] = {
     val subscription = subscriberConfig.subscriptionName.getOrElse(
       ProjectSubscriptionName.of(subscriberConfig.topicName.getProject, subscriberConfig.topicName.getTopic)
@@ -176,7 +184,7 @@ object GoogleSubscriberInterpreter {
   }
 
   private def subscriberResource[MessageType: Decoder, F[_]: Async: StructuredLogger](
-    queue: Queue[F, Event[MessageType]],
+    queue: Queue[F, ReceivedMessage[MessageType]],
     subscription: ProjectSubscriptionName,
     credential: ServiceAccountCredentials,
     flowControlSettings: Option[FlowControlSettings],
@@ -205,7 +213,7 @@ object GoogleSubscriberInterpreter {
   }
 
   private def stringSubscriberResource[F[_]: Sync](
-    queue: Queue[F, Event[String]],
+    queue: Queue[F, ReceivedMessage[String]],
     dispatcher: Dispatcher[F],
     subscription: ProjectSubscriptionName,
     credential: ServiceAccountCredentials,
@@ -302,5 +310,14 @@ final case class SubscriberConfig(
 )
 final case class MaxRetries(value: Int) extends AnyVal
 final case class SubscriberDeadLetterPolicy(topicName: TopicName, maxRetries: MaxRetries)
+
+final private[google2] class AckGoogleHandler(consumer: AckReplyConsumer) extends AckHandler {
+  override def ack(): Unit = consumer.ack()
+  override def nack(): Unit = consumer.nack()
+}
+
+object AckGoogleHandler {
+  def createAckHandler(consumer: AckReplyConsumer): AckGoogleHandler = new AckGoogleHandler(consumer)
+}
 
 final case class Event[A](msg: A, traceId: Option[TraceId] = None, publishedTime: Timestamp, consumer: AckReplyConsumer)
