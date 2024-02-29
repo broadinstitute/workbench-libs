@@ -4,7 +4,7 @@ This file documents changes to the `workbench-azure` library, including notes on
 
 ## 0.7
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-azure" % "0.7-TRAVIS-REPLACE-ME"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-azure" % "0.7-ad61f19"`
 
 ### Changes
 Messaging `CloudPublisher` and `CloudSubscriber` implementations for Azure Service Bus.
