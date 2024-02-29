@@ -15,7 +15,7 @@ Added the `messaging` package, which contains the following types:
 
 ## 0.8
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util2" % "0.8-5781917"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util2" % "0.8-TRAVIS-REPLACE-ME"`
 
 ### Changes
 * downgraded cats_effect, and corresponding fs2

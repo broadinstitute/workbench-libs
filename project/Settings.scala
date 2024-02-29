@@ -66,6 +66,10 @@ object Settings {
       )
   })
 
+  lazy val commonDependencyOverrides = Seq(
+    "org.apache.commons" % "commons-compress" % "1.26.0"
+  )
+
   val scala213 = "2.13.12"
   val cross212and3 = Seq(
     crossScalaVersions := List(scala213, "3.1.2")
@@ -76,7 +80,8 @@ object Settings {
     organization := "org.broadinstitute.dsde.workbench",
     scalaVersion := scala213,
     resolvers ++= commonResolvers,
-    commonCompilerSettings
+    commonCompilerSettings,
+    dependencyOverrides ++= commonDependencyOverrides
   )
 
   val utilSettings = commonSettings ++ List(
