@@ -116,7 +116,7 @@ object CleanUp {
     (testTrial, cleanupTrial) match {
       case (Success(outcome), Success(_)) => outcome
       case (Failure(t), Success(_))       => throw t
-      case (Success(outcome), Failure(t)) => outcome
+      case (Success(outcome), Failure(_)) => outcome
       case (Failure(t), Failure(c)) =>
         throw new WorkbenchExceptionWithErrorReport(
           ErrorReport(
