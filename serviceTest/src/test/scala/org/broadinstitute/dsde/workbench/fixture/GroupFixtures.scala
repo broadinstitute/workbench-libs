@@ -14,7 +14,7 @@ import scala.util.Try
 /**
  * Fixtures for creating and cleaning up test groups.
  */
-trait GroupFixtures extends ExceptionHandling with LazyLogging with RandomUtil { self: TestSuite =>
+trait GroupFixtures extends ExceptionHandling with LazyLogging with RandomUtil with CleanUp { self: TestSuite =>
 
   def groupNameToEmail(groupName: String)(implicit token: AuthToken): String =
     Orchestration.groups.getGroup(groupName).groupEmail
@@ -41,6 +41,6 @@ trait GroupFixtures extends ExceptionHandling with LazyLogging with RandomUtil {
       Orchestration.groups.delete(groupName)
     }
 
-    CleanUp.runCodeWithCleanup(testTrial, cleanupTrial)
+    runCodeWithCleanup(testTrial, cleanupTrial)
   }
 }

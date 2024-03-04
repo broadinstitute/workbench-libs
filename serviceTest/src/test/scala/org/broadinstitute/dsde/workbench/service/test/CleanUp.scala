@@ -84,14 +84,14 @@ trait CleanUp extends TestSuiteMixin with ExceptionHandling with LazyLogging { s
   def withCleanUp(testCode: => Any): Unit = {
     val testTrial = Try(testCode)
     val cleanupTrial = Try(runCleanUpFunctions())
-    CleanUp.runCodeWithCleanup(testTrial, cleanupTrial)
+    runCodeWithCleanup(testTrial, cleanupTrial)
   }
 
   abstract override def withFixture(test: NoArgTest): Outcome = {
     if (cleanUpFunctions.peek() != null) throw new Exception("cleanUpFunctions non empty at start of withFixture block")
     val testTrial = Try(super.withFixture(test))
     val cleanupTrial = Try(runCleanUpFunctions())
-    CleanUp.runCodeWithCleanup(testTrial, cleanupTrial)
+    runCodeWithCleanup(testTrial, cleanupTrial)
   }
 
   private def runCleanUpFunctions(): Unit = {
@@ -107,6 +107,23 @@ trait CleanUp extends TestSuiteMixin with ExceptionHandling with LazyLogging { s
       throw new Exception(ErrorReport("cleanup failed", errorReports.toSeq).toJson.prettyPrint)
     }
   }
+
+  def runCodeWithCleanup[T, C](testTrial: Try[T], cleanupTrial: Try[C]): T =
+    (testTrial, cleanupTrial) match {
+      case (Success(outcome), Success(_)) => outcome
+      case (Failure(t), Success(_)) => throw t
+      case (Success(outcome), Failure(t)) =>
+        logger.error(s"Test passed but cleanup failed: ${t.getMessage}", ErrorReport(t))
+        outcome
+      case (Failure(t), Failure(c)) =>
+        throw new WorkbenchExceptionWithErrorReport(
+          ErrorReport(
+            "Test and CleanUp both failed. This ErrorReport's causes contain the test and cleanup exceptions, in that order",
+            Seq(ErrorReport(t), ErrorReport(c))
+          )
+        )
+    }
+
 }
 
 object CleanUp {
@@ -116,10 +133,12 @@ object CleanUp {
     (testTrial, cleanupTrial) match {
       case (Success(outcome), Success(_)) => outcome
       case (Failure(t), Success(_))       => throw t
-      case (Success(_), Failure(t)) =>
-        throw new WorkbenchExceptionWithErrorReport(
+      case (Success(outcome), Failure(t)) =>
+        val error = new WorkbenchExceptionWithErrorReport(
           ErrorReport(s"Test passed but cleanup failed: ${t.getMessage}", ErrorReport(t))
         )
+
+        outcome
       case (Failure(t), Failure(c)) =>
         throw new WorkbenchExceptionWithErrorReport(
           ErrorReport(

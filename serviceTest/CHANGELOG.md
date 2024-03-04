@@ -2,6 +2,15 @@
 
 This file documents changes to the `workbench-service-test` library, including notes on how to upgrade to new versions.
 
+## 4.3
+
+### Changed
+- `CleanUp.runCodeWithCleanup`, which underlies `withWorkspace` and other testing fixtures:
+  - `CleanUp.runCodeWithCleanup` function moved from the `CleanUp` object into the `CleanUp` trait
+     (in java terms, it's no longer a static method)
+  - No longer fails the test if cleanup fails
+  - `WorkspaceFixtures` and `GroupFixtures` now use the `CleanUp` trait, so failures can be logged without  
+
 ## 4.2
 
 SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "4.2-ad61f19"`

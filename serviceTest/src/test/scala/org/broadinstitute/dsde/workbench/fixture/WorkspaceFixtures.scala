@@ -14,7 +14,7 @@ import scala.util.Try
  * WorkspaceFixtures
  * Fixtures for creating and cleaning up test workspaces.
  */
-trait WorkspaceFixtures extends ExceptionHandling with RandomUtil { self: TestSuite =>
+trait WorkspaceFixtures extends ExceptionHandling with RandomUtil with CleanUp { self: TestSuite =>
 
   /**
    * Cleans up the workspace once the test code has been run
@@ -32,7 +32,7 @@ trait WorkspaceFixtures extends ExceptionHandling with RandomUtil { self: TestSu
       }
     }
 
-    CleanUp.runCodeWithCleanup(testTrial, cleanupTrial)
+    runCodeWithCleanup(testTrial, cleanupTrial)
   }
 
   /**
