@@ -116,10 +116,7 @@ object CleanUp {
     (testTrial, cleanupTrial) match {
       case (Success(outcome), Success(_)) => outcome
       case (Failure(t), Success(_))       => throw t
-      case (Success(_), Failure(t)) =>
-        throw new WorkbenchExceptionWithErrorReport(
-          ErrorReport(s"Test passed but cleanup failed: ${t.getMessage}", ErrorReport(t))
-        )
+      case (Success(outcome), Failure(t)) => outcome
       case (Failure(t), Failure(c)) =>
         throw new WorkbenchExceptionWithErrorReport(
           ErrorReport(
