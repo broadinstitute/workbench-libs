@@ -14,10 +14,14 @@ SBT Dependency: "org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.
   - Although the method signatures remain functionally identical, new types have been introduced to remove GCP specific types:
     - The message queue and message stream types are now `ReceivedMessage[MessageType]` instead of `Event[MessageType]`.
     - To acknowledge a message, the method `msg.ackHandler.ack()` should be used, instead of `msg.consumer.ack()`.
-    
+
 - GooglePublisherInterpreter:
 
   - The `GooglePublisherInterpreter` implements `CloudPublisher`.
+
+- GoogleComputeInterpreter:
+
+  - The `getInstance` method now interprets a 403 'Compute Engine API not enabled' error similarly to 'billing is disabled', returning `None` as though the instance was not found in the cloud.
 
 
 ## 0.35
@@ -44,7 +48,7 @@ SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0
 
 ### Changes
 * Added ability for getBucket to log at WARN level instead of ERROR
-* Updated GCE, Dataproc, and GKE interpreters to use `IO.blocking` combinator for blocking API calls through 
+* Updated GCE, Dataproc, and GKE interpreters to use `IO.blocking` combinator for blocking API calls through
 the Google SDK.
 * Add `patchReplicas` to `KubernetesService`
 * Add `listDeployments` to `KubernetesService`

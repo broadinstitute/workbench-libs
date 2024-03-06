@@ -120,6 +120,9 @@ private[google2] class GoogleComputeInterpreter[F[_]: Parallel: StructuredLogger
               case e: com.google.api.gax.rpc.PermissionDeniedException
                   if e.getCause.getMessage.contains("requires billing to be enabled") =>
                 F.pure(none[Instance])
+              case e: com.google.api.gax.rpc.PermissionDeniedException
+                  if e.getCause.getMessage.contains("Compute Engine API has not been used") =>
+                F.pure(none[Instance])
               case e => F.raiseError[Option[Instance]](e)
             },
           Some(traceId),
