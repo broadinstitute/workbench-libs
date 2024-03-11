@@ -114,7 +114,7 @@ object CleanUp {
 
   // cleanupTrial is now unused, but left in place to keep the signature consistent
   def runCodeWithCleanup[T, C](testTrial: Try[T], cleanupTrial: Try[C]): T = testTrial match {
-      case Success(outcome) => outcome
-      case Failure(t)       => throw t
-    }
+    case Success(outcome) => outcome
+    case Failure(t)       => throw t
+  }
 }
