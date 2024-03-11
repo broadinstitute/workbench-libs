@@ -4,7 +4,7 @@ This file documents changes to the `workbench-google2` library, including notes 
 
 ## 0.36
 
-SBT Dependency: "org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.36-d9252ec"
+SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.36-TRAVIS-REPLACE-ME"`
 
 ### Changes
 
@@ -23,6 +23,9 @@ SBT Dependency: "org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.
 
   - The `getInstance` method now interprets a 403 'Compute Engine API not enabled' error similarly to 'billing is disabled', returning `None` as though the instance was not found in the cloud.
 
+| Dependency   |     Old Version      |          New Version |
+|----------|:--------------------:|---------------------:|
+| jose4j      |    0.9.3    |       0.9.4 |
 
 ## 0.35
 
