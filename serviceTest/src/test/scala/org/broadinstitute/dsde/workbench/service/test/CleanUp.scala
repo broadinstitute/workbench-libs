@@ -112,9 +112,9 @@ trait CleanUp extends TestSuiteMixin with ExceptionHandling with LazyLogging { s
 object CleanUp {
   implicit val errorReportSource: ErrorReportSource = ErrorReportSource("WorkbenchLibs.CleanUp")
 
-  def runCodeWithCleanup[T, C](testTrial: Try[T], cleanupTrial: Try[C]): T =
-    (testTrial, cleanupTrial) match {
-      case (Success(outcome), _) => outcome
-      case (Failure(t), _)       => throw t
+  // cleanupTrial is now unused, but left in place to keep the signature consistent
+  def runCodeWithCleanup[T, C](testTrial: Try[T], cleanupTrial: Try[C]): T = testTrial match {
+      case Success(outcome) => outcome
+      case Failure(t)       => throw t
     }
 }
