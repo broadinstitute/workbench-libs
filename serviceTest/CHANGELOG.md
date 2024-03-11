@@ -2,6 +2,13 @@
 
 This file documents changes to the `workbench-service-test` library, including notes on how to upgrade to new versions.
 
+## 4.3
+
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "4.3-TRAVIS-REPLACE-ME"`
+
+### Changed
+- `CleanUp.runCodeWithCleanup` no longer throws an exception when the cleanup portion fails
+
 ## 4.2
 
 SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "4.2-ad61f19"`
