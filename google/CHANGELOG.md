@@ -4,7 +4,7 @@ This file documents changes to the `workbench-google` library, including notes o
 
 ## 0.30
 
-SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.30-ad61f19"`
+SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.30-TRAVIS-REPLACE-ME"`
 
 Changed:
 * Made `GoogleBucketDAO` and `GoogleIamDAO` retry on 412 responses
@@ -15,6 +15,7 @@ Changed:
 | google-cloud-kms | 2.27.0 | 2.31.0 |
 | jackson-module-scala |        2.15.0        |               2.15.3 |
 | guava |       32.1.2        |               32.1.3 |
+| jose4j      |    0.9.3    |       0.9.4 |
 
 ## 0.29
 

@@ -4,13 +4,20 @@ This file documents changes to the `workbench-util2` library, including notes on
 
 ## 0.9
 
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util2" % "0.9-TRAVIS-REPLACE-ME"`
+
 ### Changes
 
 Added the `messaging` package, which contains the following types:
  - `CloudPublisher`: A trait that defines a cloud-agnostic interface to publish messages to a cloud messaging service.  
  - `CloudSubscriber`: A trait that defines a cloud-agnostic interface to receive messaging from a cloud messaging service.
  - `ReceivedMessage[MessageType]`: A class that represents a message received from a cloud-agnostic messaging subscriber.
- - `AckHandler`: A trait that defines a cloud-agnostic message acknowledgement interface.
+ - `AckHandler`: A trait that defines a cloud-agnostic message acknowledgement interface. 
+
+| Dependency   |     Old Version      |          New Version |
+|----------|:--------------------:|---------------------:|
+| jose4j      |    0.9.3    |       0.9.4 |
+
 
 
 ## 0.8
