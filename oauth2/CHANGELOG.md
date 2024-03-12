@@ -4,7 +4,7 @@ This file documents changes to the `workbench-oauth2` library, including notes o
 
 ## 0.5
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-oauth2" % "0.5-ad61f19"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-oauth2" % "0.5-TRAVIS-REPLACE-ME"`
 
 ### Dependency upgrades
 | Dependency   | Old Version | New Version |
@@ -13,6 +13,7 @@ SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-oauth2" % "0.
 | scalatest |   3.2.16    |      3.2.17 |
 | scala       |   2.13.11   |     2.13.12 |
 | sbt-scalafix       |   0.11.0    |      0.11.1 |
+| jose4j      |    0.9.3    |       0.9.4 |
 
 ## 0.4
 

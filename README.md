@@ -25,7 +25,7 @@ Workbench utility libraries, built for 2.13. You can find the full list of packa
 
 Contains utility functions and classes.
 
-Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util" % "0.10-ad61f19"`
+Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util" % "0.10-TRAVIS-REPLACE-ME"`
 
 [Changelog](util/CHANGELOG.md)
 
@@ -36,7 +36,7 @@ Workbench utility libraries, built for 2.13. You can find the full list of packa
 Contains utility functions and classes. Util2 is added because util needs to support 2.11 for `firecloud-orchestration`,
 but many libraries start to drop 2.11 support. Util2 doesn't support 2.11.
 
-Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util2" % "0.9-0785e42"`
+Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util2" % "0.9-TRAVIS-REPLACE-ME"`
 
 [Changelog](util2/CHANGELOG.md)
 
@@ -46,7 +46,7 @@ Workbench utility libraries, built for 2.13. You can find the full list of packa
 
 Contains generic, externally-facing model classes used across Workbench.
 
-Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-model" % "0.19-ad61f19"`
+Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-model" % "0.19-TRAVIS-REPLACE-ME"`
 
 [Changelog](model/CHANGELOG.md)
 
@@ -58,7 +58,7 @@ Workbench utility libraries, built for 2.13. You can find the full list of packa
 
 Contains utilities for instrumenting Scala code and reporting to StatsD using [metrics-scala](https://github.com/erikvanoosten/metrics-scala) and [metrics-statsd](https://github.com/ReadyTalk/metrics-statsd).
 
-Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-metrics" % "0.8-ad61f19"`
+Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-metrics" % "0.8-TRAVIS-REPLACE-ME"`
 
 [Changelog](metrics/CHANGELOG.md)
 
@@ -68,11 +68,11 @@ Workbench utility libraries, built for 2.13. You can find the full list of packa
 
 Contains utility functions for talking to Google APIs and DAOs for Google PubSub, Google Directory, Google IAM, and Google BigQuery.
 
-Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.30-ad61f19"`
+Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.30-TRAVIS-REPLACE-ME"`
 
 To depend on the `MockGoogle*` classes, additionally depend on:
 
-`"org.broadinstitute.dsde.workbench" %% "workbench-google"  % "0.30-437e7c3" % "test" classifier "tests"`
+`"org.broadinstitute.dsde.workbench" %% "workbench-google"  % "0.30-TRAVIS-REPLACE-ME" % "test" classifier "tests"`
 
 [Changelog](google/CHANGELOG.md)
 
@@ -82,7 +82,7 @@ Workbench utility libraries, built for 2.13. You can find the full list of packa
 
 Contains utility functions for talking to Google APIs via com.google.cloud client library (more recent) via gRPC.
 
-Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.36-d9252ec"`
+Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.36-TRAVIS-REPLACE-ME"`
 
 To start the Google PubSub emulator for unit testing:
 
@@ -116,7 +116,7 @@ Workbench utility libraries, built for 2.13. You can find the full list of packa
 
 Contains common classes and utilities for writing tests against Workbench REST web services.
 
-Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "4.3-bce5c47" % "test" classifier "tests"`
+Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "4.3-TRAVIS-REPLACE-ME" % "test" classifier "tests"`
 
 [Changelog](serviceTest/CHANGELOG.md)
 
@@ -126,7 +126,7 @@ Workbench utility libraries, built for 2.13. You can find the full list of packa
 
 Contains utilities for publishing email notifications to PubSub for delivery via SendGrid.
 
-Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-notifications" % "0.6-ad61f19"`
+Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-notifications" % "0.6-TRAVIS-REPLACE-ME"`
 
 [Changelog](notifications/CHANGELOG.md)
 
@@ -134,6 +134,6 @@ Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-notifi
 
 Contains utilities for integrating with Google and B2C oauth.
 
-Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-oauth2" % "0.5-ad61f19"`
+Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-oauth2" % "0.5-TRAVIS-REPLACE-ME"`
 
 [Changelog](oauth2/CHANGELOG.md)

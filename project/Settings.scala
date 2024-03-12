@@ -153,7 +153,7 @@ object Settings {
 
   val oauth2Settings = commonSettings ++ List(
     name := "workbench-oauth2",
-    libraryDependencies ++= oauth2Depdendencies,
+    libraryDependencies ++= oauth2Dependencies,
     version := createVersion("0.5")
   ) ++ publishSettings
 
