@@ -93,6 +93,10 @@ object OpenIDConnectConfiguration {
 
 case class ClientId(value: String) extends AnyVal
 case class ClientSecret(value: String) extends AnyVal
-case class OpenIDProviderMetadata(issuer: String, authorizeEndpoint: String, tokenEndpoint: String, endSessionEndpoint: Option[String]) {
+case class OpenIDProviderMetadata(issuer: String,
+                                  authorizeEndpoint: String,
+                                  tokenEndpoint: String,
+                                  endSessionEndpoint: Option[String]
+) {
   def isGoogle: Boolean = issuer == "https://accounts.google.com"
 }

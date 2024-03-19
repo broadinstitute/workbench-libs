@@ -63,8 +63,11 @@ class OpenIDConnectAkkaHttpOps(private val config: OpenIDConnectConfiguration) {
         path("logout") {
           get {
             parameterSeq { params =>
-              val logoutUri = Uri(config.providerMetadata.endSessionEndpoint.getOrElse(
-                throw new Exception("Logout endpoint is only supported in Azure B2C.")))
+              val logoutUri = Uri(
+                config.providerMetadata.endSessionEndpoint.getOrElse(
+                  throw new Exception("Logout endpoint is only supported in Azure B2C.")
+                )
+              )
               val newUri = applyQueryParams(logoutUri, params)
               redirect(newUri, StatusCodes.Found)
             }
