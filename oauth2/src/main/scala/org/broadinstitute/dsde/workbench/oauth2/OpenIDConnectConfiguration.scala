@@ -42,7 +42,7 @@ trait OpenIDConnectConfiguration {
   def authorityEndpoint: String
   def providerMetadata: OpenIDProviderMetadata
 
-  def processAuthorizeQueryParams(params: Seq[(String, String)]): Seq[(String, String)]
+  def processQueryParams(params: Seq[(String, String)]): Seq[(String, String)]
   def processTokenFormFields(fields: Seq[(String, String)]): Seq[(String, String)]
   def processSwaggerUiIndex(contents: String, openApiFileName: String): String
 }

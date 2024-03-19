@@ -29,11 +29,8 @@ class OpenIDConnectAkkaHttpOps(private val config: OpenIDConnectConfiguration) {
         get {
           parameterSeq { params =>
             val authorizeUri = Uri(config.providerMetadata.authorizeEndpoint)
-            val incomingQuery = config.processAuthorizeQueryParams(params)
-            // Combine the query strings from the incoming request and the authorizeUri.
-            // Parameters from the incoming request take precedence.
-            val newQuery = Uri.Query((authorizeUri.query() ++ incomingQuery).toMap)
-            val newUri = authorizeUri.withQuery(newQuery)
+            val newUri = applyQueryParams(authorizeUri, params)
+
             redirect(newUri, StatusCodes.Found)
           }
         }
@@ -64,25 +61,24 @@ class OpenIDConnectAkkaHttpOps(private val config: OpenIDConnectConfiguration) {
           }
         } ~
         path("logout") {
-          post {
-            formFieldSeq { fields =>
-              complete {
-                val logoutUri = Uri(config.providerMetadata.endSessionEndpoint.getOrElse(
-                  throw new Exception("Logout endpoint is only supported in Azure B2C.")))
-                // If the policy was passed as a parameter in the incoming request,
-                // pass it to the logout endpoint as a query string parameter.
-                val newRequest = HttpRequest(
-                  POST,
-                  uri = logoutUri
-                    .withQuery(fields.find(_._1 == policyParam).map(Query(_)).getOrElse(logoutUri.query())),
-                  entity = FormData(config.processTokenFormFields(fields): _*).toEntity
-                )
-                Http().singleRequest(newRequest).map(_.toStrict(5.seconds))
-              }
+          get {
+            parameterSeq { params =>
+              val logoutUri = Uri(config.providerMetadata.endSessionEndpoint.getOrElse(
+                throw new Exception("Logout endpoint is only supported in Azure B2C.")))
+              val newUri = applyQueryParams(logoutUri, params)
+              redirect(newUri, StatusCodes.Found)
             }
           }
         }
     }
+  }
+
+  private def applyQueryParams(uri: Uri, params: Seq[(String, String)]): Uri = {
+    val incomingQuery = config.processQueryParams(params)
+    // Combine the query strings from the incoming request and the uri.
+    // Parameters from the incoming request take precedence.
+    val newQuery = Uri.Query((uri.query() ++ incomingQuery).toMap)
+    uri.withQuery(newQuery)
   }
 
   def swaggerRoutes(openApiYamlResource: String): Route = {
