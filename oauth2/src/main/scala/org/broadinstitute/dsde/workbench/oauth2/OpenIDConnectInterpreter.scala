@@ -12,7 +12,7 @@ class OpenIDConnectInterpreter private[oauth2] (val clientId: ClientId,
   private val scopeParam = "scope"
   private val clientSecretParam = "client_secret"
 
-  override def processQueryParams(params: Seq[(String, String)]): Seq[(String, String)] = {
+  override def processAuthorizeQueryParams(params: Seq[(String, String)]): Seq[(String, String)] = {
     val paramsWithScope = if (!providerMetadata.isGoogle) {
       params.map { case (k, v) =>
         if (k == scopeParam) (k, v + " " + clientId.value) else (k, v)

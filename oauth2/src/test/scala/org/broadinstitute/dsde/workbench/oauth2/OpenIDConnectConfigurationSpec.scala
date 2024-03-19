@@ -56,7 +56,7 @@ class OpenIDConnectConfigurationSpec extends AnyFlatSpecLike with Matchers with 
     res.unsafeRunSync
   }
 
-  "processQueryParams" should "inject the client_id to the scope" in {
+  "processAuthorizeQueryParams" should "inject the client_id to the scope" in {
     val interp = new OpenIDConnectInterpreter(ClientId("client_id"), "fake-authority", fakeMetadata, None, None, None)
 
     val params = List("foo" -> "bar", "abc" -> "123", "scope" -> "openid email profile")
@@ -75,7 +75,7 @@ class OpenIDConnectConfigurationSpec extends AnyFlatSpecLike with Matchers with 
     )
 
     val params = List("foo" -> "bar", "abc" -> "123", "scope" -> "openid email profile")
-    val res = interp.processQueryParams(params)
+    val res = interp.processAuthorizeQueryParams(params)
 
     res shouldBe List("foo" -> "bar",
                       "abc" -> "123",
@@ -96,7 +96,7 @@ class OpenIDConnectConfigurationSpec extends AnyFlatSpecLike with Matchers with 
       )
 
     val params = List("foo" -> "bar", "abc" -> "123", "scope" -> "openid email profile")
-    val res = interp.processQueryParams(params)
+    val res = interp.processAuthorizeQueryParams(params)
 
     res shouldBe params
   }

@@ -10,7 +10,7 @@ class FakeOpenIDConnectConfiguration extends OpenIDConnectConfiguration {
   override def providerMetadata: OpenIDProviderMetadata =
     OpenIDProviderMetadata("fake-issuer", "fake-authorize", "fake-token", Option("fake-end-session"))
 
-  override def processQueryParams(params: Seq[(String, String)]): Seq[(String, String)] = params
+  override def processAuthorizeQueryParams(params: Seq[(String, String)]): Seq[(String, String)] = params
 
   override def processTokenFormFields(fields: Seq[(String, String)]): Seq[(String, String)] = fields
 

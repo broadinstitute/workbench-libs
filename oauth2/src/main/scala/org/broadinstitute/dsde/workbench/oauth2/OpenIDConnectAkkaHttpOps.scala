@@ -29,8 +29,11 @@ class OpenIDConnectAkkaHttpOps(private val config: OpenIDConnectConfiguration) {
         get {
           parameterSeq { params =>
             val authorizeUri = Uri(config.providerMetadata.authorizeEndpoint)
-            val newUri = applyQueryParams(authorizeUri, params)
-
+            val incomingQuery = config.processAuthorizeQueryParams(params)
+            // Combine the query strings from the incoming request and the authorizeUri.
+            // Parameters from the incoming request take precedence.
+            val newQuery = Uri.Query((authorizeUri.query() ++ incomingQuery).toMap)
+            val newUri = authorizeUri.withQuery(newQuery)
             redirect(newUri, StatusCodes.Found)
           }
         }
@@ -68,20 +71,16 @@ class OpenIDConnectAkkaHttpOps(private val config: OpenIDConnectConfiguration) {
                   throw new Exception("Logout endpoint is only supported in Azure B2C.")
                 )
               )
-              val newUri = applyQueryParams(logoutUri, params)
+              // Combine the query strings from the incoming request and the uri.
+              // Parameters from the incoming request take precedence.
+              val newQuery = Uri.Query((logoutUri.query() ++ params).toMap)
+              val newUri = logoutUri.withQuery(newQuery)
+
               redirect(newUri, StatusCodes.Found)
             }
           }
         }
     }
-  }
-
-  private def applyQueryParams(uri: Uri, params: Seq[(String, String)]): Uri = {
-    val incomingQuery = config.processQueryParams(params)
-    // Combine the query strings from the incoming request and the uri.
-    // Parameters from the incoming request take precedence.
-    val newQuery = Uri.Query((uri.query() ++ incomingQuery).toMap)
-    uri.withQuery(newQuery)
   }
 
   def swaggerRoutes(openApiYamlResource: String): Route = {
