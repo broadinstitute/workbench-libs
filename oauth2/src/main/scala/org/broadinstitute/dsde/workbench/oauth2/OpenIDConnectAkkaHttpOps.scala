@@ -62,6 +62,25 @@ class OpenIDConnectAkkaHttpOps(private val config: OpenIDConnectConfiguration) {
               ConfigurationResponse(config.authorityEndpoint, config.clientId)
             }
           }
+        } ~
+        path("logout") {
+          post {
+            formFieldSeq { fields =>
+              complete {
+                val logoutUri = Uri(config.providerMetadata.endSessionEndpoint.getOrElse(
+                  throw new Exception("Logout endpoint is only supported in Azure B2C.")))
+                // If the policy was passed as a parameter in the incoming request,
+                // pass it to the logout endpoint as a query string parameter.
+                val newRequest = HttpRequest(
+                  POST,
+                  uri = logoutUri
+                    .withQuery(fields.find(_._1 == policyParam).map(Query(_)).getOrElse(logoutUri.query())),
+                  entity = FormData(config.processTokenFormFields(fields): _*).toEntity
+                )
+                Http().singleRequest(newRequest).map(_.toStrict(5.seconds))
+              }
+            }
+          }
         }
     }
   }
