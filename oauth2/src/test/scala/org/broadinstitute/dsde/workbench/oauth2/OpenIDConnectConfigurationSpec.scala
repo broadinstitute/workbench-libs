@@ -35,7 +35,9 @@ class OpenIDConnectConfigurationSpec extends AnyFlatSpecLike with Matchers with 
       )
       metadata.authorizeEndpoint shouldBe "https://terradevb2c.b2clogin.com/terradevb2c.onmicrosoft.com/b2c_1a_signup_signin/oauth2/authorize"
       metadata.tokenEndpoint shouldBe "https://terradevb2c.b2clogin.com/terradevb2c.onmicrosoft.com/b2c_1a_signup_signin/oauth2/token"
-      metadata.endSessionEndpoint shouldBe "https://terradevb2c.b2clogin.com/terradevb2c.onmicrosoft.com/b2c_1a_signup_signin/oauth2/logout"
+      metadata.endSessionEndpoint shouldBe Option(
+        "https://terradevb2c.b2clogin.com/terradevb2c.onmicrosoft.com/b2c_1a_signup_signin/oauth2/logout"
+      )
     }
     res.unsafeRunSync
   }
@@ -51,7 +53,9 @@ class OpenIDConnectConfigurationSpec extends AnyFlatSpecLike with Matchers with 
       )
       metadata.authorizeEndpoint shouldBe "https://terradevb2c.b2clogin.com/terradevb2c.onmicrosoft.com/oauth2/v2.0/authorize?p=b2c_1a_signup_signin"
       metadata.tokenEndpoint shouldBe "https://terradevb2c.b2clogin.com/terradevb2c.onmicrosoft.com/oauth2/v2.0/token?p=b2c_1a_signup_signin"
-      metadata.endSessionEndpoint shouldBe "https://terradevb2c.b2clogin.com/terradevb2c.onmicrosoft.com/oauth2/v2.0/logout?p=b2c_1a_signup_signin"
+      metadata.endSessionEndpoint shouldBe Option(
+        "https://terradevb2c.b2clogin.com/terradevb2c.onmicrosoft.com/oauth2/v2.0/logout?p=b2c_1a_signup_signin"
+      )
     }
     res.unsafeRunSync
   }
