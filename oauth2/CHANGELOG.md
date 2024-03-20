@@ -3,7 +3,7 @@
 This file documents changes to the `workbench-oauth2` library, including notes on how to upgrade to new versions.
 
 ## 0.6
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-oauth2" % "TRAVIS-REPLACE-ME"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-oauth2" % "d314413"`
 Changed:
 - Updated `OpenIDProviderMetadata` class to include an optional `end_session_endpoint`
 
