@@ -9,8 +9,8 @@ import org.scalatest.matchers.should.Matchers
 import scala.io.Source
 
 class OpenIDConnectConfigurationSpec extends AnyFlatSpecLike with Matchers with WorkbenchTestSuite {
-  val fakeMetadata = OpenIDProviderMetadata("issuer", "authorize", "token")
-  val googleMetadata = OpenIDProviderMetadata("https://accounts.google.com", "authorize", "token")
+  val fakeMetadata = OpenIDProviderMetadata("issuer", "authorize", "token", Option("endSession"))
+  val googleMetadata = OpenIDProviderMetadata("https://accounts.google.com", "authorize", "token", Option.empty)
 
   "OpenIDConnectConfiguration" should "initialize with Google metadata" in {
     val res = for {
@@ -19,6 +19,7 @@ class OpenIDConnectConfigurationSpec extends AnyFlatSpecLike with Matchers with 
       metadata.issuer shouldBe "https://accounts.google.com"
       metadata.authorizeEndpoint shouldBe "https://accounts.google.com/o/oauth2/v2/auth"
       metadata.tokenEndpoint shouldBe "https://oauth2.googleapis.com/token"
+      metadata.endSessionEndpoint shouldBe Option.empty
     }
     res.unsafeRunSync
   }
@@ -34,6 +35,9 @@ class OpenIDConnectConfigurationSpec extends AnyFlatSpecLike with Matchers with 
       )
       metadata.authorizeEndpoint shouldBe "https://terradevb2c.b2clogin.com/terradevb2c.onmicrosoft.com/b2c_1a_signup_signin/oauth2/authorize"
       metadata.tokenEndpoint shouldBe "https://terradevb2c.b2clogin.com/terradevb2c.onmicrosoft.com/b2c_1a_signup_signin/oauth2/token"
+      metadata.endSessionEndpoint shouldBe Option(
+        "https://terradevb2c.b2clogin.com/terradevb2c.onmicrosoft.com/b2c_1a_signup_signin/oauth2/logout"
+      )
     }
     res.unsafeRunSync
   }
@@ -49,6 +53,9 @@ class OpenIDConnectConfigurationSpec extends AnyFlatSpecLike with Matchers with 
       )
       metadata.authorizeEndpoint shouldBe "https://terradevb2c.b2clogin.com/terradevb2c.onmicrosoft.com/oauth2/v2.0/authorize?p=b2c_1a_signup_signin"
       metadata.tokenEndpoint shouldBe "https://terradevb2c.b2clogin.com/terradevb2c.onmicrosoft.com/oauth2/v2.0/token?p=b2c_1a_signup_signin"
+      metadata.endSessionEndpoint shouldBe Option(
+        "https://terradevb2c.b2clogin.com/terradevb2c.onmicrosoft.com/oauth2/v2.0/logout?p=b2c_1a_signup_signin"
+      )
     }
     res.unsafeRunSync
   }

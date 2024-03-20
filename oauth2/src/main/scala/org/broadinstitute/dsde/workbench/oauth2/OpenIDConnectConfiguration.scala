@@ -84,7 +84,8 @@ object OpenIDConnectConfiguration {
       issuer <- x.downField("issuer").as[String]
       authorizationEndpoint <- x.downField("authorization_endpoint").as[String]
       tokenEndpoint <- x.downField("token_endpoint").as[String]
-    } yield OpenIDProviderMetadata(issuer, authorizationEndpoint, tokenEndpoint)
+      endSessionEndpoint <- x.downField("end_session_endpoint").as[Option[String]]
+    } yield OpenIDProviderMetadata(issuer, authorizationEndpoint, tokenEndpoint, endSessionEndpoint);
   }
   implicit def openIDConnectConfigurationOps(config: OpenIDConnectConfiguration): OpenIDConnectAkkaHttpOps =
     new OpenIDConnectAkkaHttpOps(config)
@@ -92,6 +93,10 @@ object OpenIDConnectConfiguration {
 
 case class ClientId(value: String) extends AnyVal
 case class ClientSecret(value: String) extends AnyVal
-case class OpenIDProviderMetadata(issuer: String, authorizeEndpoint: String, tokenEndpoint: String) {
+case class OpenIDProviderMetadata(issuer: String,
+                                  authorizeEndpoint: String,
+                                  tokenEndpoint: String,
+                                  endSessionEndpoint: Option[String]
+) {
   def isGoogle: Boolean = issuer == "https://accounts.google.com"
 }
