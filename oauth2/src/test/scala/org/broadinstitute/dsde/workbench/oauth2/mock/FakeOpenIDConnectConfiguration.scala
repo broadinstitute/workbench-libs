@@ -8,7 +8,7 @@ class FakeOpenIDConnectConfiguration extends OpenIDConnectConfiguration {
   override def authorityEndpoint: String = "https://fake"
 
   override def providerMetadata: OpenIDProviderMetadata =
-    OpenIDProviderMetadata("fake-issuer", "fake-authorize", "fake-token")
+    OpenIDProviderMetadata("fake-issuer", "fake-authorize", "fake-token", Option("fake-end-session"))
 
   override def processAuthorizeQueryParams(params: Seq[(String, String)]): Seq[(String, String)] = params
 
