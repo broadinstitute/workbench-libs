@@ -26,7 +26,12 @@ import java.util.UUID
 import scala.concurrent.Await
 import scala.concurrent.duration._
 
-class OpenIDConnectAkkaHttpSpec extends AnyFlatSpecLike with Matchers with WorkbenchTestSuite with ScalatestRouteTest with BeforeAndAfterAll {
+class OpenIDConnectAkkaHttpSpec
+    extends AnyFlatSpecLike
+    with Matchers
+    with WorkbenchTestSuite
+    with ScalatestRouteTest
+    with BeforeAndAfterAll {
   var mockServer: Http.ServerBinding = _
 
   override def beforeAll(): Unit = {
@@ -34,8 +39,11 @@ class OpenIDConnectAkkaHttpSpec extends AnyFlatSpecLike with Matchers with Workb
       get {
         parameterSeq { params =>
           complete {
-            Map("issuer" -> "test",
-              "authorization_endpoint" -> Uri("http://localhost:9000/authorize").withQuery(Query(params.toMap)).toString(),
+            Map(
+              "issuer" -> "test",
+              "authorization_endpoint" -> Uri("http://localhost:9000/authorize")
+                .withQuery(Query(params.toMap))
+                .toString(),
               "token_endpoint" -> "http://localhost:9000/token"
             )
           }
@@ -54,9 +62,8 @@ class OpenIDConnectAkkaHttpSpec extends AnyFlatSpecLike with Matchers with Workb
     mockServer = Await.result(Http().newServerAt("0.0.0.0", 9000).bind(backendRoute), 10.seconds)
   }
 
-  override def afterAll(): Unit = {
+  override def afterAll(): Unit =
     Await.result(mockServer.terminate(3.seconds), Duration.Inf)
-  }
 
   "authorize endpoint" should "redirect with extra parameters" in {
     val res = for {
@@ -119,9 +126,7 @@ class OpenIDConnectAkkaHttpSpec extends AnyFlatSpecLike with Matchers with Workb
     val formData = Map("grant_type" -> "authorization_code", "code" -> "1234", "client_id" -> "some_client")
 
     val res = for {
-      config <- OpenIDConnectConfiguration[IO]("http://localhost:9000",
-                                               ClientId("some_client")
-      )
+      config <- OpenIDConnectConfiguration[IO]("http://localhost:9000", ClientId("some_client"))
       req = Post("/oauth2/token").withEntity(
         FormData(formData).toEntity
       )
@@ -159,10 +164,7 @@ class OpenIDConnectAkkaHttpSpec extends AnyFlatSpecLike with Matchers with Workb
   }
 
   it should "proxy requests with a policy query parameter" in {
-    val formData = Map("grant_type" -> "authorization_code",
-      "code" -> "1234",
-      "client_id" -> "some_client"
-    )
+    val formData = Map("grant_type" -> "authorization_code", "code" -> "1234", "client_id" -> "some_client")
 
     val res = for {
       config <- OpenIDConnectConfiguration[IO]("http://localhost:9000", ClientId("some_client"))
@@ -182,9 +184,9 @@ class OpenIDConnectAkkaHttpSpec extends AnyFlatSpecLike with Matchers with Workb
 
   it should "proxy requests with same policy in form and query parameter" in {
     val formData = Map("grant_type" -> "authorization_code",
-      "code" -> "1234",
-      "client_id" -> "some_client",
-      "p" -> "Some-Other-Policy" // case is different to test case insensitivity
+                       "code" -> "1234",
+                       "client_id" -> "some_client",
+                       "p" -> "Some-Other-Policy" // case is different to test case insensitivity
     )
 
     val res = for {
@@ -205,9 +207,9 @@ class OpenIDConnectAkkaHttpSpec extends AnyFlatSpecLike with Matchers with Workb
 
   it should "reject requests with different policy in form and query parameter" in {
     val formData = Map("grant_type" -> "authorization_code",
-      "code" -> "1234",
-      "client_id" -> "some_client",
-      "p" -> "Some-Other-Policy" // case is different to test case insensitivity
+                       "code" -> "1234",
+                       "client_id" -> "some_client",
+                       "p" -> "Some-Other-Policy" // case is different to test case insensitivity
     )
 
     val res = for {
@@ -272,7 +274,10 @@ class OpenIDConnectAkkaHttpSpec extends AnyFlatSpecLike with Matchers with Workb
   it should "return swagger yaml" in {
     val testBillingProfile = UUID.randomUUID().toString
     val res = for {
-      config <- OpenIDConnectConfiguration[IO]("http://localhost:9000", ClientId("some_client"), b2cProfileWithGoogleBillingScope = Some(testBillingProfile))
+      config <- OpenIDConnectConfiguration[IO]("http://localhost:9000",
+                                               ClientId("some_client"),
+                                               b2cProfileWithGoogleBillingScope = Some(testBillingProfile)
+      )
       req = Get("/swagger.yaml")
       _ <- req ~> config.swaggerRoutes("swagger/swagger.yaml") ~> checkIO {
         handled shouldBe true

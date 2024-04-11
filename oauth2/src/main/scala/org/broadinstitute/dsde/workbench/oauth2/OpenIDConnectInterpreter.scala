@@ -27,8 +27,10 @@ class OpenIDConnectInterpreter private[oauth2] (val clientId: ClientId,
       .replace("oidc: ''", s"oidc: '${clientId.value}'")
       .replace("oidc_google_billing_scope: ''", s"oidc_google_billing_scope: '${clientId.value}'")
 
-    override def processOpenApiYaml(contents: String): String =
-      b2cProfileWithGoogleBillingScope.map { b2cProfile =>
+  override def processOpenApiYaml(contents: String): String =
+    b2cProfileWithGoogleBillingScope
+      .map { b2cProfile =>
         contents.replace("B2C_PROFILE_WITH_GOOGLE_BILLING_SCOPE", b2cProfile)
-      }.getOrElse(contents)
+      }
+      .getOrElse(contents)
 }

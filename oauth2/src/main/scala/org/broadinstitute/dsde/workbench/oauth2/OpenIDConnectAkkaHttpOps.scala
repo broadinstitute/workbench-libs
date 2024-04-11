@@ -44,16 +44,18 @@ class OpenIDConnectAkkaHttpOps(private val config: OpenIDConnectConfiguration) {
               parameter(policyParam.?) { policyInQuery =>
                 val tokenUri = Uri(config.providerMetadata.tokenEndpoint)
                 val policyInForm = fields.find(_._1 == policyParam).map(_._2)
-                determinePolicyQuery(policyInQuery, tokenUri, policyInForm).fold(reject(_), query => {
-                  complete {
-                    val newRequest = HttpRequest(
-                      POST,
-                      uri = tokenUri.withQuery(query),
-                      entity = FormData(fields: _*).toEntity
-                    )
-                    Http().singleRequest(newRequest).map(_.toStrict(5.seconds))
-                  }
-                })
+                determinePolicyQuery(policyInQuery, tokenUri, policyInForm).fold(
+                  reject(_),
+                  query =>
+                    complete {
+                      val newRequest = HttpRequest(
+                        POST,
+                        uri = tokenUri.withQuery(query),
+                        entity = FormData(fields: _*).toEntity
+                      )
+                      Http().singleRequest(newRequest).map(_.toStrict(5.seconds))
+                    }
+                )
               }
             }
           }
@@ -91,15 +93,17 @@ class OpenIDConnectAkkaHttpOps(private val config: OpenIDConnectConfiguration) {
    * If the policy parameter is present in the query or the form, use that value.
    * Otherwise, use the query from the tokenUri.
    */
-  private def determinePolicyQuery(policyInQuery: Option[String], tokenUri: Uri, policyInForm: Option[String]): Either[Rejection, Query] = {
+  private def determinePolicyQuery(policyInQuery: Option[String],
+                                   tokenUri: Uri,
+                                   policyInForm: Option[String]
+  ): Either[Rejection, Query] =
     (policyInQuery, policyInForm) match {
       case (Some(inQuery), Some(inForm)) if !inQuery.equalsIgnoreCase(inForm) =>
         Left(ValidationRejection(s"Policy parameter mismatch: $inQuery in query, $inForm in form."))
       case (Some(inQuery), _) => Right(Query(policyParam -> inQuery))
-      case (_, Some(inForm)) => Right(Query(policyParam -> inForm))
-      case _ => Right(tokenUri.query())
+      case (_, Some(inForm))  => Right(Query(policyParam -> inForm))
+      case _                  => Right(tokenUri.query())
     }
-  }
 
   def swaggerRoutes(openApiYamlResource: String): Route = {
     val openApiFilename = Paths.get(openApiYamlResource).getFileName.toString
@@ -116,13 +120,13 @@ class OpenIDConnectAkkaHttpOps(private val config: OpenIDConnectConfiguration) {
     } ~
       path(openApiFilename) {
         get {
-            mapResponseEntity { entityFromJar =>
-              entityFromJar.transformDataBytes(Flow.fromFunction { original =>
-                ByteString(config.processOpenApiYaml(original.utf8String))
-              })
-            } {
-              getFromResource(openApiYamlResource)
-            }
+          mapResponseEntity { entityFromJar =>
+            entityFromJar.transformDataBytes(Flow.fromFunction { original =>
+              ByteString(config.processOpenApiYaml(original.utf8String))
+            })
+          } {
+            getFromResource(openApiYamlResource)
+          }
         }
       } ~
       (pathPrefixTest("swagger-ui") | pathPrefixTest("oauth2-redirect") | pathSuffixTest("js")

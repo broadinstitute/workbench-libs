@@ -57,11 +57,8 @@ class OpenIDConnectConfigurationSpec extends AnyFlatSpecLike with Matchers with 
   }
 
   it should "inject the client_id and extra auth params" in {
-    val interp = new OpenIDConnectInterpreter(ClientId("client_id"),
-                                              "fake-authority",
-                                              fakeMetadata,
-                                              Some("extra=1&fields=more")
-    )
+    val interp =
+      new OpenIDConnectInterpreter(ClientId("client_id"), "fake-authority", fakeMetadata, Some("extra=1&fields=more"))
 
     val params = List("foo" -> "bar", "abc" -> "123", "scope" -> "openid email profile")
     val res = interp.processAuthorizeQueryParams(params)
@@ -76,11 +73,7 @@ class OpenIDConnectConfigurationSpec extends AnyFlatSpecLike with Matchers with 
 
   "processSwaggerUiIndex" should "replace client ids and uri" in {
     val interp =
-      new OpenIDConnectInterpreter(ClientId("client_id"),
-                                   "fake-authority",
-                                   fakeMetadata,
-                                   None
-      )
+      new OpenIDConnectInterpreter(ClientId("client_id"), "fake-authority", fakeMetadata, None)
     val source = Source.fromResource("swagger/index.html")
     val contents =
       try source.mkString
