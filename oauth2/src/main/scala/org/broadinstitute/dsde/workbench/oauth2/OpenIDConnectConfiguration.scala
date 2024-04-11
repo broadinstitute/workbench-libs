@@ -15,11 +15,8 @@ import org.http4s.circe.CirceEntityDecoder._
  * with the following options:
  *   - authorityEndpoint (required): the OAuth2.0 authority, e.g. https://accounts.google.com
  *   - oidcClientId (required): the OAuth2 client id
- *   - oidcClientSecret (optional): the OAuth2 client secret. Only needed for Google, not B2C.
  *   - extraAuthParams (optional): if present appends extra params to the query string of the
  *       authorization request. This is needed for B2C for some clients, including Swagger UI.
- *   - extraGoogleClientId (optional): if present adds a Google-specific client to Swagger UI
- *       with implicit flow. Used for backwards compatiblity.
  *
  * There are 2 choices for using this class:
  *
@@ -43,8 +40,8 @@ trait OpenIDConnectConfiguration {
   def providerMetadata: OpenIDProviderMetadata
 
   def processAuthorizeQueryParams(params: Seq[(String, String)]): Seq[(String, String)]
-  def processTokenFormFields(fields: Seq[(String, String)]): Seq[(String, String)]
   def processSwaggerUiIndex(contents: String, openApiFileName: String): String
+  def processOpenApiYaml(contents: String): String
 }
 
 object OpenIDConnectConfiguration {
@@ -52,17 +49,15 @@ object OpenIDConnectConfiguration {
 
   def apply[F[_]: Async](authorityEndpoint: String,
                          oidcClientId: ClientId,
-                         oidcClientSecret: Option[ClientSecret] = None,
                          extraAuthParams: Option[String] = None,
-                         extraGoogleClientId: Option[ClientId] = None
+                         b2cProfileWithGoogleBillingScope: Option[String] = None
   ): F[OpenIDConnectConfiguration] = for {
     metadata <- getProviderMetadata(authorityEndpoint)
   } yield new OpenIDConnectInterpreter(oidcClientId,
                                        authorityEndpoint,
                                        metadata,
-                                       oidcClientSecret,
                                        extraAuthParams,
-                                       extraGoogleClientId
+                                       b2cProfileWithGoogleBillingScope
   )
 
   // Grabs the authorize and token endpoints from the authority metadata JSON
@@ -92,11 +87,8 @@ object OpenIDConnectConfiguration {
 }
 
 case class ClientId(value: String) extends AnyVal
-case class ClientSecret(value: String) extends AnyVal
 case class OpenIDProviderMetadata(issuer: String,
                                   authorizeEndpoint: String,
                                   tokenEndpoint: String,
                                   endSessionEndpoint: Option[String]
-) {
-  def isGoogle: Boolean = issuer == "https://accounts.google.com"
-}
+)
