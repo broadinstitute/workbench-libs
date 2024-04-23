@@ -50,23 +50,29 @@ object OpenIDConnectConfiguration {
   def apply[F[_]: Async](authorityEndpoint: String,
                          oidcClientId: ClientId,
                          extraAuthParams: Option[String] = None,
-                         b2cProfileWithGoogleBillingScope: Option[String] = None
+                         b2cProfileWithGoogleBillingScope: Option[String] = None,
+                         authorityEndpointWithGoogleBillingScope: Option[String] = None
   ): F[OpenIDConnectConfiguration] = for {
-    metadata <- getProviderMetadata(authorityEndpoint)
+    providerMetadataUri <- getProviderMetadataUri(authorityEndpoint)
+    metadata <- getProviderMetadata(providerMetadataUri)
+    providerMetadataUriWithGoogleBillingScope <- authorityEndpointWithGoogleBillingScope.traverse(getProviderMetadataUri[F])
   } yield new OpenIDConnectInterpreter(oidcClientId,
                                        authorityEndpoint,
+    providerMetadataUri,
                                        metadata,
                                        extraAuthParams,
-                                       b2cProfileWithGoogleBillingScope
+                                       b2cProfileWithGoogleBillingScope,
+                                       providerMetadataUriWithGoogleBillingScope
   )
 
+  private def getProviderMetadataUri[F[_]: Async](authorityEndpoint: String): F[Uri] =
+    Async[F].fromEither(Uri.fromString(authorityEndpoint)).map(_.addPath(oidcMetadataUrlSuffix))
+
   // Grabs the authorize and token endpoints from the authority metadata JSON
-  private[oauth2] def getProviderMetadata[F[_]: Async](authorityEndpoint: String): F[OpenIDProviderMetadata] =
+  private[oauth2] def getProviderMetadata[F[_]: Async](providerMetadataUri: Uri): F[OpenIDProviderMetadata] =
     for {
-      uri <- Async[F].fromEither(Uri.fromString(authorityEndpoint))
-      req = uri.addPath(oidcMetadataUrlSuffix)
       resp <- BlazeClientBuilder[F].resource.use { client =>
-        client.expectOr[OpenIDProviderMetadata](req)(onError =>
+        client.expectOr[OpenIDProviderMetadata](providerMetadataUri)(onError =>
           Async[F].raiseError(
             new RuntimeException(s"Error reading OIDC configuration endpoint: ${onError.status.reason}")
           )
