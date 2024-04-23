@@ -8,7 +8,6 @@ class OpenIDConnectInterpreter private[oauth2] (val clientId: ClientId,
                                                 providerMetadataUri: Uri,
                                                 val providerMetadata: OpenIDProviderMetadata,
                                                 extraAuthParams: Option[String],
-                                                b2cProfileWithGoogleBillingScope: Option[String] = None,
                                                 providerMetadataUriWithGoogleBillingScope: Option[Uri] = None
 ) extends OpenIDConnectConfiguration {
   private val scopeParam = "scope"
@@ -27,13 +26,11 @@ class OpenIDConnectInterpreter private[oauth2] (val clientId: ClientId,
   override def processSwaggerUiIndex(contents: String, openApiYamlPath: String): String =
     contents
       .replace("url: ''", s"url: '$openApiYamlPath'")
-      .replace("oidc: ''", s"oidc: '${clientId.value}'")
-      .replace("oidc_google_billing_scope: ''", s"oidc_google_billing_scope: '${clientId.value}'")
+      .replace("clientId: ''", s"clientId: '${clientId.value}'")
 
   override def processOpenApiYaml(contents: String): String = {
     contents
-      .replace("OPEN_ID_CONNECT_URL", providerMetadataUri.toString())
       .replace("OPEN_ID_CONNECT_URL_WITH_GOOGLE_BILLING_SCOPE", providerMetadataUriWithGoogleBillingScope.map(_.toString()).getOrElse(""))
-      .replace("B2C_PROFILE_WITH_GOOGLE_BILLING_SCOPE", b2cProfileWithGoogleBillingScope.getOrElse(""))
+      .replace("OPEN_ID_CONNECT_URL", providerMetadataUri.toString())
   }
 }

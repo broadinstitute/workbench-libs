@@ -14,9 +14,8 @@ class OpenIDConnectConfigurationSpec extends AnyFlatSpecLike with Matchers with 
 
   "OpenIDConnectConfiguration" should "initialize with B2C metadata" in {
     val res = for {
-      metadata <- OpenIDConnectConfiguration.getProviderMetadata[IO](
-        Uri.unsafeFromString("https://terradevb2c.b2clogin.com/terradevb2c.onmicrosoft.com/b2c_1a_signup_signin_dev")
-      )
+      uri <- OpenIDConnectConfiguration.getProviderMetadataUri[IO]("https://terradevb2c.b2clogin.com/terradevb2c.onmicrosoft.com/b2c_1a_signup_signin")
+      metadata <- OpenIDConnectConfiguration.getProviderMetadata[IO](uri)
     } yield {
       metadata.issuer should startWith(
         "https://terradevb2c.b2clogin.com/"
@@ -32,17 +31,16 @@ class OpenIDConnectConfigurationSpec extends AnyFlatSpecLike with Matchers with 
 
   it should "initialize with B2C metadata using query string" in {
     val res = for {
-      metadata <- OpenIDConnectConfiguration.getProviderMetadata[IO](
-        Uri.unsafeFromString("https://terradevb2c.b2clogin.com/terradevb2c.onmicrosoft.com/v2.0/.well-known/openid-configuration?p=b2c_1a_signup_signin_dev")
-      )
+      uri <- OpenIDConnectConfiguration.getProviderMetadataUri[IO]("https://terradevb2c.b2clogin.com/terradevb2c.onmicrosoft.com/v2.0?p=b2c_1a_signup_signin")
+      metadata <- OpenIDConnectConfiguration.getProviderMetadata[IO](uri)
     } yield {
       metadata.issuer should startWith(
         "https://terradevb2c.b2clogin.com/"
       )
-      metadata.authorizeEndpoint shouldBe "https://terradevb2c.b2clogin.com/terradevb2c.onmicrosoft.com/oauth2/v2.0/authorize?p=b2c_1a_signup_signin_dev"
-      metadata.tokenEndpoint shouldBe "https://terradevb2c.b2clogin.com/terradevb2c.onmicrosoft.com/oauth2/v2.0/token?p=b2c_1a_signup_signin_dev"
+      metadata.authorizeEndpoint shouldBe "https://terradevb2c.b2clogin.com/terradevb2c.onmicrosoft.com/oauth2/v2.0/authorize?p=b2c_1a_signup_signin"
+      metadata.tokenEndpoint shouldBe "https://terradevb2c.b2clogin.com/terradevb2c.onmicrosoft.com/oauth2/v2.0/token?p=b2c_1a_signup_signin"
       metadata.endSessionEndpoint shouldBe Option(
-        "https://terradevb2c.b2clogin.com/terradevb2c.onmicrosoft.com/oauth2/v2.0/logout?p=b2c_1a_signup_signin_dev"
+        "https://terradevb2c.b2clogin.com/terradevb2c.onmicrosoft.com/oauth2/v2.0/logout?p=b2c_1a_signup_signin"
       )
     }
     res.unsafeRunSync
@@ -80,12 +78,7 @@ class OpenIDConnectConfigurationSpec extends AnyFlatSpecLike with Matchers with 
       try source.mkString
       finally source.close()
     val res = interp.processSwaggerUiIndex(contents, "/api-docs.yaml")
-    res should include(
-      """  var clientIds = {
-        |    oidc: 'client_id',
-        |    oidc_google_billing_scope: 'client_id'
-        |  }""".stripMargin
-    )
+    res should include("clientId: 'client_id'")
     res should include("url: '/api-docs.yaml'")
   }
 }

@@ -259,24 +259,18 @@ class OpenIDConnectAkkaHttpSpec
         status shouldBe StatusCodes.OK
         contentType shouldBe ContentTypes.`text/html(UTF-8)`
         val resp = responseAs[String]
-        resp should include(
-          """  var clientIds = {
-            |    oidc: 'some_client',
-            |    oidc_google_billing_scope: 'some_client'
-            |  }""".stripMargin
-        )
+        resp should include("clientId: 'some_client'")
         resp should include("url: '/swagger.yaml'")
       }
     } yield ()
     res.unsafeRunSync()
   }
 
-  it should "return swagger yaml" in {
-    val testBillingProfile = UUID.randomUUID().toString
+  it should "return open api yaml" in {
     val res = for {
       config <- OpenIDConnectConfiguration[IO]("http://localhost:9000",
                                                ClientId("some_client"),
-                                               b2cProfileWithGoogleBillingScope = Some(testBillingProfile)
+                                               authorityEndpointWithGoogleBillingScope = Some("http://localhost:9001")
       )
       req = Get("/swagger.yaml")
       _ <- req ~> config.swaggerRoutes("swagger/swagger.yaml") ~> checkIO {
@@ -285,7 +279,8 @@ class OpenIDConnectAkkaHttpSpec
         contentType shouldBe ContentTypes.`application/octet-stream`
         val resp = responseAs[String]
         resp should include("Everything about your Pets")
-        resp should include(testBillingProfile)
+        resp should include("http://localhost:9000")
+        resp should include("http://localhost:9001")
       }
     } yield ()
     res.unsafeRunSync()

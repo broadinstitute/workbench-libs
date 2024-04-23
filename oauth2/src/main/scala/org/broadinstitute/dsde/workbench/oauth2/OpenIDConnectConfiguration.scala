@@ -50,7 +50,6 @@ object OpenIDConnectConfiguration {
   def apply[F[_]: Async](authorityEndpoint: String,
                          oidcClientId: ClientId,
                          extraAuthParams: Option[String] = None,
-                         b2cProfileWithGoogleBillingScope: Option[String] = None,
                          authorityEndpointWithGoogleBillingScope: Option[String] = None
   ): F[OpenIDConnectConfiguration] = for {
     providerMetadataUri <- getProviderMetadataUri(authorityEndpoint)
@@ -61,11 +60,10 @@ object OpenIDConnectConfiguration {
     providerMetadataUri,
                                        metadata,
                                        extraAuthParams,
-                                       b2cProfileWithGoogleBillingScope,
                                        providerMetadataUriWithGoogleBillingScope
   )
 
-  private def getProviderMetadataUri[F[_]: Async](authorityEndpoint: String): F[Uri] =
+  private[oauth2] def getProviderMetadataUri[F[_]: Async](authorityEndpoint: String): F[Uri] =
     Async[F].fromEither(Uri.fromString(authorityEndpoint)).map(_.addPath(oidcMetadataUrlSuffix))
 
   // Grabs the authorize and token endpoints from the authority metadata JSON
