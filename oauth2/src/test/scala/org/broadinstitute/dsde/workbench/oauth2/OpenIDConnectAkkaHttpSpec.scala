@@ -1,5 +1,6 @@
 package org.broadinstitute.dsde.workbench.oauth2
 
+import akka.http.javadsl.server.ValidationRejection
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.HttpMethods._
 import akka.http.scaladsl.model.Uri.Query
@@ -14,33 +15,60 @@ import cats.syntax.all._
 import io.circe.Decoder
 import io.circe.parser._
 import io.circe.syntax._
+import org.broadinstitute.dsde.workbench.model.ErrorReportSource
 import org.broadinstitute.dsde.workbench.oauth2.OpenIDConnectAkkaHttpOps.{ConfigurationResponse, _}
 import org.broadinstitute.dsde.workbench.util2.WorkbenchTestSuite
+import org.scalatest.BeforeAndAfterAll
 import org.scalatest.flatspec.AnyFlatSpecLike
 import org.scalatest.matchers.should.Matchers
 
+import java.util.UUID
+import scala.concurrent.Await
 import scala.concurrent.duration._
 
-class OpenIDConnectAkkaHttpSpec extends AnyFlatSpecLike with Matchers with WorkbenchTestSuite with ScalatestRouteTest {
-  "authorize endpoint" should "redirect" in {
-    val res = for {
-      config <- OpenIDConnectConfiguration[IO]("https://accounts.google.com", ClientId("client_id"))
-      req = Get(Uri("/oauth2/authorize").withQuery(Query("""id=client_idwith"fun'characters&scope=foo+bar""")))
-      _ <- req ~> config.oauth2Routes ~> checkIO {
-        handled shouldBe true
-        status shouldBe StatusCodes.Found
-        header[Location].map(_.value) shouldBe Some(
-          "https://accounts.google.com/o/oauth2/v2/auth?id=client_idwith%22fun'characters&scope=foo+bar"
-        )
+class OpenIDConnectAkkaHttpSpec
+    extends AnyFlatSpecLike
+    with Matchers
+    with WorkbenchTestSuite
+    with ScalatestRouteTest
+    with BeforeAndAfterAll {
+  var mockServer: Http.ServerBinding = _
+
+  override def beforeAll(): Unit = {
+    val backendRoute = path(".well-known" / "openid-configuration") {
+      get {
+        parameterSeq { params =>
+          complete {
+            Map(
+              "issuer" -> "test",
+              "authorization_endpoint" -> Uri("http://localhost:9000/authorize")
+                .withQuery(Query(params.toMap))
+                .toString(),
+              "token_endpoint" -> "http://localhost:9000/token"
+            )
+          }
+        }
       }
-    } yield ()
-    res.unsafeRunSync()
+    } ~
+      path("token") {
+        post {
+          formFieldSeq { _ =>
+            parameter("p".?) { policy =>
+              complete(Map("token" -> s"a-token${policy.getOrElse("")}"))
+            }
+          }
+        }
+      }
+    mockServer = Await.result(Http().newServerAt("0.0.0.0", 9000).bind(backendRoute), 10.seconds)
   }
 
-  it should "redirect with extra parameters" in {
+  override def afterAll(): Unit =
+    Await.result(mockServer.terminate(3.seconds), Duration.Inf)
+
+  "authorize endpoint" should "redirect with extra parameters" in {
     val res = for {
       config <- OpenIDConnectConfiguration[IO](
-        "https://terradevb2c.b2clogin.com/terradevb2c.onmicrosoft.com/b2c_1a_signup_signin",
+        "http://localhost:9000?p=b2c_1a_signup_signin",
         ClientId("some_client"),
         extraAuthParams = Some("foo=bar&abc=def")
       )
@@ -48,9 +76,16 @@ class OpenIDConnectAkkaHttpSpec extends AnyFlatSpecLike with Matchers with Workb
       _ <- req ~> config.oauth2Routes ~> checkIO {
         handled shouldBe true
         status shouldBe StatusCodes.Found
-        header[Location].map(_.value) shouldBe Some(
-          "https://terradevb2c.b2clogin.com/terradevb2c.onmicrosoft.com/b2c_1a_signup_signin/oauth2/authorize?id=client_id&scope=foo+bar+some_client&foo=bar&abc=def"
+        val uri = Uri(header[Location].getOrElse(fail("location header missing")).value)
+        uri.query().toMap shouldBe Map(
+          "id" -> "client_id",
+          "scope" -> "foo bar some_client",
+          "foo" -> "bar",
+          "abc" -> "def",
+          "p" -> "b2c_1a_signup_signin"
         )
+        uri.path shouldBe Uri.Path("/authorize")
+        uri.authority.toString() shouldBe "localhost:9000"
       }
     } yield ()
     res.unsafeRunSync()
@@ -59,7 +94,7 @@ class OpenIDConnectAkkaHttpSpec extends AnyFlatSpecLike with Matchers with Workb
   it should "redirect to a different policy" in {
     val res = for {
       config <- OpenIDConnectConfiguration[IO](
-        "https://terradevb2c.b2clogin.com/terradevb2c.onmicrosoft.com/v2.0?p=b2c_1a_signup_signin",
+        "http://localhost:9000?p=b2c_1a_signup_signin",
         ClientId("some_client")
       )
       req = Get(Uri("/oauth2/authorize").withQuery(Query("""p=some-other-policy""")))
@@ -67,7 +102,7 @@ class OpenIDConnectAkkaHttpSpec extends AnyFlatSpecLike with Matchers with Workb
         handled shouldBe true
         status shouldBe StatusCodes.Found
         header[Location].map(_.value) shouldBe Some(
-          "https://terradevb2c.b2clogin.com/terradevb2c.onmicrosoft.com/oauth2/v2.0/authorize?p=some-other-policy"
+          "http://localhost:9000/authorize?p=some-other-policy"
         )
       }
     } yield ()
@@ -76,7 +111,7 @@ class OpenIDConnectAkkaHttpSpec extends AnyFlatSpecLike with Matchers with Workb
 
   it should "reject non-GET requests" in {
     val res = for {
-      config <- OpenIDConnectConfiguration[IO]("https://accounts.google.com", ClientId("some_client"))
+      config <- OpenIDConnectConfiguration[IO]("http://localhost:9000", ClientId("some_client"))
       _ <- allMethods.filterNot(_ == GET).traverse { method =>
         new RequestBuilder(method)("/oauth2/authorize?id=client_id") ~> config.oauth2Routes ~> checkIO {
           handled shouldBe false
@@ -89,34 +124,9 @@ class OpenIDConnectAkkaHttpSpec extends AnyFlatSpecLike with Matchers with Workb
 
   "the token endpoint" should "proxy requests" in {
     val formData = Map("grant_type" -> "authorization_code", "code" -> "1234", "client_id" -> "some_client")
-    val backendRoute = path(".well-known" / "openid-configuration") {
-      get {
-        complete {
-          Map("issuer" -> "unused",
-              "authorization_endpoint" -> "unused",
-              "token_endpoint" -> "http://localhost:9000/token"
-          )
-        }
-      }
-    } ~
-      path("token") {
-        post {
-          formFieldSeq { fields =>
-            fields.toMap shouldBe formData
-            complete(Map("token" -> "a-token"))
-          }
-        }
-      }
-    val mockServer =
-      Resource.make(IO.fromFuture(IO(Http().newServerAt("0.0.0.0", 9000).bind(backendRoute))))(serverBinding =>
-        IO.fromFuture(IO(serverBinding.terminate(3.seconds))).void
-      )
 
     val res = for {
-      config <- OpenIDConnectConfiguration[IO]("http://localhost:9000",
-                                               ClientId("some_client"),
-                                               Some(ClientSecret("some_long_client_secret"))
-      )
+      config <- OpenIDConnectConfiguration[IO]("http://localhost:9000", ClientId("some_client"))
       req = Post("/oauth2/token").withEntity(
         FormData(formData).toEntity
       )
@@ -127,8 +137,7 @@ class OpenIDConnectAkkaHttpSpec extends AnyFlatSpecLike with Matchers with Workb
         resp shouldBe Map("token" -> "a-token").asJson.noSpaces
       }
     } yield ()
-
-    mockServer.use(_ => res).unsafeRunSync()
+    res.unsafeRunSync()
   }
 
   it should "proxy requests with a policy field" in {
@@ -137,37 +146,9 @@ class OpenIDConnectAkkaHttpSpec extends AnyFlatSpecLike with Matchers with Workb
                        "client_id" -> "some_client",
                        "p" -> "some-other-policy"
     )
-    val backendRoute = path(".well-known" / "openid-configuration") {
-      get {
-        complete {
-          Map("issuer" -> "unused",
-              "authorization_endpoint" -> "unused",
-              "token_endpoint" -> "http://localhost:9000/token"
-          )
-        }
-      }
-    } ~
-      path("token") {
-        post {
-          formFieldSeq { fields =>
-            parameterSeq { params =>
-              fields.toMap shouldBe formData
-              params.toMap shouldBe Map("p" -> "some-other-policy")
-              complete(Map("token" -> "a-token"))
-            }
-          }
-        }
-      }
-    val mockServer =
-      Resource.make(IO.fromFuture(IO(Http().newServerAt("0.0.0.0", 9000).bind(backendRoute))))(serverBinding =>
-        IO.fromFuture(IO(serverBinding.terminate(3.seconds))).void
-      )
 
     val res = for {
-      config <- OpenIDConnectConfiguration[IO]("http://localhost:9000",
-                                               ClientId("some_client"),
-                                               Some(ClientSecret("some_long_client_secret"))
-      )
+      config <- OpenIDConnectConfiguration[IO]("http://localhost:9000", ClientId("some_client"))
       req = Post("/oauth2/token").withEntity(
         FormData(formData).toEntity
       )
@@ -175,16 +156,78 @@ class OpenIDConnectAkkaHttpSpec extends AnyFlatSpecLike with Matchers with Workb
         handled shouldBe true
         status shouldBe StatusCodes.OK
         val resp = responseAs[String]
-        resp shouldBe Map("token" -> "a-token").asJson.noSpaces
+        // mock server appends the policy to the token
+        resp shouldBe Map("token" -> "a-tokensome-other-policy").asJson.noSpaces
       }
     } yield ()
+    res.unsafeRunSync()
+  }
 
-    mockServer.use(_ => res).unsafeRunSync()
+  it should "proxy requests with a policy query parameter" in {
+    val formData = Map("grant_type" -> "authorization_code", "code" -> "1234", "client_id" -> "some_client")
+
+    val res = for {
+      config <- OpenIDConnectConfiguration[IO]("http://localhost:9000", ClientId("some_client"))
+      req = Post("/oauth2/token?p=some-other-policy").withEntity(
+        FormData(formData).toEntity
+      )
+      _ <- req ~> config.oauth2Routes ~> checkIO {
+        handled shouldBe true
+        status shouldBe StatusCodes.OK
+        val resp = responseAs[String]
+        // mock server appends the policy to the token
+        resp shouldBe Map("token" -> "a-tokensome-other-policy").asJson.noSpaces
+      }
+    } yield ()
+    res.unsafeRunSync()
+  }
+
+  it should "proxy requests with same policy in form and query parameter" in {
+    val formData = Map("grant_type" -> "authorization_code",
+                       "code" -> "1234",
+                       "client_id" -> "some_client",
+                       "p" -> "Some-Other-Policy" // case is different to test case insensitivity
+    )
+
+    val res = for {
+      config <- OpenIDConnectConfiguration[IO]("http://localhost:9000", ClientId("some_client"))
+      req = Post("/oauth2/token?p=some-other-policy").withEntity(
+        FormData(formData).toEntity
+      )
+      _ <- req ~> config.oauth2Routes ~> checkIO {
+        handled shouldBe true
+        status shouldBe StatusCodes.OK
+        val resp = responseAs[String]
+        // mock server appends the policy to the token
+        resp shouldBe Map("token" -> "a-tokensome-other-policy").asJson.noSpaces
+      }
+    } yield ()
+    res.unsafeRunSync()
+  }
+
+  it should "reject requests with different policy in form and query parameter" in {
+    val formData = Map("grant_type" -> "authorization_code",
+                       "code" -> "1234",
+                       "client_id" -> "some_client",
+                       "p" -> "Some-Other-Policy" // case is different to test case insensitivity
+    )
+
+    val res = for {
+      config <- OpenIDConnectConfiguration[IO]("http://localhost:9000", ClientId("some_client"))
+      req = Post("/oauth2/token?p=some-other-other-policy").withEntity(
+        FormData(formData).toEntity
+      )
+      _ <- req ~> config.oauth2Routes ~> checkIO {
+        handled shouldBe false
+        rejection shouldBe a[ValidationRejection]
+      }
+    } yield ()
+    res.unsafeRunSync()
   }
 
   it should "reject non-POST requests" in {
     val res = for {
-      config <- OpenIDConnectConfiguration[IO]("https://accounts.google.com", ClientId("some_client"))
+      config <- OpenIDConnectConfiguration[IO]("http://localhost:9000", ClientId("some_client"))
       _ <- allMethods.filterNot(_ == POST).traverse { method =>
         new RequestBuilder(method)("/oauth2/token") ~> config.oauth2Routes ~> checkIO {
           handled shouldBe false
@@ -197,7 +240,7 @@ class OpenIDConnectAkkaHttpSpec extends AnyFlatSpecLike with Matchers with Workb
 
   it should "reject requests without application/x-www-form-urlencoded content type" in {
     val res = for {
-      config <- OpenIDConnectConfiguration[IO]("https://accounts.google.com", ClientId("some_client"))
+      config <- OpenIDConnectConfiguration[IO]("http://localhost:9000", ClientId("some_client"))
       req = Post("/oauth2/token").withEntity(ContentTypes.`application/json`, """{"some":"json"}""")
       _ <- req ~> config.oauth2Routes ~> checkIO {
         handled shouldBe false
@@ -209,10 +252,7 @@ class OpenIDConnectAkkaHttpSpec extends AnyFlatSpecLike with Matchers with Workb
 
   "the swagger routes" should "return index.html" in {
     val res = for {
-      config <- OpenIDConnectConfiguration[IO]("https://accounts.google.com",
-                                               ClientId("some_client"),
-                                               extraGoogleClientId = Some(ClientId("extra_client"))
-      )
+      config <- OpenIDConnectConfiguration[IO]("http://localhost:9000", ClientId("some_client"))
       req = Get("/")
       _ <- req ~> config.swaggerRoutes("swagger/swagger.yaml") ~> checkIO {
         handled shouldBe true
@@ -221,8 +261,8 @@ class OpenIDConnectAkkaHttpSpec extends AnyFlatSpecLike with Matchers with Workb
         val resp = responseAs[String]
         resp should include(
           """  var clientIds = {
-            |    googleoauth: 'extra_client',
-            |    oidc: 'some_client'
+            |    oidc: 'some_client',
+            |    oidc_google_billing_scope: 'some_client'
             |  }""".stripMargin
         )
         resp should include("url: '/swagger.yaml'")
@@ -232,10 +272,11 @@ class OpenIDConnectAkkaHttpSpec extends AnyFlatSpecLike with Matchers with Workb
   }
 
   it should "return swagger yaml" in {
+    val testBillingProfile = UUID.randomUUID().toString
     val res = for {
-      config <- OpenIDConnectConfiguration[IO]("https://accounts.google.com",
+      config <- OpenIDConnectConfiguration[IO]("http://localhost:9000",
                                                ClientId("some_client"),
-                                               extraGoogleClientId = Some(ClientId("extra_client"))
+                                               b2cProfileWithGoogleBillingScope = Some(testBillingProfile)
       )
       req = Get("/swagger.yaml")
       _ <- req ~> config.swaggerRoutes("swagger/swagger.yaml") ~> checkIO {
@@ -244,15 +285,16 @@ class OpenIDConnectAkkaHttpSpec extends AnyFlatSpecLike with Matchers with Workb
         contentType shouldBe ContentTypes.`application/octet-stream`
         val resp = responseAs[String]
         resp should include("Everything about your Pets")
+        resp should include(testBillingProfile)
       }
     } yield ()
     res.unsafeRunSync()
   }
 
-  "the configuration route" should "return google config" in {
+  "the configuration route" should "return b2c config" in {
     val res = for {
       config <- OpenIDConnectConfiguration[IO](
-        "https://accounts.google.com",
+        "http://localhost:9000",
         ClientId("some_client")
       )
       req = Get(Uri("/oauth2/configuration"))
@@ -263,28 +305,7 @@ class OpenIDConnectAkkaHttpSpec extends AnyFlatSpecLike with Matchers with Workb
         val configResponse = decode[ConfigurationResponse](responseString)
         configResponse.map(_.clientId) shouldBe Right(ClientId("some_client"))
         configResponse.map(_.authorityEndpoint) shouldBe Right(
-          "https://accounts.google.com"
-        )
-      }
-    } yield ()
-    res.unsafeRunSync()
-  }
-
-  it should "return b2c config" in {
-    val res = for {
-      config <- OpenIDConnectConfiguration[IO](
-        "https://terradevb2c.b2clogin.com/terradevb2c.onmicrosoft.com/b2c_1a_signup_signin",
-        ClientId("some_client")
-      )
-      req = Get(Uri("/oauth2/configuration"))
-      _ <- req ~> config.oauth2Routes ~> checkIO {
-        handled shouldBe true
-        status shouldBe StatusCodes.OK
-        val responseString = responseAs[String]
-        val configResponse = decode[ConfigurationResponse](responseString)
-        configResponse.map(_.clientId) shouldBe Right(ClientId("some_client"))
-        configResponse.map(_.authorityEndpoint) shouldBe Right(
-          "https://terradevb2c.b2clogin.com/terradevb2c.onmicrosoft.com/b2c_1a_signup_signin"
+          "http://localhost:9000"
         )
       }
     } yield ()

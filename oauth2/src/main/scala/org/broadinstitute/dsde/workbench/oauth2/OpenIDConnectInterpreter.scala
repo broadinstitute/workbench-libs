@@ -5,19 +5,15 @@ import akka.http.scaladsl.model.Uri
 class OpenIDConnectInterpreter private[oauth2] (val clientId: ClientId,
                                                 val authorityEndpoint: String,
                                                 val providerMetadata: OpenIDProviderMetadata,
-                                                clientSecret: Option[ClientSecret],
                                                 extraAuthParams: Option[String],
-                                                extraGoogleClientId: Option[ClientId]
+                                                b2cProfileWithGoogleBillingScope: Option[String] = None
 ) extends OpenIDConnectConfiguration {
   private val scopeParam = "scope"
-  private val clientSecretParam = "client_secret"
 
   override def processAuthorizeQueryParams(params: Seq[(String, String)]): Seq[(String, String)] = {
-    val paramsWithScope = if (!providerMetadata.isGoogle) {
-      params.map { case (k, v) =>
-        if (k == scopeParam) (k, v + " " + clientId.value) else (k, v)
-      }
-    } else params
+    val paramsWithScope = params.map { case (k, v) =>
+      if (k == scopeParam) (k, v + " " + clientId.value) else (k, v)
+    }
 
     val paramsWithScopeAndExtraAuthParams =
       paramsWithScope ++ extraAuthParams.map(eap => Uri.Query(eap)).getOrElse(Uri.Query.Empty)
@@ -25,18 +21,16 @@ class OpenIDConnectInterpreter private[oauth2] (val clientId: ClientId,
     paramsWithScopeAndExtraAuthParams
   }
 
-  override def processTokenFormFields(fields: Seq[(String, String)]): Seq[(String, String)] =
-    clientSecret match {
-      case Some(secret) =>
-        if (providerMetadata.isGoogle && !fields.exists(_._1 == clientSecretParam))
-          fields :+ (clientSecretParam -> secret.value)
-        else fields
-      case None => fields
-    }
-
   override def processSwaggerUiIndex(contents: String, openApiYamlPath: String): String =
     contents
       .replace("url: ''", s"url: '$openApiYamlPath'")
-      .replace("googleoauth: ''", s"googleoauth: '${extraGoogleClientId.map(_.value).getOrElse("")}'")
       .replace("oidc: ''", s"oidc: '${clientId.value}'")
+      .replace("oidc_google_billing_scope: ''", s"oidc_google_billing_scope: '${clientId.value}'")
+
+  override def processOpenApiYaml(contents: String): String =
+    b2cProfileWithGoogleBillingScope
+      .map { b2cProfile =>
+        contents.replace("B2C_PROFILE_WITH_GOOGLE_BILLING_SCOPE", b2cProfile)
+      }
+      .getOrElse(contents)
 }

@@ -8,7 +8,7 @@ import akka.http.scaladsl.model.HttpMethods.POST
 import akka.http.scaladsl.model.Uri.Query
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.server.Directives._
-import akka.http.scaladsl.server.Route
+import akka.http.scaladsl.server.{Rejection, RejectionError, Route, ValidationRejection}
 import akka.stream.scaladsl.Flow
 import akka.util.ByteString
 import io.circe.Encoder
@@ -41,17 +41,21 @@ class OpenIDConnectAkkaHttpOps(private val config: OpenIDConnectConfiguration) {
         path("token") {
           post {
             formFieldSeq { fields =>
-              complete {
+              parameter(policyParam.?) { policyInQuery =>
                 val tokenUri = Uri(config.providerMetadata.tokenEndpoint)
-                // If the policy was passed as a parameter in the incoming request,
-                // pass it to the token endpoint as a query string parameter.
-                val newRequest = HttpRequest(
-                  POST,
-                  uri = tokenUri
-                    .withQuery(fields.find(_._1 == policyParam).map(Query(_)).getOrElse(tokenUri.query())),
-                  entity = FormData(config.processTokenFormFields(fields): _*).toEntity
+                val policyInForm = fields.find(_._1 == policyParam).map(_._2)
+                determinePolicyQuery(policyInQuery, tokenUri, policyInForm).fold(
+                  reject(_),
+                  query =>
+                    complete {
+                      val newRequest = HttpRequest(
+                        POST,
+                        uri = tokenUri.withQuery(query),
+                        entity = FormData(fields: _*).toEntity
+                      )
+                      Http().singleRequest(newRequest).map(_.toStrict(5.seconds))
+                    }
                 )
-                Http().singleRequest(newRequest).map(_.toStrict(5.seconds))
               }
             }
           }
@@ -83,6 +87,24 @@ class OpenIDConnectAkkaHttpOps(private val config: OpenIDConnectConfiguration) {
     }
   }
 
+  /**
+   * Determine the query to use for the token request.
+   * If the policy parameter is present in both the query and the form, and they are different, throw an exception.
+   * If the policy parameter is present in the query or the form, use that value.
+   * Otherwise, use the query from the tokenUri.
+   */
+  private def determinePolicyQuery(policyInQuery: Option[String],
+                                   tokenUri: Uri,
+                                   policyInForm: Option[String]
+  ): Either[Rejection, Query] =
+    (policyInQuery, policyInForm) match {
+      case (Some(inQuery), Some(inForm)) if !inQuery.equalsIgnoreCase(inForm) =>
+        Left(ValidationRejection(s"Policy parameter mismatch: $inQuery in query, $inForm in form."))
+      case (Some(inQuery), _) => Right(Query(policyParam -> inQuery))
+      case (_, Some(inForm))  => Right(Query(policyParam -> inForm))
+      case _                  => Right(tokenUri.query())
+    }
+
   def swaggerRoutes(openApiYamlResource: String): Route = {
     val openApiFilename = Paths.get(openApiYamlResource).getFileName.toString
     path("") {
@@ -98,7 +120,13 @@ class OpenIDConnectAkkaHttpOps(private val config: OpenIDConnectConfiguration) {
     } ~
       path(openApiFilename) {
         get {
-          getFromResource(openApiYamlResource)
+          mapResponseEntity { entityFromJar =>
+            entityFromJar.transformDataBytes(Flow.fromFunction { original =>
+              ByteString(config.processOpenApiYaml(original.utf8String))
+            })
+          } {
+            getFromResource(openApiYamlResource)
+          }
         }
       } ~
       (pathPrefixTest("swagger-ui") | pathPrefixTest("oauth2-redirect") | pathSuffixTest("js")
