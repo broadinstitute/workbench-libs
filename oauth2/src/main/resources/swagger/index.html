@@ -170,7 +170,6 @@
         clearValidator,
         insertClientIdsPlugin
       ],
-      additionalQueryStringParams: {prompt: "login"},
       layout: 'StandaloneLayout',
       displayOperationId: true,
       displayRequestDuration: true,
@@ -191,6 +190,7 @@
 
     ui.initOAuth({
       scopes: "openid email profile",
+      additionalQueryStringParams: {prompt: "login"},
       usePkceWithAuthorizationCodeGrant: true
     });
 
