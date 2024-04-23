@@ -12,9 +12,9 @@ class FakeOpenIDConnectConfiguration extends OpenIDConnectConfiguration {
 
   override def processAuthorizeQueryParams(params: Seq[(String, String)]): Seq[(String, String)] = params
 
-  override def processTokenFormFields(fields: Seq[(String, String)]): Seq[(String, String)] = fields
-
   override def processSwaggerUiIndex(contents: String, openApiFileName: String): String = contents
+
+  override def processOpenApiYaml(contents: String): String = contents
 }
 
 object FakeOpenIDConnectConfiguration extends FakeOpenIDConnectConfiguration

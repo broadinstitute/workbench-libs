@@ -104,8 +104,8 @@
   }
 
   var clientIds = {
-    googleoauth: '',
-    oidc: ''
+    oidc: '',
+    oidc_google_billing_scope: ''
   }
   var insertClientIdsPlugin = function(system) {
     return {
@@ -190,6 +190,7 @@
 
     ui.initOAuth({
       scopes: "openid email profile",
+      additionalQueryStringParams: {prompt: "login"},
       usePkceWithAuthorizationCodeGrant: true
     });
 

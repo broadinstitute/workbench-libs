@@ -10,21 +10,8 @@ import scala.io.Source
 
 class OpenIDConnectConfigurationSpec extends AnyFlatSpecLike with Matchers with WorkbenchTestSuite {
   val fakeMetadata = OpenIDProviderMetadata("issuer", "authorize", "token", Option("endSession"))
-  val googleMetadata = OpenIDProviderMetadata("https://accounts.google.com", "authorize", "token", Option.empty)
 
-  "OpenIDConnectConfiguration" should "initialize with Google metadata" in {
-    val res = for {
-      metadata <- OpenIDConnectConfiguration.getProviderMetadata[IO]("https://accounts.google.com")
-    } yield {
-      metadata.issuer shouldBe "https://accounts.google.com"
-      metadata.authorizeEndpoint shouldBe "https://accounts.google.com/o/oauth2/v2/auth"
-      metadata.tokenEndpoint shouldBe "https://oauth2.googleapis.com/token"
-      metadata.endSessionEndpoint shouldBe Option.empty
-    }
-    res.unsafeRunSync
-  }
-
-  it should "initialize with B2C metadata" in {
+  "OpenIDConnectConfiguration" should "initialize with B2C metadata" in {
     val res = for {
       metadata <- OpenIDConnectConfiguration.getProviderMetadata[IO](
         "https://terradevb2c.b2clogin.com/terradevb2c.onmicrosoft.com/b2c_1a_signup_signin"
@@ -61,7 +48,7 @@ class OpenIDConnectConfigurationSpec extends AnyFlatSpecLike with Matchers with 
   }
 
   "processAuthorizeQueryParams" should "inject the client_id to the scope" in {
-    val interp = new OpenIDConnectInterpreter(ClientId("client_id"), "fake-authority", fakeMetadata, None, None, None)
+    val interp = new OpenIDConnectInterpreter(ClientId("client_id"), "fake-authority", fakeMetadata, None)
 
     val params = List("foo" -> "bar", "abc" -> "123", "scope" -> "openid email profile")
     val res = interp.processAuthorizeQueryParams(params)
@@ -70,13 +57,8 @@ class OpenIDConnectConfigurationSpec extends AnyFlatSpecLike with Matchers with 
   }
 
   it should "inject the client_id and extra auth params" in {
-    val interp = new OpenIDConnectInterpreter(ClientId("client_id"),
-                                              "fake-authority",
-                                              fakeMetadata,
-                                              None,
-                                              Some("extra=1&fields=more"),
-                                              None
-    )
+    val interp =
+      new OpenIDConnectInterpreter(ClientId("client_id"), "fake-authority", fakeMetadata, Some("extra=1&fields=more"))
 
     val params = List("foo" -> "bar", "abc" -> "123", "scope" -> "openid email profile")
     val res = interp.processAuthorizeQueryParams(params)
@@ -89,83 +71,9 @@ class OpenIDConnectConfigurationSpec extends AnyFlatSpecLike with Matchers with 
     )
   }
 
-  it should "not inject scope or extra auth params if not configured" in {
-    val interp =
-      new OpenIDConnectInterpreter(ClientId("client_id"),
-                                   "https://accounts.google.com",
-                                   googleMetadata,
-                                   None,
-                                   None,
-                                   None
-      )
-
-    val params = List("foo" -> "bar", "abc" -> "123", "scope" -> "openid email profile")
-    val res = interp.processAuthorizeQueryParams(params)
-
-    res shouldBe params
-  }
-
-  "processTokenFormFields" should "inject the client secret" in {
-    val interp =
-      new OpenIDConnectInterpreter(ClientId("client_id"),
-                                   "https://accounts.google.com",
-                                   googleMetadata,
-                                   Some(ClientSecret("client_secret")),
-                                   None,
-                                   None
-      )
-    val fields = List(
-      "client_id" -> "client_id",
-      "access_token" -> "the-token"
-    )
-    val res = interp.processTokenFormFields(fields)
-    res shouldBe (fields :+ ("client_secret" -> "client_secret"))
-  }
-
-  it should "not inject the client secret if absent" in {
-    val interp =
-      new OpenIDConnectInterpreter(
-        ClientId("client_id"),
-        "https://accounts.google.com",
-        googleMetadata,
-        None,
-        None,
-        None
-      )
-    val fields = List(
-      "client_id" -> "client_id",
-      "access_token" -> "the-token"
-    )
-    val res = interp.processTokenFormFields(fields)
-    res shouldBe fields
-  }
-
-  it should "not inject the client secret if non-Google" in {
-    val interp =
-      new OpenIDConnectInterpreter(ClientId("client_id"),
-                                   "fake-authority",
-                                   fakeMetadata,
-                                   Some(ClientSecret("client_secret")),
-                                   None,
-                                   None
-      )
-    val fields = List(
-      "client_id" -> "client_id",
-      "access_token" -> "the-token"
-    )
-    val res = interp.processTokenFormFields(fields)
-    res shouldBe fields
-  }
-
   "processSwaggerUiIndex" should "replace client ids and uri" in {
     val interp =
-      new OpenIDConnectInterpreter(ClientId("client_id"),
-                                   "fake-authority",
-                                   fakeMetadata,
-                                   None,
-                                   None,
-                                   Some(ClientId("extra_client_id"))
-      )
+      new OpenIDConnectInterpreter(ClientId("client_id"), "fake-authority", fakeMetadata, None)
     val source = Source.fromResource("swagger/index.html")
     val contents =
       try source.mkString
@@ -173,8 +81,8 @@ class OpenIDConnectConfigurationSpec extends AnyFlatSpecLike with Matchers with 
     val res = interp.processSwaggerUiIndex(contents, "/api-docs.yaml")
     res should include(
       """  var clientIds = {
-        |    googleoauth: 'extra_client_id',
-        |    oidc: 'client_id'
+        |    oidc: 'client_id',
+        |    oidc_google_billing_scope: 'client_id'
         |  }""".stripMargin
     )
     res should include("url: '/api-docs.yaml'")
