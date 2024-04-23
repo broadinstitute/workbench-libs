@@ -28,9 +28,10 @@ class OpenIDConnectInterpreter private[oauth2] (val clientId: ClientId,
       .replace("url: ''", s"url: '$openApiYamlPath'")
       .replace("clientId: ''", s"clientId: '${clientId.value}'")
 
-  override def processOpenApiYaml(contents: String): String = {
+  override def processOpenApiYaml(contents: String): String =
     contents
-      .replace("OPEN_ID_CONNECT_URL_WITH_GOOGLE_BILLING_SCOPE", providerMetadataUriWithGoogleBillingScope.map(_.toString()).getOrElse(""))
+      .replace("OPEN_ID_CONNECT_URL_WITH_GOOGLE_BILLING_SCOPE",
+               providerMetadataUriWithGoogleBillingScope.map(_.toString()).getOrElse("")
+      )
       .replace("OPEN_ID_CONNECT_URL", providerMetadataUri.toString())
-  }
 }

@@ -14,7 +14,9 @@ class OpenIDConnectConfigurationSpec extends AnyFlatSpecLike with Matchers with 
 
   "OpenIDConnectConfiguration" should "initialize with B2C metadata" in {
     val res = for {
-      uri <- OpenIDConnectConfiguration.getProviderMetadataUri[IO]("https://terradevb2c.b2clogin.com/terradevb2c.onmicrosoft.com/b2c_1a_signup_signin")
+      uri <- OpenIDConnectConfiguration.getProviderMetadataUri[IO](
+        "https://terradevb2c.b2clogin.com/terradevb2c.onmicrosoft.com/b2c_1a_signup_signin"
+      )
       metadata <- OpenIDConnectConfiguration.getProviderMetadata[IO](uri)
     } yield {
       metadata.issuer should startWith(
@@ -31,7 +33,9 @@ class OpenIDConnectConfigurationSpec extends AnyFlatSpecLike with Matchers with 
 
   it should "initialize with B2C metadata using query string" in {
     val res = for {
-      uri <- OpenIDConnectConfiguration.getProviderMetadataUri[IO]("https://terradevb2c.b2clogin.com/terradevb2c.onmicrosoft.com/v2.0?p=b2c_1a_signup_signin")
+      uri <- OpenIDConnectConfiguration.getProviderMetadataUri[IO](
+        "https://terradevb2c.b2clogin.com/terradevb2c.onmicrosoft.com/v2.0?p=b2c_1a_signup_signin"
+      )
       metadata <- OpenIDConnectConfiguration.getProviderMetadata[IO](uri)
     } yield {
       metadata.issuer should startWith(
@@ -57,7 +61,12 @@ class OpenIDConnectConfigurationSpec extends AnyFlatSpecLike with Matchers with 
 
   it should "inject the client_id and extra auth params" in {
     val interp =
-      new OpenIDConnectInterpreter(ClientId("client_id"), "fake-authority", Uri(), fakeMetadata, Some("extra=1&fields=more"))
+      new OpenIDConnectInterpreter(ClientId("client_id"),
+                                   "fake-authority",
+                                   Uri(),
+                                   fakeMetadata,
+                                   Some("extra=1&fields=more")
+      )
 
     val params = List("foo" -> "bar", "abc" -> "123", "scope" -> "openid email profile")
     val res = interp.processAuthorizeQueryParams(params)

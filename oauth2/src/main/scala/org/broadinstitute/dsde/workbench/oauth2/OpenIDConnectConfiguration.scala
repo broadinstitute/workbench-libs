@@ -54,10 +54,12 @@ object OpenIDConnectConfiguration {
   ): F[OpenIDConnectConfiguration] = for {
     providerMetadataUri <- getProviderMetadataUri(authorityEndpoint)
     metadata <- getProviderMetadata(providerMetadataUri)
-    providerMetadataUriWithGoogleBillingScope <- authorityEndpointWithGoogleBillingScope.traverse(getProviderMetadataUri[F])
+    providerMetadataUriWithGoogleBillingScope <- authorityEndpointWithGoogleBillingScope.traverse(
+      getProviderMetadataUri[F]
+    )
   } yield new OpenIDConnectInterpreter(oidcClientId,
                                        authorityEndpoint,
-    providerMetadataUri,
+                                       providerMetadataUri,
                                        metadata,
                                        extraAuthParams,
                                        providerMetadataUriWithGoogleBillingScope
