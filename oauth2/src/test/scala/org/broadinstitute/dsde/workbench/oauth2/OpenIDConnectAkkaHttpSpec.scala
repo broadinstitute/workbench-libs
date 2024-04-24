@@ -4,7 +4,12 @@ import akka.http.javadsl.server.ValidationRejection
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.HttpMethods._
 import akka.http.scaladsl.model.Uri.Query
-import akka.http.scaladsl.model.headers.Location
+import akka.http.scaladsl.model.headers.{
+  `Access-Control-Allow-Headers`,
+  `Access-Control-Allow-Methods`,
+  `Access-Control-Allow-Origin`,
+  Location
+}
 import akka.http.scaladsl.model.{ContentTypes, FormData, StatusCodes, Uri}
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.{MethodRejection, UnsupportedRequestContentTypeRejection}
@@ -259,24 +264,23 @@ class OpenIDConnectAkkaHttpSpec
         status shouldBe StatusCodes.OK
         contentType shouldBe ContentTypes.`text/html(UTF-8)`
         val resp = responseAs[String]
-        resp should include(
-          """  var clientIds = {
-            |    oidc: 'some_client',
-            |    oidc_google_billing_scope: 'some_client'
-            |  }""".stripMargin
-        )
+        resp should include("clientId: 'some_client'")
         resp should include("url: '/swagger.yaml'")
+        header[`Access-Control-Allow-Origin`].map(_.value) shouldBe Some("*")
+        header[`Access-Control-Allow-Methods`] shouldBe Some(`Access-Control-Allow-Methods`(GET, OPTIONS))
+        header[`Access-Control-Allow-Headers`] shouldBe Some(
+          `Access-Control-Allow-Headers`("Content-Type", "api_key", "Authorization")
+        )
       }
     } yield ()
     res.unsafeRunSync()
   }
 
-  it should "return swagger yaml" in {
-    val testBillingProfile = UUID.randomUUID().toString
+  it should "return open api yaml" in {
     val res = for {
       config <- OpenIDConnectConfiguration[IO]("http://localhost:9000",
                                                ClientId("some_client"),
-                                               b2cProfileWithGoogleBillingScope = Some(testBillingProfile)
+                                               authorityEndpointWithGoogleBillingScope = Some("http://localhost:9001")
       )
       req = Get("/swagger.yaml")
       _ <- req ~> config.swaggerRoutes("swagger/swagger.yaml") ~> checkIO {
@@ -285,7 +289,8 @@ class OpenIDConnectAkkaHttpSpec
         contentType shouldBe ContentTypes.`application/octet-stream`
         val resp = responseAs[String]
         resp should include("Everything about your Pets")
-        resp should include(testBillingProfile)
+        resp should include("http://localhost:9000")
+        resp should include("http://localhost:9001")
       }
     } yield ()
     res.unsafeRunSync()
