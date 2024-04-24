@@ -1,12 +1,14 @@
 package org.broadinstitute.dsde.workbench.oauth2
 
-import akka.http.scaladsl.model.Uri
+import akka.http.scaladsl.model
+import org.http4s.Uri
 
 class OpenIDConnectInterpreter private[oauth2] (val clientId: ClientId,
                                                 val authorityEndpoint: String,
+                                                providerMetadataUri: Uri,
                                                 val providerMetadata: OpenIDProviderMetadata,
                                                 extraAuthParams: Option[String],
-                                                b2cProfileWithGoogleBillingScope: Option[String] = None
+                                                providerMetadataUriWithGoogleBillingScope: Option[Uri] = None
 ) extends OpenIDConnectConfiguration {
   private val scopeParam = "scope"
 
@@ -16,7 +18,7 @@ class OpenIDConnectInterpreter private[oauth2] (val clientId: ClientId,
     }
 
     val paramsWithScopeAndExtraAuthParams =
-      paramsWithScope ++ extraAuthParams.map(eap => Uri.Query(eap)).getOrElse(Uri.Query.Empty)
+      paramsWithScope ++ extraAuthParams.map(eap => model.Uri.Query(eap)).getOrElse(model.Uri.Query.Empty)
 
     paramsWithScopeAndExtraAuthParams
   }
@@ -24,13 +26,12 @@ class OpenIDConnectInterpreter private[oauth2] (val clientId: ClientId,
   override def processSwaggerUiIndex(contents: String, openApiYamlPath: String): String =
     contents
       .replace("url: ''", s"url: '$openApiYamlPath'")
-      .replace("oidc: ''", s"oidc: '${clientId.value}'")
-      .replace("oidc_google_billing_scope: ''", s"oidc_google_billing_scope: '${clientId.value}'")
+      .replace("clientId: ''", s"clientId: '${clientId.value}'")
 
   override def processOpenApiYaml(contents: String): String =
-    b2cProfileWithGoogleBillingScope
-      .map { b2cProfile =>
-        contents.replace("B2C_PROFILE_WITH_GOOGLE_BILLING_SCOPE", b2cProfile)
-      }
-      .getOrElse(contents)
+    contents
+      .replace("OPEN_ID_CONNECT_URL_WITH_GOOGLE_BILLING_SCOPE",
+               providerMetadataUriWithGoogleBillingScope.map(_.toString()).getOrElse("")
+      )
+      .replace("OPEN_ID_CONNECT_URL", providerMetadataUri.toString())
 }

@@ -7,6 +7,11 @@ import akka.http.scaladsl.model.ContentTypes._
 import akka.http.scaladsl.model.HttpMethods.POST
 import akka.http.scaladsl.model.Uri.Query
 import akka.http.scaladsl.model._
+import akka.http.scaladsl.model.headers.{
+  `Access-Control-Allow-Headers`,
+  `Access-Control-Allow-Methods`,
+  `Access-Control-Allow-Origin`
+}
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.{Rejection, RejectionError, Route, ValidationRejection}
 import akka.stream.scaladsl.Flow
@@ -114,7 +119,14 @@ class OpenIDConnectAkkaHttpOps(private val config: OpenIDConnectConfiguration) {
             ByteString(config.processSwaggerUiIndex(original.utf8String, "/" + openApiFilename))
           })
         } {
-          getFromResource("swagger/index.html")
+          // these headers allow the central swagger-ui to make requests to the OpenAPI yaml file
+          respondWithHeaders(
+            `Access-Control-Allow-Origin`.*,
+            `Access-Control-Allow-Methods`(HttpMethods.GET, HttpMethods.OPTIONS),
+            `Access-Control-Allow-Headers`("Content-Type", "api_key", "Authorization")
+          ) {
+            getFromResource("swagger/index.html")
+          }
         }
       }
     } ~
