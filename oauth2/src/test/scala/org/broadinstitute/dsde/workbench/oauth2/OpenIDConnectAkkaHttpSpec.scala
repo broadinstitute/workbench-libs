@@ -4,7 +4,12 @@ import akka.http.javadsl.server.ValidationRejection
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.HttpMethods._
 import akka.http.scaladsl.model.Uri.Query
-import akka.http.scaladsl.model.headers.{Location, `Access-Control-Allow-Headers`, `Access-Control-Allow-Methods`, `Access-Control-Allow-Origin`}
+import akka.http.scaladsl.model.headers.{
+  `Access-Control-Allow-Headers`,
+  `Access-Control-Allow-Methods`,
+  `Access-Control-Allow-Origin`,
+  Location
+}
 import akka.http.scaladsl.model.{ContentTypes, FormData, StatusCodes, Uri}
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.{MethodRejection, UnsupportedRequestContentTypeRejection}
@@ -263,7 +268,9 @@ class OpenIDConnectAkkaHttpSpec
         resp should include("url: '/swagger.yaml'")
         header[`Access-Control-Allow-Origin`].map(_.value) shouldBe Some("*")
         header[`Access-Control-Allow-Methods`] shouldBe Some(`Access-Control-Allow-Methods`(GET, OPTIONS))
-        header[`Access-Control-Allow-Headers`] shouldBe Some(`Access-Control-Allow-Headers`("Content-Type", "api_key", "Authorization"))
+        header[`Access-Control-Allow-Headers`] shouldBe Some(
+          `Access-Control-Allow-Headers`("Content-Type", "api_key", "Authorization")
+        )
       }
     } yield ()
     res.unsafeRunSync()
