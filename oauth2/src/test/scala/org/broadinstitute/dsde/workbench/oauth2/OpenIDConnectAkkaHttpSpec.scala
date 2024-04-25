@@ -266,11 +266,6 @@ class OpenIDConnectAkkaHttpSpec
         val resp = responseAs[String]
         resp should include("clientId: 'some_client'")
         resp should include("url: '/swagger.yaml'")
-        header[`Access-Control-Allow-Origin`].map(_.value) shouldBe Some("*")
-        header[`Access-Control-Allow-Methods`] shouldBe Some(`Access-Control-Allow-Methods`(GET, OPTIONS))
-        header[`Access-Control-Allow-Headers`] shouldBe Some(
-          `Access-Control-Allow-Headers`("Content-Type", "api_key", "Authorization")
-        )
       }
     } yield ()
     res.unsafeRunSync()
@@ -291,6 +286,11 @@ class OpenIDConnectAkkaHttpSpec
         resp should include("Everything about your Pets")
         resp should include("http://localhost:9000")
         resp should include("http://localhost:9001")
+        header[`Access-Control-Allow-Origin`].map(_.value) shouldBe Some("*")
+        header[`Access-Control-Allow-Methods`] shouldBe Some(`Access-Control-Allow-Methods`(GET, OPTIONS))
+        header[`Access-Control-Allow-Headers`] shouldBe Some(
+          `Access-Control-Allow-Headers`("Content-Type", "api_key", "Authorization")
+        )
       }
     } yield ()
     res.unsafeRunSync()

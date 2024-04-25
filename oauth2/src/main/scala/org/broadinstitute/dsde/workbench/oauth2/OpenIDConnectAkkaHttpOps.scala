@@ -119,14 +119,7 @@ class OpenIDConnectAkkaHttpOps(private val config: OpenIDConnectConfiguration) {
             ByteString(config.processSwaggerUiIndex(original.utf8String, "/" + openApiFilename))
           })
         } {
-          // these headers allow the central swagger-ui to make requests to the OpenAPI yaml file
-          respondWithHeaders(
-            `Access-Control-Allow-Origin`.*,
-            `Access-Control-Allow-Methods`(HttpMethods.GET, HttpMethods.OPTIONS),
-            `Access-Control-Allow-Headers`("Content-Type", "api_key", "Authorization")
-          ) {
-            getFromResource("swagger/index.html")
-          }
+          getFromResource("swagger/index.html")
         }
       }
     } ~
@@ -137,7 +130,14 @@ class OpenIDConnectAkkaHttpOps(private val config: OpenIDConnectConfiguration) {
               ByteString(config.processOpenApiYaml(original.utf8String))
             })
           } {
-            getFromResource(openApiYamlResource)
+            // these headers allow the central swagger-ui to make requests to the OpenAPI yaml file
+            respondWithHeaders(
+              `Access-Control-Allow-Origin`.*,
+              `Access-Control-Allow-Methods`(HttpMethods.GET, HttpMethods.OPTIONS),
+              `Access-Control-Allow-Headers`("Content-Type", "api_key", "Authorization")
+            ) {
+              getFromResource(openApiYamlResource)
+            }
           }
         }
       } ~
