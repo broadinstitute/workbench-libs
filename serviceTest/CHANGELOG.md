@@ -4,14 +4,15 @@ This file documents changes to the `workbench-service-test` library, including n
 
 ## 4.3
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "4.3-1c0cf92"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "4.3-TRAVIS-REPLACE-ME"`
 
 ### Changed
 - `CleanUp.runCodeWithCleanup` no longer throws an exception when the cleanup portion fails
 
-| Dependency   |     Old Version      |          New Version |
-|----------|:--------------------:|---------------------:|
-| jose4j      |    0.9.3    |       0.9.4 |
+| Dependency  |  Old Version  | New Version |
+|-------------|:-------------:|------------:|
+| jose4j      |     0.9.3     |       0.9.4 |
+| rawls-model | 0.1-9de70db23 |   1824ef0eb |
 
 ## 4.2
 
