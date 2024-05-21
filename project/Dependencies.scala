@@ -72,7 +72,7 @@ object Dependencies {
   val googleComputeNew: ModuleID = "com.google.cloud" % "google-cloud-compute" % "1.40.0"
   val googleDataproc: ModuleID =    "com.google.cloud" % "google-cloud-dataproc" % "4.27.0"
   val googleContainer: ModuleID = "com.google.cloud" % "google-cloud-container" % "2.31.0"
-  val kubernetesClient: ModuleID = "io.kubernetes" % "client-java" % "19.0.0"
+  val kubernetesClient: ModuleID = "io.kubernetes" % "client-java" % "20.0.1"
   val googleBigQueryNew: ModuleID = "com.google.cloud" % "google-cloud-bigquery" % "2.34.1"
   val google2CloudBilling = "com.google.cloud" % "google-cloud-billing" % "2.30.0"
   val googleStorageTransferService: ModuleID = "com.google.cloud" % "google-cloud-storage-transfer" % "1.30.0"
@@ -121,6 +121,13 @@ object Dependencies {
   val azureResourceManagerBatchAccount =
     "com.azure.resourcemanager" % "azure-resourcemanager-batch" % "1.0.0"
   val azureServiceBus = "com.azure" % "azure-messaging-servicebus" % "7.14.7"
+
+  // Note: this override can be removed when "io.kubernetes" % "client-java" publishes a new version containing
+  // non-vulnerable bouncy castle version. See https://broadworkbench.atlassian.net/browse/WM-2631
+  val transitiveDependencyOverrides = Seq(
+    //Override for bouncy castle to address CVE-2024-30172
+    "org.bouncycastle" % "bcpkix-jdk18on" % "1.78",
+  )
 
   val commonDependencies = Seq(
     jose4j,
@@ -208,7 +215,7 @@ object Dependencies {
     googleResourceManager,
     scalaCache,
     scalaTestMockito
-  )
+  ) ++ transitiveDependencyOverrides
 
   val azureDependencies = List(
     log4cats,
@@ -228,7 +235,7 @@ object Dependencies {
     byteBuddy
   ) ++ Seq(
     "net.minidev" % "json-smart" % jsonSmartV
-  )
+  ) ++ transitiveDependencyOverrides
 
   val openTelemetryDependencies = List(
     catsEffect,
@@ -256,7 +263,7 @@ object Dependencies {
     circeGeneric,
     catsMtl,
     kubernetesClient
-  )
+  ) ++ transitiveDependencyOverrides
 
   val serviceTestDependencies = commonDependencies ++ Seq(
     scalaLogging,
