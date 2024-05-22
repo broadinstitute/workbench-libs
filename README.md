@@ -15,7 +15,7 @@ Workbench utility libraries, built for 2.13. You can find the full list of packa
 
 Contains utility functions for talking to Azure APIs.
 
-Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-azure" % "0.7-TRAVIS-REPLACE-ME"`
+Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-azure" % "0.7-d2b30c4"`
 
 [Changelog](azure/CHANGELOG.md)
 
@@ -36,7 +36,7 @@ Workbench utility libraries, built for 2.13. You can find the full list of packa
 Contains utility functions and classes. Util2 is added because util needs to support 2.11 for `firecloud-orchestration`,
 but many libraries start to drop 2.11 support. Util2 doesn't support 2.11.
 
-Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util2" % "0.9-TRAVIS-REPLACE-ME"`
+Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util2" % "0.9-d2b30c4"`
 
 [Changelog](util2/CHANGELOG.md)
 
@@ -134,6 +134,6 @@ Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-notifi
 
 Contains utilities for integrating with Google and B2C oauth.
 
-Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-oauth2" % "0.7-TRAVIS-REPLACE-ME"`
+Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-oauth2" % "0.7-d2b30c4"`
 
 [Changelog](oauth2/CHANGELOG.md)
