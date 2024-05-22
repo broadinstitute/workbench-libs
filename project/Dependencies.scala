@@ -122,6 +122,13 @@ object Dependencies {
     "com.azure.resourcemanager" % "azure-resourcemanager-batch" % "1.0.0"
   val azureServiceBus = "com.azure" % "azure-messaging-servicebus" % "7.14.7"
 
+  // Note: this override can be removed when "io.kubernetes" % "client-java" publishes a new version containing
+  // non-vulnerable bouncy castle version. See https://broadworkbench.atlassian.net/browse/WM-2631
+  val bouncyCastleOverrides = Seq(
+    //Override for bouncy castle to address CVE-2024-30172
+    bouncyCastle, bouncyCastleProviderExt, bouncyCastleProvider
+  )
+
   val commonDependencies = Seq(
     jose4j,
     scalatest,
@@ -228,7 +235,7 @@ object Dependencies {
     byteBuddy
   ) ++ Seq(
     "net.minidev" % "json-smart" % jsonSmartV
-  )
+  ) ++ bouncyCastleOverrides
 
   val openTelemetryDependencies = List(
     catsEffect,
@@ -256,7 +263,7 @@ object Dependencies {
     circeGeneric,
     catsMtl,
     kubernetesClient
-  )
+  ) ++ bouncyCastleOverrides
 
   val serviceTestDependencies = commonDependencies ++ Seq(
     scalaLogging,
