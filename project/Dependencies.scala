@@ -124,9 +124,9 @@ object Dependencies {
 
   // Note: this override can be removed when "io.kubernetes" % "client-java" publishes a new version containing
   // non-vulnerable bouncy castle version. See https://broadworkbench.atlassian.net/browse/WM-2631
-  val transitiveDependencyOverrides = Seq(
+  val bouncyCastleOverrides = Seq(
     //Override for bouncy castle to address CVE-2024-30172
-    "org.bouncycastle" % "bcpkix-jdk18on" % "1.78",
+    bouncyCastle, bouncyCastleProviderExt, bouncyCastleProvider
   )
 
   val commonDependencies = Seq(
@@ -215,7 +215,7 @@ object Dependencies {
     googleResourceManager,
     scalaCache,
     scalaTestMockito
-  ) ++ transitiveDependencyOverrides
+  )
 
   val azureDependencies = List(
     log4cats,
@@ -235,7 +235,7 @@ object Dependencies {
     byteBuddy
   ) ++ Seq(
     "net.minidev" % "json-smart" % jsonSmartV
-  ) ++ transitiveDependencyOverrides
+  ) ++ bouncyCastleOverrides
 
   val openTelemetryDependencies = List(
     catsEffect,
@@ -263,7 +263,7 @@ object Dependencies {
     circeGeneric,
     catsMtl,
     kubernetesClient
-  ) ++ transitiveDependencyOverrides
+  ) ++ bouncyCastleOverrides
 
   val serviceTestDependencies = commonDependencies ++ Seq(
     scalaLogging,
