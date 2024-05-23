@@ -231,13 +231,18 @@ trait Rawls extends RestClient with LazyLogging {
       postRequest(url + s"api/workspaces", request)
     }
 
+    /** Clone the workspace, using the asynchronous v2 workspaces API. This method will poll
+     * for the workspace to be cloned, and throw an Exception if it does not clone within the
+     * specified second timeout interval (which has a default of 300 seconds = 5 minutes).
+     * */
     def clone(sourceNamespace: String,
               sourceName: String,
               destNamespace: String,
               destName: String,
               authDomain: Set[String] = Set.empty,
               copyFilesWithPrefix: Option[String] = None,
-              attributes: Map[String, String] = Map.empty
+              attributes: Map[String, String] = Map.empty,
+              timeout: Long = 300
     )(implicit token: AuthToken): Unit = {
       logger.info(
         s"Cloning workspace: $sourceNamespace/$sourceName into $destNamespace/$destName authDomain: $authDomain, copyFilesWithPrefix: $copyFilesWithPrefix"
@@ -253,8 +258,38 @@ trait Rawls extends RestClient with LazyLogging {
         "copyFilesWithPrefix" -> copyFilesWithPrefix
       )
 
-      postRequest(url + s"api/workspaces/$sourceNamespace/$sourceName/clone", request)
+      postRequest(url + s"api/workspaces/v2/$sourceNamespace/$sourceName/clone", request)
+
+      if (
+        !Retry.retryWithPredicate(10.seconds, Span(timeout, Seconds)) {
+          isWorkspaceReady(destNamespace, destName, token)
+        }
+      ) {
+        throw new Exception(
+          s"Workspace ${destNamespace}/${destName} did not fully clone during the timeout interval of ${timeout} seconds."
+        )
+      }
     }
+
+    def isWorkspaceReady(namespace: String, name: String, authToken: AuthToken): Boolean =
+      try {
+        logger.info(s"Checking workspace details status ${namespace}/${name}...")
+        val response = getWorkspaceDetails(namespace, name)(authToken)
+        val workspaceState = mapper.readTree(response).at("/workspace/state").asText()
+        logger.info(s"Workspace ${namespace}/${name} is in state ${workspaceState}")
+        workspaceState == "Ready"
+      } catch {
+        case e: RestException =>
+          if (e.statusCode == StatusCodes.Forbidden) {
+            // Sometimes we get "User X is not authorized to perform action read on workspace Y".
+            logger.info(
+              s"Encountered ${e.statusCode} while creating clone workspace ${namespace}/${name}, continuing polling."
+            )
+            false
+          } else {
+            throw new Exception(s"Error (${e.statusCode}) creating clone workspace ${namespace}/${name}")
+          }
+      }
 
     /** Delete the workspace, using the asynchronous v2 workspaces API. This method will poll
      * for the workspace to be deleted, and throw an Exception if it does not delete within the
