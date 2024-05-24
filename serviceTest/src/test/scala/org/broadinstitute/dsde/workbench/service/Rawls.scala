@@ -271,25 +271,13 @@ trait Rawls extends RestClient with LazyLogging {
       }
     }
 
-    def isWorkspaceReady(namespace: String, name: String, authToken: AuthToken): Boolean =
-      try {
-        logger.info(s"Checking workspace details status ${namespace}/${name}...")
-        val response = getWorkspaceDetails(namespace, name)(authToken)
-        val workspaceState = mapper.readTree(response).at("/workspace/state").asText()
-        logger.info(s"Workspace ${namespace}/${name} is in state ${workspaceState}")
-        workspaceState == "Ready"
-      } catch {
-        case e: RestException =>
-          if (e.statusCode == StatusCodes.Forbidden) {
-            // Sometimes we get "User X is not authorized to perform action read on workspace Y".
-            logger.info(
-              s"Encountered ${e.statusCode} while creating clone workspace ${namespace}/${name}, continuing polling."
-            )
-            false
-          } else {
-            throw new Exception(s"Error (${e.statusCode}) creating clone workspace ${namespace}/${name}")
-          }
-      }
+    def isWorkspaceReady(namespace: String, name: String, authToken: AuthToken): Boolean = {
+      logger.info(s"Checking workspace details status ${namespace}/${name}...")
+      val response = getWorkspaceDetails(namespace, name)(authToken)
+      val workspaceState = mapper.readTree(response).at("/workspace/state").asText()
+      logger.info(s"Workspace ${namespace}/${name} is in state ${workspaceState}")
+      workspaceState == "Ready"
+    }
 
     /** Delete the workspace, using the asynchronous v2 workspaces API. This method will poll
      * for the workspace to be deleted, and throw an Exception if it does not delete within the
