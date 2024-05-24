@@ -299,10 +299,8 @@ trait Rawls extends RestClient with LazyLogging {
 
     def isWorkspaceDeleted(namespace: String, name: String, authToken: AuthToken): Boolean =
       try {
-        logger.info(s"Checking workspace details status ${namespace}/${name}...")
-        val response = getWorkspaceDetails(namespace, name)(authToken)
-        val workspaceState = mapper.readTree(response).at("/workspace/state").asText()
-        logger.info(s"Workspace ${namespace}/${name} is in state ${workspaceState}")
+        isWorkspaceReady(namespace, name, authToken)
+        // If the workspace still exists, it's not deleted yet.
         false
       } catch {
         case e: RestException =>
