@@ -4,7 +4,7 @@ This file documents changes to the `workbench-service-test` library, including n
 
 ## 4.4
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "4.4-TRAVIS-REPLACE-ME"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "4.4-3a8f98c"`
 
 ### Changed
 - changed Rawls workspace cloning to v2 API (async plus polling)
