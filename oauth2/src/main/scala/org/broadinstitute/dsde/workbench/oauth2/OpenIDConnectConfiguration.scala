@@ -55,7 +55,11 @@ object OpenIDConnectConfiguration {
     openIdProviderWithGoogleBillingScope <- authorityEndpointWithGoogleBillingScope.traverse(
       getOpenIdProvider[F]
     )
-  } yield new OpenIDConnectInterpreter(oidcClientId, openIdProvider, extraAuthParams, openIdProviderWithGoogleBillingScope)
+  } yield new OpenIDConnectInterpreter(oidcClientId,
+                                       openIdProvider,
+                                       extraAuthParams,
+                                       openIdProviderWithGoogleBillingScope
+  )
 
   private[oauth2] def getOpenIdProvider[F[_]: Async](authorityEndpoint: String): F[OpenIdProvider] =
     for {

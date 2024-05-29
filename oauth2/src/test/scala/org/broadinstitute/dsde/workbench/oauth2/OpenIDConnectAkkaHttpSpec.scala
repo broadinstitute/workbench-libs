@@ -277,7 +277,8 @@ class OpenIDConnectAkkaHttpSpec
     val res = for {
       config <- OpenIDConnectConfiguration[IO]("http://localhost:9000",
                                                ClientId("some_client"),
-                                               authorityEndpointWithGoogleBillingScope = Some("http://localhost:9000?scope=billing")
+                                               authorityEndpointWithGoogleBillingScope =
+                                                 Some("http://localhost:9000?scope=billing")
       )
       req = Get("/swagger.yaml")
       _ <- req ~> config.swaggerRoutes("swagger/swagger.yaml") ~> checkIO {
@@ -286,7 +287,9 @@ class OpenIDConnectAkkaHttpSpec
         contentType shouldBe ContentTypes.`application/octet-stream`
         val resp = responseAs[String]
         resp should include("Everything about your Pets")
-        resp should include("http://localhost:9000/.well-known/openid-configuration?scope=billing http://localhost:9000/.well-known/openid-configuration http://localhost:9000/authorize http://localhost:9000/token http://localhost:9000/authorize?scope=billing http://localhost:9000/token?scope=billing")
+        resp should include(
+          "http://localhost:9000/.well-known/openid-configuration?scope=billing http://localhost:9000/.well-known/openid-configuration http://localhost:9000/authorize http://localhost:9000/token http://localhost:9000/authorize?scope=billing http://localhost:9000/token?scope=billing"
+        )
         header[`Access-Control-Allow-Origin`].map(_.value) shouldBe Some("*")
         header[`Access-Control-Allow-Methods`] shouldBe Some(`Access-Control-Allow-Methods`(GET, OPTIONS))
         header[`Access-Control-Allow-Headers`] shouldBe Some(
