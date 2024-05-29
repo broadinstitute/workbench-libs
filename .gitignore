@@ -21,3 +21,4 @@ test-output/
 .DS_Store
 .metals
 .vscode/
+/dumps/
