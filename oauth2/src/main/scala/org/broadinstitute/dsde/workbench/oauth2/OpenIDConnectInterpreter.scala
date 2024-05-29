@@ -4,11 +4,9 @@ import akka.http.scaladsl.model
 import org.http4s.Uri
 
 class OpenIDConnectInterpreter private[oauth2] (val clientId: ClientId,
-                                                val authorityEndpoint: String,
-                                                providerMetadataUri: Uri,
-                                                val providerMetadata: OpenIDProviderMetadata,
+                                                val openIdProvider: OpenIdProvider,
                                                 extraAuthParams: Option[String],
-                                                providerMetadataUriWithGoogleBillingScope: Option[Uri] = None
+                                                openIdProviderWithGoogleBillingScope: Option[OpenIdProvider] = None
 ) extends OpenIDConnectConfiguration {
   private val scopeParam = "scope"
 
@@ -28,10 +26,21 @@ class OpenIDConnectInterpreter private[oauth2] (val clientId: ClientId,
       .replace("url: ''", s"url: '$openApiYamlPath'")
       .replace("clientId: ''", s"clientId: '${clientId.value}'")
 
-  override def processOpenApiYaml(contents: String): String =
+  override def processOpenApiYaml(contents: String): String = {
+    // important to replace the urls with suffixes first, then the urls without suffixes
+    // to avoid replacing the urls with suffixes with the urls without suffixes
+    val providersWithSuffix =
+      openIdProviderWithGoogleBillingScope.map((_, "_WITH_GOOGLE_BILLING_SCOPE")) ++
+        Some((openIdProvider, ""))
+
+    providersWithSuffix.foldLeft(contents) { case (acc, (provider, suffix)) =>
+      replaceUrls(acc, provider, suffix)
+    }
+  }
+
+  private def replaceUrls(contents: String, provider: OpenIdProvider, suffix: String): String =
     contents
-      .replace("OPEN_ID_CONNECT_URL_WITH_GOOGLE_BILLING_SCOPE",
-               providerMetadataUriWithGoogleBillingScope.map(_.toString()).getOrElse("")
-      )
-      .replace("OPEN_ID_CONNECT_URL", providerMetadataUri.toString())
+      .replace("OPEN_ID_CONNECT_URL" + suffix, provider.metadataUri.toString())
+      .replace("OAUTH_AUTHORIZATION_URL" + suffix, provider.metadata.authorizeEndpoint)
+      .replace("OAUTH_TOKEN_URL" + suffix, provider.metadata.tokenEndpoint)
 }

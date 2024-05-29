@@ -33,7 +33,7 @@ class OpenIDConnectAkkaHttpOps(private val config: OpenIDConnectConfiguration) {
       path("authorize") {
         get {
           parameterSeq { params =>
-            val authorizeUri = Uri(config.providerMetadata.authorizeEndpoint)
+            val authorizeUri = Uri(config.openIdProvider.metadata.authorizeEndpoint)
             val incomingQuery = config.processAuthorizeQueryParams(params)
             // Combine the query strings from the incoming request and the authorizeUri.
             // Parameters from the incoming request take precedence.
@@ -47,7 +47,7 @@ class OpenIDConnectAkkaHttpOps(private val config: OpenIDConnectConfiguration) {
           post {
             formFieldSeq { fields =>
               parameter(policyParam.?) { policyInQuery =>
-                val tokenUri = Uri(config.providerMetadata.tokenEndpoint)
+                val tokenUri = Uri(config.openIdProvider.metadata.tokenEndpoint)
                 val policyInForm = fields.find(_._1 == policyParam).map(_._2)
                 determinePolicyQuery(policyInQuery, tokenUri, policyInForm).fold(
                   reject(_),
@@ -68,7 +68,7 @@ class OpenIDConnectAkkaHttpOps(private val config: OpenIDConnectConfiguration) {
         path("configuration") {
           get {
             complete {
-              ConfigurationResponse(config.authorityEndpoint, config.clientId)
+              ConfigurationResponse(config.openIdProvider.authorityEndpoint, config.clientId)
             }
           }
         } ~
@@ -76,7 +76,7 @@ class OpenIDConnectAkkaHttpOps(private val config: OpenIDConnectConfiguration) {
           get {
             parameterSeq { params =>
               val logoutUri = Uri(
-                config.providerMetadata.endSessionEndpoint.getOrElse(
+                config.openIdProvider.metadata.endSessionEndpoint.getOrElse(
                   throw new Exception("Logout endpoint is only supported in Azure B2C.")
                 )
               )
