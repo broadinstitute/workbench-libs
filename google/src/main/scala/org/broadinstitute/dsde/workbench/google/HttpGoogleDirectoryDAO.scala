@@ -50,7 +50,7 @@ class HttpGoogleDirectoryDAO(appName: String,
             when404,
             whenInvalidValueOnBucketCreation,
             whenNonHttpIOException,
-            whenGroupMetadataDoesNotExist,
+            when400,
             whenGroupDoesNotExist
       ) { () =>
         executeGoogleRequest(updater)

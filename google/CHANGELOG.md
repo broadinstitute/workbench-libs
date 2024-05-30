@@ -2,6 +2,13 @@
 
 This file documents changes to the `workbench-google` library, including notes on how to upgrade to new versions.
 
+## 0.32
+
+SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.32-TRAVIS-REPLACE-ME"`
+
+Changed:
+* Retry group update when google returns a 400
+
 ## 0.31
 
 SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.31-2c2a271"`
