@@ -45,7 +45,14 @@ class HttpGoogleDirectoryDAO(appName: String,
 
     def updateGroupSettings(groupEmail: WorkbenchEmail, settings: GroupSettings) = {
       val updater = settingsClient.groups().update(groupEmail.value, settings)
-      retry(when5xx, whenUsageLimited, when404, whenInvalidValueOnBucketCreation, whenNonHttpIOException) { () =>
+      retry(when5xx,
+            whenUsageLimited,
+            when404,
+            whenInvalidValueOnBucketCreation,
+            whenNonHttpIOException,
+            whenGroupMetadataDoesNotExist,
+            whenGroupDoesNotExist
+      ) { () =>
         executeGoogleRequest(updater)
       }
     }
@@ -115,11 +122,11 @@ class HttpGoogleDirectoryDAO(appName: String,
     val inserter = groups.insert(group)
 
     for {
-      _ <- retryWithRecover(when5xx,
-                            whenUsageLimited,
-                            when404,
-                            whenInvalidValueOnBucketCreation,
-                            whenNonHttpIOException
+      groupInsertResponse: Group <- retryWithRecover(when5xx,
+                                                     whenUsageLimited,
+                                                     when404,
+                                                     whenInvalidValueOnBucketCreation,
+                                                     whenNonHttpIOException
       ) { () =>
         executeGoogleRequest(inserter)
       } {
@@ -128,15 +135,16 @@ class HttpGoogleDirectoryDAO(appName: String,
           // when this happens some group apis (create, list members and delete group) say the group exists
           // while others (add member, get details) say the group does not exist.
           // calling delete before retrying the create should clean all that up
-          logger.debug(
+          logger.warn(
             s"Creating Google group ${displayName.take(60)} with email ${groupEmail.value} returned a 5xx error. Deleting partially created group and trying again..."
           )
           Try(executeGoogleRequest(groups.delete(groupEmail.value)))
           throw t
       }
       _ <- groupSettings match {
-        case None           => Future.successful(())
-        case Some(settings) => new GroupSettingsDAO().updateGroupSettings(groupEmail, settings)
+        case None => Future.successful(())
+        case Some(settings) =>
+          new GroupSettingsDAO().updateGroupSettings(WorkbenchEmail(groupInsertResponse.getEmail), settings)
       }
     } yield ()
   }
