@@ -4,7 +4,7 @@ This file documents changes to the `workbench-google` library, including notes o
 
 ## 0.31
 
-SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.30-2c2a271"`
+SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.31-2c2a271"`
 
 Changed:
 * Retry group update when group or group metadata does not exist
