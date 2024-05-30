@@ -4,7 +4,7 @@ This file documents changes to the `workbench-google` library, including notes o
 
 ## 0.32
 
-SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.32-TRAVIS-REPLACE-ME"`
+SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.32-89f86ba"`
 
 Changed:
 * Retry group update when google returns a 400
