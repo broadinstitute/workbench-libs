@@ -56,6 +56,13 @@ object GoogleUtilities {
       case _ => false
     }
 
+    def whenGroupMetadataDoesNotExist(throwable: Throwable): Boolean = throwable match {
+      case t: GoogleJsonResponseException =>
+        t.getStatusCode == 400 &&
+        compareErrorMessage(t)(_.contains("GROUP_METADATA_DOES_NOT_EXIST"))
+      case _ => false
+    }
+
     /**
      * Think twice about reaching for this predicate in a retry. Usually, 412 Precondition Failed is an indication of an ETag mismatch.
      * Typically, doing a GET on a GCP resource will return an ETag along with the response. ETags are a form of concurrency control: they are updated
