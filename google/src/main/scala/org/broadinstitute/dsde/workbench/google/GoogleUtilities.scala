@@ -56,10 +56,9 @@ object GoogleUtilities {
       case _ => false
     }
 
-    def whenGroupMetadataDoesNotExist(throwable: Throwable): Boolean = throwable match {
+    def when400(throwable: Throwable): Boolean = throwable match {
       case t: GoogleJsonResponseException =>
-        t.getStatusCode == 400 &&
-        compareErrorMessage(t)(_.contains("GROUP_METADATA_DOES_NOT_EXIST"))
+        t.getStatusCode == 400
       case _ => false
     }
 
