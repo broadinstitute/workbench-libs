@@ -36,8 +36,7 @@ import org.http4s.circe.CirceEntityDecoder._
  */
 trait OpenIDConnectConfiguration {
   def clientId: ClientId
-  def authorityEndpoint: String
-  def providerMetadata: OpenIDProviderMetadata
+  def openIdProvider: OpenIdProvider
 
   def processAuthorizeQueryParams(params: Seq[(String, String)]): Seq[(String, String)]
   def processSwaggerUiIndex(contents: String, openApiFileName: String): String
@@ -52,18 +51,21 @@ object OpenIDConnectConfiguration {
                          extraAuthParams: Option[String] = None,
                          authorityEndpointWithGoogleBillingScope: Option[String] = None
   ): F[OpenIDConnectConfiguration] = for {
-    providerMetadataUri <- getProviderMetadataUri(authorityEndpoint)
-    metadata <- getProviderMetadata(providerMetadataUri)
-    providerMetadataUriWithGoogleBillingScope <- authorityEndpointWithGoogleBillingScope.traverse(
-      getProviderMetadataUri[F]
+    openIdProvider <- getOpenIdProvider(authorityEndpoint)
+    openIdProviderWithGoogleBillingScope <- authorityEndpointWithGoogleBillingScope.traverse(
+      getOpenIdProvider[F]
     )
   } yield new OpenIDConnectInterpreter(oidcClientId,
-                                       authorityEndpoint,
-                                       providerMetadataUri,
-                                       metadata,
+                                       openIdProvider,
                                        extraAuthParams,
-                                       providerMetadataUriWithGoogleBillingScope
+                                       openIdProviderWithGoogleBillingScope
   )
+
+  private[oauth2] def getOpenIdProvider[F[_]: Async](authorityEndpoint: String): F[OpenIdProvider] =
+    for {
+      metadataUri <- getProviderMetadataUri(authorityEndpoint)
+      metadata <- getProviderMetadata(metadataUri)
+    } yield OpenIdProvider(authorityEndpoint, metadataUri, metadata)
 
   private[oauth2] def getProviderMetadataUri[F[_]: Async](authorityEndpoint: String): F[Uri] =
     Async[F].fromEither(Uri.fromString(authorityEndpoint)).map(_.addPath(oidcMetadataUrlSuffix))
@@ -98,3 +100,4 @@ case class OpenIDProviderMetadata(issuer: String,
                                   tokenEndpoint: String,
                                   endSessionEndpoint: Option[String]
 )
+case class OpenIdProvider(authorityEndpoint: String, metadataUri: Uri, metadata: OpenIDProviderMetadata)

@@ -4,7 +4,7 @@ info:
   description: "This is a sample server Petstore server.  You can find out more about\
     \ Swagger at [http://swagger.io](http://swagger.io) or on [irc.freenode.net, #swagger](http://swagger.io/irc/).\
     \  For this sample, you can use the api key `special-key` to test the authorization\
-    \ filters. OPEN_ID_CONNECT_URL_WITH_GOOGLE_BILLING_SCOPE and OPEN_ID_CONNECT_URL should be replaced"
+    \ filters. These tokens should be replaced and validated by unit test OPEN_ID_CONNECT_URL_WITH_GOOGLE_BILLING_SCOPE OPEN_ID_CONNECT_URL OAUTH_AUTHORIZATION_URL OAUTH_TOKEN_URL OAUTH_AUTHORIZATION_URL_WITH_GOOGLE_BILLING_SCOPE OAUTH_TOKEN_URL_WITH_GOOGLE_BILLING_SCOPE"
   version: "1.0.6"
   title: "Swagger Petstore"
   termsOfService: "http://swagger.io/terms/"
