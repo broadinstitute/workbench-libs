@@ -8,7 +8,11 @@ import akka.http.scaladsl.model.HttpEntity.Strict
 import akka.http.scaladsl.model.HttpMethods.POST
 import akka.http.scaladsl.model.Uri.Query
 import akka.http.scaladsl.model._
-import akka.http.scaladsl.model.headers.{`Access-Control-Allow-Headers`, `Access-Control-Allow-Methods`, `Access-Control-Allow-Origin`}
+import akka.http.scaladsl.model.headers.{
+  `Access-Control-Allow-Headers`,
+  `Access-Control-Allow-Methods`,
+  `Access-Control-Allow-Origin`
+}
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.{Directive0, Rejection, RejectionError, Route, ValidationRejection}
 import akka.stream.scaladsl.Flow
@@ -138,23 +142,24 @@ class OpenIDConnectAkkaHttpOps(private val config: OpenIDConnectConfiguration) {
       }
   }
 
-  private def processOpenApiYaml = {
-    mapResponseEntity { entityFromJar =>
-      entityFromJar.transformDataBytes(Flow.fromFunction { original =>
-        ByteString(config.processOpenApiYaml(original.utf8String))
-      })
+  private def processOpenApiYaml =
+    transformMaybeEmptyResponseEntity { original =>
+      ByteString(config.processOpenApiYaml(original.utf8String))
     }
-  }
 
-  private def processSwaggerIndex(openApiFilename: String): Directive0 = {
-    mapResponseEntity {
-      case empty@Strict(_, content) if content.isEmpty => empty
-      case entityFromJar =>
-      entityFromJar.transformDataBytes(Flow.fromFunction { original =>
-        ByteString(config.processSwaggerUiIndex(original.utf8String, "/" + openApiFilename))
-      })
+  private def processSwaggerIndex(openApiFilename: String): Directive0 =
+    transformMaybeEmptyResponseEntity { original =>
+      ByteString(config.processSwaggerUiIndex(original.utf8String, "/" + openApiFilename))
     }
-  }
+
+  private def transformMaybeEmptyResponseEntity(transform: ByteString => ByteString): Directive0 =
+    mapResponseEntity {
+      // special case for empty response entities because transformDataBytes leads to an exception when the response
+      // status code doesn't allow a body, e.g. 204 No Content or 304 Not Modified
+      case empty @ Strict(_, content) if content.isEmpty => empty
+      case entityFromJar =>
+        entityFromJar.transformDataBytes(Flow.fromFunction(transform))
+    }
 }
 
 object OpenIDConnectAkkaHttpOps {
