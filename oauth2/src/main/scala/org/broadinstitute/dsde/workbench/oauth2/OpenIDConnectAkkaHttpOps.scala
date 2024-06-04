@@ -4,6 +4,7 @@ import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.marshalling.{Marshaller, ToEntityMarshaller}
 import akka.http.scaladsl.model.ContentTypes._
+import akka.http.scaladsl.model.HttpEntity.Strict
 import akka.http.scaladsl.model.HttpMethods.POST
 import akka.http.scaladsl.model.Uri.Query
 import akka.http.scaladsl.model._
@@ -13,7 +14,7 @@ import akka.http.scaladsl.model.headers.{
   `Access-Control-Allow-Origin`
 }
 import akka.http.scaladsl.server.Directives._
-import akka.http.scaladsl.server.{Rejection, RejectionError, Route, ValidationRejection}
+import akka.http.scaladsl.server.{Directive0, Rejection, RejectionError, Route, ValidationRejection}
 import akka.stream.scaladsl.Flow
 import akka.util.ByteString
 import io.circe.Encoder
@@ -114,22 +115,14 @@ class OpenIDConnectAkkaHttpOps(private val config: OpenIDConnectConfiguration) {
     val openApiFilename = Paths.get(openApiYamlResource).getFileName.toString
     path("") {
       get {
-        mapResponseEntity { entityFromJar =>
-          entityFromJar.transformDataBytes(Flow.fromFunction { original =>
-            ByteString(config.processSwaggerUiIndex(original.utf8String, "/" + openApiFilename))
-          })
-        } {
+        processSwaggerIndex(openApiFilename) {
           getFromResource("swagger/index.html")
         }
       }
     } ~
       path(openApiFilename) {
         get {
-          mapResponseEntity { entityFromJar =>
-            entityFromJar.transformDataBytes(Flow.fromFunction { original =>
-              ByteString(config.processOpenApiYaml(original.utf8String))
-            })
-          } {
+          processOpenApiYaml {
             // these headers allow the central swagger-ui to make requests to the OpenAPI yaml file
             respondWithHeaders(
               `Access-Control-Allow-Origin`.*,
@@ -148,6 +141,25 @@ class OpenIDConnectAkkaHttpOps(private val config: OpenIDConnectConfiguration) {
         }
       }
   }
+
+  private def processOpenApiYaml =
+    transformMaybeEmptyResponseEntity { original =>
+      ByteString(config.processOpenApiYaml(original.utf8String))
+    }
+
+  private def processSwaggerIndex(openApiFilename: String): Directive0 =
+    transformMaybeEmptyResponseEntity { original =>
+      ByteString(config.processSwaggerUiIndex(original.utf8String, "/" + openApiFilename))
+    }
+
+  private def transformMaybeEmptyResponseEntity(transform: ByteString => ByteString): Directive0 =
+    mapResponseEntity {
+      // special case for empty response entities because transformDataBytes leads to an exception when the response
+      // status code doesn't allow a body, e.g. 204 No Content or 304 Not Modified
+      case empty @ Strict(_, content) if content.isEmpty => empty
+      case entityFromJar =>
+        entityFromJar.transformDataBytes(Flow.fromFunction(transform))
+    }
 }
 
 object OpenIDConnectAkkaHttpOps {
