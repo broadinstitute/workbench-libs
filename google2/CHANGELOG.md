@@ -4,7 +4,7 @@ This file documents changes to the `workbench-google2` library, including notes 
 
 ## 0.36
 
-SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.36-3631a6f"`
+SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.36-TRAVIS-REPLACE-ME"`
 
 ### Changes
 
@@ -22,6 +22,9 @@ SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0
 - GoogleComputeInterpreter:
 
   - The `getInstance` method now interprets a 403 'Compute Engine API not enabled' error similarly to 'billing is disabled', returning `None` as though the instance was not found in the cloud.
+
+- GoogleStorageInterpreter
+  - Allow CORS policy to be set on bucket at creation time 
 
 | Dependency   |     Old Version      | New Version |
 |--------------|:--------------------:|------------:|
