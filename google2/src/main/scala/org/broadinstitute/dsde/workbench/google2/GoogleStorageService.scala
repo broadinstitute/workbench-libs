@@ -9,19 +9,10 @@ import cats.syntax.all._
 import com.google.auth.Credentials
 import com.google.auth.oauth2.{AccessToken, GoogleCredentials, ServiceAccountCredentials}
 import com.google.cloud.storage.BucketInfo.LifecycleRule
-import com.google.cloud.storage.{Acl, Blob, BlobId, BucketInfo, StorageClass, StorageOptions}
+import com.google.cloud.storage.{Acl, Blob, BlobId, BucketInfo, Cors, StorageClass, StorageOptions}
 import com.google.cloud.{Identity, Policy, Role}
 import fs2.{Pipe, Stream}
-import com.google.cloud.storage.Storage.{
-  BlobGetOption,
-  BlobListOption,
-  BlobSourceOption,
-  BlobTargetOption,
-  BlobWriteOption,
-  BucketGetOption,
-  BucketSourceOption,
-  BucketTargetOption
-}
+import com.google.cloud.storage.Storage.{BlobGetOption, BlobListOption, BlobSourceOption, BlobTargetOption, BlobWriteOption, BucketGetOption, BucketSourceOption, BucketTargetOption}
 import org.broadinstitute.dsde.workbench.google2.Implicits.PolicyToStorageRoles
 import org.typelevel.log4cats.StructuredLogger
 import org.broadinstitute.dsde.workbench.google2.util.RetryPredicates.standardGoogleRetryConfig
@@ -296,7 +287,8 @@ trait GoogleStorageService[F[_]] {
                    location: Option[String] = None,
                    bucketTargetOptions: List[BucketTargetOption] = List.empty,
                    autoclassEnabled: Boolean = false,
-                   autoclassTerminalStorageClass: Option[StorageClass] = None
+                   autoclassTerminalStorageClass: Option[StorageClass] = None,
+                   cors: List[Cors] = List.empty
   ): Stream[F, Unit]
 
   /**
