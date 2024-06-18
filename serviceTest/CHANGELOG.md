@@ -8,6 +8,7 @@ SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test"
 
 ### Changed
 - changed Rawls workspace cloning to v2 API (async plus polling)
+- updated Jackson dependency to 2.17.1
 
 ## 4.3
 
