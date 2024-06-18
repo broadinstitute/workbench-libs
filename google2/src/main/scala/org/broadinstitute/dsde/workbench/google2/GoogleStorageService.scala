@@ -9,7 +9,7 @@ import cats.syntax.all._
 import com.google.auth.Credentials
 import com.google.auth.oauth2.{AccessToken, GoogleCredentials, ServiceAccountCredentials}
 import com.google.cloud.storage.BucketInfo.LifecycleRule
-import com.google.cloud.storage.{Acl, Blob, BlobId, BucketInfo, StorageClass, StorageOptions}
+import com.google.cloud.storage.{Acl, Blob, BlobId, BucketInfo, Cors, StorageClass, StorageOptions}
 import com.google.cloud.{Identity, Policy, Role}
 import fs2.{Pipe, Stream}
 import com.google.cloud.storage.Storage.{
@@ -296,7 +296,8 @@ trait GoogleStorageService[F[_]] {
                    location: Option[String] = None,
                    bucketTargetOptions: List[BucketTargetOption] = List.empty,
                    autoclassEnabled: Boolean = false,
-                   autoclassTerminalStorageClass: Option[StorageClass] = None
+                   autoclassTerminalStorageClass: Option[StorageClass] = None,
+                   cors: List[Cors] = List.empty
   ): Stream[F, Unit]
 
   /**

@@ -22,7 +22,18 @@ import com.google.cloud.storage.Storage.{
   BucketTargetOption,
   SignUrlOption
 }
-import com.google.cloud.storage.{Acl, Blob, BlobId, BlobInfo, BucketInfo, Storage, StorageClass, StorageOptions}
+import com.google.cloud.storage.{
+  Acl,
+  Blob,
+  BlobId,
+  BlobInfo,
+  BucketInfo,
+  Cors,
+  HttpMethod,
+  Storage,
+  StorageClass,
+  StorageOptions
+}
 import com.google.cloud.{Identity, Policy, Role}
 import fs2.{text, Pipe, Stream}
 import org.typelevel.log4cats.StructuredLogger
@@ -32,6 +43,7 @@ import org.broadinstitute.dsde.workbench.google2.util.RetryPredicates.standardGo
 import org.broadinstitute.dsde.workbench.model.{TraceId, WorkbenchException}
 import org.broadinstitute.dsde.workbench.model.google.{GcsBucketName, GcsObjectName, GoogleProject, IamPermission}
 import com.google.auth.Credentials
+import com.google.cloud.storage.Cors.Origin
 import org.broadinstitute.dsde.workbench.util2.{withLogging, RemoveObjectResult}
 
 import java.net.URL
@@ -352,7 +364,8 @@ private[google2] class GoogleStorageInterpreter[F[_]](
                             location: Option[String],
                             bucketTargetOptions: List[BucketTargetOption],
                             autoclassEnabled: Boolean,
-                            autoclassTerminalStorageClass: Option[StorageClass]
+                            autoclassTerminalStorageClass: Option[StorageClass],
+                            cors: List[Cors]
   ): Stream[F, Unit] = {
 
     if (acl.isDefined && bucketPolicyOnlyEnabled) {
@@ -376,6 +389,7 @@ private[google2] class GoogleStorageInterpreter[F[_]](
           .setTerminalStorageClass(autoclassTerminalStorageClass.getOrElse(StorageClass.ARCHIVE))
           .build()
       )
+      .setCors(cors.asJava)
 
     logBucket.map { logBucketName =>
       val logging = BucketInfo.Logging.newBuilder().setLogBucket(logBucketName.value).build()
