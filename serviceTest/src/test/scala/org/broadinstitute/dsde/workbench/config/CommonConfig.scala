@@ -39,8 +39,6 @@ trait CommonConfig {
 
     val pathToQAPem = gcsConfig.getString("qaPemFile")
     val qaEmail = gcsConfig.getString("qaEmail")
-    val trialBillingPemFile = gcsConfig.getString("trialBillingPemFile")
-    val trialBillingPemFileClientId = gcsConfig.getString("trialBillingPemFileClientId")
     val subEmail = gcsConfig.getString("subEmail")
   }
 

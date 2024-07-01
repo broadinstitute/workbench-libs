@@ -2,6 +2,15 @@
 
 This file documents changes to the `workbench-service-test` library, including notes on how to upgrade to new versions.
 
+## 5.0
+
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "5.0-TRAVIS-REPLACE-ME"`
+
+### Breaking Changes
+
+- Removed the `TrialBillingAccountAuthToken` class
+- Removed dependencies on `trialBillingPemFile` and `trialBillingPemFileClientId` keys in conf files
+
 ## 4.4
 
 SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "4.4-3a8f98c"`
