@@ -2,6 +2,12 @@
 
 This file documents changes to the `workbench-model` library, including notes on how to upgrade to new versions.
 
+## 0.20
+
+Adds group version and last synchronized version to `WorkbenchGroup` as required fields.
+
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-model" % "0.20-TRAVIS-REPLACE-ME"`
+
 ## 0.19
 
 SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-model" % "0.19-1c0cf92"`
