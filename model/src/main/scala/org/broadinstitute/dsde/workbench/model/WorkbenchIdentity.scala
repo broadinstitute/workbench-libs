@@ -30,8 +30,11 @@ final case class WorkbenchUser(id: WorkbenchUserId,
 final case class WorkbenchUserId(value: String) extends WorkbenchSubject with ValueObject
 
 trait WorkbenchGroup {
-  val id: WorkbenchGroupIdentity; val members: Set[WorkbenchSubject]; val email: WorkbenchEmail; val version: Integer;
-  val lastSynchronizedVersion: Integer
+  val id: WorkbenchGroupIdentity
+  val members: Set[WorkbenchSubject]
+  val email: WorkbenchEmail
+  val version: Integer
+  val lastSynchronizedVersion: Option[Integer]
 }
 trait WorkbenchGroupIdentity extends WorkbenchSubject
 case class WorkbenchGroupName(value: String) extends WorkbenchGroupIdentity with ValueObject
