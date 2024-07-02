@@ -46,7 +46,7 @@ Workbench utility libraries, built for 2.13. You can find the full list of packa
 
 Contains generic, externally-facing model classes used across Workbench.
 
-Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-model" % "0.20-f7d5217"`
+Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-model" % "0.20-TRAVIS-REPLACE-ME"`
 
 [Changelog](model/CHANGELOG.md)
 
