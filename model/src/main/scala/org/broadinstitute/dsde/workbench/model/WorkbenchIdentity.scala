@@ -33,8 +33,8 @@ trait WorkbenchGroup {
   val id: WorkbenchGroupIdentity
   val members: Set[WorkbenchSubject]
   val email: WorkbenchEmail
-  val version: Integer
-  val lastSynchronizedVersion: Option[Integer]
+  val version: Int
+  val lastSynchronizedVersion: Option[Int]
 }
 trait WorkbenchGroupIdentity extends WorkbenchSubject
 case class WorkbenchGroupName(value: String) extends WorkbenchGroupIdentity with ValueObject
