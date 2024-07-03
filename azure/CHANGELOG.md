@@ -10,9 +10,8 @@ SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-azure" % "0.8
 | Dependency                 | Old Version | New Version |
 |----------------------------|:-----------:|------------:|
 | azure-identity |   1.10.4    |      1.13.0 |
-
-
-
+| azure-messaging-servicebus |   7.14.7    |      7.17.1 |
+ 
 ## 0.7
 
 SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-azure" % "0.7-d2b30c4"`
