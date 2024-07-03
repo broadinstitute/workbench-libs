@@ -2,6 +2,17 @@
 
 This file documents changes to the `workbench-azure` library, including notes on how to upgrade to new versions.
 
+## 0.8
+
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-azure" % "0.8-TRAVIS-REPLACE-ME"`
+
+### Dependency upgrades
+| Dependency                 | Old Version | New Version |
+|----------------------------|:-----------:|------------:|
+| azure-identity |   1.10.4    |      1.13.0 |
+
+
+
 ## 0.7
 
 SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-azure" % "0.7-d2b30c4"`
