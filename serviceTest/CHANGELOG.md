@@ -11,6 +11,10 @@ SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test"
 - Removed the `TrialBillingAccountAuthToken` class
 - Removed dependencies on `trialBillingPemFile` and `trialBillingPemFileClientId` keys in conf files
 
+### Non-breaking Changes
+
+- add Sam resource type config API
+
 ## 4.4
 
 SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "4.4-3a8f98c"`

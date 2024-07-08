@@ -50,6 +50,15 @@ trait Sam extends RestClient with LazyLogging with ScalaFutures {
 }
 object Sam extends Sam {
 
+  object config {
+    def listResourceTypes()(implicit token: AuthToken): Set[ResourceType] = {
+      logger.info(s"Listing resource types")
+      val response = parseResponse(getRequest(url + s"api/config/v1/resourceTypes"))
+      import spray.json.DefaultJsonProtocol._
+      response.parseJson.convertTo[Set[ResourceType]](immSetFormat(ResourceTypeFormat))
+    }
+  }
+
   object user {
 
     case class UserStatusDetails(userSubjectId: String, userEmail: String)
@@ -225,6 +234,12 @@ object SamModel {
     implicit val CreateResourceRequestFormat: RootJsonFormat[CreateResourceRequest] = jsonFormat3(
       CreateResourceRequest.apply
     )
+
+    implicit val ResourceActionPatternFormat: RootJsonFormat[ResourceActionPattern] = jsonFormat3(ResourceActionPattern.apply)
+
+    implicit val ResourceRoleFormat: RootJsonFormat[ResourceRole] = jsonFormat4(ResourceRole.apply)
+
+    implicit val ResourceTypeFormat: RootJsonFormat[ResourceType] = jsonFormat6(ResourceType.apply)
   }
 
   final case class AccessPolicyMembership(memberEmails: Set[String], actions: Set[String], roles: Set[String])
@@ -234,5 +249,15 @@ object SamModel {
   final case class CreateResourceRequest(resourceId: String,
                                          policies: Map[String, AccessPolicyMembership],
                                          authDomain: Set[String]
+  )
+
+  final case class ResourceActionPattern(authDomainConstrainable: Boolean, description: String, value: String)
+  final case class ResourceRole(roleName: String, actions: Set[String], descendantRoles: Map[String, Set[String]], includedRoles: Set[String])
+  final case class ResourceType(name: String,
+                                roles: Set[ResourceRole],
+                                actionPatterns: Set[ResourceActionPattern],
+                                ownerRoleName: String,
+                                reuseIds: Boolean,
+                                allowLeaving: Boolean
   )
 }
