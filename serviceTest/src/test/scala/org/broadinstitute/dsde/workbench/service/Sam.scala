@@ -235,7 +235,9 @@ object SamModel {
       CreateResourceRequest.apply
     )
 
-    implicit val ResourceActionPatternFormat: RootJsonFormat[ResourceActionPattern] = jsonFormat3(ResourceActionPattern.apply)
+    implicit val ResourceActionPatternFormat: RootJsonFormat[ResourceActionPattern] = jsonFormat3(
+      ResourceActionPattern.apply
+    )
 
     implicit val ResourceRoleFormat: RootJsonFormat[ResourceRole] = jsonFormat4(ResourceRole.apply)
 
@@ -252,7 +254,11 @@ object SamModel {
   )
 
   final case class ResourceActionPattern(authDomainConstrainable: Boolean, description: String, value: String)
-  final case class ResourceRole(roleName: String, actions: Set[String], descendantRoles: Map[String, Set[String]], includedRoles: Set[String])
+  final case class ResourceRole(roleName: String,
+                                actions: Set[String],
+                                descendantRoles: Map[String, Set[String]],
+                                includedRoles: Set[String]
+  )
   final case class ResourceType(name: String,
                                 roles: Set[ResourceRole],
                                 actionPatterns: Set[ResourceActionPattern],
