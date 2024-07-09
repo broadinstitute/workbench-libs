@@ -4,12 +4,16 @@ This file documents changes to the `workbench-service-test` library, including n
 
 ## 5.0
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "5.0-9138393"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "5.0-TRAVIS-REPLACE-ME"`
 
 ### Breaking Changes
 
 - Removed the `TrialBillingAccountAuthToken` class
 - Removed dependencies on `trialBillingPemFile` and `trialBillingPemFileClientId` keys in conf files
+
+### Non-breaking Changes
+
+- add Sam resource type config API
 
 ## 4.4
 
