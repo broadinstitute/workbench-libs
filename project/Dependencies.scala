@@ -112,7 +112,7 @@ object Dependencies {
   val swaggerUi = "org.webjars" % "swagger-ui" % "4.11.1"
 
   val azureResourceManagerCompute = "com.azure.resourcemanager" % "azure-resourcemanager-compute" % "2.32.0" exclude("net.minidev", "json-smart")
-  val azureIdentity =  "com.azure" % "azure-identity" % "1.10.4"
+  val azureIdentity =  "com.azure" % "azure-identity" % "1.13.0"
   val azureRelay =     "com.azure.resourcemanager" % "azure-resourcemanager-relay" % "1.0.0-beta.2"
   val azureStorageBlob =  "com.azure" % "azure-storage-blob" % "12.24.1"
   val azureResourceManagerContainerService = "com.azure.resourcemanager" % "azure-resourcemanager-containerservice" % "2.32.0"
@@ -120,7 +120,7 @@ object Dependencies {
     "com.azure.resourcemanager" % "azure-resourcemanager-applicationinsights" % "1.0.0"
   val azureResourceManagerBatchAccount =
     "com.azure.resourcemanager" % "azure-resourcemanager-batch" % "1.0.0"
-  val azureServiceBus = "com.azure" % "azure-messaging-servicebus" % "7.14.7"
+  val azureServiceBus = "com.azure" % "azure-messaging-servicebus" % "7.17.1"
 
   // Note: this override can be removed when "io.kubernetes" % "client-java" publishes a new version containing
   // non-vulnerable bouncy castle version. See https://broadworkbench.atlassian.net/browse/WM-2631
