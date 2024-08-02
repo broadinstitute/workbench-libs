@@ -4,7 +4,7 @@ This file documents changes to the `workbench-service-test` library, including n
 
 ## 5.0
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "5.0-d47b6d4"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "5.0-TRAVIS-REPLACE-ME"`
 
 ### Breaking Changes
 
@@ -14,6 +14,9 @@ SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test"
 ### Non-breaking Changes
 
 - add Sam resource type config API
+
+### Dependency upgrades
+- updated `rawls-model` dependency to `339209ac`
 
 ## 4.4
 
