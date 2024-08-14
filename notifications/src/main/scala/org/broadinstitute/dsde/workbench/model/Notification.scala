@@ -193,6 +193,18 @@ object Notifications {
     override val description = "Group Access Requested"
   })
 
+  case class SnapshotReadyNotification(recipientUserId: WorkbenchUserId,
+                                       snapshotExportLink: String,
+                                       snapshotName: String,
+                                       snapshotSummary: String
+  ) extends UserNotification
+  val SnapshotReadyNotificationType = register(new NotificationType[SnapshotReadyNotification] {
+    override val format: RootJsonFormat[SnapshotReadyNotification] =
+      jsonFormat4(SnapshotReadyNotification.apply)
+    override val description = "Snapshot Ready"
+    override val alwaysOn = true
+  })
+
   // IMPORTANT that this comes after all the calls to register
   val allNotificationTypes: Map[String, NotificationType[_ <: Notification]] = allNotificationTypesBuilder.result()
 
