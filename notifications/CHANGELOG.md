@@ -2,6 +2,19 @@
 
 This file documents changes to the `workbench-notifications` library, including notes on how to upgrade to new versions.
 
+## 0.7
+
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-notifications" % "0.7-TRAVIS-REPLACE-ME"
+
+- Added notification for when a TDR snapshot by request is ready for use
+
+### Dependency upgrades
+| Dependency         | Old Version | New Version |
+|--------------------|:-----------:|------------:|
+| bcpkix-jdk18on     |    1.78     |      1.78.1 |
+| bcprov-ext-jdk18on |    1.78     |      1.78.1 |
+| bcprov-jdk18on     |    1.78     |      1.78.1 |
+
 ## 0.6
 
 SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-notifications" % "0.6-1c0cf92"`
