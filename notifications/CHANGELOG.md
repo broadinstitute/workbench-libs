@@ -4,7 +4,7 @@ This file documents changes to the `workbench-notifications` library, including 
 
 ## 0.7
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-notifications" % "0.7-TRAVIS-REPLACE-ME"
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-notifications" % "0.7-9254729"
 
 - Added notification for when a TDR snapshot by request is ready for use
 
