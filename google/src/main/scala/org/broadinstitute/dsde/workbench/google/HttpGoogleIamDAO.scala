@@ -138,7 +138,6 @@ class HttpGoogleIamDAO(appName: String, googleCredentialMode: GoogleCredentialMo
     val inserter = iam.projects().serviceAccounts().create(s"projects/${serviceAccountProject.value}", request)
     retryWithRecover(when5xx,
                      whenUsageLimited,
-                     whenGlobalUsageLimited,
                      when404,
                      whenInvalidValueOnBucketCreation,
                      whenNonHttpIOException
@@ -163,7 +162,6 @@ class HttpGoogleIamDAO(appName: String, googleCredentialMode: GoogleCredentialMo
     val deleter = iam.projects().serviceAccounts().delete(name)
     retryWithRecover(when5xx,
                      whenUsageLimited,
-                     whenGlobalUsageLimited,
                      when404,
                      whenInvalidValueOnBucketCreation,
                      whenNonHttpIOException
@@ -218,7 +216,6 @@ class HttpGoogleIamDAO(appName: String, googleCredentialMode: GoogleCredentialMo
 
     val basePredicateList: Seq[Throwable => Boolean] = Seq(when5xx,
                                                            whenUsageLimited,
-                                                           whenGlobalUsageLimited,
                                                            when404,
                                                            whenInvalidValueOnBucketCreation,
                                                            whenNonHttpIOException,
@@ -263,7 +260,6 @@ class HttpGoogleIamDAO(appName: String, googleCredentialMode: GoogleCredentialMo
   override def getProjectPolicy(iamProject: GoogleProject): Future[ProjectPolicy] =
     retry(when5xx,
           whenUsageLimited,
-          whenGlobalUsageLimited,
           when404,
           whenInvalidValueOnBucketCreation,
           whenNonHttpIOException,
@@ -321,7 +317,6 @@ class HttpGoogleIamDAO(appName: String, googleCredentialMode: GoogleCredentialMo
       .create(s"projects/${serviceAccountProject.value}/serviceAccounts/${serviceAccountEmail.value}", request)
     retry(when5xx,
           whenUsageLimited,
-          whenGlobalUsageLimited,
           when404,
           whenInvalidValueOnBucketCreation,
           whenNonHttpIOException
