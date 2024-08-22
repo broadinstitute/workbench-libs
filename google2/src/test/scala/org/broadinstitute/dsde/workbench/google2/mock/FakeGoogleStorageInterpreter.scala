@@ -64,6 +64,13 @@ class BaseFakeGoogleStorage extends GoogleStorageService[IO] {
                                   bucketTargetOptions: List[BucketTargetOption]
   ): Stream[IO, Unit] = Stream.empty
 
+  override def setSoftDeletePolicy(bucketName: GcsBucketName,
+                                   softDeletePolicy: BucketInfo.SoftDeletePolicy,
+                                   traceId: Option[TraceId] = None,
+                                   retryConfig: RetryConfig = standardGoogleRetryConfig,
+                                   bucketTargetOptions: List[BucketTargetOption] = List.empty
+  ): Stream[IO, Unit] = Stream.empty
+
   override def getBlobBody(bucketName: GcsBucketName,
                            blobName: GcsBlobName,
                            traceId: Option[TraceId] = None,
