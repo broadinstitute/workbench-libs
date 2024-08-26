@@ -33,14 +33,9 @@ object GoogleUtilities {
     def whenUsageLimited(throwable: Throwable): Boolean = throwable match {
       case t: GoogleJsonResponseException =>
         (t.getStatusCode == 403 || t.getStatusCode == 429) &&
-        compareErrorDomain(t)(_.equalsIgnoreCase("usageLimits"))
-      case _ => false
-    }
-
-    def whenGlobalUsageLimited(throwable: Throwable): Boolean = throwable match {
-      case t: GoogleJsonResponseException =>
-        (t.getStatusCode == 403 || t.getStatusCode == 429) &&
-        compareErrorDomain(t)(_.equalsIgnoreCase("global"))
+        (compareErrorDomain(t)(_.equalsIgnoreCase("usageLimits")) || compareErrorDomain(t)(
+          _.equalsIgnoreCase("global")
+        ))
       case _ => false
     }
 
