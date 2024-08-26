@@ -2,6 +2,15 @@
 
 This file documents changes to the `workbench-google` library, including notes on how to upgrade to new versions.
 
+## 0.33
+
+SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.33-TRAVIS-REPLACE-ME"`
+
+Changed:
+* Update whenUsageLimited retry predicate to match when the error domain is either "usageLimited" or "global"
+* Remove the whenGlobalUsageLimited retry predicate
+
+
 ## 0.32
 
 SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.32-89f86ba"`

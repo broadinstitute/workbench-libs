@@ -457,14 +457,7 @@ class HttpGoogleStorageDAO(appName: String,
     )
 
   override def getBucketPolicy(bucketName: GcsBucketName, userProject: Option[GoogleProject]): Future[BucketPolicy] =
-    retry(when5xx,
-          whenUsageLimited,
-          whenGlobalUsageLimited,
-          when404,
-          whenInvalidValueOnBucketCreation,
-          whenNonHttpIOException,
-          when409
-    ) { () =>
+    retry(when5xx, whenUsageLimited, when404, whenInvalidValueOnBucketCreation, whenNonHttpIOException, when409) { () =>
       val request = storage.buckets().getIamPolicy(bucketName.value).setOptionsRequestedPolicyVersion(policyVersion)
       executeGoogleRequest(userProject.map(p => request.setUserProject(p.value)).getOrElse(request))
     }
@@ -483,7 +476,6 @@ class HttpGoogleStorageDAO(appName: String,
 
     val basePredicateList: Seq[Throwable => Boolean] = Seq(when5xx,
                                                            whenUsageLimited,
-                                                           whenGlobalUsageLimited,
                                                            when404,
                                                            whenInvalidValueOnBucketCreation,
                                                            whenNonHttpIOException,
