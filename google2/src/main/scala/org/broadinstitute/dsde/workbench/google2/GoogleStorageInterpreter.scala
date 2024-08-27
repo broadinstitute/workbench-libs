@@ -10,7 +10,7 @@ import cats.effect._
 import cats.effect.std.Semaphore
 import cats.syntax.all._
 import com.google.auth.oauth2.ServiceAccountCredentials
-import com.google.cloud.storage.BucketInfo.LifecycleRule
+import com.google.cloud.storage.BucketInfo.{LifecycleRule, SoftDeletePolicy}
 import com.google.cloud.storage.Storage.{
   BlobGetOption,
   BlobListOption,
@@ -635,6 +635,24 @@ private[google2] class GoogleStorageInterpreter[F[_]](
       .of(bucketName.value)
       .toBuilder
       .setLifecycleRules(lifecycleRules.asJava)
+      .build()
+    retryF(retryConfig)(
+      blockingF(Async[F].delay(db.update(bucketInfo, bucketTargetOptions: _*))),
+      traceId,
+      s"com.google.cloud.storage.Storage.update($bucketInfo, $bucketTargetOptions)"
+    ).void
+  }
+
+  override def setSoftDeletePolicy(bucketName: GcsBucketName,
+                                   softDeletePolicy: SoftDeletePolicy,
+                                   traceId: Option[TraceId] = None,
+                                   retryConfig: RetryConfig = standardGoogleRetryConfig,
+                                   bucketTargetOptions: List[BucketTargetOption] = List.empty
+  ): Stream[F, Unit] = {
+    val bucketInfo = BucketInfo
+      .of(bucketName.value)
+      .toBuilder
+      .setSoftDeletePolicy(softDeletePolicy)
       .build()
     retryF(retryConfig)(
       blockingF(Async[F].delay(db.update(bucketInfo, bucketTargetOptions: _*))),
