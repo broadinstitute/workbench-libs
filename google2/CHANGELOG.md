@@ -2,6 +2,15 @@
 
 This file documents changes to the `workbench-google2` library, including notes on how to upgrade to new versions.
 
+## 0.37
+
+SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.37-TRAVIS-REPLACE-ME"`
+
+### Changes
+
+- Upgrade google-cloud-storage from 2.29.1 to 2.41.0
+- Add support for setting soft delete policy on GCS buckets
+
 ## 0.36
 
 SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.36-49b30c1"`
