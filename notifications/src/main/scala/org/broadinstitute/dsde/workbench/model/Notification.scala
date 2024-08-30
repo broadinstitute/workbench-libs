@@ -193,6 +193,19 @@ object Notifications {
     override val description = "Group Access Requested"
   })
 
+  case class SnapshotRequestSubmittedNotification(recipientUserId: WorkbenchUserId,
+                                                  requestName: String,
+                                                  requestId: String,
+                                                  dateSubmitted: String,
+                                                  requestSummary: String
+  ) extends UserNotification
+  val SnapshotRequestSubmittedNotificationType = register(new NotificationType[SnapshotRequestSubmittedNotification] {
+    override val format: RootJsonFormat[SnapshotRequestSubmittedNotification] =
+      jsonFormat5(SnapshotRequestSubmittedNotification.apply)
+    override val description = "Snapshot Request Submitted"
+    override val alwaysOn = true
+  })
+
   case class SnapshotReadyNotification(recipientUserId: WorkbenchUserId,
                                        snapshotExportLink: String,
                                        snapshotName: String,
