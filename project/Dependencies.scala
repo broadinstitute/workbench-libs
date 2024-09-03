@@ -95,7 +95,7 @@ object Dependencies {
   val http4sDsl = "org.http4s"      %% "http4s-dsl"          % http4sVersion
 
   val fs2Io: ModuleID = "co.fs2" %% "fs2-io" % "3.6.1"
-  val rawlsModel: ModuleID = "org.broadinstitute.dsde" %% "rawls-model" % "339209ac" exclude("com.typesafe.scala-logging", "scala-logging_2.13") exclude("com.typesafe.akka", "akka-stream_2.13")
+  val rawlsModel: ModuleID = "org.broadinstitute.dsde" %% "rawls-model" % "8ffac131" exclude("com.typesafe.scala-logging", "scala-logging_2.13") exclude("com.typesafe.akka", "akka-stream_2.13")
   val openCensusApi: ModuleID = "io.opencensus" % "opencensus-api" % openCensusV
   val openCensusImpl: ModuleID = "io.opencensus" % "opencensus-impl" % openCensusV
   val openCensusStatsPrometheus: ModuleID = "io.opencensus" % "opencensus-exporter-stats-prometheus" % openCensusV
