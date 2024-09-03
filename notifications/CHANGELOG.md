@@ -2,6 +2,12 @@
 
 This file documents changes to the `workbench-notifications` library, including notes on how to upgrade to new versions.
 
+## 0.8
+
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-notifications" % "0.8-TRAVIS-REPLACE-ME"
+
+- Added notification for when a TDR snapshot access request is submitted
+
 ## 0.7
 
 SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-notifications" % "0.7-9254729"
