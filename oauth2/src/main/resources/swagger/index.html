@@ -58,7 +58,9 @@
 <script src="./swagger-ui-bundle.js" charset="UTF-8"> </script>
 <script src="./swagger-ui-standalone-preset.js" charset="UTF-8"> </script>
 <!-- START Terra customization -->
-<!-- <script src="./swagger-initializer.js" charset="UTF-8"> </script> -->
+  <!-- swagger-ui's index.html calls ./swagger-initializer.js. Our customization bypasses that and uses inline
+        javascript instead. -->
+  <!-- <script src="./swagger-initializer.js" charset="UTF-8"> </script> -->
 <script type="text/javascript">
 
   // Adds support for pinning the auth bar when the user scrolls down far enough to hide the bar
