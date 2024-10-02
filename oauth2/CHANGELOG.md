@@ -3,7 +3,7 @@
 This file documents changes to the `workbench-oauth2` library, including notes on how to upgrade to new versions.
 
 ## 0.8
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-oauth2" % "0.3-TRAVIS-REPLACE-ME"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-oauth2" % "0.8-TRAVIS-REPLACE-ME"`
 
 Changed:
 - Update swagger-ui to 5.17.14
