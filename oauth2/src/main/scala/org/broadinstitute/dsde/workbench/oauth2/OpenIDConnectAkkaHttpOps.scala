@@ -107,11 +107,14 @@ class OpenIDConnectAkkaHttpOps(private val config: OpenIDConnectConfiguration) {
       case _                  => Right(tokenUri.query())
     }
 
-  def swaggerRoutes(openApiYamlResource: String): Route = {
+  // default value for the Content-Security-Policy header sent with the swagger-ui index.html file
+  private val defaultCspHeader = "default-src 'self'; script-src 'self' 'unsafe-inline'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; connect-src 'self' https://terradevb2c.b2clogin.com https://terraprodb2c.b2clogin.com; form-action 'none';"
+
+  def swaggerRoutes(openApiYamlResource: String, cspHeader: String = defaultCspHeader): Route = {
     val openApiFilename = Paths.get(openApiYamlResource).getFileName.toString
     path("") {
       get {
-        respondWithHeader(RawHeader("Content-Security-Policy", "default-src 'self'; script-src 'self' 'unsafe-inline'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; connect-src 'self' https://terradevb2c.b2clogin.com https://terraprodb2c.b2clogin.com; form-action 'none';")) {
+        respondWithHeader(RawHeader("Content-Security-Policy", cspHeader)) {
           processSwaggerIndex(openApiFilename) {
             getFromResource("swagger/index.html")
           }
