@@ -86,15 +86,6 @@
     }
   }
 
-  // Removes the online validation since some code gen bugs cause us to have some specs that cause the validator to squawk
-  const clearValidator = function(system) {
-    return {
-      components: {
-        onlineValidatorBadge: function() { return null; },
-      }
-    };
-  }
-
   window.onload = function() {
     // Begin Swagger UI call region
     const ui = SwaggerUIBundle({
@@ -107,8 +98,7 @@
       ],
       plugins: [
         SwaggerUIBundle.plugins.DownloadUrl,
-        pinLoginPlugin,
-        clearValidator
+        pinLoginPlugin
       ],
       layout: 'StandaloneLayout',
       displayOperationId: true,
@@ -124,7 +114,9 @@
         } else {
           return a < b ? -1 : 1;
         }
-      }
+      },
+      // Removes the online validation since some code gen bugs cause us to have some specs that cause the validator to squawk
+      validatorUrl: 'none'
     })
     // End Swagger UI call region
 
