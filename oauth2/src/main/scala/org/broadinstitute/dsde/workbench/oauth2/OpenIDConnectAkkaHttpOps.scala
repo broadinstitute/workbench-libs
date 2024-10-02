@@ -8,11 +8,7 @@ import akka.http.scaladsl.model.HttpEntity.Strict
 import akka.http.scaladsl.model.HttpMethods.POST
 import akka.http.scaladsl.model.Uri.Query
 import akka.http.scaladsl.model._
-import akka.http.scaladsl.model.headers.{
-  `Access-Control-Allow-Headers`,
-  `Access-Control-Allow-Methods`,
-  `Access-Control-Allow-Origin`
-}
+import akka.http.scaladsl.model.headers.{RawHeader, `Access-Control-Allow-Headers`, `Access-Control-Allow-Methods`, `Access-Control-Allow-Origin`}
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.{Directive0, Rejection, RejectionError, Route, ValidationRejection}
 import akka.stream.scaladsl.Flow
@@ -115,8 +111,10 @@ class OpenIDConnectAkkaHttpOps(private val config: OpenIDConnectConfiguration) {
     val openApiFilename = Paths.get(openApiYamlResource).getFileName.toString
     path("") {
       get {
-        processSwaggerIndex(openApiFilename) {
-          getFromResource("swagger/index.html")
+        respondWithHeader(RawHeader("Content-Security-Policy", "default-src 'self'; script-src 'self' 'unsafe-inline'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; connect-src 'self' https://terradevb2c.b2clogin.com https://terraprodb2c.b2clogin.com; form-action 'none';")) {
+          processSwaggerIndex(openApiFilename) {
+            getFromResource("swagger/index.html")
+          }
         }
       }
     } ~
