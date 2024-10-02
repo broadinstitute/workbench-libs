@@ -65,6 +65,11 @@ SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-oauth2" % "0.
 | sbt-scoverage |  2.0.6 | 2.0.7 |
 | scalatest |  3.2.14 | 3.2.16 |
 
+## 0.3
+
+Changed:
+- Update swagger-ui to 5.17.14
+
 ## 0.2
 
 Changed:

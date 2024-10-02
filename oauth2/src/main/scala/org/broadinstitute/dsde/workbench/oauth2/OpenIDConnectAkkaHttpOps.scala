@@ -25,7 +25,7 @@ import java.nio.file.Paths
 import scala.concurrent.duration._
 
 class OpenIDConnectAkkaHttpOps(private val config: OpenIDConnectConfiguration) {
-  private val swaggerUiPath = "META-INF/resources/webjars/swagger-ui/4.11.1"
+  private val swaggerUiPath = "META-INF/resources/webjars/swagger-ui/5.17.14"
   private val policyParam = "p"
 
   def oauth2Routes(implicit actorSystem: ActorSystem): Route = {
@@ -135,7 +135,7 @@ class OpenIDConnectAkkaHttpOps(private val config: OpenIDConnectConfiguration) {
         }
       } ~
       (pathPrefixTest("swagger-ui") | pathPrefixTest("oauth2-redirect") | pathSuffixTest("js")
-        | pathSuffixTest("css") | pathPrefixTest("favicon")) {
+        | pathSuffixTest("index.css") | pathPrefixTest("favicon")) {
         get {
           getFromResourceDirectory(swaggerUiPath)
         }
