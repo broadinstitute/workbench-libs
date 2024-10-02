@@ -8,7 +8,12 @@ import akka.http.scaladsl.model.HttpEntity.Strict
 import akka.http.scaladsl.model.HttpMethods.POST
 import akka.http.scaladsl.model.Uri.Query
 import akka.http.scaladsl.model._
-import akka.http.scaladsl.model.headers.{RawHeader, `Access-Control-Allow-Headers`, `Access-Control-Allow-Methods`, `Access-Control-Allow-Origin`}
+import akka.http.scaladsl.model.headers.{
+  `Access-Control-Allow-Headers`,
+  `Access-Control-Allow-Methods`,
+  `Access-Control-Allow-Origin`,
+  RawHeader
+}
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.{Directive0, Rejection, RejectionError, Route, ValidationRejection}
 import akka.stream.scaladsl.Flow
@@ -108,7 +113,8 @@ class OpenIDConnectAkkaHttpOps(private val config: OpenIDConnectConfiguration) {
     }
 
   // default value for the Content-Security-Policy header sent with the swagger-ui index.html file
-  private val defaultCspHeader = "default-src 'self'; script-src 'self' 'unsafe-inline'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; connect-src 'self' https://terradevb2c.b2clogin.com https://terraprodb2c.b2clogin.com; form-action 'none';"
+  private val defaultCspHeader =
+    "default-src 'self'; script-src 'self' 'unsafe-inline'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; connect-src 'self' https://terradevb2c.b2clogin.com https://terraprodb2c.b2clogin.com; form-action 'none';"
 
   def swaggerRoutes(openApiYamlResource: String, cspHeader: String = defaultCspHeader): Route = {
     val openApiFilename = Paths.get(openApiYamlResource).getFileName.toString
@@ -137,7 +143,7 @@ class OpenIDConnectAkkaHttpOps(private val config: OpenIDConnectConfiguration) {
       } ~
       // supporting files for swagger ui
       (pathPrefixTest("swagger-ui") | pathPrefixTest("oauth2-redirect") | pathPrefixTest("favicon")
-        | pathSuffixTest("index.css") ) {
+        | pathSuffixTest("index.css")) {
         get {
           getFromResourceDirectory(swaggerUiPath)
         }
