@@ -2,6 +2,14 @@
 
 This file documents changes to the `workbench-oauth2` library, including notes on how to upgrade to new versions.
 
+## 0.8
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-oauth2" % "0.8-TRAVIS-REPLACE-ME"`
+
+Changed:
+- Update swagger-ui to 5.17.14
+- swagger-ui HTML page is now served with a `Content-Security-Policy` header. The value of this header can
+  be overridden by consumers of this library.
+
 ## 0.7
 SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-oauth2" % "0.7-a6ad7dc"`
 Changed:

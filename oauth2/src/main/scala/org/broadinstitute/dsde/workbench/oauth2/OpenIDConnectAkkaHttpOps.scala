@@ -11,7 +11,8 @@ import akka.http.scaladsl.model._
 import akka.http.scaladsl.model.headers.{
   `Access-Control-Allow-Headers`,
   `Access-Control-Allow-Methods`,
-  `Access-Control-Allow-Origin`
+  `Access-Control-Allow-Origin`,
+  RawHeader
 }
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.{Directive0, Rejection, RejectionError, Route, ValidationRejection}
@@ -23,9 +24,10 @@ import org.broadinstitute.dsde.workbench.oauth2.OpenIDConnectAkkaHttpOps.Configu
 
 import java.nio.file.Paths
 import scala.concurrent.duration._
+import scala.util.Try
 
 class OpenIDConnectAkkaHttpOps(private val config: OpenIDConnectConfiguration) {
-  private val swaggerUiPath = "META-INF/resources/webjars/swagger-ui/4.11.1"
+  private val swaggerUiPath = "META-INF/resources/webjars/swagger-ui/5.17.14"
   private val policyParam = "p"
 
   def oauth2Routes(implicit actorSystem: ActorSystem): Route = {
@@ -111,12 +113,32 @@ class OpenIDConnectAkkaHttpOps(private val config: OpenIDConnectConfiguration) {
       case _                  => Right(tokenUri.query())
     }
 
-  def swaggerRoutes(openApiYamlResource: String): Route = {
+  // Truncate the openId authority endpoint to get a source for use in the CSP header. If this fails, don't
+  // fail the entire page; but beware that swagger-ui login won't work
+  private def cspOpenIdHost: String =
+    Try(
+      Uri
+        .parseAbsolute(config.openIdProvider.authorityEndpoint)
+        .withPath(Uri.Path.Empty)
+        .withQuery(Uri.Query.Empty)
+        .toString()
+    ).getOrElse("")
+
+  // default value for the Content-Security-Policy header sent with the swagger-ui index.html file, which includes
+  // the cspOpenIdHost in the connect-src value
+  private val defaultCspHeader =
+    "default-src 'self'; script-src 'self' 'unsafe-inline'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; " +
+      s"connect-src 'self' $cspOpenIdHost; form-action 'none'; " +
+      "frame-ancestors 'none';"
+
+  def swaggerRoutes(openApiYamlResource: String, cspHeader: String = defaultCspHeader): Route = {
     val openApiFilename = Paths.get(openApiYamlResource).getFileName.toString
     path("") {
       get {
-        processSwaggerIndex(openApiFilename) {
-          getFromResource("swagger/index.html")
+        respondWithHeader(RawHeader("Content-Security-Policy", cspHeader)) {
+          processSwaggerIndex(openApiFilename) {
+            getFromResource("swagger/index.html")
+          }
         }
       }
     } ~
@@ -134,8 +156,9 @@ class OpenIDConnectAkkaHttpOps(private val config: OpenIDConnectConfiguration) {
           }
         }
       } ~
-      (pathPrefixTest("swagger-ui") | pathPrefixTest("oauth2-redirect") | pathSuffixTest("js")
-        | pathSuffixTest("css") | pathPrefixTest("favicon")) {
+      // supporting files for swagger ui
+      (pathPrefixTest("swagger-ui") | pathPrefixTest("oauth2-redirect") | pathPrefixTest("favicon")
+        | pathSuffixTest("index.css")) {
         get {
           getFromResourceDirectory(swaggerUiPath)
         }
