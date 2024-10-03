@@ -24,6 +24,7 @@ import org.broadinstitute.dsde.workbench.oauth2.OpenIDConnectAkkaHttpOps.Configu
 
 import java.nio.file.Paths
 import scala.concurrent.duration._
+import scala.util.Try
 
 class OpenIDConnectAkkaHttpOps(private val config: OpenIDConnectConfiguration) {
   private val swaggerUiPath = "META-INF/resources/webjars/swagger-ui/5.17.14"
@@ -112,10 +113,21 @@ class OpenIDConnectAkkaHttpOps(private val config: OpenIDConnectConfiguration) {
       case _                  => Right(tokenUri.query())
     }
 
-  // default value for the Content-Security-Policy header sent with the swagger-ui index.html file
+  // Truncate the openId authority endpoint to get a source for use in the CSP header. If this fails, don't
+  // fail the entire page; but beware that swagger-ui login won't work
+  private def cspOpenIdHost: Uri =
+    Try(
+      Uri
+        .parseAbsolute(config.openIdProvider.authorityEndpoint)
+        .withPath(Uri.Path.Empty)
+        .withQuery(Uri.Query.Empty)
+    ).getOrElse("")
+
+  // default value for the Content-Security-Policy header sent with the swagger-ui index.html file, which includes
+  // the cspOpenIdHost in the connect-src value
   private val defaultCspHeader =
     "default-src 'self'; script-src 'self' 'unsafe-inline'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; " +
-      "connect-src 'self' https://terradevb2c.b2clogin.com https://terraprodb2c.b2clogin.com; form-action 'none'; " +
+      s"connect-src 'self' $cspOpenIdHost; form-action 'none'; " +
       "frame-ancestors 'none';"
 
   def swaggerRoutes(openApiYamlResource: String, cspHeader: String = defaultCspHeader): Route = {
