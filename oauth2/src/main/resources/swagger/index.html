@@ -1,33 +1,15 @@
 <!-- Copied from the swagger-ui/index.html static file -->
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <title>Swagger UI</title>
-  <link rel="stylesheet" type="text/css" href="./swagger-ui.css" >
+  <link rel="stylesheet" type="text/css" href="./swagger-ui.css" />
+  <link rel="stylesheet" type="text/css" href="index.css" />
   <link rel="icon" type="image/png" href="./favicon-32x32.png" sizes="32x32" />
   <link rel="icon" type="image/png" href="./favicon-16x16.png" sizes="16x16" />
+  <!-- START Terra customization -->
   <style>
-    html
-    {
-      box-sizing: border-box;
-      overflow: -moz-scrollbars-vertical;
-      overflow-y: scroll;
-    }
-
-    *,
-    *:before,
-    *:after
-    {
-      box-sizing: inherit;
-    }
-
-    body
-    {
-      margin:0;
-      background: #fafafa;
-    }
-
     /* make the schema display full-width */
     .swagger-ui .model-example .model-box {
       display: block;
@@ -67,16 +49,19 @@
     .swagger-ui .hidden {
       display: none;
     }
-
   </style>
+  <!-- END Terra customization -->
 </head>
 
 <body>
 <div id="swagger-ui"></div>
-
-<script src="./swagger-ui-bundle.js"> </script>
-<script src="./swagger-ui-standalone-preset.js"> </script>
-<script th:inline="javascript">
+<script src="./swagger-ui-bundle.js" charset="UTF-8"> </script>
+<script src="./swagger-ui-standalone-preset.js" charset="UTF-8"> </script>
+<!-- START Terra customization -->
+  <!-- swagger-ui's index.html calls ./swagger-initializer.js. Our customization bypasses that and uses inline
+        javascript instead. -->
+  <!-- <script src="./swagger-initializer.js" charset="UTF-8"> </script> -->
+<script type="text/javascript">
 
   // Adds support for pinning the auth bar when the user scrolls down far enough to hide the bar
   var pinLoginPlugin = function(system) {
@@ -103,15 +88,6 @@
     }
   }
 
-  // Removes the online validation since some code gen bugs cause us to have some specs that cause the validator to squawk
-  const clearValidator = function(system) {
-    return {
-      components: {
-        onlineValidatorBadge: function() { return null; },
-      }
-    };
-  }
-
   window.onload = function() {
     // Begin Swagger UI call region
     const ui = SwaggerUIBundle({
@@ -124,8 +100,7 @@
       ],
       plugins: [
         SwaggerUIBundle.plugins.DownloadUrl,
-        pinLoginPlugin,
-        clearValidator
+        pinLoginPlugin
       ],
       layout: 'StandaloneLayout',
       displayOperationId: true,
@@ -141,7 +116,9 @@
         } else {
           return a < b ? -1 : 1;
         }
-      }
+      },
+      // Removes the online validation since some code gen bugs cause us to have some specs that cause the validator to squawk
+      validatorUrl: 'none'
     })
     // End Swagger UI call region
 
@@ -155,5 +132,6 @@
     window.ui = ui
   }
 </script>
+<!-- END Terra customization -->
 </body>
 </html>
