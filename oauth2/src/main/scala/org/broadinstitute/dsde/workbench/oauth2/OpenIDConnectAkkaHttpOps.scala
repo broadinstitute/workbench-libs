@@ -115,12 +115,13 @@ class OpenIDConnectAkkaHttpOps(private val config: OpenIDConnectConfiguration) {
 
   // Truncate the openId authority endpoint to get a source for use in the CSP header. If this fails, don't
   // fail the entire page; but beware that swagger-ui login won't work
-  private def cspOpenIdHost: Uri =
+  private def cspOpenIdHost: String =
     Try(
       Uri
         .parseAbsolute(config.openIdProvider.authorityEndpoint)
         .withPath(Uri.Path.Empty)
         .withQuery(Uri.Query.Empty)
+        .toString()
     ).getOrElse("")
 
   // default value for the Content-Security-Policy header sent with the swagger-ui index.html file, which includes
