@@ -38,7 +38,7 @@ private class AzureServiceBusReceiverClientWrapperInterp(subscriberConfig: Azure
       .receiveMode(ServiceBusReceiveMode.PEEK_LOCK)
       .prefetchCount(subscriberConfig.prefetchCount)
       .maxConcurrentCalls(subscriberConfig.maxConcurrentCalls)
-      .maxAutoLockRenewDuration(Duration.ofMinutes(25))
+      .maxAutoLockRenewDuration(Duration.ofMinutes(subscriberConfig.maxAutoLockRenewDurationMinutes))
       .disableAutoComplete()
       .buildProcessorClient()
   }
