@@ -103,18 +103,14 @@ class HttpGoogleIamDAO(appName: String, googleCredentialMode: GoogleCredentialMo
     val name = s"projects/${serviceAccountProject.value}/serviceAccounts/${serviceAccountEmail.value}"
     val getter = iam.projects().serviceAccounts().get(name)
 
-    // Return a Future[Option[ServiceAccount]]. The future fails if we get a Google error we don't understand. The Option is None if we get a 404, i.e. the SA doesn't exist.
+    // Return a Future[Option[ServiceAccount]]. The future fails if we get a Google error we don't understand.
+    // The Option is None if we get a 404, i.e. the SA doesn't exist or a 403, i.e. the project doesn't exist.
     val findOption = OptionT(
       retryWithRecover(when5xx, whenUsageLimited, when404, whenInvalidValueOnBucketCreation, whenNonHttpIOException) {
         () =>
           Option(executeGoogleRequest(getter))
       } {
-        case t: GoogleJsonResponseException if t.getStatusCode == 404 =>
-          None
-        case t: GoogleJsonResponseException
-            if t.getStatusCode == 403 && t.getDetails.getErrors.asScala.head.getMessage
-              .equalsIgnoreCase("Unable to extract resource containers.") =>
-          // added to catch and fix a google issue that popped up https://console.cloud.google.com/support/cases/detail/17978989?project=broad-dsde-prod
+        case t: GoogleJsonResponseException if t.getStatusCode == 404 || t.getStatusCode == 403 =>
           None
       }
     )

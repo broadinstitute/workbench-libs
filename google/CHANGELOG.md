@@ -4,11 +4,12 @@ This file documents changes to the `workbench-google` library, including notes o
 
 ## 0.33
 
-SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.33-3c223be"`
+SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.33-TRAVIS-REPLACE-ME"`
 
 Changed:
 * Update whenUsageLimited retry predicate to match when the error domain is either "usageLimited" or "global"
 * Remove the whenGlobalUsageLimited retry predicate
+* Handle 403 response when getting a service account as if the service account does not exist
 
 
 ## 0.32
