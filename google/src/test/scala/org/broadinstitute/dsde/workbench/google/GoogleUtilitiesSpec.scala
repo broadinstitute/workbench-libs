@@ -94,9 +94,7 @@ class GoogleUtilitiesSpec
     when5xx(buildHttpResponseException(502)) shouldBe true
 
     whenUsageLimited(buildGoogleJsonResponseException(403, None, None, Some("usageLimits"))) shouldBe true
-    whenUsageLimited(buildGoogleJsonResponseException(429, None, None, Some("usageLimits"))) shouldBe true
-    whenUsageLimited(buildGoogleJsonResponseException(403, None, None, Some("global"))) shouldBe true
-    whenUsageLimited(buildGoogleJsonResponseException(429, None, None, Some("global"))) shouldBe true
+    whenUsageLimited(buildGoogleJsonResponseException(429, None, None, None)) shouldBe true
 
     when404(buildGoogleJsonResponseException(404)) shouldBe true
     when404(buildHttpResponseException(404)) shouldBe true
@@ -119,7 +117,7 @@ class GoogleUtilitiesSpec
     when5xx(new IOException("boom")) shouldBe false
 
     whenUsageLimited(buildGoogleJsonResponseException(403, None, None, Some("boom"))) shouldBe false
-    whenUsageLimited(buildGoogleJsonResponseException(429, None, None, Some("boom"))) shouldBe false
+    whenUsageLimited(buildGoogleJsonResponseException(403, None, None, Some("global"))) shouldBe false
     whenUsageLimited(buildGoogleJsonResponseException(400)) shouldBe false
     whenUsageLimited(new IOException("boom")) shouldBe false
 
