@@ -73,13 +73,12 @@ class HttpGoogleProjectDAO(appName: String,
     }
 
   override def isProjectActive(projectName: String): Future[Boolean] =
-    retryWithRecover(when5xx, whenUsageLimited, when404, whenInvalidValueOnBucketCreation, whenNonHttpIOException) {
-      () =>
-        // get the project
-        Option(executeGoogleRequest(cloudResManager.projects().get(projectName)))
+    retryWithRecover(when5xx, whenUsageLimited, whenInvalidValueOnBucketCreation, whenNonHttpIOException) { () =>
+      // get the project
+      Option(executeGoogleRequest(cloudResManager.projects().get(projectName)))
     } {
       // if the project doesn't exist, don't fail
-      case e: HttpResponseException if e.getStatusCode == StatusCodes.NotFound.intValue => None
+      case e: HttpResponseException if notFound(e) => None
     } map {
       // return true if the project is active, false otherwise
       // see https://cloud.google.com/resource-manager/reference/rest/v1/projects#LifecycleState
@@ -87,13 +86,15 @@ class HttpGoogleProjectDAO(appName: String,
       case None          => false
     }
 
+  private def notFound(e: HttpResponseException) =
+    e.getStatusCode == StatusCodes.NotFound.intValue || e.getStatusCode == StatusCodes.Forbidden.intValue
+
   override def isBillingActive(projectName: String): Future[Boolean] =
-    retryWithRecover(when5xx, whenUsageLimited, when404, whenInvalidValueOnBucketCreation, whenNonHttpIOException) {
-      () =>
-        Option(executeGoogleRequest(billing.projects().getBillingInfo(s"projects/$projectName")))
+    retryWithRecover(when5xx, whenUsageLimited, whenInvalidValueOnBucketCreation, whenNonHttpIOException) { () =>
+      Option(executeGoogleRequest(billing.projects().getBillingInfo(s"projects/$projectName")))
     } {
       // if the project doesn't exist, don't fail
-      case e: HttpResponseException if e.getStatusCode == StatusCodes.NotFound.intValue => None
+      case e: HttpResponseException if notFound(e) => None
     } map {
       // return true if billing is enabled for the project, false otherwise
       // billingInfo.getBillingEnabled returns null or Boolean so we need to make sure we handle the null case
@@ -132,7 +133,7 @@ class HttpGoogleProjectDAO(appName: String,
       Option(executeGoogleRequest(cloudResManager.projects().get(projectName))).map(_.getProjectNumber).map(_.toLong)
     } {
       // if the project doesn't exist, don't fail
-      case e: HttpResponseException if e.getStatusCode == StatusCodes.NotFound.intValue => None
+      case e: HttpResponseException if notFound(e) => None
     }
 
   override def getProjectName(projectId: String): Future[Option[String]] =
@@ -140,6 +141,6 @@ class HttpGoogleProjectDAO(appName: String,
       Option(executeGoogleRequest(cloudResManager.projects().get(projectId))).map(_.getName)
     } {
       // if the project doesn't exist, don't fail
-      case e: HttpResponseException if e.getStatusCode == StatusCodes.NotFound.intValue => None
+      case e: HttpResponseException if notFound(e) => None
     }
 }
