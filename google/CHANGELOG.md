@@ -4,7 +4,7 @@ This file documents changes to the `workbench-google` library, including notes o
 
 ## 0.33
 
-SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.33-TRAVIS-REPLACE-ME"`
+SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.33-fa46370"`
 
 Changed:
 * Update whenUsageLimited retry predicate to match when the error domain is either "usageLimited" or "global"
