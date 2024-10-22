@@ -207,5 +207,6 @@ final case class AzureServiceBusSubscriberConfig(
   // if then connection string is not provided, assume that Managed Identity is used
   connectionString: Option[String],
   maxConcurrentCalls: Int = 1,
-  prefetchCount: Int = 1
+  prefetchCount: Int = 1,
+  maxAutoLockRenewDurationMinutes: Int = 25
 ) {}
