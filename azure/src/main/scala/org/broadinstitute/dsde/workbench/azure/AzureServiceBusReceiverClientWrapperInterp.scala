@@ -5,6 +5,7 @@ import com.azure.messaging.servicebus._
 import com.azure.messaging.servicebus.models.ServiceBusReceiveMode
 import org.slf4j.LoggerFactory
 
+import java.time.Duration
 import scala.util.{Failure, Success, Try}
 
 private class AzureServiceBusReceiverClientWrapperInterp(subscriberConfig: AzureServiceBusSubscriberConfig,
@@ -37,6 +38,7 @@ private class AzureServiceBusReceiverClientWrapperInterp(subscriberConfig: Azure
       .receiveMode(ServiceBusReceiveMode.PEEK_LOCK)
       .prefetchCount(subscriberConfig.prefetchCount)
       .maxConcurrentCalls(subscriberConfig.maxConcurrentCalls)
+      .maxAutoLockRenewDuration(Duration.ofMinutes(subscriberConfig.maxAutoLockRenewDurationMinutes))
       .disableAutoComplete()
       .buildProcessorClient()
   }
