@@ -124,7 +124,7 @@ class AzureRelayInterp[F[_]](clientSecretCredential: ClientSecretCredential)(imp
 
   private def buildRelayManager(azureCloudContext: AzureCloudContext): F[RelayManager] = {
     val azureProfile =
-      new AzureProfile(azureCloudContext.tenantId.value, azureCloudContext.subscriptionId.value, AzureEnvironment.AZURE)
+      new AzureProfile(azureCloudContext.tenantId.value, azureCloudContext.subscriptionId.value, AzureEnvironmentConfig.fromCurrentHostingEnv())
 
     F.blocking(RelayManager.authenticate(clientSecretCredential, azureProfile))
   }

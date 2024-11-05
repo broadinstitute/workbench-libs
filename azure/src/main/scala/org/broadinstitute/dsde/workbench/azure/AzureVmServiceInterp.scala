@@ -97,7 +97,7 @@ class AzureVmServiceInterp[F[_]](clientSecretCredential: ClientSecretCredential)
 
   private def buildComputeManager(azureCloudContext: AzureCloudContext): F[ComputeManager] = {
     val azureProfile =
-      new AzureProfile(azureCloudContext.tenantId.value, azureCloudContext.subscriptionId.value, AzureEnvironment.AZURE)
+      new AzureProfile(azureCloudContext.tenantId.value, azureCloudContext.subscriptionId.value, AzureEnvironmentConfig.fromCurrentHostingEnv()
     F.blocking(ComputeManager.authenticate(clientSecretCredential, azureProfile))
   }
 

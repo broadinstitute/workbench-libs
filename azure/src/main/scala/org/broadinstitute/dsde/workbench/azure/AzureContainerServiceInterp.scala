@@ -94,7 +94,10 @@ class AzureContainerServiceInterp[F[_]](clientSecretCredential: ClientSecretCred
 
   private def buildContainerServiceManager(cloudContext: AzureCloudContext): F[ContainerServiceManager] = {
     val azureProfile =
-      new AzureProfile(cloudContext.tenantId.value, cloudContext.subscriptionId.value, AzureEnvironment.AZURE)
+      new AzureProfile(cloudContext.tenantId.value,
+                       cloudContext.subscriptionId.value,
+                       AzureEnvironmentConfig.fromCurrentHostingEnv()
+      )
     F.blocking(ContainerServiceManager.authenticate(clientSecretCredential, azureProfile))
   }
 }
