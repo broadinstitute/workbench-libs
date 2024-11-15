@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - develop # default branch of the project
+  workflow_dispatch:
+  # Allows manually triggering of workflow on a selected branch via the GitHub Actions tab.
+
 
 jobs:
   update-graph:
