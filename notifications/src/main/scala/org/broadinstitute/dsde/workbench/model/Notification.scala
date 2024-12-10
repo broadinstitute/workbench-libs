@@ -218,6 +218,39 @@ object Notifications {
     override val alwaysOn = true
   })
 
+  case class TeaspoonsJobSucceededNotification(recipientUserId: WorkbenchUserId,
+                                               pipelineDisplayName: String,
+                                               jobId: String,
+                                               timeSubmitted: String,
+                                               timeCompleted: String,
+                                               quotaConsumedByJob: String,
+                                               quotaRemaining: String,
+                                               userDescription: String
+  ) extends UserNotification
+  val TeaspoonsJobSucceededNotificationType = register(new NotificationType[TeaspoonsJobSucceededNotification] {
+    override val format: RootJsonFormat[TeaspoonsJobSucceededNotification] =
+      jsonFormat8(TeaspoonsJobSucceededNotification.apply)
+    override val description = "Teaspoons Job Succeeded"
+    override val alwaysOn = true
+  })
+
+  case class TeaspoonsJobFailedNotification(recipientUserId: WorkbenchUserId,
+                                            pipelineDisplayName: String,
+                                            jobId: String,
+                                            errorMessage: String,
+                                            timeSubmitted: String,
+                                            timeCompleted: String,
+                                            quotaConsumedByJob: String,
+                                            quotaRemaining: String,
+                                            userDescription: String
+  ) extends UserNotification
+  val TeaspoonsJobFailedNotificationType = register(new NotificationType[TeaspoonsJobFailedNotification] {
+    override val format: RootJsonFormat[TeaspoonsJobFailedNotification] =
+      jsonFormat9(TeaspoonsJobFailedNotification.apply)
+    override val description = "Teaspoons Job Failed"
+    override val alwaysOn = true
+  })
+
   // IMPORTANT that this comes after all the calls to register
   val allNotificationTypes: Map[String, NotificationType[_ <: Notification]] = allNotificationTypesBuilder.result()
 
