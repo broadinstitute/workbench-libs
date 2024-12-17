@@ -32,7 +32,10 @@ class AzureBatchServiceInterp[F[_]](clientSecretCredential: ClientSecretCredenti
 
   private def buildBatchManager(cloudContext: AzureCloudContext): F[BatchManager] = {
     val azureProfile =
-      new AzureProfile(cloudContext.tenantId.value, cloudContext.subscriptionId.value, AzureEnvironment.AZURE)
+      new AzureProfile(cloudContext.tenantId.value,
+                       cloudContext.subscriptionId.value,
+                       AzureEnvironmentConfig.fromCurrentHostingEnv()
+      )
     F.blocking(BatchManager.authenticate(clientSecretCredential, azureProfile))
   }
 }

@@ -32,7 +32,10 @@ class AzureApplicationInsightsServiceInterp[F[_]](clientSecretCredential: Client
 
   private def buildApplicationInsightsManager(cloudContext: AzureCloudContext): F[ApplicationInsightsManager] = {
     val azureProfile =
-      new AzureProfile(cloudContext.tenantId.value, cloudContext.subscriptionId.value, AzureEnvironment.AZURE)
+      new AzureProfile(cloudContext.tenantId.value,
+                       cloudContext.subscriptionId.value,
+                       AzureEnvironmentConfig.fromCurrentHostingEnv()
+      )
     F.blocking(ApplicationInsightsManager.authenticate(clientSecretCredential, azureProfile))
   }
 }
