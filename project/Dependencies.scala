@@ -50,18 +50,7 @@ object Dependencies {
   // metrics-scala transitively pulls in io.dropwizard.metrics:metrics-core
   val metricsScala: ModuleID =      "nl.grons"              %% "metrics4-scala"    % "4.2.9"
   val metricsStatsd: ModuleID =     "com.readytalk"         %  "metrics3-statsd"  % "4.2.0"
-
-//  val googleCloudBilling: ModuleID =         "com.google.apis"       % "google-api-services-cloudbilling"         % s"v1-rev20241011-$googleV"
-//  val googleGenomics: ModuleID =             "com.google.apis"       % "google-api-services-genomics"             % s"v2alpha1-rev20220913-$googleV"
-//  val googleStorage: ModuleID =              "com.google.apis"       % "google-api-services-storage"              % s"v1-rev20241113-$googleV"
-//  val googleCloudResourceManager: ModuleID = "com.google.apis"       % "google-api-services-cloudresourcemanager" % s"v3-rev20240310-$googleV"
-//  val googleAdminDirectory: ModuleID =       "com.google.apis"       % "google-api-services-admin-directory"      % s"directory_v1-rev20241113-$googleV"
-//  val googleGroupsSettings: ModuleID =       "com.google.apis"       % "google-api-services-groupssettings"       % s"v1-rev20220614-$googleV"
-//  val googleOAuth2: ModuleID =               "com.google.apis"       % "google-api-services-oauth2"               % s"v2-rev20200213-$googleV"
-//  val googlePubSub: ModuleID =               "com.google.apis"       % "google-api-services-pubsub"               % s"v1-rev20240918-$googleV"
-//  val googleServicemanagement: ModuleID =    "com.google.apis"       % "google-api-services-serviceusage"         % s"v1-rev20241115-$googleV"
-//  val googleIam: ModuleID =                  "com.google.apis"       % "google-api-services-iam"                  % s"v2-rev20240530-$googleV"
-//  val googleBigQuery: ModuleID =             "com.google.apis"       % "google-api-services-bigquery"             % s"v2-rev20241111-$googleV"
+  
   val googleCloudBilling: ModuleID = "com.google.apis" % "google-api-services-cloudbilling" % s"v1-rev20220908-$googleV"
   val googleGenomics: ModuleID = "com.google.apis" % "google-api-services-genomics" % s"v2alpha1-rev20220913-$googleV"
   val googleStorage: ModuleID = "com.google.apis" % "google-api-services-storage" % s"v1-rev20220705-$googleV"

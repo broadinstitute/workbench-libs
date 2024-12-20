@@ -2,6 +2,16 @@
 
 This file documents changes to the `workbench-notifications` library, including notes on how to upgrade to new versions.
 
+## 0.9
+
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-notifications" % "0.9-TRAVIS-REPLACE-ME"`
+
+### Dependency upgrades
+| Dependency                 | Old Version |   New Version |
+|----------------------------|:-----------:|--------------:|
+| client-java                |   19.0.0    | 20.0.0-legacy |
+| google-cloud-kms                         |   2.33.0    |        2.55.0 |
+
 ## 0.8
 
 SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-notifications" % "0.8-78b1597"
