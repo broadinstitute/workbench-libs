@@ -30,7 +30,7 @@ SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test"
 
 ## 5.0
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "5.0-ecad551"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "5.0-cbb1fb1"`
 
 ### Breaking Changes
 
@@ -42,7 +42,7 @@ SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test"
 - add Sam resource type config API
 
 ### Dependency upgrades
-- updated `rawls-model` dependency to `v0.0.189-SNAP`
+- updated `rawls-model` dependency to `v0.0.258-SNAP`
 
 ## 4.4
 

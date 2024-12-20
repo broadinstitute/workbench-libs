@@ -12,6 +12,11 @@ SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-notifications
 | client-java                |   19.0.0    | 20.0.0-legacy |
 | google-cloud-kms                         |   2.33.0    |        2.55.0 |
 
+
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-notifications" % "0.9-5d9c477"
+
+- Removed notification for when a TDR snapshot access request is submitted
+
 ## 0.8
 
 SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-notifications" % "0.8-78b1597"
