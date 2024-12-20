@@ -67,7 +67,19 @@ object Settings {
   })
 
   lazy val commonDependencyOverrides = Seq(
-    "org.apache.commons" % "commons-compress" % "1.26.0"
+    "org.apache.commons" % "commons-compress" % "1.26.0",
+    // Needed to override org.broadinstitute.dsde:rawls-model_2.13
+    "io.netty" % "netty-handler" % "4.1.110.Final",
+    "io.netty" % "netty-codec-http" % "4.1.110.Final",
+    "org.eclipse.jetty" % "jetty-http" % "12.0.12",
+    "commons-net" % "commons-net" % "3.9.0",
+    "org.apache.commons" % "commons-text" % "1.10.0",
+    "xalan" % "xalan" % "2.7.3",
+    "org.apache.httpcomponents" % "httpclient" % "4.5.14",
+    // Needed to override opencensus
+    "io.grpc" % "grpc-protobuf" % "1.59.0",
+    // Needed to override kubernetes client
+    "com.google.protobuf" % "protobuf-java" % "3.25.5"
   )
 
   val scala213 = "2.13.12"
