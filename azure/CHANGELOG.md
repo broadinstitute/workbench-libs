@@ -4,7 +4,7 @@ This file documents changes to the `workbench-azure` library, including notes on
 
 ## 0.9
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-azure" % "0.9-TRAVIS-REPLACE-ME"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-azure" % "0.9-12ee68d"`
 
 ### Dependency upgrades
 | Dependency                 | Old Version |   New Version |
