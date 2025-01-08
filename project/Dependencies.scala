@@ -1,18 +1,18 @@
 import sbt._
 
 object Dependencies {
-  val akkaV         = "2.6.20"
-  val akkaHttpV     = "10.2.10"
-  val jacksonV      = "2.17.1"
+  val akkaV         = "2.8.8"
+  val akkaHttpV     = "10.5.3"
+  val jacksonV      = "2.18.0"
   val googleV       = "2.0.0"
   val scalaLoggingV = "3.9.5"
-  val scalaTestV    = "3.2.17"
+  val scalaTestV    = "3.2.19"
 
   // TODO upgrade to stable 14.x or 15.0 once that includes a fix to https://github.com/circe/circe-yaml/issues/356
   val circeVersion = "0.15.0-M1"
   val http4sVersion = "1.0.0-M38"
   val bouncyCastleVersion = "1.78.1"
-  val openCensusV = "0.31.1"
+  val openCensusV = "0.31.1" // Note this has not been updated since 2022
 
   // avoid expoit https://nvd.nist.gov/vuln/detail/CVE-2023-1370 (see [IA-4176])
   val jsonSmartV = "2.5.0"
@@ -25,7 +25,7 @@ object Dependencies {
   val scalatest: ModuleID =    "org.scalatest"                 %% "scalatest"     % scalaTestV  % "test"
   val scalaTestScalaCheck = "org.scalatestplus" %% "scalacheck-1-16" % "3.2.14.0" % Test //Since scalatest 3.1.0, scalacheck support is moved to `scalatestplus`
   val scalaTestMockito = "org.scalatestplus" %% "mockito-3-4" % "3.2.10.0" % Test //Since scalatest 3.1.0, mockito support is moved to `scalatestplus`
-  val scalaTestSelenium =  "org.scalatestplus" %% "selenium-4-1" % "3.2.12.1" % Test //Since scalatest 3.1.0, selenium support is moved to `scalatestplus`
+  val scalaTestSelenium =  "org.scalatestplus" %% "selenium-4-2" % "3.2.13.0" % Test //Since scalatest 3.1.0, selenium support is moved to `scalatestplus`
   val awaitility = "org.awaitility" % "awaitility-scala" % "4.2.0" % Test
   val byteBuddy = "net.bytebuddy" % "byte-buddy" % "1.14.2" % Test
 
@@ -50,29 +50,29 @@ object Dependencies {
   // metrics-scala transitively pulls in io.dropwizard.metrics:metrics-core
   val metricsScala: ModuleID =      "nl.grons"              %% "metrics4-scala"    % "4.2.9"
   val metricsStatsd: ModuleID =     "com.readytalk"         %  "metrics3-statsd"  % "4.2.0"
-
-  val googleCloudBilling: ModuleID =         "com.google.apis"       % "google-api-services-cloudbilling"         % s"v1-rev20220908-$googleV"
-  val googleGenomics: ModuleID =             "com.google.apis"       % "google-api-services-genomics"             % s"v2alpha1-rev20220913-$googleV"
-  val googleStorage: ModuleID =              "com.google.apis"       % "google-api-services-storage"              % s"v1-rev20220705-$googleV"
-  val googleCloudResourceManager: ModuleID = "com.google.apis"       % "google-api-services-cloudresourcemanager" % s"v1-rev20220828-$googleV"
-  val googleAdminDirectory: ModuleID =       "com.google.apis"       % "google-api-services-admin-directory"      % s"directory_v1-rev20220919-$googleV"
-  val googleGroupsSettings: ModuleID =       "com.google.apis"       % "google-api-services-groupssettings"       % s"v1-rev20210624-$googleV"
-  val googleOAuth2: ModuleID =               "com.google.apis"       % "google-api-services-oauth2"               % s"v2-rev20200213-$googleV"
-  val googlePubSub: ModuleID =               "com.google.apis"       % "google-api-services-pubsub"               % s"v1-rev20220904-$googleV"
-  val googleServicemanagement: ModuleID =    "com.google.apis"       % "google-api-services-serviceusage"    % s"v1-rev20220907-$googleV"
-  val googleIam: ModuleID =                  "com.google.apis"       % "google-api-services-iam"                  % s"v1-rev20220825-$googleV"
-  val googleBigQuery: ModuleID =             "com.google.apis"       % "google-api-services-bigquery"             % s"v2-rev20220924-$googleV"
+  
+  val googleCloudBilling: ModuleID = "com.google.apis" % "google-api-services-cloudbilling" % s"v1-rev20220908-$googleV"
+  val googleGenomics: ModuleID = "com.google.apis" % "google-api-services-genomics" % s"v2alpha1-rev20220913-$googleV"
+  val googleStorage: ModuleID = "com.google.apis" % "google-api-services-storage" % s"v1-rev20220705-$googleV"
+  val googleCloudResourceManager: ModuleID = "com.google.apis" % "google-api-services-cloudresourcemanager" % s"v1-rev20220828-$googleV"
+  val googleAdminDirectory: ModuleID = "com.google.apis" % "google-api-services-admin-directory" % s"directory_v1-rev20220919-$googleV"
+  val googleGroupsSettings: ModuleID = "com.google.apis" % "google-api-services-groupssettings" % s"v1-rev20210624-$googleV"
+  val googleOAuth2: ModuleID = "com.google.apis" % "google-api-services-oauth2" % s"v2-rev20200213-$googleV"
+  val googlePubSub: ModuleID = "com.google.apis" % "google-api-services-pubsub" % s"v1-rev20220904-$googleV"
+  val googleServicemanagement: ModuleID = "com.google.apis" % "google-api-services-serviceusage" % s"v1-rev20220907-$googleV"
+  val googleIam: ModuleID = "com.google.apis" % "google-api-services-iam" % s"v1-rev20220825-$googleV"
+  val googleBigQuery: ModuleID = "com.google.apis" % "google-api-services-bigquery" % s"v2-rev20220924-$googleV"
   val googleGuava: ModuleID = "com.google.guava"  % "guava" % "32.1.3-jre"
   val googleRpc: ModuleID =               "io.grpc" % "grpc-core" % "1.58.0"
   val googleRpc2: ModuleID =               "io.grpc" % "grpc-core" % "1.58.0"
   val googleStorageNew: ModuleID = "com.google.cloud" % "google-cloud-storage" % "2.41.0"
   val googleStorageLocal: ModuleID = "com.google.cloud" % "google-cloud-nio" % "0.127.7" % "test"
   val googlePubsubNew: ModuleID = "com.google.cloud" % "google-cloud-pubsub" % "1.125.11"
-  val googleKms: ModuleID = "com.google.cloud" % "google-cloud-kms" % "2.33.0"
+  val googleKms: ModuleID = "com.google.cloud" % "google-cloud-kms" % "2.55.0"
   val googleComputeNew: ModuleID = "com.google.cloud" % "google-cloud-compute" % "1.40.0"
   val googleDataproc: ModuleID =    "com.google.cloud" % "google-cloud-dataproc" % "4.27.0"
   val googleContainer: ModuleID = "com.google.cloud" % "google-cloud-container" % "2.31.0"
-  val kubernetesClient: ModuleID = "io.kubernetes" % "client-java" % "19.0.0"
+  val kubernetesClient: ModuleID = "io.kubernetes" % "client-java" % "20.0.0-legacy"
   val googleBigQueryNew: ModuleID = "com.google.cloud" % "google-cloud-bigquery" % "2.34.1"
   val google2CloudBilling = "com.google.cloud" % "google-cloud-billing" % "2.30.0"
   val googleStorageTransferService: ModuleID = "com.google.cloud" % "google-cloud-storage-transfer" % "1.30.0"
@@ -95,7 +95,8 @@ object Dependencies {
   val http4sDsl = "org.http4s"      %% "http4s-dsl"          % http4sVersion
 
   val fs2Io: ModuleID = "co.fs2" %% "fs2-io" % "3.6.1"
-  val rawlsModel: ModuleID = "org.broadinstitute.dsde" %% "rawls-model" % "v0.0.258-SNAP" exclude("com.typesafe.scala-logging", "scala-logging_2.13") exclude("com.typesafe.akka", "akka-stream_2.13")
+  val rawlsModel: ModuleID = "org.broadinstitute.dsde" %% "rawls-model" % "v0.0.258-SNAP" exclude("com.typesafe.scala-logging", "scala-logging_2.13") exclude("com.typesafe.akka", "akka-stream_2.13") exclude("com.typesafe.akka", "akka-http-core_2.13") exclude("net.sourceforge.htmlunit", "htmlunit")
+  val htmlUnit: ModuleID = "org.htmlunit" % "htmlunit" % "4.7.0" // Replaces net.sourceforge.htmlunit
   val openCensusApi: ModuleID = "io.opencensus" % "opencensus-api" % openCensusV
   val openCensusImpl: ModuleID = "io.opencensus" % "opencensus-impl" % openCensusV
   val openCensusStatsPrometheus: ModuleID = "io.opencensus" % "opencensus-exporter-stats-prometheus" % openCensusV
@@ -111,7 +112,7 @@ object Dependencies {
   val azureResourceManagerCompute = "com.azure.resourcemanager" % "azure-resourcemanager-compute" % "2.32.0" exclude("net.minidev", "json-smart")
   val azureIdentity =  "com.azure" % "azure-identity" % "1.13.0"
   val azureRelay =     "com.azure.resourcemanager" % "azure-resourcemanager-relay" % "1.0.0-beta.2"
-  val azureStorageBlob =  "com.azure" % "azure-storage-blob" % "12.24.1"
+  val azureStorageBlob =  "com.azure" % "azure-storage-blob" % "12.28.1"
   val azureResourceManagerContainerService = "com.azure.resourcemanager" % "azure-resourcemanager-containerservice" % "2.32.0"
   val azureResourceManagerApplicationInsights =
     "com.azure.resourcemanager" % "azure-resourcemanager-applicationinsights" % "1.0.0"
@@ -270,7 +271,8 @@ object Dependencies {
     akkaTestkit,
     jacksonModule,
     akkaStream,
-    rawlsModel,
+    rawlsModel, // This is weird!
+    htmlUnit,
     scalaTestSelenium
   )
 

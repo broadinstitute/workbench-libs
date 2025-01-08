@@ -2,6 +2,15 @@
 
 This file documents changes to the `workbench-error-reporting` library, including notes on how to upgrade to new versions.
 
+## 0.9
+
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-error-reporting" % "0.9-TRAVIS-REPLACE-ME"`
+
+### Dependency upgrades
+| Dependency                 | Old Version |   New Version |
+|----------------------------|:-----------:|--------------:|
+| client-java                |   19.0.0    | 20.0.0-legacy |
+
 ## 0.8
 
 SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-error-reporting" % "0.8-ad61f19"`
