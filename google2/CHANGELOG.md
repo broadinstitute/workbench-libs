@@ -2,6 +2,17 @@
 
 This file documents changes to the `workbench-google2` library, including notes on how to upgrade to new versions.
 
+## 0.37
+
+SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.37-TRAVIS-REPLACE-ME"`
+
+### Dependency upgrades
+
+| Dependency                 | Old Version |   New Version |
+|----------------------------|:-----------:|--------------:|
+| client-java                |   19.0.0    | 20.0.0-legacy |
+| google-cloud-kms                         |   2.33.0    |        2.55.0 |
+
 ## 0.36
 
 SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.36-157f079"`

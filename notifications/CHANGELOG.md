@@ -4,6 +4,15 @@ This file documents changes to the `workbench-notifications` library, including 
 
 ## 0.9
 
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-notifications" % "0.9-TRAVIS-REPLACE-ME"`
+
+### Dependency upgrades
+| Dependency                 | Old Version |   New Version |
+|----------------------------|:-----------:|--------------:|
+| client-java                |   19.0.0    | 20.0.0-legacy |
+| google-cloud-kms                         |   2.33.0    |        2.55.0 |
+
+
 SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-notifications" % "0.9-5d9c477"
 
 - Removed notification for when a TDR snapshot access request is submitted
