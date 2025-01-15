@@ -197,12 +197,13 @@ object Notifications {
   })
 
   case class GroupAccessRequestNotificationV2(recipientUserId: WorkbenchUserId,
-                                            groupName: String,
-                                            replyToId: WorkbenchUserId,
-                                            requesterId: WorkbenchUserId
-                                           ) extends Notification
+                                              groupName: String,
+                                              replyToId: WorkbenchUserId,
+                                              requesterId: WorkbenchUserId
+  ) extends Notification
   val GroupAccessRequestNotificationTypeV2 = register(new NotificationType[GroupAccessRequestNotificationV2] {
-    override val format: RootJsonFormat[GroupAccessRequestNotificationV2] = jsonFormat4(GroupAccessRequestNotificationV2)
+    override val format: RootJsonFormat[GroupAccessRequestNotificationV2] =
+      jsonFormat4(GroupAccessRequestNotificationV2)
     override val description = "Group Access Requested"
   })
 
