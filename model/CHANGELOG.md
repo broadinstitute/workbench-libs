@@ -7,7 +7,7 @@ This file documents changes to the `workbench-model` library, including notes on
 * deprecates `GroupAccessRequestNotification`
 * adds `GroupAccessRequestNotificationV2` as the preferred replacement
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-model" % "0.21-TRAVIS-REPLACE-ME"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-model" % "0.21-15e2fe5"`
 
 ## 0.20
 
