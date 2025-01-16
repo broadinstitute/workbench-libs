@@ -183,6 +183,9 @@ object Notifications {
     override val description = "Aborted submission"
   })
 
+  @deprecated(message = "use GroupAccessRequestNotificationV2 instead", since = "2025-01-15")
+  // sendgrid v3 java library does not support multiple reply-tos.
+  // GroupAccessRequestNotificationV2 enforces a single reply-to.
   case class GroupAccessRequestNotification(recipientUserId: WorkbenchUserId,
                                             groupName: String,
                                             replyToIds: Set[WorkbenchUserId],
@@ -190,6 +193,17 @@ object Notifications {
   ) extends Notification
   val GroupAccessRequestNotificationType = register(new NotificationType[GroupAccessRequestNotification] {
     override val format: RootJsonFormat[GroupAccessRequestNotification] = jsonFormat4(GroupAccessRequestNotification)
+    override val description = "Group Access Requested"
+  })
+
+  case class GroupAccessRequestNotificationV2(recipientUserId: WorkbenchUserId,
+                                              groupName: String,
+                                              replyToId: WorkbenchUserId,
+                                              requesterId: WorkbenchUserId
+  ) extends Notification
+  val GroupAccessRequestNotificationTypeV2 = register(new NotificationType[GroupAccessRequestNotificationV2] {
+    override val format: RootJsonFormat[GroupAccessRequestNotificationV2] =
+      jsonFormat4(GroupAccessRequestNotificationV2)
     override val description = "Group Access Requested"
   })
 
