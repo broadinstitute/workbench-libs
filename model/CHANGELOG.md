@@ -4,8 +4,7 @@ This file documents changes to the `workbench-model` library, including notes on
 
 ## 0.21
 
-* deprecates `GroupAccessRequestNotification`
-* adds `GroupAccessRequestNotificationV2` as the preferred replacement
+No changes compared to 0.20; version was bumped erroneously
 
 SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-model" % "0.21-15e2fe5"`
 
