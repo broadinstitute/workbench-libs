@@ -213,11 +213,12 @@ object Notifications {
                                                timeCompleted: String,
                                                quotaConsumedByJob: String,
                                                quotaRemaining: String,
-                                               userDescription: String
+                                               userDescription: String,
+                                               userDataTtl: String
   ) extends UserNotification
   val TeaspoonsJobSucceededNotificationType = register(new NotificationType[TeaspoonsJobSucceededNotification] {
     override val format: RootJsonFormat[TeaspoonsJobSucceededNotification] =
-      jsonFormat8(TeaspoonsJobSucceededNotification.apply)
+      jsonFormat9(TeaspoonsJobSucceededNotification.apply)
     override val description = "Teaspoons Job Succeeded"
     override val alwaysOn = true
   })
