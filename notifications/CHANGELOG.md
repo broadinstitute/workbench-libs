@@ -7,7 +7,7 @@ This file documents changes to the `workbench-notifications` library, including 
 ### Breaking changes
 * deletes `GroupAccessRequestNotification`, which was deprecated in 0.10. Use `GroupAccessRequestNotificationV2` instead.
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-notifications" % "1.0-a611e56"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-notifications" % "1.0-TRAVIS-REPLACE-ME"`
 
 ## 0.10
 
