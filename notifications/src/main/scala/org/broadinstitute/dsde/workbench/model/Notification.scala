@@ -214,7 +214,7 @@ object Notifications {
                                                quotaConsumedByJob: String,
                                                quotaRemaining: String,
                                                userDescription: String,
-                                               userDataTtl: String
+                                               userDataTtlDays: String
   ) extends UserNotification
   val TeaspoonsJobSucceededNotificationType = register(new NotificationType[TeaspoonsJobSucceededNotification] {
     override val format: RootJsonFormat[TeaspoonsJobSucceededNotification] =
