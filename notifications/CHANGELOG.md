@@ -5,7 +5,7 @@ This file documents changes to the `workbench-notifications` library, including 
 ## 1.1
 
 * updates teaspoons success notification to also take in a userTtlDays param.  Not a breaking 
-change as Teaspoons is not in production
+change as Teaspoons is not in production at this time (01/30/2025)
 
 
 SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-notifications" % "1.1-TRAVIS-REPLACE-ME"`
