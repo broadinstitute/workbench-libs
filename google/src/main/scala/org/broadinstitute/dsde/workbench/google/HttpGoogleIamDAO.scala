@@ -44,8 +44,9 @@ import org.broadinstitute.dsde.workbench.model.google.iam.IamMemberTypes.IamMemb
 import org.broadinstitute.dsde.workbench.model.google.{iam, _}
 import org.broadinstitute.dsde.workbench.model.google.iam.{Binding, Expr, IamMemberTypes, Policy}
 
+import scala.concurrent.duration.DurationInt
 import scala.jdk.CollectionConverters._
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{blocking, ExecutionContext, Future}
 import scala.util.Try
 
 /**
@@ -297,9 +298,33 @@ class HttpGoogleIamDAO(appName: String, googleCredentialMode: GoogleCredentialMo
       .serviceAccounts()
       .keys()
       .create(s"projects/${serviceAccountProject.value}/serviceAccounts/${serviceAccountEmail.value}", request)
-    retry(when5xx, whenUsageLimited, when404, whenInvalidValueOnBucketCreation, whenNonHttpIOException) { () =>
-      executeGoogleRequest(creater)
-    } map googleKeyToWorkbenchKey
+    for {
+      key <- retry(when5xx, whenUsageLimited, when404, whenInvalidValueOnBucketCreation, whenNonHttpIOException) { () =>
+        executeGoogleRequest(creater)
+      }
+      // key creation is eventually consistent, so we need to poll until the key is available
+      _ <- retryUntilSuccessOrTimeout()(1.seconds, 5.minutes) { () =>
+        Future(
+          blocking(
+            executeGoogleRequest(
+              iam.projects().serviceAccounts().keys().get(key.getName)
+            )
+          )
+        )
+      }.recover { case regrets: Throwable =>
+        // try to clean up the key if we failed to create it
+        try
+          executeGoogleRequest(iam.projects().serviceAccounts().keys().delete(key.getName))
+        catch {
+          case e: Throwable =>
+            logger.error(s"Failed to clean up service account key ${key.getName} for ${serviceAccountEmail.value}", e)
+        }
+        throw new WorkbenchException(
+          s"Failed to create service account key for ${serviceAccountEmail.value}: ${regrets.getMessage}",
+          regrets
+        )
+      }
+    } yield googleKeyToWorkbenchKey(key)
   }
 
   override def removeServiceAccountKey(serviceAccountProject: GoogleProject,
