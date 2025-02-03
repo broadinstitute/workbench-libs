@@ -1,6 +1,6 @@
 package org.broadinstitute.dsde.workbench.google
 
-import java.io.File
+import java.io.{ByteArrayInputStream, File, StringReader}
 import java.time.Instant
 import java.time.format.DateTimeFormatter
 import java.util.Collections
@@ -34,6 +34,7 @@ import com.google.api.services.iam.v1.model.{
   SetIamPolicyRequest => ServiceAccountSetIamPolicyRequest
 }
 import com.google.api.services.iam.v1.{Iam, IamScopes}
+import com.google.auth.oauth2.ServiceAccountCredentials
 import org.broadinstitute.dsde.workbench.google.GoogleCredentialModes._
 import org.broadinstitute.dsde.workbench.google.GoogleUtilities.RetryPredicates._
 import org.broadinstitute.dsde.workbench.google.HttpGoogleIamDAO._
@@ -302,29 +303,29 @@ class HttpGoogleIamDAO(appName: String, googleCredentialMode: GoogleCredentialMo
       key <- retry(when5xx, whenUsageLimited, when404, whenInvalidValueOnBucketCreation, whenNonHttpIOException) { () =>
         executeGoogleRequest(creater)
       }
+      convertedKey = googleKeyToWorkbenchKey(key)
+      saCreds = ServiceAccountCredentials
+        .fromStream(new ByteArrayInputStream(convertedKey.privateKeyData.decode.get.getBytes))
+        .createScoped(scopes.asJava)
       // key creation is eventually consistent, so we need to poll until the key is available
+      // there are 3 ways to poll: 1) get the key, 2) list the keys, 3) get an access token using the key
+      // we choose to get an access token using the key because it is believed to be the most reliable
       _ <- retryUntilSuccessOrTimeout()(1.seconds, 5.minutes) { () =>
-        Future(
-          blocking(
-            executeGoogleRequest(
-              iam.projects().serviceAccounts().keys().get(key.getName)
-            )
-          )
-        )
+        Future(blocking(saCreds.refreshAccessToken()))
       }.recover { case regrets: Throwable =>
         // try to clean up the key if we failed to create it
         try
           executeGoogleRequest(iam.projects().serviceAccounts().keys().delete(key.getName))
         catch {
           case e: Throwable =>
-            logger.error(s"Failed to clean up service account key ${key.getName} for ${serviceAccountEmail.value}", e)
+            logger.error(s"Failed to clean up service account key ${key.getName} ", e)
         }
         throw new WorkbenchException(
           s"Failed to create service account key for ${serviceAccountEmail.value}: ${regrets.getMessage}",
           regrets
         )
       }
-    } yield googleKeyToWorkbenchKey(key)
+    } yield convertedKey
   }
 
   override def removeServiceAccountKey(serviceAccountProject: GoogleProject,
