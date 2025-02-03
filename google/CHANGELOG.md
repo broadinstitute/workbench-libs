@@ -13,6 +13,8 @@ Changed:
 | client-java                |   19.0.0    | 20.0.0-legacy |
 | google-cloud-kms                         |   2.33.0    |        2.55.0 |
 
+* poll for service account key to be created
+
 ## 0.33
 
 SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.33-fa46370"`
