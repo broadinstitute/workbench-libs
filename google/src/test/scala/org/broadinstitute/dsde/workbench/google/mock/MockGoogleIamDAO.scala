@@ -125,8 +125,7 @@ class MockGoogleIamDAO extends GoogleIamDAO {
     }
 
   override def createServiceAccountKey(serviceAccountProject: GoogleProject,
-                                       serviceAccountEmail: WorkbenchEmail,
-                                       waitForCreation: Boolean = false
+                                       serviceAccountEmail: WorkbenchEmail
   ): Future[ServiceAccountKey] = {
     val keyId = ServiceAccountKeyId(UUID.randomUUID().toString)
     val key = ServiceAccountKey(
