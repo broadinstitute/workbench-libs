@@ -335,10 +335,11 @@ class HttpGoogleIamDAO(appName: String, googleCredentialMode: GoogleCredentialMo
       }
       convertedKey = googleKeyToWorkbenchKey(key)
       // if this request specified we should wait for the key to be available, poll for it
-      _ <- if (waitForCreation)
-        pollForKeyCreation(key, convertedKey)
-      else
-        Future.successful(())
+      _ <-
+        if (waitForCreation)
+          pollForKeyCreation(key, convertedKey)
+        else
+          Future.successful(())
     } yield convertedKey
   }
 
