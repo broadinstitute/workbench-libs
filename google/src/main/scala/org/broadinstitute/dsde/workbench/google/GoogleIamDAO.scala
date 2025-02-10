@@ -233,7 +233,8 @@ trait GoogleIamDAO {
    * @return instance of ServiceAccountKey
    */
   def createServiceAccountKey(serviceAccountProject: GoogleProject,
-                              serviceAccountEmail: WorkbenchEmail
+                              serviceAccountEmail: WorkbenchEmail,
+                              waitForCreation: Boolean
   ): Future[ServiceAccountKey]
 
   /**

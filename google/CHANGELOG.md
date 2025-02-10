@@ -2,6 +2,12 @@
 
 This file documents changes to the `workbench-google` library, including notes on how to upgrade to new versions.
 
+## 0.35
+
+SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.35-TRAVIS-REPLACE-ME"`
+
+* polling for service account key creation is now optional and default false. This reverts, by default, to the 0.33
+    behavior but allows callers to specify they want to poll.
 
 ## 0.34
 

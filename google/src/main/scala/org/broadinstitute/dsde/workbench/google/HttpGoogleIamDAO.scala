@@ -289,42 +289,56 @@ class HttpGoogleIamDAO(appName: String, googleCredentialMode: GoogleCredentialMo
     )
 
   override def createServiceAccountKey(serviceAccountProject: GoogleProject,
-                                       serviceAccountEmail: WorkbenchEmail
+                                       serviceAccountEmail: WorkbenchEmail,
+                                       waitForCreation: Boolean
   ): Future[ServiceAccountKey] = {
     val request = new CreateServiceAccountKeyRequest()
       .setPrivateKeyType("TYPE_GOOGLE_CREDENTIALS_FILE")
       .setKeyAlgorithm("KEY_ALG_RSA_2048")
-    val creater = iam
+    val creator: Iam#Projects#ServiceAccounts#Keys#Create = iam
       .projects()
       .serviceAccounts()
       .keys()
       .create(s"projects/${serviceAccountProject.value}/serviceAccounts/${serviceAccountEmail.value}", request)
-    for {
-      key <- retry(when5xx, whenUsageLimited, when404, whenInvalidValueOnBucketCreation, whenNonHttpIOException) { () =>
-        executeGoogleRequest(creater)
-      }
-      convertedKey = googleKeyToWorkbenchKey(key)
-      saCreds = ServiceAccountCredentials
+
+    // function to poll for existence of a newly-created service account key
+    def pollForKeyCreation(key: GoogleServiceAccountKey, convertedKey: ServiceAccountKey): Future[Unit] = {
+      val saCreds = ServiceAccountCredentials
         .fromStream(new ByteArrayInputStream(convertedKey.privateKeyData.decode.get.getBytes))
         .createScoped(scopes.asJava)
-      // key creation is eventually consistent, so we need to poll until the key is available
-      // there are 3 ways to poll: 1) get the key, 2) list the keys, 3) get an access token using the key
-      // we choose to get an access token using the key because it is believed to be the most reliable
-      _ <- retryUntilSuccessOrTimeout()(1.seconds, 5.minutes) { () =>
-        Future(blocking(saCreds.refreshAccessToken()))
-      }.recover { case regrets: Throwable =>
-        // try to clean up the key if we failed to create it
-        try
-          executeGoogleRequest(iam.projects().serviceAccounts().keys().delete(key.getName))
-        catch {
-          case e: Throwable =>
-            logger.error(s"Failed to clean up service account key ${key.getName} ", e)
+
+      for {
+        // key creation is eventually consistent, so we need to poll until the key is available
+        // there are 3 ways to poll: 1) get the key, 2) list the keys, 3) get an access token using the key
+        // we choose to get an access token using the key because it is believed to be the most reliable
+        _ <- retryUntilSuccessOrTimeout()(1.seconds, 5.minutes) { () =>
+          Future(blocking(saCreds.refreshAccessToken()))
+        }.recover { case regrets: Throwable =>
+          // try to clean up the key if we failed to create it
+          try
+            executeGoogleRequest(iam.projects().serviceAccounts().keys().delete(key.getName))
+          catch {
+            case e: Throwable =>
+              logger.error(s"Failed to clean up service account key ${key.getName} ", e)
+          }
+          throw new WorkbenchException(
+            s"Failed to create service account key for ${serviceAccountEmail.value}: ${regrets.getMessage}",
+            regrets
+          )
         }
-        throw new WorkbenchException(
-          s"Failed to create service account key for ${serviceAccountEmail.value}: ${regrets.getMessage}",
-          regrets
-        )
+      } yield ()
+    }
+
+    for {
+      key <- retry(when5xx, whenUsageLimited, when404, whenInvalidValueOnBucketCreation, whenNonHttpIOException) { () =>
+        executeGoogleRequest(creator)
       }
+      convertedKey = googleKeyToWorkbenchKey(key)
+      // if this request specified we should wait for the key to be available, poll for it
+      _ <- if (waitForCreation)
+        pollForKeyCreation(key, convertedKey)
+      else
+        Future.successful(())
     } yield convertedKey
   }
 
