@@ -295,7 +295,7 @@ class HttpGoogleIamDAO(appName: String, googleCredentialMode: GoogleCredentialMo
     val request = new CreateServiceAccountKeyRequest()
       .setPrivateKeyType("TYPE_GOOGLE_CREDENTIALS_FILE")
       .setKeyAlgorithm("KEY_ALG_RSA_2048")
-    val creator: Iam#Projects#ServiceAccounts#Keys#Create = iam
+    val creator = iam
       .projects()
       .serviceAccounts()
       .keys()
