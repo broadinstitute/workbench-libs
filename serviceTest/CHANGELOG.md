@@ -4,7 +4,7 @@ This file documents changes to the `workbench-service-test` library, including n
 
 ## 5.1  
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "5.1-TRAVIS-REPLACE-ME"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "5.1-12ee68d"`
 
 ### Dependency upgrades
 - Overwrote some `rawls-model` dependencies to fix the following security findings:
@@ -27,9 +27,6 @@ SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test"
 | akkaHttp                                 |   10.2.10   |        10.5.3 |
 | jackson                                  |   2.17.1    |        2.18.0 |
 | scalatest                                |   3.2.17    |        3.2.19 |
-
-### Non-breaking changes
-- Updated `rawls-model` to include new `getBucketUsageV2` API
 
 ## 5.0
 
