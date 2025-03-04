@@ -31,7 +31,6 @@ SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test"
 ### Non-breaking change
 - Updates `rawls-model` to include new `getBucketUsageV2` API
 - Updates `rawls-model` to include `id` in `RawlsBillingProjectResponse` Response
-- Updates `rawls-model` to include new `getBillingProjectById` API
 
 ## 5.0
 
