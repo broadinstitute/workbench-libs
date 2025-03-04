@@ -4,7 +4,7 @@ This file documents changes to the `workbench-service-test` library, including n
 
 ## 5.1  
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "5.1-340cb2b"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "5.1-TRAVIS-REPLACE-ME"`
 
 ### Dependency upgrades
 - Overwrote some `rawls-model` dependencies to fix the following security findings:
@@ -30,6 +30,8 @@ SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test"
 
 ### Non-breaking change
 - Updates `rawls-model` to include new `getBucketUsageV2` API
+- Updates `rawls-model` to include `id` in `RawlsBillingProjectResponse` Response
+- Updates `rawls-model` to include new `getBillingProjectById` API
 
 ## 5.0
 
