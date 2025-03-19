@@ -2,6 +2,16 @@
 
 This file documents changes to the `workbench-util2` library, including notes on how to upgrade to new versions.
 
+## 1.0
+
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util2" % "1.0-TRAVIS-REPLACE-ME"`
+
+### Dependency upgrades
+
+| Dependency                 | Old Version | New Version |
+|----------------------------|:-----------:|------------:|
+| client-java                |   20.0.0-legacy    |      23.0.0 |
+
 ## 0.9
 
 SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util2" % "0.9-d2b30c4"`
