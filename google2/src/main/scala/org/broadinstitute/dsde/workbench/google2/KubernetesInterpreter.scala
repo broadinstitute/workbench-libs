@@ -133,19 +133,6 @@ class KubernetesInterpreter[F[_]](
           .listNamespacedDeployment(namespace.name.value)
           .pretty("true")
           .execute()
-//        api.listNamespacedDeployment(namespace.name.value,
-//                                     "true",
-//                                     null,
-//                                     null,
-//                                     null,
-//                                     null,
-//                                     null,
-//                                     null,
-//                                     null,
-//                                     null,
-//                                     null,
-//                                     null
-//        )
       )
     deployments <- withLogging(
       call,
@@ -166,19 +153,6 @@ class KubernetesInterpreter[F[_]](
             .listNamespacedPod(namespace.name.value)
             .pretty("true")
             .execute()
-//          client.listNamespacedPod(namespace.name.value,
-//                                   "true",
-//                                   null,
-//                                   null,
-//                                   null,
-//                                   null,
-//                                   null,
-//                                   null,
-//                                   null,
-//                                   null,
-//                                   null,
-//                                   null
-//          )
         )
 
       response <- withLogging(
@@ -244,20 +218,6 @@ class KubernetesInterpreter[F[_]](
             .listNamespacedService(namespace.name.value)
             .pretty("true")
             .execute()
-//          client
-//            .listNamespacedService(namespace.name.value,
-//                                   "true",
-//                                   null,
-//                                   null,
-//                                   null,
-//                                   null,
-//                                   null,
-//                                   null,
-//                                   null,
-//                                   null,
-//                                   null,
-//                                   null
-//            )
         ).map(Option(_))
           .handleErrorWith {
             case e: io.kubernetes.client.openapi.ApiException if e.getCode == 404 => F.pure(None)
@@ -296,19 +256,6 @@ class KubernetesInterpreter[F[_]](
             .listNamespacedPersistentVolumeClaim(namespace.name.value)
             .pretty("true")
             .execute()
-//          client.listNamespacedPersistentVolumeClaim(namespace.name.value,
-//                                                     "true",
-//                                                     null,
-//                                                     null,
-//                                                     null,
-//                                                     null,
-//                                                     null,
-//                                                     null,
-//                                                     null,
-//                                                     null,
-//                                                     null,
-//                                                     null
-//          )
         ).map(Option(_))
           .handleErrorWith {
             case e: io.kubernetes.client.openapi.ApiException if e.getCode == 404 => F.pure(None)
@@ -409,15 +356,6 @@ class KubernetesInterpreter[F[_]](
               .deleteNamespace(namespace.name.value)
               .pretty("true")
               .execute()
-//            client.deleteNamespace(
-//              namespace.name.value,
-//              "true",
-//              null,
-//              null,
-//              null,
-//              null,
-//              null
-//            )
           ).void
             .recoverWith {
               case e: com.google.gson.JsonSyntaxException
@@ -482,13 +420,6 @@ class KubernetesInterpreter[F[_]](
               .createNamespacedServiceAccount(namespace.name.value, serviceAccount.getJavaSerialization)
               .pretty("true")
               .execute()
-//                   client.createNamespacedServiceAccount(namespace.name.value,
-//                                                         serviceAccount.getJavaSerialization,
-//                                                         "true",
-//                                                         null,
-//                                                         null,
-//                                                         null
-//                   )
           ),
           whenStatusCode(409)
         )
@@ -538,13 +469,6 @@ class KubernetesInterpreter[F[_]](
               .createNamespacedRoleBinding(namespace.name.value, roleBinding.getJavaSerialization)
               .pretty("true")
               .execute()
-//                   client.createNamespacedRoleBinding(namespace.name.value,
-//                                                      roleBinding.getJavaSerialization,
-//                                                      "true",
-//                                                      null,
-//                                                      null,
-//                                                      null
-//                   )
           ),
           whenStatusCode(409)
         )
