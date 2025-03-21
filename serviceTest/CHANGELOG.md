@@ -19,10 +19,8 @@ SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test"
 
 | Dependency                               | Old Version |   New Version |
 |------------------------------------------|:-----------:|--------------:|
-| client-java                              |   19.0.0    | 20.0.0-legacy |
-| google-cloud-kms                         |   2.33.0    |        2.55.0 |
 | net.sourceforge.htmlunit -> org.htmlunit |   2.70.0    |         4.7.0 |
-| selenium-4-1 -> selenium-4-2             |  3.2.12.1   |      3.2.13.0 |
+| selenium-4-1 -> selenium-4-21            |  3.2.12.1   |      3.2.19.0 |
 | akka                                     |   2.6.20    |         2.8.8 |
 | akkaHttp                                 |   10.2.10   |        10.5.3 |
 | jackson                                  |   2.17.1    |        2.18.0 |

@@ -8,9 +8,10 @@ SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0
 
 ### Dependency upgrades
 
-| Dependency                 | Old Version | New Version |
-|----------------------------|:-----------:|------------:|
-| client-java                |   20.0.0-legacy    |      23.0.0 |
+| Dependency                 |  Old Version  | New Version |
+|----------------------------|:-------------:|------------:|
+| client-java                | 20.0.0-legacy |      23.0.0 |
+| google-cloud-storage       |    2.41.0     |      2.50.0 |
 
 ## 0.37
 
