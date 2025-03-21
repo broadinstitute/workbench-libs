@@ -8,8 +8,7 @@ SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test"
 
 ### Breaking Changes
 
-- Removed `getBucketUsage` API
-- Removed `BucketUsageResponse` response
+- Removed `BucketUsageResponse` response from `rawls-model` dependency
 
 ### Dependency upgrades
 - updated `rawls-model` dependency to `v0.0.327-SNAP`
