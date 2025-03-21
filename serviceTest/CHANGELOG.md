@@ -2,6 +2,17 @@
 
 This file documents changes to the `workbench-service-test` library, including notes on how to upgrade to new versions.
 
+## 6.0
+
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "6.0-TRAVIS-REPLACE-ME"`
+
+### Breaking Changes
+
+- Removed `BucketUsageResponse` response from `rawls-model` dependency
+
+### Dependency upgrades
+- updated `rawls-model` dependency to `v0.0.327-SNAP`
+
 ## 5.1  
 
 SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "5.1-bfa3066"`
