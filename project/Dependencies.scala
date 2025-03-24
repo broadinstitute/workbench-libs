@@ -25,7 +25,7 @@ object Dependencies {
   val scalatest: ModuleID =    "org.scalatest"                 %% "scalatest"     % scalaTestV  % "test"
   val scalaTestScalaCheck = "org.scalatestplus" %% "scalacheck-1-16" % "3.2.14.0" % Test //Since scalatest 3.1.0, scalacheck support is moved to `scalatestplus`
   val scalaTestMockito = "org.scalatestplus" %% "mockito-3-4" % "3.2.10.0" % Test //Since scalatest 3.1.0, mockito support is moved to `scalatestplus`
-  val scalaTestSelenium =  "org.scalatestplus" %% "selenium-4-2" % "3.2.13.0" % Test //Since scalatest 3.1.0, selenium support is moved to `scalatestplus`
+  val scalaTestSelenium =  "org.scalatestplus" %% "selenium-4-21" % "3.2.19.0" % Test //Since scalatest 3.1.0, selenium support is moved to `scalatestplus`
   val awaitility = "org.awaitility" % "awaitility-scala" % "4.2.0" % Test
   val byteBuddy = "net.bytebuddy" % "byte-buddy" % "1.14.2" % Test
 
@@ -72,7 +72,7 @@ object Dependencies {
   val googleComputeNew: ModuleID = "com.google.cloud" % "google-cloud-compute" % "1.40.0"
   val googleDataproc: ModuleID =    "com.google.cloud" % "google-cloud-dataproc" % "4.27.0"
   val googleContainer: ModuleID = "com.google.cloud" % "google-cloud-container" % "2.31.0"
-  val kubernetesClient: ModuleID = "io.kubernetes" % "client-java" % "20.0.0-legacy"
+  val kubernetesClient: ModuleID = "io.kubernetes" % "client-java" % "23.0.0"
   val googleBigQueryNew: ModuleID = "com.google.cloud" % "google-cloud-bigquery" % "2.34.1"
   val google2CloudBilling = "com.google.cloud" % "google-cloud-billing" % "2.30.0"
   val googleStorageTransferService: ModuleID = "com.google.cloud" % "google-cloud-storage-transfer" % "1.30.0"

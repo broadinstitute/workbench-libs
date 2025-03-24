@@ -2,6 +2,7 @@ package org.broadinstitute.dsde.workbench.google2
 
 import collection.JavaConverters._
 import io.kubernetes.client.openapi.models.{
+  RbacV1Subject,
   V1Container,
   V1ContainerPort,
   V1Namespace,
@@ -16,8 +17,7 @@ import io.kubernetes.client.openapi.models.{
   V1Service,
   V1ServiceAccount,
   V1ServicePort,
-  V1ServiceSpec,
-  V1Subject
+  V1ServiceSpec
 }
 import org.apache.commons.codec.binary.Base64
 import org.broadinstitute.dsde.workbench.google2.KubernetesSerializableName._
@@ -362,10 +362,10 @@ object JavaSerializableInstances {
           .rules(role.rules.map(_.getJavaSerialization).asJava)
     }
 
-  implicit val kubernetesSubjectSerializable: JavaSerializable[KubernetesSubject, V1Subject] =
-    new JavaSerializable[KubernetesSubject, V1Subject] {
-      def getJavaSerialization(subject: KubernetesSubject): V1Subject =
-        new V1Subject()
+  implicit val kubernetesSubjectSerializable: JavaSerializable[KubernetesSubject, RbacV1Subject] =
+    new JavaSerializable[KubernetesSubject, RbacV1Subject] {
+      def getJavaSerialization(subject: KubernetesSubject): RbacV1Subject =
+        new RbacV1Subject()
           .kind(subject.kind.toString)
           .name(subject.kindName.value)
           .namespace(subject.namespaceName.value)

@@ -2,6 +2,16 @@
 
 This file documents changes to the `workbench-service-test` library, including notes on how to upgrade to new versions.
 
+## 6.1
+
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "6.1-TRAVIS-REPLACE-ME"`
+
+### Dependency upgrades
+
+| Dependency                    | Old Version |   New Version |
+|-------------------------------|:-----------:|--------------:|
+| selenium-4-2 -> selenium-4-21 |  3.2.13.0   |      3.2.19.0 |
+
 ## 6.0
 
 SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "6.0-70c7d82"`
@@ -28,16 +38,14 @@ SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test"
   - https://github.com/broadinstitute/workbench-libs/security/dependabot/6
   - https://github.com/broadinstitute/workbench-libs/security/dependabot/1
 
-| Dependency                               | Old Version |   New Version |
-|------------------------------------------|:-----------:|--------------:|
-| client-java                              |   19.0.0    | 20.0.0-legacy |
-| google-cloud-kms                         |   2.33.0    |        2.55.0 |
-| net.sourceforge.htmlunit -> org.htmlunit |   2.70.0    |         4.7.0 |
-| selenium-4-1 -> selenium-4-2             |  3.2.12.1   |      3.2.13.0 |
-| akka                                     |   2.6.20    |         2.8.8 |
-| akkaHttp                                 |   10.2.10   |        10.5.3 |
-| jackson                                  |   2.17.1    |        2.18.0 |
-| scalatest                                |   3.2.17    |        3.2.19 |
+| Dependency                               | Old Version | New Version |
+|------------------------------------------|:-----------:|------------:|
+| net.sourceforge.htmlunit -> org.htmlunit |   2.70.0    |       4.7.0 |
+| selenium-4-1 -> selenium-4-21            |  3.2.12.1   |    3.2.13.0 |
+| akka                                     |   2.6.20    |       2.8.8 |
+| akkaHttp                                 |   10.2.10   |      10.5.3 |
+| jackson                                  |   2.17.1    |      2.18.0 |
+| scalatest                                |   3.2.17    |      3.2.19 |
 
 ### Non-breaking change
 - Updates `rawls-model` to include new `getBucketUsageV2` API
