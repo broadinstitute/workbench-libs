@@ -71,7 +71,10 @@ class KubernetesInterpreter[F[_]](
       call =
         recoverF(
           F.blocking(
-            client.createNamespacedPod(namespace.name.value, pod.getJavaSerialization, "true", null, null, null)
+            client
+              .createNamespacedPod(namespace.name.value, pod.getJavaSerialization)
+              .pretty("true")
+              .execute()
           ),
           whenStatusCode(409)
         )
@@ -95,16 +98,10 @@ class KubernetesInterpreter[F[_]](
       api = new AppsV1Api(client.getApiClient)
       jsonStr = s"[{\"op\":\"replace\",\"path\":\"/spec/replicas\",\"value\":${replicaCount}}]"
       patchCall = new PatchCallFunc {
-        override def getCall: Call = api.patchNamespacedDeploymentCall(deployment.value,
-                                                                       namespace.name.value,
-                                                                       new V1Patch(jsonStr),
-                                                                       "true",
-                                                                       null,
-                                                                       null,
-                                                                       null, // field-manager is optional
-                                                                       null,
-                                                                       null
-        )
+        override def getCall: Call = api
+          .patchNamespacedDeployment(deployment.value, namespace.name.value, new V1Patch(jsonStr))
+          .pretty("true")
+          .buildCall(null)
       }
 
       call =
@@ -132,19 +129,10 @@ class KubernetesInterpreter[F[_]](
 
     call =
       F.blocking(
-        api.listNamespacedDeployment(namespace.name.value,
-                                     "true",
-                                     null,
-                                     null,
-                                     null,
-                                     null,
-                                     null,
-                                     null,
-                                     null,
-                                     null,
-                                     null,
-                                     null
-        )
+        api
+          .listNamespacedDeployment(namespace.name.value)
+          .pretty("true")
+          .execute()
       )
     deployments <- withLogging(
       call,
@@ -161,19 +149,10 @@ class KubernetesInterpreter[F[_]](
       client <- getClient(clusterId, new CoreV1Api(_))
       call =
         F.blocking(
-          client.listNamespacedPod(namespace.name.value,
-                                   "true",
-                                   null,
-                                   null,
-                                   null,
-                                   null,
-                                   null,
-                                   null,
-                                   null,
-                                   null,
-                                   null,
-                                   null
-          )
+          client
+            .listNamespacedPod(namespace.name.value)
+            .pretty("true")
+            .execute()
         )
 
       response <- withLogging(
@@ -210,7 +189,10 @@ class KubernetesInterpreter[F[_]](
       call =
         recoverF(
           F.blocking(
-            client.createNamespacedService(namespace.name.value, service.getJavaSerialization, "true", null, null, null)
+            client
+              .createNamespacedService(namespace.name.value, service.getJavaSerialization)
+              .pretty("true")
+              .execute()
           ),
           whenStatusCode(409)
         )
@@ -233,19 +215,9 @@ class KubernetesInterpreter[F[_]](
       call =
         F.blocking(
           client
-            .listNamespacedService(namespace.name.value,
-                                   "true",
-                                   null,
-                                   null,
-                                   null,
-                                   null,
-                                   null,
-                                   null,
-                                   null,
-                                   null,
-                                   null,
-                                   null
-            )
+            .listNamespacedService(namespace.name.value)
+            .pretty("true")
+            .execute()
         ).map(Option(_))
           .handleErrorWith {
             case e: io.kubernetes.client.openapi.ApiException if e.getCode == 404 => F.pure(None)
@@ -280,19 +252,10 @@ class KubernetesInterpreter[F[_]](
       client <- getClient(clusterId, new CoreV1Api(_))
       call =
         F.blocking(
-          client.listNamespacedPersistentVolumeClaim(namespace.name.value,
-                                                     "true",
-                                                     null,
-                                                     null,
-                                                     null,
-                                                     null,
-                                                     null,
-                                                     null,
-                                                     null,
-                                                     null,
-                                                     null,
-                                                     null
-          )
+          client
+            .listNamespacedPersistentVolumeClaim(namespace.name.value)
+            .pretty("true")
+            .execute()
         ).map(Option(_))
           .handleErrorWith {
             case e: io.kubernetes.client.openapi.ApiException if e.getCode == 404 => F.pure(None)
@@ -313,7 +276,10 @@ class KubernetesInterpreter[F[_]](
       client <- getClient(clusterId, new CoreV1Api(_))
       call =
         F.blocking(
-          client.deletePersistentVolume(pv.asString, "true", null, null, null, null, null)
+          client
+            .deletePersistentVolume(pv.asString)
+            .pretty("true")
+            .execute()
         ).map(Option(_))
           .handleErrorWith {
             case e: io.kubernetes.client.openapi.ApiException if e.getCode == 404 => F.pure(None)
@@ -335,7 +301,10 @@ class KubernetesInterpreter[F[_]](
       call =
         recoverF(
           F.blocking(
-            client.createNamespace(namespace.getJavaSerialization, "true", null, null, null)
+            client
+              .createNamespace(namespace.getJavaSerialization)
+              .pretty("true")
+              .execute()
           ),
           whenStatusCode(409)
         )
@@ -355,7 +324,9 @@ class KubernetesInterpreter[F[_]](
       call =
         recoverF(
           F.blocking(
-            client.listNamespace("true", false, null, null, null, null, null, null, null, null, false)
+            client.listNamespace
+              .pretty("true")
+              .execute()
           ),
           whenStatusCode(409)
         )
@@ -381,15 +352,10 @@ class KubernetesInterpreter[F[_]](
       call =
         recoverF(
           F.blocking(
-            client.deleteNamespace(
-              namespace.name.value,
-              "true",
-              null,
-              null,
-              null,
-              null,
-              null
-            )
+            client
+              .deleteNamespace(namespace.name.value)
+              .pretty("true")
+              .execute()
           ).void
             .recoverWith {
               case e: com.google.gson.JsonSyntaxException
@@ -424,7 +390,10 @@ class KubernetesInterpreter[F[_]](
       call =
         recoverF(
           F.blocking(
-            client.createNamespacedSecret(namespace.name.value, secret.getJavaSerialization, "true", null, null, null)
+            client
+              .createNamespacedSecret(namespace.name.value, secret.getJavaSerialization)
+              .pretty("true")
+              .execute()
           ),
           whenStatusCode(409)
         )
@@ -445,16 +414,14 @@ class KubernetesInterpreter[F[_]](
       traceId <- ev.ask
       client <- getClient(clusterId, new CoreV1Api(_))
       call =
-        recoverF(F.blocking(
-                   client.createNamespacedServiceAccount(namespace.name.value,
-                                                         serviceAccount.getJavaSerialization,
-                                                         "true",
-                                                         null,
-                                                         null,
-                                                         null
-                   )
-                 ),
-                 whenStatusCode(409)
+        recoverF(
+          F.blocking(
+            client
+              .createNamespacedServiceAccount(namespace.name.value, serviceAccount.getJavaSerialization)
+              .pretty("true")
+              .execute()
+          ),
+          whenStatusCode(409)
         )
       _ <- withLogging(
         call,
@@ -472,7 +439,10 @@ class KubernetesInterpreter[F[_]](
       call =
         recoverF(
           F.blocking(
-            client.createNamespacedRole(namespace.name.value, role.getJavaSerialization, "true", null, null, null)
+            client
+              .createNamespacedRole(namespace.name.value, role.getJavaSerialization)
+              .pretty("true")
+              .execute()
           ),
           whenStatusCode(409)
         )
@@ -493,16 +463,14 @@ class KubernetesInterpreter[F[_]](
       traceId <- ev.ask
       client <- getClient(clusterId, new RbacAuthorizationV1Api(_))
       call =
-        recoverF(F.blocking(
-                   client.createNamespacedRoleBinding(namespace.name.value,
-                                                      roleBinding.getJavaSerialization,
-                                                      "true",
-                                                      null,
-                                                      null,
-                                                      null
-                   )
-                 ),
-                 whenStatusCode(409)
+        recoverF(
+          F.blocking(
+            client
+              .createNamespacedRoleBinding(namespace.name.value, roleBinding.getJavaSerialization)
+              .pretty("true")
+              .execute()
+          ),
+          whenStatusCode(409)
         )
       _ <- withLogging(
         call,

@@ -117,7 +117,7 @@ trait WebBrowserSpec extends WebBrowserUtil with ExceptionHandling with LazyLogg
     logPref.enable(LogType.DRIVER, Level.ALL)
     logPref.enable(LogType.SERVER, Level.ALL)
 
-    options.setCapability(CapabilityType.LOGGING_PREFS, logPref)
+    options.setCapability(ChromeOptions.LOGGING_PREFS, logPref)
     options
   }
 
