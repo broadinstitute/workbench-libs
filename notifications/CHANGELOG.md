@@ -8,7 +8,7 @@ This file documents changes to the `workbench-notifications` library, including 
 change as Teaspoons is not in production at this time (01/30/2025)
 
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-notifications" % "1.1-TRAVIS-REPLACE-ME"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-notifications" % "1.1-ad2b686"`
 
 ## 1.0
 
