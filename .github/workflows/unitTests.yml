@@ -32,7 +32,7 @@ jobs:
       - name: Setup Scala
         uses: coursier/setup-action@v1
         with:
-          java-version: "adopt@1.17"
+          java-version: "17"
 
       - name: Compile and check scalafmt
         run: |
