@@ -9,8 +9,9 @@ on:
 
 jobs:
   test:
-    runs-on: Ubuntu-20.04
+    runs-on: Ubuntu-latest
     steps:
+      - uses: sbt/setup-sbt@v1
       - uses: actions/checkout@v2
 
 #      - name: Auth with Google Cloud Platform
@@ -31,7 +32,7 @@ jobs:
       - name: Setup Scala
         uses: coursier/setup-action@v1
         with:
-          java-version: "adopt@1.17"
+          java-version: "17"
 
       - name: Compile and check scalafmt
         run: |
