@@ -21,6 +21,7 @@ jobs:
         contents: 'read'
         id-token: 'write'
     steps:
+      - uses: sbt/setup-sbt@v1
       - uses: actions/checkout@v4
 
       - name: Auth to GCP
