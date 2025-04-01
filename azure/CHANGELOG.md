@@ -8,10 +8,12 @@ SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-azure" % "1.0
 
 ### Dependency upgrades
 
-| Dependency                 | Old Version | New Version |
-|----------------------------|:-----------:|------------:|
-| client-java                |   20.0.0-legacy    |      23.0.0 |
-| json-smart   |    2.5.0    |       2.5.2 |
+| Dependency |  Old Version  |      New Version |
+|------------|:-------------:|-----------------:|
+| client-java | 20.0.0-legacy |           23.0.0 |
+| json-smart |     2.5.0     |            2.5.2 |
+| byte-buddy |    1.14.2     |          1.15.11 |
+| mockito  | 3-4 3.2.10.0  |     5-12 3.2.19.0 |
 
 ## 0.9
 

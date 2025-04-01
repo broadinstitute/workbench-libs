@@ -4,7 +4,7 @@ This file documents changes to the `workbench-util` library, including notes on 
 
 ## 0.10
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util" % "0.10-ad2b686"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util" % "0.10-TRAVIS-REPLACE-ME"`
 
 ### Dependency upgrades
 | Dependency    | Old Version | New Version |
@@ -14,6 +14,8 @@ SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util" % "0.10
 | scalatest     |   3.2.16    |      3.2.17 |
 | scala       |   2.13.11   |     2.13.12 |
 | jose4j      |    0.9.3    |       0.9.4 |
+| mockito  | 3-4 3.2.10.0  |     5-12 3.2.19.0 |
+
 
 ## 0.9
 - Added increased retry interval backoff
