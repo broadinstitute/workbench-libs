@@ -9,7 +9,7 @@ on:
 
 jobs:
   test:
-    runs-on: Ubuntu-20.04
+    runs-on: Ubuntu-latest
     steps:
       - uses: actions/checkout@v2
 

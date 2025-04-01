@@ -16,7 +16,7 @@ env:
 
 jobs:
   red-ring-test:
-    runs-on: Ubuntu-20.04
+    runs-on: Ubuntu-latest
     permissions:
         contents: 'read'
         id-token: 'write'
