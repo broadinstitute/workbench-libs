@@ -4,13 +4,14 @@ This file documents changes to the `workbench-azure` library, including notes on
 
 ## 1.0
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-azure" % "1.0-ad2b686"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-azure" % "1.0-TRAVIS-REPLACE-ME"`
 
 ### Dependency upgrades
 
 | Dependency                 | Old Version | New Version |
 |----------------------------|:-----------:|------------:|
 | client-java                |   20.0.0-legacy    |      23.0.0 |
+| json-smart   |    2.5.0    |       2.5.2 |
 
 ## 0.9
 

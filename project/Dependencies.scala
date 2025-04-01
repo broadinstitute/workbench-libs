@@ -15,7 +15,7 @@ object Dependencies {
   val openCensusV = "0.31.1" // Note this has not been updated since 2022
 
   // avoid expoit https://nvd.nist.gov/vuln/detail/CVE-2023-1370 (see [IA-4176])
-  val jsonSmartV = "2.5.0"
+  val jsonSmartV = "2.5.2"
 
   def excludeGuavaJDK5(m: ModuleID): ModuleID = m.exclude("com.google.guava", "guava-jdk5")
 
