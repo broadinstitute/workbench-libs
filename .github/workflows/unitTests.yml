@@ -50,7 +50,7 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
 
       - name: Setup Cache
-        uses: coursier/cache-action@v5
+        uses: coursier/cache-action@v6
 
       - name: Cache resources
         run: |
