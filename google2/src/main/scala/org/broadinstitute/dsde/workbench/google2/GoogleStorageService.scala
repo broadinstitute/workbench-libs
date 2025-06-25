@@ -10,7 +10,7 @@ import com.google.auth.Credentials
 import com.google.auth.oauth2.{AccessToken, GoogleCredentials, ServiceAccountCredentials}
 import com.google.cloud.storage.BucketInfo.LifecycleRule
 import com.google.cloud.storage.BucketInfo.SoftDeletePolicy
-import com.google.cloud.storage.{Acl, Blob, BlobId, BucketInfo, Cors, StorageClass, StorageOptions}
+import com.google.cloud.storage.{Acl, Blob, BlobId, BucketInfo, Cors, NotificationInfo, StorageClass, StorageOptions}
 import com.google.cloud.{Identity, Policy, Role}
 import fs2.{Pipe, Stream}
 import com.google.cloud.storage.Storage.{
@@ -68,6 +68,7 @@ trait GoogleStorageService[F[_]] {
 
   /**
    * not memory safe. Use listObjectsWithPrefix if you're worried about OOM
+   *
    * @param traceId uuid for tracing a unique call flow in logging
    */
   def unsafeListObjectsWithPrefix(
@@ -145,6 +146,7 @@ trait GoogleStorageService[F[_]] {
 
   /**
    * not memory safe. Use getObject if you're worried about OOM
+   *
    * @param traceId uuid for tracing a unique call flow in logging
    */
   @deprecated("Use unsafeGetObjectBody instead", "0.5")
@@ -157,6 +159,7 @@ trait GoogleStorageService[F[_]] {
 
   /**
    * not memory safe. Use getObject if you're worried about OOM
+   *
    * @param traceId uuid for tracing a unique call flow in logging
    */
   def unsafeGetBlobBody(bucketName: GcsBucketName,
@@ -189,6 +192,7 @@ trait GoogleStorageService[F[_]] {
 
   /**
    * return com.google.cloud.storage.Blob, which gives you metadata and user defined metadata etc
+   *
    * @param traceId uuid for tracing a unique call flow in logging
    */
   def getBlob(bucketName: GcsBucketName,
@@ -201,14 +205,15 @@ trait GoogleStorageService[F[_]] {
 
   /**
    * return URL, signed by the provided `signingCredentials`, allowing access to the blob
-   * @param bucketName Bucket the blob exists in
-   * @param blobName Name of the blob
+   *
+   * @param bucketName         Bucket the blob exists in
+   * @param blobName           Name of the blob
    * @param signingCredentials ServiceAccountSigner to sign the URL with
-   * @param traceId uuid for tracing a unique call flow in logging
-   * @param retryConfig a RetryConfig for the request sent to GCS
-   * @param expirationTime Number of `expirationTimeUnits`s for the signed URL to be active for. Defaults to 1 hour
+   * @param traceId            uuid for tracing a unique call flow in logging
+   * @param retryConfig        a RetryConfig for the request sent to GCS
+   * @param expirationTime     Number of `expirationTimeUnits`s for the signed URL to be active for. Defaults to 1 hour
    * @param expirationTimeUnit The unit giving meaning to `expirationTime`. Defaults to 1 hour
-   * @param queryParams A String->String map of query params to include in the signed url
+   * @param queryParams        A String->String map of query params to include in the signed url
    * @return Signed URL
    */
   def getSignedBlobUrl(bucketName: GcsBucketName,
@@ -265,7 +270,7 @@ trait GoogleStorageService[F[_]] {
 
   /**
    * @param traceId uuid for tracing a unique call flow in logging
-   * Acl is deprecated. Use setIamPolicy if possible
+   *                Acl is deprecated. Use setIamPolicy if possible
    */
   @deprecated("Deprecated in favor of insertBucket", "0.5")
   def createBucket(billingProject: GoogleProject,
@@ -292,9 +297,9 @@ trait GoogleStorageService[F[_]] {
 
   /**
    * @param googleProject The name of the Google project to create the bucket in
-   * @param traceId uuid for tracing a unique call flow in logging
-   * Supports adding bucket labels during creation
-   * Acl is deprecated. Use setIamPolicy if possible
+   * @param traceId       uuid for tracing a unique call flow in logging
+   *                      Supports adding bucket labels during creation
+   *                      Acl is deprecated. Use setIamPolicy if possible
    */
   def insertBucket(googleProject: GoogleProject,
                    bucketName: GcsBucketName,
@@ -313,8 +318,8 @@ trait GoogleStorageService[F[_]] {
 
   /**
    * @param googleProject The name of the Google project to create the bucket in
-   * @param traceId uuid for tracing a unique call flow in logging
-   * Return {@code true} if bucket was deleted, {@code false} if it was not found
+   * @param traceId       uuid for tracing a unique call flow in logging
+   *                      Return {@code true} if bucket was deleted, {@code false} if it was not found
    */
   def deleteBucket(googleProject: GoogleProject,
                    bucketName: GcsBucketName,
@@ -394,6 +399,12 @@ trait GoogleStorageService[F[_]] {
         .asStorageRoles
       _ <- overrideIamPolicy(bucketName, newRoles, traceId, retryConfig, bucketSourceOptions)
     } yield ()
+
+  def createNotificationIfNotExists(bucketName: GcsBucketName,
+                                    notification: NotificationInfo,
+                                    traceId: Option[TraceId] = None,
+                                    retryConfig: RetryConfig = standardGoogleRetryConfig
+  ): Stream[F, Unit]
 }
 
 object GoogleStorageService {

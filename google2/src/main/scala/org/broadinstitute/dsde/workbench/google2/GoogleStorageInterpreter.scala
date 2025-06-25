@@ -30,11 +30,12 @@ import com.google.cloud.storage.{
   BucketInfo,
   Cors,
   HttpMethod,
+  NotificationInfo,
   Storage,
   StorageClass,
   StorageOptions
 }
-import com.google.cloud.{Identity, Policy, Role}
+import com.google.cloud.{storage, Identity, Policy, Role}
 import fs2.{text, Pipe, Stream}
 import org.typelevel.log4cats.StructuredLogger
 import io.circe.Decoder
@@ -49,6 +50,7 @@ import org.broadinstitute.dsde.workbench.util2.{withLogging, RemoveObjectResult}
 import java.net.URL
 import java.util.concurrent.TimeUnit
 import java.{lang, util}
+import scala.collection.mutable
 import scala.jdk.CollectionConverters._
 
 private[google2] class GoogleStorageInterpreter[F[_]](
@@ -660,6 +662,33 @@ private[google2] class GoogleStorageInterpreter[F[_]](
       s"com.google.cloud.storage.Storage.update($bucketInfo, $bucketTargetOptions)"
     ).void
   }
+
+  override def createNotificationIfNotExists(bucketName: GcsBucketName,
+                                             notification: NotificationInfo,
+                                             traceId: Option[TraceId] = None,
+                                             retryConfig: RetryConfig = standardGoogleRetryConfig
+  ): Stream[F, Unit] =
+    retryF(retryConfig)(
+      for {
+        existing <- blockingF(Async[F].delay(db.listNotifications(bucketName.value).asScala))
+        _ <- Async[F].unlessA(notificationExists(notification, existing.toSeq)) {
+          blockingF(Async[F].delay(db.createNotification(bucketName.value, notification)))
+        }
+      } yield (),
+      traceId,
+      s"com.google.cloud.storage.Storage.createNotification($bucketName, $notification)"
+    ).void
+
+  private def notificationExists(notification: NotificationInfo,
+                                 existingNotifications: Seq[NotificationInfo]
+  ): Boolean =
+    existingNotifications.exists { n =>
+      n.getTopic == notification.getTopic &&
+      n.getEventTypes.asScala == notification.getEventTypes.asScala &&
+      n.getCustomAttributes.asScala == notification.getCustomAttributes.asScala &&
+      n.getPayloadFormat == notification.getPayloadFormat &&
+      n.getObjectNamePrefix == notification.getObjectNamePrefix
+    }
 
   private def listBlobs(db: Storage,
                         bucketName: GcsBucketName,
