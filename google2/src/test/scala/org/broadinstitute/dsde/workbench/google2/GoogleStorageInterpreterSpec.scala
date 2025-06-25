@@ -5,11 +5,16 @@ import cats.effect.std.Semaphore
 import cats.effect.unsafe.implicits.global
 import cats.syntax.all._
 import com.google.auth.oauth2.ServiceAccountCredentials
+import com.google.cloud.storage.NotificationInfo
+import com.google.cloud.storage.NotificationInfo.PayloadFormat
+import com.google.cloud.storage.Storage
 import com.google.cloud.storage.contrib.nio.testing.LocalStorageHelper
 import fs2.Stream
 import org.broadinstitute.dsde.workbench.google2.Generators._
 import org.broadinstitute.dsde.workbench.google2.GoogleStorageInterpreterSpec._
 import org.broadinstitute.dsde.workbench.util2.WorkbenchTestSuite
+import org.mockito.Mockito._
+import org.mockito.ArgumentMatchers._
 import org.scalacheck.Gen
 import org.scalatest.flatspec.AsyncFlatSpec
 import org.scalatest.matchers.should.Matchers
@@ -249,6 +254,56 @@ class GoogleStorageInterpreterSpec extends AsyncFlatSpec with Matchers with Work
       )
       allObjectsWithPrefix <- localStorage.listObjectsWithPrefix(bucketName, prefix, false, 1).compile.toList
     } yield allObjectsWithPrefix.map(_.value) should contain theSameElementsAs List(blobNameWithPrefix.value)
+  }
+
+  "createNotificationIfNotExists" should "create notification when it doesn't exist and not create duplicate when it exists" in ioAssertion {
+    val bucketName = genGcsBucketName.sample.get
+    val topicName = "test-topic"
+
+    // Mock the Notification object instead of trying to create a real instance
+    val mockNotification = mock(classOf[com.google.cloud.storage.Notification])
+
+    // Set up behavior for the notification mock
+    when(mockNotification.getTopic).thenReturn(topicName)
+    when(mockNotification.getEventTypes).thenReturn(java.util.Arrays.asList(NotificationInfo.EventType.OBJECT_FINALIZE))
+    when(mockNotification.getPayloadFormat).thenReturn(NotificationInfo.PayloadFormat.JSON_API_V1)
+    when(mockNotification.getCustomAttributes).thenReturn(java.util.Collections.emptyMap[String, String]())
+    when(mockNotification.getObjectNamePrefix).thenReturn(null)
+
+    // Create a mock Storage instance
+    val mockStorage = mock(classOf[Storage])
+
+    // Set up the mock to return empty list on first call, then a list with our notification
+    val emptyList = java.util.Collections.emptyList[com.google.cloud.storage.Notification]()
+    val listWithNotification = java.util.Arrays.asList(mockNotification)
+
+    // First call returns empty list, second call returns list with notification
+    when(mockStorage.listNotifications(bucketName.value))
+      .thenReturn(emptyList)
+      .thenReturn(listWithNotification)
+
+    // Set up the createNotification mock
+    when(mockStorage.createNotification(bucketName.value, mockNotification))
+      .thenReturn(mockNotification)
+
+    val interpreter = new GoogleStorageInterpreter[IO](
+      mockStorage,
+      Some(semaphore)
+    )
+
+    for {
+      // First call - should create a notification since none exists
+      _ <- interpreter.createNotificationIfNotExists(bucketName, mockNotification).compile.drain
+
+      // Second call - should not create a notification since it already exists
+      _ <- interpreter.createNotificationIfNotExists(bucketName, mockNotification).compile.drain
+
+      // Verify createNotification was called exactly once
+      _ <- IO {
+        verify(mockStorage, times(1)).createNotification(bucketName.value, mockNotification)
+        verify(mockStorage, times(2)).listNotifications(bucketName.value)
+      }
+    } yield succeed
   }
 }
 

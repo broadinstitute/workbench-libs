@@ -4,7 +4,12 @@ This file documents changes to the `workbench-google2` library, including notes 
 
 ## 0.40
 
-SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.40-5382beb"`
+SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.40-TRAVIS-REPLACE-ME"`
+
+### Changes
+
+- GoogleStorageService:
+  - Added `createNotificationIfNotExists`.
 
 ### Dependency upgrades
 
