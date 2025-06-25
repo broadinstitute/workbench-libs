@@ -6,16 +6,8 @@ import cats.data.NonEmptyList
 import cats.effect.IO
 import com.google.auth.oauth2.ServiceAccountCredentials
 import com.google.auth.Credentials
-import com.google.cloud.storage.Storage.{
-  BlobGetOption,
-  BlobListOption,
-  BlobSourceOption,
-  BlobTargetOption,
-  BlobWriteOption,
-  BucketSourceOption,
-  BucketTargetOption
-}
-import com.google.cloud.storage.{Acl, Blob, BlobId, BucketInfo, Cors, Storage, StorageClass}
+import com.google.cloud.storage.Storage.{BlobGetOption, BlobListOption, BlobSourceOption, BlobTargetOption, BlobWriteOption, BucketSourceOption, BucketTargetOption}
+import com.google.cloud.storage.{Acl, Blob, BlobId, BucketInfo, Cors, NotificationInfo, Storage, StorageClass}
 import com.google.cloud.{Identity, Policy}
 import fs2.{Pipe, Stream}
 import org.broadinstitute.dsde.workbench.RetryConfig
@@ -240,6 +232,8 @@ class BaseFakeGoogleStorage extends GoogleStorageService[IO] {
                                   bucketSourceOptions: List[BucketSourceOption]
   ): Stream[IO, List[IamPermission]] =
     localStorage.testIamPermissions(bucketName, permissions, traceId, retryConfig, bucketSourceOptions)
+
+  override def createNotification(bucketName: GcsBucketName, notification: NotificationInfo, traceId: Option[TraceId], retryConfig: RetryConfig): Stream[IO, Unit] = Stream.empty
 }
 
 object FakeGoogleStorageInterpreter extends BaseFakeGoogleStorage
