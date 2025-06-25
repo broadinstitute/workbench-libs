@@ -256,7 +256,7 @@ class GoogleStorageInterpreterSpec extends AsyncFlatSpec with Matchers with Work
     } yield allObjectsWithPrefix.map(_.value) should contain theSameElementsAs List(blobNameWithPrefix.value)
   }
 
-  "createNotification" should "create notification when it doesn't exist and not create duplicate when it exists" in ioAssertion {
+  "createNotificationIfNotExists" should "create notification when it doesn't exist and not create duplicate when it exists" in ioAssertion {
     val bucketName = genGcsBucketName.sample.get
     val topicName = "test-topic"
 
@@ -293,10 +293,10 @@ class GoogleStorageInterpreterSpec extends AsyncFlatSpec with Matchers with Work
 
     for {
       // First call - should create a notification since none exists
-      _ <- interpreter.createNotification(bucketName, mockNotification).compile.drain
+      _ <- interpreter.createNotificationIfNotExists(bucketName, mockNotification).compile.drain
 
       // Second call - should not create a notification since it already exists
-      _ <- interpreter.createNotification(bucketName, mockNotification).compile.drain
+      _ <- interpreter.createNotificationIfNotExists(bucketName, mockNotification).compile.drain
 
       // Verify createNotification was called exactly once
       _ <- IO {

@@ -9,7 +9,7 @@ SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0
 ### Changes
 
 - GoogleStorageService:
-  - Added `createNotification`.
+  - Added `createNotificationIfNotExists`.
 
 ### Dependency upgrades
 
