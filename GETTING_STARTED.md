@@ -32,7 +32,7 @@ gcloud auth login <you>@broadinstitute.org
 1. Redo Bootstrapping steps if making further changes
 
 ## Sharing Branch Artifacts via Google Artifact Registry
-1. configure Google Artifact Registry credentials
+1. configure Google Artifact Registry credentials. You may need to contact DevOps to ensure \<you\>@broadinstitute.org has permissions to publish to Google Artifact Registry.
 ```
 export GOOGLE_CLOUD_PROJECT=dsp-artifact-registry
 export GAR_LOCATION=us-central1
