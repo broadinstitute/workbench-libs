@@ -9,6 +9,7 @@ jobs:
     runs-on: Ubuntu-latest
     permissions:
       id-token: write
+      contents: write # Required for the "Push changes" step below
     steps:
       - uses: sbt/setup-sbt@v1
       - uses: actions/checkout@v2
