@@ -2,20 +2,22 @@
 
 Many services rely on workbench-libs so it's important to be aware of breaking changes. See [CONTRIBUTING.md](CONTRIBUTING.md).
 
-During development, you can make changes to workbench-libs and use them immediately in other services without waiting for CI builds. You don't even have to publish to Artifactory (though you can if you want to share work-in-progress).
+During development, you can make changes to workbench-libs and use them immediately in other services without waiting for CI builds. You don't even have to publish to Google Artifact Registry (though you can if you want to share work-in-progress).
 
-Before starting, set artifactory credentials in your environment:
+Before starting, set Google Artifact Registry credentials in your environment:
 
 ```
-export ARTIFACTORY_USERNAME=dsdejenkins
-export ARTIFACTORY_PASSWORD=$(docker run -v $HOME:/root --rm broadinstitute/dsde-toolbox:dev vault read -field=password secret/dsp/accts/artifactory/dsdejenkins)
+export GOOGLE_CLOUD_PROJECT=dsp-artifact-registry
+export GAR_LOCATION=us-central1
+export GAR_REPOSITORY_ID=libs-snapshot-standard
+gcloud auth login <you>@broadinstitute.org
 ```
 
 ## Bootstrapping
 
 1. Check [CONTRIBUTING.md](CONTRIBUTING.md) to decide whether or not you need a major or minor version bump and update `Settings.scala` if so
 1. `sbt +publishLocal`, or `sbt "project <project_name>" +publishLocal` (Note: **`publishLocal`**)
-1. Search output for a line like `published workbench-service-test_2.12 to https://broadinstitute.jfrog.io/broadinstitute/libs-release-local;build.timestamp=1517520351/org/broadinstitute/dsde/workbench/workbench-service-test_2.12/0.1-99285a4-SNAP/workbench-service-test_2.12-0.1-99285a4-SNAP.jar` and copy the `0.1-99285a4-SNAP` part
+1. Search output for a line like `published workbench-service-test_2.12 to artifactregistry://us-central1-maven.pkg.dev/dsp-artifact-registry/libs-snapshot-standard/org/broadinstitute/dsde/workbench/workbench-service-test_2.12/0.1-99285a4-SNAP/workbench-service-test_2.12-0.1-99285a4-SNAP.jar` and copy the `0.1-99285a4-SNAP` part
 1. Update versions in dependent projects as needed
 
 ## Development
@@ -29,15 +31,17 @@ export ARTIFACTORY_PASSWORD=$(docker run -v $HOME:/root --rm broadinstitute/dsde
 1. Commit changes
 1. Redo Bootstrapping steps if making further changes
 
-## Sharing Branch Artifacts via Artifactory
-1. export artifactory username and password as environment variables
+## Sharing Branch Artifacts via Google Artifact Registry
+1. configure Google Artifact Registry credentials. You may need to contact DevOps to ensure \<you\>@broadinstitute.org has permissions to publish to Google Artifact Registry.
 ```
-ARTIFACTORY_USERNAME=dsdejenkins 
-ARTIFACTORY_PASSWORD=$(docker run -e VAULT_TOKEN=$VAULT_TOKEN broadinstitute/dsde-toolbox vault read -field=password secret/dsp/accts/artifactory/dsdejenkins) 
+export GOOGLE_CLOUD_PROJECT=dsp-artifact-registry
+export GAR_LOCATION=us-central1
+export GAR_REPOSITORY_ID=libs-snapshot-standard
+gcloud auth login <you>@broadinstitute.org
 ```
 1. Commit changes to branch (push optional)
 1. `sbt +publish`, or `sbt "project <project_name>" +publish`
-1. Search output for a line like `published workbench-service-test_2.12 to https://broadinstitute.jfrog.io/broadinstitute/libs-release-local;build.timestamp=1517520351/org/broadinstitute/dsde/workbench/workbench-service-test_2.12/0.1-99285a4-SNAP/workbench-service-test_2.12-0.1-99285a4-SNAP.jar` and copy the `0.1-99285a4-SNAP` part
+1. Search output for a line like `published workbench-service-test_2.12 to artifactregistry://us-central1-maven.pkg.dev/dsp-artifact-registry/libs-snapshot-standard/org/broadinstitute/dsde/workbench/workbench-service-test_2.12/0.1-99285a4-SNAP/workbench-service-test_2.12-0.1-99285a4-SNAP.jar` and copy the `0.1-99285a4-SNAP` part
 1. Share version # with all your friends
 
 ## Sharing Artifacts with the World
@@ -54,7 +58,7 @@ Artifact versions are based on a stated version (`major`.`minor`), the git commi
 
 It’s important to use the non-SNAP version of workbench-libs that Travis publishes upon merging to develop. If you use a SNAP version as a dependency when you merge your code into develop, it’s possible that you’ll be missing code that has since been merged to workbench-libs by another developer. You may still see some SNAPs lingering around, those are probably OK at the moment because there used to be very little contention in the workbench-libs repo, but we really should be avoiding SNAPs from now on.
 
-When publishing branch builds to Artifactory (`sbt publish`), code _must_ be committed (to a branch) to avoid clobbering artifacts using the hash from `develop`.
+When publishing branch builds to Google Artifact Registry (`sbt publish`), code _must_ be committed (to a branch) to avoid clobbering artifacts using the hash from `develop`.
 
 When publishing for local use (`sbt publishLocal`), artifacts are simply dropped into your Ivy cache (`~/.ivy2`) so the only foot you can shoot is your own. As long as you use `-Dproject.isSnapshot=true` to make a `-SNAP`-versioned artifact, you can safely experiment with changes prior to your first branch commit.
 
