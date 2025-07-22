@@ -6,4 +6,6 @@ addSbtPlugin("ch.epfl.scala" % "sbt-scalafix" % "0.13.0")
 
 addSbtPlugin("net.virtual-void" % "sbt-dependency-graph" % "0.9.2")
 
+addSbtPlugin("org.latestbit" % "sbt-gcs-plugin" % "1.14.0")
+
 addDependencyTreePlugin
