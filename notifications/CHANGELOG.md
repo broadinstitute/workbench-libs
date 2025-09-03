@@ -2,6 +2,14 @@
 
 This file documents changes to the `workbench-notifications` library, including notes on how to upgrade to new versions.
 
+## 2.0
+
+### Breaking changes
+* deletes `AzurePreviewActivationNotification`
+* deletes `AzurePreviewActivationNotificationType`
+
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-notifications" % "2.0-TRAVIS-REPLACE-ME"`
+
 ## 1.1
 
 * updates teaspoons success notification to also take in a userTtlDays param.  Not a breaking 
