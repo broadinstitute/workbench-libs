@@ -81,14 +81,6 @@ object Notifications {
     override val alwaysOn = true
   })
 
-  case class AzurePreviewActivationNotification(recipientUserId: WorkbenchUserId) extends UserNotification
-  val AzurePreviewActivationNotificationType = register(new NotificationType[AzurePreviewActivationNotification] {
-    override val format: RootJsonFormat[AzurePreviewActivationNotification] =
-      jsonFormat1(AzurePreviewActivationNotification.apply)
-    override val description = "Azure Preview Account Activation"
-    override val alwaysOn = true
-  })
-
   case class WorkspaceAddedNotification(recipientUserId: WorkbenchUserId,
                                         accessLevel: String,
                                         workspaceName: WorkspaceName,
