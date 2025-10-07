@@ -69,8 +69,8 @@ object Settings {
   lazy val commonDependencyOverrides = Seq(
     "org.apache.commons" % "commons-compress" % "1.26.0",
     // Needed to override org.broadinstitute.dsde:rawls-model_2.13
-    "io.netty" % "netty-handler" % "4.1.110.Final",
-    "io.netty" % "netty-codec-http" % "4.1.110.Final",
+    "io.netty" % "netty-handler" % "4.1.125.Final",
+    "io.netty" % "netty-codec-http" % "4.1.125.Final",
     "org.eclipse.jetty" % "jetty-http" % "12.0.12",
     "commons-net" % "commons-net" % "3.9.0",
     "org.apache.commons" % "commons-text" % "1.10.0",
