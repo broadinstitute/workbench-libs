@@ -110,7 +110,7 @@ object Dependencies {
   val swaggerUi = "org.webjars" % "swagger-ui" % "5.26.2"
 
   val azureResourceManagerCompute = "com.azure.resourcemanager" % "azure-resourcemanager-compute" % "2.32.0" exclude("net.minidev", "json-smart")
-  val azureIdentity =  "com.azure" % "azure-identity" % "1.13.0"
+  val azureIdentity =  "com.azure" % "azure-identity" % "1.18.0"
   val azureRelay =     "com.azure.resourcemanager" % "azure-resourcemanager-relay" % "1.0.0-beta.2"
   val azureStorageBlob =  "com.azure" % "azure-storage-blob" % "12.28.1"
   val azureResourceManagerContainerService = "com.azure.resourcemanager" % "azure-resourcemanager-containerservice" % "2.32.0"
