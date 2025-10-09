@@ -6,7 +6,7 @@ This file documents changes to the `workbench-model` library, including notes on
 
 No changes compared to 0.20; version was bumped erroneously
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-model" % "0.21-TRAVIS-REPLACE-ME"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-model" % "0.21-dc1d534"`
 
 ## 0.20
 
