@@ -2,6 +2,16 @@
 
 This file documents changes to the `workbench-oauth2` library, including notes on how to upgrade to new versions.
 
+## 0.10
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-oauth2" % "0.9-dc1d534"`
+
+Changed:
+- http4s blaze client is deprecated, migrated to http4s ember client
+
+| Dependency | Old Version |   New Version |
+|------------|:-----------:|--------------:|
+| http4s     |  1.0.0-M38  | 0.23.33 |
+
 ## 0.9
 SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-oauth2" % "0.9-dc1d534"`
 

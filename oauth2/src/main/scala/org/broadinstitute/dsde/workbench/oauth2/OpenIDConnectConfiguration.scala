@@ -4,7 +4,7 @@ import cats.effect.Async
 import cats.syntax.all._
 import io.circe.Decoder
 import org.http4s.Uri
-import org.http4s.blaze.client._
+import org.http4s.ember.client._
 import org.http4s.circe.CirceEntityDecoder._
 
 /**
@@ -73,7 +73,7 @@ object OpenIDConnectConfiguration {
   // Grabs the authorize and token endpoints from the authority metadata JSON
   private[oauth2] def getProviderMetadata[F[_]: Async](providerMetadataUri: Uri): F[OpenIDProviderMetadata] =
     for {
-      resp <- BlazeClientBuilder[F].resource.use { client =>
+      resp <- EmberClientBuilder[F].resource.use { client =>
         client.expectOr[OpenIDProviderMetadata](providerMetadataUri)(onError =>
           Async[F].raiseError(
             new RuntimeException(s"Error reading OIDC configuration endpoint: ${onError.status.reason}")
