@@ -4,13 +4,14 @@ This file documents changes to the `workbench-util2` library, including notes on
 
 ## 1.0
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util2" % "1.0-dc1d534"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util2" % "1.0-TRAVIS-REPLACE-ME"`
 
 ### Dependency upgrades
 
 | Dependency                 | Old Version | New Version |
 |----------------------------|:-----------:|------------:|
 | client-java                |   20.0.0-legacy    |      23.0.0 |
+| http4s     |  1.0.0-M38  | 0.23.33 |
 
 ## 0.9
 

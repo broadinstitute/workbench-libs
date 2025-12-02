@@ -4,7 +4,7 @@ This file documents changes to the `workbench-metrics` library, including notes 
 
 ## 0.8
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util" % "0.8-dc1d534"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util" % "0.8-TRAVIS-REPLACE-ME"`
 
 ### Dependency upgrades
 | Dependency   | Old Version | New Version |
@@ -15,6 +15,8 @@ SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util" % "0.8-
 | sbt-scalafix       |   0.11.0    |      0.11.1 |
 | jose4j      |    0.9.3    |       0.9.4 |
 | mockito  | 3-4 3.2.10.0  |     5-12 3.2.19.0 |
+| http4s     |  1.0.0-M38  | 0.23.33 |
+
 
 ## 0.7
 
