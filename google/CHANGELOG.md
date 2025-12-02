@@ -4,9 +4,14 @@ This file documents changes to the `workbench-google` library, including notes o
 
 ## 0.35
 
-SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.35-dc1d534"`
+SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google" % "0.35-TRAVIS-REPLACE-ME"`
 
 * disables polling for service account key creation. This reverts to the 0.33 behavior.
+
+### Dependency upgrades
+| Dependency                 | Old Version |   New Version |
+|----------------------------|:-----------:|--------------:|
+| http4s     |  1.0.0-M38  | 0.23.33 |
 
 ## 0.34
 

@@ -18,6 +18,8 @@ SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0
 |----------------------------|:-------------:|------------:|
 | client-java                | 20.0.0-legacy |      23.0.0 |
 | mockito  | 3-4 3.2.10.0  |     5-12 3.2.19.0 |
+| http4s     |  1.0.0-M38  | 0.23.33 |
+
 
 ## 0.37
 

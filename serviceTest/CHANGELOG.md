@@ -4,7 +4,7 @@ This file documents changes to the `workbench-service-test` library, including n
 
 ## 6.1
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "6.1-dc1d534"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test" % "6.1-TRAVIS-REPLACE-ME"`
 
 ### Dependency upgrades
 
@@ -12,6 +12,7 @@ SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-service-test"
 |-------------------------------|:--------------:|--------------:|
 | selenium-4-2 -> selenium-4-21 |    3.2.13.0    |      3.2.19.0 |
 | rawls-model                   | v0.0.327-SNAP  | v0.0.537-SNAP |
+| http4s     |  1.0.0-M38  | 0.23.33 |
 
 ## 6.0
 

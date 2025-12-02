@@ -4,13 +4,13 @@ This file documents changes to the `workbench-openTelemetry` library, including 
 
 ## 0.9
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-opentelemetry" % "0.9-dc1d534"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-opentelemetry" % "0.9-TRAVIS-REPLACE-ME"`
 
 ### Dependency upgrades
-Changed:
 | Dependency                 | Old Version |   New Version |
 |----------------------------|:-----------:|--------------:|
 | client-java                |   19.0.0    | 20.0.0-legacy |
+| http4s     |  1.0.0-M38  | 0.23.33 |
 
 ## 0.8
 
