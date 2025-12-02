@@ -73,7 +73,7 @@ object OpenIDConnectConfiguration {
   // Grabs the authorize and token endpoints from the authority metadata JSON
   private[oauth2] def getProviderMetadata[F[_]: Async](providerMetadataUri: Uri): F[OpenIDProviderMetadata] =
     for {
-      resp <- EmberClientBuilder[F].resource.use { client =>
+      resp <- EmberClientBuilder.default[F].build.use { client =>
         client.expectOr[OpenIDProviderMetadata](providerMetadataUri)(onError =>
           Async[F].raiseError(
             new RuntimeException(s"Error reading OIDC configuration endpoint: ${onError.status.reason}")
