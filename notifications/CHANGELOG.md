@@ -8,7 +8,7 @@ This file documents changes to the `workbench-notifications` library, including 
 * deletes `AzurePreviewActivationNotification`
 * deletes `AzurePreviewActivationNotificationType`
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-notifications" % "2.0-dc1d534"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-notifications" % "2.0-TRAVIS-REPLACE-ME"`
 
 ## 1.1
 
