@@ -237,7 +237,8 @@ object Notifications {
                                                    previousQuotaLimit: String,
                                                    newQuotaLimit: String,
                                                    quotaConsumedByUser: String,
-                                                   quotaAvailable: String) extends UserNotification
+                                                   quotaAvailable: String
+  ) extends UserNotification
   val TeaspoonsUserQuotaChangedNotificationType = register(new NotificationType[TeaspoonsUserQuotaChangedNotification] {
     override val format: RootJsonFormat[TeaspoonsUserQuotaChangedNotification] =
       jsonFormat6(TeaspoonsUserQuotaChangedNotification.apply)
