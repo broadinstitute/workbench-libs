@@ -232,6 +232,20 @@ object Notifications {
     override val alwaysOn = true
   })
 
+  case class TeaspoonsUserQuotaChangedNotification(recipientUserId: WorkbenchUserId,
+                                                   pipelineDisplayName: String,
+                                                   previousQuotaLimit: String,
+                                                   newQuotaLimit: String,
+                                                   quotaConsumedByUser: String,
+                                                   quotaAvailable: String
+  ) extends UserNotification
+  val TeaspoonsUserQuotaChangedNotificationType = register(new NotificationType[TeaspoonsUserQuotaChangedNotification] {
+    override val format: RootJsonFormat[TeaspoonsUserQuotaChangedNotification] =
+      jsonFormat6(TeaspoonsUserQuotaChangedNotification.apply)
+    override val description = "Teaspoons User Quota Changed"
+    override val alwaysOn = true
+  })
+
   // IMPORTANT that this comes after all the calls to register
   val allNotificationTypes: Map[String, NotificationType[_ <: Notification]] = allNotificationTypesBuilder.result()
 
