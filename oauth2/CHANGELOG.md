@@ -3,13 +3,13 @@
 This file documents changes to the `workbench-oauth2` library, including notes on how to upgrade to new versions.
 
 ## 0.9
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-oauth2" % "0.9-dc1d534"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-oauth2" % "0.9-TRAVIS-REPLACE-ME"`
 
 Changed:
 | Dependency                 | Old Version |   New Version |
 |----------------------------|:-----------:|--------------:|
 | client-java                |   19.0.0    | 20.0.0-legacy |
-| swagger-ui                 |   5.17.14   | 5.26.2        |
+| swagger-ui                 |   5.17.14   | 5.32.1        |
 
 ## 0.8
 SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-oauth2" % "0.8-3e0cf25"`
