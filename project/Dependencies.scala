@@ -107,7 +107,7 @@ object Dependencies {
   val sealerate: ModuleID = "ca.mrvisser" %% "sealerate" % "0.0.6"
   val scalaCache = "com.github.cb372" %% "scalacache-caffeine" % "1.0.0-M6"
 
-  val swaggerUi = "org.webjars" % "swagger-ui" % "5.32.1"
+  val swaggerUi = "org.webjars" % "swagger-ui" % "5.32.6"
 
   val azureResourceManagerCompute = "com.azure.resourcemanager" % "azure-resourcemanager-compute" % "2.32.0" exclude("net.minidev", "json-smart")
   val azureIdentity =  "com.azure" % "azure-identity" % "1.18.0"
