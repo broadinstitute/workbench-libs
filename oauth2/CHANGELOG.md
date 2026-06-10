@@ -2,6 +2,21 @@
 
 This file documents changes to the `workbench-oauth2` library, including notes on how to upgrade to new versions.
 
+## 0.10
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-oauth2" % "0.10-TRAVIS-REPLACE-ME"`
+
+### Breaking changes
+- `OpenIDConnectConfiguration.apply`, `getOpenIdProvider`, and `getProviderMetadata` now require a `LoggerFactory[F]` implicit.
+  This is needed because `http4s-ember-client` (replacing `http4s-blaze-client`, which was not published past `1.0.0-M39`) requires it.
+  Callers must have a `LoggerFactory[F]` in scope, e.g. via `org.typelevel.log4cats.slf4j.Slf4jFactory.create[F]`.
+
+### Dependency upgrades
+| Dependency           | Old Version  | New Version  |
+|----------------------|:------------:|-------------:|
+| http4s               | 1.0.0-M38    | 1.0.0-M45    |
+| http4s-blaze-client  | 1.0.0-M38    | removed      |
+| http4s-ember-client  | —            | 1.0.0-M45    |
+
 ## 0.9
 SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-oauth2" % "0.9-3a18911"`
 

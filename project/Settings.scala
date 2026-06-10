@@ -128,7 +128,7 @@ object Settings {
   val google2Settings = commonSettings ++ List(
     name := "workbench-google2",
     libraryDependencies ++= google2Dependencies,
-    version := createVersion("0.40")
+    version := createVersion("0.41")
   ) ++ publishSettings
 
   val azureSettings = commonSettings ++ List(
@@ -164,7 +164,7 @@ object Settings {
   val oauth2Settings = commonSettings ++ List(
     name := "workbench-oauth2",
     libraryDependencies ++= oauth2Dependencies,
-    version := createVersion("0.9")
+    version := createVersion("0.10")
   ) ++ publishSettings
 
   val rootSettings = commonSettings ++ noPublishSettings ++ noTestSettings
