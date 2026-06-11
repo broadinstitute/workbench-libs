@@ -9,7 +9,7 @@ import org.broadinstitute.dsde.workbench.model.TraceId
 import org.broadinstitute.dsde.workbench.model.google.{GcsBucketName, GoogleProject}
 import org.http4s.client.Client
 import org.http4s.client.middleware.{Logger => Http4sLogger, Retry, RetryPolicy}
-import org.typelevel.log4cats.Logger
+import org.typelevel.log4cats.{Logger, LoggerFactory}
 
 import scala.concurrent.duration._
 
@@ -24,7 +24,7 @@ trait GoogleServiceHttp[F[_]] {
 }
 
 object GoogleServiceHttp {
-  def withRetryAndLogging[F[_]: Async: Logger](
+  def withRetryAndLogging[F[_]: Async: Logger: LoggerFactory](
     httpClient: Client[F],
     config: NotificationCreaterConfig
   ): Resource[F, GoogleServiceHttp[F]] = {

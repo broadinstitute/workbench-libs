@@ -4,8 +4,9 @@ import cats.effect.Async
 import cats.syntax.all._
 import io.circe.Decoder
 import org.http4s.Uri
-import org.http4s.blaze.client._
+import org.http4s.ember.client.EmberClientBuilder
 import org.http4s.circe.CirceEntityDecoder._
+import org.typelevel.log4cats.LoggerFactory
 
 /**
  * Allows services to configure their mode of OAuth by providing 2 backend routes:
@@ -46,10 +47,10 @@ trait OpenIDConnectConfiguration {
 object OpenIDConnectConfiguration {
   private val oidcMetadataUrlSuffix = ".well-known/openid-configuration"
 
-  def apply[F[_]: Async](authorityEndpoint: String,
-                         oidcClientId: ClientId,
-                         extraAuthParams: Option[String] = None,
-                         authorityEndpointWithGoogleBillingScope: Option[String] = None
+  def apply[F[_]: Async: LoggerFactory](authorityEndpoint: String,
+                                        oidcClientId: ClientId,
+                                        extraAuthParams: Option[String] = None,
+                                        authorityEndpointWithGoogleBillingScope: Option[String] = None
   ): F[OpenIDConnectConfiguration] = for {
     openIdProvider <- getOpenIdProvider(authorityEndpoint)
     openIdProviderWithGoogleBillingScope <- authorityEndpointWithGoogleBillingScope.traverse(
@@ -61,7 +62,7 @@ object OpenIDConnectConfiguration {
                                        openIdProviderWithGoogleBillingScope
   )
 
-  private[oauth2] def getOpenIdProvider[F[_]: Async](authorityEndpoint: String): F[OpenIdProvider] =
+  private[oauth2] def getOpenIdProvider[F[_]: Async: LoggerFactory](authorityEndpoint: String): F[OpenIdProvider] =
     for {
       metadataUri <- getProviderMetadataUri(authorityEndpoint)
       metadata <- getProviderMetadata(metadataUri)
@@ -71,9 +72,11 @@ object OpenIDConnectConfiguration {
     Async[F].fromEither(Uri.fromString(authorityEndpoint)).map(_.addPath(oidcMetadataUrlSuffix))
 
   // Grabs the authorize and token endpoints from the authority metadata JSON
-  private[oauth2] def getProviderMetadata[F[_]: Async](providerMetadataUri: Uri): F[OpenIDProviderMetadata] =
+  private[oauth2] def getProviderMetadata[F[_]: Async: LoggerFactory](
+    providerMetadataUri: Uri
+  ): F[OpenIDProviderMetadata] =
     for {
-      resp <- BlazeClientBuilder[F].resource.use { client =>
+      resp <- EmberClientBuilder.default[F].build.use { client =>
         client.expectOr[OpenIDProviderMetadata](providerMetadataUri)(onError =>
           Async[F].raiseError(
             new RuntimeException(s"Error reading OIDC configuration endpoint: ${onError.status.reason}")

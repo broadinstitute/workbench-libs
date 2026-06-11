@@ -10,7 +10,7 @@ object Dependencies {
 
   // TODO upgrade to stable 14.x or 15.0 once that includes a fix to https://github.com/circe/circe-yaml/issues/356
   val circeVersion = "0.15.0-M1"
-  val http4sVersion = "1.0.0-M38"
+  val http4sVersion = "1.0.0-M45"
   val bouncyCastleVersion = "1.78.1"
   val openCensusV = "0.31.1" // Note this has not been updated since 2022
 
@@ -91,7 +91,7 @@ object Dependencies {
   val catsMtl = "org.typelevel" %% "cats-mtl" % "1.4.0"
 
   val http4sCirce = "org.http4s" %% "http4s-circe" % http4sVersion
-  val http4sBlazeClient = "org.http4s" %% "http4s-blaze-client" % http4sVersion
+  val http4sEmberClient = "org.http4s" %% "http4s-ember-client" % http4sVersion
   val http4sDsl = "org.http4s"      %% "http4s-dsl"          % http4sVersion
 
   val fs2Io: ModuleID = "co.fs2" %% "fs2-io" % "3.6.1"
@@ -199,7 +199,7 @@ object Dependencies {
     googleComputeNew,
     googleBigQueryNew,
     http4sCirce,
-    http4sBlazeClient,
+    http4sEmberClient,
     http4sDsl,
     log4cats,
     circeFs2,
@@ -285,7 +285,7 @@ object Dependencies {
 
   val oauth2Dependencies = commonDependencies ++ Seq(
     http4sCirce,
-    http4sBlazeClient,
+    http4sEmberClient,
     http4sDsl,
     swaggerUi,
     // note the following akka dependencies have "provided" scope, meaning the system using

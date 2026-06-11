@@ -2,6 +2,20 @@
 
 This file documents changes to the `workbench-google2` library, including notes on how to upgrade to new versions.
 
+## 0.41
+
+SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.41-TRAVIS-REPLACE-ME"`
+
+### Breaking changes
+- `GoogleServiceHttp.withRetryAndLogging` now requires a `LoggerFactory[F]` implicit.
+  This is needed because http4s M45's `Retry` middleware requires it.
+  Callers must have a `LoggerFactory[F]` in scope, e.g. via `org.typelevel.log4cats.slf4j.Slf4jFactory.create[F]`.
+
+### Dependency upgrades
+| Dependency          | Old Version | New Version |
+|---------------------|:-----------:|------------:|
+| http4s              | 1.0.0-M38   | 1.0.0-M45   |
+
 ## 0.40
 
 SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.40-0c796e4"`
