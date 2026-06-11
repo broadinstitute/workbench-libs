@@ -48,9 +48,9 @@ object OpenIDConnectConfiguration {
   private val oidcMetadataUrlSuffix = ".well-known/openid-configuration"
 
   def apply[F[_]: Async: LoggerFactory](authorityEndpoint: String,
-                         oidcClientId: ClientId,
-                         extraAuthParams: Option[String] = None,
-                         authorityEndpointWithGoogleBillingScope: Option[String] = None
+                                        oidcClientId: ClientId,
+                                        extraAuthParams: Option[String] = None,
+                                        authorityEndpointWithGoogleBillingScope: Option[String] = None
   ): F[OpenIDConnectConfiguration] = for {
     openIdProvider <- getOpenIdProvider(authorityEndpoint)
     openIdProviderWithGoogleBillingScope <- authorityEndpointWithGoogleBillingScope.traverse(
@@ -72,7 +72,9 @@ object OpenIDConnectConfiguration {
     Async[F].fromEither(Uri.fromString(authorityEndpoint)).map(_.addPath(oidcMetadataUrlSuffix))
 
   // Grabs the authorize and token endpoints from the authority metadata JSON
-  private[oauth2] def getProviderMetadata[F[_]: Async: LoggerFactory](providerMetadataUri: Uri): F[OpenIDProviderMetadata] =
+  private[oauth2] def getProviderMetadata[F[_]: Async: LoggerFactory](
+    providerMetadataUri: Uri
+  ): F[OpenIDProviderMetadata] =
     for {
       resp <- EmberClientBuilder.default[F].build.use { client =>
         client.expectOr[OpenIDProviderMetadata](providerMetadataUri)(onError =>
