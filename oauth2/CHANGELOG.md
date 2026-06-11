@@ -3,7 +3,7 @@
 This file documents changes to the `workbench-oauth2` library, including notes on how to upgrade to new versions.
 
 ## 0.10
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-oauth2" % "0.10-TRAVIS-REPLACE-ME"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-oauth2" % "0.10-a91095a"`
 
 ### Breaking changes
 - `OpenIDConnectConfiguration.apply`, `getOpenIdProvider`, and `getProviderMetadata` now require a `LoggerFactory[F]` implicit.

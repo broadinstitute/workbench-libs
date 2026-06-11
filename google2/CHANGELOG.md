@@ -4,7 +4,7 @@ This file documents changes to the `workbench-google2` library, including notes 
 
 ## 0.41
 
-SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.41-TRAVIS-REPLACE-ME"`
+SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.41-a91095a"`
 
 ### Breaking changes
 - `GoogleServiceHttp.withRetryAndLogging` now requires a `LoggerFactory[F]` implicit.
