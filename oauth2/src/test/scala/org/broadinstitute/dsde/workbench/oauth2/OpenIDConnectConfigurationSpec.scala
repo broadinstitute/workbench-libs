@@ -4,12 +4,15 @@ import cats.effect.IO
 import cats.effect.unsafe.implicits.global
 import org.broadinstitute.dsde.workbench.util2.WorkbenchTestSuite
 import org.http4s.Uri
+import org.typelevel.log4cats.LoggerFactory
+import org.typelevel.log4cats.slf4j.Slf4jFactory
 import org.scalatest.flatspec.AnyFlatSpecLike
 import org.scalatest.matchers.should.Matchers
 
 import scala.io.Source
 
 class OpenIDConnectConfigurationSpec extends AnyFlatSpecLike with Matchers with WorkbenchTestSuite {
+  implicit val loggerFactory: LoggerFactory[IO] = Slf4jFactory.create[IO]
   val fakeMetadata = OpenIDProviderMetadata("issuer", "authorize", "token", Option("endSession"))
 
   "OpenIDConnectConfiguration" should "initialize with B2C metadata" in {

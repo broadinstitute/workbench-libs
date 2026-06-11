@@ -16,6 +16,8 @@ import akka.http.scaladsl.server.{MethodRejection, UnsupportedRequestContentType
 import akka.http.scaladsl.testkit.ScalatestRouteTest
 import cats.effect.unsafe.implicits.global
 import cats.effect.{IO, Resource}
+import org.typelevel.log4cats.slf4j.Slf4jFactory
+import org.typelevel.log4cats.LoggerFactory
 import cats.syntax.all._
 import io.circe.Decoder
 import io.circe.parser._
@@ -37,6 +39,7 @@ class OpenIDConnectAkkaHttpSpec
     with WorkbenchTestSuite
     with ScalatestRouteTest
     with BeforeAndAfterAll {
+  implicit val loggerFactory: LoggerFactory[IO] = Slf4jFactory.create[IO]
   var mockServer: Http.ServerBinding = _
 
   override def beforeAll(): Unit = {
