@@ -50,5 +50,6 @@ trait GoogleDirectoryDAO {
       .setWhoCanUnmarkFavoriteReplyOnAnyTopic("NONE")
       .setWhoCanEnterFreeFormTags("NONE")
       .setWhoCanModifyTagsAndCategories("NONE")
+      .setAllowExternalMembers("true")
 
 }
