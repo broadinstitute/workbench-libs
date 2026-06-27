@@ -60,12 +60,12 @@ class HttpGoogleDirectoryDAO(appName: String,
     def getGroupSettings(groupEmail: WorkbenchEmail): Future[GroupSettings] = {
       val getter = settingsClient.groups().get(groupEmail.value)
       retry(when5xx,
-        whenUsageLimited,
-        when404,
-        whenInvalidValueOnBucketCreation,
-        whenNonHttpIOException,
-        when400,
-        whenGroupDoesNotExist
+            whenUsageLimited,
+            when404,
+            whenInvalidValueOnBucketCreation,
+            whenNonHttpIOException,
+            when400,
+            whenGroupDoesNotExist
       ) { () =>
         executeGoogleRequest(getter)
       }
@@ -276,15 +276,14 @@ class HttpGoogleDirectoryDAO(appName: String,
       // get the group's current settings
       currentSettings <- settingsDao.getGroupSettings(groupEmail)
       // if allowExternalMembers is false, set it to true; else, noop
-      updatedSettings <- if (!allowsExternalMembers(currentSettings)) {
-        val newSettings = currentSettings.setAllowExternalMembers("true")
-        settingsDao.updateGroupSettings(groupEmail, newSettings)
-      } else {
-        Future.successful(currentSettings)
-      }
-    } yield {
-      updatedSettings
-    }
+      updatedSettings <-
+        if (!allowsExternalMembers(currentSettings)) {
+          val newSettings = currentSettings.setAllowExternalMembers("true")
+          settingsDao.updateGroupSettings(groupEmail, newSettings)
+        } else {
+          Future.successful(currentSettings)
+        }
+    } yield updatedSettings
   }
 
   /**
