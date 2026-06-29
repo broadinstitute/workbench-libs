@@ -66,4 +66,7 @@ class MockGoogleDirectoryDAO(implicit val executionContext: ExecutionContext) ex
   override def listGroupMembers(groupEmail: WorkbenchEmail): Future[Option[Seq[String]]] = Future {
     groups.get(groupEmail).map(_.map(_.value).toSeq)
   }
+
+  override def enableExternalMembersIfNeeded(groupEmail: WorkbenchEmail): Future[GroupSettings] =
+    Future.successful(lockedDownGroupSettings)
 }

@@ -27,6 +27,16 @@ trait GoogleDirectoryDAO {
   def isGroupMember(groupEmail: WorkbenchEmail, memberEmail: WorkbenchEmail): Future[Boolean]
   def listGroupMembers(groupEmail: WorkbenchEmail): Future[Option[Seq[String]]]
 
+  def enableExternalMembersIfNeeded(groupEmail: WorkbenchEmail): Future[GroupSettings]
+
+  /**
+   * Whether a group's settings permit external (outside the organization) members. Google represents the
+   * allowExternalMembers setting as a nullable string; this normalizes it to a Boolean. A null or otherwise
+   * unparseable value is treated as false.
+   */
+  def allowsExternalMembers(settings: GroupSettings): Boolean =
+    java.lang.Boolean.parseBoolean(settings.getAllowExternalMembers)
+
   def lockedDownGroupSettings =
     new GroupSettings()
       .setWhoCanAdd("ALL_OWNERS_CAN_ADD")
