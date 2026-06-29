@@ -286,7 +286,7 @@ class HttpGoogleDirectoryDAO(appName: String,
     }
   }
 
-  override def ensureGroupAllowsExternalMembers(groupEmail: WorkbenchEmail): Future[GroupSettings] = {
+  override def enableExternalMembersIfNeeded(groupEmail: WorkbenchEmail): Future[GroupSettings] = {
     val settingsDao = new GroupSettingsDAO()
     for {
       // get the group's current settings

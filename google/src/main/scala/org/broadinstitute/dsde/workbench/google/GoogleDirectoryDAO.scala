@@ -27,7 +27,7 @@ trait GoogleDirectoryDAO {
   def isGroupMember(groupEmail: WorkbenchEmail, memberEmail: WorkbenchEmail): Future[Boolean]
   def listGroupMembers(groupEmail: WorkbenchEmail): Future[Option[Seq[String]]]
 
-  def ensureGroupAllowsExternalMembers(groupEmail: WorkbenchEmail): Future[GroupSettings]
+  def enableExternalMembersIfNeeded(groupEmail: WorkbenchEmail): Future[GroupSettings]
 
   /**
    * Whether a group's settings permit external (outside the organization) members. Google represents the
