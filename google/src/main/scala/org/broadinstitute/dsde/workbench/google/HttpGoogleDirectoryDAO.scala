@@ -61,14 +61,7 @@ class HttpGoogleDirectoryDAO(appName: String,
       val content = new GroupSettings()
         .setAllowExternalMembers(allowExternalMembers.toString.toLowerCase)
       val updater = settingsClient.groups().patch(groupEmail.value, content)
-      retry(when5xx,
-            whenUsageLimited,
-            when404,
-            whenInvalidValueOnBucketCreation,
-            whenNonHttpIOException,
-            when400,
-            whenGroupDoesNotExist
-      ) { () =>
+      retry(when5xx, whenUsageLimited, whenInvalidValueOnBucketCreation, whenNonHttpIOException) { () =>
         executeGoogleRequest(updater)
       }
     }
