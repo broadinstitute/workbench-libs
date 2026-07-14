@@ -72,7 +72,8 @@ package object util2 {
   // reflectively), otherwise the exception message. Falls back to getMessage if the reflective call fails.
   private def failureResponse(t: Throwable): Option[String] =
     if (isKubernetesApiException(t))
-      scala.util.Try(Some(t.getClass.getMethod("getResponseBody").invoke(t).asInstanceOf[String]))
+      scala.util
+        .Try(Some(t.getClass.getMethod("getResponseBody").invoke(t).asInstanceOf[String]))
         .getOrElse(Some(t.getMessage))
     else
       Some(t.getMessage)
