@@ -2,6 +2,18 @@
 
 This file documents changes to the `workbench-oauth2` library, including notes on how to upgrade to new versions.
 
+## 0.11
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-oauth2" % "0.11-TRAVIS-REPLACE-ME"`
+
+### Changes
+
+This library no longer includes `io.kubernetes:client-java` as a transitive dependency. This also removes `client-java`'s
+dependencies, such as `gson`, `okhttp`, `bcpkix-jdk18on`, `jose4j`, and `jackson-databind` as transitive dependencies.
+If your application relied on any of these being present, you will need to explicitly include them in your application.
+
+`workbench-util2` is now a test-only dependency; previously it was a compile+test
+dependency).
+
 ## 0.10
 SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-oauth2" % "0.10-a91095a"`
 

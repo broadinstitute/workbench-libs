@@ -2,6 +2,36 @@
 
 This file documents changes to the `workbench-util2` library, including notes on how to upgrade to new versions.
 
+## 1.1
+
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util2" % "1.1-TRAVIS-REPLACE-ME"`
+
+### Changes
+
+This library no longer includes `io.kubernetes:client-java` as a transitive dependency. This also removes `client-java`'s
+dependencies, such as `gson`, `okhttp`, `bcpkix-jdk18on`, `jose4j`, and `jackson-databind` as transitive dependencies.
+If your application relied on any of these being present, you will need to explicitly include them in your application.
+
+Previously `withLogging` (and `tracedLogging`) pattern-matched directly on
+`io.kubernetes.client.openapi.ApiException` to log its `getResponseBody` on failure, which forced a
+compile-time dependency on `client-java` and its transitive dependencies. Now, `withLogging` and `tracedLogging`
+use reflection to work with this `ApiException`.
+
+### Upgrade path
+
+No source or API changes are required — `withLogging`/`tracedLogging` behave exactly as before, and still log
+the `ApiException` response body when `client-java` is present on the runtime classpath (as it is for
+`workbench-google2` and `workbench-azure`, which declare it directly).
+
+Consumers that were relying on `workbench-util2` to transitively provide `io.kubernetes:client-java` or
+any of its transitive dependencies must now declare those dependencies themselves.
+
+### Dependency changes
+
+| Dependency                          | Old Version | New Version |
+|-------------------------------------|:-----------:|------------:|
+| client-java (io.kubernetes)         |   23.0.0    |     removed |
+
 ## 1.0
 
 SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-util2" % "1.0-dc1d534"`
