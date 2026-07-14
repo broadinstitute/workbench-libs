@@ -4,7 +4,7 @@ This file documents changes to the `workbench-notifications` library, including 
 
 ## 2.1
 
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-notifications" % "2.1-TRAVIS-REPLACE-ME"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-notifications" % "2.1-737147b"`
 
 ### Changes
 
