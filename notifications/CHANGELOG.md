@@ -2,6 +2,16 @@
 
 This file documents changes to the `workbench-notifications` library, including notes on how to upgrade to new versions.
 
+## 2.1
+
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-notifications" % "2.1-TRAVIS-REPLACE-ME"`
+
+### Changes
+
+This library no longer includes `io.kubernetes:client-java` as a transitive dependency. This also removes `client-java`'s
+dependencies, such as `gson`, `okhttp`, `bcpkix-jdk18on`, `jose4j`, and `jackson-databind` as transitive dependencies.
+If your application relied on any of these being present, you will need to explicitly include them in your application.
+
 ## 2.0
 
 ### Breaking changes

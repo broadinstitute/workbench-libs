@@ -52,6 +52,32 @@ package object util2 {
     "result"
   )(x => LoggableCloudCall.unapply(x).get)
 
+  // util2 intentionally has no dependency on io.kubernetes:client-java. Some callers (e.g. workbench-google2,
+  // workbench-azure) route Kubernetes API calls through withLogging; on failure those throw
+  // io.kubernetes.client.openapi.ApiException, whose getResponseBody carries the useful server-side error
+  // detail. Rather than referencing that class directly (which would drag client-java onto every consumer's
+  // classpath), we recognize it by class name and read getResponseBody reflectively. When client-java is not
+  // on the classpath the name check simply never matches and we fall back to getMessage — no reference to the
+  // class is ever loaded, so there is no NoClassDefFoundError risk.
+  private val KubernetesApiExceptionClassName = "io.kubernetes.client.openapi.ApiException"
+
+  private def isKubernetesApiException(t: Throwable): Boolean = {
+    @scala.annotation.tailrec
+    def loop(clazz: Class[_]): Boolean =
+      clazz != null && (clazz.getName == KubernetesApiExceptionClassName || loop(clazz.getSuperclass))
+    loop(t.getClass)
+  }
+
+  // The response body logged on failure: for a Kubernetes ApiException that is getResponseBody (read
+  // reflectively), otherwise the exception message. Falls back to getMessage if the reflective call fails.
+  private def failureResponse(t: Throwable): Option[String] =
+    if (isKubernetesApiException(t))
+      scala.util
+        .Try(Some(t.getClass.getMethod("getResponseBody").invoke(t).asInstanceOf[String]))
+        .getOrElse(Some(t.getMessage))
+    else
+      Some(t.getMessage)
+
   def withLogging[F[_]: Temporal, A](fa: F[A],
                                      traceId: Option[TraceId],
                                      action: String,
@@ -70,16 +96,8 @@ package object util2 {
         "duration" -> res._1.toMillis.toString
       )
       _ <- res._2 match {
-        case Left(e: io.kubernetes.client.openapi.ApiException) =>
-          val loggableCloudCall = LoggableCloudCall(Some(e.getResponseBody), "Failed")
-          val ctx = loggingCtx ++ Map("result" -> "Failed")
-          if (warnOnError) {
-            logger.warn(ctx, e)(loggableCloudCall.asJson.noSpaces)
-          } else {
-            logger.error(ctx, e)(loggableCloudCall.asJson.noSpaces)
-          }
         case Left(e) =>
-          val loggableCloudCall = LoggableCloudCall(Some(e.getMessage), "Failed")
+          val loggableCloudCall = LoggableCloudCall(failureResponse(e), "Failed")
           val ctx = loggingCtx ++ Map("result" -> "Failed")
           if (warnOnError) {
             logger.warn(ctx, e)(loggableCloudCall.asJson.noSpaces)

@@ -259,9 +259,8 @@ object Dependencies {
     circeCore,
     circeParser,
     circeGeneric,
-    catsMtl,
-    kubernetesClient
-  ) ++ bouncyCastleOverrides
+    catsMtl
+  )
 
   val serviceTestDependencies = commonDependencies ++ Seq(
     scalaLogging,

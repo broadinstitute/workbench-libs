@@ -78,7 +78,10 @@ lazy val workbenchNotifications = project
 lazy val workbenchOauth2 = project
   .in(file("oauth2"))
   .settings(oauth2Settings: _*)
-  .dependsOn(workbenchUtil2 % testAndCompile)
+  // oauth2's main code does not use util2; it only needs util2's test helpers (e.g. WorkbenchTestSuite).
+  // Depend on util2 in test scope only so util2 (and its transitive deps like io.kubernetes:client-java)
+  // stays out of oauth2's compile/runtime classpath.
+  .dependsOn(workbenchUtil2 % "test->test")
   .withTestSettings
 
 /*

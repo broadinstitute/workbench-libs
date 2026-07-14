@@ -103,7 +103,7 @@ object Settings {
   val util2Settings = commonSettings ++ List(
     name := "workbench-util2",
     libraryDependencies ++= util2Dependencies,
-    version := createVersion("1.0")
+    version := createVersion("1.1")
   ) ++ publishSettings
 
   val modelSettings = commonSettings ++ List(
@@ -121,7 +121,7 @@ object Settings {
   val googleSettings = commonSettings ++ List(
     name := "workbench-google",
     libraryDependencies ++= googleDependencies,
-    version := createVersion("0.35"),
+    version := createVersion("0.36"),
     coverageExcludedPackages := ".*HttpGoogle.*DAO.*"
   ) ++ publishSettings
 
@@ -140,31 +140,31 @@ object Settings {
   val openTelemetrySettings = commonSettings ++ List(
     name := "workbench-openTelemetry",
     libraryDependencies ++= openTelemetryDependencies,
-    version := createVersion("0.9")
+    version := createVersion("0.10")
   ) ++ publishSettings
 
   val errorReportingSettings = commonSettings ++ List(
     name := "workbench-error-reporting",
     libraryDependencies ++= errorReportingDependencies,
-    version := createVersion("0.9")
+    version := createVersion("0.10")
   ) ++ publishSettings
 
   val serviceTestSettings = commonSettings ++ List(
     name := "workbench-service-test",
     libraryDependencies ++= serviceTestDependencies,
-    version := createVersion("6.1")
+    version := createVersion("6.2")
   ) ++ publishSettings
 
   val notificationsSettings = commonSettings ++ List(
     name := "workbench-notifications",
     libraryDependencies ++= notificationsDependencies,
-    version := createVersion("2.0")
+    version := createVersion("2.1")
   ) ++ publishSettings
 
   val oauth2Settings = commonSettings ++ List(
     name := "workbench-oauth2",
     libraryDependencies ++= oauth2Dependencies,
-    version := createVersion("0.10")
+    version := createVersion("0.11")
   ) ++ publishSettings
 
   val rootSettings = commonSettings ++ noPublishSettings ++ noTestSettings
