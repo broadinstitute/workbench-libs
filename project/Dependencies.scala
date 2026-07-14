@@ -73,6 +73,11 @@ object Dependencies {
   val googleDataproc: ModuleID =    "com.google.cloud" % "google-cloud-dataproc" % "4.27.0"
   val googleContainer: ModuleID = "com.google.cloud" % "google-cloud-container" % "2.31.0"
   val kubernetesClient: ModuleID = "io.kubernetes" % "client-java" % "23.0.0"
+  // util2 only needs io.kubernetes.client.openapi.ApiException (used in withLogging). That class lives
+  // in the lighter client-java-api sub-artifact and is self-contained (references only JDK types), so we
+  // drop all of client-java-api's transitive deps (okhttp, gson, jackson, swagger, ...) — none are needed.
+  val kubernetesClientApi: ModuleID =
+    "io.kubernetes" % "client-java-api" % "23.0.0" excludeAll ExclusionRule(organization = "*", name = "*")
   val googleBigQueryNew: ModuleID = "com.google.cloud" % "google-cloud-bigquery" % "2.34.1"
   val google2CloudBilling = "com.google.cloud" % "google-cloud-billing" % "2.30.0"
   val googleStorageTransferService: ModuleID = "com.google.cloud" % "google-cloud-storage-transfer" % "1.30.0"
@@ -260,8 +265,8 @@ object Dependencies {
     circeParser,
     circeGeneric,
     catsMtl,
-    kubernetesClient
-  ) ++ bouncyCastleOverrides
+    kubernetesClientApi
+  )
 
   val serviceTestDependencies = commonDependencies ++ Seq(
     scalaLogging,
