@@ -16,14 +16,6 @@ object Settings {
     Resolver.sonatypeRepo("releases")
   )
 
-  // io.kubernetes:client-java is a direct (compile) dependency of util2 — it is used there only in
-  // withLogging's special-case for the Kubernetes ApiException. Modules that depend on util2 but never
-  // touch Kubernetes (and never call withLogging/tracedLogging) still inherit client-java transitively.
-  // Exclude it from those modules so it stays off their runtime classpath. azure and google2 keep it
-  // because they declare io.kubernetes:client-java directly and use it.
-  val excludeTransitiveKubernetesClient =
-    excludeDependencies += ExclusionRule(organization = "io.kubernetes")
-
   // coreDefaultSettings + defaultConfigs = the now deprecated defaultSettings
   lazy val commonBuildSettings = Defaults.coreDefaultSettings ++ Defaults.defaultConfigs ++ Seq(
     javaOptions += "-Xmx2G",
@@ -129,7 +121,6 @@ object Settings {
   val googleSettings = commonSettings ++ List(
     name := "workbench-google",
     libraryDependencies ++= googleDependencies,
-    excludeTransitiveKubernetesClient,
     version := createVersion("0.35"),
     coverageExcludedPackages := ".*HttpGoogle.*DAO.*"
   ) ++ publishSettings
@@ -149,28 +140,24 @@ object Settings {
   val openTelemetrySettings = commonSettings ++ List(
     name := "workbench-openTelemetry",
     libraryDependencies ++= openTelemetryDependencies,
-    excludeTransitiveKubernetesClient,
     version := createVersion("0.9")
   ) ++ publishSettings
 
   val errorReportingSettings = commonSettings ++ List(
     name := "workbench-error-reporting",
     libraryDependencies ++= errorReportingDependencies,
-    excludeTransitiveKubernetesClient,
     version := createVersion("0.9")
   ) ++ publishSettings
 
   val serviceTestSettings = commonSettings ++ List(
     name := "workbench-service-test",
     libraryDependencies ++= serviceTestDependencies,
-    excludeTransitiveKubernetesClient,
     version := createVersion("6.1")
   ) ++ publishSettings
 
   val notificationsSettings = commonSettings ++ List(
     name := "workbench-notifications",
     libraryDependencies ++= notificationsDependencies,
-    excludeTransitiveKubernetesClient,
     version := createVersion("2.0")
   ) ++ publishSettings
 
