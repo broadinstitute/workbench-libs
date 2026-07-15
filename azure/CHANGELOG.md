@@ -2,6 +2,18 @@
 
 This file documents changes to the `workbench-azure` library, including notes on how to upgrade to new versions.
 
+## 1.1
+
+SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-azure" % "1.1-TRAVIS-REPLACE-ME"`
+
+- bouncycastle libraries are no longer included as a direct dependency. They are still includes as a transitive
+  dependency from io.kubernetes:client-java
+
+### Dependency upgrades
+| Dependency                | Old Version | New Version |
+|---------------------------|:-----------:|------------:|
+| io.kubernetes:client-java |   23.0.0    |      27.0.0 |
+
 ## 1.0
 
 SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-azure" % "1.0-dc1d534"`

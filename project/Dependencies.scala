@@ -11,7 +11,6 @@ object Dependencies {
   // TODO upgrade to stable 14.x or 15.0 once that includes a fix to https://github.com/circe/circe-yaml/issues/356
   val circeVersion = "0.15.0-M1"
   val http4sVersion = "1.0.0-M45"
-  val bouncyCastleVersion = "1.78.1"
   val openCensusV = "0.31.1" // Note this has not been updated since 2022
 
   // avoid expoit https://nvd.nist.gov/vuln/detail/CVE-2023-1370 (see [IA-4176])
@@ -41,10 +40,6 @@ object Dependencies {
 
   val jacksonModule: ModuleID =   "com.fasterxml.jackson.module" %% "jackson-module-scala"   % jacksonV % "test"
 
-  val bouncyCastle: ModuleID = "org.bouncycastle" % "bcpkix-jdk18on" % bouncyCastleVersion
-  val bouncyCastleProviderExt: ModuleID = "org.bouncycastle" % "bcprov-ext-jdk18on" % bouncyCastleVersion
-  val bouncyCastleProvider: ModuleID = "org.bouncycastle" % "bcprov-jdk18on" % bouncyCastleVersion
-
   val catsEffect: ModuleID = "org.typelevel" %% "cats-effect" % "3.4.10"
 
   // metrics-scala transitively pulls in io.dropwizard.metrics:metrics-core
@@ -72,7 +67,7 @@ object Dependencies {
   val googleComputeNew: ModuleID = "com.google.cloud" % "google-cloud-compute" % "1.40.0"
   val googleDataproc: ModuleID =    "com.google.cloud" % "google-cloud-dataproc" % "4.27.0"
   val googleContainer: ModuleID = "com.google.cloud" % "google-cloud-container" % "2.31.0"
-  val kubernetesClient: ModuleID = "io.kubernetes" % "client-java" % "23.0.0"
+  val kubernetesClient: ModuleID = "io.kubernetes" % "client-java" % "27.0.0"
   val googleBigQueryNew: ModuleID = "com.google.cloud" % "google-cloud-bigquery" % "2.34.1"
   val google2CloudBilling = "com.google.cloud" % "google-cloud-billing" % "2.30.0"
   val googleStorageTransferService: ModuleID = "com.google.cloud" % "google-cloud-storage-transfer" % "1.30.0"
@@ -119,13 +114,6 @@ object Dependencies {
   val azureResourceManagerBatchAccount =
     "com.azure.resourcemanager" % "azure-resourcemanager-batch" % "1.0.0"
   val azureServiceBus = "com.azure" % "azure-messaging-servicebus" % "7.17.1"
-
-  // Note: this override can be removed when "io.kubernetes" % "client-java" publishes a new version containing
-  // non-vulnerable bouncy castle version. See https://broadworkbench.atlassian.net/browse/WM-2631
-  val bouncyCastleOverrides = Seq(
-    //Override for bouncy castle to address CVE-2024-30172
-    bouncyCastle, bouncyCastleProviderExt, bouncyCastleProvider
-  )
 
   val commonDependencies = Seq(
     jose4j,
@@ -187,9 +175,6 @@ object Dependencies {
 
   val google2Dependencies = commonDependencies ++ Seq(
     catsEffect,
-    bouncyCastle,
-    bouncyCastleProviderExt,
-    bouncyCastleProvider,
     googleRpc2,
     googleStorageNew,
     googleStorageLocal,
@@ -233,7 +218,7 @@ object Dependencies {
     byteBuddy
   ) ++ Seq(
     "net.minidev" % "json-smart" % jsonSmartV
-  ) ++ bouncyCastleOverrides
+  )
 
   val openTelemetryDependencies = List(
     catsEffect,
