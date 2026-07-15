@@ -2,6 +2,18 @@
 
 This file documents changes to the `workbench-google2` library, including notes on how to upgrade to new versions.
 
+## 0.42
+
+SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.42-TRAVIS-REPLACE-ME"`
+
+- bouncycastle libraries are no longer included as a direct dependency. They are still includes as a transitive
+  dependency from io.kubernetes:client-java
+
+### Dependency upgrades
+| Dependency                | Old Version | New Version |
+|---------------------------|:-----------:|------------:|
+| io.kubernetes:client-java |   23.0.0    |      27.0.0 |
+
 ## 0.41
 
 SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.41-a91095a"`
