@@ -3,7 +3,7 @@
 This file documents changes to the `workbench-oauth2` library, including notes on how to upgrade to new versions.
 
 ## 0.11
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-oauth2" % "0.11-737147b"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-oauth2" % "0.11-TRAVIS-REPLACE-ME"`
 
 ### Changes
 
@@ -13,6 +13,12 @@ If your application relied on any of these being present, you will need to expli
 
 `workbench-util2` is now a test-only dependency; previously it was a compile+test
 dependency).
+
+### Dependency upgrades
+| Dependency          | Old Version | New Version |
+|---------------------|:-----------:|------------:|
+| swagger-ui          |   5.32.6    |     5.32.11 |
+
 
 ## 0.10
 SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-oauth2" % "0.10-a91095a"`
