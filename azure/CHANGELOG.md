@@ -4,7 +4,7 @@ This file documents changes to the `workbench-azure` library, including notes on
 
 ## 1.2
 
-SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-azure" % "1.2-TRAVIS-REPLACE-ME"`
+SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-azure" % "1.2-fccb671"`
 
 - DOWNGRADES io.kubernetes:client-java from 27.0.0 to 24.0.0. As of version 25.0.0, client-java includes
   okhttp 5 as a transitive dependency. This downgrade allows workbench-libs consumers to continue to use
