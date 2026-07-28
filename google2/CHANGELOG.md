@@ -2,6 +2,19 @@
 
 This file documents changes to the `workbench-google2` library, including notes on how to upgrade to new versions.
 
+## 0.43
+
+SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.43-TRAVIS-REPLACE-ME"`
+
+- DOWNGRADES io.kubernetes:client-java from 27.0.0 to 24.0.0. As of version 25.0.0, client-java includes
+  okhttp 5 as a transitive dependency. This downgrade allows workbench-libs consumers to continue to use
+  okhttp 4.
+
+### Dependency upgrades
+| Dependency                | Old Version | New Version |
+|---------------------------|:-----------:|------------:|
+| io.kubernetes:client-java |   27.0.0    |      24.0.0 |
+
 ## 0.42
 
 SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.42-2e5c77a"`

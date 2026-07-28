@@ -15,7 +15,7 @@ Workbench utility libraries, built for 2.13. You can find the full list of packa
 
 Contains utility functions for talking to Azure APIs.
 
-Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-azure" % "1.1-2e5c77a"`
+Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-azure" % "1.2-TRAVIS-REPLACE-ME"`
 
 [Changelog](azure/CHANGELOG.md)
 
@@ -82,7 +82,7 @@ Workbench utility libraries, built for 2.13. You can find the full list of packa
 
 Contains utility functions for talking to Google APIs via com.google.cloud client library (more recent) via gRPC.
 
-Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.42-2e5c77a"`
+Latest SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.43-TRAVIS-REPLACE-ME"`
 
 To start the Google PubSub emulator for unit testing:
 
