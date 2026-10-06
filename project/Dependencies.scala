@@ -103,7 +103,7 @@ object Dependencies {
   val scalaCache = "com.github.cb372" %% "scalacache-caffeine" % "1.0.0-M6"
 
   // when changing swagger-ui version, also update the version strings in OpenIDConnectAkkaHttpOps.scala
-  val swaggerUi = "org.webjars" % "swagger-ui" % "5.32.11"
+  val swaggerUi = "org.webjars" % "swagger-ui" % "5.33.1"
 
   val azureResourceManagerCompute = "com.azure.resourcemanager" % "azure-resourcemanager-compute" % "2.32.0" exclude("net.minidev", "json-smart")
   val azureIdentity =  "com.azure" % "azure-identity" % "1.18.0"

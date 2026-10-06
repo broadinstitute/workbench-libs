@@ -3,7 +3,7 @@
 This file documents changes to the `workbench-oauth2` library, including notes on how to upgrade to new versions.
 
 ## 0.11
-SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-oauth2" % "0.11-76e472e"`
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-oauth2" % "0.11-TRAVIS-REPLACE-ME"`
 
 ### Changes
 
@@ -17,7 +17,7 @@ dependency).
 ### Dependency upgrades
 | Dependency          | Old Version | New Version |
 |---------------------|:-----------:|------------:|
-| swagger-ui          |   5.32.6    |     5.32.11 |
+| swagger-ui          |   5.32.6    |      5.33.1 |
 
 
 ## 0.10
