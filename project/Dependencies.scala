@@ -10,7 +10,7 @@ object Dependencies {
 
   // TODO upgrade to stable 14.x or 15.0 once that includes a fix to https://github.com/circe/circe-yaml/issues/356
   val circeVersion = "0.15.0-M1"
-  val http4sVersion = "1.0.0-M45"
+  val http4sVersion = "1.0.0-M49"
   val openCensusV = "0.31.1" // Note this has not been updated since 2022
 
   // avoid expoit https://nvd.nist.gov/vuln/detail/CVE-2023-1370 (see [IA-4176])
