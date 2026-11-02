@@ -2,6 +2,15 @@
 
 This file documents changes to the `workbench-google2` library, including notes on how to upgrade to new versions.
 
+## 0.44
+
+SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.44-TRAVIS-REPLACE-ME"`
+
+### Dependency upgrades
+| Dependency          | Old Version | New Version |
+|---------------------|:-----------:|------------:|
+| http4s              | 1.0.0-M45   | 1.0.0-M49   |
+
 ## 0.43
 
 SBT Dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-google2" % "0.43-fccb671"`
