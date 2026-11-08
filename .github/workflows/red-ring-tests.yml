@@ -64,3 +64,5 @@ jobs:
       artifact: 'test-reports'
       big-query-table: 'broad-dsde-qa.automated_testing.test_results'
       subuuid: ${{ github.run_id }} # run id of this gha
+
+# c211 probe trigger (intent 69201)
