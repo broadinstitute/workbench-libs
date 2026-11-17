@@ -22,7 +22,7 @@ jobs:
 #          create_credentials_file: true
 
       - name: Set up Cloud SDK
-        uses: google-github-actions/setup-gcloud@v0
+        uses: google-github-actions/setup-gcloud@v3
 
       - name: Start pubsub emulator
         run: |
