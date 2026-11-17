@@ -27,7 +27,7 @@ import scala.concurrent.duration._
 import scala.util.Try
 
 class OpenIDConnectAkkaHttpOps(private val config: OpenIDConnectConfiguration) {
-  private val swaggerUiPath = "META-INF/resources/webjars/swagger-ui/5.33.1"
+  private val swaggerUiPath = "META-INF/resources/webjars/swagger-ui/5.35.0"
   private val policyParam = "p"
 
   def oauth2Routes(implicit actorSystem: ActorSystem): Route = {
