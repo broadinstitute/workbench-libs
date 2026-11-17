@@ -11,12 +11,14 @@ jobs:
       id-token: write
       contents: write # Required for the "Push changes" step below
     steps:
-      - uses: sbt/setup-sbt@v1
       - uses: actions/checkout@v7
-      - name: Setup Scala
-        uses: olafurpg/setup-scala@v10
+      - name: Set up JDK
+        uses: actions/setup-java@v6
         with:
-          java-version: "17"
+          distribution: temurin
+          java-version: 17
+          cache: sbt
+      - uses: sbt/setup-sbt@v1
       - name: Auth to GCP
         id: 'auth'
         uses: google-github-actions/auth@v3
