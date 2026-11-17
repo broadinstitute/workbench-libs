@@ -11,28 +11,22 @@ jobs:
   test:
     runs-on: Ubuntu-latest
     steps:
+      - uses: actions/checkout@v7
+      - name: Set up JDK
+        uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: 17
+          cache: sbt
       - uses: sbt/setup-sbt@v1
-      - uses: actions/checkout@v2
-
-#      - name: Auth with Google Cloud Platform
-#        id: auth
-#        uses: google-github-actions/auth@v0
-#        with:
-#          credentials_json: ${{ secrets.GCP_SA_KEY }}
-#          create_credentials_file: true
 
       - name: Set up Cloud SDK
-        uses: google-github-actions/setup-gcloud@v0
+        uses: google-github-actions/setup-gcloud@v3
 
       - name: Start pubsub emulator
         run: |
           gcloud --quiet components install pubsub-emulator
           gcloud --quiet beta emulators pubsub start --project="broad-dsp-gcr-public" &
-
-      - name: Setup Scala
-        uses: coursier/setup-action@v1
-        with:
-          java-version: "17"
 
       - name: Compile and check scalafmt
         run: |
@@ -48,13 +42,3 @@ jobs:
         with:
           fail_ci_if_error: true
           token: ${{ secrets.CODECOV_TOKEN }}
-
-      - name: Setup Cache
-        uses: coursier/cache-action@v6
-
-      - name: Cache resources
-        run: |
-          rm -rf "$HOME/.ivy2/local" || true
-          find $HOME/.ivy2/cache                       -name "ivydata-*.properties" -delete || true
-          find $HOME/.cache/coursier/v1                -name "ivydata-*.properties" -delete || true
-          find $HOME/.sbt                              -name "*.lock"               -delete || true
