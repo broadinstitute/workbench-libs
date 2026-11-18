@@ -2,6 +2,14 @@
 
 This file documents changes to the `workbench-notifications` library, including notes on how to upgrade to new versions.
 
+# 2.2
+
+SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-notifications" % "2.2-TRAVIS-REPLACE-ME"`
+
+### Changes
+
+* Updated TeaspoonsUserQuotaChangedNotification to accept new parameters for user quota changes.
+
 ## 2.1
 
 SBT dependency: `"org.broadinstitute.dsde.workbench" %% "workbench-notifications" % "2.1-737147b"`
