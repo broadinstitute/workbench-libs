@@ -158,7 +158,7 @@ object Settings {
   val notificationsSettings = commonSettings ++ List(
     name := "workbench-notifications",
     libraryDependencies ++= notificationsDependencies,
-    version := createVersion("2.1")
+    version := createVersion("3.0")
   ) ++ publishSettings
 
   val oauth2Settings = commonSettings ++ List(
