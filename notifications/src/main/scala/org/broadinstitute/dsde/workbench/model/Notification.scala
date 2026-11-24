@@ -234,14 +234,16 @@ object Notifications {
 
   case class TeaspoonsUserQuotaChangedNotification(recipientUserId: WorkbenchUserId,
                                                    pipelineDisplayName: String,
-                                                   previousQuotaLimit: String,
-                                                   newQuotaLimit: String,
-                                                   quotaConsumedByUser: String,
+                                                   customMessage: String,
+                                                   previousQuotaAllocated: String,
+                                                   updatedQuotaAllocated: String,
+                                                   previousQuotaConsumed: String,
+                                                   updatedQuotaConsumed: String,
                                                    quotaAvailable: String
   ) extends UserNotification
   val TeaspoonsUserQuotaChangedNotificationType = register(new NotificationType[TeaspoonsUserQuotaChangedNotification] {
     override val format: RootJsonFormat[TeaspoonsUserQuotaChangedNotification] =
-      jsonFormat6(TeaspoonsUserQuotaChangedNotification.apply)
+      jsonFormat8(TeaspoonsUserQuotaChangedNotification.apply)
     override val description = "Teaspoons User Quota Changed"
     override val alwaysOn = true
   })
